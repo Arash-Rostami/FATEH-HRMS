@@ -29,12 +29,7 @@
                             <span class="material-symbols-rounded text-base" aria-hidden="true">trending_up</span>
                         </div>
                         <h2 class="text-sm font-semibold text-[var(--md-sys-color-on-surface)]">روند ۱۸ ماه اخیر</h2>
-                        <button @click="toggleMaximize('history')"
-                                :title="maximizedWidget === 'history' ? 'کوچک کردن' : 'بزرگ کردن'"
-                                :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedWidget === 'history' }"
-                                class="flex size-8 items-center justify-center rounded-lg hover:bg-[var(--md-sys-color-surface-variant)] transition-colors text-[var(--md-sys-color-on-surface-variant)]">
-                            <span class="material-symbols-rounded text-[20px]" x-text="maximizedWidget === 'history' ? 'close_fullscreen' : 'open_in_full'"></span>
-                        </button>
+                        <x-ui.modals.maximize-button toggle="toggleMaximize('history')" state="maximizedWidget === 'history'" size="widget"/>
                     </header>
 
                     <div class="relative w-full flex-1 p-4 lg:p-5 min-h-[280px]">
@@ -50,12 +45,7 @@
             <div class="order-1 lg:order-2 h-full w-full">
 
                 <div data-widget="score" :class="{ 'max-widget': maximizedWidget === 'score' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 p-5 lg:p-8 overflow-hidden shadow-sm flex flex-col items-center text-center relative justify-center bg-[var(--md-sys-color-surface)]">
-                    <button @click="toggleMaximize('score')"
-                            :title="maximizedWidget === 'score' ? 'کوچک کردن' : 'بزرگ کردن'"
-                            :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedWidget === 'score' }"
-                            class="flex size-8 items-center justify-center rounded-lg hover:bg-[var(--md-sys-color-surface-variant)] transition-colors text-[var(--md-sys-color-on-surface-variant)]">
-                        <span class="material-symbols-rounded text-[20px]" x-text="maximizedWidget === 'score' ? 'close_fullscreen' : 'open_in_full'"></span>
-                    </button>
+                    <x-ui.modals.maximize-button toggle="toggleMaximize('score')" state="maximizedWidget === 'score'" size="widget"/>
 
                     <div
                         class="absolute inset-0 bg-gradient-to-b from-[var(--md-sys-color-primary-container)]/10 to-transparent pointer-events-none rounded-2xl"></div>
@@ -126,12 +116,7 @@
                                         class="inline-flex items-center rounded-md bg-[var(--md-sys-color-primary-container)] px-2 py-0.5 text-[11px] font-bold text-[var(--md-sys-color-on-primary-container)]">
                                         {{ convertToPersian((string) count($teamMembersData)) }} نفر
                                     </span>
-                                    <button @click="toggleMaximize('team')"
-                                            :title="maximizedWidget === 'team' ? 'کوچک کردن' : 'بزرگ کردن'"
-                                            :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedWidget === 'team' }"
-                                            class="flex size-8 items-center justify-center rounded-lg hover:bg-[var(--md-sys-color-surface-variant)] transition-colors text-[var(--md-sys-color-on-surface-variant)]">
-                                        <span class="material-symbols-rounded text-[20px]" x-text="maximizedWidget === 'team' ? 'close_fullscreen' : 'open_in_full'"></span>
-                                    </button>
+                                    <x-ui.modals.maximize-button toggle="toggleMaximize('team')" state="maximizedWidget === 'team'" size="widget"/>
                                 </div>
                             </header>
                             <div class="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
@@ -166,12 +151,7 @@
                             <span class="material-symbols-rounded text-base" aria-hidden="true">radar</span>
                         </div>
                         <h2 class="text-sm font-semibold text-[var(--md-sys-color-on-surface)]">مقایسه سازمانی</h2>
-                        <button @click="toggleMaximize('radar')"
-                                :title="maximizedWidget === 'radar' ? 'کوچک کردن' : 'بزرگ کردن'"
-                                :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedWidget === 'radar' }"
-                                class="ml-auto flex size-8 items-center justify-center rounded-lg hover:bg-[var(--md-sys-color-surface-variant)] transition-colors text-[var(--md-sys-color-on-surface-variant)]">
-                            <span class="material-symbols-rounded text-[20px]" x-text="maximizedWidget === 'radar' ? 'close_fullscreen' : 'open_in_full'"></span>
-                        </button>
+                        <x-ui.modals.maximize-button toggle="toggleMaximize('radar')" state="maximizedWidget === 'radar'" size="widget" class="ml-auto"/>
                     </header>
                     <div class="relative w-full flex-1 flex items-center justify-center p-4 min-h-[250px]">
                         <div class="w-full h-full relative flex items-center justify-center max-w-[250px]">

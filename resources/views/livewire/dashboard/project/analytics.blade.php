@@ -136,7 +136,7 @@
                             @php($cdata = $jsChartData[$chartKey] ?? null)
                             @php($hasData = $cdata && !empty($cdata['labels']))
                             @if($hasData || !in_array($chartKey, $gatedCharts))
-                                <div class="analytics-card rounded-3xl flex flex-col min-h-[300px]">
+                                <div wire:key="project-analytics-card-{{ $chartKey }}" class="analytics-card rounded-3xl flex flex-col min-h-[300px]">
                                     <header class="px-5 py-3.5 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center gap-3 rounded-t-3xl shrink-0">
                                         <div class="flex size-8 items-center justify-center rounded-xl bg-[var(--tool-amethyst-bg)] text-[var(--tool-amethyst-color)]">
                                             <span class="material-symbols-rounded text-base" aria-hidden="true">{{ $cfg['type'] === 'doughnut' ? 'donut_large' : ($cfg['type'] === 'line' ? 'show_chart' : 'bar_chart') }}</span>
@@ -147,13 +147,13 @@
                                     <p class="px-5 pt-3 text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)] shrink-0">{{ $cfg['description'] }}</p>
 
                                     @if($hasData)
-                                        <div class="relative w-full h-[280px] p-4 lg:p-5 flex items-center justify-center">
+                                        <div wire:key="project-analytics-data-{{ $chartKey }}" class="relative w-full h-[280px] p-4 lg:p-5 flex items-center justify-center">
                                             <div class="h-full" :class="chartConfig['{{ $chartKey }}']?.type === 'doughnut' ? 'w-full max-w-[260px]' : 'w-full'">
                                                 <canvas id="analytics-chart-{{ $chartKey }}" role="img" aria-label="{{ $cfg['label'] }}"></canvas>
                                             </div>
                                         </div>
                                     @else
-                                        <div class="flex-1 flex items-center justify-center p-4">
+                                        <div wire:key="project-analytics-nodata-{{ $chartKey }}" class="flex-1 flex items-center justify-center p-4">
                                             <x-ui.empty icon="hourglass_empty" title="داده کافی نیست" variant="list"/>
                                         </div>
                                     @endif

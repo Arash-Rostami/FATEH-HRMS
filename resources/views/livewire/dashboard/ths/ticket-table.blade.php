@@ -8,23 +8,23 @@
 >
     <x-slot:head>
         <tr>
-            <th scope="col" class="px-6 py-4 rounded-tr-lg"><x-ui.table.sort-label column="created" :sort="$sort" :sortDir="$sortDir" :enabled="$listFilter === 'mine'">شناسه / تاریخ</x-ui.table.sort-label></th>
+            <th scope="col" class="px-6 py-4 rounded-tr-lg"><x-ui.table.sort-label column="created" :sort="$sort" :sortDir="$sortDir" :enabled="$listFilter !== 'actionable'">شناسه / تاریخ</x-ui.table.sort-label></th>
             <th scope="col" data-col="status" class="px-6 py-4">وضعیت</th>
             <th scope="col" data-col="domain" class="px-6 py-4 hidden md:table-cell">حوزه درخواست</th>
-            <th scope="col" class="px-6 py-4 hidden sm:table-cell w-1/3"><x-ui.table.sort-label column="subject" :sort="$sort" :sortDir="$sortDir" :enabled="$listFilter === 'mine'">موضوع</x-ui.table.sort-label></th>
+            <th scope="col" class="px-6 py-4 hidden sm:table-cell w-1/3"><x-ui.table.sort-label column="subject" :sort="$sort" :sortDir="$sortDir" :enabled="$listFilter !== 'actionable'">موضوع</x-ui.table.sort-label></th>
             <th scope="col" data-col="requester" class="px-6 py-4 hidden lg:table-cell">درخواست‌دهنده</th>
             <th scope="col" data-col="assignee" class="px-6 py-4 hidden lg:table-cell">مسئول</th>
             <th scope="col" class="px-6 py-4 text-center rounded-tl-lg">
                 <x-ui.table.tools wire:key="ths-actions-toolbar">
                     <x-ui.table.density-toggle/>
-                    @if($listFilter === 'mine')
+                    @if($listFilter !== 'actionable')
                         <div wire:key="ths-sort" class="contents">
                             <x-ui.table.sort-popover :options="['created' => 'تاریخ ثبت', 'subject' => 'موضوع', 'status' => 'وضعیت', 'priority' => 'اولویت']"
                                                      :sort="$sort" :sortDir="$sortDir" :isDefault="$sort === 'created' && $sortDir === 'desc'"/>
                         </div>
                     @endif
                     <x-ui.table.col-toggle scope="ths" :columns="['status' => 'وضعیت', 'domain' => 'حوزه درخواست', 'requester' => 'درخواست‌دهنده', 'assignee' => 'مسئول']" />
-                    @if($listFilter === 'mine')
+                    @if($listFilter !== 'actionable')
                         <div wire:key="ths-date-span" class="contents">
                             <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :currentBasis="$dateBasis"/>
                         </div>

@@ -11,6 +11,7 @@ use App\Models\Photo;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
+use App\Traits\FilamentVisibility;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class GalleryResource extends Resource
 {
-    use FilamentActions, AuthorizesByPermission, FilamentAdminGuide;
+    use FilamentActions, AuthorizesByPermission, FilamentAdminGuide, FilamentVisibility;
 
     protected static ?string $model = Photo::class;
     protected static ?string $recordTitleAttribute = 'title';
@@ -48,6 +49,7 @@ class GalleryResource extends Resource
                     GalleryFormPresenter::divider(),
                     GalleryFormPresenter::departmentId(),
                     GalleryFormPresenter::departments(),
+                    self::activeToggle(),
                     GalleryFormPresenter::divider(),
                     GalleryFormPresenter::description(),
                     GalleryFormPresenter::divider(),
@@ -122,6 +124,7 @@ class GalleryResource extends Resource
                     GalleryInfolistPresenter::description(),
                     GalleryInfolistPresenter::department(),
                     GalleryInfolistPresenter::photosCount(),
+                    self::activeEntry(),
                     GalleryInfolistPresenter::eventDate(),
 
                     GalleryInfolistPresenter::divider(),
@@ -146,13 +149,16 @@ class GalleryResource extends Resource
                 GalleryTablePresenter::title(),
                 GalleryTablePresenter::department(),
                 GalleryTablePresenter::photosCount(),
+                self::activeColumn(),
                 GalleryTablePresenter::eventDate(),
                 GalleryTablePresenter::createdAt(),
             ])
             ->groups([
                 GalleryTablePresenter::departmentGroup(),
+                self::activeGroup(),
             ])
             ->filters([
+                self::activeFilter(),
                 GalleryTablePresenter::visibilityFilter(),
                 GalleryTablePresenter::sharedFilter(),
                 GalleryTablePresenter::departmentFilter(),
@@ -164,7 +170,10 @@ class GalleryResource extends Resource
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(GalleryExporter::class))
+            ->groupedBulkActions([
+                ...self::bulkActions(GalleryExporter::class),
+                ...self::bulkVisibilityActions(),
+            ])
             ->emptyStateIcon('heroicon-o-photo')
             ->defaultSort('event_date', 'desc')
             ->striped();

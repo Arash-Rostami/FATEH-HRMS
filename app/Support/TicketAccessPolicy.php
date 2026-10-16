@@ -58,7 +58,9 @@ final class TicketAccessPolicy
 
     public static function canRelease(Ticket $ticket, ?User $user): bool
     {
-        return $user !== null && $ticket->status === 'in-progress' && $ticket->assigned_to === $user->id;
+        return $user !== null
+            && $ticket->status === 'in-progress'
+            && ($ticket->assigned_to === $user->id || self::isHeadOfTargetDepartment($ticket, $user));
     }
 
     public static function canSetEffectiveness(Ticket $ticket, ?User $user): bool

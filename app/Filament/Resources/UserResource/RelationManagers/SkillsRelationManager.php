@@ -38,7 +38,12 @@ class SkillsRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return $ownerRecord->skillUsers()->exists();
+        return parent::canViewForRecord($ownerRecord, $pageClass) && $ownerRecord->skillUsers()->exists();
+    }
+
+    public static function deniedByPermission(Model $ownerRecord): ?string
+    {
+        return ($module = parent::deniedByPermission($ownerRecord)) && $ownerRecord->skillUsers()->exists() ? $module : null;
     }
 
     public function table(Table $table): Table

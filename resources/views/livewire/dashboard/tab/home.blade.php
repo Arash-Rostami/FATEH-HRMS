@@ -38,6 +38,20 @@
                         class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-mono text-[10px] font-bold pt-1 shrink-0">⌘</span>
                     <span
                         class="font-bold text-[var(--md-sys-color-on-primary-container)]/90 truncate">میز کار متمرکز سازمانی</span>
+                    @php($updatedAt = rescue(fn() => \Illuminate\Support\Carbon::parse(config('app.last_update')), null, false))
+                    @if($updatedAt && $updatedAt->gt(now()->subHours(84)))
+                        <div wire:key="home-update-badge" class="shrink-0">
+                            <x-dashboard.modal.release>
+                                <x-slot:trigger>
+                                    <span title="انجام شده در {{ toJalali($updatedAt, 'j F H:i') }}"
+                                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] text-[10px] font-bold hover:opacity-80 transition-opacity">
+                                        <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+                                        بروزرسانی جدید
+                                    </span>
+                                </x-slot:trigger>
+                            </x-dashboard.modal.release>
+                        </div>
+                    @endif
                 </div>
 
                 @if($teamPulse->isNotEmpty())
@@ -252,12 +266,7 @@
                         </div>
 
                         <div class="flex items-center gap-1 shrink-0">
-                            <button type="button" x-on:click="toggleMaximize(pane)"
-                                    :title="maximizedPane === pane ? 'خروج از تمام‌صفحه' : 'تمام‌صفحه سازمانی'"
-                                    class="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] transition-colors">
-                                    <span class="material-symbols-rounded text-[17px]"
-                                          x-text="maximizedPane === pane ? 'close_fullscreen' : 'open_in_full'"></span>
-                            </button>
+                            <x-ui.modals.maximize-button toggle="toggleMaximize(pane)" state="maximizedPane === pane" size="sm" label="تمام‌صفحه سازمانی" label-on="خروج از تمام‌صفحه"/>
                             <button type="button" x-on:click="remove(pane)" title="حذف ماژول از میز کار"
                                     class="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-colors">
                                 <span class="material-symbols-rounded text-[17px]">delete</span>

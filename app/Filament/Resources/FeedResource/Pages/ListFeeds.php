@@ -6,13 +6,14 @@ use App\Filament\Resources\FeedResource;
 use App\Filament\Resources\FeedResource\Enums\FeedCategory;
 use App\Models\Feed;
 use App\Traits\FilamentHeaderActions;
+use App\Traits\FilamentVisibility;
 use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListFeeds extends ListRecords
 {
-    use FilamentHeaderActions;
+    use FilamentHeaderActions, FilamentVisibility;
 
     protected static string $resource = FeedResource::class;
 
@@ -43,6 +44,8 @@ class ListFeeds extends ListRecords
                 ->badge(fn() => $this->getStats()->poll_count ?: null)
                 ->badgeColor('warning')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('category', FeedCategory::Poll->value)),
+
+            ...self::activeTabs(fn() => $this->getStats()),
         ];
     }
 
@@ -52,7 +55,9 @@ class ListFeeds extends ListRecords
             ->selectRaw("
                 SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) AS today_count,
                 SUM(CASE WHEN media_paths IS NOT NULL THEN 1 ELSE 0 END) AS with_media_count,
-                SUM(CASE WHEN category = '" . FeedCategory::Poll->value . "' THEN 1 ELSE 0 END) AS poll_count
+                SUM(CASE WHEN category = '" . FeedCategory::Poll->value . "' THEN 1 ELSE 0 END) AS poll_count,
+                SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) AS active_count,
+                SUM(CASE WHEN active = 0 THEN 1 ELSE 0 END) AS inactive_count
             ")
             ->first());
     }

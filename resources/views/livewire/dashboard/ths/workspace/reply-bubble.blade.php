@@ -20,11 +20,11 @@
          ])>
         <div class="flex items-center gap-2 mb-1">
             <span class="text-[11px] font-bold">{{ $reply->user?->name ?? '—' }}</span>
-            <span class="text-[10px] opacity-60" dir="ltr">{{ toJalali($reply->created_at, 'H:i j F') }}</span>
+            <span class="text-[10px] opacity-60" dir="ltr">{{ $presenter->replyTime($reply->created_at) }}</span>
         </div>
 
         @if($reply->body)
-            <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ $reply->body }}</p>
+            <p class="text-sm leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">{{ $reply->body }}</p>
         @endif
 
         @if(!empty($reply->files))

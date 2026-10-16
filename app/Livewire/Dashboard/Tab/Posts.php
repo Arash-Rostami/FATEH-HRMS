@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Tab\Actions\MarkPostAsReadAction;
 use App\Models\Post;
 use App\Services\Cache\ModelCacheVersion;
 use App\Traits\FocusOnRecord;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
@@ -27,6 +28,13 @@ class Posts extends Component
     public string $view = 'card';
 
     public $selectedPost = null;
+
+    public string $search = '';
+
+    public function updatedSearch(): void
+    {
+        $this->page = 1;
+    }
 
     public function mount(): void
     {
@@ -67,11 +75,18 @@ class Posts extends Component
     #[On('select-post')]
     public function selectPost(int $id, MarkPostAsReadAction $action): void
     {
-        $this->selectedPost = Post::cachedItem($id);
+        $post = Post::cachedItem($id);
+
+        if (!$post?->isVisibleTo($this->department())) {
+            $this->selectedPost = null;
+            return;
+        }
+
+        $this->selectedPost = $post;
 
         $userId = auth()->id();
 
-        if ($this->selectedPost && $userId) {
+        if ($userId) {
             $action->execute($id, $userId);
         }
 
@@ -81,13 +96,17 @@ class Posts extends Component
     #[Computed]
     public function pins()
     {
-        return Post::cachedPins();
+        if (!$this->searching()) {
+            return Post::cachedPins($this->department());
+        }
+
+        return $this->matching(Post::with('user')->where('pinned', 1)->forViewer())->latest()->take(1)->get();
     }
 
     #[Computed]
     public function posts()
     {
-        return Post::query()
+        return $this->matching(Post::forViewer())
             ->with('user')
             ->notPinned()
             ->orderByDesc('created_at')
@@ -106,17 +125,46 @@ class Posts extends Component
     #[Computed]
     public function totalPosts()
     {
-        return ModelCacheVersion::remember(Post::class, 'total_count', now()->addMinutes(15), fn () => Post::count());
+        if ($this->searching()) {
+            return $this->matching(Post::forViewer())->count();
+        }
+
+        return ModelCacheVersion::remember(Post::class, "total_count:{$this->department()}", now()->addMinutes(15), fn () => Post::forViewer()->count());
     }
 
     #[Computed]
     public function hasMorePosts(): bool
     {
+        if ($this->searching()) {
+            return $this->posts()->count() < $this->matching(Post::forViewer())->notPinned()->count();
+        }
+
         return $this->posts()->count() < ModelCacheVersion::remember(
             Post::class,
-            'non_pinned_count',
+            "non_pinned_count:{$this->department()}",
             now()->addMinutes(15),
-            fn () => Post::query()->notPinned()->count()
+            fn () => Post::forViewer()->notPinned()->count()
         );
+    }
+
+    private function searching(): bool
+    {
+        return trim($this->search) !== '';
+    }
+
+    private function matching(Builder $query): Builder
+    {
+        if (!$this->searching()) {
+            return $query;
+        }
+
+        $term = '%' . addcslashes(trim($this->search), '\\%_') . '%';
+
+        return $query->where(fn ($q) => $q->where('title', 'like', $term)->orWhere('body', 'like', $term));
+    }
+
+    private function department(): ?string
+    {
+        return auth()->user()?->profile?->department_id;
     }
 }

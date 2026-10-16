@@ -2,7 +2,6 @@ import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
 import taskboard from '../taskboard.js'
 
 const FAVORITES_KEY = 'taskboard-favorites'
-const FILTERS_OPEN_KEY = 'taskboard-filters-open'
 const SWIPE_HINT_KEY = 'taskboard-swipe-hint-dismissed'
 const COLLAPSED_PREFIX = 'taskboard-collapsed-'
 
@@ -56,21 +55,12 @@ describe('taskboard.toggleFavorite', () => {
     })
 })
 
-describe('taskboard.toggleFavoritesOnly / toggleFilters / dismissSwipeHint', () => {
+describe('taskboard.toggleFavoritesOnly / dismissSwipeHint', () => {
     test('toggleFavoritesOnly flips the flag with no persistence', () => {
         const c = taskboard()
         c.toggleFavoritesOnly()
         expect(c.showFavoritesOnly).toBe(true)
         expect(localStorage.getItem('taskboard-favorites-only')).toBeNull()
-    })
-
-    test('toggleFilters flips and persists "1"/"0"', () => {
-        const c = taskboard()
-        c.toggleFilters()
-        expect(c.filtersOpen).toBe(true)
-        expect(localStorage.getItem(FILTERS_OPEN_KEY)).toBe('1')
-        c.toggleFilters()
-        expect(localStorage.getItem(FILTERS_OPEN_KEY)).toBe('0')
     })
 
     test('dismissSwipeHint sets the flag and persists "1"', () => {
@@ -199,15 +189,13 @@ describe('taskboard.init', () => {
         expect(c.isCollapsed('done')).toBe(false)
     })
 
-    test('restores filtersOpen/swipeHintDismissed booleans from localStorage', () => {
-        localStorage.setItem(FILTERS_OPEN_KEY, '1')
+    test('restores swipeHintDismissed boolean from localStorage', () => {
         localStorage.setItem(SWIPE_HINT_KEY, '1')
 
         const c = taskboard()
         c.$watch = vi.fn()
         c.init()
 
-        expect(c.filtersOpen).toBe(true)
         expect(c.swipeHintDismissed).toBe(true)
     })
 

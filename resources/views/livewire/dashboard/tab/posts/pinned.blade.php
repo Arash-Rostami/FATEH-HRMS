@@ -17,7 +17,7 @@
                     $isSeen = $this->seenIds->has($pin->id);
                 @endphp
 
-                <div class="relative group cursor-pointer rounded-[32px] overflow-hidden bg-[var(--md-sys-color-surface)] transition-all duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] hover:scale-[1.015] flex-grow flex flex-col shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 hover:-translate-y-1 hover:border-[var(--md-sys-color-primary)]/30"
+                <div wire:key="posts-pinned-{{ $pin->id }}" class="relative group cursor-pointer rounded-[32px] overflow-hidden bg-[var(--md-sys-color-surface)] transition-all duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] hover:scale-[1.015] flex-grow flex flex-col shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 hover:-translate-y-1 hover:border-[var(--md-sys-color-primary)]/30"
                      wire:click="selectPost({{ $pin->id }})">
 
                     <div class="absolute top-0 inset-x-0 h-[5px] bg-gradient-to-r from-[var(--md-sys-color-primary)] via-[var(--md-sys-color-tertiary)] to-[var(--md-sys-color-primary)] z-30 transform origin-left scale-x-100 transition-transform duration-500"></div>
@@ -76,7 +76,7 @@
                 </div>
             @endforeach
         @else
-            <div class="flex-grow flex items-center justify-center bg-gradient-to-br from-[var(--md-sys-color-surface-container)] to-[var(--md-sys-color-surface-container-low)] rounded-[32px] border border-[var(--md-sys-color-outline-variant)]/40 shadow-inner">
+            <div wire:key="posts-pinned-empty" class="flex-grow flex items-center justify-center bg-gradient-to-br from-[var(--md-sys-color-surface-container)] to-[var(--md-sys-color-surface-container-low)] rounded-[32px] border border-[var(--md-sys-color-outline-variant)]/40 shadow-inner">
                 <x-ui.empty icon="campaign" title="خوش آمدید" variant="welcome">
                     <p class="text-sm leading-relaxed max-w-xs mx-auto">
                         در حال حاضر اعلان مهمی پین نشده است.<br>

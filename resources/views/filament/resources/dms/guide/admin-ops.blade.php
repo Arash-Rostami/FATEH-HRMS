@@ -68,6 +68,10 @@
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
                 اگر فایل یک سند را جایگزینی می‌کنید، بدانید همهٔ تأییدهای کاربران صفر می‌شوند و سند دوباره در کارتابل آنها «اقدام مورد نیاز» می‌شود — برای اصلاح جزئی فایل بدون بازنشانی، وضعیت سند را موقتاً به «در بررسی» ببرید، فایل را جایگزین کنید، سپس به «فعال» برگردانید.
             </p>
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2 mt-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
+                زبانهٔ «خوانندگان» ماژول جدا ندارد؛ هر کس بتواند رکورد DMS را باز کند آن را می‌بیند و در صفحهٔ ویرایش می‌تواند مدیریتش کند.
+            </p>
         </div>
     </div>
 </div>

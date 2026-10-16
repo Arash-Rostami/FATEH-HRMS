@@ -99,7 +99,7 @@
     @endforelse
 
     @if($this->authorities->hasMorePages())
-        <div class="flex justify-center py-6 pb-12">
+        <div wire:key="authority-load-more" class="flex justify-center py-6 pb-12">
             <x-ui.buttons.load-more
                 action="loadMore"
                 text="بارگذاری بیشتر"

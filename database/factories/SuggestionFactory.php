@@ -14,7 +14,7 @@ class SuggestionFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => fake()->paragraph(),
+            'title' => fake()->text(120),
             'description' => fake()->paragraph(),
             'departments' => [],
             'purpose' => [],

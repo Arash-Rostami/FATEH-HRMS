@@ -12,6 +12,7 @@ use App\Models\Feed;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
+use App\Traits\FilamentVisibility;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -23,7 +24,7 @@ use Illuminate\Support\Str;
 
 class FeedResource extends Resource
 {
-    use FilamentActions, FilamentAdminGuide, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentAdminGuide, FilamentFilters, FilamentVisibility, AuthorizesByPermission;
 
     protected static ?string $model = Feed::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-rss';
@@ -60,6 +61,8 @@ class FeedResource extends Resource
                 ->schema([
                     FeedFormPresenter::userId(),
                     FeedFormPresenter::category(),
+                    self::activeToggle(),
+                    self::departmentsSelect(),
                     FeedFormPresenter::divider(),
                     FeedFormPresenter::pollSettings(),
                     FeedFormPresenter::pollOptions(),
@@ -144,6 +147,8 @@ class FeedResource extends Resource
                     FeedInfolistPresenter::category(),
                     FeedInfolistPresenter::commentsCount(),
                     FeedInfolistPresenter::reactionsCount(),
+                    self::activeEntry(),
+                    self::audienceEntry(),
 
                     FeedInfolistPresenter::divider(),
                     FeedInfolistPresenter::content(),
@@ -172,6 +177,8 @@ class FeedResource extends Resource
                 FeedTablePresenter::mediaPreview(),
                 FeedTablePresenter::user(),
                 FeedTablePresenter::category(),
+                self::activeColumn(),
+                self::audienceColumn(),
                 FeedTablePresenter::content(),
                 FeedTablePresenter::commentsCount(),
                 FeedTablePresenter::reactionsCount(),
@@ -181,8 +188,12 @@ class FeedResource extends Resource
             ])
             ->groups([
                 FeedTablePresenter::categoryGroup(),
+                self::activeGroup(),
             ])
             ->filters([
+                self::activeFilter(),
+                self::audienceFilter(),
+                self::visibilityFilter(),
                 FeedTablePresenter::categoryFilter(),
                 FeedTablePresenter::userFilter(),
                 self::createdAtFilter(),
@@ -194,7 +205,10 @@ class FeedResource extends Resource
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(FeedExporter::class))
+            ->groupedBulkActions([
+                ...self::bulkActions(FeedExporter::class),
+                ...self::bulkVisibilityActions(),
+            ])
             ->emptyStateIcon('heroicon-o-newspaper')
             ->defaultSort('created_at', 'desc')
             ->striped();

@@ -33,7 +33,7 @@ class WorkflowPresenter
         $days = $workflow->template_id ? ($averageDays[$workflow->template_id] ?? null) : null;
 
         return $days && $workflow->started_at
-            ? 'پایان تخمینی ' . toJalali($workflow->started_at->copy()->addDays($days), 'j F')
+            ? 'پایان تخمینی ' . toJalali($workflow->started_at->copy()->addDays($days), 'j F Y')
             : null;
     }
 

@@ -4,6 +4,7 @@ namespace App\Services\Search\Resources;
 
 use App\Models\Feed;
 use App\Services\Search\Contracts\SearchResource;
+use Illuminate\Database\Eloquent\Builder;
 
 class FeedResource extends SearchResource
 {
@@ -19,6 +20,11 @@ class FeedResource extends SearchResource
     public function action($row): string
     {
         return $this->tab('feed', $row->getKey());
+    }
+
+    protected function scope(Builder $query): void
+    {
+        $query->forViewer();
     }
 
     protected function titleFor($row): string

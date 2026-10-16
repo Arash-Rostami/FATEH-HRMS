@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAudience;
 use App\Models\Concerns\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Report extends Model
 {
-    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles;
+    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles, HasAudience;
 
     protected $fillable = [
         'user_id',
@@ -20,9 +21,7 @@ class Report extends Model
         'description',
         'cover_image',
         'department_id',
-        'departments',
         'file_path',
-        'active',
         'pinned',
         'report_date',
         'expires_at',
@@ -31,11 +30,6 @@ class Report extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id', 'code');
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->where('active', true);
     }
 
     public function scopeByDepartment($query, string $departmentId)
@@ -48,11 +42,6 @@ class Report extends Model
         return $query->where('user_id', $userId);
     }
 
-    public function scopeInactive($query)
-    {
-        return $query->where('active', false);
-    }
-
     public function scopePinned($query)
     {
         return $query->where('pinned', true);
@@ -63,16 +52,6 @@ class Report extends Model
         return $query->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
     }
 
-    public function scopeVisibleTo($query, ?string $departmentCode)
-    {
-        return $query->where(function ($q) use ($departmentCode) {
-            $q->where(fn($x) => $x->whereNull('departments')->orWhereRaw('JSON_LENGTH(departments) = 0'));
-            if (filled($departmentCode)) {
-                $q->orWhereJsonContains('departments', $departmentCode);
-            }
-        });
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -81,35 +60,10 @@ class Report extends Model
     protected function casts(): array
     {
         return [
-            'active' => 'boolean',
             'pinned' => 'boolean',
-            'departments' => 'array',
             'report_date' => 'date',
             'expires_at' => 'date',
         ];
-    }
-
-    protected function isPublic(): Attribute
-    {
-        return Attribute::make(
-            get: fn(): bool => empty($this->departments),
-        );
-    }
-
-    protected function audienceDepartments(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                $codes = $this->departments ?? [];
-                if (empty($codes)) {
-                    return collect();
-                }
-
-                return Department::getCachedModels()
-                    ->filter(fn($model, $code) => in_array($code, $codes, true))
-                    ->values();
-            }
-        )->shouldCache();
     }
 
     protected function description(): Attribute

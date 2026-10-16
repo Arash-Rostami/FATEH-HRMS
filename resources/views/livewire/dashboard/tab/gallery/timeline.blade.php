@@ -1,4 +1,5 @@
 @if($this->photos->isNotEmpty())
+<div wire:key="gallery-timeline-list" class="contents">
 
     <div x-show="month && visibleCount === 0" x-cloak
          class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">
@@ -72,9 +73,10 @@
             <div class="shrink-0 w-4 md:w-[20%] snap-align-none pointer-events-none h-1"></div>
         </div>
     </div>
+</div>
 
 @else
-    <div class="w-full h-full">
+    <div wire:key="gallery-timeline-empty" class="w-full h-full">
         <x-ui.empty icon="photo_library" title="گالری هنوز خالی است" description="هنوز هیچ محتوایی بارگذاری نشده است."
                     variant="list" :fill="true"/>
     </div>

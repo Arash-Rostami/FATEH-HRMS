@@ -28,7 +28,7 @@ Cycle lock (`Task::isCycleLocked()`): the CURRENT step task of an ACTIVE cycle c
 
 ## 3. `TicketAccessPolicy`
 
-`canView` (elevated roles, requester, assignee, or a HEAD of the target department — heads see every department ticket in any status), `canReply` (view and not closed), `canAssign` (requester only if he is a head; elevated or head otherwise), `canWithdraw` (requester, open/in-progress), `canReroute` (not closed; elevated or head), `canRelease` (the assignee of an in-progress ticket), `canSetEffectiveness` / `canClose`. A closed ticket is FINAL: it cannot be reopened or reassigned (`Ticket::saving` throws), withdrawn tickets never ask for a rating. "Head" = `User::isHeadOfDepartment` (ties-aware, cached — modelPattern Tier V).
+`canView` (elevated roles, requester, assignee, or a HEAD of the target department — heads see every department ticket in any status), `canReply` (view and not closed), `canAssign` (requester only if he is a head; elevated or head otherwise), `canWithdraw` (requester, open/in-progress), `canReroute` (not closed; elevated or head), `canRelease` (the assignee of an in-progress ticket, or a head of its target department), `canSetEffectiveness` / `canClose`. A closed ticket is FINAL: it cannot be reopened or reassigned (`Ticket::saving` throws), withdrawn tickets never ask for a rating. "Head" = `User::isHeadOfDepartment` (ties-aware, cached — modelPattern Tier V).
 
 ## 4. `ProjectCharter` (final; `Project::charter()` memoizes one instance per Project, reset on save)
 

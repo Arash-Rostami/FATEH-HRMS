@@ -10,35 +10,11 @@
     <x-ui.title icon="calendar_month" title="تقویم کاری">
         <x-slot:actions>
             <div class="flex items-center gap-2 flex-wrap justify-end">
-                <div class="hidden md:flex bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-high)_60%,transparent)] rounded-2xl p-1.5 border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
-                    <button
-                        type="button"
-                        title="نمای ماهانه"
-                        @click="$wire.toggleView('month')"
-                        :class="$wire.view === 'month' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)]'"
-                        class="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200"
-                    >
-                        <span class="material-symbols-rounded text-[20px]">calendar_month</span>
-                    </button>
-                    <button
-                        type="button"
-                        title="نمای هفتگی"
-                        @click="$wire.toggleView('week')"
-                        :class="$wire.view === 'week' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)]'"
-                        class="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200"
-                    >
-                        <span class="material-symbols-rounded text-[20px]">view_week</span>
-                    </button>
-                    <button
-                        type="button"
-                        title="نمای روزانه"
-                        @click="$wire.toggleView('day')"
-                        :class="$wire.view === 'day' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)]'"
-                        class="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200"
-                    >
-                        <span class="material-symbols-rounded text-[20px]">calendar_today</span>
-                    </button>
-                </div>
+                <x-ui.buttons.view-toggle state="$wire.view" :modes="[
+                    ['value' => 'month', 'icon' => 'calendar_month', 'title' => 'نمای ماهانه'],
+                    ['value' => 'week', 'icon' => 'view_week', 'title' => 'نمای هفتگی'],
+                    ['value' => 'day', 'icon' => 'calendar_today', 'title' => 'نمای روزانه'],
+                ]"/>
 
                 <button
                     type="button"

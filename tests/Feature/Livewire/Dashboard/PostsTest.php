@@ -3,7 +3,9 @@
 namespace Tests\Feature\Livewire\Dashboard;
 
 use App\Livewire\Dashboard\Tab\Posts;
+use App\Models\Department;
 use App\Models\Post;
+use App\Models\Profile;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Facades\Cache;
@@ -191,18 +193,18 @@ class PostsTest extends TestCase
         $component->instance()->totalPosts;
         $component->instance()->hasMorePosts;
 
-        $this->assertTrue(Cache::has(ModelCacheVersion::key(Post::class, 'total_count')));
-        $nonPinnedKey = ModelCacheVersion::key(Post::class, 'non_pinned_count');
+        $this->assertTrue(Cache::has(ModelCacheVersion::key(Post::class, 'total_count:')));
+        $nonPinnedKey = ModelCacheVersion::key(Post::class, 'non_pinned_count:');
         $this->assertTrue(Cache::has($nonPinnedKey));
 
         Post::factory()->notPinned()->create();
 
-        $this->assertNotSame($nonPinnedKey, ModelCacheVersion::key(Post::class, 'non_pinned_count'), 'a post write must bump the version and orphan the cached non-pinned count');
+        $this->assertNotSame($nonPinnedKey, ModelCacheVersion::key(Post::class, 'non_pinned_count:'),'a post write must bump the version and orphan the cached non-pinned count');
     }
 
     public function test_total_posts_returns_count_of_all_posts()
     {
-        $before = Post::count();
+        $before = Post::forViewer()->count();
         Post::factory()->count(4)->notPinned()->create();
         Post::factory()->pinned()->create();
 
@@ -283,7 +285,192 @@ class PostsTest extends TestCase
             ->test(Posts::class)
             ->call('selectPost', 999999)
             ->assertSet('selectedPost', null)
-            ->assertDispatched('open-post-panel');
+            ->assertNotDispatched('open-post-panel');
+    }
+
+    private function deptViewer(string $code): User
+    {
+        Department::firstOrCreate(['code' => $code], ['name' => $code, 'description' => '']);
+        $user = User::factory()->create(['status' => 'active']);
+        Profile::factory()->create(['user_id' => $user->id, 'department_id' => $code]);
+
+        return $user;
+    }
+
+    public function test_hidden_and_other_department_posts_are_absent_from_grid_and_totals_per_department(): void
+    {
+        $viewer = $this->deptViewer('ZZ-PA');
+        $other = $this->deptViewer('ZZ-PB');
+        $public = Post::factory()->notPinned()->create(['departments' => null]);
+        $own = Post::factory()->notPinned()->create(['departments' => ['ZZ-PA']]);
+        $foreign = Post::factory()->notPinned()->create(['departments' => ['ZZ-PB']]);
+        $inactive = Post::factory()->notPinned()->create(['departments' => null, 'active' => false]);
+
+        Livewire::withoutLazyLoading();
+        $viewerPage = Livewire::actingAs($viewer)->test(Posts::class)->instance();
+        $ids = $viewerPage->posts->pluck('id')->all();
+        $viewerTotal = $viewerPage->totalPosts;
+
+        $this->assertContains($own->id, $ids);
+        $this->assertNotContains($foreign->id, $ids);
+        $this->assertNotContains($inactive->id, $ids);
+        $this->assertSame(Post::forViewer($viewer)->count(), $viewerTotal);
+
+        Livewire::withoutLazyLoading();
+        $otherPage = Livewire::actingAs($other)->test(Posts::class)->instance();
+        $this->assertSame(Post::forViewer($other)->count(), $otherPage->totalPosts, 'the cached total must be keyed per department');
+        $this->assertNotContains($own->id, $otherPage->posts->pluck('id')->all());
+        $this->assertContains($public->id, $otherPage->posts->pluck('id')->all());
+    }
+
+    public function test_select_post_on_inactive_or_other_department_post_returns_null_and_does_not_mark_read(): void
+    {
+        $viewer = $this->deptViewer('ZZ-PA');
+        $inactive = Post::factory()->notPinned()->create(['departments' => null, 'active' => false]);
+        $foreign = Post::factory()->notPinned()->create(['departments' => ['ZZ-PB']]);
+        $this->insertPostNudge($viewer, $inactive->id);
+        $this->insertPostNudge($viewer, $foreign->id);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($viewer)->test(Posts::class)
+            ->call('selectPost', $inactive->id)
+            ->assertSet('selectedPost', null)
+            ->call('selectPost', $foreign->id)
+            ->assertSet('selectedPost', null)
+            ->assertNotDispatched('open-post-panel');
+
+        foreach ([$inactive, $foreign] as $post) {
+            $this->assertNull(DB::table('notifications')->where('notifiable_id', $viewer->id)->where('data->item_id', $post->id)->value('read_at'));
+        }
+    }
+
+    public function test_open_query_on_hidden_post_selects_nothing(): void
+    {
+        $viewer = $this->deptViewer('ZZ-PA');
+        $hidden = Post::factory()->notPinned()->create(['departments' => null, 'active' => false]);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($viewer)
+            ->test(Posts::class, ['open' => $hidden->id])
+            ->assertSet('selectedPost', null)
+            ->assertNotDispatched('open-post-panel');
+    }
+
+    public function test_pins_respect_viewer_department_and_active_flag(): void
+    {
+        $viewer = $this->deptViewer('ZZ-PA');
+        $foreignPin = Post::factory()->pinned()->create(['departments' => ['ZZ-PB'], 'created_at' => now()->addMinute()]);
+        $inactivePin = Post::factory()->pinned()->create(['departments' => null, 'active' => false, 'created_at' => now()->addMinutes(2)]);
+
+        Livewire::withoutLazyLoading();
+        $pinIds = Livewire::actingAs($viewer)->test(Posts::class)->instance()->pins->pluck('id')->all();
+
+        $this->assertNotContains($foreignPin->id, $pinIds);
+        $this->assertNotContains($inactivePin->id, $pinIds);
+    }
+
+    public function test_search_narrows_pins_and_grid_by_title_or_body(): void
+    {
+        $viewer = $this->deptViewer('ZZ-PA');
+        $pin = Post::factory()->pinned()->create(['title' => 'ALPHA-PIN-TITLE', 'departments' => null, 'created_at' => now()->addMinutes(5)]);
+        $otherPin = Post::factory()->pinned()->create(['title' => 'BETA-PIN-TITLE', 'departments' => null, 'created_at' => now()->addMinute()]);
+        $byTitle = Post::factory()->notPinned()->create(['title' => 'ALPHA-GRID-TITLE', 'departments' => null]);
+        $byBody = Post::factory()->notPinned()->create(['title' => 'plain', 'body' => 'contains ALPHA-BODY-TOKEN here', 'departments' => null]);
+        $miss = Post::factory()->notPinned()->create(['title' => 'gamma', 'body' => 'nothing', 'departments' => null]);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($viewer)->test(Posts::class)->set('search', 'ALPHA');
+
+        $this->assertSame([$pin->id], $component->instance()->pins->pluck('id')->all());
+        $gridIds = $component->instance()->posts->pluck('id')->all();
+        $this->assertContains($byTitle->id, $gridIds);
+        $this->assertContains($byBody->id, $gridIds);
+        $this->assertNotContains($miss->id, $gridIds);
+        $this->assertNotContains($otherPin->id, $component->instance()->pins->pluck('id')->all());
+        $this->assertSame(Post::forViewer($viewer)->where(fn($q) => $q->where('title', 'like', '%ALPHA%')->orWhere('body', 'like', '%ALPHA%'))->count(), $component->instance()->totalPosts);
+    }
+
+    public function test_search_never_bypasses_inactive_or_other_department_visibility(): void
+    {
+        $viewer = $this->deptViewer('ZZ-PA');
+        $inactive = Post::factory()->notPinned()->create(['title' => 'SECRET-INACTIVE', 'departments' => null, 'active' => false]);
+        $foreign = Post::factory()->notPinned()->create(['title' => 'SECRET-FOREIGN', 'departments' => ['ZZ-PB']]);
+        $foreignPin = Post::factory()->pinned()->create(['title' => 'SECRET-PIN', 'departments' => ['ZZ-PB']]);
+        $own = Post::factory()->notPinned()->create(['title' => 'SECRET-OWN', 'departments' => ['ZZ-PA']]);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($viewer)->test(Posts::class)->set('search', 'SECRET');
+
+        $ids = $component->instance()->posts->pluck('id')->all();
+        $this->assertSame([$own->id], $ids);
+        $this->assertTrue($component->instance()->pins->isEmpty());
+        $this->assertNotContains($foreignPin->id, $component->instance()->pins->pluck('id')->all());
+        $this->assertNotContains($inactive->id, $ids);
+        $this->assertNotContains($foreign->id, $ids);
+    }
+
+    public function test_search_with_no_match_renders_search_empty_state_in_both_views(): void
+    {
+        Post::factory()->notPinned()->create(['title' => 'present', 'departments' => null]);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::test(Posts::class)->set('search', 'ZZZ-NO-MATCH-XYZ');
+
+        $component->assertSeeHtml('wire:key="posts-search-empty"')->assertDontSeeHtml('wire:key="posts-empty-grid"');
+        $this->assertFalse($component->instance()->hasMorePosts);
+
+        $component->call('toggleView', 'list')->assertSeeHtml('wire:key="posts-search-empty-list"');
+    }
+
+    public function test_search_escapes_like_wildcards_and_clearing_it_restores_the_full_list(): void
+    {
+        $percent = Post::factory()->notPinned()->create(['title' => 'sale 50% ZZWC', 'departments' => null]);
+        $plain = Post::factory()->notPinned()->create(['title' => 'sale 500 ZZWC', 'departments' => null]);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::test(Posts::class)->set('search', '50%');
+        $ids = $component->instance()->posts->pluck('id')->all();
+        $this->assertContains($percent->id, $ids);
+        $this->assertNotContains($plain->id, $ids);
+
+        $component->set('search', '');
+        $this->assertSame(Post::forViewer()->count(), $component->instance()->totalPosts);
+        $this->assertContains($plain->id, Post::forViewer()->notPinned()->pluck('id')->all());
+    }
+
+    public function test_updated_search_resets_loaded_page_to_one(): void
+    {
+        Post::factory()->count(8)->notPinned()->create(['departments' => null]);
+
+        Livewire::withoutLazyLoading();
+        Livewire::test(Posts::class)
+            ->call('loadMore')->call('loadMore')
+            ->assertSet('page', 3)
+            ->set('search', 'x')
+            ->assertSet('page', 1);
+    }
+
+    public function test_cached_paths_stay_intact_and_unpoisoned_by_search(): void
+    {
+        Post::factory()->count(4)->notPinned()->create(['title' => 'CACHE-PATH', 'departments' => null]);
+        $expectedTotal = Post::forViewer()->count();
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::test(Posts::class);
+        Cache::flush();
+        $component->set('search', 'CACHE-PATH');
+        $component->instance()->totalPosts;
+        $component->instance()->hasMorePosts;
+        $component->instance()->pins;
+
+        $this->assertFalse(Cache::has(ModelCacheVersion::key(Post::class, 'total_count:')));
+        $this->assertFalse(Cache::has(ModelCacheVersion::key(Post::class, 'non_pinned_count:')));
+
+        $fresh = Livewire::test(Posts::class);
+        $this->assertSame($expectedTotal, $fresh->instance()->totalPosts);
+        $fresh->instance()->hasMorePosts;
+        $this->assertTrue(Cache::has(ModelCacheVersion::key(Post::class, 'total_count:')));
+        $this->assertTrue(Cache::has(ModelCacheVersion::key(Post::class, 'non_pinned_count:')));
     }
 
     public function test_seen_ids_returns_empty_collection_for_guest()

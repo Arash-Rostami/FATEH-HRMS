@@ -106,7 +106,7 @@
     </div>
 
     @if($this->classifierGroups)
-        <div class="flex flex-col gap-3 mt-3 pt-3 border-t border-[var(--md-sys-color-outline-variant)]/30">
+        <div wire:key="status-filters-classifiers" class="flex flex-col gap-3 mt-3 pt-3 border-t border-[var(--md-sys-color-outline-variant)]/30">
             <div class="flex flex-wrap gap-2">
                 <button
                     @click="$wire.set('activeClassifier', 'all')"

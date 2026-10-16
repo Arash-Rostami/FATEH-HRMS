@@ -9,9 +9,11 @@
 
 <div class="w-full">
     @if($apex->isEmpty() && !$hasDepts)
-        <x-ui.empty icon="account_tree" title="ساختاری برای نمایش وجود ندارد" variant="search"/>
+        <div wire:key="status-chart-empty" class="contents">
+            <x-ui.empty icon="account_tree" title="ساختاری برای نمایش وجود ندارد" variant="search"/>
+        </div>
     @else
-        <div class="orgc-chart" dir="ltr">
+        <div wire:key="status-chart-tree" class="orgc-chart" dir="ltr">
             <div class="orgc-stats" dir="rtl">
                 @foreach($stats as $s)
                     <div class="orgc-stat">
@@ -84,7 +86,7 @@
                 </template>
 
                 @if($hasApex)
-                    <div class="orgc-apex-row">
+                    <div wire:key="status-chart-apex" class="orgc-apex-row">
                         @foreach($apex as $user)
                             @include('livewire.dashboard.tab.status.node', [
                                 'user' => $user,
@@ -96,11 +98,11 @@
                 @endif
 
                 @if($hasApex && $hasDepts)
-                    <div class="orgc-vline"></div>
+                    <div wire:key="status-chart-vline" class="orgc-vline"></div>
                 @endif
 
                 @if($hasDepts)
-                    <div class="orgc-depts {{ $hasApex ? 'orgc-depts--bus' : '' }}" x-ref="depts">
+                    <div wire:key="status-chart-depts" class="orgc-depts {{ $hasApex ? 'orgc-depts--bus' : '' }}" x-ref="depts">
                         @foreach($depts as $d)
                             @include('livewire.dashboard.tab.status.dept-node', ['d' => $d])
                         @endforeach

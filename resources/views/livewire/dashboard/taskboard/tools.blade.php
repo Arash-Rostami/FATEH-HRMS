@@ -2,33 +2,8 @@
     <section class="relative z-30 {{ $presenter->toolbarSurface() }} transition-all duration-300"
              :class="headerDeclutter ? 'h-0! py-0! overflow-hidden! pointer-events-none! shadow-none!' : ''">
         <div class="flex w-full flex-col">
-            <x-ui.forms.filters placeholder="جستجو در وظایف..." searchModel="search"
-                                activeCondition="false" clearAction='this.$wire.set("search", "")'
-                                :filters="false" :declutterHide="true"/>
             <div class="flex w-full items-center justify-end px-3 py-2 lg:px-4">
                     <x-ui.table.tools :maximize="false" class="!w-auto">
-                        <button type="button"
-                                @click="toggleFilters()" :aria-expanded="filtersOpen"
-                                title="فیلترهای بیشتر" aria-label="فیلترهای بیشتر"
-                                :class="filtersOpen ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]'"
-                                class="relative inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
-                            <span class="material-symbols-rounded text-[18px] leading-none">tune</span>
-                            @if($this->activeFilterCount > 0)
-                                <span wire:key="taskboard-filter-count" class="absolute -left-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--md-sys-color-error)] px-1 text-[9px] font-bold text-white">{{ $this->activeFilterCount > 9 ? '9+' : $this->activeFilterCount }}</span>
-                            @endif
-                        </button>
-
-                        @if($this->activeFilterCount > 0)
-                            <button type="button" wire:key="taskboard-clear-filters"
-                                    wire:click="clearFilters"
-                                    title="پاک‌کردن همهٔ فیلترها" aria-label="پاک‌کردن همهٔ فیلترها"
-                                    class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]">
-                                <span class="material-symbols-rounded text-[18px] leading-none">filter_alt_off</span>
-                            </button>
-                        @endif
-
-                        <span aria-hidden="true" class="mx-1 h-4 w-px shrink-0 bg-[var(--md-sys-color-outline-variant)]/40 max-sm:hidden"></span>
-
                         <x-ui.table.density-toggle/>
 
                         <x-ui.table.sort-popover :options="['created' => 'تاریخ ایجاد', 'updated' => 'آخرین بروزرسانی', 'deadline' => 'مهلت', 'priority' => 'اولویت', 'title' => 'عنوان']"
@@ -84,12 +59,11 @@
                     </x-ui.table.tools>
             </div>
 
-            <div
-                x-show="filtersOpen"
-                x-cloak
-                class="border-t border-[var(--md-sys-color-outline-variant)]/15"
-            >
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 px-3 py-4 lg:px-4">
+            <x-ui.forms.filters placeholder="جستجو در وظایف..." searchModel="search"
+                                activeCondition="this.$wire.get('activeFilterCount') > 0"
+                                clearAction="this.$wire.call('clearFilters'); this.$wire.set('search', '')"
+                                :declutterHide="true">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-1 py-2">
                     <div class="min-w-0">
                         <x-ui.forms.select
                             label="مهلت"
@@ -356,7 +330,7 @@
                         </div>
                     @endif
                 </div>
-            </div>
+            </x-ui.forms.filters>
         </div>
     </section>
 

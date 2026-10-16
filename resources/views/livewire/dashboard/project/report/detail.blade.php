@@ -92,7 +92,7 @@
     <div>
         <p class="{{ $caption }} mb-1">مهلت</p>
         <p class="text-sm text-[var(--md-sys-color-on-surface)]">
-            {{ $row['deadline'] ? toJalaliSmart($row['deadline']) : '—' }}
+            {{ $row['deadline'] ? toJalali($row['deadline'], 'j F Y') : '—' }}
             @if(in_array($uk, ['overdue', 'due'], true))
                 <span class="text-xs text-[var(--md-sys-color-error)] mr-1">{{ $row['urgency']['label'] ?? '' }}</span>
             @endif

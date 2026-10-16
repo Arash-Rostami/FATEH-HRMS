@@ -7,7 +7,7 @@
      x-transition:enter-start="opacity-0 translate-y-4"
      x-transition:enter-end="opacity-100 translate-y-0"
      x-cloak
-     class="fixed bottom-4 inset-x-4 z-40 flex flex-wrap items-center gap-2 px-4 py-3 shadow-lg rounded-2xl border md:inset-x-auto md:left-1/2 md:-translate-x-1/2 bg-[var(--header-border-color)] border-[var(--md-sys-color-outline-variant)]"
+     class="fixed bottom-4 inset-x-4 z-40 flex flex-wrap items-center gap-2 px-4 py-3 max-md:pl-14 shadow-lg rounded-2xl border md:inset-x-auto md:left-1/2 md:-translate-x-1/2 bg-[var(--header-border-color)] border-[var(--md-sys-color-outline-variant)]"
      dir="rtl">
 
     <x-ui.badge variant="info">

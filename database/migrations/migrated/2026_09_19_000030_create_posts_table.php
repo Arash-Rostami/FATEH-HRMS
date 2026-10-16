@@ -15,6 +15,8 @@ return new class extends Migration {
                 $table->string('image', 191)->nullable();
                 $table->boolean('pinned')->default(0);
                 $table->unsignedBigInteger('user_id');
+                $table->boolean('active')->default(true);
+                $table->json('departments')->nullable();
                 $table->timestamp('created_at')->nullable();
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
@@ -22,6 +24,7 @@ return new class extends Migration {
                 $table->index('user_id', 'idx_user_id');
                 $table->index('created_at', 'idx_posts_created_at');
                 $table->index(['pinned', 'created_at'], 'idx_pinned_created');
+                $table->index(['active', 'created_at'], 'idx_posts_active_created');
             });
         }
     }

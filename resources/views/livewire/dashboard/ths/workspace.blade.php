@@ -1,218 +1,70 @@
-<div class="space-y-5"
-     x-on:confirmation-confirmed.window="{{ confirmDialogListener(['closeTicket' => false, 'withdrawTicket' => false, 'releaseTicket' => false, 'rerouteTicket' => false]) }}">
+<div class="relative flex-1 flex flex-col"
+     x-data="{ dragging: 0 }"
+     x-on:confirmation-confirmed.window="{{ confirmDialogListener(['closeTicket' => false, 'withdrawTicket' => false, 'releaseTicket' => false, 'rerouteTicket' => false]) }}"
+     @if($this->canReply)
+         x-on:dragenter.prevent="dragging++"
+         x-on:dragover.prevent
+         x-on:dragleave="dragging = Math.max(0, dragging - 1)"
+         x-on:drop.prevent="dragging = 0; if ($event.dataTransfer?.files?.length) $wire.uploadMultiple('replyForm.files', $event.dataTransfer.files)"
+     @endif>
     @if($this->ticket)
         <div wire:key="ths-workspace-ticket" class="contents">
-        <div class="flex items-center justify-end">
-            <x-dashboard.reminder-trigger :for="$this->ticket"/>
-        </div>
+            @include('livewire.dashboard.ths.workspace.action-bar')
 
-        {{-- Assignee card + assign control --}}
-        <div class="flex items-center gap-4 bg-[var(--md-sys-color-primary-container)] p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm flex-wrap">
-            <div class="w-12 h-12 rounded-lg text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center font-bold text-lg shadow-inner bg-[var(--md-sys-color-secondary-container)]">
-                {{ $this->ticket->assignee ? mb_substr($this->ticket->assignee->name, 0, 1) : '❗' }}
-            </div>
-            <div>
-                <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold tracking-wider uppercase">مسئول رسیدگی</p>
-                <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">
-                    {{ $this->ticket->assignee?->name ?? 'در انتظار تخصیص به کارشناس' }}
-                </p>
-            </div>
-
-            @if($this->canAssign)
-                @php($selectedAssignee = $this->assignableUsers->firstWhere('id', (int) $assigneeId))
-                <div wire:key="ths-workspace-assign" class="mr-auto flex items-center gap-2">
-                    <div x-data="{ open: false }" class="relative">
-                        <button type="button"
-                                x-on:click="open = !open"
-                                x-on:click.outside="open = false"
-                                class="flex items-center gap-2 text-xs rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] pr-2 pl-3 py-1.5 text-[var(--md-sys-color-on-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] min-w-[170px]">
-                            @if($selectedAssignee)
-                                <div wire:key="ths-assignee-selected" class="flex-shrink-0">
-                                    <x-dashboard.user-avatar :user="$selectedAssignee" size="xs"/>
-                                </div>
-                            @endif
-                            <span class="truncate">{{ $selectedAssignee?->name ?? 'انتخاب کارشناس...' }}</span>
-                            @if($selectedAssignee)<x-ui.presence-tag wire:key="ths-assignee-tag" :status="$selectedAssignee->presence"/>@endif
-                            <span class="material-symbols-rounded text-[16px] mr-auto text-[var(--md-sys-color-on-surface-variant)]">expand_more</span>
-                        </button>
-
-                        <div x-show="open" x-transition style="display: none;"
-                             class="absolute z-50 mt-1 w-60 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-lg overflow-hidden">
-                            <ul class="max-h-56 overflow-y-auto custom-scrollbar">
-                                @foreach($this->assignableUsers as $candidate)
-                                    <li wire:key="ths-assignee-{{ $candidate->id }}">
-                                        <button type="button"
-                                                wire:click="$set('assigneeId', '{{ $candidate->id }}')"
-                                                x-on:click="open = false"
-                                                class="w-full flex items-center gap-2 text-right px-3 py-2 text-xs hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] transition-colors {{ $candidate->id === (int) $assigneeId ? 'bg-[var(--md-sys-color-primary-container)]/50 font-bold' : '' }}">
-                                            <div class="flex-shrink-0">
-                                                <x-dashboard.user-avatar :user="$candidate" size="sm"/>
-                                            </div>
-                                            <span class="truncate">{{ $candidate->name }}</span>
-                                            <x-ui.presence-tag :status="$candidate->presence" class="mr-auto"/>
-                                        </button>
-                                    </li>
-                                @endforeach
-                            </ul>
+            <div class="flex-1 flex flex-col gap-4 px-4 sm:px-6 py-4">
+                @php $lastDay = null; @endphp
+                <div id="ths-reply-thread"
+                     x-data
+                     x-init="$nextTick(() => { const pane = $el.closest('[data-ths-pane]'); if (pane) pane.scrollTop = pane.scrollHeight })"
+                     wire:loading.class="opacity-60"
+                     wire:target="postReply"
+                     class="flex flex-col gap-3 transition-opacity">
+                    @forelse($this->ticket->replies as $reply)
+                        @php
+                            $day = $reply->created_at?->toDateString();
+                            $kind = $presenter->replyKind($reply);
+                        @endphp
+                        @if($day !== $lastDay)
+                            @php $lastDay = $day; @endphp
+                            @include('livewire.dashboard.ths.workspace.day-separator', ['date' => $reply->created_at, 'dayKey' => $day])
+                        @endif
+                        @if($kind === 'reply')
+                            @include('livewire.dashboard.ths.workspace.reply-bubble', ['reply' => $reply, 'animateIn' => $loop->last])
+                        @else
+                            @include('livewire.dashboard.ths.workspace.system-entry', ['reply' => $reply, 'kind' => $kind])
+                        @endif
+                    @empty
+                        <div wire:key="ths-replies-empty" class="contents">
+                            <x-ui.empty icon="forum" title="هنوز پاسخی برای این تیکت ثبت نشده است" :description="$this->canReply ? 'اولین پیام را شما بنویسید.' : null"/>
                         </div>
-                    </div>
-                    <x-ui.buttons.form type="button" wire:click="assign" loading="assign"
-                            class="!h-auto !px-3 !py-2 rounded-xl text-xs font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110">
-                        تخصیص
-                    </x-ui.buttons.form>
+                    @endforelse
                 </div>
-            @endif
-        </div>
 
-        @if($this->canWithdraw || $this->canRelease || $this->canReroute)
-            <div wire:key="ths-workspace-actions" class="flex flex-wrap items-end gap-3 bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm">
-                @if($this->canReroute)
-                    <div wire:key="ths-workspace-reroute" class="flex items-end gap-2 flex-wrap">
-                        <div class="w-56">
-                            <x-ui.forms.select label="واحد مقصد" name="rerouteTo" wire:model="rerouteTo" icon="domain">
-                                <option value="">انتخاب واحد...</option>
-                                @foreach($this->departmentOptions as $code => $name)
-                                    <option value="{{ $code }}">{{ $name }}</option>
-                                @endforeach
-                            </x-ui.forms.select>
-                        </div>
-                        <x-ui.buttons.form type="button" loading="rerouteTicket" variant="tonal"
-                                wire:click="rerouteTicket" wire:confirm="این تیکت به واحد انتخاب‌شده ارجاع شود؟"
-                                x-bind:disabled="!$wire.rerouteTo || !$wire.replyForm.body.trim()"
-                                class="!h-auto !px-4 !py-2 rounded-xl text-xs font-bold">
-                            ارجاع به واحد دیگر
-                        </x-ui.buttons.form>
-                    </div>
-                @endif
-
-                @if($this->canRelease)
-                    <x-ui.buttons.form wire:key="ths-release-ticket" type="button" loading="releaseTicket" variant="tonal"
-                            wire:click="releaseTicket" wire:confirm="این تیکت به صف بازگردانده شود؟"
-                            x-bind:disabled="!$wire.replyForm.body.trim()"
-                            class="!h-auto !px-4 !py-2 rounded-xl text-xs font-bold">
-                        بازگشت به صف
-                    </x-ui.buttons.form>
-                @endif
-
-                @if($this->canWithdraw)
-                    <x-ui.buttons.form wire:key="ths-withdraw-ticket" type="button" loading="withdrawTicket" variant="tonal"
-                            wire:click="withdrawTicket" wire:confirm="درخواست شما لغو شود؟"
-                            class="!h-auto !px-4 !py-2 rounded-xl text-xs font-bold">
-                        لغو درخواست
-                    </x-ui.buttons.form>
-                @endif
-
-                @if($this->canReroute || $this->canRelease)
-                    <p wire:key="ths-workspace-actions-hint" class="w-full text-[11px] text-[var(--md-sys-color-on-surface-variant)]">توضیح را در کادر «گفتگو» بنویسید.</p>
-                @endif
             </div>
-        @endif
 
-        {{-- Effectiveness card --}}
-        @if($this->canSetEffectiveness || $this->ticket->effectiveness)
-            <div wire:key="ths-workspace-effectiveness" class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm">
-                <h5 class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] mb-3 flex items-center gap-1.5">
-                    <span class="material-symbols-rounded text-[16px]">insights</span>
-                    اثربخشی اقدام
-                </h5>
+            <div class="sticky bottom-0 z-10 mt-auto flex flex-col">
+                @include('livewire.dashboard.ths.workspace.closing')
 
-                @if($this->canSetEffectiveness)
-                    <div wire:key="ths-workspace-effect-form" class="flex flex-wrap gap-2">
-                        @foreach(['5' => 'بسیار مؤثر', '4' => 'مؤثر', '3' => 'خنثی', '2' => 'کم‌اثر', '1' => 'بی‌اثر'] as $value => $label)
-                            <x-ui.buttons.form type="button" wire:click="setEffectiveness('{{ $value }}')" loading="setEffectiveness('{{ $value }}')"
-                                    @class([
-                                        '!h-auto !px-3 !py-1.5 rounded-xl text-xs font-semibold border',
-                                        'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent' => $this->ticket->effectiveness === $value,
-                                        'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]' => $this->ticket->effectiveness !== $value,
-                                    ])>
-                                {{ $label }}
-                            </x-ui.buttons.form>
-                        @endforeach
-                    </div>
-                @elseif($this->ticket->effectiveness)
-                    <p wire:key="ths-workspace-effect-set" class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">
-                        {{ ['5' => '★★★★★ — بسیار مؤثر', '4' => '★★★★☆ — مؤثر', '3' => '★★★☆☆ — خنثی', '2' => '★★☆☆☆ — کم‌اثر', '1' => '★☆☆☆☆ — بی‌اثر'][$this->ticket->effectiveness] ?? '—' }}
+                @if($this->canReply)
+                    @include('livewire.dashboard.ths.workspace.composer')
+                @elseif($this->ticket->status === 'closed')
+                    <p wire:key="ths-reply-closed"
+                       class="flex items-center justify-center gap-1.5 px-4 sm:px-6 pt-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] bg-[var(--md-sys-color-surface)] text-[11px] text-center italic opacity-75 text-[var(--md-sys-color-on-surface-variant)]">
+                        <span class="material-symbols-rounded text-[14px]">lock</span>
+                        {{ $this->ticket->action_result === \App\Models\Ticket::WITHDRAWN_RESULT ? 'این تیکت لغو شده و امکان ارسال پاسخ جدید وجود ندارد.' : 'این تیکت بسته شده و امکان ارسال پاسخ جدید وجود ندارد.' }}
                     </p>
-                @else
-                    <p wire:key="ths-workspace-effect-none" class="text-xs italic opacity-70 text-[var(--md-sys-color-on-surface-variant)]">هنوز ثبت نشده است.</p>
                 @endif
-
-                @if($this->canClose && $this->ticket->status !== 'closed')
-                    <x-ui.buttons.form wire:key="ths-close-ticket" type="button" loading="closeTicket"
-                            wire:click="closeTicket" wire:confirm="این تیکت بسته شود؟"
-                            class="mt-3 !h-auto !px-4 !py-2 rounded-xl text-xs font-bold bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] hover:brightness-110">
-                        بستن تیکت
-                    </x-ui.buttons.form>
-                @endif
-            </div>
-        @endif
-
-        {{-- Reply thread --}}
-        <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm">
-            <h5 class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] mb-3 flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-[16px]">forum</span>
-                گفتگو
-            </h5>
-
-            <div id="ths-reply-thread"
-                 x-data
-                 x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)"
-                 class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar pr-1">
-                @forelse($this->ticket->replies as $reply)
-                    @include('livewire.dashboard.ths.workspace.reply-bubble', ['reply' => $reply, 'animateIn' => $loop->last])
-                @empty
-                    <div wire:key="ths-replies-empty" class="contents">
-                        <x-ui.empty icon="forum" title="هنوز پاسخی برای این تیکت ثبت نشده است" />
-                    </div>
-                @endforelse
             </div>
 
             @if($this->canReply)
-                <form wire:key="ths-reply-composer" wire:submit.prevent="postReply" class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
-                    <textarea wire:model.defer="replyForm.body" rows="2" placeholder="پاسخ خود را بنویسید..."
-                              class="w-full rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface)]"></textarea>
-                    @error('replyForm.body') <p class="text-[11px] text-[var(--md-sys-color-error)]">{{ $message }}</p> @enderror
-
-                    @if(count($replyForm->files))
-                        <div wire:key="ths-reply-staged" class="flex flex-wrap items-center gap-1.5">
-                            @foreach($replyForm->files as $i => $file)
-                                <div wire:key="staged-ths-reply-file-{{ $i }}"
-                                     class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg max-w-[180px] bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/40">
-                                    @if(str_starts_with($file->getMimeType() ?? '', 'image/'))
-                                        <img src="{{ $file->temporaryUrl() }}" class="w-4 h-4 rounded object-cover flex-shrink-0" alt="">
-                                    @else
-                                        <span class="material-symbols-rounded text-[12px] flex-shrink-0">attach_file</span>
-                                    @endif
-                                    <span class="text-[10px] font-bold truncate">{{ $file->getClientOriginalName() }}</span>
-                                    <button type="button" wire:click="removeReplyAttachment({{ $i }})" aria-label="حذف فایل"
-                                            class="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-surface-variant)] transition-colors">
-                                        <span class="material-symbols-rounded text-[11px]">close</span>
-                                    </button>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    <div class="flex items-center justify-between gap-2">
-                        <label class="text-xs cursor-pointer flex items-center gap-1.5 text-[var(--md-sys-color-on-surface-variant)]">
-                            <span class="material-symbols-rounded text-[16px]">attach_file</span>
-                            <input type="file" multiple wire:model="replyForm.files" class="hidden"/>
-                            پیوست
-                        </label>
-                        <x-ui.buttons.form type="submit" loading="postReply"
-                                x-bind:disabled="!$wire.replyForm.body.trim() && !$wire.replyForm.files.length"
-                                class="!h-auto !px-4 !py-2 rounded-xl text-xs font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110">
-                            ارسال پاسخ
-                        </x-ui.buttons.form>
-                    </div>
-                    @error('replyForm.files') <p class="text-[11px] text-[var(--md-sys-color-error)]">{{ $message }}</p> @enderror
-                </form>
-            @elseif($this->ticket->status === 'closed')
-                <p wire:key="ths-reply-closed" class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/30 text-[11px] text-center italic opacity-60 text-[var(--md-sys-color-on-surface-variant)]">
-                    این تیکت بسته شده و امکان ارسال پاسخ جدید وجود ندارد.
-                </p>
+                <div wire:key="ths-drop-overlay" x-show="dragging > 0" x-cloak
+                     class="pointer-events-none absolute inset-2 z-20 grid place-items-center rounded-2xl border-2 border-dashed border-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_75%,transparent)] text-[var(--md-sys-color-on-primary-container)] text-sm font-bold text-center">
+                    <span class="flex flex-col items-center gap-2">
+                        <span class="material-symbols-rounded text-[40px]">upload_file</span>
+                        فایل‌ها را اینجا رها کنید
+                    </span>
+                </div>
             @endif
-        </div>
         </div>
     @endif
 </div>

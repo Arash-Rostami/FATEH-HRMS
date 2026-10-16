@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PostResource\Exports;
 
 use App\Models\Post;
+use App\Traits\FilamentVisibility;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PostExporter extends Exporter
 {
+    use FilamentVisibility;
+
     protected static ?string $model = Post::class;
 
     public static function modifyQuery(Builder $query): Builder
@@ -29,6 +32,8 @@ class PostExporter extends Exporter
             ExportColumn::make('pinned')
                 ->label(__('resources/post/strings.fields.pinned'))
                 ->formatStateUsing(fn($state) => $state ? 'بله' : 'خیر'),
+            self::activeExportColumn(),
+            self::audienceExportColumn(),
             ExportColumn::make('created_at')->label(__('resources/post/strings.fields.created_at'))
                 ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];

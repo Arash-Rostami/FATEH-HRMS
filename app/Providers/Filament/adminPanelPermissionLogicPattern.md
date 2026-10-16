@@ -103,10 +103,17 @@ flushes the per-user permission cache on `saved`/`deleted`.
 ## Resource-level gating (`AuthorizesByPermission` trait)
 
 All 28 resources in `app/Filament/Resources/*Resource.php` `use AuthorizesByPermission`.
-The trait maps every Filament authorization method to `permits($action)`:
+The trait maps every Filament authorization method to `permits($action)` in **two layers**:
 
 - `canViewAny / canView / canCreate / canEdit / canDelete / canRestore / canForceDelete …`
-  → `static::permits($action)`
+  → `static::permits($action)` — page entry and navigation only.
+- `getAuthorizationResponse($action, $record)` → allow/deny by ability map: `viewAny,view→view`;
+  `create,replicate→create`; `update,reorder→update`; `delete,deleteAny,forceDelete,forceDeleteAny→delete`;
+  `restore,restoreAny→restore`; unknown → deny. **This is what in-table row/bulk/header actions hit**
+  (Filament v5 `Resource::get*AuthorizationResponse`); the app has no policies, and Filament allows when
+  none exists, so a canX-only trait never hid or blocked in-table Delete/Edit. Unauthorized actions now
+  auto-hide. Resource-level `canX` overrides (`canCreate=false` on Contact/EnergyTest/ReservationPolicy,
+  `canForceDelete=false` on Project) are **not** consulted by it.
 - `permits($action)` → `Permission::forUser(Auth::user()->id)?->can(static::moduleKey(), $action)`
   (developer bypass first).
 - `moduleKey()` = `Str::snake` of the class basename with the **trailing** `Resource`
@@ -119,8 +126,23 @@ The trait maps every Filament authorization method to `permits($action)`:
   both produce the same key.
 
 `PermissionResource` and `PermissionsRelationManager` override `canViewAny()` directly
-(super-admin only, plus developer bypass) instead of going through the trait, so they
-are editable only by super admins / developers.
+(super-admin only, plus developer bypass). `PermissionResource` also overrides `permits()`
+(`canViewAny() && trait permits`), so **every** page and action — not just entry — is
+super-admin/developer only. Nobody can delete their own permission row (`getAuthorizationResponse`
+denies `delete`/`forceDelete` when `record->user_id === Auth::id()`: row, edit-header,
+relation-manager and bulk delete; bulk uses `->authorizeIndividualRecords()`).
+`PermissionFormPresenter` module pickers (`abilities`, `excluded_modules`) drop the `permission`
+module (`Arr::except(availableModules(), 'permission')`) so it can't be granted.
+
+**Relation managers** (`app/Filament/RelationManagers/RelationManager.php`, shared base): tab
+visibility and row/header/bulk actions follow the **related** model's resource permission
+(when it has one); Attach/Detach/Associate/Dissociate (+bulk) follow the **owner** resource's
+`update`; related models without a resource keep vendor behaviour (allow) — **owner decision 2026-10-16: intentional, no strict policy**: children that exist only inside a master resource's relation manager (DMS `Read`, Feed `Comment`/`Poll`/`Reaction`, Suggestion `Review`, Channel `ChannelMessage`, Project/User `Workflow`, Event `EventShare`) are viewable and manageable by anyone who can open the master record; do not add per-child permission modules unless the owner asks. An admin lacking the
+related module loses that child tab (User page tabs each need that module's `view`; Channel
+Members needs `user` view). Overrides of `canViewForRecord()` must call `parent::`. Edit/View pages automatically show a callout naming tabs hidden by these permission checks (`RelationManager::deniedByPermission()` + `ExplainsHiddenRelationTabs`; see filamentPattern.md).
+
+**Cost:** each check = 2 Redis GETs, no DB queries — no `once()` memoization of
+`Permission::forUser` (see Caching).
 
 ## Validation rules
 

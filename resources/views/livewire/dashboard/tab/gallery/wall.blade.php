@@ -1,4 +1,5 @@
 @if($this->photos->isNotEmpty())
+<div wire:key="gallery-wall-list" class="contents">
     <div x-show="month && visibleCount === 0" x-cloak
          class="flex flex-col items-center justify-center gap-3 py-16 text-[var(--md-sys-color-on-surface-variant)]">
         <span class="material-symbols-rounded text-5xl opacity-40">filter_alt_off</span>
@@ -59,8 +60,9 @@
             />
         </div>
     @endif
+</div>
 @else
-    <div class="w-full h-full">
+    <div wire:key="gallery-wall-empty" class="w-full h-full">
         <x-ui.empty icon="photo_library" title="گالری هنوز خالی است" description="هنوز هیچ محتوایی بارگذاری نشده است." variant="list" :fill="true"/>
     </div>
 @endif

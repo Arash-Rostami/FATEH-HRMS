@@ -217,6 +217,34 @@ class ThsResource extends Resource
                                 ])
                                 ->columns(4),
                         ]),
+
+                    Tab::make(__('resources/ths/strings.insight.tab_ticket'))
+                        ->icon('heroicon-o-light-bulb')
+                        ->schema([
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->hiddenLabel()
+                                ->schema([
+                                    TicketInfolistPresenter::ticketInsights(),
+
+                                    TicketInfolistPresenter::divider(),
+                                    TicketInfolistPresenter::effectiveness(),
+                                    TicketInfolistPresenter::satisfaction(),
+                                    TicketInfolistPresenter::actionResult(),
+                                ])
+                                ->columns(4),
+                        ]),
+
+                    Tab::make(__('resources/ths/strings.insight.tab_department'))
+                        ->icon('heroicon-o-chart-bar')
+                        ->schema([
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->hiddenLabel()
+                                ->schema([
+                                    TicketInfolistPresenter::departmentInsights(),
+                                ]),
+                        ]),
                 ])
                 ->columnSpanFull()
                 ->extraAttributes(['class' => 'fi-infolist-panel']),

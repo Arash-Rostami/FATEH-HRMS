@@ -68,6 +68,10 @@
                     <span class="material-symbols-rounded text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors flip-rtl shrink-0">arrow_left_alt</span>
                 </article>
             @endforeach
+        @elseif($this->pins->isEmpty() && $search !== '')
+            <div wire:key="posts-search-empty-list" class="contents">
+                <x-ui.empty icon="search_off" title="نتیجه‌ای برای جستجو یافت نشد." variant="search" />
+            </div>
         @elseif($this->pins->isEmpty())
             <div wire:key="posts-empty-list">
                 <x-ui.empty icon="feed" title="هیچ اعلانی یافت نشد." variant="list" />

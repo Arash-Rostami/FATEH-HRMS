@@ -50,15 +50,16 @@ App\Services\Menu\
 │   ├── AdNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
 │   ├── SharedEventsNudge.php       key=shared-events:nudge         triggers=EventShare created/deleted + Event updated/deleted
 │   ├── SuggestionNudge.php         key=suggestion-controller:nudge triggers=Suggestion created/updated/deleted + Review created/updated
-│   ├── PostNudge.php               key=posts-controller:nudge      triggers=Post created/updated/deleted show=true  for=User::active()  badgeSuppressesCreate=false (fixed 2026-09-05 — see opt-out list below)
-│   ├── FeedNudge.php                key=feeds:nudge                 triggers=Feed created/updated/deleted show=true  for=User::active()
-│   ├── PhotoNudge.php              key=gallery-controller:nudge   triggers=Photo created/updated/deleted show=true  for=dept-scoped (Photo.all_departments + 'MA', empty→all active)
-│   ├── ReportNudge.php             key=reports-controller:nudge   triggers=Report created/updated/deleted show=$report->active  for=User::active()
+│   ├── PostNudge.php               key=posts-controller:nudge      triggers=Post created/updated/deleted show=$post->active  for=audienceUsers()  badgeSuppressesCreate=false (fixed 2026-09-05 — see opt-out list below)
+│   ├── FeedNudge.php                key=feeds:nudge                 triggers=Feed created/updated/deleted show=$feed->active  for=audienceUsers()
+│   ├── PhotoNudge.php              key=gallery-controller:nudge   triggers=Photo created/updated/deleted show=$photo->active  for=audienceUsers() (department_id + departments; empty→all active; 'MA' no longer added)
+│   ├── ReportNudge.php             key=reports-controller:nudge   triggers=Report created/updated/deleted show=$report->active  for=audienceUsers()
 │   ├── TaskNudge.php               MASTER class, `__construct(string $kind)`, registered 3x in NudgeServiceProvider: kind `activity` key=tasks-controller:nudge | `overdue` key=tasks-controller:overdue-nudge | `approval` key=tasks-controller:approval-nudge (all three keys UNCHANGED from the old per-class files)  `for()` builds a per-user `plan` [userId => [title, body]]; `show()` = user is in the plan; triggers: activity = Task created/updated/deleted/restored/forceDeleted + Reply created (repliable_type-guarded), overdue/approval = Task updated/deleted/restored/forceDeleted  badgeSuppressesCreate=false for all kinds
 │   │                               activity: classifies the newest non-QUIET Reply (comment, completed, approved, sent_back, reopened, status, created, assigned, helpers, accountable, suspended); QUIET types (archive, deadline_change, priority_change, label_change, project_change, meta_change, settings_change, workflow_step, department_change) never notify; the actor never gets their own event; old assignee/removed helper/old accountable get a «حذف شدید» row; completed-in-approval-project tells the doer «در انتظار تأیید مدیر» only when SOMEONE ELSE completes the task (the doer is never told about their own completion)
 │   │                               overdue (also swept hourly by `tasks:sweep-overdue`): doer = assigned_to ?? user_id; escalates to the accountable (`responsible_user_id`) when overdue days >= project charter `escalationDays()` (default 3, 0 disables); suspended («توقف»), settled, archived tasks are silent. approval: one approver (project owner, else accountable if the owner is inactive); title escalates '' -> 'یادآوری: ' >24h -> '⏰ فوری: ' >48h anchored on `completed_at ?? updated_at` (so a reorder/reply no longer resets the clock)
 │   ├── ProjectNudge.php            MASTER class, `__construct(string $kind)`, registered 2x: kind `invite` key=projects-controller:nudge | `step` key=workflow:nudge (keys unchanged)  invite: Project created/deleted/forceDeleted + Reply created (Assignment, or SettingsChange with owner_id); plan = roster members added in the last 10 min (user + department adds) plus holders of an existing bell row, minus the inviter; new owner gets «مالک پروژه … شدید»  step: Workflow deleted + Reply created (WorkflowStep event from `Workflow::recordEvent`); events started/advanced(forced)/rejected/reassigned(added+removed)/completed(owner)/cancelled (silent when reason project_deleted); actor excluded
-│   ├── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not isActionRecipient)  for=currentActionRecipients() (all department heads while open, assignee in-progress, requester awaiting rating) + otherReplyParticipants([requester_id, assigned_to])  badgeSuppressesCreate=false
+│   ├── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted (ticket-level rows only; reply events belong to `ThsReplyNudge`)  show=true (false when latestReply is own & not isActionRecipient)  for=currentActionRecipients() (all department heads while open, assignee in-progress, requester awaiting rating) + otherReplyParticipants([requester_id, assigned_to])  badgeSuppressesCreate=false
+│   ├── ThsReplyNudge.php           key=ths-controller:reply-nudge  subject=the Reply itself (item_id = reply id; repliable_type-guarded to Ticket), so every reply gets its OWN bell row and a dismissed row never silences the next reply; its own key keeps reply ids out of the ticket-id namespace of `ths-controller:nudge`  triggers=Reply created/deleted + Ticket updated (the Ticket trigger's subject resolver PRUNES instead of reconciling: when status/assigned_to/satisfaction_score/action_result/extra changed it deletes this ticket's reply rows for users who are no longer recipients, or all of them once closed+rated or withdrawn, and returns null — a plain per-reply reconcile fan-out would hand every NEW recipient a row for every old reply)  show=false when closed+rated; the reply's author only keeps a row while an action recipient  for=currentActionRecipients() + requester/assignee minus the reply's author (none once closed)  title/body delegate to `ThsNudge` (wording identical), url=route('ths', ['open'=>ticketId])  refresh=false  badgeSuppressesCreate=false (and the key has no `:nudge` suffix, so the default badge lookup would be a no-op anyway)
 │   ├── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=true  for=DMS::pendingRecipients() (visible live + pending users)  badgeSuppressesCreate=false
 │   ├── ChannelNudge.php            key=channels-controller:nudge  dual-state row migrates on entered_at (invited=entered_at IS NULL via Channel::invitedUserIds; unread=entered + count>0 via Channel::unreadCountsFor, whereNotNull(entered_at) + whereNull(msg.deleted_at)) like ThsNudge  triggers=Channel deleted/forceDeleted (cleanup) + ChannelMessage created/deleted (subject=$msg->channel)  show=true  for=invited∪unread (two indexed queries, for()-primes-body idiom)  reuses the three existing dispatch sites (SyncChannelMembers/MarkChannelRead/LeaveChannel); send path covered by ChannelMessage::created → no new dispatch
 │   ├── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false  — mark-as-read is a mass Builder::update() (bypasses the `updated` Eloquent event), so `MarkMessagesAsReadAction` dispatches `ReconcileNudge('contacts-controller:nudge', User::class, $contactId)` explicitly after commit (Channel/ShareEventAction precedent below); fixed 2026-09-04 — previously the bell's per-sender row never cleared on read
@@ -367,13 +368,13 @@ for tab-hosted modules) — the same `?open={id}` param `App\Traits\FocusOnRecor
 title/body: set `refresh() => true` and an edit re-fires reconcile to rewrite `url` on a still-
 **unread** row; a **read** row's `url` is never rewritten.
 
-All 17 nudges implement `url()`: `AdNudge`→`route('ads', …)`,
+All 18 nudges implement `url()`: `AdNudge`→`route('ads', …)`,
 `SharedEventsNudge`→`route('dashboard', ['tab'=>'calendar', …])`, `SuggestionNudge`→`route('suggestion', …)`,
 `PostNudge`→`route('dashboard', ['tab'=>'post', …])`, `FeedNudge`→`route('dashboard', ['tab'=>'feed', …])`,
 `PhotoNudge`→`route('dashboard', ['tab'=>'gallery', …])`, `ReportNudge`→`route('dashboard', ['tab'=>'reports', …])`,
 `TaskNudge` (all kinds)→`route('tasks', …)`,
 `ProjectNudge`→`route('projects', …)`, `ProjectNudge('step')`→`route('projects', ['tab'=>'workflow', …])`,
-`ThsNudge`→`route('ths', …)`, `DmsNudge`→`route('dms', …)`,
+`ThsNudge`/`ThsReplyNudge`→`route('ths', …)` (the reply nudge opens the reply's ticket), `DmsNudge`→`route('dms', …)`,
 `ChannelNudge`→`route('channels', …)`, `ContactNudge`→`route('contact', …)` (subject is the message
 sender `User`, so this links to the conversation, not a specific message), `ReminderOverdueNudge`→`route('tasks', …)`
 when `remindable_type=Task`, else `null`.
@@ -465,7 +466,7 @@ Design choices:
   the badge condition is **not** a superset of the nudge condition. Seven opt-outs: `SharedEventsNudge`
   (badge = imminent ≤24h, nudge = any future event), `ContactNudge` (badge = any unread, nudge =
   per-chat; a new chat must still alert even when another chat already lit the badge), `DmsNudge` /
-  `ThsNudge` (a `Read`/`Reply` on an already-badge-lit doc/ticket must still CREATE a nudge for the
+  `ThsNudge`/`ThsReplyNudge` (a `Read`/`Reply` on an already-badge-lit doc/ticket must still CREATE a nudge for the
   reply-participants the badge does not track), `ChannelNudge` (nudge-only — no `Channel`
   indicator badge exists, so CREATE must always fire), `TaskNudge('overdue')` (its own badge,
   `tasks-deadline`, fires on *due-soon or overdue*, a superset of "overdue" — but see the key-shape
@@ -516,7 +517,8 @@ declare several triggers sharing the same key.
 | `Reply` (Project) | created | `$reply->repliable` (Assignment, or SettingsChange carrying `owner_id`) / `Workflow` found from `payload.workflow` for `WorkflowStep` replies | `ProjectNudge('invite')` / `ProjectNudge('step')` | see the tree entry |
 | `Workflow` (`ProjectNudge('step')`) | deleted + WorkflowStep Reply | the Workflow | plan-driven | current/affected step assignees; owner on completion; actor excluded; no rows for a project-deleted cancel |
 | `Ticket` | created, updated, deleted | self | `ThsNudge::show()`: closed+rated -> false; own reply and not an action recipient -> false | `Ticket::currentActionRecipients()` (multi-head: ALL heads of the target department while open, assignee while in-progress, requester while awaiting rating) + `otherReplyParticipants` (none once closed) |
-| `Reply` (Ticket) | created | `$reply->repliable` (repliable_type-guarded) | same `ThsNudge` class | same `ThsNudge` class |
+| `Reply` (Ticket) | created, deleted | the `$reply` itself (repliable_type-guarded; `ThsReplyNudge`, key `ths-controller:reply-nudge`, item_id = reply id, so a dismissed row never silences later replies and reply ids never meet ticket ids) | `ThsReplyNudge::show()`: closed+rated -> false; own reply and not an action recipient -> false | action recipients + requester/assignee minus the reply author (none once closed) |
+| `Ticket` (reply rows) | updated | none (prune only, no reconcile) | n/a | `ThsReplyNudge` deletes the ticket's reply rows for users who left the recipient set; all of them when closed+rated or withdrawn |
 | `DMS` | created, updated, deleted | self | `true` | `DMS::pendingRecipients()` |
 | `Read` | created, updated, deleted | `$read->dms` | `true` | `DMS::pendingRecipients()` |
 | `Channel` | deleted, forceDeleted | self | `true` | invited∪unread (cleanup) |
@@ -801,9 +803,10 @@ global `whereDate('created_at', today())` check (same shape as `ActiveAds`); it 
 `UnreadPosts` shape so opening the Feed tab actually clears the dot (previously it could only clear
 at midnight, identically for every user).
 
-- **Nudge** — `PostNudge` / `FeedNudge`: triggers `created/updated/deleted`; `show = true` (a feed
-  has no "active" flag, so once created it qualifies until deleted); `for = User::active()->get()`;
-  `refresh = true`. `FeedNudge::title()` falls back through `FeedCategory::tryFrom($subject->category)?->getLabel()`
+- **Nudge** — `PostNudge` / `FeedNudge`: triggers `created/updated/deleted`; `show = (bool) $subject->active`
+  (2026-10-16 — Feed/Post gained `active`; an inactive record raises no nudge); `for = $subject->audienceUsers()`
+  (`HasAudience`: active users in the `departments` audience, `null`/`[]` → all active users); `refresh = true`.
+  The unread dot reads the nudge rows (`hasUnreadFor`), so items created hidden/out-of-audience never light it; deactivating the item (the `updated` trigger) reconciles with `show()=false` and deletes the already-delivered rows; re-activating inserts fresh unread rows. `FeedNudge::title()` falls back through `FeedCategory::tryFrom($subject->category)?->getLabel()`
   (Feed has no title column, unlike Post). These rows already existed before the `UnreadFeeds`
   upgrade — the badge simply started reading what the nudge layer was already writing.
 - **Mark-read on view** — `Posts::selectPost($id)` calls `MarkPostAsReadAction` (per-post, via
@@ -901,7 +904,7 @@ multiplies.
   `requester`) then merges `$subject->otherReplyParticipants([$subject->requester_id, $subject->assigned_to])`.
   The engine's `whereNotIn('notifiable_id', $ids)->delete()` is what makes the staged row migrate
   (open→in-progress prunes the dept-head's row and creates the assignee's; in-progress→closed prunes
-  the assignee's and creates the requester's); the reply-participant rows are additive on `Reply{created}`.
+  the assignee's and creates the requester's); reply rows are no longer part of this class — `ThsReplyNudge` owns them (below).
   `show` returns `false` when the latest reply is the user's **and** the user is not the current
   action recipient (no self-nudge for your own reply), else `true`. `title`/`body` branch on
   `currentActionRecipient()?->is($user)`: the current recipient gets `match($subject->status)`
@@ -909,10 +912,27 @@ multiplies.
   reply-participant gets «پاسخ جدید: …». `refresh = true`. `badgeSuppressesCreate = false` — a
   reply on an already-badge-lit ticket must still CREATE a nudge for the reply-participants the
   badge does not track.
-- **Triggers** — `['created','updated','deleted']` + `Reply{created}` (`subject = $reply->repliable`,
-  repliable_type-guarded to `Ticket`). `Ticket` has **no `SoftDeletes`**, so `forceDeleted` is not a
-  valid event; a hard `deleted` is the only removal event and `Ticket::find()` returning null
-  blanket-deletes the row. `MENU_STATE_EVENTS` mirrors this.
+- **Per-reply rows (2026-10-16) — a SECOND nudge class, `ThsReplyNudge`** (key `ths-controller:reply-nudge`,
+  subject = the Reply, `item_id` = reply id). Each reply creates its own row per recipient instead of
+  re-hitting the ticket row the user already dismissed. It is a separate class with its own key because
+  reply ids and ticket ids would otherwise share one `item_id` namespace (a reply row and a ticket row
+  with the same number would overwrite or prune each other, and ticket reconciles could never prune reply
+  rows). `ThsNudge` therefore keeps ONLY the ticket-level lifecycle row and no longer listens to `Reply`.
+  `ThsReplyNudge` triggers: `Reply{created,deleted}` (repliable_type-guarded; a deleted reply, including
+  the `Ticket::deleting` cascade, re-fetches null and blanket-deletes its rows — no orphans) and
+  `Ticket{updated}` whose subject resolver is a PRUNE (deletes this ticket's reply rows for users who left
+  the recipient set when `status`/`assigned_to`/`satisfaction_score`/`action_result`/`extra` changed; all
+  of them once closed+rated or withdrawn) that returns `null` so nothing is dispatched — a reconcile
+  fan-out over old replies would give every newly-eligible recipient a row per old reply. Not covered
+  (accepted): `User`/`Profile` department-change reconciles dispatch the ticket key only, so a reply row of
+  a head who just left the department lives until dismissed or `notifications:prune-stale`. Consumers:
+  `PruneStaleNudges` (`LIKE '%nudge'`) and the bell (`UnreadNotifications` groups/aggregates by
+  `menu_key`, so each key folds on its own past 4 rows and "حذف اعلان"/mark-all work for both) need no
+  change; `ThsBadge` and `BadgeLegendCatalog` key on the bare `ths-controller` badge and are unaffected.
+- **Triggers** — `ThsNudge`: `['created','updated','deleted']`. `Ticket` has **no `SoftDeletes`**, so
+  `forceDeleted` is not a valid event; a hard `deleted` is the only removal event and `Ticket::find()`
+  returning null blanket-deletes the row. `MENU_STATE_EVENTS` mirrors this. Reply triggers live on
+  `ThsReplyNudge` (see above).
 - **Auto open→in-progress on assignment** — wired in `TicketFormPresenter::assignedTo()`
   (`afterStateUpdated`: filled assignee + status open/null → `InProgress`; blank + InProgress →
   `Open`), matching the helper text «با انتخاب مسئول، وضعیت تیکت به «در حال بررسی» تغییر خودکار
@@ -1005,17 +1025,23 @@ alert even when another chat already lit the aggregate badge).
 
 Both are **Signal-2 only** (no `MenuBadge`, no menu dot) — the bell row is the whole signal.
 
-- **`PhotoNudge`** (key `gallery-controller:nudge`) — `for()` reuses the Suggestion department idiom:
-  `User::active()->whereHas('profile', department_id ∈ ['MA', …Photo::all_departments])`; empty
-  `all_departments` → all active users (a public gallery photo broadcasts). `show = true`,
+- **`PhotoNudge`** (key `gallery-controller:nudge`) — `for = $subject->audienceUsers()` (2026-10-16;
+  `Photo` opts into `AUDIENCE_INCLUDES_DEPARTMENT_ID`, so audience = `department_id` + `departments`);
+  empty audience → all active users (a public gallery photo broadcasts). The old implicit `'MA'`
+  recipient was dropped — MA now gets a photo nudge only when it is in the audience. `show = (bool) $subject->active`,
   `refresh = true`.
-- **`ReportNudge`** (key `reports-controller:nudge`) — broadcast: `for = User::active()->get()`,
-  `show = $subject->active` (only published reports — the `Report.active` boolean gate, same shape
+- **`ReportNudge`** (key `reports-controller:nudge`) — `for = $subject->audienceUsers()` (2026-10-16; was a
+  broadcast to all active users, so a restricted report no longer nudges other departments; `Report::department_id` is the subject, not the audience),
+  `show = (bool) $subject->active` (only published reports — the `Report.active` boolean gate, same shape
   as `AdNudge::show = $ad->active`), `refresh = true`. Title carries the publishing department's
   label via the shared `Department::displayLabel()` (`HasDepartmentLabel`, `description ?: name ?: code`):
   `'گزارش جدید از ' . ($subject->department?->displayLabel() ?? 'سازمان') . ': ' . $subject->title`
   — the nullsafe `?->` short-circuits `?? 'سازمان'` for a department-less report; the same helper
   backs `Department` dropdown labels elsewhere, so this can't drift from that copy.
+- **Department move re-audience** — `Profile::saved` on a `department_id` change (not a position-only change) dispatches
+  `ReconcileNudge` for every Post/Feed/Report whose `departments` JSON contains the old or new code, and every Photo whose
+  `department_id` or `departments` does (beside the existing open-Ticket reconcile), so a moved user's bell rows follow the
+  audience instead of lingering until the next subject save.
 - **Keys** — `gallery-controller` / `reports-controller` bare keys do **not** exist as menu items or
   tab badges; fine for nudge-only rules (the `:nudge` suffix is the only thing that matters for
   isolation, and there is no badge counterpart to collide with).
@@ -1086,8 +1112,8 @@ provably-safe closer, scheduled `->daily()->withoutOverlapping()` in `routes/con
 - Deletes `notifications` rows where `type = FilamentDatabaseNotification` AND
   `data->menu_key LIKE '%nudge'` AND `created_at < now()->subDays($days)`. The `nudge` ending partitions
   the namespace — every nudge key ends in `nudge` (the current `:nudge` suffix **and** the legacy
-  `:reply-nudge` suffix left by a refactored-away iteration — no source code writes `:reply-nudge` any
-  more; `TaskNudge`/`ThsNudge` now reuse the single `:nudge` key+item_id), and no bare badge key ends in
+  `:reply-nudge` suffix, which `ThsReplyNudge` now writes again as `ths-controller:reply-nudge`;
+  `TaskNudge` still reuses the single `:nudge` key+item_id), and no bare badge key ends in
   `nudge` (`ads-controller`, `dms-controller`, `shared-events`, `special-days`, …). `LIKE '%nudge'`
   catches the whole nudge family in one predicate; the earlier `LIKE '%:nudge'` was too narrow and would
   have left the legacy `:reply-nudge` rows behind.

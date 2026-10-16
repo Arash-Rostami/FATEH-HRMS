@@ -55,8 +55,8 @@ class TicketFormPresenter
                 $dept = $get('extra.target_department') ?: Ticket::defaultTargetDepartment();
                 $options = $dept ? User::getCachedDepartmentOptions($dept)->toArray() : [];
 
-                return $record?->assigned_to && !isset($options[$record->assigned_to])
-                    ? $options + [$record->assigned_to => $record->assignee?->name]
+                return $record?->assigned_to && !isset($options[$record->assigned_to]) && $record->assignee
+                    ? $options + [$record->assigned_to => $record->assignee->name]
                     : $options;
             })
             ->searchable()

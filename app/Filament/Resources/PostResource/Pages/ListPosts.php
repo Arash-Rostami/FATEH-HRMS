@@ -5,13 +5,14 @@ namespace App\Filament\Resources\PostResource\Pages;
 use App\Filament\Resources\PostResource;
 use App\Models\Post;
 use App\Traits\FilamentHeaderActions;
+use App\Traits\FilamentVisibility;
 use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListPosts extends ListRecords
 {
-    use FilamentHeaderActions;
+    use FilamentHeaderActions, FilamentVisibility;
 
     protected static string $resource = PostResource::class;
 
@@ -36,6 +37,8 @@ class ListPosts extends ListRecords
                 ->badge(fn() => $this->getStats()->unpinned_count ?: null)
                 ->badgeColor('gray')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('pinned', false)),
+
+            ...self::activeTabs(fn() => $this->getStats()),
         ];
     }
 
@@ -44,7 +47,9 @@ class ListPosts extends ListRecords
         return once(fn() => Post::query()
             ->selectRaw("
                 SUM(CASE WHEN pinned = 1 THEN 1 ELSE 0 END) AS pinned_count,
-                SUM(CASE WHEN pinned = 0 THEN 1 ELSE 0 END) AS unpinned_count
+                SUM(CASE WHEN pinned = 0 THEN 1 ELSE 0 END) AS unpinned_count,
+                SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) AS active_count,
+                SUM(CASE WHEN active = 0 THEN 1 ELSE 0 END) AS inactive_count
             ")
             ->first());
     }

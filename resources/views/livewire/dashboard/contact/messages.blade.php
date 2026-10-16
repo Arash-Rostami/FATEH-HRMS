@@ -81,13 +81,13 @@
                  ]) style="animation-delay: {{ $msg['animation_delay'] }}s">
 
                 @if($msg['is_last'])
-                    <div class="flex-shrink-0 self-end mb-0.5">
+                    <div wire:key="contact-msg-avatar" class="flex-shrink-0 self-end mb-0.5">
                         <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" :inactive="$msg['sender_inactive']"
                                      size="sm" icon="person" icon-size="text-base"
                                      :online="$msg['sender_online']" :status="$msg['sender_presence']" :focus="$msg['sender_focus']"/>
                     </div>
                 @else
-                    <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
+                    <div wire:key="contact-msg-spacer" class="flex-shrink-0 w-7" aria-hidden="true"></div>
                 @endif
 
                 <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative">

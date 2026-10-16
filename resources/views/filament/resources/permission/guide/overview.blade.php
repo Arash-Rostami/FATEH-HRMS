@@ -22,7 +22,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">هر ردیف یک «کاربریِ ادمین» و سطح دسترسی اوست — نه نقش</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        این ماژول کاملاً مدیریتی است و پنل کاربری ندارد. هر ردیف در جدول «دسترسی‌ها» متعلق به یک کاربر با نقش admin است و تعیین می‌کند او به کدام ماژول‌های پنل ادمین دسترسی دارد. نقشِ کاربر (role) اولین دروازه است؛ این ردیف فقط یک پالایشِ ریزتر روی همان نقش admin است. developerها به‌طور کامل از این سیستم عبور می‌کنند — هیچ ردیفی برایشان لازم نیست و همه‌چیز را می‌بینند.
+        این ماژول کاملاً مدیریتی است و پنل کاربری ندارد. هر ردیف در جدول «دسترسی‌ها» متعلق به یک کاربر با نقش admin است و تعیین می‌کند او به کدام ماژول‌های پنل ادمین دسترسی دارد. نقشِ کاربر (role) اولین دروازه است؛ این ردیف فقط یک پالایشِ ریزتر روی همان نقش admin است. developerها به‌طور کامل از این سیستم عبور می‌کنند — هیچ ردیفی برایشان لازم نیست و همه‌چیز را می‌بینند. اگر می‌پرسید «چرا فلان مدیر فلان زبانه یا دکمه را نمی‌بیند؟» پاسخ در زبانهٔ «قوانین دسترسی در عمل» است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -53,7 +53,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                دسترسی به این صفحه فقط برای developerها و مدیران ارشد باز است؛ یک مدیر عادی حتی نمی‌تواند این صفحه را ببیند.
+                دسترسی به این صفحه و همهٔ عملیات آن فقط برای developerها و مدیران ارشد باز است؛ یک مدیر عادی حتی نمی‌تواند این صفحه را ببیند. ماژول «دسترسی‌ها» (permission) در انتخابگرهای abilities و excluded_modules نمایش داده نمی‌شود، پس به هیچ مدیری قابل اعطا نیست.
             </p>
         </div>
     </div>

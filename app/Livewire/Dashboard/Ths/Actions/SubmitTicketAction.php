@@ -8,6 +8,7 @@ use App\Support\FileNamer;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class SubmitTicketAction
@@ -16,15 +17,17 @@ class SubmitTicketAction
 
     public function execute(TicketForm $form): void
     {
+        $form->files = array_filter($form->files);
+
         $form->validate();
+
+        $form->files = array_values($form->files);
 
         $key = 'ths:submit:' . auth()->id() . ':' . md5($form->subject);
 
         if (!Cache::add($key, 1, 10)) {
-            return;
+            throw ValidationException::withMessages(['ticket.subject' => 'درخواستی با همین موضوع چند لحظه پیش ثبت شد.']);
         }
-
-        $form->files = collect($form->files)->filter()->values()->all();
 
         try {
             Ticket::create([

@@ -10,24 +10,10 @@
             :count="array_sum($this->stats)"
             countLabel="نفر">
             <x-slot:actions>
-                <div class="hidden md:flex bg-[var(--md-sys-color-surface-container-high)] p-0.5 rounded-lg border border-[var(--md-sys-color-outline-variant)]/40">
-                    <button
-                        type="button"
-                        title="نمای کارتی"
-                        @click="view = 'grid'; $wire.toggleView('grid')"
-                        :class="view === 'grid' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'"
-                        class="flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200">
-                        <span class="material-symbols-rounded text-[18px]">grid_view</span>
-                    </button>
-                    <button
-                        type="button"
-                        title="نمای ساختار سازمانی"
-                        @click="view = 'chart'; $wire.toggleView('chart')"
-                        :class="view === 'chart' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'"
-                        class="flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200">
-                        <span class="material-symbols-rounded text-[18px]">account_tree</span>
-                    </button>
-                </div>
+                <x-ui.buttons.view-toggle :modes="[
+                    ['value' => 'grid', 'icon' => 'grid_view', 'title' => 'نمای کارتی'],
+                    ['value' => 'chart', 'icon' => 'account_tree', 'title' => 'نمای ساختار سازمانی'],
+                ]"/>
 
                 @if(count($this->todaysOccasions))
                     <button

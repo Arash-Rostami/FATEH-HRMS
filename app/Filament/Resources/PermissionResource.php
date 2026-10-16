@@ -22,13 +22,18 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use UnitEnum;
 
 class PermissionResource extends Resource
 {
-    use FilamentActions, FilamentAdminGuide, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentAdminGuide, FilamentFilters, AuthorizesByPermission {
+        AuthorizesByPermission::permits as traitPermits;
+        AuthorizesByPermission::getAuthorizationResponse as traitAuthorizationResponse;
+    }
 
     protected static ?string $model = Permission::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-shield-check';
@@ -37,6 +42,7 @@ class PermissionResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'verified_user', 'view' => 'filament.resources.permission.guide.overview'],
         ['label' => 'دو سطح دسترسی', 'icon' => 'key', 'view' => 'filament.resources.permission.guide.tiers'],
+        ['label' => 'قوانین دسترسی در عمل', 'icon' => 'policy', 'view' => 'filament.resources.permission.guide.access-rules'],
         ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.permission.guide.admin-ops'],
         ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.permission.guide.list-tabs'],
     ];
@@ -49,6 +55,22 @@ class PermissionResource extends Resource
         }
 
         return (bool)Permission::forUser(Auth::id())?->is_super_admin;
+    }
+
+    public static function getAuthorizationResponse(string|UnitEnum $action, ?Model $record = null): Response
+    {
+        $ability = $action instanceof BackedEnum ? $action->value : ($action instanceof UnitEnum ? $action->name : $action);
+
+        if ($record?->user_id === Auth::id() && in_array($ability, ['delete', 'forceDelete'], true)) {
+            return Response::deny();
+        }
+
+        return static::traitAuthorizationResponse($action, $record);
+    }
+
+    protected static function permits(string $action): bool
+    {
+        return static::canViewAny() && static::traitPermits($action);
     }
 
     public static function getRecordTitle(?Model $record): ?string
@@ -194,7 +216,7 @@ class PermissionResource extends Resource
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(PermissionExporter::class))
+            ->groupedBulkActions([self::bulkDeleteAction()->authorizeIndividualRecords(), self::bulkExportAction(PermissionExporter::class)])
             ->emptyStateIcon('heroicon-o-shield-exclamation')
             ->defaultSort('id', 'desc');
     }

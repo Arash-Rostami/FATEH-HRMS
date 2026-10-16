@@ -26,15 +26,5 @@
         </div>
     </div>
 
-    <button
-        @click="toggleMaximize(feed($el))"
-        :title="maximizedFeed === feed($el) ? 'کوچک کردن' : 'بزرگ کردن'"
-        :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedFeed === feed($el) }"
-        class="ripple-effect shrink-0 hidden md:flex h-9 w-9 items-center justify-center rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-200 active:scale-95"
-    >
-        <span
-            class="material-symbols-rounded text-[18px]"
-            x-text="maximizedFeed === feed($el) ? 'close_fullscreen' : 'open_in_full'"
-        ></span>
-    </button>
+    <x-ui.modals.maximize-button toggle="toggleMaximize(feed($el))" state="maximizedFeed === feed($el)" size="tile" class="ripple-effect hidden md:flex"/>
 </div>

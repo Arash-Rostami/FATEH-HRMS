@@ -3,9 +3,12 @@
 namespace App\Traits;
 
 use App\Models\Permission;
+use BackedEnum;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use UnitEnum;
 
 trait AuthorizesByPermission
 {
@@ -62,6 +65,22 @@ trait AuthorizesByPermission
     public static function canViewAny(): bool
     {
         return static::permits('view');
+    }
+
+    public static function getAuthorizationResponse(string|UnitEnum $action, ?Model $record = null): Response
+    {
+        $ability = $action instanceof BackedEnum ? $action->value : ($action instanceof UnitEnum ? $action->name : $action);
+
+        $mapped = match ($ability) {
+            'viewAny', 'view' => 'view',
+            'create', 'replicate' => 'create',
+            'update', 'reorder' => 'update',
+            'delete', 'deleteAny', 'forceDelete', 'forceDeleteAny' => 'delete',
+            'restore', 'restoreAny' => 'restore',
+            default => null,
+        };
+
+        return $mapped && static::permits($mapped) ? Response::allow() : Response::deny();
     }
 
     public static function moduleKey(): string

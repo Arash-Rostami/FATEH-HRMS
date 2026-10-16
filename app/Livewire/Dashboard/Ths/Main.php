@@ -9,9 +9,12 @@ use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Models\Department;
 use App\Models\Ticket;
+use App\Models\User;
+use App\Services\Ticket\TicketInsightsService;
 use App\Support\TicketAccessPolicy;
 use App\Traits\FocusOnRecord;
 use App\Traits\HasDateSpan;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -50,6 +53,9 @@ class Main extends Component
     public array $requestAreas = [];
     public array $departmentOptions = [];
 
+    #[Locked]
+    public array $typicalMap = [];
+
     #[Url(as: 'queue')]
     public string $listFilter = 'mine';
     public int $perPage = 10;
@@ -79,7 +85,7 @@ class Main extends Component
 
     public function loadMore(): void
     {
-        if ($this->listFilter === 'mine' && $this->dateParts() !== $this->appliedDateParts) {
+        if ($this->listFilter !== 'actionable' && $this->dateParts() !== $this->appliedDateParts) {
             [$this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay] = $this->appliedDateParts;
             return;
         }
@@ -93,7 +99,7 @@ class Main extends Component
 
     protected function afterDateSpanChange(): void
     {
-        $this->perPage = 10;
+        $this->perPage = $this->inboxPerPage = 10;
     }
 
     public function setListFilter(string $filter): void
@@ -120,7 +126,7 @@ class Main extends Component
             $this->sortDir = 'asc';
         }
 
-        $this->perPage = 10;
+        $this->perPage = $this->inboxPerPage = 10;
     }
 
     private function sortExpression(): string
@@ -136,7 +142,7 @@ class Main extends Component
     {
         $this->sort = 'created';
         $this->sortDir = 'desc';
-        $this->perPage = 10;
+        $this->perPage = $this->inboxPerPage = 10;
     }
 
     public function toggleActionableFilter(): void
@@ -151,7 +157,7 @@ class Main extends Component
 
     public function updatedStatusFilter(): void
     {
-        $this->inboxPerPage = 10;
+        $this->perPage = $this->inboxPerPage = 10;
     }
 
     #[Computed]
@@ -177,7 +183,7 @@ class Main extends Component
         $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
         $this->ticket->fileInputs[] = Str::random(13);
         $this->ticket->requestTypeOptions = Ticket::$requestTypeOptions;
-        $this->departmentOptions = Department::getCachedOptionsExcludingEmptyTickets()->toArray();
+        $this->departmentOptions = Department::getOfferedTicketOptions()->toArray();
         $this->loadRequestAreas();
 
         $this->ticketToRate = $this->unratedTicket();
@@ -268,6 +274,10 @@ class Main extends Component
             return;
         }
 
+        if ($tab === 'rate') {
+            $this->ticketToRate ??= $this->unratedTicket();
+        }
+
         if ($this->activeTab === $tab) return;
 
         if (!in_array($tab, $this->ticketToRate ? ['rate', 'log'] : ['new', 'log'], true)) {
@@ -280,10 +290,11 @@ class Main extends Component
     #[Computed]
     public function inboxTickets()
     {
-        return Ticket::query()
+        return $this->applyStatusFilter(Ticket::query()
             ->with('assignee', 'requester')
             ->withCount('replies')
-            ->actionableBy(auth()->user())
+            ->actionableBy(auth()->user()))
+            ->searchTerm($this->ticketSearch)
             ->orderByDesc('created_at')
             ->paginate($this->inboxPerPage, ['*'], 'inboxPage');
     }
@@ -293,32 +304,35 @@ class Main extends Component
     {
         abort_unless($this->isHead, 403);
 
-        return Ticket::query()
+        return $this->applyListControls(Ticket::query()
             ->with('assignee', 'requester')
             ->withCount('replies')
-            ->targetedAt(auth()->user()->profile->department_id)
-            ->when(in_array($this->statusFilter, ['open', 'in-progress', 'closed'], true), fn($q) => $q->where('status', $this->statusFilter))
-            ->orderByDesc('created_at')
+            ->targetedAt(auth()->user()->profile->department_id))
             ->paginate($this->inboxPerPage, ['*'], 'inboxPage');
     }
 
     #[Computed]
     public function tickets()
     {
-        return Ticket::query()
+        return $this->applyListControls(Ticket::query()
             ->with('assignee')
             ->withCount('replies')
-            ->where('requester_id', auth()->id())
-            ->when($this->ticketSearch, fn($q) => $q->where(function ($sub) {
-                $term = '%' . addcslashes($this->ticketSearch, '\\%_') . '%';
-                $sub->where('request_subject', 'like', $term)
-                    ->orWhere('description', 'like', $term)
-                    ->orWhereRaw("CONCAT(UPPER(COALESCE(NULLIF(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(extra, '$.target_department')), ''), 'null'), 'T')), '-', DATE_FORMAT(created_at, '%y%m'), '-', LPAD(id, GREATEST(4, LENGTH(id)), '0')) LIKE ?", [$term]);
-            }))
-            ->when($this->dateSpan(), fn($query, $span) => $query->whereBetween($span[0], [$span[1], $span[2]]))
-            ->orderByRaw($this->sortExpression() . ($this->sortDir === 'asc' ? ' asc' : ' desc'))
-            ->orderByDesc('id')
+            ->where('requester_id', auth()->id()))
             ->paginate($this->perPage);
+    }
+
+    private function applyStatusFilter(Builder $query): Builder
+    {
+        return $query->when(in_array($this->statusFilter, ['open', 'in-progress', 'closed'], true), fn($q) => $q->where('status', $this->statusFilter));
+    }
+
+    private function applyListControls(Builder $query): Builder
+    {
+        return $this->applyStatusFilter($query)
+            ->searchTerm($this->ticketSearch)
+            ->when($this->dateSpan(), fn($q, $span) => $q->whereBetween($span[0], [$span[1], $span[2]]))
+            ->orderByRaw($this->sortExpression() . ($this->sortDir === 'asc' ? ' asc' : ' desc'))
+            ->orderByDesc('id');
     }
 
     #[Computed]
@@ -349,12 +363,13 @@ class Main extends Component
             $this->ticket->requestType = array_key_first($this->ticket->requestTypeOptions) ?? 'support';
         }
 
+        $this->typicalMap = app(TicketInsightsService::class)->typicalCloseMap($deptCode);
         $this->loadRequestAreas();
         $this->ticket->requestArea = '';
     }
     public function viewTicket($ticketId): void
     {
-        $ticket = Ticket::with('assignee')->find($ticketId);
+        $ticket = Ticket::with('assignee:id,name', 'requester:id,name')->withCount('replies')->find($ticketId);
 
         if (!$ticket || !TicketAccessPolicy::canView($ticket, auth()->user())) {
             $this->dispatch('toast', message: 'تیکت موردنظر در دسترس نیست.', type: 'error');
@@ -365,8 +380,18 @@ class Main extends Component
         $this->selectedTicket = $ticket->toArray();
         $this->selectedTicket['requester_files'] = $this->resolveTicketFileUrls($this->selectedTicket['requester_files'] ?? []);
         $this->selectedTicket['assignee_files'] = $this->resolveTicketFileUrls($this->selectedTicket['assignee_files'] ?? []);
-        $this->selectedTicket['target_department_code'] = $ticket->targetDepartment?->code;
+        $this->selectedTicket['target_department_code'] = $ticket->targetDepartment?->code ?? $ticket->effectiveTargetDepartment();
+        $this->selectedTicket['timeline'] = app(TicketInsightsService::class)->ticketTimeline($ticket);
+
+        $ticket->loadMissing('assignee.profile', 'requester.profile');
+        $this->selectedTicket['requester_avatar'] = $this->avatarUrl($ticket->requester);
+        $this->selectedTicket['assignee_avatar'] = $this->avatarUrl($ticket->assignee);
         $this->modalTab = 'request';
+    }
+
+    private function avatarUrl(?User $user): ?string
+    {
+        return $user ? ($user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl()) : null;
     }
 
     private function resolveTicketFileUrls(array $files): array

@@ -150,7 +150,7 @@
     <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden">
         <div id="activity-viewport" role="log" aria-live="polite" class="relative flex flex-col gap-4 p-4">
             @if(count($this->activityFeed['rows']))
-                <div class="absolute top-4 bottom-4 right-[13px] w-px bg-[var(--md-sys-color-outline-variant)] opacity-30"></div>
+                <div wire:key="project-activity-rail" class="absolute top-4 bottom-4 right-[13px] w-px bg-[var(--md-sys-color-outline-variant)] opacity-30"></div>
             @endif
 
             @forelse($this->groupedActivityFeed as $group)
@@ -198,7 +198,7 @@
                         ])></span>
 
                         @if($entry['type'] === 'comment')
-                            <div @class([
+                            <div wire:key="project-activity-comment" @class([
                                 'relative mr-7 px-3.5 py-3 rounded-2xl border bg-[var(--md-sys-color-surface)] transition-colors group',
                                 'border-[var(--md-sys-color-outline-variant)]/50 hover:border-[var(--md-sys-color-outline-variant)]/80' => !($entry['mentions_you'] ?? false),
                                 'border-[var(--md-sys-color-error)]/40 bg-[var(--md-sys-color-error-container)]/15 ring-1 ring-inset ring-[var(--md-sys-color-error)]/25' => $entry['mentions_you'] ?? false,
@@ -373,7 +373,7 @@
                                 </div>
                             </div>
                         @else
-                            <div class="flex flex-col items-center gap-1">
+                            <div wire:key="project-activity-event" class="flex flex-col items-center gap-1">
                                 <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold border bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] hover:brightness-110 transition">
                                     <span class="material-symbols-rounded text-[13px]">{{ $entry['icon'] }}</span>
                                     <span dir="auto">{{ $entry['body'] }}</span>

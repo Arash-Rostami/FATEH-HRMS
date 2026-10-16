@@ -29,13 +29,23 @@
                 </x-ui.forms.select>
 
 
-                <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
-                                   wire:model.live="ticket.requestArea"
-                                   :icon="$presenter->requestAreaIcon($this->ticket->requestArea, $this->ticket->targetDepartment)">
-                    @foreach($requestAreas as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </x-ui.forms.select>
+                <div class="space-y-1.5">
+                    <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
+                                       wire:model.live="ticket.requestArea"
+                                       :icon="$presenter->requestAreaIcon($this->ticket->requestArea, $this->ticket->targetDepartment)">
+                        @foreach($requestAreas as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </x-ui.forms.select>
+
+                    @if($typicalHint = $presenter->typicalHint($typicalMap, $this->ticket->requestType, $this->ticket->requestArea))
+                        <p wire:key="ths-create-typical"
+                           class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5">
+                            <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">schedule</span>
+                            {{ $typicalHint }}
+                        </p>
+                    @endif
+                </div>
 
                 <div class="space-y-1.5">
                     <label
@@ -74,6 +84,7 @@
     </div>
 
     @if($this->ticket->targetDepartment !== '')
+        <div wire:key="ths-create-body" class="space-y-6">
         {{-- ── Section 2: Content + Attachments ── --}}
         <div wire:key="ths-create-content" class="space-y-4">
 
@@ -195,6 +206,7 @@
                 icon="send"
                 class="px-6 h-11 font-bold rounded-xl shadow-md mr-auto"
             />
+        </div>
         </div>
     @endif
 </form>

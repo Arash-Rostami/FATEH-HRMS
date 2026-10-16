@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
+use App\Traits\FilamentVisibility;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PostResource extends Resource
 {
-    use FilamentActions, FilamentAdminGuide, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentAdminGuide, FilamentFilters, FilamentVisibility, AuthorizesByPermission;
 
     protected static ?string $model = Post::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-megaphone';
@@ -52,6 +53,8 @@ class PostResource extends Resource
                     PostFormPresenter::userId(),
                     PostFormPresenter::divider(),
                     PostFormPresenter::pinned(),
+                    self::activeToggle(),
+                    self::departmentsSelect(),
                     PostFormPresenter::image(),
                 ])
                 ->columns(1),
@@ -138,6 +141,8 @@ class PostResource extends Resource
                 ->schema([
                     PostInfolistPresenter::user(),
                     PostInfolistPresenter::pinned(),
+                    self::activeEntry(),
+                    self::audienceEntry(),
                     PostInfolistPresenter::createdAt(),
                     PostInfolistPresenter::updatedAt(),
 
@@ -160,10 +165,18 @@ class PostResource extends Resource
                 PostTablePresenter::title(),
                 PostTablePresenter::user(),
                 PostTablePresenter::pinned(),
+                self::activeColumn(),
+                self::audienceColumn(),
                 PostTablePresenter::body(),
                 PostTablePresenter::createdAt(),
             ])
+            ->groups([
+                self::activeGroup(),
+            ])
             ->filters([
+                self::activeFilter(),
+                self::audienceFilter(),
+                self::visibilityFilter(),
                 PostTablePresenter::pinnedFilter(),
                 PostTablePresenter::hasImageFilter(),
                 self::createdAtFilter(),
@@ -174,7 +187,10 @@ class PostResource extends Resource
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(PostExporter::class))
+            ->groupedBulkActions([
+                ...self::bulkActions(PostExporter::class),
+                ...self::bulkVisibilityActions(),
+            ])
             ->emptyStateIcon('heroicon-o-document-text')
             ->defaultSort(fn(Builder $query): Builder => $query->orderBy('pinned', 'desc')->orderBy('created_at', 'desc'))
             ->striped();

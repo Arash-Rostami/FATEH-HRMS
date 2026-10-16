@@ -3,12 +3,15 @@
 namespace App\Filament\Resources\GalleryResource\Exports;
 
 use App\Models\Photo;
+use App\Traits\FilamentVisibility;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 
 class GalleryExporter extends Exporter
 {
+    use FilamentVisibility;
+
     protected static ?string $model = Photo::class;
 
     public static function getColumns(): array
@@ -24,6 +27,7 @@ class GalleryExporter extends Exporter
                     if ($models->isEmpty()) return __('resources/gallery/strings.fields.public_gallery');
                     return $models->map(fn($d) => $d->displayLabel())->join(' | ');
                 }),
+            self::activeExportColumn(),
             ExportColumn::make('event_date')
                 ->label(__('resources/gallery/strings.fields.event_date'))
                 ->state(fn($record) => $record->event_date ? toJalaliSmart($record->event_date) : '-'),

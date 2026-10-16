@@ -4,6 +4,7 @@ namespace App\Filament\Resources\FeedResource\Exports;
 
 use App\Filament\Resources\FeedResource\Enums\FeedCategory;
 use App\Models\Feed;
+use App\Traits\FilamentVisibility;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class FeedExporter extends Exporter
 {
+    use FilamentVisibility;
+
     protected static ?string $model = Feed::class;
 
     public static function getColumns(): array
@@ -24,6 +27,8 @@ class FeedExporter extends Exporter
             ExportColumn::make('content')
                 ->label(__('resources/feed/strings.fields.content'))
                 ->state(fn($record) => strip_tags($record->content ?? '')),
+            self::activeExportColumn(),
+            self::audienceExportColumn(),
             ExportColumn::make('comments_count')
                 ->label(__('resources/feed/strings.fields.comments_count'))
                 ->state(fn($record) => isset($record->comments_count) ? $record->comments_count : $record->comments()->count()),

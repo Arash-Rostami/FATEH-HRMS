@@ -50,13 +50,19 @@ class ThsExporter extends Exporter
 
             ExportColumn::make('request_type')
                 ->label(__('resources/ths/strings.fields.request_type'))
-                ->state(fn($record) => Ticket::getCustomRequestTypeLabel($record->request_type, $record->extra['target_department'] ?? null)),
+                ->state(fn($record) => $record->typeLabel),
+
+            ExportColumn::make('request_type_key')
+                ->label(__('resources/ths/strings.fields.request_type') . ' (key)')
+                ->state(fn($record) => $record->request_type ?? ''),
 
             ExportColumn::make('request_area')
                 ->label(__('resources/ths/strings.fields.request_area'))
-                ->state(fn($record) => $record->request_area
-                    ? Ticket::getCustomRequestAreaLabel($record->request_type, $record->request_area, $record->extra['target_department'] ?? null)
-                    : ''),
+                ->state(fn($record) => $record->areaLabel),
+
+            ExportColumn::make('request_area_key')
+                ->label(__('resources/ths/strings.fields.request_area') . ' (key)')
+                ->state(fn($record) => $record->request_area ?? ''),
 
             ExportColumn::make('requester.name')->label(__('resources/ths/strings.fields.requester')),
 

@@ -3,6 +3,7 @@
         ['id' => 'timeline', 'icon' => 'view_carousel', 'label' => 'تایم‌لاین'],
         ['id' => 'poll', 'icon' => 'ballot', 'label' => 'نظرسنجی'],
         ['id' => 'comments', 'icon' => 'forum', 'label' => 'نظرات'],
+        ['id' => 'access', 'icon' => 'lock', 'label' => 'دسترسی'],
         ['id' => 'notes', 'icon' => 'info', 'label' => 'نکات'],
     ];
 
@@ -27,6 +28,12 @@
         ['icon' => 'subdirectory_arrow_left', 'color' => 'tertiary', 'label' => 'پاسخ‌های زنجیره‌ای', 'text' => 'پاسخ‌ها زیر نظر والد به‌صورت زنجیره‌ای نمایش داده می‌شوند و با دکمهٔ «N پاسخ» باز/بسته می‌شوند.'],
         ['icon' => 'edit', 'color' => 'secondary', 'label' => 'ویرایش و حذف فقط نظرات خودتان', 'text' => 'تنها نویسنده می‌تواند نظرش را ویرایش یا حذف کند. حذف یک نظر، پاسخ‌های آن را به نظر بالاتر منتقل می‌کند — پاسخ‌ها پاک نمی‌شوند.'],
         ['icon' => 'edit_note', 'color' => 'primary', 'label' => 'میان‌برهای نوشتن', 'text' => 'Enter نظر را ارسال می‌کند، Shift+Enter خط جدید می‌گذارد، **متن** پررنگ می‌شود. با دکمهٔ ایموجی، ایموجی در نظر درج می‌شود.'],
+    ];
+
+    $access = [
+        ['icon' => 'public', 'color' => 'primary', 'label' => 'عمومی', 'text' => 'فیدی که واحد مخاطب ندارد برای همهٔ همکاران قابل دید است.'],
+        ['icon' => 'lock', 'color' => 'tertiary', 'label' => 'مخصوص واحد', 'text' => 'فیدِ محدود فقط برای همکاران واحدهای انتخاب‌شده دیده می‌شود و اعلان آن هم فقط به همان‌ها می‌رسد؛ چیپ‌های دسته نیز فقط از فیدهای قابل دید شما ساخته می‌شوند.'],
+        ['icon' => 'visibility_off', 'color' => 'secondary', 'label' => 'مخفی‌شده توسط ادمین', 'text' => 'ادمین می‌تواند فید را بدون حذف مخفی کند؛ فید مخفی در فهرست، جستجو و لینک مستقیم دیده نمی‌شود و نظرها و واکنش‌هایش محفوظ می‌مانند.'],
     ];
 
     $notes = [
@@ -54,7 +61,7 @@
         @endforeach
     </div>
 
-    @foreach(['timeline' => $timeline, 'poll' => $poll, 'comments' => $comments] as $tabId => $rows)
+    @foreach(['timeline' => $timeline, 'poll' => $poll, 'comments' => $comments, 'access' => $access] as $tabId => $rows)
         <div x-show="tab === '{{ $tabId }}'" x-cloak class="space-y-3">
             @foreach($rows as $s)
                 @php

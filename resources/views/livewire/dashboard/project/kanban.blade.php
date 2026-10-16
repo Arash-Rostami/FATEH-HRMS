@@ -273,7 +273,7 @@
                             <x-ui.modals.dialog name="kanban-archive-{{ $activeProjectId }}" title="وظایف آرشیوشده">
                                 <div class="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-[var(--md-sys-color-outline-variant)]/30">
                                     @forelse($this->archivedTasks as $item)
-                                        <div class="flex items-center justify-between gap-2 py-2.5 text-xs">
+                                        <div wire:key="kanban-archive-{{ $item['id'] }}" class="flex items-center justify-between gap-2 py-2.5 text-xs">
                                             <div class="min-w-0">
                                                 <p class="truncate font-medium text-[var(--md-sys-color-on-surface)]" dir="auto">{{ $item['title'] }}</p>
                                                 <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">{{ $item['archived_at'] }}</p>
@@ -287,7 +287,7 @@
                                             @endif
                                         </div>
                                     @empty
-                                        <p class="py-4 text-center text-xs text-[var(--md-sys-color-on-surface-variant)]">وظیفه‌ای آرشیو نشده است.</p>
+                                        <p wire:key="kanban-archive-empty" class="py-4 text-center text-xs text-[var(--md-sys-color-on-surface-variant)]">وظیفه‌ای آرشیو نشده است.</p>
                                     @endforelse
                                 </div>
                             </x-ui.modals.dialog>

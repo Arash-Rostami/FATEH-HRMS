@@ -9,13 +9,13 @@
     </div>
 
     @if ($days === 0 || empty($gantt['rows']))
-        <div class="py-10">
+        <div wire:key="project-gantt-empty" class="py-10">
             <x-ui.empty icon="{{ $gantt['hasAnyTask'] ? 'event_busy' : 'inbox' }}"
                         title="{{ $gantt['hasAnyTask'] ? 'وظیفه‌ای در بازهٔ این ماه دیده نمی‌شود' : 'هنوز وظیفه‌ای ثبت نشده است' }}"
                         variant="list"/>
         </div>
     @else
-        <div class="overflow-x-auto overflow-y-auto overscroll-contain custom-scrollbar max-h-[32rem]">
+        <div wire:key="project-gantt-chart" class="overflow-x-auto overflow-y-auto overscroll-contain custom-scrollbar max-h-[32rem]">
             <div class="min-w-max">
                 <div class="sticky top-0 z-30 flex bg-[var(--md-sys-color-surface-container-low)] border-b border-[var(--md-sys-color-outline-variant)]">
                     <div class="sticky start-0 z-20 w-40 md:w-56 shrink-0 bg-[var(--md-sys-color-surface)] flex items-end px-4 pb-2">
@@ -37,11 +37,11 @@
                         <div class="w-40 md:w-56 shrink-0"></div>
                         <div class="relative flex-1">
                             @if ($gantt['todayIndex'] !== null)
-                                <div class="absolute inset-y-0 border-s-2 border-dashed border-[var(--md-sys-color-primary)]/40"
+                                <div wire:key="project-gantt-today" class="absolute inset-y-0 border-s-2 border-dashed border-[var(--md-sys-color-primary)]/40"
                                      style="inset-inline-start: {{ round((($gantt['todayIndex'] + 0.5) / $days) * 100, 2) }}%"></div>
                             @endif
                             @if ($gantt['projectDeadlineIndex'] !== null)
-                                <div class="absolute inset-y-0 border-s-2 border-dotted border-[var(--md-sys-color-tertiary)]/60"
+                                <div wire:key="project-gantt-deadline" class="absolute inset-y-0 border-s-2 border-dotted border-[var(--md-sys-color-tertiary)]/60"
                                      style="inset-inline-start: {{ round((($gantt['projectDeadlineIndex'] + 0.5) / $days) * 100, 2) }}%"></div>
                             @endif
                         </div>
@@ -67,9 +67,9 @@
 
                                 <div class="absolute inset-y-0 flex items-center" style="inset-inline-start: {{ $row['startPct'] }}%; width: {{ $row['widthPct'] }}%">
                                     @if ($degenerate)
-                                        <div class="mx-auto w-3 h-3 rotate-45 rounded-[3px] {{ $d['barClass'] }} shadow-sm" title="{{ $d['titleAttr'] }}"></div>
+                                        <div wire:key="project-gantt-milestone" class="mx-auto w-3 h-3 rotate-45 rounded-[3px] {{ $d['barClass'] }} shadow-sm" title="{{ $d['titleAttr'] }}"></div>
                                     @else
-                                        <div class="relative h-5 w-full rounded-lg flex items-center px-1.5 overflow-hidden shadow-sm {{ $d['barClass'] }}
+                                        <div wire:key="project-gantt-bar" class="relative h-5 w-full rounded-lg flex items-center px-1.5 overflow-hidden shadow-sm {{ $d['barClass'] }}
                                             @if ($row['rightClipped'] && !$row['isDone']) [border-inline-end:2px_dashed_color-mix(in_srgb,var(--md-sys-color-primary)_55%,transparent)] @endif"
                                             title="{{ $d['titleAttr'] }}">
                                             <div class="absolute inset-y-0 start-0 rounded-s-lg {{ $d['fillClass'] }}" style="width: {{ $row['progressPct'] }}%"></div>

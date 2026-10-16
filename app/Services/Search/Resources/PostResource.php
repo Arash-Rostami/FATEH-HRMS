@@ -4,6 +4,7 @@ namespace App\Services\Search\Resources;
 
 use App\Models\Post;
 use App\Services\Search\Contracts\SearchResource;
+use Illuminate\Database\Eloquent\Builder;
 
 class PostResource extends SearchResource
 {
@@ -20,5 +21,10 @@ class PostResource extends SearchResource
     public function action($row): string
     {
         return $this->tab('post', $row->getKey());
+    }
+
+    protected function scope(Builder $query): void
+    {
+        $query->forViewer();
     }
 }

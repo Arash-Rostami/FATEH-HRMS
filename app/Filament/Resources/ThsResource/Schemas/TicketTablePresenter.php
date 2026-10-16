@@ -183,23 +183,49 @@ class TicketTablePresenter
     {
         return TextColumn::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->formatStateUsing(fn($record) => $record->request_area
-                ? Ticket::getCustomRequestAreaLabel($record->request_type, $record->request_area, $record->extra['target_department'] ?? null)
-                : null)
-            ->searchable()
-            ->icon(fn($record) => Ticket::getCustomHeroiconForArea($record->request_area, $record->extra['target_department'] ?? null))
-            ->toggleable(isToggledHiddenByDefault: true);
+            ->formatStateUsing(fn($record) => $record->areaLabel)
+            ->placeholder('—')
+            ->searchable(query: fn(Builder $query, string $search): Builder => self::searchByLabel($query, 'request_area', $search))
+            ->sortable(query: fn(Builder $query, string $direction): Builder => self::sortByLabel($query, 'request_area', $direction))
+            ->icon(fn($record) => Ticket::getCustomHeroiconForArea($record->request_area, $record->targetDepartmentId))
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    private static function searchByLabel(Builder $query, string $column, string $search): Builder
+    {
+        $qualified = $query->getModel()->getTable() . '.' . $column;
+
+        return $query->where(fn(Builder $q) => $q
+            ->where($qualified, 'like', "%{$search}%")
+            ->orWhereIn($qualified, Ticket::searchRequestKeys($column, $search)));
+    }
+
+    private static function sortByLabel(Builder $query, string $column, string $direction): Builder
+    {
+        $qualified = $query->getModel()->getTable() . '.' . $column;
+        $map = Ticket::requestKeyLabelMap($column);
+        $direction = strtolower($direction) === 'desc' ? 'desc' : 'asc';
+
+        if (!$map) return $query->orderBy($qualified, $direction);
+
+        $cases = implode(' ', array_fill(0, count($map), "WHEN {$query->getGrammar()->wrap($qualified)} = ? THEN ?"));
+
+        return $query->orderByRaw(
+            "CASE {$cases} ELSE {$query->getGrammar()->wrap($qualified)} END {$direction}",
+            collect($map)->flatMap(fn($label, $key) => [(string)$key, (string)$label])->all(),
+        );
     }
 
     public static function requestType(): TextColumn
     {
         return TextColumn::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->getStateUsing(fn($record) => Ticket::getCustomRequestTypeLabel($record->request_type, $record->extra['target_department'] ?? null))
+            ->getStateUsing(fn($record) => $record->typeLabel)
             ->badge()
             ->color(fn($record) => RequestType::tryFrom($record->request_type)?->getColor() ?? 'gray')
             ->icon(fn($record) => RequestType::tryFrom($record->request_type)?->getIcon())
-            ->sortable()
+            ->searchable(query: fn(Builder $query, string $search): Builder => self::searchByLabel($query, 'request_type', $search))
+            ->sortable(query: fn(Builder $query, string $direction): Builder => self::sortByLabel($query, 'request_type', $direction))
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
@@ -301,7 +327,8 @@ class TicketTablePresenter
     {
         return SelectFilter::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->options(fn() => Ticket::allRequestTypeOptions())
+            ->options(fn() => Ticket::requestTypeFilterOptions())
+            ->query(fn(Builder $query, array $data): Builder => self::filterByKeys($query, 'request_type', $data['values'] ?? []))
             ->multiple();
     }
 
@@ -309,18 +336,22 @@ class TicketTablePresenter
     {
         return SelectFilter::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->options(fn() => Ticket::allRequestAreaOptions())
+            ->options(fn() => Ticket::requestAreaFilterOptions())
+            ->query(fn(Builder $query, array $data): Builder => self::filterByKeys($query, 'request_area', $data['values'] ?? []))
             ->searchable()
             ->multiple();
+    }
+
+    private static function filterByKeys(Builder $query, string $column, array $keys): Builder
+    {
+        return $query->when($keys, fn(Builder $q) => $q->whereIn($query->getModel()->getTable() . '.' . $column,Ticket::requestKeyVariants($column, $keys)));
     }
 
     public static function typeGroup(): Group
     {
         return Group::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->getTitleFromRecordUsing(
-                fn($record): string => Ticket::getCustomRequestTypeLabel($record?->request_type, $record?->extra['target_department'] ?? null)
-            )
+            ->getTitleFromRecordUsing(fn($record): string => $record?->typeLabel ?? '')
             ->titlePrefixedWithLabel(false)
             ->collapsible();
     }

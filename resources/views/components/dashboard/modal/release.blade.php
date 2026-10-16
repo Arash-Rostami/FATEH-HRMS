@@ -115,10 +115,10 @@
 
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg {{ $versionChipClass }}">{{ $checkpoint['version'] }}</span>
+                                    <span dir="ltr" class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg {{ $versionChipClass }}">{{ $checkpoint['version'] }}</span>
                                     <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-{{ $isNewest ? 'tertiary' : $checkpoint['color'] }}-container)] text-[var(--md-sys-color-on-{{ $isNewest ? 'tertiary' : $checkpoint['color'] }}-container)]">{{ $checkpoint['badge'] }}</span>
                                 </div>
-                                <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] tracking-wider">{{ $checkpoint['period'] }}</span>
+                                <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] tracking-wider">انجام شده در {{ $checkpoint['period'] }}</span>
                             </div>
 
                             <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">

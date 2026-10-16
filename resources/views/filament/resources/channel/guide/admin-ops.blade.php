@@ -63,6 +63,10 @@
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
                 حذفِ یک گروه از طرف ادمین، اعضا را از پنل کاربری‌شان خارج نمی‌کند — گروه ناپدید می‌شود ولی ردیف‌های عضویت تا حذف دائمی در پایگاه داده باقی می‌مانند.
             </p>
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2 mt-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
+                زبانهٔ «پیام‌ها» ماژول جدا ندارد و برای هر کسی که رکورد کانال را باز کند باز است؛ زبانهٔ «اعضا» اما دسترسی «مشاهدهٔ» ماژول کاربر را می‌خواهد.
+            </p>
         </div>
     </div>
 </div>

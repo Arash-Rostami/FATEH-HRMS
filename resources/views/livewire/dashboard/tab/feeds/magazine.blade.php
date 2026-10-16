@@ -1,4 +1,5 @@
 @if($this->feeds->isNotEmpty())
+<div wire:key="feeds-magazine-list" class="contents">
     <div x-show="month && visibleCount === 0" x-cloak
          class="flex flex-col items-center justify-center gap-3 py-16 text-[var(--md-sys-color-on-surface-variant)]">
         <span class="material-symbols-rounded text-5xl opacity-40">filter_alt_off</span>
@@ -87,6 +88,7 @@
             />
         </div>
     @endif
+</div>
 @else
     <div wire:key="feeds-empty-magazine" class="w-full h-full flex items-center justify-center px-8">
         <x-ui.empty icon="feed" title="هیچ خبری برای نمایش وجود ندارد" description="هنوز هیچ پستی در فید منتشر نشده است." variant="welcome" />

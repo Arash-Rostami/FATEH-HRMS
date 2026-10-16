@@ -95,7 +95,7 @@
                                         <span class="material-symbols-rounded text-[14px]">person</span> {{ $task->assignee?->name ?? '—' }}
                                         @if($task->deadline)
                                             <span class="opacity-40 select-none">•</span>
-                                            <span class="material-symbols-rounded text-[14px]">event</span> {{ toJalaliSmart($task->deadline) }}
+                                            <span class="material-symbols-rounded text-[14px]">event</span> {{ toJalali($task->deadline, 'j F Y') }}
                                         @endif
                                     </p>
                                 </div>

@@ -9,6 +9,7 @@
 @endphp
 <tr wire:key="ticket-{{ $ticket->id }}" data-rf="ticket-{{ $ticket->id }}" class="relative isolate hover:bg-[var(--md-sys-color-primary)]/[0.03] active:bg-[var(--md-sys-color-primary)]/[0.06] transition-colors group cursor-pointer"
     @if($isUrgent) title="{{ $urgency['label'] }}" @endif
+    x-on:click="if (max) toggleMaximize()"
     wire:click="viewTicket({{ $ticket->id }})">
     <td class="relative px-6 py-4 {{ $isUrgent ? 'taskboard-card--urgent' : '' }}"
         style="{{ $isUrgent ? '--urgency:' . $urgency['score'] . ';' : '' }}">
@@ -18,7 +19,7 @@
             <span class="font-bold text-[var(--md-sys-color-on-surface)] text-[11px] tracking-wider font-mono flex-row-reverse flex whitespace-nowrap">{{ $fId }}</span>
             <hr class="opacity-30"/>
             <div class="flex items-center gap-1.5 mt-1 text-[10px] text-[var(--md-sys-color-on-surface-variant)]">
-                <span class="cursor-help" title="{{ jdate($ticket->created_at) }}">{{ toJalali($ticket->created_at, 'j F Y') }}</span>
+                <span class="cursor-help" title="{{ toJalali($ticket->created_at) }}">{{ toJalali($ticket->created_at, 'j F Y') }}</span>
                 @if($prio)
                     <span class="material-symbols-rounded text-[13px] {{ $prio['color'] }}" title="{{ $prio['title'] ?? '' }}">
                         {{ $prio['icon'] == 'commit' ? '󠁯•󠁏' : $prio['icon']  }}
@@ -33,7 +34,7 @@
         @if($stat)
             <div
                 dir="ltr"
-                title="{{ jdate($ticket->completion_date ?? now()) }}"
+                title="{{ $ticket->completion_date ? toJalali($ticket->completion_date) : '' }}"
                 class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide {{ $stat['textColor'] }} {{ $stat['bg'] }}">
                 <span
                     class="material-symbols-rounded text-[14px] {{ isset($stat['pulse']) && $stat['pulse'] ? 'animate-pulse' : '' }} {{ isset($stat['spin']) && $stat['spin'] ? 'animate-spin' : '' }}">{{ $stat['icon'] }}</span>
@@ -68,9 +69,12 @@
     </td>
 
     <td data-col="domain" class="px-6 py-4 hidden md:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
-        <div class="flex items-center gap-2">
-            <span class="material-symbols-rounded">{{ $presenter->requestAreaIcon($ticket->request_area, $ticket->targetDepartment?->code) }}</span>
-            {{ $presenter->requestAreaLabel($ticket->request_type, $ticket->request_area, $ticket->targetDepartment?->code) }}
+        <div class="flex flex-col items-start gap-1.5">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">{{ $ticket->typeLabel ?: '—' }}</span>
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-rounded">{{ $presenter->requestAreaIcon($ticket->request_area, $ticket->targetDepartmentId) }}</span>
+                {{ $ticket->areaLabel ?: '—' }}
+            </div>
         </div>
     </td>
 
@@ -168,12 +172,9 @@
         </div>
 
         <div class="inline-flex items-center gap-1">
-            <button
-                class="p-2 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors inline-flex group relative"
-                title="مشاهده جزئیات">
-                <span
-                    class="material-symbols-rounded text-[20px] group-hover:scale-110 transition-transform">visibility</span>
-            </button>
+            <x-ui.buttons.form variant="none" type="button" icon="visibility" loading="viewTicket({{ $ticket->id }})"
+                class="p-2 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors group"
+                title="مشاهده جزئیات"/>
         </div>
     </td>
 </tr>

@@ -10,7 +10,7 @@ class PruneStaleNudges extends Command
 {
     protected $signature = 'notifications:prune-stale {--days=30 : Prune nudge-namespace rows older than N days}';
 
-    protected $description = 'Prune stale record-nudge rows (data->menu_key ending "nudge" — the nudge-namespace suffix family, current ":nudge" and legacy ":reply-nudge") older than N days, aligned to HasNudgeTracking::FRESHNESS_DAYS — by then they no longer feed any badge query and are only bell clutter. Bare-key badge rows (never ending "nudge") are untouched.';
+    protected $description = 'Prune stale record-nudge rows (data->menu_key ending "nudge" — the nudge-namespace suffix family, ":nudge" and ":reply-nudge") older than N days, aligned to HasNudgeTracking::FRESHNESS_DAYS — by then they no longer feed any badge query and are only bell clutter. Bare-key badge rows (never ending "nudge") are untouched.';
 
     public function handle(): int
     {

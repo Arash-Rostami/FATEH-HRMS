@@ -23,7 +23,7 @@ app/Traits/ResolvesReminderDueDate.php                shared Jalali-split-to-Car
 app/Livewire/Dashboard/Reminder/
 ├── Main.php                                           the whole component — mount/list/create/edit/mutate, see §3-§5; `presenter(Reminder $reminder): ReminderPresenter` is a per-row factory method (same shape as `Suggestion\Main::presenter($suggestion)`), `hostIcon(): string` wraps `ReminderPresenter::hostIconFor()` for the header deep-link — neither is instantiated inline in the blade, see §3a
 ├── Forms/ReminderForm.php                            boolean channel flags + toChannels()/fromChannels() — see §7
-├── Presentation/ReminderPresenter.php                 dueLabel()/toneClasses() (composes RiskEscalationChip)/recurLabel()
+├── Presentation/ReminderPresenter.php                 dueLabel()/toneClasses() (composes RiskEscalationChip)/recurLabel(); dates follow the user-panel convention (livewirePattern.md «Near-term weekday carve-out»): clock times via toJalali(..., 'H:i') in Persian digits («امروز، ۰۹:۰۰»), due within 7 days = `l j F`, later = `j F Y`, done/snoozed = `Y/m/d H:i`
 └── Actions/
     ├── CreateReminderAction.php / UpdateReminderAction.php   validate() + ResolvesReminderDueDate, no ownership check on create
     ├── CompleteReminderAction.php / SnoozeReminderAction.php / DeleteReminderAction.php / StopRecurrenceAction.php

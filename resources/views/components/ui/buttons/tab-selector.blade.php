@@ -100,11 +100,11 @@
                 </button>
             @else
                 <button
+                    type="button"
                     wire:key="tab-{{ $tab['id'] }}"
                     data-tab-pill="{{ $tab['id'] }}"
                     @if($isActive) data-active @endif
                     @if($isDisabled)
-                        type="button"
                         disabled
                         title="{{ $tab['disabledReason'] ?? 'این گزینه در حال حاضر توسط مدیریت غیرفعال شده است' }}"
                     @elseif($fastSwitch)

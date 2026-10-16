@@ -5,8 +5,10 @@ namespace Tests\Feature\Livewire\Dashboard;
 use App\Livewire\Dashboard\Tab\Feeds;
 use App\Livewire\Dashboard\Tab\Presentation\FeedPresenter;
 use App\Models\Comment;
+use App\Models\Department;
 use App\Models\Feed;
 use App\Models\Poll;
+use App\Models\Profile;
 use App\Models\Reaction;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
@@ -150,12 +152,12 @@ class FeedsTest extends TestCase
         Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)->instance()->totalFeeds;
 
-        $key = ModelCacheVersion::key(Feed::class, 'total_count');
+        $key = ModelCacheVersion::key(Feed::class, 'total_count:');
         $this->assertTrue(Cache::has($key));
 
         Feed::factory()->create(['user_id' => $user->id]);
 
-        $this->assertNotSame($key, ModelCacheVersion::key(Feed::class, 'total_count'), 'a feed write must bump the version and orphan the cached total');
+        $this->assertNotSame($key, ModelCacheVersion::key(Feed::class, 'total_count:'),'a feed write must bump the version and orphan the cached total');
     }
 
     public function test_load_more_is_noop_when_has_more_pages_is_false(): void
@@ -718,6 +720,84 @@ class FeedsTest extends TestCase
             ->assertSet('open', null)
             ->assertSet('feedIds', fn ($ids) => count($ids) === 3)
             ->assertSet('hasMorePages', false);
+    }
+
+    private function deptViewer(string $code): User
+    {
+        Department::firstOrCreate(['code' => $code], ['name' => $code, 'description' => '']);
+        $user = User::factory()->create(['status' => 'active']);
+        Profile::factory()->create(['user_id' => $user->id, 'department_id' => $code]);
+
+        return $user;
+    }
+
+    public function test_hidden_and_other_department_feeds_are_absent_and_totals_and_categories_follow_the_viewer(): void
+    {
+        $this->cleanSlate();
+        $viewer = $this->deptViewer('ZZ-FA');
+        $other = $this->deptViewer('ZZ-FB');
+        $public = Feed::factory()->create(['user_id' => $viewer->id, 'category' => 'ZZ-Pub', 'departments' => null]);
+        $own = Feed::factory()->create(['user_id' => $viewer->id, 'category' => 'ZZ-Own', 'departments' => ['ZZ-FA']]);
+        $foreign = Feed::factory()->create(['user_id' => $viewer->id, 'category' => 'ZZ-Foreign', 'departments' => ['ZZ-FB']]);
+        $inactive = Feed::factory()->create(['user_id' => $viewer->id, 'category' => 'ZZ-Off', 'departments' => null, 'active' => false]);
+
+        Livewire::withoutLazyLoading();
+        $page = Livewire::actingAs($viewer)->test(Feeds::class);
+        $ids = $page->get('feedIds');
+
+        $this->assertEqualsCanonicalizing([$public->id, $own->id], $ids);
+        $this->assertSame(2, $page->instance()->totalFeeds);
+        $this->assertEqualsCanonicalizing(['ZZ-Pub', 'ZZ-Own'], $page->instance()->categories->all());
+
+        Livewire::withoutLazyLoading();
+        $otherPage = Livewire::actingAs($other)->test(Feeds::class);
+        $this->assertEqualsCanonicalizing([$public->id, $foreign->id], $otherPage->get('feedIds'));
+        $this->assertSame(2, $otherPage->instance()->totalFeeds);
+        $this->assertEqualsCanonicalizing(['ZZ-Pub', 'ZZ-Foreign'], $otherPage->instance()->categories->all());
+    }
+
+    public function test_open_query_on_a_hidden_feed_falls_back_and_focus_record_refuses_it(): void
+    {
+        $this->cleanSlate();
+        $viewer = $this->deptViewer('ZZ-FA');
+        $visible = Feed::factory()->create(['user_id' => $viewer->id, 'departments' => null]);
+        $inactive = Feed::factory()->create(['user_id' => $viewer->id, 'departments' => null, 'active' => false]);
+        $foreign = Feed::factory()->create(['user_id' => $viewer->id, 'departments' => ['ZZ-FB']]);
+
+        foreach ([$inactive, $foreign] as $hidden) {
+            Livewire::withoutLazyLoading();
+            Livewire::withQueryParams(['open' => $hidden->id])
+                ->actingAs($viewer)
+                ->test(Feeds::class)
+                ->assertSet('open', null)
+                ->assertSet('feedIds', [$visible->id]);
+        }
+
+        Livewire::withoutLazyLoading();
+        $page = Livewire::actingAs($viewer)->test(Feeds::class);
+        $this->assertFalse($page->instance()->focusRecord($inactive->id));
+        $this->assertFalse($page->instance()->focusRecord($foreign->id));
+    }
+
+    public function test_engagement_actions_on_feeds_that_are_not_loaded_are_noops(): void
+    {
+        $this->cleanSlate();
+        $viewer = $this->deptViewer('ZZ-FA');
+        $hidden = Feed::factory()->create(['user_id' => $viewer->id, 'departments' => ['ZZ-FB']]);
+        $inactive = Feed::factory()->create(['user_id' => $viewer->id, 'active' => false]);
+        $before = [Comment::count(), Reaction::count()];
+
+        Livewire::withoutLazyLoading();
+        $page = Livewire::actingAs($viewer)->test(Feeds::class);
+        foreach ([$hidden, $inactive] as $feed) {
+            $page->set('newComments.' . $feed->id, 'sneaky')
+                ->call('addComment', $feed->id)
+                ->call('toggleReaction', $feed->id, '👍')
+                ->call('vote', $feed->id, 0);
+        }
+
+        $this->assertSame($before, [Comment::count(), Reaction::count()]);
+        $this->assertSame(0, Reaction::whereIn('feed_id', [$hidden->id, $inactive->id])->count());
     }
 
     public function test_clear_focus_restores_initial_feed_load(): void

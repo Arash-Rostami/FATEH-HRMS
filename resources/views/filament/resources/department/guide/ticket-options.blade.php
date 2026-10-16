@@ -93,6 +93,12 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
+                برچسبِ نوع و حوزهٔ هر تیکت از گزینه‌های واحد هدفِ همان تیکت خوانده می‌شود و در صورت نبودن، به گزینه‌های پیش‌فرض و سپس واحدهای دیگر می‌رسد. تیکت‌ها فقط کلید را نگه می‌دارند؛ اگر کلید یک گزینه را تغییر دهید، تیکت‌های قدیمی دیگر با آن جور نیستند و کلید خام را نشان می‌دهند — کلیدها را ثابت نگه دارید.
+            </p>
+        </div>
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
                 تنظیمات گزینه‌های تیکت در کش سیستم نگه داشته می‌شود؛ بعد از ویرایش، کش به‌صورت خودکار پاک می‌شود تا تغییر بلافاصله در فرم تیکت کاربر اثر کند.
             </p>
         </div>

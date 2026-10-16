@@ -6,7 +6,6 @@ use App\Livewire\Dashboard\Tab\Presentation\GalleryPresenter;
 use App\Models\Photo;
 use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Lazy;
@@ -137,10 +136,6 @@ class Gallery extends Component
 
     private function getBaseQuery(): Builder
     {
-        $dept = Auth::user()?->profile?->department_id;
-
-        return Photo::query()
-            ->orderByDesc('event_date')
-            ->visibleTo($dept);
+        return Photo::forViewer()->orderByDesc('event_date');
     }
 }

@@ -35,6 +35,16 @@
             'label' => 'خروجی اکسل',
             'hint' => 'با اکشن گروهی «خروجی Excel»، فیدهای انتخاب‌شده صادر می‌شوند — شناسه، نویسنده، دسته، متن پاک‌شده، شمارش نظرات و واکنش‌ها و تاریخ شمسی. رسانه در خروجی نیست.',
         ],
+        [
+            'icon' => 'toggle_on',
+            'label' => 'وضعیت (active) و مخاطبان',
+            'hint' => 'تاگل «وضعیت» (پیش‌فرض فعال) فید غیرفعال را فقط از پنل کاربر مخفی می‌کند — فهرست، نشان و اعلان خوانده‌نشده، جستجو و لینک مستقیم؛ ادمین همیشه همه را می‌بیند و نظرات، واکنش‌ها و رأی‌ها دست‌نخورده می‌مانند. «بخش‌های مخاطب» (departments) خالی = عمومی؛ با انتخاب واحد، فید فقط برای کاربران همان واحدها دیده می‌شود و اعلان فقط به آن‌ها می‌رسد. فیدهای قدیمی بدون تغییر عمومی و فعال می‌مانند. حذف همچنان در دسترس است.',
+        ],
+        [
+            'icon' => 'visibility_off',
+            'label' => 'فعال‌سازی/غیرفعال‌سازی گروهی',
+            'hint' => 'از منوی bulk actions، «فعال‌سازی انتخاب‌شده‌ها» یا «غیرفعال‌سازی انتخاب‌شده‌ها» فقط برای کسانی که مجوز ویرایش دارند دیده می‌شود. هر رکورد جداگانه به‌روز می‌شود تا رویدادهای مدل (کش و اعلان) اجرا شوند. زبانه‌های «فعال/غیرفعال»، فیلترهای وضعیت و مخاطب و گروه‌بندی وضعیت نیز در فهرست هستند.',
+        ],
     ];
 @endphp
 
@@ -72,6 +82,10 @@
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
                 تغییر دسته از «نظرسنجی» به دستهٔ دیگر، <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">poll_options</code> را <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">null</code> می‌کند ولی رأی‌های قبلی پاک نمی‌شوند — در صورت نیاز خودتان از مدیریت ارتباط حذف کنید.
+            </p>
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2 mt-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
+                زبانه‌های نظرها، نظرسنجی‌ها و واکنش‌ها ماژول جدا ندارند؛ هر کس بتواند رکورد فید را باز کند آن‌ها را می‌بیند و در صفحهٔ ویرایش می‌تواند مدیریتشان کند.
             </p>
         </div>
     </div>

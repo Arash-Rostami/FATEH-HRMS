@@ -113,17 +113,7 @@
                 @endif
             @endif
 
-            <button
-                class="hidden md:flex {{ $presenter->columnButtonBase() }} {{ $presenter->columnButtonIcon() }}"
-                @click="toggleMaximize(col($el))"
-                :title="maximizedColumn === col($el) ? 'کوچک کردن' : 'بزرگ کردن'"
-                :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedColumn === col($el) }"
-            >
-                <span
-                    class="material-symbols-rounded text-[16px] transition-transform duration-300"
-                    x-text="maximizedColumn === col($el) ? 'close_fullscreen' : 'open_in_full'"
-                ></span>
-            </button>
+            <x-ui.modals.maximize-button toggle="toggleMaximize(col($el))" state="maximizedColumn === col($el)" size="sm" class="ripple-effect hidden md:flex"/>
 
             <button
                 class="{{ $presenter->columnButtonBase() }} {{ $presenter->columnButtonIcon() }}"

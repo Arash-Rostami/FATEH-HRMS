@@ -6,7 +6,6 @@ use App\Models\Department;
 use App\Models\Report;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
@@ -117,11 +116,7 @@ class Reports extends Component
 
     protected function visibleReportsQuery()
     {
-        $dept = Auth::user()?->profile?->department_id;
-
-        return Report::active()
-            ->notExpired()
-            ->visibleTo($dept);
+        return Report::forViewer()->notExpired();
     }
 
     #[Computed]

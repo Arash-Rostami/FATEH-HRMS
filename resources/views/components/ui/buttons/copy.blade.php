@@ -1,6 +1,7 @@
 @props(['text', 'message' => null])
 
 <button
+    type="button"
     x-data="{ copied: false }"
     x-on:click="
         navigator.clipboard.writeText($el.dataset.text);

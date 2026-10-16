@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasActive;
 use App\Models\Concerns\HasMenuState;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -10,7 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ad extends Model
 {
-    use HasMenuState,
+    use HasActive,
+        HasMenuState,
         HasFactory;
 
     protected $table = 'ads';
@@ -67,19 +69,9 @@ class Ad extends Model
         ];
     }
 
-    public function scopeActive(Builder $query): Builder
-    {
-        return $query->where('active', true);
-    }
-
     public function scopeGender(Builder $query, string $gender): Builder
     {
         return $query->where('gender', $gender);
-    }
-
-    public function scopeInactive(Builder $query): Builder
-    {
-        return $query->where('active', false);
     }
 
     protected function avatar(): Attribute

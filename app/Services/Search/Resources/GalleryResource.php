@@ -24,6 +24,6 @@ class GalleryResource extends SearchResource
 
     protected function scope(Builder $query): void
     {
-        $query->visibleTo(auth()->user()?->profile?->department_id);
+        $query->forViewer();
     }
 }

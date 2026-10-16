@@ -9,6 +9,7 @@ use App\Livewire\Dashboard\Ths\Actions\SetTicketEffectivenessAction;
 use App\Livewire\Dashboard\Ths\Actions\SubmitTicketReplyAction;
 use App\Livewire\Dashboard\Ths\Actions\WithdrawTicketAction;
 use App\Livewire\Dashboard\Ths\Forms\ReplyForm;
+use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Models\Department;
 use App\Models\Ticket;
 use App\Support\TicketAccessPolicy;
@@ -46,7 +47,7 @@ class Workspace extends Component
     #[Computed]
     public function ticket(): ?Ticket
     {
-        return Ticket::with(['replies.user', 'assignee', 'requester'])->find($this->ticketId);
+        return Ticket::with(['replies.user.profile', 'assignee', 'requester'])->find($this->ticketId);
     }
 
     #[Computed]
@@ -94,7 +95,7 @@ class Workspace extends Component
     #[Computed]
     public function departmentOptions(): Collection
     {
-        return Department::getCachedOptions();
+        return Department::withHeads(Department::getCachedOptions());
     }
 
     #[Computed]
@@ -245,6 +246,6 @@ class Workspace extends Component
             $this->dispatch('ths-ticket-updated');
         }
 
-        return view('livewire.dashboard.ths.workspace');
+        return view('livewire.dashboard.ths.workspace', ['presenter' => new TicketPresenter()]);
     }
 }

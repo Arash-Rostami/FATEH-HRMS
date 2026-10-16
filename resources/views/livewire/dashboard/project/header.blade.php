@@ -229,14 +229,7 @@
             </button>
         @endif
 
-        <button type="button"
-                @click="toggleMaximize()"
-                :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
-                :aria-label="max ? 'کوچک کردن' : 'بزرگ کردن'"
-                class="h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
-                :class="[max ? 'flex' : 'hidden md:flex', max ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]']">
-            <span class="material-symbols-rounded text-base" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
-        </button>
+        <x-ui.modals.maximize-button alpine-class="max ? 'flex' : 'hidden md:flex'"/>
 
         <button type="button"
                 wire:key="project-header-close"

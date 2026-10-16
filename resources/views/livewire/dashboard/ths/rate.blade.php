@@ -12,7 +12,7 @@
             <div>
                 <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)] mb-2 tracking-tight">ارزیابی عملکرد پشتیبانی</h3>
                 <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed max-w-md mx-auto">
-                    تیکت <span class="font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 px-1.5 py-0.5 rounded-md" dir="ltr">#{{ str_pad($ticketToRate->id, 4, '0', STR_PAD_LEFT) }}</span> با موضوع <span class="font-medium text-[var(--md-sys-color-on-surface)]">"{{ Str::limit($ticketToRate->request_subject, 40) }}"</span> بسته شده است. لطفا میزان رضایت خود را اعلام نمایید.
+                    تیکت <span class="font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 px-1.5 py-0.5 rounded-md" dir="ltr">{{ $presenter->formatId($ticketToRate->toArray()) }}</span> با موضوع <span class="font-medium text-[var(--md-sys-color-on-surface)]">"{{ Str::limit($ticketToRate->request_subject, 40) }}"</span> بسته شده است. لطفا میزان رضایت خود را اعلام نمایید.
                 </p>
             </div>
 
@@ -31,7 +31,7 @@
 
                     <div class="flex items-center justify-center gap-2 sm:gap-4" dir="ltr" @mouseleave="resetHover()">
                         @for($i = 1; $i <= 5; $i++)
-                            <button type="button"
+                            <button type="button" aria-label="امتیاز {{ $i }} از ۵"
                                     @mouseover="setHover({{ $i }})"
                                     @click="rate({{ $i }})"
                                     class="relative p-1 transition-all duration-300 transform outline-none rounded-full focus:ring-4 focus:ring-[var(--md-sys-color-primary)]/20"

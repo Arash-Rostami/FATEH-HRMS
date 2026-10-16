@@ -73,6 +73,10 @@
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">tips_and_updates</span>
                 ویرایش مستقیم مرحله از فرم ادمین توصیه نمی‌شود — <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">syncStage</code> در اولین بازخورد بعدی آن را بازنویسی می‌کند.
             </p>
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2 mt-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
+                زبانهٔ «بازبینی‌ها» ماژول جدا ندارد؛ هر کس بتواند رکورد پیشنهاد را باز کند آن را می‌بیند و در صفحهٔ ویرایش می‌تواند مدیریتش کند.
+            </p>
         </div>
     </div>
 </div>

@@ -13,6 +13,8 @@ use Illuminate\Support\Str;
 
 class AssignTicketAction
 {
+    public const REPLY_PREFIX = 'تخصیص به ';
+
     public function __construct(
         private readonly TicketPresenter $presenter,
     ) {}
@@ -27,9 +29,11 @@ class AssignTicketAction
             abort_unless($locked->status !== 'closed', 422, 'امکان تغییر مسئول تیکت بسته‌شده وجود ندارد.');
             abort_if(($seenStatus ?? $ticket->status) === 'open' && $locked->status !== 'open', 422, 'این تیکت قبلاً محول شده است.');
             abort_unless(TicketAccessPolicy::canAssign($locked, $actor), 403);
-            abort_unless($locked->assignableUsers()->whereKey($assigneeId)->exists(), 422, 'کاربر انتخاب‌شده متعلق به این واحد سازمانی نیست.');
+            $assigneeName = $locked->assignableUsers()->whereKey($assigneeId)->value('name');
+            abort_if($assigneeName === null, 422, 'کاربر انتخاب‌شده متعلق به این واحد سازمانی نیست.');
 
             $locked->update(['assigned_to' => $assigneeId]);
+            $locked->addReply($actor, self::REPLY_PREFIX . $assigneeName);
 
             return $locked->fresh();
         });

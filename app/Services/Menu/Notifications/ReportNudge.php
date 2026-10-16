@@ -15,7 +15,7 @@ class ReportNudge implements MenuNudge
 
     public function for($subject)
     {
-        return User::active()->get();
+        return $subject->audienceUsers();
     }
 
     public function getKey(): string
@@ -30,7 +30,7 @@ class ReportNudge implements MenuNudge
 
     public function show($subject, User $user): bool
     {
-        return $subject->active;
+        return (bool) $subject->active;
     }
 
     public function title($subject, User $user): string

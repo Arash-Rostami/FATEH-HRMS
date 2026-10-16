@@ -1,4 +1,5 @@
 @if($this->reports->isNotEmpty())
+<div wire:key="reports-cards-list" class="contents">
 
     <div class="absolute top-1/2 left-0 right-0 h-px bg-[var(--md-sys-color-outline-variant)] opacity-20 -translate-y-1/2 z-0 hidden md:block"></div>
 
@@ -142,11 +143,16 @@
             <div class="shrink-0 w-4 md:w-[20%] snap-align-none pointer-events-none h-1"></div>
         </div>
     </div>
+</div>
 
 @else
     @if($this->search !== '' || $this->activeFilter !== 'all')
-        <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="با فیلترهای انتخابی هیچ گزارشی مطابقت ندارد." variant="filtered" :fill="true" />
+        <div wire:key="reports-cards-empty-filtered" class="contents">
+            <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="با فیلترهای انتخابی هیچ گزارشی مطابقت ندارد." variant="filtered" :fill="true" />
+        </div>
     @else
-        <x-ui.empty icon="folder_open" title="هیچ گزارشی یافت نشد" description="هنوز هیچ گزارشی بارگذاری نشده است." variant="list" :fill="true" />
+        <div wire:key="reports-cards-empty-none" class="contents">
+            <x-ui.empty icon="folder_open" title="هیچ گزارشی یافت نشد" description="هنوز هیچ گزارشی بارگذاری نشده است." variant="list" :fill="true" />
+        </div>
     @endif
 @endif

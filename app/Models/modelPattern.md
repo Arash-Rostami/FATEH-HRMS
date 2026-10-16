@@ -32,6 +32,8 @@ class Post extends Model
 
 A model carries `use HasModelCache;` **when it grows a `cached*()` method** — added at the moment the method is added, not preemptively. The trait is inert until `cached()`/`cachedForUser()` is called, so a `use` line on a model that never calls them does nothing; do not sprinkle it for uniformity. The uniform linkage this pattern enforces is the **tier classification** in the table below, not a `use` line on every file.
 
+**Viewer-scoped keys (2026-10-16, `HasAudience`).** A cached list or count that reads a `HasAudience` model through `forViewer()`/`visibleTo()` is department-dependent, so the department code is baked into the key suffix — the same bake-the-arg-yourself rule as Tier T: `Post::cachedPins(?string $department = null)` → `pins:{dept}`, `Posts` → `total_count:{dept}` / `non_pinned_count:{dept}`, `Feeds` → `total_count:{dept}` and `categories:{dept}` (`Feed::cachedCategories()` was removed — category chips now derive from the viewer-visible feeds, in `Feeds::categories()`). A key without the dept would hand one department's hidden rows to another. `active` flips need no extra bump: the `saved` listener already orphans every dept variant of that model's version. Trait registry and scope semantics: `app/Traits/traitPattern.md` §2.3.
+
 ## Tier V — Versioned (auto-invalidate on write)
 
 **Use when:** read-heavy, changes rarely, owned by one model, and must go fresh the instant it is written. The default for content / catalog / directory / option-list / single-record-detail data.

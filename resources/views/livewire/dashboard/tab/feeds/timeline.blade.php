@@ -1,4 +1,5 @@
 @if($this->feeds->isNotEmpty())
+<div wire:key="feeds-timeline-list" class="contents">
     <div x-show="month && visibleCount === 0" x-cloak
          class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">
         <span class="material-symbols-rounded text-5xl opacity-40">filter_alt_off</span>
@@ -77,6 +78,7 @@
             <div class="shrink-0 w-4 md:w-[20%] snap-align-none pointer-events-none h-1"></div>
         </div>
     </div>
+</div>
 
 @else
     <div wire:key="feeds-empty-timeline" class="w-full h-full flex items-center justify-center px-8">

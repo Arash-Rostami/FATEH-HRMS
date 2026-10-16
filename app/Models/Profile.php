@@ -203,6 +203,19 @@ class Profile extends Model
                     ->each(fn($id) => SyncProjectChannelMembershipJob::dispatch($id));
             }
 
+            if ($moved) {
+                foreach ([Post::class => Post::NUDGE_KEY, Feed::class => Feed::NUDGE_KEY, Report::class => 'reports-controller:nudge'] as $class => $nudgeKey) {
+                    $class::whereNotNull('departments')
+                        ->where(fn($q) => collect($codes)->each(fn($code) => $q->orWhereJsonContains('departments', $code)))
+                        ->pluck('id')
+                        ->each(fn($id) => ReconcileNudge::dispatch($nudgeKey, $class, $id));
+                }
+
+                Photo::where(fn($q) => collect($codes)->each(fn($code) => $q->orWhere('department_id', $code)->orWhereJsonContains('departments', $code)))
+                    ->pluck('id')
+                    ->each(fn($id) => ReconcileNudge::dispatch('gallery-controller:nudge', Photo::class, $id));
+            }
+
             Ticket::where('status', 'open')
                 ->where(fn($q) => collect($codes)->each(fn($code) => $q->orWhere(fn($sq) => $sq->targetedAt($code))))
                 ->pluck('id')

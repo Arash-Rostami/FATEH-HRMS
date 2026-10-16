@@ -4,6 +4,7 @@ namespace App\Models\Concerns;
 
 use App\Enums\ResourceTypeIcon;
 use App\Models\Department;
+use App\Services\Cache\ModelCacheVersion;
 
 trait HasTicketOptions
 {
@@ -94,11 +95,93 @@ trait HasTicketOptions
         return self::getMaterialIconForArea($area);
     }
 
-    public static function getCustomRequestAreaLabel(string $requestType, string $requestArea, ?string $departmentCode = null): string
+    public static function getCustomRequestAreaLabel(?string $requestType, ?string $requestArea, ?string $departmentCode = null): string
     {
-        $options = self::getCustomRequestAreaOptions($departmentCode, $requestType);
+        $area = self::normalizeOptionKey($requestArea);
 
-        return $options[$requestArea] ?? self::getRequestAreaOptions($requestType, $requestArea);
+        if ($area === '') return '';
+
+        $type = self::normalizeOptionKey($requestType) ?: null;
+        $own = $departmentCode ? self::customOptionRows($departmentCode) : [];
+        $defaults = self::defaultAreaRows();
+
+        return self::firstAreaLabel($own, $area, $type)
+            ?? self::firstAreaLabel($own, $area)
+            ?? self::firstAreaLabel($defaults, $area, $type)
+            ?? self::firstAreaLabel($defaults, $area)
+            ?? self::firstAreaLabel(self::customOptionRows(), $area)
+            ?? trim((string)$requestArea);
+    }
+
+    public static function searchRequestKeys(string $column, string $term): array
+    {
+        $needle = self::normalizeOptionKey($term);
+
+        if ($needle === '') return [];
+
+        $labels = self::labelsByKey($column);
+
+        return array_values(array_filter(
+            self::knownRequestKeys($column),
+            fn($key) => collect([$key, ...($labels[self::normalizeOptionKey($key)] ?? [])])
+                ->contains(fn($label) => str_contains(self::normalizeOptionKey($label), $needle)),
+        ));
+    }
+
+    public static function requestKeyLabelMap(string $column): array
+    {
+        $map = [];
+
+        foreach (self::knownRequestKeys($column) as $key) {
+            $map[$key] = $column === 'request_type'
+                ? self::getCustomRequestTypeLabel($key)
+                : self::getCustomRequestAreaLabel(null, $key);
+        }
+
+        return $map;
+    }
+
+    private static function labelsByKey(string $column): array
+    {
+        $labels = [];
+
+        if ($column === 'request_type') {
+            foreach (self::$requestTypeOptions as $key => $label) {
+                $labels[self::normalizeOptionKey($key)][] = $label;
+            }
+
+            foreach (self::customOptionRows() as $row) {
+                $labels[$row['type']][] = $row['rawType'];
+            }
+
+            return $labels;
+        }
+
+        foreach ([...self::defaultAreaRows(), ...self::customOptionRows()] as $row) {
+            if (filled($row['label'])) $labels[$row['area']][] = $row['label'];
+        }
+
+        return $labels;
+    }
+
+    public static function requestKeyVariants(string $column, array $keys): array
+    {
+        $wanted = array_map(fn($key) => self::normalizeOptionKey($key), $keys);
+
+        return array_values(array_unique([
+            ...$keys,
+            ...array_filter(self::knownRequestKeys($column), fn($key) => in_array(self::normalizeOptionKey($key), $wanted, true)),
+        ]));
+    }
+
+    public static function requestTypeFilterOptions(): array
+    {
+        return self::filterOptions('request_type', fn($key) => self::getCustomRequestTypeLabel($key));
+    }
+
+    public static function requestAreaFilterOptions(): array
+    {
+        return self::filterOptions('request_area', fn($key) => self::getCustomRequestAreaLabel(null, $key));
     }
 
     public static function getCustomRequestAreaOptions(?string $departmentCode, string $requestType): array
@@ -140,9 +223,16 @@ trait HasTicketOptions
 
     public static function getCustomRequestTypeLabel(?string $requestType, ?string $departmentCode = null): string
     {
-        return self::getCustomRequestTypeOptions($departmentCode)[$requestType]
-            ?? self::$requestTypeOptions[$requestType]
-            ?? (string)$requestType;
+        $type = self::normalizeOptionKey($requestType);
+
+        if ($type === '') return '';
+
+        $custom = fn(?string $code) => collect(self::customOptionRows($code))->firstWhere('type', $type)['rawType'] ?? null;
+
+        return self::systemTypeLabel($type)
+            ?? $custom($departmentCode)
+            ?? $custom(null)
+            ?? trim((string)$requestType);
     }
 
     public static function allRequestTypeOptions(): array
@@ -222,7 +312,7 @@ trait HasTicketOptions
             'other' => 'heroicon-o-ellipsis-horizontal-circle',
         ];
 
-        return $icons[$area] ?? 'heroicon-o-question-mark-circle';
+        return $icons[self::normalizeOptionKey($area)] ?? 'heroicon-o-question-mark-circle';
     }
 
     public static function getMaterialIconForArea(?string $area): string
@@ -266,39 +356,121 @@ trait HasTicketOptions
             'other' => 'more_horiz',
         ];
 
-        return $icons[$area] ?? 'help_outline';
-    }
-
-    public static function getRequestAreaOptions(string $requestType, ?string $requestArea): string
-    {
-        return self::$requestAreaOptions[$requestType][$requestArea] ?? 'یافت نشد';
+        return $icons[self::normalizeOptionKey($area)] ?? 'help_outline';
     }
 
     private static function extractCustomIcon(?string $area, ?string $departmentCode): ?string
     {
-        $options = self::fetchDepartmentTicketOptions($departmentCode);
+        $key = self::normalizeOptionKey($area);
 
-        if ($options) {
-            foreach ($options as $opt) {
-                if (($opt['area_key'] ?? null) === $area && !empty($opt['icon'])) {
-                    return $opt['icon'];
-                }
-            }
+        if ($key === '') return null;
+
+        $icon = fn(array $rows) => collect($rows)->first(fn($row) => $row['area'] === $key && !empty($row['icon']))['icon'] ?? null;
+
+        if ($departmentCode && ($own = $icon(self::customOptionRows($departmentCode)))) return $own;
+
+        if (collect(self::defaultAreaRows())->contains('area', $key)) return null;
+
+        return $icon(self::customOptionRows());
+    }
+
+    private static function normalizeOptionKey(?string $value): string
+    {
+        $value = strtr(trim((string)$value), ['ي' => 'ی', 'ى' => 'ی', 'ك' => 'ک']);
+
+        return mb_strtolower(preg_replace('/[\s\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{0640}\x{FEFF}]+/u', '', $value) ?? $value);
+    }
+
+    private static function customOptionRows(?string $departmentCode = null): array
+    {
+        return Department::getCachedModels()
+            ->when($departmentCode, fn($departments) => $departments->only([$departmentCode]))
+            ->flatMap(fn($department) => $department->ticket_options ?? [])
+            ->filter(fn($option) => is_array($option))
+            ->map(fn($option) => [
+                'type' => self::normalizeOptionKey($option['request_type'] ?? null),
+                'rawType' => trim((string)($option['request_type'] ?? '')),
+                'area' => self::normalizeOptionKey($option['area_key'] ?? null),
+                'label' => $option['area_label'] ?? '',
+                'icon' => $option['icon'] ?? null,
+            ])
+            ->values()
+            ->all();
+    }
+
+    private static function defaultAreaRows(): array
+    {
+        return collect(self::$requestAreaOptions)
+            ->flatMap(fn($options, $type) => collect($options)
+                ->reject(fn($label, $key) => $key === '')
+                ->map(fn($label, $key) => ['type' => self::normalizeOptionKey($type), 'area' => self::normalizeOptionKey($key), 'label' => $label])
+                ->values())
+            ->all();
+    }
+
+    private static function firstAreaLabel(array $rows, string $area, ?string $type = null): ?string
+    {
+        foreach ($rows as $row) {
+            if ($row['area'] === $area && ($type === null || $row['type'] === $type) && filled($row['label'])) return $row['label'];
         }
 
         return null;
+    }
+
+    private static function systemTypeLabel(string $type): ?string
+    {
+        foreach (self::$requestTypeOptions as $key => $label) {
+            if (self::normalizeOptionKey($key) === $type) return $label;
+        }
+
+        return null;
+    }
+
+    private static function distinctTicketValues(string $column): array
+    {
+        return ModelCacheVersion::remember(
+            static::class,
+            "distinct:{$column}",
+            now()->addSeconds(ModelCacheVersion::defaultSeconds()),
+            fn() => static::query()->whereNotNull($column)->where($column, '!=', '')->distinct()->pluck($column)->all(),
+        );
+    }
+
+    private static function knownRequestKeys(string $column): array
+    {
+        $configured = array_keys($column === 'request_type' ? self::allRequestTypeOptions() : self::allRequestAreaOptions());
+
+        return array_values(array_unique([...array_map('strval', $configured), ...self::distinctTicketValues($column)]));
+    }
+
+    private static function filterOptions(string $column, callable $label): array
+    {
+        $keys = [];
+
+        foreach (self::knownRequestKeys($column) as $key) {
+            $keys[self::normalizeOptionKey($key)] ??= $key;
+        }
+
+        unset($keys['']);
+
+        $options = [];
+
+        foreach ($keys as $key) {
+            $options[$key] = $label($key);
+        }
+
+        asort($options);
+
+        return $options;
     }
 
     private static function fetchDepartmentTicketOptions(?string $departmentCode): ?array
     {
         if (!$departmentCode) return null;
 
-        static $cache = [];
-
-        if (array_key_exists($departmentCode, $cache)) return $cache[$departmentCode];
-
         $department = Department::getCachedModels()->get($departmentCode);
-        return $cache[$departmentCode] = ($department && !empty($department->ticket_options))
+
+        return ($department && !empty($department->ticket_options))
             ? $department->ticket_options
             : null;
     }

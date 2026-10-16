@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAudience;
 use App\Models\Concerns\HasModelCache;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasNudgeTracking;
@@ -22,7 +23,8 @@ class Post extends Model
         HasFactory,
         HasPublicAssetUrl,
         HasNudgeTracking,
-        CleansAttachedFiles;
+        CleansAttachedFiles,
+        HasAudience;
 
     public const NUDGE_KEY = 'posts-controller:nudge';
     protected $fillable = [
@@ -43,9 +45,9 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
-    public static function cachedPins(): Collection
+    public static function cachedPins(?string $department = null): Collection
     {
-        return static::cached('pins', fn () => static::with('user')->where('pinned', 1)->latest()->take(1)->get());
+        return static::cached("pins:{$department}", fn () => static::with('user')->where('pinned', 1)->active()->visibleTo($department)->latest()->take(1)->get());
     }
 
     public static function cachedItem(int $id): ?Post

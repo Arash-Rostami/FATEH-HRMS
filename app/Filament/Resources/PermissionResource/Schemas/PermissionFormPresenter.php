@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Illuminate\Support\Arr;
 
 class PermissionFormPresenter
 {
@@ -25,7 +26,7 @@ class PermissionFormPresenter
             ->schema([
                 Select::make('module')
                     ->label(__('resources/permission/strings.fields.module'))
-                    ->options(fn() => Permission::availableModules())
+                    ->options(fn() => Arr::except(Permission::availableModules(), 'permission'))
                     ->required()
                     ->searchable()
                     ->distinct()
@@ -57,7 +58,7 @@ class PermissionFormPresenter
     {
         return CheckboxList::make('excluded_modules')
             ->label(__('resources/permission/strings.fields.excluded_modules'))
-            ->options(fn() => Permission::availableModules())
+            ->options(fn() => Arr::except(Permission::availableModules(), 'permission'))
             ->columns(3)
             ->searchable()
             ->bulkToggleable()

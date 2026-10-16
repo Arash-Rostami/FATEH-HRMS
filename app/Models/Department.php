@@ -116,6 +116,16 @@ class Department extends Model
         );
     }
 
+    public static function withHeads(Collection $options): Collection
+    {
+        return $options->filter(fn($label, $code) => User::headsOfDepartment($code)->isNotEmpty());
+    }
+
+    public static function getOfferedTicketOptions(): Collection
+    {
+        return static::withHeads(static::getCachedOptionsExcludingEmptyTickets());
+    }
+
     public function photos(): HasMany
     {
         return $this->hasMany(Photo::class, 'department_id', 'code');

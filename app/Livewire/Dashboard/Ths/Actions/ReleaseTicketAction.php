@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class ReleaseTicketAction
 {
+    public const REPLY_PREFIX = 'بازگشت تیکت به صف: ';
+
     public function execute(ReplyForm $form, Ticket $ticket, User $actor): void
     {
         abort_if(blank(trim($form->body)), 422, 'توضیح رهاسازی را بنویسید.');
@@ -20,7 +22,7 @@ class ReleaseTicketAction
             abort_unless($locked && TicketAccessPolicy::canRelease($locked, $actor), 403);
 
             $locked->update(['assigned_to' => null, 'status' => 'open']);
-            $locked->addReply($actor, 'بازگشت تیکت به صف: ' . $form->body);
+            $locked->addReply($actor, self::REPLY_PREFIX . $form->body);
         });
     }
 }

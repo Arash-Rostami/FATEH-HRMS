@@ -38,6 +38,7 @@
 
     @include('components.dashboard.header.focus-chip')
 
+    @include('livewire.dashboard.tab.posts.filters')
 
     <div class="w-full relative flex flex-col gap-6 lg:flex-1 lg:overflow-hidden">
         <div x-show="view === 'card'" x-cloak

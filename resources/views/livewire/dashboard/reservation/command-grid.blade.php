@@ -81,7 +81,7 @@
                             <x-ui.table.sort-popover :options="['time' => 'زمان', 'resource' => 'منبع']"
                                                      :sort="$gridSort" :sortDir="$gridSortDir" :isDefault="$gridSort === ''"/>
                             <x-ui.table.col-toggle :scope="'reservation'" :columns="$gridColumns"/>
-                            <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :basisOptions="null"/>
+                            <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :basisOptions="false"/>
                         </x-ui.table.tools>
                     </th>
                 </tr>

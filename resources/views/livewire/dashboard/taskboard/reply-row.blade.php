@@ -2,7 +2,8 @@
     $isMine = $reply->user_id === auth()->id();
     $userName = $reply->user?->name ?? '—';
     $userInitial = $reply->user ? mb_substr($reply->user->name, 0, 1) : '—';
-    $createdAt = toJalali($reply->created_at, 'H:i j F');
+    $stampAt = $reply->created_at?->copy()->setTimezone(config('app.timezone'));
+    $createdAt = $stampAt ? toJalali($stampAt, $stampAt->isToday() ? 'H:i' : 'Y/m/d H:i') : '';
 @endphp
 
 <div class="relative" wire:key="task-reply-{{ $reply->id }}">

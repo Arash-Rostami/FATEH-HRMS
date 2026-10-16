@@ -11,12 +11,15 @@ use Illuminate\Support\Facades\DB;
 
 class RerouteTicketAction
 {
+    public const REPLY_PREFIX = 'ارجاع به ';
+
     public function execute(ReplyForm $form, Ticket $ticket, string $departmentCode, User $actor): void
     {
         $department = Department::getCachedModels()->get($departmentCode);
 
         abort_unless($department, 422, 'واحد انتخاب‌شده معتبر نیست.');
         abort_if(blank(trim($form->body)), 422, 'توضیح ارجاع را بنویسید.');
+        abort_if(User::headsOfDepartment($department->code)->isEmpty(), 422, 'واحد انتخاب‌شده مسئولی ندارد و امکان ارجاع به آن وجود ندارد.');
 
         DB::transaction(function () use ($form, $ticket, $department, $actor) {
             $locked = Ticket::lockForUpdate()->find($ticket->id);
@@ -29,7 +32,7 @@ class RerouteTicketAction
                 'status' => 'open',
                 'extra' => [...($locked->extra ?? []), 'target_department' => $department->code],
             ]);
-            $locked->addReply($actor, 'ارجاع به ' . $department->displayLabel() . ': ' . $form->body);
+            $locked->addReply($actor, self::REPLY_PREFIX . $department->displayLabel() . ': ' . $form->body);
         });
     }
 }

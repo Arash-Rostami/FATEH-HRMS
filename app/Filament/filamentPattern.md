@@ -247,7 +247,9 @@ class DepartmentResource extends Resource
 }
 ```
 
-**Custom classification + full export (THS, 2026-10-14).** A ticket's `request_type`/`request_area` may be department-defined (`Department::ticket_options`), so admin surfaces never read the static `Ticket::$requestAreaOptions` or the `RequestType` enum alone: labels come from `Ticket::getCustomRequestTypeLabel()` / `getCustomRequestAreaLabel()` (with `extra.target_department`), and filters from `Ticket::allRequestTypeOptions()` / `allRequestAreaOptions()` (defaults + every department's custom keys, independent multi-select, no cascade). `ThsExporter` exports the full record set (descriptions, custom labels, replies, files); `ListTickets` adds a header `ExportAction` next to the bulk one by aliasing the `FilamentHeaderActions` trait method (`getHeaderActions as private baseHeaderActions`) — the header action exports the whole filtered table query, all departments.
+**Custom classification + full export (THS, 2026-10-14).** A ticket's `request_type`/`request_area` may be department-defined (`Department::ticket_options`), so admin surfaces never read the static `Ticket::$requestAreaOptions` or the `RequestType` enum alone: labels come from `Ticket::getCustomRequestTypeLabel()` / `getCustomRequestAreaLabel()` (with `extra.target_department`), and filters from `Ticket::requestTypeFilterOptions()` / `requestAreaFilterOptions()` (defaults + every department's custom keys + every distinct value present in tickets, independent multi-select, no cascade; label resolver and fallback order: thsPattern item 10). The Area column is visible by default; Type/Area search by raw key OR any label and sort by label; `ThsExporter` adds `request_type_key` / `request_area_key` beside the label columns. `ThsExporter` exports the full record set (descriptions, custom labels, replies, files); Export goes only through the default bulk export action on `ThsExporter` (no separate header `ExportAction`; "select all" exports the whole filtered query, all departments).
+
+**THS insight tabs (2026-10-16).** `ThsResource::infolist()` has two extra read-only tabs after «پاسخ و نتیجه»: «تحلیل این تیکت» (a `ViewEntry` + the existing effectiveness/satisfaction/action-result entries) and «خلاصهٔ واحد» (a `ViewEntry`). Both `ViewEntry`s take their state from `App\Services\Ticket\TicketInsightsService` (never compute in the presenter/blade) and render the shared `filament.resources.ths.insights.*` partials (Filament `x-filament::badge` cards, `wire:key` on every conditional branch). THS has no View page — the infolist is the list's view modal, so links to other tickets go to `edit`. Details: thsPattern item 12.
 
 **Form layout — multi-card discipline (added 2026-09-21).** Never ship a single full-width Section carrying all of a resource's fields. Split by domain into two or more cards and play the widths on a shared root grid: a fat content card at `->columnSpan(2)` beside a slim `->columnSpan(1)` settings rail on a `->columns(3)` root (Post and now `DepartmentResource::form()` are the references), or a 50/50 `Grid::make(2)` for two equal-weight domains (`SuggestionResource::form()`). Wide components that need horizontal room (multi-column `Repeater`s, full rich text) go in their own `columnSpanFull()` card below the pair — never squeezed into the rail. Fields that cross-talk via `Get`/`Set` (`level` + `subordinate_to`) belong in the SAME card so their interaction is visible.
 
@@ -1419,7 +1421,7 @@ public static function jalaliDateRangeFilter(string $name, string $column, strin
 
 ### 5) `AuthorizesByPermission` trait
 
-Located at `app/Traits/AuthorizesByPermission.php`. Applied on every resource. This is the **entire access control system** for the admin panel.
+Located at `app/Traits/AuthorizesByPermission.php`. Applied on every resource. This is the access control system for the admin panel — two layers: `canX()` for page entry/navigation, and `getAuthorizationResponse()` for in-table row/bulk/header actions.
 
 ```php
 trait AuthorizesByPermission
@@ -1431,10 +1433,23 @@ trait AuthorizesByPermission
     public static function canViewAny(): bool          { return static::permits('view'); }
     // canForceDelete, canRestore follow the same pattern
 
+    public static function getAuthorizationResponse(string|UnitEnum $action, ?Model $record = null): Response
+    {
+        $mapped = match ($ability) {   // $ability = enum value/name or the string itself
+            'viewAny', 'view' => 'view',
+            'create', 'replicate' => 'create',
+            'update', 'reorder' => 'update',
+            'delete', 'deleteAny', 'forceDelete', 'forceDeleteAny' => 'delete',
+            'restore', 'restoreAny' => 'restore',
+            default => null,
+        };
+        return $mapped && static::permits($mapped) ? Response::allow() : Response::deny();
+    }
+
     public static function moduleKey(): string
     {
         $base    = class_basename(static::class);
-        $english = Str::endsWith($base, 'Resource') ? Str::before($base, 'Resource') : $base;
+        $english = Str::endsWith($base, 'Resource') ? substr($base, 0, -strlen('Resource')) : $base;
         return Str::snake($english);
     }
 
@@ -1455,17 +1470,25 @@ trait AuthorizesByPermission
 - `ThsResource` → `'ths'`
 - `OnboardingResource` → `'onboarding'`
 
-**Hard override pattern:** When a resource needs special-case authorization (e.g., super-admin-only), override `canViewAny()` directly in the resource:
+**Why `getAuthorizationResponse()` exists:** Filament v5 authorizes table row/bulk/header actions through `Resource::get*AuthorizationResponse()` -> `getAuthorizationResponse()`, which **allows when no policy exists** (the app has none). With `canX()` alone, in-table Delete/Edit/Replicate were never hidden or blocked; now an unauthorized action auto-hides and is denied server-side. Unknown abilities deny.
+
+**Not consulted by it:** resource-level `canX()` overrides (`canCreate=false` on Contact/EnergyTest/ReservationPolicy, `canForceDelete=false` on Project) govern page entry/nav only — if one must also block an in-table action, hide it on the action itself or override `getAuthorizationResponse()` too.
+
+**Cost:** each check = 2 Redis GETs (`Permission::forUser`), no DB queries. Do not memoize with `once()` (see `adminPanelPermissionLogicPattern.md`).
+
+**Hard override pattern:** When a resource needs special-case authorization (e.g., super-admin-only), override `canViewAny()` and `permits()` in the resource so every ability follows (as `PermissionResource` does — `permits()` = `canViewAny() && trait permits`, the trait's methods aliased via `use … { AuthorizesByPermission::permits as traitPermits; }`):
 
 ```php
 // PermissionResource.php
-public static function canViewAny(): bool
+protected static function permits(string $action): bool
 {
-    return (bool) Auth::user()?->is_super_admin;
+    return static::canViewAny() && static::traitPermits($action);
 }
 ```
 
-This bypasses `permits()` entirely for that one check while other `can*` methods still flow through the trait.
+Overriding `canViewAny()` alone only guards page entry; `permits()` is what the in-table actions and `getAuthorizationResponse()` read. Record-specific denials (nobody deletes their own permission row) override `getAuthorizationResponse()` and fall through to `traitAuthorizationResponse`; bulk delete adds `->authorizeIndividualRecords()` so each selected record is checked.
+
+**`RelationManager` base** (`app/Filament/RelationManagers/RelationManager.php`, shared by every manager): `canViewForRecord()` and `getAuthorizationResponse()` follow the **related model's** Filament resource (`Filament::getModelResource()`: tab needs its `canAccess()`; row/header/bulk actions map to its view/create/update/delete…). Attach/Detach/Associate/Dissociate (+bulk) follow the **owner** resource's `update` (via `getDefaultActionAuthorizationResponse`). Related models with no resource keep vendor behaviour (allow). Managers that override `canViewForRecord()` must call `parent::` first (`SkillsRelationManager`, `EventSharesRelationManager`). Consequence: an admin lacking the related module loses that child tab on the owner's page.
 
 ---
 
@@ -2040,6 +2063,24 @@ Returns a time-aware Persian greeting suitable for the dashboard header (delegat
 
 ---
 
+## Active / audience visibility — `FilamentVisibility` (2026-10-16)
+
+`FeedResource`, `PostResource`, `GalleryResource` and `ReportResource` share `App\Traits\FilamentVisibility` (admin half of the `HasActive`/`HasAudience` model concerns — `app/Traits/traitPattern.md`). Wire it by `use`-ing the trait in the Resource, its `List*` page and its `*Exporter`, then call the static builders:
+
+- **Form / infolist / table:** `self::activeToggle()` (default on), `activeEntry()`, `activeColumn()` (`ToggleColumn`, `disabled` unless `static::canEditAny()`), `activeGroup()`, `activeFilter()`; Feed/Post additionally `departmentsSelect()` (empty = public), `audienceEntry()`, `audienceColumn()` (hidden by default; reads the cached `audience_departments` accessor, no per-row query), `audienceFilter()`, `visibilityFilter()` (public/restricted). Gallery keeps its own department fields (only the `active*` builders are shared); Report predates the trait and shares only `activeColumn()` and the bulk actions — its own toggle, tabs, filters and `departments` form stay. The Feed/Post/Gallery exporters add `activeExportColumn()` (+ `audienceExportColumn()` on Feed/Post); `ReportExporter` is untouched.
+- **List page tabs:** spread `...self::activeTabs(fn() => $this->getStats())` into `getTabs()`; the page's single stats query must also select `active_count` / `inactive_count` (`SUM(CASE WHEN active = 1 …)`), otherwise the badges silently read null.
+- **Bulk Activate / Deactivate:** `...self::bulkVisibilityActions()` next to `self::bulkActions(Exporter::class)` in `groupedBulkActions([...])`. Both are `visible(canEditAny())`, confirm, and run `$records->each->update(['active' => $active])` — per model, never a query-level `update()`, so `saved` fires the model-cache bump and the nudge triggers. Do NOT turn it into a bulk `UPDATE`.
+- **Delete stays.** Deactivation is the non-destructive alternative, not a replacement; row and bulk delete actions are unchanged.
+- **Scope of effect:** `active = false` hides the record from the user panel only. Admin tables, infolists and global search never filter on it, and the Resource must not add a `forViewer()`/`active()` scope to its Eloquent query.
+
+## Hidden relation-tab clue — `ExplainsHiddenRelationTabs` (2026-10-16)
+
+Edit/View record pages show a Filament `Callout` (info, lock icon) at the top of the content naming each relation-manager tab hidden **by the admin's permissions** and the module that unlocks it (`«تیکت‌ها» (ماژول ths)`), plus a pointer to the Permission guide tab «قوانین دسترسی در عمل» (the guide is a modal, so it is named, not deep-linked). Nothing renders when no tab is permission-hidden.
+
+- **Mechanism:** `App\Filament\Traits\ExplainsHiddenRelationTabs` is used by the shared `App\Filament\Pages\EditRecord` and `ViewRecord`; it overrides `content()` to prepend the callout. It walks `getAllRelationManagers()` (flattens `RelationGroup`, unwraps `RelationManagerConfiguration`) and asks each manager `RelationManager::deniedByPermission($record)` (shared base: the related model's resource exists and `canAccess()` is false -> its `moduleKey()`; never `permission`, which can't be granted). Copy lives in `resources/general/strings.hidden_tabs.*`.
+- **Adding a page:** extend `App\Filament\Pages\EditRecord`/`ViewRecord` and give every relation manager the shared base `App\Filament\RelationManagers\RelationManager` — nothing else. A manager that is also hidden for a non-permission reason (e.g. `SkillsRelationManager`/`EventSharesRelationManager`: no rows) overrides `deniedByPermission()` to return `null` for that case so the clue never lies.
+- **Cost:** one `canAccess()` per manager (cached `Permission::forUser`), no queries except the two row-existence overrides, and only when permission already denies.
+
 ## Additional design rules
 
 _(Extending the 20 rules listed above)_
@@ -2058,7 +2099,7 @@ _(Extending the 20 rules listed above)_
 
 **27. Responsive `columnSpan` on chart widgets** — chart widgets always declare `['sm' => 'full', 'md' => 1]` so they stack on mobile and sit side-by-side on desktop.
 
-**28. `canViewAny()` hard override for super-admin-only resources** — when a resource must be strictly invisible to non-super-admins (e.g., PermissionResource), override `canViewAny()` directly in the resource to check `is_super_admin` directly, bypassing the permission system entirely.
+**28. `canViewAny()` hard override for super-admin-only resources** — when a resource must be strictly invisible to non-super-admins (e.g., PermissionResource), override `canViewAny()` (developer or super-admin row) **and** `permits()` (`canViewAny() && trait permits`) so in-table actions follow too — see §5.
 
 **29. Navigation badges return `null` not `'0'`** — `getNavigationBadge()` must cast the count to null when zero: `return (string) $count ?: null;`. An empty badge clutters the sidebar.
 

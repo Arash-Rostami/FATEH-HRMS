@@ -125,13 +125,13 @@ class ReminderPresenter
     public function statusTimingLabel(): ?string
     {
         if ($completedAt = $this->reminder->completed_at) {
-            return 'در ' . toJalali($completedAt, 'j F، H:i');
+            return 'در ' . toJalali($completedAt, 'Y/m/d H:i');
         }
 
         $snoozedUntil = $this->reminder->snoozed_until;
 
         if ($snoozedUntil && $snoozedUntil->isFuture()) {
-            return 'اعلان خاموش تا ' . toJalali($snoozedUntil, 'j F، H:i');
+            return 'اعلان خاموش تا ' . toJalali($snoozedUntil, 'Y/m/d H:i');
         }
 
         return null;
@@ -147,16 +147,16 @@ class ReminderPresenter
 
         if ($due->isPast()) {
             return $due->isToday()
-                ? 'دیرکرد امروز، ' . $due->format('H:i')
+                ? 'دیرکرد امروز، ' . toJalali($due, 'H:i')
                 : 'دیرکرد ' . convertToPersian((int) floor($due->diffInDays())) . ' روز';
         }
 
         if ($due->isToday()) {
-            return 'امروز، ' . $due->format('H:i');
+            return 'امروز، ' . toJalali($due, 'H:i');
         }
 
         if ($due->isTomorrow()) {
-            return 'فردا، ' . $due->format('H:i');
+            return 'فردا، ' . toJalali($due, 'H:i');
         }
 
         if ($due->diffInDays() <= 7) {

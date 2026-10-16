@@ -164,6 +164,16 @@ class Ticket extends Model
             ->where(fn(Builder $q) => $q->whereNull('action_result')->orWhere('action_result', '!=', static::WITHDRAWN_RESULT));
     }
 
+    public function scopeSearchTerm(Builder $query, ?string $term): Builder
+    {
+        return $query->when(filled($term), fn(Builder $q) => $q->where(function (Builder $sub) use ($term) {
+            $like = '%' . addcslashes($term, '\\%_') . '%';
+            $sub->where('request_subject', 'like', $like)
+                ->orWhere('description', 'like', $like)
+                ->orWhereRaw("CONCAT(UPPER(COALESCE(NULLIF(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(extra, '$.target_department')), ''), 'null'), 'T')), '-', DATE_FORMAT(created_at, '%y%m'), '-', LPAD(id, GREATEST(4, LENGTH(id)), '0')) LIKE ?", [$like]);
+        }));
+    }
+
     public function scopeTargetedAt(Builder $query, string $deptCode): Builder
     {
         return $query->whereRaw("COALESCE(JSON_UNQUOTE(JSON_EXTRACT(extra, '$.target_department')), ?) = ?", [
@@ -334,6 +344,16 @@ class Ticket extends Model
     protected function targetDepartmentId(): Attribute
     {
         return Attribute::make(get: fn(): ?string => $this->extra['target_department'] ?? null);
+    }
+
+    protected function typeLabel(): Attribute
+    {
+        return Attribute::make(get: fn(): string => static::getCustomRequestTypeLabel($this->request_type, $this->effectiveTargetDepartment()));
+    }
+
+    protected function areaLabel(): Attribute
+    {
+        return Attribute::make(get: fn(): string => static::getCustomRequestAreaLabel($this->request_type, $this->request_area, $this->effectiveTargetDepartment()));
     }
 
     protected function urgencyState(): Attribute

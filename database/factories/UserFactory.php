@@ -16,7 +16,7 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'email' => fake()->unique()->userName() . '.' . Str::lower(Str::random(8)) . '@example.org',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'maximum' => fake()->numberBetween(1, 12),

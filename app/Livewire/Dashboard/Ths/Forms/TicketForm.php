@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Ths\Forms;
 
+use App\Models\Department;
 use App\Models\Ticket;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
@@ -37,7 +38,7 @@ class TicketForm extends Form
         $areas = array_keys(array_filter(Ticket::getCustomRequestAreaOptions($dept, $this->requestType), fn($label, $key) => $key !== '', ARRAY_FILTER_USE_BOTH));
 
         return [
-            'targetDepartment' => ['nullable', 'string', Rule::when($dept !== null, 'exists:departments,code')],
+            'targetDepartment' => ['nullable', 'string', Rule::in([...Department::getOfferedTicketOptions()->keys(), 'N/A', ''])],
             'requestType' => ['required', 'string', Rule::in(array_keys(Ticket::getCustomRequestTypeOptions($dept)))],
             'requestArea' => ['required', 'string', Rule::in($areas)],
             'files' => 'nullable|array|max:3',
@@ -52,7 +53,7 @@ class TicketForm extends Form
             'requestArea.required' => 'حوزه درخواست را انتخاب کنید.',
             'requestType.in' => 'نوع درخواست نامعتبر است.',
             'requestArea.in' => 'حوزه درخواست نامعتبر است.',
-            'targetDepartment.exists' => 'واحد سازمانی انتخاب‌شده نامعتبر است.',
+            'targetDepartment.in' => 'واحد سازمانی انتخاب‌شده نامعتبر است.',
             'priority.required' => 'اولویت را انتخاب کنید.',
             'priority.in' => 'اولویت انتخاب‌شده نامعتبر است.',
             'subject.required' => 'موضوع تیکت را وارد کنید.',

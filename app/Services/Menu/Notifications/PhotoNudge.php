@@ -15,15 +15,7 @@ class PhotoNudge implements MenuNudge
 
     public function for($subject)
     {
-        $deps = $subject->all_departments;
-
-        if (empty($deps)) {
-            return User::active()->get();
-        }
-
-        return User::active()
-            ->whereHas('profile', fn($q) => $q->whereIn('department_id', array_merge(['MA'], $deps)))
-            ->get();
+        return $subject->audienceUsers();
     }
 
     public function getKey(): string
@@ -38,7 +30,7 @@ class PhotoNudge implements MenuNudge
 
     public function show($subject, User $user): bool
     {
-        return true;
+        return (bool) $subject->active;
     }
 
     public function title($subject, User $user): string

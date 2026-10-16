@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAudience;
 use App\Models\Concerns\HasPublicAssetUrl;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -11,13 +12,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Photo extends Model
 {
-    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles;
+    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles, HasAudience;
+
+    public const AUDIENCE_INCLUDES_DEPARTMENT_ID = true;
 
     protected $fillable = [
         'path',
         'title',
         'department_id',
-        'departments',
         'description',
         'event_date',
     ];
@@ -30,24 +32,6 @@ class Photo extends Model
     public function scopeByDepartment($query, string $departmentCode)
     {
         return $query->where('department_id', $departmentCode);
-    }
-
-    public function scopeVisibleTo($query, ?string $departmentCode)
-    {
-        return $query->where(function ($q) use ($departmentCode) {
-            if ($departmentCode) {
-                $q->where('department_id', $departmentCode)
-                    ->orWhereJsonContains('departments', $departmentCode);
-            }
-
-            $q->orWhere(function ($p) {
-                $p->where(function ($x) {
-                    $x->whereNull('department_id')->orWhere('department_id', '');
-                })->where(function ($y) {
-                    $y->whereNull('departments')->orWhereRaw('JSON_LENGTH(departments) = 0');
-                });
-            });
-        });
     }
 
     protected function allDepartmentModels(): Attribute
@@ -83,7 +67,6 @@ class Photo extends Model
         return [
             'event_date' => 'date',
             'path' => 'array',
-            'departments' => 'array',
         ];
     }
 

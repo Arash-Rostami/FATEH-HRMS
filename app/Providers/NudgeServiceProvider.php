@@ -16,6 +16,7 @@ use App\Services\Menu\Notifications\SharedEventsNudge;
 use App\Services\Menu\Notifications\SuggestionNudge;
 use App\Services\Menu\Notifications\TaskNudge;
 use App\Services\Menu\Notifications\ThsNudge;
+use App\Services\Menu\Notifications\ThsReplyNudge;
 use App\Services\Menu\NudgeService;
 use Illuminate\Support\ServiceProvider;
 
@@ -38,6 +39,7 @@ class NudgeServiceProvider extends ServiceProvider
         NudgeService::register(new ProjectNudge('step'));
         NudgeService::register(new ContactNudge());
         NudgeService::register(new ThsNudge());
+        NudgeService::register(new ThsReplyNudge());
         NudgeService::register(new DmsNudge());
         NudgeService::register(new ChannelNudge());
         NudgeService::register(new ReminderOverdueNudge());

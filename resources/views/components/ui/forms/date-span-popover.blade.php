@@ -4,6 +4,8 @@
     'endYear' => \Morilog\Jalali\Jalalian::now()->getYear(),
     'basisOptions' => ['created' => 'ایجاد', 'updated' => 'بروزرسانی'],
     'setBasis' => 'setDateBasis',
+    'apply' => 'applyDateSpan',
+    'clear' => 'clearDateSpan',
 ])
 
 <div x-data="{ open: false, pos: {} }" @keydown.escape.window="open = false" class="relative">
@@ -24,7 +26,7 @@
              :style="{ position: 'absolute', top: (pos.bottom + 8) + 'px', left: pos.left + 'px' }"
              class="w-80 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] p-2.5 shadow-2xl z-50">
             <x-ui.forms.date-basis-filter
-                apply="applyDateSpan" clear="clearDateSpan"
+                :apply="$apply" :clear="$clear"
                 :startYear="\Morilog\Jalali\Jalalian::now()->getYear() - 15"
                 :endYear="$endYear"
                 :basisOptions="$basisOptions"

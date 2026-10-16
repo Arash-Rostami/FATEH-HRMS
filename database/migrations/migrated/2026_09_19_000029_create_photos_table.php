@@ -16,12 +16,14 @@ return new class extends Migration {
                 $table->json('departments')->nullable();
                 $table->text('description')->nullable();
                 $table->date('event_date');
+                $table->boolean('active')->default(true);
                 $table->timestamp('created_at')->nullable();
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
                 $table->index(['department_id', 'event_date'], 'idx_dept_date');
                 $table->index('event_date', 'idx_photos_event_date');
+                $table->index(['active', 'event_date'], 'idx_photos_active_date');
             });
         }
     }

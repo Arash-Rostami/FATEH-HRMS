@@ -37,7 +37,12 @@ class EventSharesRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return $ownerRecord->shares()->exists();
+        return parent::canViewForRecord($ownerRecord, $pageClass) && $ownerRecord->shares()->exists();
+    }
+
+    public static function deniedByPermission(Model $ownerRecord): ?string
+    {
+        return ($module = parent::deniedByPermission($ownerRecord)) && $ownerRecord->shares()->exists() ? $module : null;
     }
 
     public function table(Table $table): Table

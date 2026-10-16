@@ -9,12 +9,7 @@
          :class="headerDeclutterExit ? 'animate-slide-fade-to-left' : ''">
         {{ $slot }}
         @if($maximize)
-            <button type="button" @click="toggleMaximize()"
-                    :title="max ? 'کوچک کردن' : 'بزرگ کردن'" :aria-label="max ? 'کوچک کردن' : 'بزرگ کردن'"
-                    :class="{ 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]': max, 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]': !max }"
-                    class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
-                <span class="material-symbols-rounded text-[18px] leading-none" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
-            </button>
+            <x-ui.modals.maximize-button size="xs"/>
         @endif
     </div>
     {{ $extra ?? '' }}

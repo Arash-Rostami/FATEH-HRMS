@@ -167,7 +167,7 @@
                                 </div>
                             @endif
 
-                            <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-1.5 block">{{ toJalali($item->created_at, 'j F Y - H:i') }}</span>
+                            <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-1.5 block">{{ toJalali($item->created_at, 'Y/m/d H:i') }}</span>
                         </div>
                     @empty
                         <div wire:key="release-request-empty" class="contents">

@@ -13,7 +13,6 @@
             @foreach($this->posts as $post)
                 <article wire:key="post-{{ $post->id }}" data-rf="posts-{{ $post->id }}"
                          class="group relative flex flex-col bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 transition-all duration-300 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1 hover:border-[var(--md-sys-color-primary)]/30"
-                         wire:key="post-{{ $post->id }}"
                 >
                     <div class="absolute top-0 left-0 right-0 h-[3px] bg-[var(--md-sys-color-primary)] z-20 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_60%,transparent)]"></div>
 
@@ -94,6 +93,10 @@
                     </div>
                 </article>
             @endforeach
+        @elseif($search !== '')
+            <div wire:key="posts-search-empty" class="contents">
+                <x-ui.empty icon="search_off" title="نتیجه‌ای برای جستجو یافت نشد." variant="search" />
+            </div>
         @else
             <div wire:key="posts-empty-grid" class="col-span-full">
                 <x-ui.empty icon="feed" title="هیچ اعلانی یافت نشد." variant="list" />

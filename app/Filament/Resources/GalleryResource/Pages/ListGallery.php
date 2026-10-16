@@ -5,13 +5,14 @@ namespace App\Filament\Resources\GalleryResource\Pages;
 use App\Filament\Resources\GalleryResource;
 use App\Models\Photo;
 use App\Traits\FilamentHeaderActions;
+use App\Traits\FilamentVisibility;
 use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListGallery extends ListRecords
 {
-    use FilamentHeaderActions;
+    use FilamentHeaderActions, FilamentVisibility;
 
     protected static string $resource = GalleryResource::class;
 
@@ -36,6 +37,8 @@ class ListGallery extends ListRecords
                 ->badge(fn() => $this->getStats()->no_date_count ?: null)
                 ->badgeColor('gray')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('event_date')),
+
+            ...self::activeTabs(fn() => $this->getStats()),
         ];
     }
 
@@ -44,7 +47,9 @@ class ListGallery extends ListRecords
         return once(fn() => Photo::query()
             ->selectRaw("
                 SUM(CASE WHEN event_date IS NOT NULL THEN 1 ELSE 0 END) AS with_date_count,
-                SUM(CASE WHEN event_date IS NULL THEN 1 ELSE 0 END) AS no_date_count
+                SUM(CASE WHEN event_date IS NULL THEN 1 ELSE 0 END) AS no_date_count,
+                SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) AS active_count,
+                SUM(CASE WHEN active = 0 THEN 1 ELSE 0 END) AS inactive_count
             ")
             ->first());
     }

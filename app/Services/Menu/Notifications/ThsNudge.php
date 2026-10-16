@@ -2,7 +2,6 @@
 
 namespace App\Services\Menu\Notifications;
 
-use App\Models\Reply;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Menu\Contracts\MenuNudge;
@@ -87,8 +86,6 @@ class ThsNudge implements MenuNudge
     {
         return [
             ['class' => Ticket::class, 'on' => ['created', 'updated', 'deleted'], 'subject' => null],
-            ['class' => Reply::class, 'on' => ['created'], 'subject' => fn(Reply $reply) =>
-                $reply->repliable_type === Ticket::class ? $reply->repliable : null],
         ];
     }
 

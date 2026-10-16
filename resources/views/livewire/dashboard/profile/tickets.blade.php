@@ -81,7 +81,7 @@
     </x-ui.table>
 
     @if($this->tickets->hasMorePages())
-        <div class="flex justify-center pb-2 pt-2">
+        <div wire:key="profile-tickets-load-more" class="flex justify-center pb-2 pt-2">
             <x-ui.buttons.load-more
                 action="loadMore"
                 text="بارگذاری بیشتر"
@@ -160,7 +160,7 @@
     </x-ui.table>
 
     @if($this->supportRequests->hasMorePages())
-        <div class="flex justify-center pb-2 pt-2">
+        <div wire:key="profile-support-load-more" class="flex justify-center pb-2 pt-2">
             <x-ui.buttons.load-more
                 action="loadMoreSupport"
                 text="بارگذاری بیشتر"

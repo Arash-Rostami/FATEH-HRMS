@@ -94,29 +94,34 @@
                                 bordered="true"
                                 class="mr-2"
                             />
-                            @if($listFilter === 'department')
-                                <div wire:key="ths-status-filter" class="w-44 mr-2">
-                                    <x-ui.forms.select label="وضعیت" name="statusFilter" wire:model.live="statusFilter" icon="filter_list">
-                                        <option value="all">همه وضعیت‌ها</option>
-                                        <option value="open">باز</option>
-                                        <option value="in-progress">در حال بررسی</option>
-                                        <option value="closed">بسته‌شده</option>
-                                    </x-ui.forms.select>
-                                </div>
-                            @endif
                         </div>
                     @endif
                 </div>
 
                 @if($activeTab === 'log')
                     <div wire:key="ths-log-panel" class="contents">
-                        @if($listFilter === 'mine')
-                            <div wire:key="ths-search-filters" class="contents">
-                                <x-ui.forms.filters placeholder="جستجو در تیکت‌ها..." searchModel="ticketSearch"
-                                                    activeCondition="false" clearAction='this.$wire.set("ticketSearch", "")'
-                                                    :filters="false" :declutterHide="true"/>
-                            </div>
-                        @endif
+                        <div wire:key="ths-search-filters" class="contents">
+                            <x-ui.forms.filters placeholder="جستجو در تیکت‌ها..." searchModel="ticketSearch"
+                                                activeCondition='this.$wire.get("statusFilter") !== "all"'
+                                                clearAction='this.$wire.set("ticketSearch", ""); this.$wire.set("statusFilter", "all")'
+                                                filterTitle=" " :declutterHide="true">
+                                <div class="flex flex-col gap-2">
+                                    <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] px-1">وضعیت تیکت</span>
+                                    <div class="flex flex-wrap items-center gap-2 justify-start w-full scale-[0.8] md:scale-[1]">
+                                        @foreach(['all' => 'همه', 'open' => 'باز', 'in-progress' => 'در حال بررسی', 'closed' => 'بسته‌شده'] as $statusValue => $statusLabel)
+                                            <button
+                                                type="button"
+                                                wire:key="ths-status-chip-{{ $statusValue }}"
+                                                wire:click="$set('statusFilter', '{{ $statusValue }}')"
+                                                class="flex shrink-0 items-center gap-2 h-8 px-4 rounded-xl text-sm font-medium border transition-all duration-200"
+                                                :class="$wire.statusFilter === '{{ $statusValue }}' ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border-transparent shadow-sm' : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-container-low)]'"
+                                            >{{ $statusLabel }}</button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </x-ui.forms.filters>
+                        </div>
+
                         @include('livewire.dashboard.ths.ticket-table', ['tickets' => $this->activeTickets])
                     </div>
                 @endif

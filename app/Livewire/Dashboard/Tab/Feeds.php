@@ -51,7 +51,7 @@ class Feeds extends Component
 
     public function addComment($feedId, AddCommentAction $action, $parentId = null): void
     {
-        if (!Auth::check()) return;
+        if (!Auth::check() || !in_array($feedId, $this->feedIds, true)) return;
 
         $this->commentForm->content = $parentId
             ? ($this->replyComments[$parentId] ?? '')
@@ -67,7 +67,9 @@ class Feeds extends Component
     #[Computed]
     public function categories()
     {
-        return Feed::cachedCategories();
+        $dept = Auth::user()?->profile?->department_id;
+
+        return ModelCacheVersion::remember(Feed::class, "categories:{$dept}", now()->addMinutes(15), fn () => Feed::forViewer()->whereNotNull('category')->where('category', '!=', '')->distinct()->orderBy('category')->pluck('category'));
     }
 
     public function filterByCategory(?string $category): void
@@ -160,7 +162,7 @@ class Feeds extends Component
 
     public function focusRecord(int $id): bool
     {
-        if (!Feed::whereKey($id)->exists()) {
+        if (!Feed::forViewer()->whereKey($id)->exists()) {
             return false;
         }
         $this->view = 'filmstrip';
@@ -191,7 +193,7 @@ class Feeds extends Component
             $markFeedsAsReadAction->execute(Auth::id());
         }
 
-        if ($this->open && Feed::whereKey($this->open)->exists()) {
+        if ($this->open && Feed::forViewer()->whereKey($this->open)->exists()) {
             $this->view = 'filmstrip';
             $this->feedIds = [$this->open];
             $this->selectedFeedId = $this->open;
@@ -238,7 +240,7 @@ class Feeds extends Component
 
     public function toggleReaction($feedId, $emoji, ToggleReactionAction $action): void
     {
-        if (!Auth::check()) return;
+        if (!Auth::check() || !in_array($feedId, $this->feedIds, true)) return;
 
         $action->execute($feedId, $emoji);
         unset($this->feeds);
@@ -246,7 +248,7 @@ class Feeds extends Component
 
     public function vote($feedId, $optionIndex, VotePollAction $action): void
     {
-        if (!Auth::check()) return;
+        if (!Auth::check() || !in_array($feedId, $this->feedIds, true)) return;
 
         $action->execute($feedId, (int) $optionIndex);
         unset($this->feeds);
@@ -255,7 +257,9 @@ class Feeds extends Component
     #[Computed]
     public function totalFeeds(): int
     {
-        return ModelCacheVersion::remember(Feed::class, 'total_count', now()->addMinutes(15), fn () => Feed::count());
+        $dept = Auth::user()?->profile?->department_id;
+
+        return ModelCacheVersion::remember(Feed::class, "total_count:{$dept}", now()->addMinutes(15), fn () => Feed::forViewer()->count());
     }
 
     public function updateComment(UpdateCommentAction $action): void
@@ -270,7 +274,7 @@ class Feeds extends Component
 
     private function baseQuery()
     {
-        return Feed::query()
+        return Feed::forViewer()
             ->when($this->search !== '', fn($q) => $q->where('content', 'like', "%{$this->search}%"))
             ->when($this->selectedCategory, fn($q, $c) => $q->where('category', $c));
     }

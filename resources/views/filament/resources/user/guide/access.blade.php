@@ -19,6 +19,18 @@
             'note' => 'سوپرادمینِ خودکار — هر ماژول، هر عملیات، بدون استثنا. در فرم ساخت، گزینهٔ «توسعه‌دهنده» غیرفعال است و فقط از دیتابیس قابل افزودن است.',
         ],
     ];
+    $tabMap = [
+        ['tab' => 'تیکت‌ها', 'module' => 'ths'],
+        ['tab' => 'پیشنهادها', 'module' => 'suggestion'],
+        ['tab' => 'تسک‌ها', 'module' => 'task'],
+        ['tab' => 'گزارش‌ها', 'module' => 'report'],
+        ['tab' => 'اعتبارنامه‌ها', 'module' => 'credential'],
+        ['tab' => 'تست‌های انرژی', 'module' => 'energy_test'],
+        ['tab' => 'پروفایل', 'module' => 'profile'],
+        ['tab' => 'رزروها', 'module' => 'reservation'],
+        ['tab' => 'مهارت‌ها', 'module' => 'skill_request'],
+        ['tab' => 'دسترسی‌ها', 'module' => 'فقط مدیر ارشد / developer'],
+    ];
     $perm = [
         [
             'icon' => 'verified_user',
@@ -47,6 +59,31 @@
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
         دسترسی به پنل ادمین مبتنی بر نقش است نه تنها وضعیت. کاربر عادی به پنل ادمین راه ندارد؛ مدیر تنها اگر رکورد «دسترسی» (Permission) داشته باشد وارد می‌شود؛ توسعه‌دهنده همیشه سوپرادمین است. مدیریت ارتباط «دسترسی‌ها» فقط برای مدیران ظاهر می‌شود — برای کاربر عادی یا توسعه‌دهنده پنهان است.
     </p>
+
+    <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade ring-2 ring-[var(--md-sys-color-primary)]/30">
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
+            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">help</span>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">چرا بعضی زبانه‌ها را نمی‌بینم؟</p>
+        </div>
+        <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium px-5 pt-4">
+            هر زبانهٔ زیرِ صفحهٔ ویرایش کاربر که ماژول جدا دارد، فقط وقتی دیده می‌شود که «مشاهدهٔ» همان ماژول را داشته باشید؛ دکمه‌های ساخت/ویرایش/حذفِ آن زبانه هم از همان ماژول پیروی می‌کنند. مثلاً مدیری که فقط user:view دارد، کاربر را می‌بیند ولی تیکت‌ها، تسک‌ها و پیشنهادهایش را نه؛ و مدیری که task:update دارد ولی ماژول user را ندارد، اصلاً به کاربران راه ندارد. صفحه این موضوع را خودکار بالای محتوا نشان می‌دهد و زبانه‌های پنهان‌شده و ماژول موردنیازشان را نام می‌برد.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 divide-y divide-[var(--md-sys-color-outline-variant)] sm:divide-y-0 mt-2">
+            @foreach($tabMap as $m)
+                <div class="flex items-center gap-3 px-5 py-2.5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
+                    <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">subdirectory_arrow_left</span>
+                    <p class="text-[12.5px] font-bold text-[var(--md-sys-color-on-surface)]">{{ $m['tab'] }}</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold font-mono bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]">{{ $m['module'] }}</span>
+                </div>
+            @endforeach
+        </div>
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)] mt-2">
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
+                زبانهٔ «چرخه‌های کاری» ماژول جدا ندارد و برای هر کسی که رکورد کاربر را باز کند دیده می‌شود. جزئیات کامل (دکمه‌ها، مثال‌ها، آنچه اجرا نمی‌شود) در راهنمای ماژول «دسترسی‌ها»، زبانهٔ «قوانین دسترسی در عمل» است.
+            </p>
+        </div>
+    </div>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">

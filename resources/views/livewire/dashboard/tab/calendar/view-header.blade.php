@@ -55,14 +55,6 @@
             </button>
         </div>
 
-        <button
-            type="button"
-            @click="toggleMaximize()"
-            :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
-            :class="max ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent shadow-md' : 'bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-high)_70%,transparent)] text-[var(--md-sys-color-on-surface-variant)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:text-[var(--md-sys-color-primary)] shadow-sm'"
-            class="flex items-center justify-center shrink-0 w-10 h-10 md:w-12 md:h-12 border rounded-xl md:rounded-2xl transition-all duration-200 active:scale-95"
-        >
-            <span class="material-symbols-rounded text-[20px] md:text-[24px]" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
-        </button>
+        <x-ui.modals.maximize-button size="responsive"/>
     </div>
 </div>

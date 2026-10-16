@@ -20,7 +20,7 @@ class PostNudge implements MenuNudge
 
     public function for($subject)
     {
-        return User::active()->get();
+        return $subject->audienceUsers();
     }
 
     public function getKey(): string
@@ -35,7 +35,7 @@ class PostNudge implements MenuNudge
 
     public function show($subject, User $user): bool
     {
-        return true;
+        return (bool) $subject->active;
     }
 
     public function title($subject, User $user): string

@@ -74,13 +74,13 @@
                                         @else bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] @endif"
                                         title="{{ $row['deadline_formatted'] ?? '' }}">
                                         <span class="material-symbols-rounded text-[12px]">{{ $rf['idle'] ? 'hourglass_top' : 'schedule' }}</span>
-                                        <span class="tracking-wide">{{ in_array($rf['kind'], ['overdue', 'due', 'idle'], true) ? ($row['urgency']['label'] ?? '') : toJalaliSmart($row['deadline']) }}</span>
+                                        <span class="tracking-wide">{{ in_array($rf['kind'], ['overdue', 'due', 'idle'], true) ? ($row['urgency']['label'] ?? '') : toJalali($row['deadline'], 'j F Y') }}</span>
                                     </span>
                                 @else
                                     —
                                 @endif
                             </td>
-                            <td class="px-3 md:px-6 py-4 hidden md:table-cell">{{ $row['last_activity_at'] ? toJalaliSmart($row['last_activity_at']) : '—' }}</td>
+                            <td class="px-3 md:px-6 py-4 hidden md:table-cell">{{ $row['last_activity_at'] ? toJalali($row['last_activity_at'], 'j F Y') : '—' }}</td>
                             <td class="px-3 md:px-6 py-4 hidden md:table-cell">
                                 <x-ui.decor.progress-ring :percent="$row['progress_percent']" :size="30" :stroke="4" :color="$row['progress_percent'] >= 100 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)'"/>
                             </td>

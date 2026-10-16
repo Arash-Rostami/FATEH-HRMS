@@ -14,7 +14,8 @@ export default function ths() {
             this.$wire.on('ths-reply-posted', () => {
                 this.$nextTick(() => {
                     const el = document.getElementById('ths-reply-thread');
-                    if (el) el.scrollTop = el.scrollHeight;
+                    const pane = el?.closest('[data-ths-pane]') ?? el;
+                    if (pane) pane.scrollTop = pane.scrollHeight;
                 });
             });
         },

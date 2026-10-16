@@ -14,6 +14,7 @@ use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
+use App\Traits\FilamentVisibility;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -27,7 +28,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReportResource extends Resource
 {
-    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, FilamentVisibility, AuthorizesByPermission;
 
     protected static ?string $model = Report::class;
     protected static ?string $recordTitleAttribute = 'title';
@@ -192,7 +193,7 @@ class ReportResource extends Resource
                 ReportTablePresenter::audience(),
                 ReportTablePresenter::user(),
                 ReportTablePresenter::fileType(),
-                ReportTablePresenter::active(),
+                self::activeColumn(),
                 ReportTablePresenter::pinned(),
                 ReportTablePresenter::reportDate(),
                 ReportTablePresenter::createdAt(),
@@ -219,6 +220,7 @@ class ReportResource extends Resource
             ->groupedBulkActions([
                 ...self::bulkActions(ReportExporter::class),
                 ReportTablePresenter::shareWithDepartmentsBulkAction(),
+                ...self::bulkVisibilityActions(),
             ])
             ->emptyStateIcon('heroicon-o-bookmark')
             ->defaultSort('created_at', 'desc')

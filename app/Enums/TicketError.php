@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use Illuminate\Validation\ValidationException;
+
 enum TicketError: string
 {
     case EffectivenessRequired = 'ERR-T001';
@@ -17,6 +19,6 @@ enum TicketError: string
 
     public function throw(): never
     {
-        throw new \Exception($this->message());
+        throw ValidationException::withMessages(['effectiveness' => $this->message()]);
     }
 }

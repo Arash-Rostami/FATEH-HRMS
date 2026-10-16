@@ -87,10 +87,10 @@
                             <x-ui.decor.status-pill :state="$statusState"/>
                         </td>
                         <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
-                            {{ $task['deadline'] ? toJalaliSmart($task['deadline']) : '—' }}
+                            {{ $task['deadline'] ? toJalali($task['deadline'], 'j F Y') : '—' }}
                         </td>
                         <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
-                            {{ $task['completed_at'] ? toJalaliSmart($task['completed_at']) : '—' }}
+                            {{ $task['completed_at'] ? toJalali($task['completed_at'], 'j F Y') : '—' }}
                         </td>
                         <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                             {{ $task['cycle_time_days'] !== null ? convertToPersian(number_format($task['cycle_time_days'], 1)) . ' روز' : '—' }}

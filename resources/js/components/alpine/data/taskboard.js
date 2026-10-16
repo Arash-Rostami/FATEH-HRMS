@@ -8,7 +8,6 @@ import settings from "./settings.js";
 const COLUMN_SELECTOR = "[data-column]";
 const COLLAPSED_STORAGE_PREFIX = "taskboard-collapsed-";
 const FAVORITES_STORAGE_KEY = "taskboard-favorites";
-const FILTERS_OPEN_STORAGE_KEY = "taskboard-filters-open";
 const SWIPE_HINT_STORAGE_KEY = "taskboard-swipe-hint-dismissed";
 
 export default function taskboard() {
@@ -22,7 +21,6 @@ export default function taskboard() {
         collapsed: {},
         favorites: [],
         showFavoritesOnly: false,
-        filtersOpen: false,
         swipeHintDismissed: false,
 
         _favSet: null,
@@ -31,7 +29,6 @@ export default function taskboard() {
             this.loadFavorites();
             this.initKanbanDrag();
             this.initSpotlight();
-            this.filtersOpen = localStorage.getItem(FILTERS_OPEN_STORAGE_KEY) === "1";
             this.swipeHintDismissed = localStorage.getItem(SWIPE_HINT_STORAGE_KEY) === "1";
 
             this.initTableTools();
@@ -97,11 +94,6 @@ export default function taskboard() {
 
         toggleFavoritesOnly() {
             this.showFavoritesOnly = !this.showFavoritesOnly;
-        },
-
-        toggleFilters() {
-            this.filtersOpen = !this.filtersOpen;
-            try { localStorage.setItem(FILTERS_OPEN_STORAGE_KEY, this.filtersOpen ? "1" : "0"); } catch {}
         },
 
         destroy() {

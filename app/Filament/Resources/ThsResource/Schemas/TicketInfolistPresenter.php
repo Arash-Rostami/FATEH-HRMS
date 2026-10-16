@@ -4,9 +4,11 @@ namespace App\Filament\Resources\ThsResource\Schemas;
 
 use App\Filament\Resources\ThsResource\Enums\{RequestType, TicketPriority, TicketStatus};
 use App\Models\Ticket;
+use App\Services\Ticket\TicketInsightsService;
 use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
@@ -104,6 +106,15 @@ class TicketInfolistPresenter
             ->icon('heroicon-o-user');
     }
 
+    public static function departmentInsights(): ViewEntry
+    {
+        return ViewEntry::make('department_insights')
+            ->hiddenLabel()
+            ->view('filament.resources.ths.insights.department')
+            ->state(fn($record): ?array => app(TicketInsightsService::class)->forDepartment($record->effectiveTargetDepartment()))
+            ->columnSpanFull();
+    }
+
     public static function description(): TextEntry
     {
         return TextEntry::make('description')
@@ -142,8 +153,8 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->icon(fn($record) => $record->request_area ? Ticket::getCustomHeroiconForArea($record->request_area, $record->extra['target_department'] ?? null) : null)
-            ->getStateUsing(fn($record) => $record->request_area ? Ticket::getCustomRequestAreaLabel($record->request_type, $record->request_area, $record->extra['target_department'] ?? null) : null)
+            ->icon(fn($record) => $record->request_area ? Ticket::getCustomHeroiconForArea($record->request_area, $record->targetDepartmentId) : null)
+            ->getStateUsing(fn($record) => $record->areaLabel ?: null)
             ->placeholder('—');
     }
 
@@ -151,7 +162,7 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->getStateUsing(fn($record) => Ticket::getCustomRequestTypeLabel($record->request_type, $record->extra['target_department'] ?? null))
+            ->getStateUsing(fn($record) => $record->typeLabel)
             ->badge()
             ->color(fn($record) => RequestType::tryFrom($record->request_type)?->getColor() ?? 'gray');
     }
@@ -233,6 +244,15 @@ class TicketInfolistPresenter
             ->weight(FontWeight::Bold)
             ->icon('heroicon-o-hashtag')
             ->copyable();
+    }
+
+    public static function ticketInsights(): ViewEntry
+    {
+        return ViewEntry::make('ticket_insights')
+            ->hiddenLabel()
+            ->view('filament.resources.ths.insights.ticket')
+            ->state(fn($record): array => app(TicketInsightsService::class)->forTicket($record))
+            ->columnSpanFull();
     }
 
     public static function updatedAt(): TextEntry

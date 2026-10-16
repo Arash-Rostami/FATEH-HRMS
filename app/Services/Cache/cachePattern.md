@@ -44,10 +44,10 @@ ModelCacheVersion::bump(ReservationPolicy::class);
 
 // Tier V via the HasModelCache trait (model owns a cached*() method):
 //   class Post { use HasModelCache;
-//       public static function cachedPins(): Collection {
-//           return static::cached('pins', fn () => static::where('pinned', 1)->latest()->take(1)->get());
+//       public static function cachedPins(?string $department = null): Collection {
+//           return static::cached("pins:{$department}", fn () => static::where('pinned', 1)->active()->visibleTo($department)->latest()->take(1)->get());
 //       }
-//   }   // key = {Post}:v{version}:pins — auto-orphans on Post save/delete; TTL defaults to defaultSeconds()
+//   }   // key = {Post}:v{version}:pins:{dept} (viewer-scoped — the dept is part of the key) — auto-orphans on Post save/delete; TTL defaults to defaultSeconds()
 //   cachedForUser($userId, $suffix, $cb) bakes u{userId}: into the suffix and uses viewerSeconds().
 
 // Tier T global — cross-model aggregate, no version token, 300s config default:
@@ -105,4 +105,4 @@ This project already has an established, separate compensating convention for th
 
 ## What's been migrated onto this system
 
-`ResourceType` (registry cache + `forgetCache()`), `ReservationPolicy`/`ValidationService` (`getPolicies()`, `disabledTypes()`, `flushPolicyCache()` — the `booted()` hook was removed entirely, replaced by the global listener plus the three explicit bulk-write bump calls above), `Department` (all 4 option/model caches, `once()` removed), `Skill` (`cachedActiveCatalog()`, `once()` removed), `Permission` (`forUser()`/`cacheKey()` — `availableModules()`/`permission_modules` deliberately left untouched), `User` (all 4 option-list caches — opts out of the global listener via `SkipsAutomaticCacheVersioning`, keeps its own selective `booted()` hook, simplified to one `ModelCacheVersion::bump()` call), `EnergyTest` (`getAverageScoresForUser()`). Left untouched, by design: `DmsKeyGrouper`/`UserKeyGrouper`/`HasDmsCountHelpers`' `dms_document_counts` — these are documented TTL-only-by-design caches with no reactive invalidation intended (see `filamentPattern.md`'s DMS section), not an oversight.
+`ResourceType` (registry cache + `forgetCache()`), `ReservationPolicy`/`ValidationService` (`getPolicies()`, `disabledTypes()`, `flushPolicyCache()` — the `booted()` hook was removed entirely, replaced by the global listener plus the three explicit bulk-write bump calls above), `Department` (all 4 option/model caches, `once()` removed), `Skill` (`cachedActiveCatalog()`, `once()` removed), `Permission` (`forUser()`/`cacheKey()` — `availableModules()`/`permission_modules` deliberately left untouched), `User` (all 4 option-list caches — opts out of the global listener via `SkipsAutomaticCacheVersioning`, keeps its own selective `booted()` hook, simplified to one `ModelCacheVersion::bump()` call), `EnergyTest` (`getAverageScoresForUser()`). `TicketInsightsService` (2026-10-16): `insights:dept:{code}:r{Reply version}`, `insights:closed:{code}`, `insights:typical:{code}` via `ModelCacheVersion::remember(Ticket::class, …)`, 10-minute TTL backstop (the keys fold the `Reply` version in only for the department summary, since replies feed first-response medians). Left untouched, by design: `DmsKeyGrouper`/`UserKeyGrouper`/`HasDmsCountHelpers`' `dms_document_counts` — these are documented TTL-only-by-design caches with no reactive invalidation intended (see `filamentPattern.md`'s DMS section), not an oversight.

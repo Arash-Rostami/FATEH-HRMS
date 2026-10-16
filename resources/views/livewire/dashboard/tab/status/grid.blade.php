@@ -193,7 +193,7 @@
                 </div>
             </x-ui.decor.status>
         @empty
-            <div class="col-span-full">
+            <div wire:key="status-empty" class="col-span-full">
                 @if($skillId !== null || trim($skillSearch) !== '')
                     <div wire:key="status-empty-filtered" class="contents">
                         <x-ui.empty icon="manage_search" title="همکاری با این مهارت یافت نشد" variant="filtered"/>
