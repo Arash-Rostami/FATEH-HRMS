@@ -11,6 +11,7 @@ Five jobs, all `ShouldQueue`, `tries = 3`, `backoff = [10, 30]`, queue = redis (
 | `LogMissingSkillJob` | Skills directory | Unchanged. |
 
 Gotchas
+- `ReconcileNudge::handle` wraps `NudgeService::reconcile` in `DB::transaction(..., 3)` (2026-10-23): the hourly sweeps queue a burst, and two workers' `delete from notifications where data->menu_key/item_id` (JSON filter, no index) deadlocked (MySQL 1213) once per hour, costing a 10 s backoff retry. `transaction()`'s attempts arg retries a deadlock instantly. Keep it on any job whose body deletes by a JSON path.
 - Dispatch raw/bulk-written changes yourself: `DB::table`/query `update` fires no model event, so no job runs (the overhaul replaced those with per-model updates; the nightly `ArchiveStaleDoneTasks` bumps the `Task` cache version explicitly).
 - `afterCommit` jobs dispatched with `dispatch(...)->afterCommit()` outside a transaction run immediately — safe either way.
 - Horizon keeps code in memory: after changing a job or a nudge class run `supervisorctl restart horizon-*`, not just an FPM reload.

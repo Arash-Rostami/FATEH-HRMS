@@ -1,10 +1,12 @@
 @php
     $collapseKey = 'dept:' . $d['code'];
-    $hasBody = $d['members']->isNotEmpty() || !empty($d['units']);
+    $headInBody = $d['head'] !== null && $d['head']->rank() > 4;
+    $hasBody = $headInBody || $d['members']->isNotEmpty() || !empty($d['units']);
     $topLevel = $topLevel ?? true;
     $tierClass = $topLevel && $d['level'] === 2 ? 'orgc-dept--tier-2' : '';
+    $flatClass = $headInBody ? 'orgc-dept--flat' : '';
 @endphp
-<section class="orgc-dept {{ $tierClass }} {{ $d['company'] ? 'orgc-dept--company' : '' }}" wire:key="orgc-dept-{{ $d['code'] }}">
+<section class="orgc-dept {{ $tierClass }} {{ $flatClass }} {{ $d['company'] ? 'orgc-dept--company' : '' }}" wire:key="orgc-dept-{{ $d['code'] }}">
     @if($hasBody)
         <button
             type="button"
@@ -26,7 +28,7 @@
         </div>
     @endif
 
-    @if($d['head'] !== null)
+    @if($d['head'] !== null && !$headInBody)
         @include('livewire.dashboard.tab.status.node', [
             'user' => $d['head'],
             'tier' => 'head',
@@ -46,7 +48,7 @@
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100 translate-y-0"
              x-transition:leave-end="opacity-0 -translate-y-2">
-            @foreach($d['members'] as $user)
+            @foreach($headInBody ? collect([$d['head'], ...$d['members']]) : $d['members'] as $user)
                 <div class="orgc-member" wire:key="orgc-member-wrap-{{ $user->id }}">
                     @include('livewire.dashboard.tab.status.node', ['user' => $user, 'tier' => 'member', 'key' => 'orgc-member-' . $user->id])
                 </div>

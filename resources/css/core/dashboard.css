@@ -2437,6 +2437,15 @@ html.max-restore #footer {
     bottom: 50%;
 }
 
+.orgc-dept--flat > .orgc-members {
+    margin-top: 0;
+}
+
+.orgc-dept--flat > .orgc-members::before {
+    top: -0.75rem;
+    height: 0.75rem;
+}
+
 .orgc-member {
     display: flex;
     justify-content: flex-end;
@@ -2560,6 +2569,31 @@ html.max-restore #footer {
 
 .orgc-dept-children .orgc-dept {
     min-width: 11rem;
+}
+
+.orgc-dept:has(> .orgc-members):has(> .orgc-dept-children) > .orgc-members > :last-child::after {
+    bottom: calc(-1rem - 1px);
+    height: auto;
+}
+
+.orgc-dept:has(> .orgc-members):has(> .orgc-dept-children) > .orgc-dept-children {
+    align-self: flex-start;
+    justify-content: flex-start;
+    width: calc(100% - var(--orgc-head) / 2);
+    margin-left: calc(var(--orgc-head) / 2);
+}
+
+.orgc-dept:has(> .orgc-members):has(> .orgc-dept-children) > .orgc-dept-children::before {
+    display: none;
+}
+
+.orgc-dept:has(> .orgc-members):has(> .orgc-dept-children) > .orgc-dept-children > .orgc-dept:first-child::after {
+    display: block;
+    left: 0;
+}
+
+.orgc-dept:has(> .orgc-members):has(> .orgc-dept-children) > .orgc-dept-children > .orgc-dept:only-child::after {
+    right: 50%;
 }
 
 [x-cloak] {
