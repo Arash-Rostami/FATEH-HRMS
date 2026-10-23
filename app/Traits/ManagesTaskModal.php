@@ -13,6 +13,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Services\ProjectTask\ActivityLogger;
 use App\Services\ProjectTask\ApproveTaskAction;
+use App\Services\ProjectTask\ReopenTaskAction;
 use App\Services\ProjectTask\CreateTaskAction;
 use App\Services\ProjectTask\DuplicateTaskAction;
 use App\Services\ProjectTask\ReportingService;
@@ -213,6 +214,7 @@ trait ManagesTaskModal
             ->map(fn(Reply $reply) => [
                 'id' => $reply->id,
                 'created_at' => $reply->created_at->toIso8601String(),
+                'user_name' => $reply->user?->name ?? 'سیستم',
                 ...$logger->render($reply),
             ])
             ->values()
@@ -253,6 +255,20 @@ trait ManagesTaskModal
         }
     }
 
+    public function reopenTask(ReopenTaskAction $action, int $taskId): void
+    {
+        $task = Task::find($taskId);
+
+        if (!$task) return;
+
+        if ($action->execute($task, auth()->user())) {
+            $this->refreshAfterTaskSave();
+            $this->dispatch('toast', message: 'وظیفه بازگشایی شد.', type: 'success');
+        } else {
+            $this->dispatch('toast', message: 'بازگشایی این وظیفه ممکن نیست.', type: 'error');
+        }
+    }
+
     public function duplicateTask(DuplicateTaskAction $action, int $taskId): void
     {
         $task = Task::find($taskId);
@@ -288,7 +304,7 @@ trait ManagesTaskModal
         $this->resetValidation();
 
         $this->isEditMode = true;
-        $this->isReadOnly = (bool)$task->ticket_id;
+        $this->isReadOnly = (bool)$task->ticket_id || $task->isFrozenFor(auth()->user());
         $this->resetUserPicker();
         $this->isModalOpen = true;
     }
@@ -298,7 +314,7 @@ trait ManagesTaskModal
     {
         if (!$this->editingTaskId) return null;
 
-        $task = Task::with(['replies.user', 'detail:id,task_id,collaborators,responsible_user_id', 'project:id,owner_id,member_ids,departments'])
+        $task = Task::with(['replies.user', 'detail:id,task_id,collaborators,responsible_user_id', 'project:id,owner_id,member_ids,departments,settings'])
             ->find($this->editingTaskId);
 
         return $task && TaskAccessPolicy::canView($task, auth()->user()) ? $task : null;

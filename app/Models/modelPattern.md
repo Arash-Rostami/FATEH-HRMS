@@ -96,3 +96,6 @@ It explicitly does **not** flag `#[Computed(seconds: N, cache: true)]` with no `
 ## Relation-ordering gotcha — `->latest('id')` appended to a pre-ordered relation never wins
 
 `HasReplies::replies()` bakes `orderBy('created_at')->orderBy('id')` (asc) into the relation itself. Any later `->latest('id')` on that relation is appended as a **third** sort key, so `first()` still returns the *earliest* row — the code reads "latest" but behaves "earliest". This silently hit three call sites (`ProjectNudge::resolveAddedIds`, `ProjectToast::resolveAddedIds`, `TaskInfolistPresenter::lastTouchedBy`; fixed 2026-09-10 by inserting `->reorder()` before `->latest('id')`). Any query that must override a relation's default orders needs `->reorder()` first; fresh `Model::query()` builders are immune.
+## Additions of 2026-10-19
+
+`User::bookingRows()` / `bookingMax($type)` (own row max → «همه» row max → null; policy `max_per_user` is the caller's fallback) read the raw `booking` JSON. `Reservation::scopeHeld()` / `scopeOverlapping()` and `Resource::scopeMatching()` are the shared query scopes behind the user-panel search and the colleagues modal — reuse them instead of re-writing the where-chains. Month bucketing on any model data uses `jalaliMonthBounds()` (never `whereMonth`).

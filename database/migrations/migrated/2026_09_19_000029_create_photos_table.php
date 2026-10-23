@@ -12,11 +12,11 @@ return new class extends Migration {
                 $table->bigIncrements('id');
                 $table->longText('path')->charset('utf8mb4')->collation('utf8mb4_bin');
                 $table->string('title', 191);
+                $table->boolean('active')->default(true);
                 $table->string('department_id', 10)->nullable();
                 $table->json('departments')->nullable();
                 $table->text('description')->nullable();
                 $table->date('event_date');
-                $table->boolean('active')->default(true);
                 $table->timestamp('created_at')->nullable();
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');

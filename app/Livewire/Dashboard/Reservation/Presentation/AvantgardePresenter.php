@@ -5,6 +5,8 @@ namespace App\Livewire\Dashboard\Reservation\Presentation;
 use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Models\Resource;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Morilog\Jalali\Jalalian;
 use Throwable;
 
@@ -100,32 +102,77 @@ class AvantgardePresenter
         return $cells;
     }
 
-    public static function fullyBookedDates(int $year, int $month, string $activeTab): array
+    public static function dayFreeCounts(string $activeTab, bool $allowOverlap = false, int $days = 92): array
     {
-        $totalResources = Resource::where('type', $activeTab)->count();
+        $resources = Resource::where('type', $activeTab)->where('status', 'active')->get(['id', 'metadata']);
 
-        if ($totalResources === 0) {
+        if ($resources->isEmpty()) {
             return [];
         }
 
-        try {
-            $firstDay = new Jalalian($year, $month, 1);
-            $monthStart = $firstDay->toCarbon()->startOfDay();
-            $monthEnd = $monthStart->copy()->addDays($firstDay->getMonthDays() - 1)->endOfDay();
-        } catch (Throwable $e) {
-            return [];
+        $from = Carbon::now()->startOfDay();
+
+        $to = $from->copy()->addDays($days)->endOfDay();
+
+        $held = Reservation::query()
+            ->whereIn('status', $allowOverlap ? [ReservationStatus::Active->value] : [ReservationStatus::Active->value, ReservationStatus::Released->value])
+            ->whereIn('resource_id', $resources->pluck('id'))
+            ->overlapping($from, $to)
+            ->toBase()
+            ->get(['resource_id', 'start_time', 'end_time'])
+            ->flatMap(function ($row) use ($from, $to) {
+                $start = Carbon::parse($row->start_time)->max($from);
+                $end = Carbon::parse($row->end_time)->min($to);
+                $slices = [];
+
+                for ($day = $start->copy()->startOfDay(); $day->lte($end); $day->addDay()) {
+                    $slices[] = (object) [
+                        'd' => $day->toDateString(),
+                        'resource_id' => $row->resource_id,
+                        's' => $day->isSameDay($start) ? $start->format('H:i:s') : '00:00:00',
+                        'e' => $day->isSameDay($end) ? $end->format('H:i:s') : '23:59:59',
+                    ];
+                }
+
+                return $slices;
+            })
+            ->sortBy('s')
+            ->groupBy('d');
+
+        $counts = [];
+        for ($cursor = $from->copy(), $i = 0; $i <= $days; $i++, $cursor->addDay()) {
+            $date = $cursor->toDateString();
+            $day = strtolower($cursor->englishDayOfWeek);
+            $open = $resources->filter(fn (Resource $r) => blank($r->metadata['available_days'] ?? null) || in_array($day, (array) $r->metadata['available_days'], true));
+
+            if ($open->isNotEmpty()) {
+                $byResource = ($held[$date] ?? collect())->groupBy('resource_id');
+                $counts[$date] = $open->reject(fn (Resource $r) => self::coversWindow($byResource->get($r->id), $r->metadata['time_slots'] ?? null))->count();
+            }
         }
 
-        return Reservation::query()
-            ->where('status', ReservationStatus::Active->value)
-            ->whereHas('resource', fn ($q) => $q->where('type', $activeTab))
-            ->whereBetween('start_time', [$monthStart, $monthEnd])
-            ->get(['resource_id', 'start_time'])
-            ->groupBy(fn (Reservation $row) => $row->start_time->toDateString())
-            ->filter(fn ($rows) => $rows->pluck('resource_id')->unique()->count() >= $totalResources)
-            ->keys()
-            ->values()
-            ->all();
+        return $counts;
+    }
+
+    private static function coversWindow(?Collection $rows, ?array $window): bool
+    {
+        if ($rows === null) {
+            return false;
+        }
+
+        $toSeconds = fn (string $time) => Carbon::parse($time)->secondsSinceMidnight();
+        $reach = $toSeconds($window['start'] ?? '00:00:00');
+        $end = $toSeconds($window['end'] ?? '23:59:59');
+
+        foreach ($rows as $row) {
+            if ($toSeconds($row->s) > $reach + 60) {
+                return false;
+            }
+
+            $reach = max($reach, $toSeconds($row->e));
+        }
+
+        return $reach + 60 >= $end;
     }
 
     public static function blockedDayLabels(): array

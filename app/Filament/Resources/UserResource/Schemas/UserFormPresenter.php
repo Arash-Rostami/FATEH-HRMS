@@ -14,8 +14,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Facades\Blade;
-use Livewire\Component;
 
 class UserFormPresenter
 {
@@ -30,30 +30,31 @@ class UserFormPresenter
                     ->label(__('resources/user/strings.form.booking_value'))
                     ->columnSpanFull()
                     ->live()
-                    ->afterStateUpdated(function (bool $state, Get $get, Component $livewire): void {
-                        $booking = &$livewire->data['booking'];
+                    ->afterStateUpdated(function (bool $state, Get $get, Set $set): void {
+                        $items = $get('../') ?? [];
 
                         if ($get('key') === 'all') {
-                            $state && array_walk($booking, fn(&$item) => $item['value'] = true);
+                            $state && $set('../', array_map(fn($item) => [...$item, 'value' => true], $items));
                             return;
                         }
 
                         if (!$state) {
-                            foreach ($booking as &$item) {
-                                if ($item['key'] === 'all') {
-                                    $item['value'] = false;
-                                    break;
-                                }
-                            }
+                            $set('../', array_map(fn($item) => ($item['key'] ?? null) === 'all' ? [...$item, 'value' => false] : $item, $items));
                         }
                     }),
-                TextInput::make('key')
+                Select::make('key')
                     ->label(__('resources/user/strings.form.booking_key'))
+                    ->options(fn($state) => ['all' => 'همه'] + ResourceType::pluck() + (filled($state) ? [$state => $state] : []))
+                    ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                     ->dehydrated(true)
                     ->required()
-                    ->columnSpanFull()
-                    ->placeholder('کلید صرفا به انگلیسی')
-                    ->extraAttributes(['dir' => 'ltr']),
+                    ->columnSpanFull(),
+                TextInput::make('max')
+                    ->label(fn(Get $get) => __($get('key') === 'all' ? 'resources/user/strings.form.booking_max_all' : 'resources/user/strings.form.booking_max'))
+                    ->placeholder(fn(Get $get) => $get('key') === 'all' ? null : collect($get('../') ?? [])->firstWhere('key', 'all')['max'] ?? null)
+                    ->integer()
+                    ->minValue(1)
+                    ->columnSpanFull(),
             ])
             ->columns(2)
             ->grid(5)
@@ -65,7 +66,7 @@ class UserFormPresenter
                 collect(ResourceType::cases())->map(fn(ResourceType $type) => ['key' => $type->value, 'value' => true])->all()
             ))
             ->afterStateHydrated(function (Repeater $component, $state): void {
-                $set = static::normalizeBookingState($state);
+                $set = static::normalizeBookingState($component->getRecord()?->bookingRows() ?: $state ?: $component->getDefaultState());
 
                 if ($set !== []) {
                     $component->state($set);
@@ -80,17 +81,25 @@ class UserFormPresenter
             return [];
         }
 
-        return collect($state)->map(function ($v, $k) {
+        $rows = collect($state)->map(function ($v, $k) {
             if (is_array($v)) {
                 $key = $v['key'] ?? $k;
                 $value = $v['value'] ?? false;
+                $max = $v['max'] ?? null;
             } else {
                 $key = $k;
                 $value = $v;
+                $max = null;
             }
 
-            return ['key' => $key, 'value' => (bool) $value];
-        })->sortBy(fn($i) => $i['key'] === 'all' ? 0 : 1)->values()->all();
+            return ['key' => $key, 'value' => (bool) $value, 'max' => filled($max) ? max(1, (int) $max) : null];
+        })->keyBy('key');
+
+        foreach (ResourceType::cases() as $type) {
+            $rows->has($type->value) || $rows->put($type->value, ['key' => $type->value, 'value' => false, 'max' => null]);
+        }
+
+        return $rows->sortBy(fn($i) => $i['key'] === 'all' ? 0 : 1)->values()->all();
     }
 
     public static function email(): TextInput
@@ -114,19 +123,6 @@ class UserFormPresenter
             ->addActionLabel('افزودن ردیف')
             ->columnSpanFull()
             ->helperText(__('resources/user/strings.hints.extra'));
-    }
-
-    public static function maximum(): TextInput
-    {
-        return TextInput::make('maximum')
-            ->label(__('resources/user/strings.form.maximum'))
-            ->numeric()
-            ->integer()
-            ->default(12)
-            ->minValue(1)
-            ->required()
-            ->hintColor('warning')
-            ->helperText(__('resources/user/strings.hints.maximum'));
     }
 
     public static function name(): TextInput

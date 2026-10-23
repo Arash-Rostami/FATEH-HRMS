@@ -36,7 +36,6 @@ class UserRelationManager extends RelationManager
                     UserFormPresenter::role(),
                     UserFormPresenter::status(),
                     UserFormPresenter::presence(),
-                    UserFormPresenter::maximum(),
                 ])
                 ->columns(2),
         ]);
@@ -66,7 +65,6 @@ class UserRelationManager extends RelationManager
                     UserInfolistPresenter::role(),
                     UserInfolistPresenter::status(),
                     UserInfolistPresenter::presence(),
-                    UserInfolistPresenter::maximum(),
                     UserInfolistPresenter::divider(),
                     UserInfolistPresenter::lastSeen(),
                     UserInfolistPresenter::createdAt(),

@@ -278,7 +278,7 @@ class Status extends Component
         $mentorOnly = $this->mentorOnly;
 
         return User::query()
-            ->with(['profile.department', 'profile.details' => fn ($q) => $q->whereIn('key', ['unit', 'section', 'display_title'])])
+            ->with(['profile.department', 'profile.details' => fn ($q) => $q->whereIn('key', ['unit', 'section', 'display_title', 'rank_order'])])
             ->visibleOnBoard()
             ->when($this->activeFilter !== 'all', fn (Builder $query) => $query->where('presence', $this->activeFilter))
             ->when($this->activeClassifier !== 'all', fn (Builder $query) => $this->applyClassifier($query))

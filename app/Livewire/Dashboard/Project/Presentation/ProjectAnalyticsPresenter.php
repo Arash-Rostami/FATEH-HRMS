@@ -257,7 +257,7 @@ class ProjectAnalyticsPresenter
         if (($risk['atRiskCount'] ?? 0) > 0) {
             $riskVerdict[] = $risk['atRiskCount'] . ' کار ' . TaskMetrics::LABEL_DUE_SOON . ' دارند.';
         }
-        $fire = count($risk['matrix']['fire'] ?? []);
+        $fire = (int) ($risk['matrix']['fireCount'] ?? 0);
         if ($fire > 0) {
             $riskVerdict[] = $fire . ' کار فوری هنوز شروع/در حال انجام است.';
         }
@@ -303,7 +303,7 @@ class ProjectAnalyticsPresenter
         if ($adherence !== null) {
             $kpis[] = ['label' => 'الزام به مهلت', 'value' => $adherence['onTime'] . ' از ' . $adherence['total'], 'icon' => 'verified', 'tone' => 'tertiary'];
         }
-        $fire = count($risk['matrix']['fire'] ?? []);
+        $fire = (int) ($risk['matrix']['fireCount'] ?? 0);
         if ($fire > 0) {
             $kpis[] = ['label' => 'فوری ناتمام', 'value' => (string) $fire, 'icon' => 'local_fire_department', 'tone' => 'error'];
         }

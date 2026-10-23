@@ -11,7 +11,7 @@ class DeleteTaskAction
     {
         $task = Task::find($taskId);
 
-        if (!$task || !TaskAccessPolicy::canDelete($task, auth()->user()) || $task->ticket_id) {
+        if (!$task || !TaskAccessPolicy::canDelete($task, auth()->user()) || $task->ticket_id || $task->isFrozenFor(auth()->user())) {
             return false;
         }
 

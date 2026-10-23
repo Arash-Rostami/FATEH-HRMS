@@ -63,7 +63,7 @@ class Gallery extends Component
             return;
         }
 
-        $this->photoIds = array_merge($this->photoIds, $newIds);
+        $this->photoIds = array_values(array_unique(array_merge($this->photoIds, $newIds)));
         unset($this->photos);
     }
 
@@ -136,6 +136,6 @@ class Gallery extends Component
 
     private function getBaseQuery(): Builder
     {
-        return Photo::forViewer()->orderByDesc('event_date');
+        return Photo::forViewer()->orderByDesc('event_date')->orderByDesc('id');
     }
 }

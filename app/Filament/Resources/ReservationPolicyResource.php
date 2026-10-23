@@ -63,14 +63,17 @@ class ReservationPolicyResource extends Resource
                     PolicyFormPresenter::allowedHoursStart(),
                     PolicyFormPresenter::allowedHoursEnd(),
                     PolicyFormPresenter::allowedDays(),
+                    PolicyFormPresenter::maxCancelCount(),
+                    PolicyFormPresenter::cancelWindowDays(),
                 ])
-                ->columns(1),
+                ->columnSpan(2)
+            ->columns(2),
             Section::make(__('resources/policy/strings.form.section_permissions'))
                 ->icon('heroicon-o-cog-6-tooth')
                 ->schema([
+                    PolicyFormPresenter::lastMinuteHours(),
                     PolicyFormPresenter::maxPerUser(),
                     PolicyFormPresenter::maxRangeDays(),
-                    PolicyFormPresenter::maxCancelCount(),
 
                     PolicyFormPresenter::divider(),
                     PolicyFormPresenter::allowFullDay(),
@@ -88,7 +91,7 @@ class ReservationPolicyResource extends Resource
                 ])
                 ->columns(2)
                 ->columnSpan(2),
-        ])->columns(3);
+        ])->columns(4);
     }
 
     public static function getEloquentQuery(): Builder
@@ -117,7 +120,9 @@ class ReservationPolicyResource extends Resource
                     PolicyInfolistPresenter::divider(),
                     PolicyInfolistPresenter::maxPerUser(),
                     PolicyInfolistPresenter::maxRangeDays(),
+                    PolicyInfolistPresenter::lastMinuteHours(),
                     PolicyInfolistPresenter::maxCancelCount(),
+                    PolicyInfolistPresenter::cancelWindowDays(),
 
                     PolicyInfolistPresenter::divider(),
                     PolicyInfolistPresenter::allowFullDay(),

@@ -1,4 +1,7 @@
-@php($blocked = $this->bookingBlockReason !== null)
+@use('App\Enums\ResourceType')
+@php($slot = $resource->metadata['time_slots'] ?? [])
+@php($outside = filled($slot['start'] ?? null) && filled($slot['end'] ?? null) && ! (ResourceType::tryFrom($activeTab)?->isFullDay() ?? true) && ($startTime < $slot['start'] || $endTime > $slot['end']))
+@php($blocked = $this->bookingBlockReason !== null || $outside)
 @php($delay = ($cardIndex ?? 0) * 0.04)
 <div wire:key="resource-{{ $resource->id }}" data-rf="resource-{{ $resource->id }}"
      class="group bg-[var(--md-sys-color-surface)] rounded-2xl border border-[var(--md-sys-color-outline-variant)] shadow-[var(--md-sys-elevation-1)] hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1.5 transition-all duration-500 flex flex-col overflow-hidden relative h-full animate-slide-up-fade"
@@ -79,7 +82,7 @@
             @if($blocked)
                 <div wire:key="reservation-booking-blocked" class="flex items-center gap-1.5 mb-2 px-1">
                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-error)]">block</span>
-                    <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason }}</span>
+                    <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason ?? 'ساعت مجاز این منبع: '.convertToPersian($slot['start']).' تا '.convertToPersian($slot['end']) }}</span>
                 </div>
             @endif
 
@@ -87,7 +90,7 @@
                 wire:click="book({{ $resource->id }})"
                 :disabled="$blocked"
                 :target="'book('.$resource->id.')'"
-                :text="!(\App\Enums\ResourceType::tryFrom($activeTab)?->isFullDay() ?? true) ? 'ثبت زمان ('.convertToPersian($startTime).' - '.convertToPersian($endTime).')' : 'ثبت رزرو کامل'"
+                :text="!(ResourceType::tryFrom($activeTab)?->isFullDay() ?? true) ? 'ثبت زمان ('.convertToPersian($startTime).' - '.convertToPersian($endTime).')' : 'ثبت رزرو کامل'"
                 loadingText="در حال ثبت..."
                 icon="add_circle"
                 iconSize="text-[20px]"

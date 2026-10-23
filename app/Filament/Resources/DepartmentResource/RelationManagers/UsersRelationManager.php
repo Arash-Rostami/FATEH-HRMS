@@ -38,7 +38,6 @@ class UsersRelationManager extends RelationManager
                     UserFormPresenter::role(),
                     UserFormPresenter::status(),
                     UserFormPresenter::presence(),
-                    UserFormPresenter::maximum(),
                 ])->columns(2),
 
             Section::make(__('resources/user/strings.form.section_booking'))
@@ -88,7 +87,6 @@ class UsersRelationManager extends RelationManager
                                         UserInfolistPresenter::role(),
                                         UserInfolistPresenter::status(),
                                         UserInfolistPresenter::presence(),
-                                        UserInfolistPresenter::maximum(),
                                         UserInfolistPresenter::divider(),
                                         UserInfolistPresenter::booking(),
                                     ])->columns(3),
@@ -126,7 +124,6 @@ class UsersRelationManager extends RelationManager
                 UserTablePresenter::type(),
                 UserTablePresenter::email(),
                 UserTablePresenter::presence(),
-                UserTablePresenter::maximum(),
                 UserTablePresenter::lastSeen(),
                 UserTablePresenter::createdAt(),
             ])

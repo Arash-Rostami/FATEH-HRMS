@@ -34,7 +34,6 @@ class SearchMessagesAction
         $booleanQuery = implode(' ', array_map(fn($w) => "+{$w}*", $words));
 
         $direction = fn(int $senderId, int $recipientId) => Message::query()
-            ->from(DB::raw('`messages` FORCE INDEX (`idx_sent_covering`)'))
             ->select(['id', 'body', 'sender_id', 'created_at'])
             ->where('sender_id', $senderId)
             ->where('recipient_id', $recipientId)

@@ -171,7 +171,7 @@ class Main extends Component
             : 'هیچ وظیفه‌ای تغییر نکرد.';
 
         if ($noState > 0) {
-            $message .= ' ' . convertToPersian($noState) . ' مورد بدون تعیین تکلیف.';
+            $message .= ' ' . convertToPersian($noState) . ' مورد انجام نشد (بدون تعیین تکلیف یا تأییدشده و قفل).';
         }
 
         $this->dispatch('toast', message: $message, type: $count > 0 && $noState === 0 ? 'success' : 'error');
@@ -413,7 +413,7 @@ class Main extends Component
                 ->tap(fn($q) => $this->orderColumn($q, $isDone))
                 ->skip(($this->page[$column] - 1) * $this->perPage)
                 ->take($this->perPage)
-                ->withCount('replies')
+                ->withCount(['replies' => fn($q) => $q->whereIn('type', ['comment', 'attachment'])])
                 ->get($this->columnsToSelect);
         }
 
@@ -486,7 +486,7 @@ class Main extends Component
 
     public function reorderTask(ReorderTaskAction $action, int $taskId, ?int $beforeTaskId, ?string $targetStatus = null, ?string $version = null): void
     {
-        $task = Task::query()->visibleTo(auth()->user())->with('project:id,owner_id', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
+        $task = Task::query()->visibleTo(auth()->user())->with('project:id,owner_id,settings', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
 
         if (!$task) return;
 

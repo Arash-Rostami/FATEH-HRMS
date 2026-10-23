@@ -9,6 +9,7 @@ use App\Models\Reply;
 use App\Models\Task;
 use App\Models\Workflow;
 use App\Services\Cache\ModelCacheVersion;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Values\CalendarRange;
 use Carbon\Carbon;
 use Illuminate\View\View;
@@ -21,6 +22,8 @@ use Morilog\Jalali\Jalalian;
 #[Defer]
 class Calendar extends Component
 {
+    private const MARKER_ORDER = ['cycle-start' => 0, 'start' => 1, 'change' => 2, 'completed' => 3, 'deadline' => 4, 'cycle-end' => 5];
+
     #[Locked]
     public ?int $activeProjectId = null;
     #[Locked]
@@ -53,12 +56,13 @@ class Calendar extends Component
     private function calendarBucketsCacheSuffix(int $projectId, string $navDate): string
     {
         return sprintf(
-            'project-calendar:%d:%s:%s:r%s:w%s',
+            'project-calendar:%d:%s:%s:r%s:w%s:p%s',
             $projectId,
             $navDate,
             now()->toDateString(),
             ModelCacheVersion::version(Reply::class),
-            ModelCacheVersion::version(Workflow::class)
+            ModelCacheVersion::version(Workflow::class),
+            ModelCacheVersion::version(Project::class)
         );
     }
 
@@ -235,7 +239,7 @@ class Calendar extends Component
         }
 
         foreach ($tasks as $task) {
-            $isOpen = $task->status !== 'done' && $task->archived_at === null;
+            $isOpen = !in_array($task->status, TaskMetrics::SETTLED_STATUSES, true) && $task->archived_at === null;
             $hasDeadline = $task->deadline !== null;
 
             $spanEnd = $hasDeadline && $task->completed_at?->gt($task->deadline) ? $task->completed_at : $task->deadline;
@@ -513,7 +517,7 @@ class Calendar extends Component
             ]));
 
         return $deadlines->concat($lifecycle)->concat($cycles)
-            ->sortBy([['date', 'asc'], ['time', 'asc']])
+            ->sortBy(fn(array $e) => [$e['date'], $e['time'], self::MARKER_ORDER[$e['marker']] ?? 9])
             ->values()
             ->all();
     }
@@ -574,7 +578,7 @@ class Calendar extends Component
         $deadlines = collect($this->selectedDayDeadlines)->map(fn(array $e) => [...$e, 'marker' => 'deadline']);
 
         return $deadlines->concat($this->selectedDayLifecycle)->concat($this->selectedDayCycle)
-            ->sortBy('time')
+            ->sortBy(fn(array $e) => [$e['time'], self::MARKER_ORDER[$e['marker']] ?? 9])
             ->values()
             ->all();
     }

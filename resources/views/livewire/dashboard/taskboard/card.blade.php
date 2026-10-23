@@ -3,7 +3,7 @@
     $isArchived = (bool) ($task['is_archived'] ?? false);
     $canChangeStatus = (bool) ($task['can_change_status'] ?? false);
     $ticketId = $task['ticket_id'] ?? null;
-    $canEdit = $canChangeStatus && !$isArchived;
+    $canEdit = $canChangeStatus && !$isArchived && empty($task['is_frozen']);
 
     $card = $presenter->cardMeta($task, $isPersonalBoard, $departmentOptions);
     extract($card + [
@@ -29,7 +29,7 @@
     x-bind:style="(! @js($isUrgent || $isPending || $isArchived) && $store.tagged.tagBg(@js($taskId), @js('task'))) ? { backgroundColor: $store.tagged.tagBg(@js($taskId), @js('task')) } : {}"
     class="group relative flex flex-col p-4 md:p-5 pt-6 taskboard-card rounded-2xl animate-bubble-in [content-visibility:auto] [contain-intrinsic-size:auto_260px] hover:-translate-y-1 hover:z-10 transition-all duration-300 active:scale-[0.98] select-none
         {{ $isPending ? 'bg-[var(--md-sys-color-error-container)]/30 border-[var(--md-sys-color-error)] border-2 shadow-[0_0_15px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] animate-pulse-slow' : 'bg-[var(--md-sys-color-primary-container)]/70 border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/40' }}
-        {{ $isArchived ? 'cursor-default opacity-70 grayscale' : ($canChangeStatus ? 'cursor-grab active:cursor-grabbing' : 'cursor-default opacity-80') }}
+        {{ $isArchived ? 'cursor-default opacity-70 grayscale' : ($canEdit ? 'cursor-grab active:cursor-grabbing' : 'cursor-default opacity-80') }}
         {{ !$isArchived && $isPendingApproval ? 'opacity-50' : '' }} {{ $isUrgent ? 'taskboard-card--urgent' : '' }}"
     dir="rtl"
     style="{{ $isUrgent ? '--urgency:' . $urgency['score'] . ';' : '' }}"
@@ -141,7 +141,7 @@
                             x-on:click="{{ $canCyclePriority ? '$wire.cyclePriority(' . $taskId . ')' : 'event.preventDefault()' }}"
                             class="{{ $cb }} {{ $bd }} {{ $chip['class'] }} {{ $canCyclePriority ? 'hover:brightness-110 active:scale-95 transition cursor-pointer' : 'cursor-default' }}">
                         <span class="material-symbols-rounded text-[12px] {{ $chip['isUrgent'] ? 'font-fill' : '' }}">flag</span>
-                        <span class="{{ $chip['isUrgent'] ? 'animate-pulse-ring' : '' }}">{{ $chip['label'] }}</span>
+                        <span class="{{ $chip['isUrgent'] ? 'animate-alert-soft' : '' }}">{{ $chip['label'] }}</span>
                     </button>
                 @endif
 
@@ -155,7 +155,7 @@
                 @if($hasDeadline)
                     <x-ui.hover-popover wire:key="taskboard-card-deadline" data-col="deadline" :alignment="$pop" width="w-52" surface="default">
                         <x-slot:trigger>
-                            <div class="{{ $cb }} {{ isPast($task['deadline']) && $task['status'] !== 'done' ? $tone['over'] : $tone['neu'] }}">
+                            <div class="{{ $cb }} {{ $kind === 'overdue' ? $tone['over'] : $tone['neu'] }}">
                                 <span class="material-symbols-rounded text-[12px]">schedule</span>
                                 <span class="tracking-wide">{{ in_array($kind, ['overdue', 'due'], true) ? $urgency['label'] : $task['deadline_formatted'] }}</span>
                             </div>

@@ -10,7 +10,7 @@
         ['icon' => 'block', 'label' => 'بدون تکرار', 'code' => 'none'],
         ['icon' => 'autorenew', 'label' => 'روزانه', 'code' => 'daily'],
         ['icon' => 'autorenew', 'label' => 'هفتگی', 'code' => 'weekly'],
-        ['icon' => 'autorenew', 'label' => 'ماهانه', 'code' => 'monthly'],
+        ['icon' => 'autorenew', 'label' => 'ماهانه (بر اساس ماه شمسی)', 'code' => 'monthly'],
     ];
 @endphp
 

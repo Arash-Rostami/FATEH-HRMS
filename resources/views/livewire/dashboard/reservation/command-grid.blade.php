@@ -1,3 +1,4 @@
+@use('App\Enums\ResourceType')
 <div>
     <x-ui.modals.max-backdrop/>
 
@@ -94,15 +95,27 @@
                         <div class="absolute inset-0 -z-10 pointer-events-none transition-colors duration-200"
                              :style="{ 'background-color': $store.tagged.tagBg(@js($reservation->id), @js('reservation')) }"></div>
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center shrink-0">
-                                <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">{{ $reservation->resource->icon }}</span>
-                            </div>
+                            @if($reservation->resource->display_image_url)
+                                <a href="{{ $reservation->resource->display_image_url }}" data-fancybox="history-{{ $reservation->id }}"
+                                   data-caption="{{ $reservation->resource->name }}"
+                                   aria-label="مشاهده تصویر {{ $reservation->resource->name }}" title="مشاهده تصویر"
+                                   class="group/img relative w-10 h-10 shrink-0 overflow-hidden rounded-xl bg-[var(--md-sys-color-surface-container-high)] ring-1 ring-[var(--md-sys-color-outline-variant)] transition hover:ring-2 hover:ring-[var(--md-sys-color-primary)]">
+                                    <img src="{{ $reservation->resource->display_image_url }}" alt="" loading="lazy" class="h-full w-full object-cover">
+                                    <span class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover/img:opacity-100">
+                                        <span class="material-symbols-rounded text-[18px] text-white">zoom_in</span>
+                                    </span>
+                                </a>
+                            @else
+                                <div class="w-10 h-10 rounded-xl bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">{{ $reservation->resource->icon }}</span>
+                                </div>
+                            @endif
                             <div class="flex flex-col min-w-0">
                                 <span class="font-bold text-[13px] text-[var(--md-sys-color-on-surface)] truncate flex items-center gap-1">
                                     {{ $reservation->resource->name }}
                                     <span x-show="$store.pinned.isPinned({{ $reservation->id }}, 'reservation')" x-cloak class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-tertiary)] font-fill">push_pin</span>
                                 </span>
-                                <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">{{ \App\Enums\ResourceType::tryFrom($reservation->resource->type)?->getLabel() ?? $reservation->resource->type }}</span>
+                                <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">{{ ResourceType::tryFrom($reservation->resource->type)?->getLabel() ?? $reservation->resource->type }}</span>
                             </div>
                         </div>
                     </td>
@@ -216,7 +229,7 @@
                                 <span class="material-symbols-rounded text-[20px] group-hover:scale-110 transition-transform">visibility</span>
                             </button>
 
-                            @if($reservation->history_bucket === 'upcoming')
+                            @if($reservation->history_bucket === 'upcoming' && $reservation->isCancellable())
                                 <button
                                     type="button"
                                     wire:key="grid-cancel-button"

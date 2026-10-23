@@ -327,7 +327,7 @@
                             <span class="material-symbols-rounded text-[13px]">{{ $entry['icon'] }}</span>
                             <span dir="auto">{{ $entry['body'] }}</span>
                         </span>
-                        <span class="block text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" title="{{ toJalali($entry['created_at']) }}">{{ toJalaliRelative($entry['created_at']) }}</span>
+                        <span class="block text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" title="{{ toJalali($entry['created_at']) }}"><span dir="auto">{{ $entry['user_name'] }}</span> · {{ toJalaliRelative($entry['created_at']) }}</span>
                     </div>
                 @empty
                     <div wire:key="taskboard-history-empty" class="contents">

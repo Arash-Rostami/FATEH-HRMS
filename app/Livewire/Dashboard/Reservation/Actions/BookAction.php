@@ -7,21 +7,27 @@ use App\Models\Resource;
 use App\Models\User;
 use App\Services\Reservation\ValidationService;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class BookAction
 {
+    public int $skipped = 0;
+
     public function __construct(private ValidationService $validator) { }
 
     public function execute(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence = null): Reservation
     {
         if (!$user->hasElevatedRole() && !$isFullDay && $start->diffInDays($end) >= 1) {
-            throw new \Exception('رزرو بلندمدت فقط از طریق پنل ادمین قابل ثبت است.');
+            throw new Exception('رزرو بلندمدت فقط از طریق پنل ادمین قابل ثبت است.');
         }
 
-        $this->validator->validateBooking($user, $resource, $start, $end, $isFullDay, $recurrence);
-
         return DB::transaction(function () use ($user, $resource, $start, $end, $isFullDay, $recurrence) {
+            User::whereKey($user->id)->lockForUpdate()->value('id');
+            $resource = Resource::whereKey($resource->id)->lockForUpdate()->firstOrFail();
+
+            $this->validator->validateBooking($user, $resource, $start, $end, $isFullDay, $recurrence);
+
             $master = Reservation::create([
                 'user_id' => $user->id,
                 'resource_id' => $resource->id,
@@ -52,7 +58,8 @@ class BookAction
 
             try {
                 $this->validator->validateBooking($booker, $resource, $occStart, $occEnd, $isFullDay);
-            } catch (\Exception) {
+            } catch (Exception) {
+                $this->skipped++;
                 continue;
             }
 

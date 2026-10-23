@@ -45,7 +45,7 @@ return [
         'dimension_averages' => 'میانگین ابعاد',
         'low_scores' => ' پرخطر',
         'above_12' => 'بالای ۱۲',
-        'last_month' => 'ماه اخیر',
+        'last_month' => '۳۰ روز اخیر',
     ],
 
     'export' => [

@@ -115,6 +115,21 @@ class FeedsTest extends TestCase
             ->assertSet('feedIds', fn ($ids) => count($ids) === 6);
     }
 
+    public function test_feeds_created_in_the_same_second_page_in_a_stable_order_without_repeats(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        $this->createFeedsFor($user, 7, ['created_at' => now()->startOfSecond()]);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::test(Feeds::class)->call('loadMore')->call('loadMore');
+        $ids = $component->get('feedIds');
+
+        $this->assertCount(7, $ids);
+        $this->assertSame($ids, array_values(array_unique($ids)));
+        $this->assertSame(Feed::orderByDesc('id')->pluck('id')->all(), $ids);
+    }
+
     public function test_load_more_flips_the_flag_off_on_a_partial_final_batch(): void
     {
         $user = User::factory()->create(['status' => 'active']);

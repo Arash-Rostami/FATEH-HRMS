@@ -35,15 +35,27 @@
                     'flex items-center gap-3 sm:gap-4 pr-2 min-w-0 flex-1',
                     'opacity-70' => $activeHistoryTab === 'cancelled'
                 ])>
-                    <div @class([
-                        'w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner',
-                        'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $activeHistoryTab === 'upcoming',
-                        'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' => $activeHistoryTab !== 'upcoming'
-                    ])>
-                        <span class="material-symbols-rounded text-[20px] sm:text-[24px] font-fill">
-                            {{ $reservation->resource->icon }}
-                        </span>
-                    </div>
+                    @if($reservation->resource->display_image_url)
+                        <a href="{{ $reservation->resource->display_image_url }}" data-fancybox="history-{{ $reservation->id }}"
+                           data-caption="{{ $reservation->resource->name }}"
+                           aria-label="مشاهده تصویر {{ $reservation->resource->name }}" title="مشاهده تصویر"
+                           class="group/img relative w-10 h-10 sm:w-12 sm:h-12 shrink-0 overflow-hidden rounded-xl bg-[var(--md-sys-color-surface-container-high)] ring-1 ring-[var(--md-sys-color-outline-variant)] transition hover:ring-2 hover:ring-[var(--md-sys-color-primary)]">
+                            <img src="{{ $reservation->resource->display_image_url }}" alt="" loading="lazy" class="h-full w-full object-cover">
+                            <span class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover/img:opacity-100">
+                                <span class="material-symbols-rounded text-[18px] text-white">zoom_in</span>
+                            </span>
+                        </a>
+                    @else
+                        <div @class([
+                            'w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner',
+                            'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $activeHistoryTab === 'upcoming',
+                            'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' => $activeHistoryTab !== 'upcoming'
+                        ])>
+                            <span class="material-symbols-rounded text-[20px] sm:text-[24px] font-fill">
+                                {{ $reservation->resource->icon }}
+                            </span>
+                        </div>
+                    @endif
 
                     <div class="flex flex-col gap-1 min-w-0 flex-1">
                         <span
@@ -84,7 +96,7 @@
                     <x-dashboard.reminder-trigger :for="$reservation" variant="corner" tooltip-position="right"/>
                 </div>
 
-                @if($activeHistoryTab === 'upcoming')
+                @if($activeHistoryTab === 'upcoming' && $reservation->isCancellable())
                     <button wire:key="reservation-history-action-cancel" x-data
                             @click="{{ confirmDialog('cancel', $reservation->cancel_warning ? 'لغو سری تکرارشونده' : 'لغو رزرو', $reservation->cancel_warning ?? 'آیا از لغو این رزرو اطمینان دارید؟', $reservation->id) }}"
                             class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[var(--md-sys-color-error)] bg-[var(--md-sys-color-error-container)]/0 hover:bg-[var(--md-sys-color-error-container)] opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-error)] shrink-0 ml-1"

@@ -320,7 +320,7 @@ class TasksheetService
                     'event' => $event,
                     'cycle_time_days' => (float) $task->created_at->diffInDays($event->created_at),
                     'same_day' => $task->created_at->isSameDay($event->created_at),
-                    'on_time' => $task->deadline ? $event->created_at->lessThanOrEqualTo($task->deadline) : null,
+                    'on_time' => $task->deadline ? $event->created_at->copy()->startOfDay()->lessThanOrEqualTo($task->deadline->copy()->startOfDay()) : null,
                 ];
             });
     }
@@ -361,8 +361,7 @@ class TasksheetService
     {
         $ownedSet = $owned->flip();
         $today = now()->startOfDay();
-        $now = now();
-        $upcomingEnd = $now->copy()->addDays(7);
+        $upcomingEnd = now()->addDays(TaskMetrics::DUE_SOON_DAYS)->endOfDay();
         $counts = [0, 0, 0];
         $flags = [];
 
@@ -372,17 +371,19 @@ class TasksheetService
                 continue;
             }
 
-            $isOwned = $ownedSet->has($task->id);
+            if (!$ownedSet->has($task->id)) {
+                continue;
+            }
 
             if ($task->deadline?->lt($today)) {
-                $counts[0] += (int) $isOwned;
+                $counts[0]++;
                 $flags[$task->id] = true;
             }
             if ($task->status === TaskStatus::InProgress->value) {
-                $counts[1] += (int) $isOwned;
+                $counts[1]++;
                 $flags[$task->id] = true;
             }
-            if ($isOwned && $task->deadline?->between($now, $upcomingEnd)) {
+            if ($task->deadline?->between($today, $upcomingEnd)) {
                 $counts[2]++;
             }
         }

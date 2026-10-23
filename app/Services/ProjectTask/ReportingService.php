@@ -68,7 +68,8 @@ class ReportingService
                 ->addSelect(['replies_count' => Reply::query()
                     ->selectRaw('COUNT(*)')
                     ->whereColumn('repliable_id', 'tasks.id')
-                    ->where('repliable_type', Task::class),
+                    ->where('repliable_type', Task::class)
+                    ->whereIn('type', ['comment', 'attachment']),
                 ]));
 
         $this->applySort($query, $filters['sort'] ?? null);
@@ -93,7 +94,13 @@ class ReportingService
 
     public function summary(int $projectId, int $viewerId): array
     {
-        $suffix = sprintf('task-report:%d:p%s:%s', $projectId, ModelCacheVersion::version(Project::class), now()->toDateString());
+        $suffix = sprintf(
+            'task-report:%d:p%s:d%s:%s',
+            $projectId,
+            ModelCacheVersion::version(Project::class),
+            ModelCacheVersion::version(TaskDetail::class),
+            now()->toDateString()
+        );
 
         return ModelCacheVersion::remember(Task::class, $suffix, now()->addMinutes(5), function () use ($projectId) {
             $project = Project::find($projectId, ['id', 'settings']);
@@ -105,7 +112,7 @@ class ReportingService
             $breachBindings = [];
 
             if ($sla !== null) {
-                $breach[] = 'TIMESTAMPDIFF(HOUR, tasks.created_at, NOW()) > ?';
+                $breach[] = '(tasks.deadline IS NULL AND TIMESTAMPDIFF(HOUR, tasks.created_at, NOW()) > ?)';
                 $breachBindings[] = (int) $sla;
             }
 
@@ -124,7 +131,8 @@ class ReportingService
                     "tasks.status, COUNT(*) as aggregate,
                     SUM(CASE WHEN {$active} AND tasks.deadline < ? THEN 1 ELSE 0 END) as overdue,
                     SUM(CASE WHEN {$active} AND tasks.deadline BETWEEN ? AND ? THEN 1 ELSE 0 END) as due_soon,
-                    SUM({$atRisk}) as at_risk",
+                    SUM({$atRisk}) as at_risk,
+                    SUM(CASE WHEN tasks.status = 'done' AND tasks.approved_at IS NULL THEN 1 ELSE 0 END) as unapproved",
                     [
                         $suspended, now()->startOfDay(),
                         $suspended, now()->startOfDay(), now()->addDays(TaskMetrics::DUE_SOON_DAYS)->endOfDay(),
@@ -136,8 +144,10 @@ class ReportingService
 
             $counts = $rows->pluck('aggregate', 'status')->map(fn($count) => (int) $count)->all();
 
+            $unapproved = $project?->charter()->requiresApproval() ? (int) $rows->sum('unapproved') : 0;
+
             return [
-                ...TaskMetrics::totals($counts),
+                ...TaskMetrics::totals([...$counts, 'done' => max(0, ($counts['done'] ?? 0) - $unapproved), 'unapproved' => $unapproved]),
                 'by_status' => [
                     'todo' => (int) ($counts['todo'] ?? 0),
                     'in-progress' => (int) ($counts['in-progress'] ?? 0),
@@ -556,9 +566,7 @@ class ReportingService
 
     private function staleBuckets(int $projectId): array
     {
-        $row = Task::where('project_id', $projectId)
-            ->whereNull('archived_at')
-            ->whereNotIn('status', [TaskStatus::Done->value, TaskStatus::Pending->value])
+        $row = TaskMetrics::active(Task::where('project_id', $projectId))
             ->selectRaw('
                 SUM(CASE WHEN updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) AS active,
                 SUM(CASE WHEN updated_at < DATE_SUB(NOW(), INTERVAL 7 DAY) AND updated_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) THEN 1 ELSE 0 END) AS idle_7_14,
@@ -608,6 +616,7 @@ class ReportingService
         }
         $cells = [];
         $fire = [];
+        $fireCount = 0;
         foreach ($priorities as $p) {
             $rowCells = [];
             foreach ($statuses as $s) {
@@ -615,6 +624,7 @@ class ReportingService
                 $rowCells[] = $count;
                 if ($p === TaskPriority::Urgent && in_array($s->value, [TaskStatus::Todo->value, TaskStatus::InProgress->value], true) && $count > 0) {
                     $fire[] = [$p->value, $s->value];
+                    $fireCount += $count;
                 }
             }
             $cells[] = $rowCells;
@@ -625,6 +635,7 @@ class ReportingService
             'statuses' => array_map(fn(TaskStatus $s) => ['value' => $s->value, 'label' => $s->getLabel()], $statuses),
             'cells' => $cells,
             'fire' => $fire,
+            'fireCount' => $fireCount,
         ];
     }
 
@@ -663,15 +674,16 @@ class ReportingService
             ->whereNotIn('status', [TaskStatus::Done->value])
             ->selectRaw('
                 SUM(CASE WHEN deadline IS NULL THEN 1 ELSE 0 END) AS no_deadline,
+                SUM(CASE WHEN deadline < ? THEN 1 ELSE 0 END) AS overdue,
                 SUM(CASE WHEN deadline BETWEEN ? AND ? THEN 1 ELSE 0 END) AS this_week,
                 SUM(CASE WHEN deadline BETWEEN ? AND ? THEN 1 ELSE 0 END) AS next_week,
                 SUM(CASE WHEN deadline > ? THEN 1 ELSE 0 END) AS later
-            ', [now()->startOfDay(), $thisWeekEnd, $nextWeekStart, $nextWeekEnd, $nextWeekEnd])
+            ', [now()->startOfDay(), now()->startOfDay(), $thisWeekEnd, $nextWeekStart, $nextWeekEnd, $nextWeekEnd])
             ->first();
 
         $labels = ['سررسید گذشته', 'این هفته', 'هفتهٔ بعد', 'بعدتر', 'بدون مهلت'];
         $data = [
-            TaskMetrics::overdue(Task::where('project_id', $projectId))->count(),
+            (int) ($row->overdue ?? 0),
             (int) ($row->this_week ?? 0),
             (int) ($row->next_week ?? 0),
             (int) ($row->later ?? 0),

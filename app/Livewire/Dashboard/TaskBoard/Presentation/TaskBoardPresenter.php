@@ -222,7 +222,7 @@ class TaskBoardPresenter
         $projectLabel = $freeTextProject !== ''
             ? $freeTextProject
             : ($linkedProject['name'] ?? (!empty($task['project_id']) ? '#'.$task['project_id'] : null));
-        $projectHasLink = !empty($task['project_id']);
+        $projectHasLink = !empty($task['project_id']) && $linkedProject !== null;
 
         $hasDeadline = !empty($task['deadline']);
         $deadlineTitle = null;
@@ -230,7 +230,7 @@ class TaskBoardPresenter
         if ($hasDeadline) {
             $titleParts = ['مهلت: ' . ($task['deadline_formatted'] ?? '')];
 
-            if (isPast($task['deadline']) && $status !== 'done') {
+            if (($urgency['kind'] ?? null) === 'overdue') {
                 $titleParts[] = 'این وظیفه از مهلت گذشته است';
             } elseif (!empty($urgency['label'])) {
                 $titleParts[] = $urgency['label'];
@@ -282,7 +282,7 @@ class TaskBoardPresenter
             'projectLabel' => $projectLabel,
             'projectHasLink' => $projectHasLink,
             'collaboratorUsers' => $detail['collaborator_users'] ?? [],
-            'canCyclePriority' => !empty($task['can_change_status']) && empty($task['ticket_id']) && empty($task['is_archived']),
+            'canCyclePriority' => !empty($task['can_change_status']) && empty($task['ticket_id']) && empty($task['is_archived']) && empty($task['is_frozen']),
             'labelFilterMethod' => $isPersonalBoard ? 'addLabelFilter' : 'addKanbanLabelFilter',
             'hasDeadline' => $hasDeadline,
             'deadlineTitle' => $deadlineTitle,
@@ -333,7 +333,9 @@ class TaskBoardPresenter
         $isArchived = (bool) ($task['is_archived'] ?? false);
         $canChangeStatus = (bool) ($task['can_change_status'] ?? false);
         $ticketId = $task['ticket_id'] ?? null;
-        $canEdit = $canChangeStatus && !$isArchived;
+        $frozen = (bool) ($task['is_frozen'] ?? false);
+        $mayEdit = $canChangeStatus && !$frozen;
+        $canEdit = $mayEdit && !$isArchived;
         $kind = $card['urgency']['kind'] ?? null;
 
         $assignee = match (true) {
@@ -362,13 +364,15 @@ class TaskBoardPresenter
         $mainBtn = $isPersonalBoard
             ? ($canEdit
                 ? ['edit', 'wire:click', "editTask($taskId)", $ticketId ? 'مشاهده' : 'ویرایش', $ticketId ? 'visibility' : 'edit', 'pri']
-                : ($task['is_delegator'] && !$isArchived ? ['view', 'wire:click', "viewTask($taskId)", 'مشاهده', 'visibility', 'neu'] : null))
-            : ['open', 'x-on:click', "Livewire.dispatch('project-open-task', { taskId: $taskId })", $canChangeStatus ? 'ویرایش' : 'مشاهده', $canChangeStatus ? 'edit' : 'visibility', $canChangeStatus ? 'pri' : 'neu'];
+                : (($task['is_delegator'] || $frozen) && !$isArchived ? ['view', 'wire:click', "viewTask($taskId)", 'مشاهده', 'visibility', 'neu'] : null))
+            : ['open', 'x-on:click', "Livewire.dispatch('project-open-task', { taskId: $taskId })", $mayEdit ? 'ویرایش' : 'مشاهده', $mayEdit ? 'edit' : 'visibility', $mayEdit ? 'pri' : 'neu'];
 
-        $canDelete = $isPersonalBoard && $task['can_delete'];
+        $canArchive = $isPersonalBoard && $task['can_delete'];
+        $canDelete = $canArchive && !$frozen;
 
         $rail = array_values(array_filter([
             $card['canApprove'] ? ['approve', 'wire:click', "approveTask($taskId)", 'تأیید وظیفه', 'task_alt', 'ter', true] : null,
+            !empty($task['can_reopen']) ? ['reopen', 'wire:click', "reopenTask($taskId)", 'بازگشایی وظیفه', 'lock_open', 'neu', true] : null,
             $mainBtn,
             ['k' => 'assign', 'show' => $isPersonalBoard && $canEdit && !$ticketId],
             ['k' => 'palette', 'show' => !($card['isUrgent'] || $card['isPending'] || $isArchived)],
@@ -377,8 +381,8 @@ class TaskBoardPresenter
                 ? ['duplicate', $isPersonalBoard ? 'wire:click' : 'x-on:click', $isPersonalBoard ? "duplicateTask($taskId)" : "Livewire.dispatch('project-duplicate-task', { taskId: $taskId })", 'تکثیر', 'copy_all', 'neu']
                 : null,
             ['k' => 'copy', 'show' => true],
-            $canDelete && $task['status'] === 'done' && !$isArchived && !$ticketId ? ['archive', 'wire:click', "archiveTask($taskId)", 'آرشیو', 'archive', 'neu'] : null,
-            $canDelete && $isArchived ? ['unarchive', 'wire:click', "unarchiveTask($taskId)", 'خروج از آرشیو', 'unarchive', 'ut'] : null,
+            $canArchive && $task['status'] === 'done' && !$isArchived && !$ticketId && !$card['isPendingApproval'] ? ['archive', 'wire:click', "archiveTask($taskId)", 'آرشیو', 'archive', 'neu'] : null,
+            $canArchive && $isArchived ? ['unarchive', 'wire:click', "unarchiveTask($taskId)", 'خروج از آرشیو', 'unarchive', 'ut'] : null,
             $isPersonalBoard && $task['is_delegator'] && $column !== 'done' && !$ticketId ? ['undo', 'wire:click', "undoAssignment($taskId)", 'لغو واگذاری', 'undo', 'neu'] : null,
             $canDelete && !$ticketId && !$isArchived ? ['delete', 'x-on:click', confirmDialog('deleteTask', 'حذف وظیفه', 'این وظیفه حذف خواهد شد. مطمئن هستید؟', $taskId), 'حذف', 'delete', 'err'] : null,
             ['k' => 'reminder', 'show' => $isPersonalBoard],

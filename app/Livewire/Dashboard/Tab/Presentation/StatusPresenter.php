@@ -16,7 +16,7 @@ class StatusPresenter
         $byCode = [];
 
         foreach ($byDept as $code => $members) {
-            $sorted = $members->sortBy(fn (User $u) => $u->rank());
+            $sorted = $members->sortBy(fn (User $u) => [$u->orderRank(), $u->name]);
             $apex = $apex->merge($sorted->filter(fn (User $u) => $u->rank() === 1)->values());
 
             $remaining = $sorted->filter(fn (User $u) => $u->rank() !== 1)->values();
@@ -36,6 +36,8 @@ class StatusPresenter
                 'count' => $remaining->count(),
                 'level' => $department?->level ?? 1,
                 'subordinateTo' => $department?->subordinate_to,
+                'company' => $sorted->contains(fn (User $u) => $u->isSubsidiaryCeo()),
+                'companyRoot' => $sorted->contains(fn (User $u) => $u->isSubsidiaryCeo()),
                 'allRemaining' => $rest,
                 ...$this->groupByUnit($rest),
                 'children' => [],
@@ -43,7 +45,7 @@ class StatusPresenter
         }
 
         return [
-            'apex' => $apex->values(),
+            'apex' => $apex->sortBy(fn (User $u) => $u->isSubsidiaryCeo() ? 1 : 0)->values(),
             ...$this->buildDepartmentBands($byCode),
             'byCode' => $byCode,
         ];
@@ -52,6 +54,12 @@ class StatusPresenter
     public function directReports(array $tree, User $me): Collection
     {
         $myRank = $me->rank();
+
+        if ($myRank === 1 && $me->isSubsidiaryCeo()) {
+            $own = $tree['byCode'][$me->profile?->department?->code ?? '__none__'] ?? null;
+
+            return collect([$own['head'] ?? null])->merge($own['allRemaining'] ?? [])->filter()->values();
+        }
 
         if ($myRank === 1) {
             return collect($tree['byCode'])
@@ -122,8 +130,12 @@ class StatusPresenter
                 'icon' => 'manage_accounts',
                 'chip' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] ring-1 ring-[var(--md-sys-color-tertiary)]/25',
             ],
-            'manager', 'supervisor', 'senior' => [
+            'manager', 'supervisor' => [
                 'icon' => 'supervisor_account',
+                'chip' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] ring-1 ring-[var(--md-sys-color-secondary)]/25',
+            ],
+            'senior' => [
+                'icon' => 'military_tech',
                 'chip' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] ring-1 ring-[var(--md-sys-color-secondary)]/25',
             ],
             default => [
@@ -170,6 +182,10 @@ class StatusPresenter
                 'spacing' => '',
             ],
         };
+
+        if ($tier === 'apex' && $user->isSubsidiaryCeo()) {
+            $tierConfig['surface'] = 'bg-[color-mix(in_srgb,var(--md-sys-color-tertiary-container)_45%,var(--md-sys-color-surface))]';
+        }
 
         return [
             'p' => $p,
@@ -293,8 +309,9 @@ class StatusPresenter
         $sort = fn (array $a, array $b) => ($a['head']?->rank() ?? PHP_INT_MAX) <=> ($b['head']?->rank() ?? PHP_INT_MAX)
             ?: strcmp($a['label'], $b['label']);
 
-        $build = function (string $code, array $seen = []) use (&$build, $byCode, $childrenOf, $sort): array {
+        $build = function (string $code, array $seen = [], bool $inCompany = false) use (&$build, $byCode, $childrenOf, $sort): array {
             $node = $byCode[$code];
+            $node['company'] = $node['company'] || $inCompany;
 
             if (isset($seen[$code])) {
                 $node['children'] = [];
@@ -304,7 +321,7 @@ class StatusPresenter
             $seen[$code] = true;
             $children = $childrenOf[$code] ?? [];
             usort($children, fn (string $a, string $b) => $sort($byCode[$a], $byCode[$b]));
-            $node['children'] = array_map(fn (string $childCode) => $build($childCode, $seen), $children);
+            $node['children'] = array_map(fn (string $childCode) => $build($childCode, $seen, $node['company']), $children);
 
             return $node;
         };

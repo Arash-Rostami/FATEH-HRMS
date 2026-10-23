@@ -74,37 +74,61 @@
             <livewire:dashboard.navbar.quick-settings/>
         </div>
 
-        <div data-declutter-hide class="xl:hidden flex items-center justify-start gap-1 max-w-1/4" x-data="{ showSecondary: false }">
+        @php($navHasUnread = auth()->check() && auth()->user()->unreadNotifications()->exists())
+        <div data-declutter-hide class="xl:hidden flex shrink-0 items-center gap-1.5"
+             x-data="{
+                 cur: window.innerWidth < 640 ? 'bell' : 'settings',
+                 unread: @js($navHasUnread),
+                 due: 0,
+                 order() { const tools = ['settings', 'fullscreen', 'palette', 'presence']; return window.innerWidth < 640 ? ['bell', 'reminder', ...tools] : tools; },
+                 next() { const o = this.order(); this.cur = o[(o.indexOf(this.cur) + 1) % o.length]; },
+                 cls(name) {
+                     const d = this.order().indexOf(name) - this.order().indexOf(this.cur);
+                     return d === 0 ? 'translate-y-0 opacity-100' : (d < 0 ? '-translate-y-full' : 'translate-y-full') + ' opacity-0 pointer-events-none';
+                 }
+             }"
+             x-on:bell-unread.window="unread = $event.detail.lit"
+             x-on:reminder-due.window="due = $event.detail.count"
+             x-on:resize.window="if (! order().includes(cur)) cur = order()[0]">
 
             <button type="button"
-                    @click="showSecondary = !showSecondary"
-                    class="group scale-90 relative w-8 h-6 flex items-center justify-center rounded-lg bg-[var(--md-sys-color-on-primary)] text-[var(--md-sys-color-primary)] shadow-md shadow-black/20 border-[2px] border-[var(--md-sys-color-primary)] transition-all duration-300 hover:scale-110 active:scale-95 z-20">
+                    @click="next()"
+                    class="group scale-90 relative w-8 h-6 shrink-0 flex items-center justify-center rounded-lg bg-[var(--md-sys-color-on-primary)] text-[var(--md-sys-color-primary)] shadow-md shadow-black/20 border-[2px] border-[var(--md-sys-color-primary)] transition-all duration-300 hover:scale-110 active:scale-95 z-20">
 
                 <span class="material-symbols-rounded !text-[16px] transition-transform duration-500"
-                      :class="showSecondary ? 'rotate-180' : 'rotate-0'">
+                      :class="order().indexOf(cur) % 2 ? 'rotate-180' : 'rotate-0'">
                     swap_vert
                 </span>
+                <span x-show="(unread && cur !== 'bell') || (due > 0 && cur !== 'reminder')" x-cloak class="sm:hidden absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-error)] border border-[var(--md-sys-color-primary)] animate-pulse"></span>
 
                 <div class="absolute inset-0 rounded-full bg-[var(--md-sys-color-on-primary)] opacity-0 group-hover:animate-ping pointer-events-none"></div>
                 <x-ui.modals.tooltip text="تغییر ابزارها" position="bottom" />
             </button>
 
-            <div class="relative right-6 h-[40px] w-32 sm:w-48 !float-left">
-                <div class="absolute inset-0 flex items-center justify-center gap-1.5 transition-all duration-500 mx-auto"
-                     :class="!showSecondary ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'">
-                    <div class="scale-75 origin-right flex items-center gap-1.5">
-                        <livewire:dashboard.navbar.quick-settings/>
-                        <div class="top-1 relative">
-                            <x-dashboard.navbars.top.fullscreen/>
-                        </div>
+            <div class="relative h-10 w-10 shrink-0">
+                @auth
+                    <div class="sm:hidden absolute inset-0 flex items-center justify-center transition-all duration-500" :class="cls('bell')">
+                        <x-dashboard.navbars.top.notification :lit="$navHasUnread"/>
                     </div>
+                    <div class="sm:hidden absolute inset-0 flex items-center justify-center transition-all duration-500" :class="cls('reminder')">
+                        <button type="button" x-on:click="$dispatch('open-reminders')" aria-label="یادآوری‌ها"
+                                class="group relative w-10 h-10 active:scale-95 transition-all duration-200 flex items-center justify-center">
+                            <span class="material-symbols-rounded text-[22px] opacity-70 group-hover:opacity-100 transition-opacity">alarm</span>
+                            <span x-show="due > 0" x-cloak class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[var(--md-sys-color-error)] animate-pulse"></span>
+                        </button>
+                    </div>
+                @endauth
+                <div class="absolute inset-0 flex items-center justify-center transition-all duration-500" :class="cls('settings')">
+                    <livewire:dashboard.navbar.quick-settings/>
                 </div>
-                <div class="absolute inset-0 flex items-center justify-center gap-1.5 transition-all duration-500 mx-auto"
-                     :class="showSecondary ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'">
-                    <div class="scale-75 origin-right flex items-center gap-1.5">
-                        <x-dashboard.navbars.top.palette/>
-                        <livewire:dashboard.navbar.status-switcher/>
-                    </div>
+                <div class="absolute inset-0 flex items-center justify-center transition-all duration-500" :class="cls('fullscreen')">
+                    <x-dashboard.navbars.top.fullscreen/>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center transition-all duration-500" :class="cls('palette')">
+                    <x-dashboard.navbars.top.palette/>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center transition-all duration-500" :class="cls('presence')">
+                    <div class="w-10 h-10"><livewire:dashboard.navbar.status-switcher/></div>
                 </div>
             </div>
         </div>
@@ -116,7 +140,7 @@
                     <livewire:dashboard.reminder.main wire:key="reminder-navbar"/>
                 </div>
             @endauth
-            <x-dashboard.navbars.top.notification/>
+            <div class="max-sm:hidden"><x-dashboard.navbars.top.notification :lit="$navHasUnread"/></div>
             <x-dashboard.navbars.top.account/>
         </div>
         <x-ui.modals.confirmation />

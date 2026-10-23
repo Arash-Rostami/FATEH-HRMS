@@ -1,6 +1,8 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
 import channel from '../channel.js'
-import { createWireMock, installWireProbe } from '../../mixins/__tests__/_wireMock.js'
+import { createWireMock, installWireProbe, stubResizeObserver } from '../../mixins/__tests__/_wireMock.js'
+
+stubResizeObserver();
 
 beforeEach(() => { document.body.innerHTML = ''; });
 
@@ -544,8 +546,9 @@ describe('channel() _bindViewport — re-binds across channel switches instead o
         const c = channel();
         c.$wire = createWireMock({ hasOlder: true });
         const vp = withViewport();
+        let top = 200;
         Object.defineProperties(vp, {
-            scrollTop: { value: 10, configurable: true },
+            scrollTop: { get: () => top, configurable: true },
             scrollHeight: { value: 1000, configurable: true },
             clientHeight: { value: 500, configurable: true },
         });
@@ -553,6 +556,7 @@ describe('channel() _bindViewport — re-binds across channel switches instead o
         c._bindViewport();
         c._bindViewport(); // re-bind to the SAME element — must replace, not add, the listener
 
+        top = 10;
         vp.dispatchEvent(new Event('scroll'));
         await new Promise((r) => setTimeout(r, 10));
 
@@ -660,6 +664,8 @@ describe('channel() DOM read helpers', () => {
         vi.setSystemTime(10_000);
         const c = channel();
         c.$wire = createWireMock({ activeChannelId: 9 });
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c.scrollToBottom = vi.fn();
         c.$store = { push: { notify: vi.fn() }, sound: { playIncoming: vi.fn() } };
         const el = document.createElement('div');
         el.setAttribute('data-total-unread', '1');
@@ -708,6 +714,8 @@ describe('channel() DOM read helpers', () => {
     test('_pollTick plays the scoped incoming sound when the open thread\'s last message changes to one that is not mine', async () => {
         const c = channel();
         c.$wire = createWireMock({ activeChannelId: 9 });
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c.scrollToBottom = vi.fn();
         c.$store = { sound: { playIncoming: vi.fn() } };
         const vp = document.createElement('div');
         vp.innerHTML = '<div data-rf="channel-message-1" class="justify-start"></div>';
@@ -730,6 +738,8 @@ describe('channel() DOM read helpers', () => {
     test('_pollTick does NOT play the incoming sound when the new last message is mine (own just-sent message, already covered by the message-sent/playOutgoing path)', async () => {
         const c = channel();
         c.$wire = createWireMock({ activeChannelId: 9 });
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c.scrollToBottom = vi.fn();
         c.$store = { sound: { playIncoming: vi.fn() } };
         const vp = document.createElement('div');
         vp.innerHTML = '<div data-rf="channel-message-1" class="justify-end"></div>';
@@ -887,5 +897,235 @@ describe('channel() last-open-channel persistence + maximize sequencing (added 2
 
         expect(order).toEqual(['select', 'maximize']);
         c.destroy();
+    });
+});
+
+describe('channel() scroll behaviour — programmatic guard, upward-only auto-load, newBelow, resize re-pin', () => {
+    const frame = () => new Promise((r) => setTimeout(r, 10));
+    const sync = (cb) => { cb(); return Promise.resolve(); };
+
+    function bound(c, init = {}) {
+        const vp = withViewport();
+        const s = { top: 200, sh: 1000, ch: 500, ...init };
+        Object.defineProperties(vp, {
+            scrollTop: { get: () => s.top, set: (v) => { s.top = v; }, configurable: true },
+            scrollHeight: { get: () => s.sh, configurable: true },
+            clientHeight: { get: () => s.ch, configurable: true },
+        });
+        c._bindViewport();
+        return { vp, s };
+    }
+
+    test('_bindViewport ignores programmatic scrolls (no loadOlder call, openActionsId and quoteChip untouched, showScrollFab still recomputed)', async () => {
+        const c = channel();
+        c.$wire = createWireMock({ hasOlder: true, activeChannelId: 9 });
+        c.$nextTick = () => Promise.resolve();
+        const { vp, s } = bound(c);
+        c.openActionsId = 7;
+        c.quoteChip.visible = true;
+        c.markProgrammaticScroll();
+
+        s.top = 10;
+        s.sh = 5000;
+        vp.dispatchEvent(new Event('scroll'));
+        await frame();
+
+        expect(c.$wire.$island('messages').loadOlder).not.toHaveBeenCalled();
+        expect(c.openActionsId).toBe(7);
+        expect(c.quoteChip.visible).toBe(true);
+        expect(c.showScrollFab).toBe(true);
+    });
+
+    test('_bindViewport auto-loads only when scrolling up', async () => {
+        const c = channel();
+        c.$wire = createWireMock({ hasOlder: true, activeChannelId: 9 });
+        c.$nextTick = () => Promise.resolve();
+        const { vp, s } = bound(c, { top: 10 });
+
+        s.top = 20;
+        vp.dispatchEvent(new Event('scroll'));
+        await frame();
+        expect(c.$wire.$island('messages').loadOlder).not.toHaveBeenCalled();
+
+        s.top = 5;
+        vp.dispatchEvent(new Event('scroll'));
+        await frame();
+        expect(c.$wire._islands.messages.loadOlder).toHaveBeenCalledTimes(1);
+    });
+
+    test('reaching the bottom with newBelow > 0 calls markRead once and zeroes newBelow', async () => {
+        const c = channel();
+        c.$wire = createWireMock({ activeChannelId: 9 });
+        const { vp, s } = bound(c);
+        c.newBelow = 2;
+
+        s.top = 500;
+        vp.dispatchEvent(new Event('scroll'));
+        await frame();
+        vp.dispatchEvent(new Event('scroll'));
+        await frame();
+
+        expect(c.newBelow).toBe(0);
+        expect(c.$wire.markRead).toHaveBeenCalledExactlyOnceWith(9);
+    });
+
+    test('_bindViewport reacts to a bubbling programmatic-scroll event', () => {
+        const c = channel();
+        const { vp } = bound(c);
+        const child = document.createElement('div');
+        vp.appendChild(child);
+
+        child.dispatchEvent(new CustomEvent('programmatic-scroll', { bubbles: true }));
+
+        expect(c._programmaticScroll).toBe(true);
+        clearTimeout(c._scrollSettleTimer);
+    });
+
+    test('scrollToMessage marks the jump programmatic', () => {
+        const c = channel();
+        c.$wire = createWireMock();
+        const row = document.createElement('div');
+        row.setAttribute('data-rf', 'channel-message-9');
+        row.scrollIntoView = vi.fn();
+        document.body.appendChild(row);
+
+        c.scrollToMessage(9);
+
+        expect(c._programmaticScroll).toBe(true);
+        clearTimeout(c._scrollSettleTimer);
+    });
+
+    describe('_pollTick incoming', () => {
+        function threadWith(c, s) {
+            const vp = withViewport();
+            vp.innerHTML = '<div data-rf="channel-message-1" class="justify-start"></div>';
+            Object.defineProperties(vp, {
+                scrollTop: { value: s.top, configurable: true },
+                scrollHeight: { value: s.sh, configurable: true },
+                clientHeight: { value: s.ch, configurable: true },
+            });
+            c._msgViewportEl = vp;
+            c.$wire = createWireMock({ activeChannelId: 9 });
+            c.$nextTick = sync;
+            c.scrollToBottom = vi.fn();
+            c.$store = { sound: { playIncoming: vi.fn() } };
+            c.$wire._islands.messages = {
+                refreshActive: vi.fn(() => {
+                    vp.innerHTML = '<div data-rf="channel-message-1" class="justify-start"></div><div data-rf="channel-message-2" class="justify-end"></div><div data-rf="channel-message-3" class="justify-end"></div>';
+                    return Promise.resolve();
+                }),
+            };
+        }
+
+        test('near the bottom: scrolls smoothly and marks read', async () => {
+            const c = channel();
+            threadWith(c, { top: 480, sh: 1000, ch: 500 });
+
+            await c._pollTick();
+
+            expect(c.scrollToBottom).toHaveBeenCalledWith(true);
+            expect(c.$wire.markRead).toHaveBeenCalledExactlyOnceWith(9);
+            expect(c.newBelow).toBe(0);
+        });
+
+        test('scrolled up: counts the new rows into newBelow and does not mark read or scroll', async () => {
+            const c = channel();
+            threadWith(c, { top: 0, sh: 1000, ch: 500 });
+
+            await c._pollTick();
+
+            expect(c.newBelow).toBe(2);
+            expect(c.$wire.markRead).not.toHaveBeenCalled();
+            expect(c.scrollToBottom).not.toHaveBeenCalled();
+        });
+    });
+
+    test('selectChannel scrolls instantly in the first then (before the sidebar refresh) and resets showScrollFab/newBelow', async () => {
+        const c = channel();
+        c.$wire = createWireMock();
+        c.$nextTick = sync;
+        c._bindViewport = vi.fn();
+        c.resetAutoResize = vi.fn();
+        c.scheduleChipsFade = vi.fn();
+        c._repollNow = vi.fn();
+        c.showScrollFab = true;
+        c.newBelow = 3;
+        const order = [];
+        c.scrollToBottom = vi.fn(() => order.push('scroll'));
+        c.$wire._islands.sidebar = { refreshUnread: vi.fn(() => { order.push('sidebar'); return Promise.resolve(); }) };
+
+        await c.selectChannel(5);
+
+        expect(c.scrollToBottom).toHaveBeenCalledExactlyOnceWith(false);
+        expect(c.showScrollFab).toBe(false);
+        expect(c.newBelow).toBe(0);
+        expect(order).toEqual(['scroll', 'sidebar']);
+    });
+
+    test('sendMessage scrolls once after the island call resolves and the message-sent handler no longer scrolls', async () => {
+        vi.useFakeTimers();
+        const c = channel();
+        c.$wire = createWireMock({ activeChannelId: null });
+        c.$watch = vi.fn();
+        c.initFancybox = vi.fn();
+        c.$store = { sound: { playOutgoing: vi.fn() } };
+        c.$nextTick = sync;
+        c._syncSidebarAfterOwnAction = vi.fn();
+        withTextarea('hi');
+        c.init();
+        c.scrollToBottom = vi.fn();
+
+        const handler = c.$wire.on.mock.calls.find(([e]) => e === 'message-sent')[1];
+        c.sending = true;
+        handler();
+        vi.advanceTimersByTime(500);
+
+        expect(c.scrollToBottom).not.toHaveBeenCalled();
+        expect(c.sending).toBe(false);
+        expect(c.$store.sound.playOutgoing).toHaveBeenCalledOnce();
+
+        await c.sendMessage();
+
+        expect(c.scrollToBottom).toHaveBeenCalledExactlyOnceWith(true);
+        c.destroy();
+        vi.useRealTimers();
+    });
+
+    describe('viewport ResizeObserver', () => {
+        let instances;
+
+        beforeEach(() => {
+            instances = [];
+            global.ResizeObserver = class {
+                constructor(cb) { this.cb = cb; this.disconnect = vi.fn(); instances.push(this); }
+                observe() {}
+            };
+        });
+
+        afterEach(() => stubResizeObserver());
+
+        test('shrink while near bottom re-pins, shrink while scrolled up does not', () => {
+            const c = channel();
+            c.scrollToBottom = vi.fn();
+            const { s } = bound(c, { top: 500, sh: 1000, ch: 500 });
+
+            s.ch = 400;
+            instances[0].cb();
+            expect(c.scrollToBottom).toHaveBeenCalledExactlyOnceWith(false);
+
+            s.top = 0;
+            s.ch = 300;
+            instances[0].cb();
+            expect(c.scrollToBottom).toHaveBeenCalledTimes(1);
+        });
+
+        test('rebind disconnects the old observer', () => {
+            const c = channel();
+            bound(c);
+            c._bindViewport();
+
+            expect(instances).toHaveLength(2);
+            expect(instances[0].disconnect).toHaveBeenCalledOnce();
+        });
     });
 });

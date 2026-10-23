@@ -620,6 +620,10 @@ export default function project() {
                 await this._refreshActiveTab(activeTab);
             }
 
+            if (changedDomains.includes('task')) {
+                wire.$island('sidebar').refreshSidebar().catch(() => {});
+            }
+
             wire.$island('workspace').markTabsDirtyExcept(activeTab, changedDomains).catch(() => {});
         },
 

@@ -13,6 +13,7 @@ use App\Services\ProjectTask\CycleLinkResolver;
 use App\Services\ProjectTask\ApproveTaskAction;
 use App\Services\ProjectTask\CyclePriorityAction;
 use App\Services\ProjectTask\LastTouchResolver;
+use App\Services\ProjectTask\ReopenTaskAction;
 use App\Services\ProjectTask\ReorderTaskAction;
 use App\Services\ProjectTask\ReportingService;
 use App\Services\ProjectTask\TaskMetrics;
@@ -32,7 +33,7 @@ class Kanban extends Component
 {
     private const KANBAN_COLUMNS = ['todo', 'in-progress', 'pending', 'done'];
     private const KANBAN_COLUMNS_TO_SELECT = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'updated_at', 'archived_at', 'approved_at', 'user_id', 'assigned_to', 'ticket_id', 'project_id', 'labels', 'priority', 'rank'];
-    private const KANBAN_RELATIONS = ['assignee:id,name', 'creator:id,name', 'project:id,name,owner_id,settings', 'detail:id,task_id,checklist,attachments,state,collaborators,responsible_user_id,department_id,meta,action_source,action_source_domain', 'detail.responsibleUser:id,name'];
+    private const KANBAN_RELATIONS = ['assignee:id,name', 'creator:id,name', 'project:id,name,owner_id,settings', 'detail:id,task_id,checklist,attachments,state,collaborators,responsible_user_id,department_id,meta,action_source,action_source_domain,project,unit,section', 'detail.responsibleUser:id,name'];
 
     #[Locked]
     public ?int $activeProjectId = null;
@@ -115,7 +116,7 @@ class Kanban extends Component
             ->whereIn('status', self::KANBAN_COLUMNS)
             ->orderByRaw('`rank` IS NULL, `rank`')
             ->orderBy('created_at', 'desc')
-            ->withCount('replies')
+            ->withCount(['replies' => fn($q) => $q->whereIn('type', ['comment', 'attachment'])])
             ->get(self::KANBAN_COLUMNS_TO_SELECT);
 
         $tasks->load(self::KANBAN_RELATIONS);
@@ -449,9 +450,26 @@ class Kanban extends Component
         }
     }
 
+    public function reopenTask(ReopenTaskAction $action, int $taskId): void
+    {
+        $task = $this->visibleTasks()->with('project:id,owner_id,settings')->find($taskId);
+
+        if (!$task) {
+            return;
+        }
+
+        $reopened = $action->execute($task, auth()->user());
+
+        if ($reopened) {
+            $this->loadKanbanBoard();
+        }
+
+        $this->dispatch('toast', message: $reopened ? 'وظیفه بازگشایی شد.' : 'بازگشایی این وظیفه ممکن نیست.', type: $reopened ? 'success' : 'error');
+    }
+
     public function reorderTask(ReorderTaskAction $action, int $taskId, ?int $beforeTaskId, ?string $targetStatus = null, ?string $version = null): void
     {
-        $task = $this->visibleTasks()->with('project:id,owner_id', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
+        $task = $this->visibleTasks()->with('project:id,owner_id,settings', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
 
         if (!$task) return;
 
@@ -471,7 +489,7 @@ class Kanban extends Component
 
     public function updateTaskStatus(UpdateTaskStatusAction $action, int $taskId, string $newColumn, ?string $version = null): void
     {
-        $task = $this->visibleTasks()->with('project:id,owner_id', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
+        $task = $this->visibleTasks()->with('project:id,owner_id,settings', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
 
         if (!$task) return;
 

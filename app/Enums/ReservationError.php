@@ -44,7 +44,7 @@ enum ReservationError: string
             'ERR-009' => ['policy' => __('resources/policy/strings.fields.allowed_hours_start') . ' / ' . __('resources/policy/strings.fields.allowed_hours_end'), 'hint' => 'بازه ساعتی فعالیت را گسترش دهید'],
             'ERR-010' => ['policy' => __('resources/policy/strings.fields.allow_repeat'), 'hint' => 'سوئیچ مربوطه را فعال کنید'],
             'ERR-011' => ['policy' => __('resources/policy/strings.fields.max_cancel_count'), 'hint' => 'مقدار را افزایش داده یا فیلد را خالی بگذارید'],
-            'ERR-012' => ['policy' => __('resources/policy/strings.fields.max_per_user'), 'hint' => 'مقدار را افزایش داده یا فیلد را خالی بگذارید'],
+            'ERR-012' => ['policy' => __('resources/policy/strings.fields.max_per_user'), 'hint' => 'مقدار را افزایش داده، فیلد را خالی بگذارید یا «رزرو لحظه‌آخری» را برای این نوع فعال کنید؛ اگر فقط یک کاربر مسدود شده، سقف شخصی او (نوع یا «همه») را از پنل کاربران ← «مجوزهای رزرو» اصلاح کنید، چون جایگزین این مقدار می‌شود'],
             'ERR-013' => ['policy' => __('resources/policy/strings.fields.allow_overlap_release'), 'hint' => 'در صورت نیاز به جایگزینی رزروهای لغو شده، این سوئیچ را فعال کنید'],
             'ERR-014' => ['policy' => '—', 'hint' => 'رزرو متداخل کاربر را از پنل مدیریت بررسی کنید'],
             'ERR-015' => ['policy' => '—', 'hint' => 'وضعیت رزرو را در پنل مدیریت بررسی کنید (احتمالاً قبلاً لغو شده)'],
@@ -80,7 +80,9 @@ enum ReservationError: string
             self::TimeConflict => 'شما در این بازه زمانی رزرو فعال دیگری از همین نوع دارید.',
             self::NotActive => 'این رزرو در حال حاضر فعال نیست.',
             self::CancelForbidden => 'شما اجازه لغو این رزرو را ندارید.',
-            self::CancelLimitReached => 'تعداد لغو رزروهای شما در این ماه به حداکثر مجاز رسیده است.',
+            self::CancelLimitReached => ($args[0] ?? null) === 0
+                ? 'لغو رزرو برای این نوع منبع مجاز نیست.'
+                : 'تعداد لغو رزروهای شما در ' . ($args[0] ?? convertToPersian('30')) . ' روز اخیر به حداکثر مجاز رسیده است.',
             self::InvalidTimeRange   => 'زمان پایان نمی‌تواند قبل یا مساوی زمان شروع باشد.',
             self::PastBooking        => 'امکان رزرو در گذشته وجود ندارد.',
             self::ResourceInactive   => 'این منبع در حال حاضر در دسترس یا فعال نیست.',

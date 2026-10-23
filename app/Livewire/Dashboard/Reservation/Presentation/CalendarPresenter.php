@@ -13,40 +13,10 @@ class CalendarPresenter
         $dates = [];
         $now = Carbon::now()->startOfDay();
 
-        if ($windowDays === null) {
-            $date = $now->copy();
-            for ($i = 0; $i < 21; $i++, $date->addDay()) {
-                if ($allowedDays !== null && !in_array(strtolower($date->englishDayOfWeek), $allowedDays, true)) {
-                    continue;
-                }
-                $j = Jalalian::fromCarbon($date);
-                $dates[] = [
-                    'value' => $date->toDateString(),
-                    'day' => $j->format('l'),
-                    'date' => $j->format('d'),
-                    'month' => $j->format('F'),
-                    'isToday' => $date->isSameDay($now),
-                ];
-            }
-            return $dates;
-        }
+        $date = $now->copy();
+        $days = $windowDays === null ? 21 : min($windowDays, 92) + 1;
 
-        $horizon = Carbon::now()->addDays($windowDays)->endOfDay();
-
-        try {
-            $daysInMonth = (new Jalalian($currentYear, $currentMonth, 1))->getMonthDays();
-            $date = (new Jalalian($currentYear, $currentMonth, 1))->toCarbon()->startOfDay();
-        } catch (Throwable $e) {
-            return [];
-        }
-
-        for ($d = 1; $d <= $daysInMonth; $d++, $date->addDay()) {
-            if ($date < $now) {
-                continue;
-            }
-            if ($date > $horizon) {
-                break;
-            }
+        for ($i = 0; $i < $days; $i++, $date->addDay()) {
             if ($allowedDays !== null && !in_array(strtolower($date->englishDayOfWeek), $allowedDays, true)) {
                 continue;
             }
@@ -80,7 +50,7 @@ class CalendarPresenter
             return false;
         }
 
-        $horizon = Carbon::now()->addDays($windowDays)->startOfDay();
+        $horizon = Carbon::now()->addDays(min($windowDays, 92))->startOfDay();
         $year = $currentYear;
         $month = $currentMonth + 1;
 

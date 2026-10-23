@@ -15,7 +15,7 @@ class BulkAssignTasksAction
         $valid = [];
         $tasks = Task::whereIn('id', $taskIds)->with('project:id,owner_id,member_ids,departments,settings', 'detail:id,task_id,responsible_user_id')->get()
             ->filter(function (Task $task) use ($user, $userId, &$valid) {
-                if (!TaskAccessPolicy::canReassign($task, $user, $userId) || $task->ticket_id) return false;
+                if (!TaskAccessPolicy::canReassign($task, $user, $userId) || $task->ticket_id || $task->isFrozenFor($user)) return false;
 
                 return !$userId || ($valid[$task->project_id ?? 0] ??= TaskAccessPolicy::assignableIds([$userId], $task->project) !== []);
             });

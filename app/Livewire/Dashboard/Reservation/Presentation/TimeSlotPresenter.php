@@ -6,25 +6,42 @@ use Carbon\Carbon;
 
 class TimeSlotPresenter
 {
-    public static function allowedHoursBounds(?array $allowed): array
+    public static function allowedHoursBounds(?array $allowed, ?array $resourceSlot = null): array
     {
         $start = Carbon::parse($allowed['start'] ?? '08:00');
         $end = Carbon::parse($allowed['end'] ?? '20:00');
+        $unrestricted = (blank($allowed['start'] ?? null) && blank($allowed['end'] ?? null)) || $end <= $start;
 
         if ($end <= $start) {
             $start = Carbon::parse('08:00');
             $end = Carbon::parse('20:00');
         }
 
+        if (filled($resourceSlot['start'] ?? null) && filled($resourceSlot['end'] ?? null)) {
+            $slotStart = Carbon::parse($resourceSlot['start']);
+            $slotEnd = Carbon::parse($resourceSlot['end']);
+
+            if ($unrestricted && $slotEnd > $slotStart) {
+                return [$slotStart, $slotEnd];
+            }
+
+            $narrowStart = $slotStart->max($start);
+            $narrowEnd = $slotEnd->min($end);
+
+            if ($narrowEnd > $narrowStart) {
+                return [$narrowStart, $narrowEnd];
+            }
+        }
+
         return [$start, $end];
     }
 
-    public static function slots(?array $allowedHours): array
+    public static function slots(?array $allowedHours, ?array $resourceSlot = null): array
     {
-        [$start, $end] = self::allowedHoursBounds($allowedHours);
+        [$start, $end] = self::allowedHoursBounds($allowedHours, $resourceSlot);
 
         $slots = [];
-        for ($cursor = $start->copy(); $cursor < $end; $cursor->addMinutes(30)) {
+        for ($cursor = $start->copy(); $cursor <= $end; $cursor->addMinutes(30)) {
             $slots[] = $cursor->format('H:i');
         }
 

@@ -3,10 +3,9 @@
 namespace App\Services\Reservation\Validators;
 
 use App\Enums\ReservationError;
-use App\Enums\ReservationStatus;
-use App\Models\Reservation;
 use App\Services\Reservation\Contracts\BookingContext;
 use App\Services\Reservation\Contracts\BookingRule;
+use App\Services\Reservation\ValidationService;
 
 class CancellationLimit implements BookingRule
 {
@@ -15,13 +14,10 @@ class CancellationLimit implements BookingRule
         $limit = $context->policies['max_cancel_count'] ?? null;
         if ($limit === null) return;
 
-        $limit = max(1, (int)$limit);
+        $limit = max(0, (int)$limit);
+        if ($limit === 0) return;
 
-        $count = Reservation::where('user_id', $context->user->id)
-            ->whereHas('resource', fn($q) => $q->where('type', $context->resource->type))
-            ->where('status', ReservationStatus::CancelledUser->value)
-            ->where(fn($q) => $q->whereNull('cancelled_at')->orWhere('cancelled_at', '>=', now()->subDays(30)))
-            ->toBase()->count();
+        $count = app(ValidationService::class)->cancelLimitStats($context->user->id, $context->resource->type, $context->policies)['count'];
 
         if ($count >= $limit) {
             ReservationError::CancelLimitBooking->throw();

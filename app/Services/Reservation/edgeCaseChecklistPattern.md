@@ -30,7 +30,7 @@ For each test scenario listed below, evaluate the logic and provide a brief stat
 
 #### 3. POLICY & WINDOW BOUNDARY RULES
 - [ ] Ceiling Breach: Bookings exceeding the specified window_days limit must fail.
-- [ ] Feature Flags: A null value for window_days must behave as an unrestricted future pass, whereas a value of exactly 0 must block all future allocations.
+- [ ] Feature Flags: A null value for window_days must behave as an unrestricted future pass, whereas a value of exactly 0 means "today only" (the horizon is the end of today; with `window_hours` also 0 the type is locked).
 - [ ] Minimum Notice Boundaries: Confirm that window_hours constraints are accurately preserved across multi-day transitions (e.g., requiring 12 hours notice for a tomorrow morning slot).
 - [ ] Policy Value Sanitation: Ensure falsey configuration values (e.g., boolean false, integer 0) are evaluated strictly and not stripped out or auto-cast to null.
 
@@ -69,3 +69,6 @@ For each test scenario listed below, evaluate the logic and provide a brief stat
 - [ ] Filament Lifecycles: Verify that Filament form states ($this->form->getState()) are correctly transformed before being processed by the validation layers in both Create and Edit controllers.
 - [ ] Code Cleanliness: Any optimization snippets provided in the response must be highly optimized, elegant, and completely stripped of comments.
 - [ ] Pipeline Context Separation: Verify that the pipeline engine rigidly forces the complete 14-rule suite when `$enforceAllRules` is true (fresh bookings), while successfully evaluating the role-based `skip_admin` exemptions only when the parameter is false (admin edits).
+- [ ] Jalali month boundaries (2026-10-19): the monthly quota, its bar and its reset date must agree across a Jalali boundary (31 Mordad vs 1 Shahrivar, 30 Mehr vs 1 Aban) — never the Gregorian month; see `reservationPattern.md` "Jalali months everywhere".
+- [ ] Cancel cap edge values: `max_cancel_count` 0 (cancelling disabled, booking untouched), empty (no limit), 1; `cancel_window_days` empty/invalid falls back to 30 and clamps to 1–365; a cancel exactly N days old no longer counts.
+- [ ] Last-minute (`last_minute_hours`): bypasses the monthly cap only when `start <= now + hours`, must exceed `window_hours`, empty = off.

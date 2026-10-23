@@ -11,8 +11,10 @@ class GenerateSeriesAction
 {
     public function __construct(private ValidationService $validator) { }
 
-    public function execute(Reservation $master, string $pattern, int $count): void
+    public function execute(Reservation $master, string $pattern, int $count): int
     {
+        $skipped = 0;
+
         $intervalDays = $pattern === 'weekly' ? 7 : 1;
         $start = Carbon::parse($master->start_time);
         $end = Carbon::parse($master->end_time);
@@ -26,8 +28,9 @@ class GenerateSeriesAction
             $occEnd = $end->copy()->addDays($i * $intervalDays);
 
             try {
-                $this->validator->validateBooking($user, $resource, $occStart, $occEnd, (bool)$master->is_full_day);
+                $this->validator->validateBooking($user, $resource, $occStart, $occEnd, (bool)$master->is_full_day, actor: auth()->user());
             } catch (Exception) {
+                $skipped++;
                 continue;
             }
 
@@ -41,5 +44,7 @@ class GenerateSeriesAction
                 'parent_id' => $master->id,
             ]);
         }
+
+        return $skipped;
     }
 }

@@ -1,0 +1,1 @@
+<x-ui.badge :variant="$chip['tone'] ?? 'neutral'" class="!px-1.5 !py-0.5 !text-[10px] gap-1 {{ $chip['class'] ?? '' }}"><span class="material-symbols-rounded text-[13px]">{{ $chip['icon'] }}</span>{{ $chip['text'] }}</x-ui.badge>

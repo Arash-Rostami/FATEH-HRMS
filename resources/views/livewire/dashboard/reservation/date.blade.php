@@ -19,19 +19,6 @@
             امروز
         </button>
 
-        @if($this->dateWindow !== null)
-            <div wire:key="reservation-month-nav" class="flex items-center gap-1">
-                <button type="button" wire:click="prevMonth" {{ $this->canPrevMonth ? '' : 'hidden disabled' }}
-                    class="flex w-7 h-7 items-center justify-center rounded-lg text-[var(--md-sys-color-on-surface-variant)] transition-all hover:bg-[var(--md-sys-color-surface-variant)] active:scale-90">
-                    <span class="material-symbols-rounded text-[18px]">chevron_right</span>
-                </button>
-                <span class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] min-w-[84px] text-center">{{ convertToPersian($this->currentMonthName) }}</span>
-                <button type="button" wire:click="nextMonth" {{ $this->canNextMonth ? '' : 'hidden disabled' }}
-                    class="flex w-7 h-7 items-center justify-center rounded-lg text-[var(--md-sys-color-on-surface-variant)] transition-all hover:bg-[var(--md-sys-color-surface-variant)] active:scale-90">
-                    <span class="material-symbols-rounded text-[18px]">chevron_left</span>
-                </button>
-            </div>
-        @endif
     </div>
 </div>
 
@@ -61,6 +48,14 @@
                 <span
                     class="text-3xl font-black tracking-tighter">{{ convertToPersian($dt['date']) ?? $dt['date'] }}</span>
                 <span class="text-xs font-bold">{{ $dt['month'] }}</span>
+
+                @isset($this->dayFreeCounts[$dt['value']])
+                    @if($this->dayFreeCounts[$dt['value']] === 0)
+                        <x-ui.badge wire:key="date-booked-{{ $dt['value'] }}" variant="danger" class="absolute bottom-1.5 left-1.5 !px-1 !py-0 !text-[9px]">تکمیل</x-ui.badge>
+                    @else
+                        <x-ui.badge wire:key="date-free-{{ $dt['value'] }}" variant="info" class="absolute bottom-1.5 left-1.5 !px-1.5 !py-0 !text-[10px]">{{ convertToPersian((string) $this->dayFreeCounts[$dt['value']]) }}</x-ui.badge>
+                    @endif
+                @endisset
 
                 @if($dt['isToday'])
                     <div

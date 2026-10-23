@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ReservationPolicyResource\Schemas;
 
+use App\Enums\ResourceType;
 use App\Models\ReservationPolicy;
 use App\Services\Reservation\ValidationService;
 use App\Traits\FilamentFormDivider;
@@ -21,7 +22,7 @@ class PolicyInfolistPresenter
     {
         return TextEntry::make('resource_type')
             ->label(__('resources/policy/strings.fields.resource_type'))
-            ->formatStateUsing(fn(ReservationPolicy $record) => \App\Enums\ResourceType::tryFrom($record->resource_type)?->getLabel() ?? $record->resource_type)
+            ->formatStateUsing(fn(ReservationPolicy $record) => ResourceType::tryFrom($record->resource_type)?->getLabel() ?? $record->resource_type)
             ->icon('heroicon-o-tag')
             ->badge()
             ->color('primary');
@@ -109,6 +110,26 @@ class PolicyInfolistPresenter
             ->badge()
             ->color('info')
             ->placeholder('-');
+    }
+
+    public static function lastMinuteHours(): TextEntry
+    {
+        return TextEntry::make('last_minute_hours')
+            ->label(__('resources/policy/strings.fields.last_minute_hours'))
+            ->getStateUsing(fn(ReservationPolicy $record) => self::value($record, 'last_minute_hours'))
+            ->badge()
+            ->color('info')
+            ->placeholder('-');
+    }
+
+    public static function cancelWindowDays(): TextEntry
+    {
+        return TextEntry::make('cancel_window_days')
+            ->label(__('resources/policy/strings.fields.cancel_window_days'))
+            ->getStateUsing(fn(ReservationPolicy $record) => self::value($record, 'cancel_window_days'))
+            ->badge()
+            ->color('info')
+            ->placeholder('۳۰');
     }
 
     public static function maxCancelCount(): TextEntry

@@ -55,8 +55,7 @@ class CancelAction
         }
 
         return $root->occurrences
-            ->where('status', ReservationStatus::Active->value)
             ->push($root)
-            ->filter(fn(Reservation $r) => $r->status === ReservationStatus::Active->value);
+            ->filter(fn(Reservation $r) => $r->id === $reservation->id || $r->isCancellable());
     }
 }

@@ -136,9 +136,8 @@ class TaskTablePresenter
             ->color(fn($record) => match (true) {
                 !$record->deadline => 'gray',
                 $record->status === TaskStatus::Done->value => 'success',
-                $record->status === TaskStatus::Pending->value => 'danger',
-                $record->deadline->isPast() => 'danger',
-                $record->deadline->diffInDays(now()) <= 2 => 'warning',
+                ($record->urgency_state['kind'] ?? null) === 'overdue' => 'danger',
+                ($record->urgency_state['kind'] ?? null) === 'due' => 'warning',
                 default => 'primary',
             })
             ->sortable()

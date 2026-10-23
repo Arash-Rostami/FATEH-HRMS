@@ -101,7 +101,8 @@ For lists or grids (dashboard widgets), use the nth-child staggering pattern:
 Always use the pre-registered utilities rather than inline `@keyframes`:
 *   `.animate-bubble-in`: chat messages or popovers.
 *   `.animate-toast-in`: floating notifications.
-*   `.animate-pulse-ring`: "online" or "live" status indicators.
+*   `.animate-pulse-ring`: "online" or "live" status indicators — small DOTS only (`w-1.5`–`w-3`): it scales the element to 1.8× and fades it out, so on a badge or text label it balloons past its box and flashes.
+*   `.animate-alert-soft`: calm attention for WIDE elements (urgent/stuck badges, urgent chip labels) — opacity-only breathing (1 ↔ 0.6, 2s ease-in-out infinite, no transform so nothing protrudes; reduced-motion off-switch). Consumers: workflow card «معطل مانده» badge, urgent chip labels in project report and taskboard card.
 *   `.animate-shiver`: iOS-style wiggle (±5deg rotate + 1px translateX, 0.28s infinite, transform-only) for "edit mode" states such as the hamburger-menu pin mode; carries its own `prefers-reduced-motion` off-switch.
 *   `.animate-sidebar-slide`: put on the chat sidebar `<aside>` for ~300 ms while collapsing/expanding it; animates its DIRECT children (`> *`) with `translateX(28px)→0` + opacity (0.26 s, transform/opacity only, reduced-motion off-switch). Paired with the unlayered `.sb-*` rules at the end of `dashboard.css` (width snaps to 4.5rem; the animation, not a width transition, is what makes it feel like it slides) — see `resources/js/scriptPattern.md` "Collapsible sidebar rail".
 *   `.animate-ticker`: teletext-style horizontal marquee (16s linear infinite, transform-only `translateX(-50%)` loop over duplicated content; `prefers-reduced-motion` off-switch). The consumer freezes it when idle via inline `animation-play-state: paused` (menu-footer audio chip ticker).

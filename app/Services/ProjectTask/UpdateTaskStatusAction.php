@@ -14,9 +14,9 @@ class UpdateTaskStatusAction
             return false;
         }
 
-        $task = Task::query()->with('project:id,owner_id', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
+        $task = Task::query()->with('project:id,owner_id,settings', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
 
-        if (!$task?->can_change_status || $task->ticket_id) {
+        if (!$task?->can_change_status || $task->ticket_id || $task->isFrozenFor(auth()->user())) {
             return false;
         }
 

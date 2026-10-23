@@ -191,3 +191,5 @@ indexes: feedback, complete, user_id, suggestion_id, (suggestion_id, complete), 
 ```
 
 One `Review` row per (suggestion, department) pair, plus one row with `department_id = 'MA'` for the CEO/chairman decision.
+
+**Suggestion ID is intentionally Gregorian (2026-10-19, product decision):** `SN-YYYYMMDD-id` (and the matching `DATE_FORMAT` search) keeps the Gregorian date; the same applies to DMS document codes. Do not convert to Jalali — it would invalidate existing IDs. Everything else a user reads stays Jalali (`viewPattern.md` §8.36).

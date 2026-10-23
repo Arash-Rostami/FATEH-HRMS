@@ -92,6 +92,8 @@ class Task extends Model
         'delegator_name',
         'assignee_name',
         'can_change_status',
+        'is_frozen',
+        'can_reopen',
         'is_delegator',
         'can_delete',
         'urgency_state',
@@ -174,7 +176,34 @@ class Task extends Model
     {
         return $this->status === 'done'
             && $this->approved_at === null
-            && $this->project?->setting('requires_approval') === true;
+            && $this->approvalProject()?->setting('requires_approval') === true;
+    }
+
+    public function isFrozenFor(?User $user): bool
+    {
+        return $this->status === 'done'
+            && $this->approved_at !== null
+            && $this->approvalProject()?->setting('requires_approval') === true
+            && !($this->project && ProjectAccessPolicy::canManageTasks($this->project, $user));
+    }
+
+    protected function approvalProject(): ?Project
+    {
+        if (!$this->project_id) return null;
+
+        $loaded = $this->relationLoaded('project') ? $this->project : null;
+
+        if ($loaded && (int)$loaded->getKey() === (int)$this->project_id
+            && array_diff(['settings', 'owner_id'], array_keys($loaded->getAttributes())) === []) {
+            return $loaded;
+        }
+
+        if ($this->relationLoaded('project') && $this->project === null && !$this->isDirty('project_id')) return null;
+
+        $project = Project::find($this->project_id, ['id', 'settings', 'owner_id', 'member_ids', 'departments']);
+        $this->setRelation('project', $project);
+
+        return $project;
     }
 
     public function isGenuinelyDone(): bool
@@ -355,6 +384,7 @@ class Task extends Model
 
         static::deleting(function (self $task) {
             $task->guardTicketLock(true);
+            $task->guardApprovedFreeze(true);
 
             if (!$task->isForceDeleting()) {
                 app(EventSyncService::class)->purge($task);
@@ -401,6 +431,7 @@ class Task extends Model
 
         static::updating(function (self $task) {
             $task->guardTicketLock();
+            $task->guardApprovedFreeze();
 
             if ($task->isDirty('status')) {
                 $task->clearArchiveOnStatusChange();
@@ -465,6 +496,23 @@ class Task extends Model
         throw ValidationException::withMessages(['form' => 'این وظیفه از تیکت ساخته شده و فقط از طریق تیکت تغییر می‌کند.']);
     }
 
+    protected function guardApprovedFreeze(bool $deleting = false): void
+    {
+        if (static::$ticketSyncing || !auth()->check()) return;
+
+        if ($this->getOriginal('status') !== 'done' || $this->getOriginal('approved_at') === null) return;
+
+        if (!$deleting && array_diff(array_keys($this->getDirty()), ['archived_at', 'rank', 'updated_at']) === []) return;
+
+        $project = $this->isDirty('project_id')
+            ? Project::find($this->getOriginal('project_id'), ['id', 'settings', 'owner_id'])
+            : $this->approvalProject();
+
+        if ($project?->setting('requires_approval') !== true || ProjectAccessPolicy::canManageTasks($project, auth()->user())) return;
+
+        throw ValidationException::withMessages(['form' => 'این وظیفه تأیید شده و قفل است؛ فقط مالک پروژه می‌تواند آن را بازگشایی کند.']);
+    }
+
     protected function guardPastDeadline(): void
     {
         if (static::$ticketSyncing || !$this->deadline || !$this->isDirty('deadline') || !auth()->check()) return;
@@ -522,10 +570,10 @@ class Task extends Model
         }
 
         $this->completed_at ??= now();
-        $this->loadMissing('project:id,settings,owner_id');
+        $project = $this->approvalProject();
         $actor = auth()->id();
 
-        if ($this->project?->setting('requires_approval') !== true) {
+        if ($project?->setting('requires_approval') !== true) {
             if ($this->approved_at === null) {
                 $this->approved_at = now();
                 $this->approved_by = $actor;
@@ -534,7 +582,7 @@ class Task extends Model
             return;
         }
 
-        if (ProjectAccessPolicy::canManageTasks($this->project, auth()->user())) {
+        if (ProjectAccessPolicy::canManageTasks($project, auth()->user())) {
             $this->approved_at = now();
             $this->approved_by = $actor;
         } else {
@@ -547,6 +595,22 @@ class Task extends Model
     {
         return Attribute::make(
             get: fn() => TaskAccessPolicy::canChangeStatus($this, auth()->user())
+        );
+    }
+
+    protected function isFrozen(): Attribute
+    {
+        return Attribute::make(get: fn() => $this->isFrozenFor(auth()->user()));
+    }
+
+    protected function canReopen(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->status === 'done'
+                && $this->approved_at !== null
+                && $this->archived_at === null
+                && $this->approvalProject()?->setting('requires_approval') === true
+                && ProjectAccessPolicy::canManageTasks($this->project, auth()->user())
         );
     }
 

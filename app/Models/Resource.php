@@ -50,9 +50,18 @@ class Resource extends Model
         return $this->hasMany(Reservation::class);
     }
 
+    public function scopeMatching(Builder $query, string $needle): Builder
+    {
+        $escaped = trim(json_encode($needle), '"');
+
+        return $query->where(fn($q) => $q
+            ->whereRaw('INSTR(name, ?) > 0', [$needle])
+            ->orWhereRaw('INSTR(CAST(metadata AS CHAR), ?) > 0', [$needle])
+            ->when($escaped !== $needle, fn($q2) => $q2->orWhereRaw('INSTR(CAST(metadata AS CHAR), ?) > 0', [$escaped])));
+    }
+
     public function scopeAvailable(Builder $query, string $type, Carbon $start, Carbon $end, bool $allowOverlap = false): Builder
     {
-        $isFullDay = ResourceType::tryFrom($type)?->isFullDay() ?? false;
         $day = strtolower($start->englishDayOfWeek);
 
         return $query
@@ -62,13 +71,6 @@ class Resource extends Model
                 ->whereNull('metadata->available_days')
                 ->orWhereJsonContains('metadata->available_days', $day)
             )
-            ->when(!$isFullDay, fn($q) => $q->where(fn($q2) => $q2
-                ->whereNull('metadata->time_slots->start')
-                ->orWhere(fn($q3) => $q3
-                    ->where('metadata->time_slots->start', '<=', $start->format('H:i'))
-                    ->where('metadata->time_slots->end', '>=', $end->format('H:i'))
-                )
-            ))
             ->whereDoesntHave('reservations', fn($q) => $q
                 ->whereIn('status', $allowOverlap ? [ReservationStatus::Active->value] : [ReservationStatus::Active->value, ReservationStatus::Released->value])
                 ->where(fn($q) => $q

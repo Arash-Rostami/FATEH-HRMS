@@ -14,7 +14,7 @@ class CyclePriorityAction
     {
         $task = Task::find($taskId);
 
-        if (!$task || !$task->can_change_status || $task->ticket_id || $task->is_archived) {
+        if (!$task || !$task->can_change_status || $task->ticket_id || $task->is_archived || $task->isFrozenFor(auth()->user())) {
             return null;
         }
 

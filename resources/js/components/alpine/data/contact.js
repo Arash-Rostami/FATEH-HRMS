@@ -14,8 +14,8 @@ const IDLE_POLL_CEILING_MS = 30000;
 const MOBILE_BREAKPOINT = 768;
 const MAX_BODY_LENGTH = 2000;
 const UNDO_TOAST_MS = 4000;
-const POST_SEND_SCROLL_DELAY_MS = 120;
 const SEND_LOCK_RESET_MS = 500;
+const NEAR_BOTTOM_PX = 120;
 const LOAD_OLDER_SCROLL_THRESHOLD = 80;
 const SCROLL_FAB_DISTANCE_THRESHOLD = 200;
 const MSG_VIEWPORT_ID = 'msg-viewport';
@@ -33,7 +33,7 @@ const ROW_SEL = `[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`;
 const ta = () => document.getElementById(MSG_TEXTAREA_ID);
 
 export default function contact() {
-    let ac, vpAc, scrollRaf, selRaf, unreadObs, digest, ticks = 0, selectSeq = 0;
+    let ac, vpAc, vpRo, scrollRaf, selRaf, unreadObs, digest, ticks = 0, selectSeq = 0;
 
     return {
         ...maximizeMixin('contact'),
@@ -85,10 +85,8 @@ export default function contact() {
             }, { signal });
 
             this.$wire.on('message-sent', () => {
-                this.scrollToBottom(true);
                 this.sending = false;
                 this.$store.sound?.playOutgoing(this.$wire.activeUserId, SCOPE);
-                setTimeout(() => this.scrollToBottom(true), POST_SEND_SCROLL_DELAY_MS);
             });
 
             this.$wire.on('message-error', () => this.$nextTick(() => { this.sending = false; }));
@@ -122,6 +120,8 @@ export default function contact() {
             this.stopPolling();
             ac?.abort();
             vpAc?.abort();
+            vpRo?.disconnect();
+            clearTimeout(this._scrollSettleTimer);
             unreadObs?.disconnect();
             cancelAnimationFrame(scrollRaf);
             cancelAnimationFrame(selRaf);
@@ -138,32 +138,48 @@ export default function contact() {
             this._msgViewportEl = vp;
             if (!vp) return;
 
-            vp.style.overflowAnchor = 'none';
             vpAc?.abort();
+            vpRo?.disconnect();
             vpAc = new AbortController();
+            const { signal } = vpAc;
+            let lastSt = vp.scrollTop;
+
+            vp.addEventListener('programmatic-scroll', () => this.markProgrammaticScroll(), { signal });
 
             vp.addEventListener('scroll', () => {
+                if (this._programmaticScroll) this._armScrollSettle();
                 if (scrollRaf) return;
                 scrollRaf = requestAnimationFrame(() => {
                     scrollRaf = null;
-                    this.quoteChip.visible = false;
-                    this.openActionsId = null;
-
+                    const programmatic = this._programmaticScroll;
                     const { scrollTop: st, scrollHeight: sh, clientHeight: ch } = vp;
                     this.showScrollFab = sh - st - ch > SCROLL_FAB_DISTANCE_THRESHOLD;
 
-                    if (st < LOAD_OLDER_SCROLL_THRESHOLD && !this._loadingOlder && this.$wire.hasOlder) {
-                        this._loadingOlder = true;
-                        this._isl().loadMoreMessages()
-                            .then(() => this.$nextTick(() => {
-                                const delta = vp.scrollHeight - sh;
-                                if (delta > 0) vp.scrollTop += delta;
-                            }))
-                            .catch(() => {})
-                            .finally(() => { this._loadingOlder = false; });
+                    if (!this.showScrollFab && this.newBelow > 0) {
+                        this.newBelow = 0;
+                        if (this.$wire.focusAnchorId == null) this.$wire.markRead(this.$wire.activeUserId);
+                    }
+
+                    const up = st < lastSt;
+                    lastSt = st;
+                    if (programmatic) return;
+
+                    this.quoteChip.visible = false;
+                    this.openActionsId = null;
+
+                    if (up && st < LOAD_OLDER_SCROLL_THRESHOLD && this.$wire.hasOlder) {
+                        this.loadOlderKeepingPlace(() => this._isl().loadMoreMessages());
                     }
                 });
-            }, { passive: true, signal: vpAc.signal });
+            }, { passive: true, signal });
+
+            let prevCh = vp.clientHeight;
+            vpRo = new ResizeObserver(() => {
+                const ch = vp.clientHeight;
+                if (ch < prevCh && vp.scrollHeight - vp.scrollTop - prevCh < NEAR_BOTTOM_PX) this.scrollToBottom(false);
+                prevCh = ch;
+            });
+            vpRo.observe(vp);
         },
 
         _isl() { return this.$wire.$island('messages'); },
@@ -195,11 +211,17 @@ export default function contact() {
                 }
 
                 if (open) {
+                    const vp = this._msgViewportEl;
+                    const nearBottom = !!vp && vp.scrollHeight - vp.scrollTop - vp.clientHeight < NEAR_BOTTOM_PX;
                     await this._isl().refreshActive();
                     const lastAfter = this._readLastMessageMarker();
                     const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null;
                     const incoming = threadChanged && !this._lastMessageIsMine();
-                    if (incoming && !document.hidden && this.$wire.focusAnchorId == null) this.$wire.markRead(this.$wire.activeUserId);
+                    if (threadChanged) {
+                        if (nearBottom) this.$nextTick(() => this.scrollToBottom(true));
+                        else this.newBelow += this._rowsNewerThan(lastBefore);
+                    }
+                    if (incoming && nearBottom && !document.hidden && this.$wire.focusAnchorId == null) this.$wire.markRead(this.$wire.activeUserId);
                     if (incoming) this._ringIncoming(this.$wire.activeUserId);
                     else if (unreadRose && !threadChanged) this._ringIncoming(null);
                     changed ||= lastAfter !== lastBefore || this._readTypingMarker() !== typingBefore;
@@ -281,7 +303,7 @@ export default function contact() {
 
             document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
             el.style.animation = 'none';
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            this.programmaticScroll(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }));
             el.classList.add('record-focus-flash');
         },
 
@@ -303,10 +325,12 @@ export default function contact() {
 
             this.$wire.cancelReply();
             return this._isl().selectContact(id)
-                .then(() => this._sidebar())
                 .then(() => {
                     if (seq !== selectSeq) return;
-                    this.$nextTick(() => { this._bindViewport(); this.scrollToBottom(true); });
+                    this.showScrollFab = false;
+                    this.newBelow = 0;
+                    this.$nextTick(() => { this._bindViewport(); this.scrollToBottom(false); });
+                    return this._sidebar();
                 })
                 .then(() => {
                     if (seq !== selectSeq) return;
@@ -328,6 +352,8 @@ export default function contact() {
             this.resetUI();
             this.openActionsId = null;
             this._msgViewportEl = null;
+            this.showScrollFab = false;
+            this.newBelow = 0;
             const wire = this.$wire;
             wire.set('mobileShowChat', false, false);
             wire.$island('messages').backToList().then(() => wire.$island('sidebar').refreshUnread());
@@ -437,7 +463,7 @@ export default function contact() {
                 await this._isl().send();
                 this.replyingTo = null;
                 this._syncSidebarAfterOwnAction(wire);
-                this.$nextTick(() => ta()?.focus());
+                this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); });
             } catch {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             } finally {

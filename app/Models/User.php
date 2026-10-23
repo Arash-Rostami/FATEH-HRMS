@@ -490,6 +490,30 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         }
     }
 
+    public function bookingRows(): array
+    {
+        $raw = $this->attributes['booking'] ?? [];
+        $raw = is_array($raw) ? $raw : json_decode($raw ?? '[]', true);
+
+        return is_array($raw) ? $raw : [];
+    }
+
+    public function bookingMax(string $type): ?int
+    {
+        return $this->bookingRowMax($type) ?? $this->bookingRowMax('all');
+    }
+
+    private function bookingRowMax(string $type): ?int
+    {
+        foreach ($this->bookingRows() as $row) {
+            if (is_array($row) && ($row['key'] ?? null) === $type && filled($row['max'] ?? null)) {
+                return max(1, (int) $row['max']);
+            }
+        }
+
+        return null;
+    }
+
     protected function booking(): Attribute
     {
         return Attribute::make(

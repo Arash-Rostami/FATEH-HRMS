@@ -291,7 +291,7 @@
                     <li class="flex items-center justify-between gap-2 px-3 py-2 text-xs rounded-lg bg-[var(--md-sys-color-surface-container)]">
                         <template x-if="(attachment.mime || '').startsWith('image/')">
                             <a :href="`{{ rtrim(asset('storage'), '/') }}/${attachment.path}`"
-                               data-fancybox="task-{{ $editingTaskId }}-attachments"
+                               data-fancybox="task-{{ $editingTaskId }}-edit-attachments"
                                :data-caption="attachment.name"
                                class="flex items-center gap-1.5 truncate text-[var(--md-sys-color-primary)]">
                                 <img :src="`{{ rtrim(asset('storage'), '/') }}/${attachment.path}`" class="object-cover w-5 h-5 rounded flex-shrink-0" alt="">

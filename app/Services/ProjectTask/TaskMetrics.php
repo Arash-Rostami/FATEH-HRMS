@@ -45,7 +45,7 @@ class TaskMetrics
     {
         return self::active($query, $table)->where(function ($q) use ($sla, $deadlineCap, $table) {
             if ($sla !== null) {
-                $q->orWhereRaw('TIMESTAMPDIFF(HOUR, ' . $table . 'created_at, NOW()) > ?', [(int) $sla]);
+                $q->orWhereRaw('(' . $table . 'deadline IS NULL AND TIMESTAMPDIFF(HOUR, ' . $table . 'created_at, NOW()) > ?)', [(int) $sla]);
             }
             if ($deadlineCap !== null) {
                 $q->orWhere($table . 'deadline', '>', Carbon::parse($deadlineCap)->endOfDay());

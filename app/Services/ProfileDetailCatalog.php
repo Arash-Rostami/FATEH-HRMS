@@ -76,10 +76,11 @@ class ProfileDetailCatalog
             'service_city' => ['section' => 'employment', 'label' => 'شهر محل خدمت', 'type' => 'select', 'options' => self::getSortedOptions('cities'), 'searchable' => true],
             'contract_type' => ['section' => 'employment', 'label' => 'نوع قرارداد', 'type' => 'select', 'options' => self::list(['دائم', 'موقت', 'پروژه‌ای', 'ساعتی', 'کارآموزی'])],
             'job_title' => ['section' => 'employment', 'label' => 'شغل', 'type' => 'text'],
-            'display_title' => ['section' => 'employment', 'label' => 'عنوان نمایشی (جایگزین سمت)', 'type' => 'text', 'max' => 80, 'help' => 'در صورت تکمیل، به‌جای سمت سازمانی در نمایه نمایش داده می‌شود'],
+            'display_title' => ['section' => 'employment', 'label' => 'عنوان نمایشی (جایگزین سمت)', 'type' => 'text', 'max' => 80, 'admin_only' => true, 'help' => 'در صورت تکمیل، به‌جای سمت سازمانی در نمایه نمایش داده می‌شود'],
             'work_shift' => ['section' => 'employment', 'label' => 'شیفت کاری', 'type' => 'select', 'options' => self::list(['اداری', 'شیفت صبح', 'شیفت عصر', 'شیفت شب', 'گردشی'])],
             'unit' => ['section' => 'employment', 'label' => 'واحد', 'type' => 'select', 'options' => [], 'admin_only' => true],
             'section' => ['section' => 'employment', 'label' => 'بخش', 'type' => 'select', 'options' => [], 'admin_only' => true],
+            'rank_order' => ['section' => 'employment', 'label' => 'ترتیب در چارت (عدد؛ کوچک‌تر بالاتر — یا * برای مدیرعامل شرکتِ زیرمجموعه)', 'type' => 'text', 'max' => 8, 'admin_only' => true],
 
             // ───────────────── Experience & insurance history ─────────────────
             'company_work_history' => ['section' => 'experience', 'label' => 'سابقه کار در شرکت', 'type' => 'text'],

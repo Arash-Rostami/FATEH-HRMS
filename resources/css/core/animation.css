@@ -831,6 +831,20 @@
     will-change: transform;
 }
 
+@keyframes alertSoft {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.animate-alert-soft {
+    animation: alertSoft 2s ease-in-out infinite;
+    will-change: opacity;
+}
+
 @keyframes pulse-node {
     0% {
         box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-primary) 50%, transparent);
@@ -1557,6 +1571,7 @@
     }
 
     .animate-pulse-ring,
+    .animate-alert-soft,
     .animate-typing-dot-1,
     .animate-typing-dot-2,
     .animate-typing-dot-3 {

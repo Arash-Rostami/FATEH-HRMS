@@ -99,16 +99,6 @@ class UserInfolistPresenter
             ->tooltip(fn (User $record): ?string => $record->focusLabel());
     }
 
-    public static function maximum(): TextEntry
-    {
-        return TextEntry::make('maximum')
-            ->label(__('resources/user/strings.infolist.maximum'))
-            ->icon('heroicon-o-calendar-days')
-            ->numeric()
-            ->suffix(' رزرو')
-            ->color('warning');
-    }
-
     public static function booking(): RepeatableEntry
     {
         return RepeatableEntry::make('booking')
@@ -122,12 +112,16 @@ class UserInfolistPresenter
                     ->label(__('resources/user/strings.infolist.booking_value'))
                     ->boolean()
                     ->color(fn ($state) => $state ? 'success' : 'gray'),
+                TextEntry::make('max')
+                    ->label(__('resources/user/strings.infolist.booking_max'))
+                    ->placeholder('—')
+                    ->numeric(),
             ])
-            ->columns(2)
+            ->columns(3)
             ->grid(2)
             ->getStateUsing(fn ($record): array =>
             collect($record->booking ?? [])
-                ->map(fn ($v, $k) => ['key' => $k, 'value' => (bool) $v])
+                ->map(fn ($v, $k) => ['key' => $k, 'value' => (bool) $v, 'max' => $record->bookingMax($k)])
                 ->values()
                 ->toArray()
             )

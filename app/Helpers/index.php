@@ -409,6 +409,32 @@ if (!function_exists('jNow')) {
     }
 }
 
+if (!function_exists('jalaliMonthBounds')) {
+    function jalaliMonthBounds(\Carbon\Carbon $date): array
+    {
+        $j = Jalalian::fromCarbon($date);
+
+        return [
+            (new Jalalian($j->getYear(), $j->getMonth(), 1))->toCarbon()->startOfDay(),
+            (new Jalalian($j->getYear(), $j->getMonth(), $j->getMonthDays()))->toCarbon()->endOfDay(),
+        ];
+    }
+}
+
+if (!function_exists('jalaliAddMonth')) {
+    function jalaliAddMonth(\Carbon\Carbon $date): Carbon
+    {
+        $j = Jalalian::fromCarbon($date);
+        $index = $j->getYear() * 12 + $j->getMonth();
+        $year = intdiv($index, 12);
+        $month = $index % 12 + 1;
+        $day = min($j->getDay(), (new Jalalian($year, $month, 1))->getMonthDays());
+
+        return Carbon::instance((new Jalalian($year, $month, $day, 0, 0, 0, $date->getTimezone()))->toCarbon())
+            ->setTimeFrom($date);
+    }
+}
+
 if (!function_exists('jalaliSpanFromParts')) {
     function jalaliSpanFromParts(mixed $fromYear, mixed $fromMonth, mixed $fromDay, mixed $toYear, mixed $toMonth, mixed $toDay): ?array
     {

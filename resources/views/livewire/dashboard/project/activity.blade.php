@@ -381,7 +381,7 @@
                                         <span class="mr-1 pr-1.5 border-r border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)]" title="پیشرفت چک‌لیست وظیفه">{{ convertToPersian($entry['task_progress']) }}٪</span>
                                     @endif
                                 </span>
-                                <span class="block text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" title="{{ toJalali($entry['created_at']) }}">{{ toJalaliRelative($entry['created_at']) }}</span>
+                                <span class="block text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" title="{{ toJalali($entry['created_at']) }}"><span dir="auto">{{ $entry['user_name'] }}</span> · {{ toJalaliRelative($entry['created_at']) }}</span>
                             </div>
                         @endif
                     </div>

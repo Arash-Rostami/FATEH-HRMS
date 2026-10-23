@@ -38,12 +38,12 @@ class ValidationService
         ResourceActive::class => ['skip_admin' => false],
         BookingPermission::class => ['skip_admin' => true],
         TimeWindow::class => ['skip_admin' => true],
-        AllowedDays::class => ['skip_admin' => true],
+        AllowedDays::class => ['skip_admin' => true, 'bend' => true],
         FullDay::class => ['skip_admin' => true],
-        Duration::class => ['skip_admin' => true],
+        Duration::class => ['skip_admin' => true, 'bend' => true],
         RangeDuration::class => ['skip_admin' => false],
-        AllowedHours::class => ['skip_admin' => true],
-        ResourceSchedule::class => ['skip_admin' => true],
+        AllowedHours::class => ['skip_admin' => true, 'bend' => true],
+        ResourceSchedule::class => ['skip_admin' => true, 'bend' => true],
         Recurrence::class => ['skip_admin' => true],
         CancellationLimit::class => ['skip_admin' => true],
         ActiveLimit::class => ['skip_admin' => true],
@@ -72,6 +72,15 @@ class ValidationService
         );
     }
 
+    public const CANCEL_WINDOW_DAYS = 30;
+
+    public static function cancelWindowDays(array $policies): int
+    {
+        $days = $policies['cancel_window_days'] ?? null;
+
+        return filled($days) ? max(1, min(365, (int) $days)) : self::CANCEL_WINDOW_DAYS;
+    }
+
     public function getPolicies(string $resourceType): array
     {
         return Cache::remember(ModelCacheVersion::key(ReservationPolicy::class, "reservation_policies_{$resourceType}"), 3600,
@@ -86,24 +95,34 @@ class ValidationService
     {
         return Reservation::forUser($userId)
             ->whereHas('resource', fn($q) => $q->where('type', $resourceType))
-            ->whereMonth('start_time', $date->month)
-            ->whereYear('start_time', $date->year)
-            ->whereIn('status', [ReservationStatus::Active->value, ReservationStatus::Released->value])
+            ->whereBetween('start_time', jalaliMonthBounds($date))
+            ->held()
             ->toBase()->count();
     }
 
     public function cancelLimitCount(int $userId, string $resourceType): int
     {
-        return Reservation::forUser($userId)
-            ->whereHas('resource', fn($q) => $q->where('type', $resourceType))
-            ->where('status', ReservationStatus::CancelledUser->value)
-            ->where(fn($q) => $q->whereNull('cancelled_at')->orWhere('cancelled_at', '>=', now()->subDays(30)))
-            ->toBase()->count();
+        return $this->cancelLimitStats($userId, $resourceType)['count'];
     }
 
-    public function validateBooking(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence = null, ?int $excludeId = null): void
+    public function cancelLimitStats(int $userId, string $resourceType, ?array $policies = null): array
     {
-        $this->runPipeline($user, $resource, $start, $end, $isFullDay, $recurrence, $excludeId, true);
+        $policies ??= $this->getPolicies($resourceType);
+
+        $row = Reservation::forUser($userId)
+            ->whereHas('resource', fn($q) => $q->where('type', $resourceType))
+            ->where('status', ReservationStatus::CancelledUser->value)
+            ->where(fn($q) => $q->whereNull('cancelled_at')->orWhere('cancelled_at', '>', now()->subDays(self::cancelWindowDays($policies))))
+            ->toBase()
+            ->selectRaw("COUNT(DISTINCT CONCAT(COALESCE(parent_id, id), '|', COALESCE(CAST(cancelled_at AS CHAR), id))) AS total, MIN(cancelled_at) AS oldest")
+            ->first();
+
+        return ['count' => (int) $row->total, 'oldest' => $row->oldest ? Carbon::parse($row->oldest) : null];
+    }
+
+    public function validateBooking(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence = null, ?int $excludeId = null, ?User $actor = null): void
+    {
+        $this->runPipeline($user, $resource, $start, $end, $isFullDay, $recurrence, $excludeId, true, $actor);
     }
 
     public function validateCancellation(Reservation $reservation, User $user): void
@@ -116,32 +135,30 @@ class ValidationService
             ReservationError::CancelForbidden->throw();
         }
 
+        if (!$user->hasElevatedRole() && ($reservation->is_full_day ? $reservation->end_time : $reservation->start_time)?->isPast()) {
+            ReservationError::NotActive->throw();
+        }
+
         if (!$user->hasElevatedRole()) {
             $policies = $this->getPolicies($reservation->resource?->type ?? '');
             $limit = $policies['max_cancel_count'] ?? null;
 
             if ($limit !== null) {
-                $resourceType = $reservation->resource?->type ?? '';
+                $count = $this->cancelLimitStats($user->id, $reservation->resource?->type ?? '', $policies)['count'];
 
-                $count = Reservation::where('user_id', $user->id)
-                    ->where('status', ReservationStatus::CancelledUser->value)
-                    ->where(fn($q) => $q->whereNull('cancelled_at')->orWhere('cancelled_at', '>=', now()->subDays(30)))
-                    ->whereHas('resource', fn($q) => $q->where('type', $resourceType))
-                    ->toBase()->count();
-
-                if ($count >= $limit) {
-                    ReservationError::CancelLimitReached->throw();
+                if ($count >= (int) $limit) {
+                    ReservationError::CancelLimitReached->throw((int) $limit === 0 ? 0 : convertToPersian((string) self::cancelWindowDays($policies)));
                 }
             }
         }
     }
 
-    public function validateEdit(Reservation $reservation, User $user, Carbon $start, Carbon $end, bool $isFullDay): void
+    public function validateEdit(Reservation $reservation, User $user, Carbon $start, Carbon $end, bool $isFullDay, ?Resource $resource = null): void
     {
-        $this->runPipeline($user, $reservation->resource, $start, $end, $isFullDay, null, $reservation->id, false);
+        $this->runPipeline($user, $resource ?? $reservation->resource, $start, $end, $isFullDay, null, $reservation->id, false);
     }
 
-    private function runPipeline(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence, ?int $excludeId, bool $enforceAllRules): void
+    private function runPipeline(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence, ?int $excludeId, bool $enforceAllRules, ?User $actor = null): void
     {
         if ($start->gte($end)) {
             ReservationError::InvalidTimeRange->throw();
@@ -159,7 +176,7 @@ class ValidationService
         );
 
         foreach ($this->bookingRules as $ruleClass => $config) {
-            if (!$enforceAllRules && $user->hasElevatedRole() && $config['skip_admin']) {
+            if (($actor ?? $user)->hasElevatedRole() && $config['skip_admin'] && (!$enforceAllRules || ($config['bend'] ?? false))) {
                 continue;
             }
 

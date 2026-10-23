@@ -12,19 +12,25 @@ class ActiveLimit implements BookingRule
 {
     public function validate(BookingContext $context): void
     {
-        $max = $context->policies['max_per_user'] ?? null;
+        $max = $context->user->bookingMax($context->resource->type) ?? $context->policies['max_per_user'] ?? null;
         if ($max === null) return;
 
         $count = Reservation::where('user_id', $context->user->id)
             ->whereHas('resource', fn($q) => $q->where('type', $context->resource->type))
-            ->whereMonth('start_time', $context->start->month)
-            ->whereYear('start_time', $context->start->year)
-            ->whereIn('status', [ReservationStatus::Active->value, ReservationStatus::Released->value])
+            ->whereBetween('start_time', jalaliMonthBounds($context->start))
+            ->held()
             ->when($context->excludeId, fn($q) => $q->where('id', '!=', $context->excludeId))
             ->toBase()->count();
 
-        if ($count >= $max) {
+        if ($count >= $max && !$this->lastMinute($context)) {
             ReservationError::ActiveLimitReached->throw();
         }
+    }
+
+    private function lastMinute(BookingContext $context): bool
+    {
+        $hours = $context->policies['last_minute_hours'] ?? null;
+
+        return $hours !== null && $context->start->lte(now()->addHours((int) $hours));
     }
 }

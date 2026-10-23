@@ -25,7 +25,7 @@ class UpdateTaskAction
 
     public function execute(Task $task, TaskForm $form): void
     {
-        abort_if(!TaskAccessPolicy::canEdit($task, auth()->user()) || $task->ticket_id, 403);
+        abort_if(!TaskAccessPolicy::canEdit($task, auth()->user()) || $task->ticket_id || $task->isFrozenFor(auth()->user()), 403);
 
         $form->validate();
         $form->validateAttachments();
@@ -67,6 +67,7 @@ class UpdateTaskAction
             $oldBucket = $task->project_id ? ['project' => $task->project_id] : ['owner' => $oldOwnerId];
             $newBucket = $newProjectId ? ['project' => $newProjectId] : ['owner' => $newOwnerId];
             $bucketChanged = $oldBucket !== $newBucket;
+            $projectMoved = (int)$newProjectId !== (int)$task->project_id;
             $priorityChanged = $form->priority !== $task->priority?->value;
 
             $rank = match (true) {
@@ -91,8 +92,14 @@ class UpdateTaskAction
             [$kept, $dropped] = collect($stored)->partition(fn($attachment) => in_array($attachment['path'] ?? null, $keptPaths, true));
             $dropped = $dropped->values()->all();
 
+            $detailAttributes = $form->detailAttributes();
+
+            if ($projectMoved && ($detailAttributes['project'] ?? null) === $task->detail?->project) {
+                $detailAttributes['project'] = null;
+            }
+
             $task->detail()->updateOrCreate([], [
-                ...$form->detailAttributes(),
+                ...$detailAttributes,
                 'attachments' => [...$kept->values()->all(), ...$this->storeAttachments($form->attachments, 'task/attachments', fn($file) => FileNamer::stored('task', $file))],
             ]);
         });

@@ -122,7 +122,7 @@ class Feeds extends Component
 
     public function loadInitialFeeds(): void
     {
-        $query = $this->baseQuery()->latest();
+        $query = $this->baseQuery()->latest()->orderByDesc('id');
 
         if ($this->hasActiveFilters()) {
             $this->feedIds = $query->pluck('id')->toArray();
@@ -142,7 +142,7 @@ class Feeds extends Component
     {
         if (!$this->hasMorePages) return;
 
-        $newIds = $this->baseQuery()->latest()
+        $newIds = $this->baseQuery()->latest()->orderByDesc('id')
             ->skip(count($this->feedIds))
             ->take($this->perPage + 1)
             ->pluck('id')
@@ -156,7 +156,7 @@ class Feeds extends Component
             return;
         }
 
-        $this->feedIds = array_merge($this->feedIds, $newIds);
+        $this->feedIds = array_values(array_unique(array_merge($this->feedIds, $newIds)));
         unset($this->feeds);
     }
 

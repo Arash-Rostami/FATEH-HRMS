@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\ReservationResource\Pages;
 
 use App\Filament\Resources\ReservationResource;
+use App\Models\Resource;
 use App\Services\Reservation\ValidationService;
 use App\Traits\FilamentDateHandler;
 use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
 use Carbon\Carbon;
+use Exception;
 use Filament\Notifications\Notification;
 use App\Filament\Pages\EditRecord;
 
@@ -45,14 +47,17 @@ class EditReservation extends EditRecord
         }
 
         try {
-            app(ValidationService::class)->validateEdit(
-                $this->record,
-                auth()->user(),
-                $start,
-                $end,
-                $isFullDay
-            );
-        } catch (\Exception $e) {
+            if (in_array($data['status'] ?? 'active', ['active', 'released'], true)) {
+                app(ValidationService::class)->validateEdit(
+                    $this->record,
+                    auth()->user(),
+                    $start,
+                    $end,
+                    $isFullDay,
+                    Resource::find($data['resource_id'] ?? $this->record->resource_id)
+                );
+            }
+        } catch (Exception $e) {
             Notification::make()->title($e->getMessage())->danger()->send();
             $this->halt();
         }

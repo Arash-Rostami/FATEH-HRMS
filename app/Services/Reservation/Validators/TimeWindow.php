@@ -12,7 +12,11 @@ class TimeWindow implements BookingRule
     {
         $now = now();
 
-        if ($context->start->isPast() && !$context->start->isSameMinute($now)) {
+        $elapsed = $context->isFullDay
+            ? $context->end->isPast()
+            : $context->start->isPast() && !$context->start->isSameMinute($now);
+
+        if ($elapsed) {
             ReservationError::PastBooking->throw();
         }
 
@@ -21,7 +25,7 @@ class TimeWindow implements BookingRule
         $windowDays = $context->policies['window_days'] ?? null;
         $windowHours = $context->policies['window_hours'] ?? 0;
 
-        if ($windowDays !== null && $context->start->isAfter($now->copy()->addDays((int)$windowDays))) {
+        if ($windowDays !== null && $context->start->isAfter($now->copy()->addDays((int)$windowDays)->endOfDay())) {
             ReservationError::WindowExceeded->throw($windowDays);
         }
 

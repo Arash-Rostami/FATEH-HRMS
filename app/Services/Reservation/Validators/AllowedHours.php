@@ -14,7 +14,7 @@ class AllowedHours implements BookingRule
         if ($context->isFullDay || $context->isRange()) return;
 
         $allowedHours = $context->policies['allowed_hours'] ?? null;
-        if (empty($allowedHours)) return;
+        if (empty($allowedHours['start']) && empty($allowedHours['end'])) return;
 
         $policyStart = Carbon::parse($allowedHours['start'] ?? '00:00:00');
         $policyEnd = Carbon::parse($allowedHours['end'] ?? '23:59:59');

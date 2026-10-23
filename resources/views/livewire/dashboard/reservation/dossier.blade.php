@@ -1,3 +1,4 @@
+@use('App\Enums\ResourceType')
     @if($this->open && count($this->resources) > 1)
         <a wire:key="dossier-skip-link" href="#dossier-card-{{ $this->open }}" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 focus:z-50 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-[var(--md-sys-color-primary)] focus:text-[var(--md-sys-color-on-primary)] focus:text-sm focus:font-bold focus:shadow-lg">
             رفتن به کارت باز
@@ -11,7 +12,9 @@
     @else
         <div id="reservation-dossier-stage" wire:key="reservation-dossier-stage" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-start">
             @foreach($this->resources as $resource)
-                @php($isBlocked = $this->bookingBlockReason !== null)
+                @php($slot = $resource->metadata['time_slots'] ?? [])
+                @php($outside = filled($slot['start'] ?? null) && filled($slot['end'] ?? null) && ! (ResourceType::tryFrom($activeTab)?->isFullDay() ?? true) && ($startTime < $slot['start'] || $endTime > $slot['end']))
+                @php($isBlocked = $this->bookingBlockReason !== null || $outside)
                 @php($hero = $resource->metadata['capacity'] ?? $resource->metadata['floor'] ?? null)
                 <div
                     id="dossier-card-{{ $resource->id }}"
@@ -84,7 +87,7 @@
                                     @if($busyCount > 0)
                                         <div wire:key="dossier-busy-chip" class="inline-flex items-center gap-1 shrink-0 text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
                                             <span class="material-symbols-rounded text-[15px] text-[var(--md-sys-color-primary)]">schedule</span>
-                                            <span class="whitespace-nowrap">{{ convertToPersian((string) $busyCount) }} رزرو دیگر امروز</span>
+                                            <span class="whitespace-nowrap">{{ convertToPersian((string) $busyCount) }} رزرو در این روز</span>
                                         </div>
                                     @endif
                                 </div>
@@ -94,17 +97,20 @@
                         <div class="p-5 flex-1 lg:flex-none flex flex-col gap-3">
 
                             @if($resource->metadata['notes'] ?? null)
-                                <details wire:key="dossier-notes" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
-                                    <summary class="cursor-pointer font-bold text-[var(--md-sys-color-primary)]">یادداشت</summary>
-                                    <p class="mt-1 whitespace-pre-wrap leading-6">{{ $resource->metadata['notes'] }}</p>
-                                </details>
+                                <div wire:key="dossier-notes" x-data="{ open: false }" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
+                                    <button type="button" @click="open = !open" :aria-expanded="open" class="flex items-center gap-1 cursor-pointer font-bold text-[var(--md-sys-color-primary)]">
+                                        یادداشت
+                                        <span class="material-symbols-rounded text-[16px] transition-transform duration-200" :class="open ? 'rotate-180' : ''">expand_more</span>
+                                    </button>
+                                    <p x-show="open" x-collapse x-cloak class="mt-1 whitespace-pre-wrap leading-6">{{ $resource->metadata['notes'] }}</p>
+                                </div>
                             @endif
 
                             <div class="mt-auto pt-2">
                                 @if($isBlocked)
                                     <div wire:key="dossier-block-note" class="flex items-center gap-1.5 mb-2">
                                         <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-error)]">block</span>
-                                        <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason }}</span>
+                                        <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason ?? 'ساعت مجاز این منبع: '.convertToPersian($slot['start']).' تا '.convertToPersian($slot['end']) }}</span>
                                     </div>
                                 @endif
 

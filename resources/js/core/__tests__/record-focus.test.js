@@ -98,6 +98,22 @@ describe('record-focus — scrollToRecord retry-with-backoff', () => {
         expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
     })
 
+    test('dispatches a bubbling programmatic-scroll event on the element before scrollIntoView', () => {
+        const target = document.createElement('div')
+        target.setAttribute('data-rf', 'task-5')
+        document.body.appendChild(target)
+        const order = []
+        const spy = vi.fn(() => order.push('event'))
+        document.body.addEventListener('programmatic-scroll', spy)
+        target.scrollIntoView = vi.fn(() => order.push('scroll'))
+
+        handler({ id: 5, type: 'task' })
+
+        expect(spy).toHaveBeenCalledTimes(1)
+        expect(order).toEqual(['event', 'scroll'])
+        document.body.removeEventListener('programmatic-scroll', spy)
+    })
+
     test('clears a stale .record-focus-flash class from a previous target before flashing the new one', () => {
         const stale = document.createElement('div')
         stale.className = 'record-focus-flash'

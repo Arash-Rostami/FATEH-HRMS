@@ -6,6 +6,7 @@ use App\Jobs\ReconcileEdge;
 use App\Jobs\ReconcileNudge;
 use App\Models\Task;
 use App\Services\Menu\Notifications\TaskNudge;
+use App\Services\Menu\StateService;
 use App\Services\Menu\Toasts\TaskDueSoonToast;
 use App\Services\ProjectTask\TaskMetrics;
 use Illuminate\Console\Command;
@@ -55,6 +56,8 @@ class SweepOverdueTasks extends Command
                     ReconcileNudge::dispatch($approvalKey, Task::class, $task->id);
                 }
             });
+
+        StateService::flush();
 
         return self::SUCCESS;
     }

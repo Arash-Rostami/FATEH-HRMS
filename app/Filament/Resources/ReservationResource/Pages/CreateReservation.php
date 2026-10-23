@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Reservation\ValidationService;
 use App\Traits\{FilamentDateHandler, FilamentPageBehavior};
 use Carbon\Carbon;
+use Exception;
 use Filament\Notifications\Notification;
 use App\Filament\Pages\CreateRecord;
 
@@ -60,8 +61,8 @@ class CreateReservation extends CreateRecord
         }
 
         try {
-            app(ValidationService::class)->validateBooking($user, $resource, $start, $end, $isFullDay, $recurrence);
-        } catch (\Exception $e) {
+            app(ValidationService::class)->validateBooking($user, $resource, $start, $end, $isFullDay, $recurrence, actor: auth()->user());
+        } catch (Exception $e) {
             Notification::make()->title($e->getMessage())->danger()->send();
             $this->halt();
         }
@@ -73,11 +74,15 @@ class CreateReservation extends CreateRecord
     {
         $state = $this->form->getRawState();
         if (!empty($state['is_recurring']) && !$this->record->isRange()) {
-            app(GenerateSeriesAction::class)->execute(
+            $skipped = app(GenerateSeriesAction::class)->execute(
                 $this->record,
                 $state['recur_pattern'] ?? 'daily',
                 (int)($state['recur_count'] ?? 4)
             );
+
+            if ($skipped > 0) {
+                Notification::make()->title(convertToPersian((string) $skipped) . ' تکرار به‌دلیل قوانین یا تداخل ثبت نشد')->warning()->send();
+            }
         }
     }
 }

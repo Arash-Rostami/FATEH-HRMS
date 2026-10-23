@@ -6,10 +6,12 @@
     'iconSize' => 'text-lg',
     'iconHoverClass' => 'group-hover:translate-y-0.5',
     'island' => null,
+    'keepPlace' => false,
 ])
 
 @php
     $clickExpr = $island ? "\$wire.\$island('{$island}').{$action}()" : "\$wire.{$action}()";
+    $clickExpr = $keepPlace ? "loadOlderKeepingPlace(() => {$clickExpr})" : $clickExpr;
 @endphp
 
 <x-ui.buttons.form

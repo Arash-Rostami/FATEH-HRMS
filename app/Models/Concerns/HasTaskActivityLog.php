@@ -23,8 +23,12 @@ trait HasTaskActivityLog
                 SyncTaskCalendarEventJob::dispatch($model instanceof Task ? $model->id : $model->task_id);
             }
 
-            if ($model instanceof Task && $model->project_id && ($model->wasRecentlyCreated || $model->wasChanged(['title', 'description']))) {
+            if ($model instanceof Task && $model->project_id && ($model->wasRecentlyCreated || $model->wasChanged(['title', 'description', 'rank']))) {
                 ProjectHeartbeat::bump($model->project_id, 'task');
+            }
+
+            if (!$model instanceof Task && $model->wasChanged('checklist') && $projectId = $model->task?->project_id) {
+                ProjectHeartbeat::bump($projectId, 'task');
             }
 
             if ($model->wasRecentlyCreated) return;

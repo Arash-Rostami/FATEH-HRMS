@@ -23,12 +23,20 @@
  * @var string|null APP_OFFICE_PHONE
  * @var string|null APP_INSTAGRAM
  * @var string|null APP_LINKEDIN
- * @var bool|string|null AI_ASSISTANT_ACCESS  Overrides the active tenant's own 'ai_assistant.access' key (true|false|'lock').
+ * @var bool|string|null AI_ASSISTANT_ACCESS  Overrides the active tenant's own 'ai.assistant.access' key (true|false|'lock').
+ * @var bool|null        AI_DOCUMENT_ACCESS   Overrides the active tenant's own 'ai.document.access' key.
+ * @var bool|null        AI_DOCUMENT_AI       Overrides the active tenant's own 'ai.document.ai' key.
+ * @var bool|null        AI_DOCUMENT_CHAT     Overrides the active tenant's own 'ai.document.chat' key.
  *
- * Per-tenant plan-tier flag (set directly in each tenant's 'ai_assistant' group below, not an env var by default):
- * 'ai_assistant' => ['access' => true|false|'lock', 'lang' => ...]. A tenant that omits 'access' behaves as false —
- * the widget renders nothing. true shows the full working widget. 'lock' shows the header icon with a lock
- * badge and an "upgrade your plan" toast on click, but never opens the actual chat panel.
+ * Per-tenant plan-tier flags live in each tenant's 'ai' group below (not env vars by default). 'ai' nests one
+ * array per AI feature:
+ * 'ai' => ['assistant' => [...], 'document' => [...]].
+ * - 'assistant' => ['access' => true|false|'lock', 'lang' => ...] is the chat assistant widget. A tenant that omits
+ *   'access' behaves as false — the widget renders nothing. true shows the full working widget. 'lock' shows the
+ *   header icon with a lock badge and an "upgrade your plan" toast on click, but never opens the actual chat panel.
+ * - 'document' => ['access' => bool, 'modules' => [...], 'ai' => bool, 'chat' => bool] is the Document AI engine bridge: 'access'
+ *   switches the whole bridge (and Smart search, no AI), 'modules' lists the module keys sent to the engine
+ *   (e.g. ['dms']), 'ai' switches AI find (token cost) independently, 'chat' switches the document chat (a separate later module, token cost; nothing reads it yet). Missing keys behave as off/empty.
  *
  * Each tenant nests related settings into eight groups rather than ~24 flat sibling keys — see
  * config/tenantPattern.md's "Nested tenant setting groups" section for what belongs in each and why:
@@ -37,7 +45,7 @@
  * thing despite the old flat 'company_name' key actually meaning "app name, alternate form" —
  * 'company' also nests 'social' (instagram/linkedin), since social links belong to the real
  * organization, not the product), 'background', 'videos', 'backdrop', 'logo_display'
- * (reverse/use-company-logo behavior flags), 'ai_assistant'. config/app.php is the sole reader of
+ * (reverse/use-company-logo behavior flags), 'ai' (nests 'assistant' and 'document'). config/app.php is the sole reader of
  * this nested shape — every other file in the app keeps reading the same flat config('app.*') keys
  * it always has.
  */
@@ -93,9 +101,17 @@ return [
             'user_use_company' => true,
         ],
 
-        'ai_assistant' => [
-            'access' => false,
-            'lang' => 'fa',
+        'ai' => [
+            'assistant' => [
+                'access' => false,
+                'lang' => 'fa',
+            ],
+            'document' => [
+                'access' => false,
+                'modules' => [],
+                'ai' => false,
+                'chat' => false,
+            ],
         ],
     ],
 
@@ -149,9 +165,17 @@ return [
             'user_use_company' => false,
         ],
 
-        'ai_assistant' => [
-            'access' => true,
-            'lang' => 'fa',
+        'ai' => [
+            'assistant' => [
+                'access' => true,
+                'lang' => 'fa',
+            ],
+            'document' => [
+                'access' => false,
+                'modules' => [],
+                'ai' => false,
+                'chat' => false,
+            ],
         ],
     ],
 

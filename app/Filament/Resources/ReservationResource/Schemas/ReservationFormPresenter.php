@@ -9,6 +9,7 @@ use App\Models\Resource;
 use App\Models\User;
 use App\Traits\FilamentFormDivider;
 use App\Services\PersianDateFieldService;
+use BackedEnum;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -17,6 +18,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Carbon\Carbon;
 use Morilog\Jalali\Jalalian;
+use Throwable;
 
 class ReservationFormPresenter
 {
@@ -34,7 +36,7 @@ class ReservationFormPresenter
             ->visible(function (Get $get) {
                 $status = $get('status');
                 return in_array(
-                    $status instanceof \BackedEnum ? $status->value : $status,
+                    $status instanceof BackedEnum ? $status->value : $status,
                     ['cancelled_user', 'cancelled_admin']
                 );
             })
@@ -164,7 +166,7 @@ class ReservationFormPresenter
         }
         try {
             return Carbon::parse($start)->diffInDays(Carbon::parse($end)) >= 1;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }

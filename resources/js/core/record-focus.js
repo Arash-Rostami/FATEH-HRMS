@@ -27,6 +27,7 @@ function scrollToRecord(key, attempt = 0) {
 
     document.querySelectorAll('.record-focus-flash').forEach((n) => n.classList.remove('record-focus-flash'))
     el.style.animation = 'none'
+    el.dispatchEvent(new CustomEvent('programmatic-scroll', { bubbles: true }))
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     el.classList.add('record-focus-flash')
 }

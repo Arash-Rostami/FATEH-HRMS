@@ -30,6 +30,20 @@ trait HasProfileHierarchy
         return static::RANKS[$this->profile?->position] ?? PHP_INT_MAX;
     }
 
+    public function orderRank(): float
+    {
+        $override = $this->profile?->detailsMap()->get('rank_order');
+
+        return is_numeric($override) ? (float) $override : (float) $this->rank();
+    }
+
+    public function isSubsidiaryCeo(): bool
+    {
+        return $this->rank() === 1
+            && ($this->profile?->department?->level ?? 1) !== 0
+            && trim((string) $this->profile?->detailsMap()->get('rank_order')) === '*';
+    }
+
     public function isCeo(): bool
     {
         return $this->isInDepartment('MA');

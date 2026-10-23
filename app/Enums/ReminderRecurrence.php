@@ -33,7 +33,7 @@ enum ReminderRecurrence: string
             $next = match ($this) {
                 self::Daily => $next->addDay(),
                 self::Weekly => $next->addWeek(),
-                self::Monthly => $next->addMonthNoOverflow(),
+                self::Monthly => jalaliAddMonth($next),
             };
         } while ($next->isPast());
 

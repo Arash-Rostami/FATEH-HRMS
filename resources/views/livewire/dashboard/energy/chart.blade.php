@@ -166,7 +166,7 @@
         @if(count($personalHistory))
             <div wire:key="energy-history-panel" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden"
                  x-data="{ open: false }">
-                <button type="button" @click="open = !open"
+                <button type="button" @click="open = !open" :aria-expanded="open"
                         class="w-full px-5 py-4 flex flex-wrap items-center gap-3 text-right">
                     <div class="flex size-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] shrink-0">
                         <span class="material-symbols-rounded text-base" aria-hidden="true">history</span>
@@ -191,10 +191,10 @@
                             کم‌امتیازترین: {{ convertToPersian((string) $worstEntry['overall']) }} ({{ toJalali($worstEntry['completed_at'], 'j F Y') }})
                         </span>
                     @endif
-                    <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)] transition-transform mr-auto"
+                    <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)] transition-transform duration-200 mr-auto"
                           :class="open && 'rotate-180'">expand_more</span>
                 </button>
-                <div x-show="open" x-cloak class="px-5 pb-5 space-y-2">
+                <div x-show="open" x-collapse x-cloak class="px-5 pb-5 space-y-2">
                     @foreach($personalHistory as $entry)
                         <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] p-4">
                             <div class="flex items-center justify-between gap-2 mb-2">

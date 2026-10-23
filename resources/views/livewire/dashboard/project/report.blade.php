@@ -60,7 +60,7 @@
                                 @if($chip)
                                     <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] {{ $chip['class'] }}">
                                         <span class="material-symbols-rounded text-[12px] {{ $chip['isUrgent'] ? 'font-fill' : '' }}">flag</span>
-                                        <span class="{{ $chip['isUrgent'] ? 'animate-pulse-ring' : '' }}">{{ $chip['label'] }}</span>
+                                        <span class="{{ $chip['isUrgent'] ? 'animate-alert-soft' : '' }}">{{ $chip['label'] }}</span>
                                     </span>
                                 @else
                                     —
@@ -74,7 +74,7 @@
                                         @else bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] @endif"
                                         title="{{ $row['deadline_formatted'] ?? '' }}">
                                         <span class="material-symbols-rounded text-[12px]">{{ $rf['idle'] ? 'hourglass_top' : 'schedule' }}</span>
-                                        <span class="tracking-wide">{{ in_array($rf['kind'], ['overdue', 'due', 'idle'], true) ? ($row['urgency']['label'] ?? '') : toJalali($row['deadline'], 'j F Y') }}</span>
+                                        <span class="tracking-wide">{{ in_array($rf['kind'], ['overdue', 'due'], true) ? ($row['urgency']['label'] ?? '') : toJalali($row['deadline'], 'j F Y') }}</span>
                                     </span>
                                 @else
                                     —

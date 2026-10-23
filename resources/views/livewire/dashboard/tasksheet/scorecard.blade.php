@@ -36,9 +36,9 @@
                 <div class="flex flex-wrap items-center gap-1.5">
                     <span class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">{{ convertToPersian($tile['value']) }}</span>
                     @if(!empty($tile['chip']['text']))
-                        @php($chipClasses = match ($tile['chip']['direction']) {
-                            'up' => 'text-[var(--md-sys-color-tertiary)]',
-                            'down' => 'text-[var(--md-sys-color-error)]',
+                        @php($chipClasses = match ($tile['chip']['tone']) {
+                            'good' => 'text-[var(--md-sys-color-tertiary)]',
+                            'bad' => 'text-[var(--md-sys-color-error)]',
                             default => 'text-[var(--md-sys-color-on-surface-variant)]',
                         })
                         @if($this->readOnly)

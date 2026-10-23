@@ -86,14 +86,37 @@
                 </template>
 
                 @if($hasApex)
-                    <div wire:key="status-chart-apex" class="orgc-apex-row">
-                        @foreach($apex as $user)
-                            @include('livewire.dashboard.tab.status.node', [
-                                'user' => $user,
-                                'tier' => 'apex',
-                                'key' => 'orgc-apex-' . $user->id
-                            ])
-                        @endforeach
+                    @php
+                        $subApex = $apex->filter(fn ($u) => $u->isSubsidiaryCeo());
+                        $mainApex = $apex->reject(fn ($u) => $u->isSubsidiaryCeo());
+
+                        if ($mainApex->isEmpty()) {
+                            $mainApex = $apex;
+                            $subApex = collect();
+                        }
+                    @endphp
+                    <div wire:key="status-chart-apex" class="orgc-apex-row {{ $subApex->isNotEmpty() ? 'orgc-apex-row--sub' : '' }}">
+                        <div class="orgc-apex-group">
+                            @foreach($mainApex as $user)
+                                @include('livewire.dashboard.tab.status.node', [
+                                    'user' => $user,
+                                    'tier' => 'apex',
+                                    'key' => 'orgc-apex-' . $user->id
+                                ])
+                            @endforeach
+
+                            @if($subApex->isNotEmpty())
+                                <div wire:key="status-chart-apex-subs" class="orgc-apex-subs">
+                                    @foreach($subApex as $user)
+                                        @include('livewire.dashboard.tab.status.node', [
+                                            'user' => $user,
+                                            'tier' => 'apex',
+                                            'key' => 'orgc-apex-' . $user->id
+                                        ])
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 @endif
 

@@ -394,6 +394,127 @@ describe('chatBase toast + scroll', () => {
         c.scrollToBottom(true);
         expect(vp.scrollTo).toHaveBeenCalledWith({ top: 999999, behavior: 'smooth' });
     });
+
+    test('loadOlderKeepingPlace keeps the reader on the same message and lets a few lines of the new page peek in above', async () => {
+        const c = chatBase('contact');
+        c.$nextTick = () => Promise.resolve();
+        c.$wire = { activeUserId: 5 };
+
+        const vp = document.createElement('div');
+        vp.id = 'msg-viewport';
+        let height = 1000;
+        Object.defineProperty(vp, 'scrollHeight', { get: () => height });
+        vp.scrollTop = 30;
+        document.body.appendChild(vp);
+
+        await c.loadOlderKeepingPlace(async () => { height = 1700; });
+
+        expect(vp.scrollTop).toBe(30 + 700 - 96);
+        expect(c._loadingOlder).toBe(false);
+    });
+
+    test('loadOlderKeepingPlace skips the restore when the active conversation changed during load', async () => {
+        const c = chatBase('contact');
+        c.$nextTick = () => Promise.resolve();
+        c.$wire = { activeUserId: 5 };
+
+        const vp = document.createElement('div');
+        vp.id = 'msg-viewport';
+        let height = 1000;
+        Object.defineProperty(vp, 'scrollHeight', { get: () => height });
+        vp.scrollTop = 30;
+        document.body.appendChild(vp);
+
+        await c.loadOlderKeepingPlace(async () => { height = 1700; c.$wire.activeUserId = 6; });
+
+        expect(vp.scrollTop).toBe(30);
+        expect(c._loadingOlder).toBe(false);
+    });
+
+    test('loadOlderKeepingPlace restore is programmatic', async () => {
+        vi.useFakeTimers();
+        const c = chatBase('contact');
+        c.$nextTick = () => Promise.resolve();
+        c.$wire = { activeChannelId: 3 };
+
+        const vp = document.createElement('div');
+        vp.id = 'msg-viewport';
+        let height = 1000;
+        Object.defineProperty(vp, 'scrollHeight', { get: () => height });
+        document.body.appendChild(vp);
+
+        await c.loadOlderKeepingPlace(async () => { height = 1700; });
+
+        expect(c._programmaticScroll).toBe(true);
+        vi.advanceTimersByTime(150);
+        expect(c._programmaticScroll).toBe(false);
+        vi.useRealTimers();
+    });
+
+    test('newBelow defaults to 0', () => {
+        expect(chatBase('contact').newBelow).toBe(0);
+    });
+
+    test('scrollToBottom marks the scroll programmatic and clears it after the settle window', () => {
+        vi.useFakeTimers();
+        const c = chatBase('contact');
+        const vp = document.createElement('div');
+        vp.id = 'msg-viewport';
+        vp.scrollTo = vi.fn();
+        document.body.appendChild(vp);
+
+        c.scrollToBottom();
+        expect(c._programmaticScroll).toBe(true);
+
+        vi.advanceTimersByTime(149);
+        expect(c._programmaticScroll).toBe(true);
+        vi.advanceTimersByTime(1);
+        expect(c._programmaticScroll).toBe(false);
+        vi.useRealTimers();
+    });
+
+    test('_armScrollSettle re-arms while scroll events keep arriving', () => {
+        vi.useFakeTimers();
+        const c = chatBase('contact');
+        c.markProgrammaticScroll();
+
+        vi.advanceTimersByTime(100);
+        c._armScrollSettle();
+        vi.advanceTimersByTime(100);
+        expect(c._programmaticScroll).toBe(true);
+
+        vi.advanceTimersByTime(50);
+        expect(c._programmaticScroll).toBe(false);
+        vi.useRealTimers();
+    });
+
+    test('_rowsNewerThan counts message rows with an id above the marker', () => {
+        const c = chatBase('contact');
+        const vp = document.createElement('div');
+        vp.innerHTML = '<div data-rf="message-1"></div><div data-rf="message-2"></div><div data-rf="message-3"></div>';
+        c._msgViewportEl = vp;
+
+        expect(c._rowsNewerThan('message-1')).toBe(2);
+        expect(c._rowsNewerThan('message-3')).toBe(0);
+    });
+
+    test('loadOlderKeepingPlace ignores a second call while one is running and no-ops without a viewport', async () => {
+        const c = chatBase('contact');
+        c.$nextTick = () => Promise.resolve();
+        c.$wire = {};
+        const load = vi.fn(async () => {});
+
+        await c.loadOlderKeepingPlace(load);
+        expect(load).not.toHaveBeenCalled();
+
+        const vp = document.createElement('div');
+        vp.id = 'msg-viewport';
+        document.body.appendChild(vp);
+        c._loadingOlder = true;
+
+        await c.loadOlderKeepingPlace(load);
+        expect(load).not.toHaveBeenCalled();
+    });
 });
 
 describe('chatBase search/filter panel toggles', () => {

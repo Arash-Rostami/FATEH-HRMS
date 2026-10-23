@@ -128,7 +128,7 @@ trait BuildsMessageGroups
                 'gap_class' => $isFirst ? 'mt-4' : 'mt-1',
                 'bubble_radius' => $this->bubbleRadius($isMine, $isFirst, $isLast),
                 'reply_to' => $this->replyPreview($msg['reply_to'] ?? null),
-                'animation_delay' => $i * 0.04,
+                'animation_delay' => min($total - 1 - $i, 10) * 0.04,
                 'readers' => $readers,
                 'read_count' => $readCount,
                 'is_read' => $readCount > 0,

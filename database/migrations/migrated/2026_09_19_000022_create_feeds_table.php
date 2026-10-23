@@ -12,11 +12,11 @@ return new class extends Migration {
                 $table->bigIncrements('id');
                 $table->unsignedBigInteger('user_id');
                 $table->string('category', 191);
+                $table->boolean('active')->default(true);
+                $table->json('departments')->nullable();
                 $table->text('content')->nullable();
                 $table->longText('media_paths')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
                 $table->longText('poll_options')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
-                $table->boolean('active')->default(true);
-                $table->json('departments')->nullable();
                 $table->timestamps();
                 $table->index('user_id', 'feeds_user_id_index');
                 $table->index(['active', 'created_at'], 'feeds_active_created_index');

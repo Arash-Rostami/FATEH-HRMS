@@ -87,10 +87,12 @@ class EventSyncService
             ->get()
             ->each(fn(EventShare $share) => $share->delete());
 
-        EventShare::firstOrCreate(
-            ['event_id' => $event->id, 'user_id' => $related->id],
-            ['shared_by' => $booker->id]
-        );
+        if ($related->id !== $booker->id) {
+            EventShare::firstOrCreate(
+                ['event_id' => $event->id, 'user_id' => $related->id],
+                ['shared_by' => $booker->id]
+            );
+        }
     }
 
     private function pruneOtherOwners(string $description, int $keepUserId): void

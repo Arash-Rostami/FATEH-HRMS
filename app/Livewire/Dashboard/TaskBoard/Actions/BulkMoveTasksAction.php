@@ -26,10 +26,12 @@ class BulkMoveTasksAction
             ->get()
             ->filter(fn(Task $task) => TaskAccessPolicy::canChangeStatus($task, $user));
 
-        $skipped = 0;
+        [$tasks, $frozen] = $tasks->partition(fn(Task $task) => !$task->isFrozenFor($user));
+        $skipped = $frozen->count();
+
         if ($status === TaskStatus::Done->value) {
             [$tasks, $blocked] = $tasks->partition(fn(Task $task) => !empty($task->detail?->state));
-            $skipped = $blocked->count();
+            $skipped += $blocked->count();
         }
 
         if ($tasks->isEmpty()) {

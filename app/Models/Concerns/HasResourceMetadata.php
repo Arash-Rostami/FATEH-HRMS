@@ -109,7 +109,7 @@ trait HasResourceMetadata
 
                 $items = [];
                 foreach ($metadata as $key => $value) {
-                    if ($key === 'notes') {
+                    if ($key === 'notes' || $value === null || $value === '' || $value === []) {
                         continue;
                     }
                     if ($key === 'custom' && is_array($value)) {

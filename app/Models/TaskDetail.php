@@ -5,12 +5,14 @@ namespace App\Models;
 use App\Casts\IntegerList;
 use App\Enums\TaskActivityType;
 use App\Models\Concerns\HasTaskActivityLog;
+use App\Services\Menu\StateService;
 use App\Services\ProjectTask\CycleLinkResolver;
 use App\Support\TaskAccessPolicy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class TaskDetail extends Model
@@ -66,6 +68,12 @@ class TaskDetail extends Model
 
     protected static function booted(): void
     {
+        static::saved(function (self $detail) {
+            if ($detail->wasChanged('state')) {
+                DB::afterCommit(fn() => StateService::flush());
+            }
+        });
+
         static::creating(function (self $detail) {
             if (static::where('task_id', $detail->task_id)->exists()) {
                 throw new RuntimeException(__('resources/task/strings.validation.duplicate_detail'));

@@ -8,6 +8,7 @@ use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
 use App\Models\Concerns\HasReminders;
 use App\Services\Reservation\EventSyncService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -75,6 +76,16 @@ class Reservation extends Model
         return $q->whereIn('status', self::CANCELLED_STATUSES);
     }
 
+    public function scopeHeld(Builder $q): Builder
+    {
+        return $q->whereIn('status', [ReservationStatus::Active->value, ReservationStatus::Released->value]);
+    }
+
+    public function scopeOverlapping(Builder $q, Carbon $from, Carbon $to): Builder
+    {
+        return $q->where('start_time', '<=', $to)->where('end_time', '>=', $from);
+    }
+
     public function scopeForUser(Builder $q, int $userId): Builder
     {
         return $q->where('user_id', $userId);
@@ -131,6 +142,12 @@ class Reservation extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function isCancellable(): bool
+    {
+        return $this->status === ReservationStatus::Active->value
+            && ($this->is_full_day ? $this->end_time : $this->start_time)?->isFuture() === true;
     }
 
     public function isRange(): bool

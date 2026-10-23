@@ -58,7 +58,6 @@
                 <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">calendar_month</span>
                 {{ convertToPersian($this->currentMonthName) }}
             </span>
-            @if($this->dateWindow !== null)
                 <div wire:key="avantgarde-cal-controls" class="flex items-center gap-1.5">
                     <button type="button" wire:click="goToday"
                         class="flex h-9 items-center justify-center px-3 rounded-full text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-variant)]/60 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
@@ -73,7 +72,6 @@
                         <span class="material-symbols-rounded text-[20px]">chevron_left</span>
                     </button>
                 </div>
-            @endif
         </div>
 
         <div class="grid grid-cols-7 mb-2 pb-2 border-b border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
@@ -137,32 +135,16 @@
     @include('livewire.dashboard.reservation.recurring')
 
     <div wire:key="reservation-avantgarde-hints" class="flex flex-wrap gap-2">
-        @if($this->minNoticeHours > 0)
-            <div wire:key="reservation-hint-notice" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-container-low)] text-[11px] font-semibold text-[var(--md-sys-color-on-surface-variant)]">
-                <span class="material-symbols-rounded text-[14px]">schedule</span>
-                {{ convertToPersian((string) $this->minNoticeHours) }} ساعت مهلت رزرو
-            </div>
-        @endif
-
-        @if($this->durationBounds !== null)
-            <div wire:key="reservation-hint-bounds" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-container-low)] text-[11px] font-semibold text-[var(--md-sys-color-on-surface-variant)]">
-                <span class="material-symbols-rounded text-[14px]">timer</span>
-                {{ $this->durationBounds }}
-            </div>
-        @endif
-
         @if($this->selectedDuration !== null)
             @php($dur = $this->selectedDuration)
-            <div wire:key="reservation-hint-duration" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold {{ $dur['valid'] ? 'bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)]' : 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]' }}">
-                <span class="material-symbols-rounded text-[14px]">hourglass_empty</span>
-                {{ $dur['text'] }}
-            </div>
+            <span wire:key="reservation-hint-duration" class="contents">
+                @include('livewire.dashboard.reservation.chip', ['chip' => ['icon' => 'hourglass_empty', 'text' => $dur['text'], 'tone' => $dur['valid'] ? 'info' : 'danger']])
+            </span>
         @endif
 
         @if($this->bookingBlockReason !== null)
-            <div wire:key="reservation-hint-block" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] text-[11px] font-semibold">
-                <span class="material-symbols-rounded text-[14px]">block</span>
-                {{ $this->bookingBlockReason }}
-            </div>
+            <span wire:key="reservation-hint-block" class="contents">
+                @include('livewire.dashboard.reservation.chip', ['chip' => ['icon' => 'block', 'text' => $this->bookingBlockReason, 'tone' => 'danger', 'class' => '!whitespace-normal']])
+            </span>
         @endif
     </div>

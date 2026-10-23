@@ -46,7 +46,7 @@
     <!-- Dropdown -->
     <div x-show="open"
          @click.outside="open = false"
-         class="absolute top-[calc(100%+12px)] right-0 p-2 rounded-2xl w-64
+         class="absolute top-[calc(100%+12px)] right-0 max-xl:right-auto max-xl:left-0 p-2 rounded-2xl w-64
                 bg-[var(--md-sys-color-surface)]/95 animate-slide-down
                 border border-[var(--md-sys-color-outline-variant)]/10
                 shadow-2xl z-50 text-[var(--md-sys-color-on-surface)]"

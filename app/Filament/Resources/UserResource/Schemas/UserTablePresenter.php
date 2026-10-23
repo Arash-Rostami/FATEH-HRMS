@@ -104,16 +104,6 @@ class UserTablePresenter
             ->color(fn(User $record): string => $record->isOnline() ? 'success' : 'gray');
     }
 
-    public static function maximum(): TextColumn
-    {
-        return TextColumn::make('maximum')
-            ->label(__('resources/user/strings.table.maximum'))
-            ->numeric()
-            ->sortable()
-            ->toggleable(isToggledHiddenByDefault: true)
-            ->color('warning');
-    }
-
     public static function name(): TextColumn
     {
         return TextColumn::make('name')

@@ -28,7 +28,7 @@
                     @endif
 
                     @if(!$isDraft && $workflowPresenter->isStuck($wf))
-                        <span wire:key="workflow-card-stuck-{{ $wf->id }}" class="inline-flex items-center gap-1 h-[22px] px-2 rounded-md border border-[color-mix(in_srgb,var(--md-sys-color-error)_30%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] text-[11px] font-bold text-[var(--md-sys-color-error)] shadow-sm animate-pulse-ring">
+                        <span wire:key="workflow-card-stuck-{{ $wf->id }}" class="inline-flex items-center gap-1 h-[22px] px-2 rounded-md border border-[color-mix(in_srgb,var(--md-sys-color-error)_30%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] text-[11px] font-bold text-[var(--md-sys-color-error)] shadow-sm animate-alert-soft">
                             <span class="material-symbols-rounded text-[13px]">warning</span> معطل مانده
                         </span>
                     @endif
@@ -175,16 +175,16 @@
 
             <!-- Log History -->
             @if(!empty($wf->step_log))
-                <details wire:key="workflow-log-{{ $wf->id }}" class="group/log rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-hidden transition-all duration-300 mt-2">
-                    <summary class="flex items-center justify-between cursor-pointer p-3 select-none hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] transition-colors">
+                <div wire:key="workflow-log-{{ $wf->id }}" x-data="{ open: false }" class="rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-hidden mt-2">
+                    <button type="button" @click="open = !open" :aria-expanded="open" class="w-full flex items-center justify-between cursor-pointer p-3 select-none hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] transition-colors">
                         <span class="flex items-center gap-1.5 text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">
                             <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-on-surface-variant)]">history</span>
                             تاریخچه مراحل ({{ convertToPersian(count($wf->step_log)) }})
                         </span>
-                        <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)] group-open/log:-scale-y-100 transition-transform duration-300">expand_more</span>
-                    </summary>
+                        <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)] transition-transform duration-200" :class="open ? 'rotate-180' : ''">expand_more</span>
+                    </button>
 
-                    <ul class="px-4 pb-4 space-y-3 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] pt-3 animate-toast-in">
+                    <ul x-show="open" x-collapse x-cloak class="px-4 pb-4 space-y-3 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] pt-3">
                         @foreach(array_reverse($wf->step_log) as $entry)
                             <li class="relative pl-3 flex flex-col gap-1 text-[12px] text-[var(--md-sys-color-on-surface-variant)] border-r-2 border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] pr-3">
                                 <span class="font-bold text-[var(--md-sys-color-on-surface)]">
@@ -210,7 +210,7 @@
                             </li>
                         @endforeach
                     </ul>
-                </details>
+                </div>
             @endif
 
         </div>

@@ -42,6 +42,7 @@ class Main extends Component
     private const PROJECT_LIST_COLUMNS = [
         'projects.id',
         'projects.name',
+        'projects.settings',
         'projects.channel_id',
         'channel_members.user_id as cm_user_id',
         'channel_members.entered_at',
@@ -92,7 +93,7 @@ class Main extends Component
 
         $page = $filtered->take($this->projectsLimit);
         $counts = Task::whereIn('project_id', $page->pluck('id'))
-            ->selectRaw('project_id, status, count(*) as aggregate')
+            ->selectRaw('project_id, status, count(*) as aggregate, SUM(approved_at IS NULL) as unapproved')
             ->groupBy('project_id', 'status')
             ->get()
             ->groupBy('project_id');
@@ -105,14 +106,20 @@ class Main extends Component
         return [
             'rows' => $page
                 ->map(function ($p) use ($counts, $workflows) {
-                    $totals = TaskMetrics::totals(($counts->get($p->id) ?? collect())->pluck('aggregate', 'status')->map(fn($n) => (int) $n)->all());
+                    $rows = $counts->get($p->id) ?? collect();
+                    $byStatus = $rows->pluck('aggregate', 'status')->map(fn($n) => (int) $n)->all();
+                    if ($p->setting('requires_approval') === true) {
+                        $unapproved = min((int) $rows->firstWhere('status', 'done')?->unapproved, $byStatus['done'] ?? 0);
+                        $byStatus = [...$byStatus, 'done' => ($byStatus['done'] ?? 0) - $unapproved, 'unapproved' => $unapproved];
+                    }
+                    $totals = TaskMetrics::totals($byStatus);
                     $cycles = $workflows->get($p->id) ?? collect();
 
                     return [
                         'id' => $p->id,
                         'name' => $p->name,
                         'pending' => (bool) ($p->channel_id && $p->cm_user_id && !$p->entered_at),
-                        'percent' => (int) round($totals['percent']),
+                        'percent' => (int) floor($totals['percent']),
                         'workflowCount' => $cycles->count(),
                         'workflowStep' => $cycles->count() === 1 ? $cycles->first()->current_step + 1 : null,
                         'workflowTotal' => $cycles->count() === 1 ? count($cycles->first()->steps) : null,
@@ -293,8 +300,8 @@ class Main extends Component
         $this->populateFormFromTask($task);
         $this->taskReplyForm->reset();
 
-        $this->isEditMode = $task->can_change_status;
-        $this->isReadOnly = !$task->can_change_status;
+        $this->isReadOnly = !$task->can_change_status || $task->isFrozenFor(auth()->user());
+        $this->isEditMode = !$this->isReadOnly;
         $this->isModalOpen = true;
     }
 

@@ -198,7 +198,7 @@ class ProjectPresenter
         if (($summary['overdue'] ?? 0) > 0) {
             $chips[] = [
                 'icon' => 'schedule',
-                'text' => $summary['overdue'] . ' دیرکرد',
+                'text' => convertToPersian($summary['overdue']) . ' دیرکرد',
                 'classes' => $this->riskToneClasses('error'),
             ];
         }
@@ -206,7 +206,7 @@ class ProjectPresenter
         if (($summary['at_risk'] ?? 0) > 0) {
             $chips[] = [
                 'icon' => 'warning',
-                'text' => $summary['at_risk'] . ' ' . TaskMetrics::LABEL_BREACH,
+                'text' => convertToPersian($summary['at_risk']) . ' ' . TaskMetrics::LABEL_BREACH,
                 'classes' => $this->riskToneClasses('warning'),
             ];
         }
@@ -214,12 +214,15 @@ class ProjectPresenter
         if (($summary['due_soon'] ?? 0) > 0) {
             $chips[] = [
                 'icon' => 'event_upcoming',
-                'text' => $summary['due_soon'] . ' ' . TaskMetrics::LABEL_DUE_SOON,
+                'text' => convertToPersian($summary['due_soon']) . ' ' . TaskMetrics::LABEL_DUE_SOON,
                 'classes' => $this->riskToneClasses('warning'),
             ];
         }
 
-        if ($deadlineChip = $this->deadlineCountdownChip($project)) {
+        $finished = $project->archived_at !== null
+            || (($summary['total'] ?? 0) > 0 && ($summary['done'] ?? 0) >= $summary['total']);
+
+        if (! $finished && $deadlineChip = $this->deadlineCountdownChip($project)) {
             $chips[] = $deadlineChip;
         }
 

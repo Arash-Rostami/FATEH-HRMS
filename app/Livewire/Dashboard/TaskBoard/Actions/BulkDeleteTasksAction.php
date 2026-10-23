@@ -13,9 +13,9 @@ class BulkDeleteTasksAction
     public function execute(array $taskIds): int
     {
         $user = auth()->user();
-        $found = Task::whereIn('id', $taskIds)->whereNull('ticket_id')->with('project:id,owner_id', 'detail:id,task_id,collaborators,responsible_user_id')->get();
+        $found = Task::whereIn('id', $taskIds)->whereNull('ticket_id')->with('project:id,owner_id,settings', 'detail:id,task_id,collaborators,responsible_user_id')->get();
         app(CycleLinkResolver::class)->prime($found);
-        $tasks = $found->filter(fn(Task $task) => TaskAccessPolicy::canDelete($task, $user));
+        $tasks = $found->filter(fn(Task $task) => TaskAccessPolicy::canDelete($task, $user) && !$task->isFrozenFor($user));
 
         if ($tasks->isEmpty()) {
             return 0;

@@ -142,7 +142,7 @@ one comment left on a colleague's task would leak that colleague's approvals/ove
 subject's personal report tiles. The per-project/standalone **drilldown tables** (`groupStats()`,
 feeding `projects`/`standalone`) are intentionally **not** owned-scoped — they show "tasks in this
 project the subject was involved with," so they correctly use the full touched-task collection for
-that group. Do not conflate the two: fixing a scorecard leak by touching `groupStats()` would be
+that group. **2026-10-22 refinement:** the LIVE overdue/in-progress flags that feed the project rows (`liveCounts`) are now set only for OWNED tasks — a non-owned task the subject merely commented on no longer shows up as «N مورد دیرکرد» in the row (it still counts in the row when completed in the window). On-time compares by DAY (a task finished after noon on its 12:00-stored due day is on time, like `ReportingService`), and «مهلت نزدیک» uses `TaskMetrics::DUE_SOON_DAYS` (3). Do not conflate the two: fixing a scorecard leak by touching `groupStats()` would be
 wrong. The `narrative` sentence's denominator is `$candidateTaskIds->count()` (owned ∪ acted-in-window)
 — it deliberately reports on tasks touched at all in the window, not the narrower owned-only count,
 since the sentence reads "X of Y assigned tasks completed" against the subject's full workload
@@ -269,7 +269,7 @@ same toggler `taskboard.blade.php`/`project.blade.php` already use between each 
 ## Overhaul sync (2026-10-09)
 
 - **Credit** goes to the doer (`payload.owner`, see «Event-sourced»); approvals received count only real manager approvals in an approval-required project and only for the credited doer (no more inflated «every Done is an approval»); `still_overdue`/`in_progress` are live snapshots (`live` flag on the tiles, labeled «همین حالا») and use `TaskMetrics` rules (suspended «توقف», archived, trashed tasks are excluded).
-- **Median, not average:** the cycle tile and export label say «میانهٔ زمان انجام»; the delta column mixes units on purpose (`٪` for counts/times, « امتیاز» points for on-time %), and `baselineWindow()` is the one baseline math (previous window of the same length, ending one second before `start`).
+- **Median, not average:** the cycle tile and export label say «میانهٔ زمان انجام»; the delta column mixes units on purpose (no suffix for counts, « روز» for the cycle-time tile, « امتیاز» points for on-time %; `lowerIsBetter` flips the chip TONE for cycle time while the arrow keeps the true direction — 2026-10-22), and `baselineWindow()` is the one baseline math (previous window of the same length, ending one second before `start`).
 - **Privacy:** when the viewer is not the subject (`isRestricted`: manager share, admin) `report()`/`activityFeed()` pass through `restrict()` — comment bodies are dropped and tasks in projects the viewer cannot see are masked («وظیفهٔ محدود» / «پروژهٔ محدود», personal tasks «وظیفه شخصی»); the cache key is `tasksheet2:…`. Trashed tasks stay in history with «(حذف‌شده)».
 - **Window limits:** custom ranges cap at 365 days, an invalid custom range keeps the last good range and flags `rangeInvalid`, activity paging stops at `MAX_ACTIVITY` = 200.
 - **Access:** a privileged viewer (admin/developer) can open an inactive subject; the manager is a head of the subject's department or the parent department's head; the signed share link now lives 7 days (was 14).

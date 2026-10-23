@@ -91,6 +91,28 @@
                     <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">وصلِ یک کاربر به واحد در این صفحه انجام نمی‌شود — فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">department_id</code> روی پروفایل کاربر (در صفحهٔ «کاربران») تنظیم می‌شود و باید دقیقاً برابر با «کد» یکی از واحدهای همین جدول باشد.</p>
                 </div>
             </div>
+            <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
+                <div class="shrink-0 mt-0.5">
+                    <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+                        <span class="material-symbols-rounded text-[20px]">swap_vert</span>
+                    </span>
+                </div>
+                <div class="flex-1 flex flex-col gap-1.5">
+                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">ترتیب پرسنل در نمودار و فیلد «ترتیب در چارت»</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">پرسنل هر واحد در نمودار بر اساس رتبه (جدول بالا) و در رتبهٔ برابر به‌ترتیب نام چیده می‌شوند و همگی زیر همان رئیس واحد قرار می‌گیرند. برای جابه‌جایی دستی، در پروفایل کاربر (اطلاعات تکمیلی، فقط ادمین) کلید «ترتیب در چارت» را با یک عدد پر کنید؛ این عدد جایگزین رتبه می‌شود (کوچک‌تر بالاتر، اعشار مجاز، مثلاً ۳٫۵ بین مدیر و سرپرست). این کلید فقط ترتیب نمایش در نمودار را عوض می‌کند، نه اختیارات و رئیسِ واحد بودن. اگر عدد کسی را از رتبه‌ای دیگر بگیرید، ممکن است او در نمودار «رئیس واحد» نمایش داده شود.</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
+                <div class="shrink-0 mt-0.5">
+                    <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+                        <span class="material-symbols-rounded text-[20px]">business_center</span>
+                    </span>
+                </div>
+                <div class="flex-1 flex flex-col gap-1.5">
+                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">شرکتِ زیرمجموعه با علامت *</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">اگر در پروفایل یک رئیس هیئت‌مدیره یا مدیرعامل، به‌جای عدد، علامت <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">*</code> را در «ترتیب در چارت» بنویسید، او به‌عنوان مدیرعاملِ یک شرکتِ زیرمجموعه شناخته می‌شود: کارتش در همان ردیف بالای چارت و هم‌رتبهٔ مدیرعامل می‌ماند (کمی پایین‌تر و با خطِ اتصال به کارت کناری)، و واحدِ او به‌همراه همهٔ واحدهایی که (با «زیرمجموعه واحد») زیر آن قرار دارند با رنگ پس‌زمینه و نمادِ شرکت نمایش داده می‌شوند. واحدِ این شخص باید حداقل یک همکارِ دیگر داشته باشد و سطح آن ۰ نباشد تا در نمودار دیده شود.</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -142,7 +164,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                رئیس هیئت مدیره و مدیرعامل بر اساس سمت (رتبهٔ ۱) همیشه در رأس نمودار می‌مانند، مستقل از سطح یا زیرمجموعهٔ واحدشان — حتی اگر واحد «مدیریت» (کد MA) سطح ۱ یا ۲ داشته باشد، این دو نفر داخل کارت آن واحد تکرار نمی‌شوند.
+                رئیس هیئت مدیره و مدیرعامل بر اساس سمت (رتبهٔ ۱) همیشه در رأس نمودار می‌مانند، مستقل از سطح یا زیرمجموعهٔ واحدشان — حتی اگر واحد «مدیریت» (کد MA) سطح ۱ یا ۲ داشته باشد، این دو نفر داخل کارت آن واحد تکرار نمی‌شوند. مدیرعاملِ دارای علامت * (شرکت زیرمجموعه) نیز در همان ردیف می‌ماند، فقط کمی پایین‌تر.
             </p>
         </div>
     </div>

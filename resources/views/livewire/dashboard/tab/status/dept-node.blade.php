@@ -4,23 +4,23 @@
     $topLevel = $topLevel ?? true;
     $tierClass = $topLevel && $d['level'] === 2 ? 'orgc-dept--tier-2' : '';
 @endphp
-<section class="orgc-dept {{ $tierClass }}" wire:key="orgc-dept-{{ $d['code'] }}">
+<section class="orgc-dept {{ $tierClass }} {{ $d['company'] ? 'orgc-dept--company' : '' }}" wire:key="orgc-dept-{{ $d['code'] }}">
     @if($hasBody)
         <button
             type="button"
             @click="toggleDept(@js($collapseKey))"
-            title="دپارتمان {{ $d['label'] }}"
+            title="{{ $d['companyRoot'] ? 'شرکت' : 'دپارتمان' }} {{ $d['label'] }}"
             class="orgc-dept-label"
             dir="rtl"
         >
-            <span class="orgc-dept-icon"><span class="material-symbols-rounded">corporate_fare</span></span>
+            <span class="orgc-dept-icon"><span class="material-symbols-rounded">{{ $d['company'] ? 'business_center' : 'corporate_fare' }}</span></span>
             <span class="orgc-dept-name truncate">{{ $d['label'] }}</span>
             <span class="orgc-count">{{ convertToPersian($d['count']) }}</span>
             <span class="material-symbols-rounded orgc-chev" x-text="collapsed[@js($collapseKey)] ? 'expand_more' : 'expand_less'">expand_less</span>
         </button>
     @else
-        <div class="orgc-dept-label orgc-dept-label--static" title="دپارتمان {{ $d['label'] }}" dir="rtl">
-            <span class="orgc-dept-icon"><span class="material-symbols-rounded">corporate_fare</span></span>
+        <div class="orgc-dept-label orgc-dept-label--static" title="{{ $d['companyRoot'] ? 'شرکت' : 'دپارتمان' }} {{ $d['label'] }}" dir="rtl">
+            <span class="orgc-dept-icon"><span class="material-symbols-rounded">{{ $d['company'] ? 'business_center' : 'corporate_fare' }}</span></span>
             <span class="orgc-dept-name truncate">{{ $d['label'] }}</span>
             <span class="orgc-count">{{ convertToPersian($d['count']) }}</span>
         </div>
@@ -33,6 +33,7 @@
             'key' => 'orgc-head-' . $d['head']->id,
             'deptCode' => $d['code'],
             'showToggle' => $hasBody,
+            'childCount' => count($d['children']),
         ])
     @endif
 

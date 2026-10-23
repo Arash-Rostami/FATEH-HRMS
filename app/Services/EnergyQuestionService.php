@@ -130,7 +130,7 @@ class EnergyQuestionService
 
     private function getMonthIndex(): int
     {
-        return (int)now()->format('n') - 1; // 0..11
+        return jNow('month') - 1;
     }
 
     private function mindVariants(): array

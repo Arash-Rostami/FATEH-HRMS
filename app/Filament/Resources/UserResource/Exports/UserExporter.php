@@ -43,9 +43,6 @@ class UserExporter extends Exporter
                 ->label(__('resources/user/strings.export.presence'))
                 ->formatStateUsing(fn ($state): string => $state instanceof PresenceStatus ? $state->label() : ($state ?? '-')),
 
-            ExportColumn::make('maximum')
-                ->label(__('resources/user/strings.export.maximum')),
-
             ExportColumn::make('last_seen')
                 ->label(__('resources/user/strings.export.last_seen'))
                 ->formatStateUsing(fn ($state) => $state ? toJalaliSmart($state) : '-'),

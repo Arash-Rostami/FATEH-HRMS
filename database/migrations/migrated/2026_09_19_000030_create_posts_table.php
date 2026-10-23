@@ -14,9 +14,9 @@ return new class extends Migration {
                 $table->text('body');
                 $table->string('image', 191)->nullable();
                 $table->boolean('pinned')->default(0);
-                $table->unsignedBigInteger('user_id');
                 $table->boolean('active')->default(true);
                 $table->json('departments')->nullable();
+                $table->unsignedBigInteger('user_id');
                 $table->timestamp('created_at')->nullable();
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');

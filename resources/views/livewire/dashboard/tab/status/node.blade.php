@@ -2,6 +2,7 @@
     $tier = $tier ?? 'member';
     $showToggle = $showToggle ?? false;
     $deptCode = $deptCode ?? '';
+    $childCount = $childCount ?? 0;
     $key = $key ?? ('orgc-node-' . $user->id);
     $d = $statusPresenter->nodeData($user, $tier);
     $p = $d['p'];
@@ -43,8 +44,11 @@
 
     <div class="w-full text-center space-y-1.5 {{ $obscured ? 'opacity-60 blur-[1.5px]' : '' }} transition-[opacity,filter] duration-200 group-hover:opacity-100 group-hover:blur-none">
         <h4 class="text-[12.5px] font-bold text-[var(--md-sys-color-on-surface)] flex items-center justify-center gap-1 tracking-tight leading-snug" title="{{ $user->name }}">
-            @if(in_array($tier, ['apex', 'head']))
-                <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-primary)]">military_tech</span>
+            @if($tier === 'head' && $childCount > 1)
+                <span class="inline-flex shrink-0 items-center gap-0.5 rounded-md bg-[var(--md-sys-color-tertiary-container)] px-1.5 py-[2px] text-[10px] font-bold leading-none text-[var(--md-sys-color-on-tertiary-container)]" title="سرپرست {{ convertToPersian($childCount) }} دپارتمان زیرمجموعه">
+                    <span class="material-symbols-rounded text-[12px] leading-none">account_tree</span>
+                    {{ convertToPersian($childCount) }}
+                </span>
             @endif
             <span class="truncate">{{ $user->name }}</span>
         </h4>

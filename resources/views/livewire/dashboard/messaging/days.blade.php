@@ -4,7 +4,7 @@
             <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">calendar_month</span>
             <span class="flex-1">{{ $title }}</span>
             <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)]" x-show="dayList.length" x-text="dayList.length"></span>
-            @include('livewire.dashboard.messaging.latest-button', ['before' => 'daysOpen = false; '])
+            @include('livewire.dashboard.messaging.latest-button', ['before' => 'daysOpen = false; ', 'position' => 'relative'])
         </div>
         <div class="max-h-72 overflow-y-auto contact-scrollbar border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
             <template x-for="r in dayRows" :key="r.day">

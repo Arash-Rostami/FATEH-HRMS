@@ -6,6 +6,7 @@ use App\Enums\TaskActivityType;
 use App\Jobs\SyncProjectChannelMembershipJob;
 use App\Livewire\Dashboard\Project\Actions\CancelWorkflowAction;
 use App\Livewire\Dashboard\Project\Actions\ForceDeleteProjectAction;
+use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasPrunableStatus;
 use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasReplies;
@@ -29,6 +30,7 @@ use Morilog\Jalali\CalendarUtils;
 class Project extends Model
 {
     use HasFactory,
+        HasMenuState,
         HasReplies,
         SoftDeletes,
         Prunable,

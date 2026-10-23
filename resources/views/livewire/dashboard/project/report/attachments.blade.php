@@ -16,7 +16,7 @@
                     @php($fileIcon = $dmsPresenter->extensionIcon(pathinfo($attachment['path'] ?? '', PATHINFO_EXTENSION)))
                     <div class="flex flex-col gap-1 w-[calc(50%-0.25rem)] md:w-40 rounded-xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)] p-2">
                         @if($isImage)
-                            <a href="{{ rtrim(asset('storage'), '/') }}/{{ $attachment['path'] }}" data-fancybox="task-{{ $group['task_id'] }}-attachments" data-caption="{{ $attachment['name'] ?? '' }}"
+                            <a href="{{ rtrim(asset('storage'), '/') }}/{{ $attachment['path'] }}" data-fancybox="report-task-{{ $group['task_id'] }}-attachments" data-caption="{{ $attachment['name'] ?? '' }}"
                                class="flex items-center gap-1.5 text-[11px] font-medium text-[var(--md-sys-color-primary)] truncate">
                                 <img src="{{ rtrim(asset('storage'), '/') }}/{{ $attachment['path'] }}" class="w-5 h-5 rounded object-cover shrink-0" alt="">
                                 <span class="truncate">{{ $attachment['name'] ?? basename($attachment['path']) }}</span>

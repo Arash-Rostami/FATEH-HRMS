@@ -1,23 +1,13 @@
 <div wire:key="appointment-time-blocks"
      class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-    @if($this->minNoticeHours > 0)
-        <div wire:key="reservation-min-notice" class="md:col-span-2 flex items-center gap-1.5 -mb-2">
-            <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]">schedule</span>
-            <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">رزرو حداقل {{ convertToPersian((string) $this->minNoticeHours) }} ساعت قبل از زمان شروع قابل ثبت است</span>
-        </div>
-    @endif
-
-    @if($this->durationBounds !== null)
-        <div wire:key="reservation-duration-bounds" class="md:col-span-2 flex items-center gap-1.5 -mb-2">
-            <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]">timer</span>
-            <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $this->durationBounds }}</span>
-        </div>
-    @endif
-
     @php($durArgs = ($this->policies['min_duration_minutes'] ?? 'null') . ', ' . ($this->policies['max_duration_minutes'] ?? 'null'))
-    <div class="md:col-span-2 flex items-center gap-1.5 -mb-2">
-        <span class="material-symbols-rounded text-[14px]" :class="durationPreview({{ $durArgs }}).valid ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-[var(--md-sys-color-error)]'">hourglass_empty</span>
-        <span class="text-[11px] font-semibold" :class="durationPreview({{ $durArgs }}).valid ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-[var(--md-sys-color-error)]'" x-text="durationPreview({{ $durArgs }}).text"></span>
+    <div class="md:col-span-2 flex items-center -mb-2">
+        <x-ui.badge variant="info" x-show="durationPreview({{ $durArgs }}).valid" class="!px-1.5 !py-0.5 !text-[10px] gap-1">
+            <span class="material-symbols-rounded text-[13px]">hourglass_empty</span><span x-text="durationPreview({{ $durArgs }}).text"></span>
+        </x-ui.badge>
+        <x-ui.badge variant="danger" x-show="!durationPreview({{ $durArgs }}).valid" x-cloak class="!px-1.5 !py-0.5 !text-[10px] gap-1">
+            <span class="material-symbols-rounded text-[13px]">hourglass_empty</span><span x-text="durationPreview({{ $durArgs }}).text"></span>
+        </x-ui.badge>
     </div>
 
     @php($timePickers = [

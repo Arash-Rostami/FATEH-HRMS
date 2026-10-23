@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Enums\TaskActivityType;
 use App\Models\Reply;
 use App\Models\User;
 use App\Support\FileNamer;
@@ -41,13 +42,14 @@ trait HasReplies
         )));
     }
 
-    public function addReply(User $user, string $body, array $uploadedFiles = []): Reply
+    public function addReply(User $user, string $body, array $uploadedFiles = [], ?TaskActivityType $type = null): Reply
     {
-        return DB::transaction(function () use ($user, $body, $uploadedFiles) {
+        return DB::transaction(function () use ($user, $body, $uploadedFiles, $type) {
             $reply = $this->replies()->create([
                 'user_id' => $user->id,
                 'body' => trim($body),
                 'files' => [],
+                ...($type ? ['type' => $type] : []),
             ]);
 
             $files = $this->storeReplyFiles($uploadedFiles, $reply->id);

@@ -90,6 +90,7 @@ class ProjectFormPresenter
                     ->columnSpanFull(),
 
                 DatePicker::make('settings.deadline')
+                    ->when(auth()->user()?->getPreference('persian_dates', true) ?? true, fn(DatePicker $picker) => $picker->jalali(), fn(DatePicker $picker) => $picker->native(false))
                     ->label(__('resources/project/strings.fields.deadline'))
                     ->minDate(fn($record) => min(today()->toDateString(), $record?->setting('deadline') ?? today()->toDateString()))
                     ->nullable()

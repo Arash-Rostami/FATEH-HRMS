@@ -11,7 +11,8 @@ const WS_ONLY_RE = /^\s+$/;
 const DIR_RE = /([A-Za-z])|[؀-ۿ]/;
 
 const SCROLL_TO_BOTTOM_PX = 999999;
-const POLL_BASE_MS = 10000;
+const LOAD_OLDER_PEEK_PX = 96;
+const SCROLL_SETTLE_MS = 150;const POLL_BASE_MS = 10000;
 const INCOMING_DEDUPE_MS = 1500;
 
 const EVENT_TOAST = 'toast';
@@ -56,6 +57,9 @@ export default function chatBase(scope) {
             this.$store.sound?.playIncoming(id, scope);
         },
         showScrollFab: false,
+        newBelow: 0,
+        _programmaticScroll: false,
+        _scrollSettleTimer: null,
         showInfo: false,
         searchMessages: false,
         bookmarksOpen: false,
@@ -230,8 +234,51 @@ export default function chatBase(scope) {
             window.dispatchEvent(new CustomEvent(EVENT_TOAST, { detail: { message, type } }));
         },
 
+        markProgrammaticScroll() {
+            this._programmaticScroll = true;
+            this._armScrollSettle();
+        },
+
+        _armScrollSettle() {
+            clearTimeout(this._scrollSettleTimer);
+            this._scrollSettleTimer = setTimeout(() => { this._programmaticScroll = false; }, SCROLL_SETTLE_MS);
+        },
+
+        programmaticScroll(fn) {
+            this.markProgrammaticScroll();
+            fn();
+        },
+
         scrollToBottom(smooth = false) {
-            byId(ID_VIEWPORT)?.scrollTo({ top: SCROLL_TO_BOTTOM_PX, behavior: smooth ? 'smooth' : 'instant' });
+            this.programmaticScroll(() => byId(ID_VIEWPORT)?.scrollTo({ top: SCROLL_TO_BOTTOM_PX, behavior: smooth ? 'smooth' : 'instant' }));
+        },
+
+        _rowsNewerThan(marker) {
+            const idOf = (rf) => parseInt(rf?.match(/(\d+)$/)?.[1], 10) || 0;
+            const floor = idOf(marker);
+            let n = 0;
+            this._msgViewportEl?.querySelectorAll('[data-rf*="message-"]').forEach(r => { if (idOf(r.dataset.rf) > floor) n++; });
+            return n;
+        },
+
+        async loadOlderKeepingPlace(load) {
+            const vp = byId(ID_VIEWPORT);
+            if (!vp || this._loadingOlder) return;
+
+            this._loadingOlder = true;
+            const before = vp.scrollHeight;
+            const conv = this.$wire.activeUserId ?? this.$wire.activeChannelId;
+
+            try {
+                await load();
+                await this.$nextTick();
+                if (conv !== (this.$wire.activeUserId ?? this.$wire.activeChannelId)) return;
+                const added = vp.scrollHeight - before;
+                if (added > 0) this.programmaticScroll(() => { vp.scrollTop += Math.max(added - LOAD_OLDER_PEEK_PX, 0); });
+            } catch {
+            } finally {
+                this._loadingOlder = false;
+            }
         },
 
         backToLatest() {
@@ -560,6 +607,7 @@ export default function chatBase(scope) {
 
         destroy() {
             this.stopPolling();
+            clearTimeout(this._scrollSettleTimer);
             if (this.undoTimeout !== null) clearTimeout(this.undoTimeout);
         }
     };

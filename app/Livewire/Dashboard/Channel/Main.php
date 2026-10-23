@@ -81,6 +81,7 @@ class Main extends Component
     public ?string $pollStamp = null;
 
     private const MESSAGES_STAMP_THRESHOLD = 200;
+    private const LOAD_STEP = 25;
 
     #[Locked]
     public ?int $focusAnchorId = null;
@@ -750,9 +751,9 @@ class Main extends Component
     public function loadOlder(): void
     {
         if ($this->focusAnchorId !== null) {
-            $this->focusOlder += 10;
+            $this->focusOlder += self::LOAD_STEP;
         } else {
-            $this->loadedLimit += 10;
+            $this->loadedLimit += self::LOAD_STEP;
         }
         unset($this->messages);
     }

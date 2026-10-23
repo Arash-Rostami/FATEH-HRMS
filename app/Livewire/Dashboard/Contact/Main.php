@@ -70,6 +70,7 @@ class Main extends Component
     public ?string $pollStamp = null;
 
     private const MESSAGES_STAMP_THRESHOLD = 200;
+    private const LOAD_STEP = 25;
 
     #[Computed]
     public function activeContact(): ?User
@@ -323,9 +324,9 @@ class Main extends Component
     public function loadMoreMessages(): void
     {
         if ($this->focusAnchorId !== null) {
-            $this->focusOlder += 10;
+            $this->focusOlder += self::LOAD_STEP;
         } else {
-            $this->messagesLimit += 10;
+            $this->messagesLimit += self::LOAD_STEP;
         }
         $this->invalidateMessageCache();
     }

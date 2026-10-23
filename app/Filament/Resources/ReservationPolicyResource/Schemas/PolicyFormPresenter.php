@@ -4,11 +4,13 @@ namespace App\Filament\Resources\ReservationPolicyResource\Schemas;
 
 use App\Enums\ReservationError;
 use App\Traits\FilamentFormDivider;
+use Closure;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\ViewEntry;
+use Filament\Schemas\Components\Utilities\Get;
 
 class PolicyFormPresenter
 {
@@ -100,6 +102,23 @@ class PolicyFormPresenter
             ->placeholder('۳');
     }
 
+    public static function cancelWindowDays(): TextInput
+    {
+        return TextInput::make('cancel_window_days')
+            ->label(__('resources/policy/strings.fields.cancel_window_days'))
+            ->helperText(__('resources/policy/strings.hints.cancel_window_days'))
+            ->validationAttribute(__('resources/policy/strings.fields.cancel_window_days'))
+            ->numeric()
+            ->integer()
+            ->minValue(1)
+            ->maxValue(365)
+            ->validationMessages([
+                'min' => __('resources/policy/strings.validation.cancel_window_days_range'),
+                'max' => __('resources/policy/strings.validation.cancel_window_days_range'),
+            ])
+            ->placeholder('۳۰');
+    }
+
     public static function maxDurationMinutes(): TextInput
     {
         return TextInput::make('max_duration_minutes')
@@ -131,6 +150,28 @@ class PolicyFormPresenter
             ->numeric()
             ->minValue(1)
             ->placeholder('۱۰');
+    }
+
+    public static function lastMinuteHours(): TextInput
+    {
+        return TextInput::make('last_minute_hours')
+            ->label(__('resources/policy/strings.fields.last_minute_hours'))
+            ->helperText(__('resources/policy/strings.hints.last_minute_hours'))
+            ->validationAttribute(__('resources/policy/strings.fields.last_minute_hours'))
+            ->numeric()
+            ->integer()
+            ->minValue(1)
+            ->maxValue(720)
+            ->rules([fn(Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                if (is_numeric($value) && (int) $value <= (int) $get('window_hours')) {
+                    $fail(__('resources/policy/strings.validation.last_minute_hours_gt'));
+                }
+            }])
+            ->validationMessages([
+                'min' => __('resources/policy/strings.validation.last_minute_hours_min'),
+                'max' => __('resources/policy/strings.validation.last_minute_hours_max'),
+            ])
+            ->placeholder('۲۴');
     }
 
     public static function minDurationMinutes(): TextInput

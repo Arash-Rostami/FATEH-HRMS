@@ -72,7 +72,6 @@ class UserResource extends Resource
                     UserFormPresenter::presence(),
                     UserFormPresenter::divider(),
                     UserFormPresenter::status(),
-                    UserFormPresenter::maximum()->columnSpan(2),
                 ])->columns(3)
                 ->columnSpan(3),
 
@@ -186,7 +185,6 @@ class UserResource extends Resource
                                         UserInfolistPresenter::role(),
                                         UserInfolistPresenter::status(),
                                         UserInfolistPresenter::presence(),
-                                        UserInfolistPresenter::maximum(),
                                         UserInfolistPresenter::divider(),
                                         UserInfolistPresenter::booking(),
                                     ])->columns(3),
@@ -226,7 +224,6 @@ class UserResource extends Resource
                 UserTablePresenter::type(),
                 UserTablePresenter::email(),
                 UserTablePresenter::presence(),
-                UserTablePresenter::maximum(),
                 UserTablePresenter::lastSeen(),
                 UserTablePresenter::createdAt(),
             ])

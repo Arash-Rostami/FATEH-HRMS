@@ -2,7 +2,7 @@
     <div class="rounded-2xl bg-[var(--md-sys-color-surface)] shadow-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] overflow-hidden">
         <x-ui.forms.search-field model="messageSearch" id="msg-search-input" debounce="600"
                                  :placeholder="$placeholder" :overlay-title="$overlayTitle"
-                                 loading-disabled :wire-ignore-self="false"
+                                 :wire-ignore-self="false"
                                  input-class="w-full h-11 pr-11 pl-10 rounded-2xl text-sm outline-none bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)] text-[var(--md-sys-color-on-surface)] placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)] border-none" />
 
         @if(strlen(trim($this->messageSearch)))

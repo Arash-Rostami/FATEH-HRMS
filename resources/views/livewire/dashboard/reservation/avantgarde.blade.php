@@ -8,7 +8,16 @@
         />
     </div>
 
-    @if($canvasTab === 'booking')
+    @if(! empty($tabs))
+        @include('livewire.dashboard.reservation.limits')
+        @include('livewire.dashboard.reservation.rules')
+    @endif
+
+    @if($canvasTab === 'booking' && empty($tabs))
+        <div wire:key="reservation-avantgarde-no-permission-canvas" class="contents">
+            <x-ui.empty icon="lock" title="دسترسی رزرو ندارید" description="مجوز رزرو هیچ نوع منبعی برای شما فعال نشده است. با مدیر سیستم تماس بگیرید." variant="list" />
+        </div>
+    @elseif($canvasTab === 'booking')
         <div wire:key="reservation-canvas-booking" class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12 w-full items-start">
             <div class="flex flex-col gap-5 min-w-0">
                 @include('livewire.dashboard.reservation.booking-panel')

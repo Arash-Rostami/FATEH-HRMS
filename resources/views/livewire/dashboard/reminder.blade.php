@@ -1,4 +1,4 @@
-<div class="contents" wire:poll.visible.60s="$refresh">
+<div class="contents" @if($variant === 'icon') wire:poll.60s="$refresh" @else wire:poll.visible.60s="$refresh" @endif>
 
     @if($variant === 'embedded')
         <div wire:key="reminder-embedded" class="space-y-5" dir="rtl">
@@ -38,6 +38,7 @@
                 <span wire:key="reminder-due-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[var(--md-sys-color-error)] animate-pulse"></span>
             @endif
             <x-ui.modals.tooltip text="یادآوری‌ها" :position="$tooltipPosition"/>
+            <span wire:key="reminder-due-sync-{{ $this->dueCount }}" x-init="$dispatch('reminder-due', { count: {{ (int) $this->dueCount }} })" class="hidden"></span>
         </button>
     @endif
 

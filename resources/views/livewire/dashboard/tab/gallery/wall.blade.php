@@ -21,7 +21,7 @@
                  x-show="!month || month === @js($monthKey)"
                  class="mb-4 break-inside-avoid relative group/wall rounded-2xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm bg-[var(--md-sys-color-surface)] ring-1 ring-transparent hover:ring-[var(--md-sys-color-primary)]/30 transition-all duration-300">
                 @if($lead)
-                    <a href="{{ $lead }}" data-fancybox="gallery-{{ $photo->id }}" class="block relative overflow-hidden">
+                    <a href="{{ $lead }}" data-fancybox="gallery-wall-{{ $photo->id }}" class="block relative overflow-hidden">
                         <img src="{{ $lead }}" alt="{{ $photo->title }}" class="w-full h-auto object-cover transition-transform duration-500 group-hover/wall:scale-105" loading="lazy">
                         @if($extraCount > 1)
                             <span class="absolute top-2 left-2 z-10 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--md-sys-color-surface)]/90 text-[var(--md-sys-color-on-surface-variant)] text-[10px] font-bold shadow-sm backdrop-blur">
@@ -34,7 +34,7 @@
                         @endif
                     </a>
                     @foreach($rest as $url)
-                        <a href="{{ $url }}" data-fancybox="gallery-{{ $photo->id }}" class="hidden"></a>
+                        <a href="{{ $url }}" data-fancybox="gallery-wall-{{ $photo->id }}" class="hidden"></a>
                     @endforeach
                 @else
                     <div class="w-full aspect-square flex items-center justify-center bg-[var(--md-sys-color-surface-variant)]/40">

@@ -1,3 +1,4 @@
+@use('App\Enums\ResourceType')
 <div
     class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
    
@@ -13,6 +14,7 @@
             :count="count($this->resources)"
             countLabel="مورد">
             <x-slot:actions>
+                <x-ui.buttons.form variant="ghost" icon="groups" wire:click="openDaily" title="رزروهای همکاران" aria-label="رزروهای همکاران" class="!h-8 !w-8 !p-0 !rounded-lg" />
                 <x-ui.buttons.view-toggle
                     responsive
                     state="view"
@@ -37,52 +39,10 @@
             @include('livewire.dashboard.reservation.legend')
         </x-ui.modals.dialog>
 
+        @include('livewire.dashboard.reservation.daily')
+
         @include('components.dashboard.header.focus-chip', ['open' => $deckOnly ? null : $open])
 
-
-        @if($this->activeLimitUsage !== null || $this->cancelLimitUsage !== null)
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 animate-slide-up-fade">
-        @if($this->activeLimitUsage !== null)
-            @php($usage = $this->activeLimitUsage)
-            @php($pct = $usage['max'] > 0 ? min(100, (int) round($usage['count'] * 100 / $usage['max'])) : 100)
-            <div wire:key="reservation-limit-usage">
-                <div class="flex items-center gap-2 mb-1.5">
-                    <span
-                        class="material-symbols-rounded text-[16px] {{ $usage['near'] ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">stacks</span>
-                    <span
-                        class="text-[11px] font-semibold {{ $usage['near'] ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">
-                        رزروهای فعال این ماه: {{ convertToPersian((string) $usage['count']) }} / {{ convertToPersian((string) $usage['max']) }}
-                    </span>
-                </div>
-                <div class="h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden">
-                    <div
-                        class="h-full rounded-full transition-all duration-500 {{ $usage['near'] ? 'bg-[var(--md-sys-color-error)]' : 'bg-[var(--md-sys-color-primary)]' }}"
-                        style="width: {{ $pct }}%"></div>
-                </div>
-            </div>
-        @endif
-
-        @if($this->cancelLimitUsage !== null)
-            @php($cancelUsage = $this->cancelLimitUsage)
-            @php($cancelPct = $cancelUsage['max'] > 0 ? min(100, (int) round($cancelUsage['count'] * 100 / $cancelUsage['max'])) : 100)
-            <div wire:key="reservation-cancel-usage">
-                <div class="flex items-center gap-2 mb-1.5">
-                    <span
-                        class="material-symbols-rounded text-[16px] {{ $cancelUsage['blocked'] ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">event_busy</span>
-                    <span
-                        class="text-[11px] font-semibold {{ $cancelUsage['blocked'] ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">
-                        لغوهای این ماه: {{ convertToPersian((string) $cancelUsage['count']) }} / {{ convertToPersian((string) $cancelUsage['max']) }}
-                    </span>
-                </div>
-                <div class="h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden">
-                    <div
-                        class="h-full rounded-full transition-all duration-500 {{ $cancelUsage['blocked'] ? 'bg-[var(--md-sys-color-error)]' : 'bg-[var(--md-sys-color-primary)]' }}"
-                        style="width: {{ $cancelPct }}%"></div>
-                </div>
-            </div>
-        @endif
-        </div>
-        @endif
 
         @if($view === 'avantgarde')
             <div wire:key="reservation-view-avantgarde" class="contents">
@@ -90,6 +50,12 @@
             </div>
         @else
             <div wire:key="reservation-view-classic" class="contents">
+                @if(empty($tabs))
+                    <div wire:key="reservation-classic-no-permission" class="contents">
+                        <x-ui.empty icon="lock" title="دسترسی رزرو ندارید" description="مجوز رزرو هیچ نوع منبعی برای شما فعال نشده است. با مدیر سیستم تماس بگیرید." variant="list" />
+                    </div>
+                @else
+                <div wire:key="reservation-classic-booking" class="contents">
                 <div class="w-fit mx-auto md:mx-0 z-1">
                     <x-ui.buttons.tab-selector
                         :active-tab="$activeTab"
@@ -98,12 +64,22 @@
                     />
                 </div>
 
+                @include('livewire.dashboard.reservation.limits')
+                @include('livewire.dashboard.reservation.rules')
+
+                <div class="lg:hidden mb-4">
+                    <x-ui.buttons.form variant="ghost" icon="history" x-on:click="document.getElementById('reservation-history')?.scrollIntoView({ behavior: 'smooth', block: 'start' })" class="!h-8 !px-2 text-[11px] font-bold">
+                        رفتن به تاریخچه من
+                        <span class="material-symbols-rounded text-[16px]">arrow_downward</span>
+                    </x-ui.buttons.form>
+                </div>
+
                 <div class="mb-6 animate-slide-up-fade">
                     @include('livewire.dashboard.reservation.date')
                 </div>
 
                 <div class="mb-8 animate-slide-up-fade flex flex-col gap-6">
-                    @includeWhen(!(\App\Enums\ResourceType::tryFrom($activeTab)?->isFullDay() ?? true), 'livewire.dashboard.reservation.time')
+                    @includeWhen(!(ResourceType::tryFrom($activeTab)?->isFullDay() ?? true), 'livewire.dashboard.reservation.time')
 
                     @if(count($this->facets) > 0)
                         <div wire:key="resv-facets-panel-classic" class="contents">
@@ -126,14 +102,16 @@
                 <div class="mb-8">
                     <div class="w-full h-px bg-[var(--md-sys-color-outline-variant)]" style="opacity: 0.3;"></div>
                 </div>
+                </div>
+                @endif
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12 w-full items-start">
                     <div class="lg:col-span-8 space-y-6 animate-slide-up-fade min-w-0"
                          style="animation-delay: 0.25s;">
-                        @include('livewire.dashboard.reservation.cards')
+                        @includeWhen(! empty($tabs), 'livewire.dashboard.reservation.cards')
                     </div>
 
-                    <div class="lg:col-span-4 min-w-0 h-full">
+                    <div id="reservation-history" class="lg:col-span-4 min-w-0 h-full scroll-mt-20">
                         @include('livewire.dashboard.reservation.history')
                     </div>
                 </div>

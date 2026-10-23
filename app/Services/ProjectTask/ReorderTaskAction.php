@@ -12,7 +12,7 @@ class ReorderTaskAction
 {
     public function execute(Task $task, ?int $beforeTaskId, ?string $targetStatus = null): bool
     {
-        abort_unless($task->can_change_status && !$task->ticket_id, 403);
+        abort_unless($task->can_change_status && !$task->ticket_id && !$task->isFrozenFor(auth()->user()), 403);
 
         $status = ($targetStatus && TaskStatus::tryFrom($targetStatus)) ? $targetStatus : $task->status;
 

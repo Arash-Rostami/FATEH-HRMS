@@ -33,7 +33,7 @@
                 </div>
                 <div class="flex flex-col min-w-0">
                     <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">انجام‌شده</span>
-                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] ">{{ convertToPersian((int) ($summary['done'] ?? 0)) }} <span class="text-xs font-normal opacity-70">({{ convertToPersian((int) round($summary['percent'] ?? 0)) }}٪)</span></span>
+                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] ">{{ convertToPersian((int) ($summary['done'] ?? 0)) }} <span class="text-xs font-normal opacity-70">({{ convertToPersian((int) floor($summary['percent'] ?? 0)) }}٪)</span></span>
                 </div>
             </div>
 

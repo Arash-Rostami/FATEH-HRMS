@@ -32,10 +32,10 @@ class TasksheetPresenter
         $sc = $report['scorecard'];
 
         $tiles = [
-            ['icon' => 'task_alt', 'label' => 'تکمیل‌شده', 'value' => convertToPersian($sc['completed']['value']), 'chip' => $this->deltaChip($sc['completed']['value'], $sc['completed']['previous']), 'ring' => null, 'spark' => $this->spark($sc['completed']['previous'], $sc['completed']['value'])],
+            ['icon' => 'task_alt', 'label' => 'تکمیل‌شده', 'value' => convertToPersian($sc['completed']['value']), 'chip' => $this->deltaChip($sc['completed']['value'], $sc['completed']['previous'], ''), 'ring' => null, 'spark' => $this->spark($sc['completed']['previous'], $sc['completed']['value'])],
             ['icon' => 'speed', 'label' => 'به‌موقع بودن', 'value' => $sc['on_time_percent']['value'] !== null ? convertToPersian($sc['on_time_percent']['value']) . '٪' : '—', 'chip' => $this->pointsChip($this->deltaChip($sc['on_time_percent']['value'], $sc['on_time_percent']['previous']), $sc['on_time_percent']['delta_percent']), 'ring' => $sc['on_time_percent']['value'], 'spark' => $this->spark($sc['on_time_percent']['previous'], $sc['on_time_percent']['value'])],
-            ['icon' => 'schedule', 'label' => 'میانهٔ زمان انجام', 'value' => $sc['cycle_time_days']['median'] !== null ? convertToPersian(number_format($sc['cycle_time_days']['median'], 1)) . ' روز' : '—', 'chip' => $this->deltaChip($sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median']), 'ring' => null, 'spark' => $this->spark($sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['median'])],
-            ['icon' => 'verified', 'label' => 'تأییدیهٔ دریافتی', 'value' => convertToPersian($sc['approvals_received']['value']), 'chip' => $this->deltaChip($sc['approvals_received']['value'], $sc['approvals_received']['previous']), 'ring' => null, 'spark' => $this->spark($sc['approvals_received']['previous'], $sc['approvals_received']['value'])],
+            ['icon' => 'schedule', 'label' => 'میانهٔ زمان انجام', 'value' => $sc['cycle_time_days']['median'] !== null ? convertToPersian(number_format($sc['cycle_time_days']['median'], 1)) . ' روز' : '—', 'chip' => $this->deltaChip($sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median'], ' روز', true), 'ring' => null, 'spark' => $this->spark($sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['median'])],
+            ['icon' => 'verified', 'label' => 'تأییدیهٔ دریافتی', 'value' => convertToPersian($sc['approvals_received']['value']), 'chip' => $this->deltaChip($sc['approvals_received']['value'], $sc['approvals_received']['previous'], ''), 'ring' => null, 'spark' => $this->spark($sc['approvals_received']['previous'], $sc['approvals_received']['value'])],
         ];
 
         $plainTiles = [
@@ -101,7 +101,7 @@ class TasksheetPresenter
         return 'بازهٔ ' . toJalali($start, $sameYear ? 'j F' : 'j F Y') . ' تا ' . toJalali($end, 'j F Y');
     }
 
-    public function deltaChip(?float $current, ?float $previous, string $suffix = '%'): ?array
+    public function deltaChip(?float $current, ?float $previous, string $suffix = '%', bool $lowerIsBetter = false): ?array
     {
         if ($current === null || $previous === null) {
             return null;
@@ -117,6 +117,11 @@ class TasksheetPresenter
 
         return [
             'direction' => $direction,
+            'tone' => match (true) {
+                $direction === 'flat' => 'flat',
+                ($direction === 'up') !== $lowerIsBetter => 'good',
+                default => 'bad',
+            },
             'text' => 'قبلی: ' . $this->formatNumber($previous) . $suffix,
             'icon' => match ($direction) {
                 'up' => 'trending_up',

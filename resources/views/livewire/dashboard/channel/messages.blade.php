@@ -47,7 +47,7 @@
     </div>
 </div>
 <div id="msg-viewport"
-     class="flex flex-col flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
+     class="no-anchor flex flex-col flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
      x-bind:class="{
          'bg-[var(--md-sys-color-primary-container)]/20': isHighlighted,
          'bg-[var(--md-sys-color-surface)]': !isHighlighted
@@ -61,6 +61,7 @@
         <x-ui.buttons.load-more
             action="loadOlder"
             island="messages"
+            :keep-place="true"
             text="پیام‌های قدیمی‌تر"
             loadingText="..."
             icon="expand_less"
