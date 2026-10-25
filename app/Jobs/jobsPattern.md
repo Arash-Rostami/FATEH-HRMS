@@ -1,6 +1,6 @@
 # `app/Jobs` — queued reconcile/sync jobs
 
-Five jobs, all `ShouldQueue`, `tries = 3`, `backoff = [10, 30]`, queue = redis (Horizon). Rule: a job is a thin wrapper around a Service/Model method; it holds no business rules and re-finds its model by id (a missing row is a silent no-op).
+Five jobs, all `ShouldQueue`, `tries = 3`, `backoff = [10, 30]`, plain `queue:work` workers (the queue connection is env-dependent — `.env.example` ships `database`, production uses redis). Rule: a job is a thin wrapper around a Service/Model method; it holds no business rules and re-finds its model by id (a missing row is a silent no-op).
 
 | Job | Dispatched from | Notes |
 |---|---|---|
@@ -11,7 +11,7 @@ Five jobs, all `ShouldQueue`, `tries = 3`, `backoff = [10, 30]`, queue = redis (
 | `LogMissingSkillJob` | Skills directory | Unchanged. |
 
 Gotchas
-- `ReconcileNudge::handle` wraps `NudgeService::reconcile` in `DB::transaction(..., 3)` (2026-10-23): the hourly sweeps queue a burst, and two workers' `delete from notifications where data->menu_key/item_id` (JSON filter, no index) deadlocked (MySQL 1213) once per hour, costing a 10 s backoff retry. `transaction()`'s attempts arg retries a deadlock instantly. Keep it on any job whose body deletes by a JSON path.
+- **`ReconcileNudge::handle` wraps `NudgeService::reconcile` in `DB::transaction(..., 3)` (restored 2026-10-25 — the 2026-10-23 version was lost uncommitted).** The hourly sweeps queue a burst, and two workers' `delete from notifications where data->menu_key/item_id` (JSON filter, no index) deadlocked (MySQL 1213) once per hour, costing a 10 s backoff retry; `transaction()`'s attempts arg retries a deadlock instantly. Keep it on any job whose body deletes by a JSON path.
 - Dispatch raw/bulk-written changes yourself: `DB::table`/query `update` fires no model event, so no job runs (the overhaul replaced those with per-model updates; the nightly `ArchiveStaleDoneTasks` bumps the `Task` cache version explicitly).
 - `afterCommit` jobs dispatched with `dispatch(...)->afterCommit()` outside a transaction run immediately — safe either way.
-- Horizon keeps code in memory: after changing a job or a nudge class run `supervisorctl restart horizon-*`, not just an FPM reload.
+- Queue workers keep code in memory: after changing a job or a nudge class run `php artisan queue:restart`, not just an FPM reload.

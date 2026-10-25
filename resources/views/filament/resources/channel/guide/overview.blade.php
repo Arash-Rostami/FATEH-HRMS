@@ -45,7 +45,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                با فیلتر «در آستانه حذف خودکار» می‌توانید گروه‌هایی که تا حذف دائمی کمتر از {{ convertToPersian('10') }} روز مانده را ببینید و در صورت نیاز بازگردانید.
+                با فیلتر «در آستانه حذف خودکار» می‌توانید گروه‌هایی که موعد حذف دائمی‌شان ({{ convertToPersian('30') }} روز پس از حذف نرم) فرا رسیده را ببینید و در صورت نیاز بازگردانید.
             </p>
         </div>
     </div>

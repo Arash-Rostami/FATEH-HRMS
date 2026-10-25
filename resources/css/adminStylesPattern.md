@@ -10,13 +10,16 @@
 ---
 
 ## 2. Directory & Theming Pipeline
-gi
+
 ```
 resources/css/core/
 ├── filament.css
 ├── notification.css
 ├── theme.css
-└── animation.css
+├── animation.css
+├── ambient.css
+├── color.css
+└── dashboard.css
 ```
 
 `filament.css` is the engine (Filament overrides and token mapping). `notification.css` is the overlay (customizing Filament's isolated notification UI). `theme.css` and `animation.css` are inherited from the User Panel.
@@ -29,6 +32,8 @@ resources/css/core/
 @import "./theme.css";
 @import "./animation.css";
 ```
+
+(the snippet above is the Filament-relevant middle of the file — `filament.css` also imports `swiper-bundle`, `tailwindcss` and `material-symbols` around those three lines)
 
 ---
 

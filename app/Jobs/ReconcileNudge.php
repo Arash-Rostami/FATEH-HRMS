@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 
 class ReconcileNudge implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
@@ -33,6 +34,9 @@ class ReconcileNudge implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
     public function handle(): void
     {
-        NudgeService::reconcile($this->ruleKey, $this->subjectClass, $this->subjectId);
+        DB::transaction(
+            fn () => NudgeService::reconcile($this->ruleKey, $this->subjectClass, $this->subjectId),
+            3,
+        );
     }
 }

@@ -52,7 +52,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما در این صفحه: نظارت، لغو، آزادسازی و خروجی</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر ردیف در جدول یک رزرو است. شش دکمهٔ عملیات روی هر ردیف موجود است (پس از سلول‌ها). جستجوی سراسری پنل نیز رزروها را با نام کاربر یا نام منبع پیدا می‌کند و مستقیم به ویرایش می‌رود.
+        هر ردیف در جدول یک رزرو است. پنج دکمهٔ عملیات روی هر ردیف موجود است (پس از سلول‌ها)؛ خروجی اکسل از منوی گروهی است. جستجوی سراسری پنل نیز رزروها را با نام کاربر یا نام منبع پیدا می‌کند و مستقیم به ویرایش می‌رود.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

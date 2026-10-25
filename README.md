@@ -15,7 +15,7 @@ Access is role-scoped via Filament policies and per-module permissions.
 
 ### Highlights & Features
 
-- **23 self-contained modules**, each independently deployable and configurable.
+- **30 self-contained modules**, each independently deployable and configurable.
 - **Dual panel** sharing one registry — add/reorder a module in `config/modules.php` once; it appears in both.
 - **Command palette** + **deep-linking** (`FocusOnRecord`) for keyboard-driven nav and URL-pinned records.
 - **Global + individual search** — boolean full-text where supported, scoped per module.
@@ -31,26 +31,25 @@ Access is role-scoped via Filament policies and per-module permissions.
 | Backend | PHP 8.2+, Laravel 12, Laravel Fortify (auth) |
 | Admin panel | Filament v5 |
 | User panel | Livewire 4.1 (islands, `wire:navigate`) |
-| Database | MySQL 5.7+ / 8.0 (SQLite for quick local dev) |
+| Database | MySQL 8.0 (required — SQLite is not supported: migrations use MySQL collations and `JSON_LENGTH` columns) |
 | Frontend | Tailwind CSS 4, Vite 7, Alpine.js, Material Symbols |
 | Media/UI | Fancybox 6 (lightbox), Swiper 12 (carousels) |
 | Calendar | morilog/jalali 3 (Jalali date helpers) |
 | PWA | vite-plugin-pwa + Workbox 7 |
 | Testing | PHPUnit 11, Faker, Mockery |
 
-## Modules (23)
+## Modules (30)
 
 Canonical titles (Persian), icons, and descriptions live in `config/modules.php`; both panels iterate it via `moduleMeta()` and `moduleFilamentIcons()`.
 
 | Category | Modules |
 |---|---|
 | Content & Communications | Announcements (`announce`), Feed (`feed`), Calendar (`calendar`), Gallery (`gallery`) |
-| Organizational Knowledge | Reports (`reports`), Links (`links`), FAQ (`faq`) |
-| Human Resources | Profile (`profile`), Onboarding (`onboarding`), Documents (`documents`), Credentials (`credentials`), Job Ads (`ads`) |
-| Processes & Decisions | Suggestions (`suggestion`), Task Board (`taskboard`), DMS (`dms`), Tickets (`ths`) |
+| Organizational Knowledge | Reports (`reports`), Links (`links`), FAQ (`faq`), Notification Guide (`notification-guide`) |
+| Human Resources | Profile (`profile`), Status (`status`), Skills (`skills`), Onboarding (`onboarding`), Documents (`documents`), Credentials (`credentials`), Job Ads (`ads`), Analytics (`analytics`) |
+| Processes & Decisions | Suggestions (`suggestion`), Task Board (`taskboard`), Projects (`projects`), Tasksheet (`tasksheet`), Authorities (`authority`), DMS (`dms`), Tickets (`ths`) |
 | Operations | Reservations (`reservation`), Messenger (`contact`), Channels (`channel`), Energy (`energy`) |
-| Governance | Authorities (`auth`) |
-| Welfare & Tools | Live Radio (`radio`), Other Tools (`others`) |
+| Welfare & Tools | Reminders (`reminder`), AI Assistant (`ai-assistant`), Other Tools (`others`) |
 
 ## Architecture
 
@@ -68,30 +67,154 @@ resources/{views,css,js}/  Blade, Tailwind, Alpine components
 
 ## Requirements
 
-PHP **8.2+** with standard Laravel extensions (mbstring, openssl, pdo, tokenizer, xml, ctype, json, bcmath, fileinfo); **MySQL 5.7+ / 8.0** recommended (SQLite works for a quick local run); **Node 18+** and **npm**; writable `storage/` and `bootstrap/cache/`.
+PHP **8.2+** (extensions: mbstring, openssl, pdo_mysql, tokenizer, xml, ctype, json, bcmath, fileinfo, curl, zip, gd, intl); **Composer 2**; **MySQL 8.0** (the setup below runs it in Docker); **Node 20.19+** and **npm**; **Git**. Redis is **not** needed — sessions, cache, and queue use the `database` driver.
 
 ## Installation
 
+Four stages: **1.** install tools, **2.** start MySQL, **3.** install the app, **4.** run it. Paste each block top to bottom. Linux and macOS use a bash/zsh terminal; Windows uses **PowerShell** (open a new window after installing tools so `PATH` refreshes).
+
+### 1. Install tools (once per machine)
+
+**Ubuntu 22.04 / 24.04**
+
 ```bash
-composer install
+sudo apt update
+sudo apt install -y software-properties-common curl unzip git ca-certificates
+sudo add-apt-repository -y ppa:ondrej/php
+sudo apt update
+sudo apt install -y php8.2-cli php8.2-mbstring php8.2-xml php8.2-curl php8.2-zip php8.2-gd php8.2-intl php8.2-bcmath php8.2-mysql
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+curl -fsSL https://get.docker.com | sudo sh
+```
+
+**macOS** (Homebrew from https://brew.sh required)
+
+```bash
+brew install php@8.2 composer node@20 git
+brew link php@8.2 --force --overwrite
+brew link node@20 --force --overwrite
+brew install --cask docker
+open -a Docker
+```
+
+**Windows** (PowerShell)
+
+```powershell
+winget install -e --id Git.Git
+winget install -e --id PHP.PHP.8.2
+winget install -e --id Composer.Composer
+winget install -e --id OpenJS.NodeJS.LTS
+winget install -e --id Docker.DockerDesktop
+```
+
+Open a **new** PowerShell window, start Docker Desktop once, then enable the PHP extensions:
+
+```powershell
+$php = Split-Path (Get-Command php).Source
+Copy-Item "$php\php.ini-development" "$php\php.ini" -ErrorAction SilentlyContinue
+(Get-Content "$php\php.ini") -replace '^;(extension_dir = "ext")$','$1' -replace '^;(extension=(curl|fileinfo|gd|intl|mbstring|openssl|pdo_mysql|zip|bcmath))$','$1' | Set-Content "$php\php.ini"
+php -v
+node -v
+```
+
+Check: `php -v` shows 8.2+ and `node -v` shows 20.19+ (all OS).
+
+> ⚠️ **Windows flag — Horizon:** `laravel/horizon` requires `ext-pcntl` and `ext-posix`, which do not exist on Windows PHP. The app does **not** use Horizon locally (no Redis), so Windows installs skip that check with `--ignore-platform-req` (already in the Windows command below). Linux/macOS install normally.
+
+### 2. Start MySQL 8 (Docker — identical on every OS)
+
+Linux (prefix with `sudo`; on macOS/Windows plain `docker`):
+
+```bash
+sudo docker run -d --name fateh-mysql --restart unless-stopped -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=fateh -p 3306:3306 mysql:8.0
+until sudo docker exec fateh-mysql mysqladmin ping -h127.0.0.1 -psecret --silent 2>/dev/null; do sleep 2; done
+```
+
+macOS:
+
+```bash
+docker run -d --name fateh-mysql --restart unless-stopped -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=fateh -p 3306:3306 mysql:8.0
+until docker exec fateh-mysql mysqladmin ping -h127.0.0.1 -psecret --silent 2>/dev/null; do sleep 2; done
+```
+
+Windows (PowerShell):
+
+```powershell
+docker run -d --name fateh-mysql --restart unless-stopped -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=fateh -p 3306:3306 mysql:8.0
+do { Start-Sleep 2; docker exec fateh-mysql mysqladmin ping -h127.0.0.1 -psecret --silent 2>$null } while ($LASTEXITCODE -ne 0)
+```
+
+The command returns once MySQL accepts connections. Already have MySQL 8 natively? Skip this stage, create a `fateh` database, and edit `DB_*` in `.env` after step 3's first line.
+
+### 3. Install the app
+
+Linux / macOS:
+
+```bash
+git clone <repository-url> fateh
+cd fateh
 cp .env.example .env
+composer install
 php artisan key:generate
-php artisan migrate --seed
+php artisan migrate --seed --force
+php artisan storage:link --force
 npm install
 npm run build
+php artisan tinker --execute="App\Models\User::factory()->create(['name'=>'Admin','email'=>'admin@example.com','role'=>'developer']);"
 ```
 
-Edit `.env` first: `DB_*`, `APP_URL`, and brand keys (consumed by `config/app.php`); use `npm run dev` for HMR. One-shot alternative:
+Windows (PowerShell):
+
+```powershell
+git clone <repository-url> fateh
+cd fateh
+Copy-Item .env.example .env
+composer install --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix
+php artisan key:generate
+php artisan migrate --seed --force
+php artisan storage:link --force
+npm install
+npm run build
+php artisan tinker --execute="App\Models\User::factory()->create(['name'=>'Admin','email'=>'admin@example.com','role'=>'developer']);"
+```
+
+Seeding creates ~50 demo users and sample data for every module (takes about a minute). The last line creates your login: **`admin@example.com` / `password`**.
+
+### 4. Run
 
 ```bash
-composer setup
+php artisan serve
 ```
+
+Open **http://127.0.0.1:8000/login** (employee panel) or **http://127.0.0.1:8000/admin** (admin panel) and sign in with `admin@example.com` / `password`. The `developer` role sees every admin module. Seeded demo users also use the password `password`.
+
+Optional, each in its own terminal: `php artisan queue:work` (background jobs), `php artisan schedule:work` (hourly/daily sweeps), `npm run dev` (Vite HMR — replaces the `npm run build` assets).
+
+> `composer dev` runs server + queue + `pail` + Vite in one terminal, but `pail` needs `ext-pcntl`, so use it on Linux/macOS only; on Windows start the processes above separately.
+
+### Reset / stop
+
+```bash
+php artisan migrate:fresh --seed --force
+```
+
+Stop MySQL with `docker stop fateh-mysql` (Linux: `sudo docker stop fateh-mysql`); data persists until `docker rm -v fateh-mysql`.
+
+### Troubleshooting
+
+- `could not find driver` → the `pdo_mysql` PHP extension is disabled (Windows: rerun the `php.ini` block).
+- `Connection refused` on migrate → MySQL is still starting; rerun the wait loop from stage 2.
+- Blank page / missing CSS → run `npm run build`.
+- Login says the account is inactive → only `status = active` users can sign in (the factory default).
 
 ## Available Commands
 
 | Command | Purpose |
 |---|---|
-| `composer dev` | Run server + queue worker + log tail (`pail`) + Vite concurrently |
+| `composer dev` | Run server + queue worker + log tail (`pail`) + Vite concurrently (Linux/macOS only — `pail` needs `pcntl`) |
 | `php artisan serve` | Start the dev server |
 | `npm run dev` | Vite dev server with HMR |
 | `npm run build` | Production Vite build (+ PWA service worker) |
@@ -109,6 +232,8 @@ APP_NAME=...  APP_ENV=local  APP_URL=http://localhost
 DB_CONNECTION=mysql  DB_HOST=127.0.0.1  DB_DATABASE=...
 SESSION_DRIVER=database  QUEUE_CONNECTION=database  CACHE_STORE=database  MAIL_MAILER=log
 ```
+
+`.env.example` already ships the local MySQL (Docker) values above. For production switch the three drivers to `redis` only if a Redis server and `ext-redis` are present.
 
 - **`config/modules.php`** — the module registry (id, icon, title, category, descriptions + an optional `nav` mapping: `type` tab/route/url, `target`, with optional `key`/`title`/`icon` overrides for the compact workspace face). Edit to add/reorder modules; both panels pick it up automatically, and entries carrying `nav` automatically appear in the user-panel home surfaces (quick-access launchpad + hero gadget picker) via `TabPresenter::shortcuts()`.
 - **`config/app.php`** — env-driven brand keys (name, company/organization, slogan, logo, version, support) consumed across Blade views.

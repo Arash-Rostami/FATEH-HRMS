@@ -15,10 +15,13 @@ A futuristic, ultra-modern (2026-era) Enterprise HRMS — moving away from flat 
 resources/css/core/
 ├── theme.css
 ├── dashboard.css
-└── animation.css
+├── animation.css
+├── color.css
+├── notification.css
+└── ambient.css
 ```
 
-`theme.css` is the brain (MD3 tokens, custom palettes, base resets). `dashboard.css` is the body (widget layouts, modals, forms, scrollbars). `animation.css` is the motion (staggered entrances, micro-interactions).
+`theme.css` is the brain (MD3 tokens, custom palettes, base resets). `dashboard.css` is the body (widget layouts, modals, forms, scrollbars). `animation.css` is the motion (staggered entrances, micro-interactions). The remaining three, all imported from `resources/css/app.css`: `color.css` (rich-color spans), `notification.css` (Filament notification overlay styling), `ambient.css` (ambient-effect layers). `filament.css` is the admin-panel entry (see `adminStylesPattern.md`).
 
 ---
 

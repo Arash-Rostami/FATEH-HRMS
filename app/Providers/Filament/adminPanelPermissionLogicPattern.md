@@ -102,7 +102,7 @@ flushes the per-user permission cache on `saved`/`deleted`.
 
 ## Resource-level gating (`AuthorizesByPermission` trait)
 
-All 28 resources in `app/Filament/Resources/*Resource.php` `use AuthorizesByPermission`.
+All 30 resources in `app/Filament/Resources/*Resource.php` `use AuthorizesByPermission`.
 The trait maps every Filament authorization method to `permits($action)` in **two layers**:
 
 - `canViewAny / canView / canCreate / canEdit / canDelete / canRestore / canForceDelete …`
@@ -203,13 +203,13 @@ Regular admin with `abilities=[authority]`:
 \App\Models\User::find(5)->permits('authority', 'view');
 ```
 
-Exclusion rule bounds (28 modules → max 5 = `floor(0.20 × 28)`):
+Exclusion rule bounds (30 modules → max 6 = `floor(0.20 × 30)`):
 
 ```php
 $fail = fn(string $m) => throw new \RuntimeException($m);
 (new \App\Rules\SuperAdminExclusion())->validate('x', [], $fail);
-(new \App\Rules\SuperAdminExclusion())->validate('x', range(1, 5), $fail);
 (new \App\Rules\SuperAdminExclusion())->validate('x', range(1, 6), $fail);
+(new \App\Rules\SuperAdminExclusion())->validate('x', range(1, 7), $fail);
 ```
 
 ## Things that are intentionally NOT touched

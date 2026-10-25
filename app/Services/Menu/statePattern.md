@@ -1293,12 +1293,10 @@ documentation at all, and several counts were stale:
   `nudge_overdue_tasks_dispatches_reconcile_for_overdue_tasks_only`) as the ground-truth cross-check
   before writing the above — no test expectation contradicted anything corrected here.
 
-**Stale count found while making the change below, not yet corrected everywhere:** the catalog now
-holds 22 entries (`MenuServiceTest::test_badge_legend_catalog_grouped_folds_all_entries_into_five_groups`
-already pins 22), not the 17 this doc's own "Counts corrected" bullet above states — `filamentPattern.md`
-and `viewPattern.md` §8.5 likely still say 17 too. Pre-existing drift, unrelated to today's change;
-flagged for a follow-up docs-only pass rather than fixed here to keep this session's diff scoped to the
-actual feature.
+**Stale count found while making the change below — since corrected (docs pass 2026-10-25):** the
+catalog holds 27 entries (`MenuServiceTest::test_badge_legend_catalog_grouped_folds_all_entries_into_five_groups`
+pins 27), not the 17 this doc's own "Counts corrected" bullet above states; the newer `tasksheet`
+subgroup in `compliance` (and its `tasksheet-controller` entry) postdates that bullet too.
 
 ## Notification legend — sub-pill grouping, max 2 items per subgroup (2026-08-30)
 
@@ -1322,7 +1320,7 @@ stays flat with no `subgroups()` entry since it already satisfies max-2 as a pla
 | `tasks` (13 rows → 8 subgroups) | `list` (`tasks-controller`, `tasks-deadline`) · `deadline` (`tasks-controller:due-soon-edge`, `tasks-overdue-nudge`) · `approval` (`tasks-approval-nudge`, `tasks-pending-approval`) · `projects` (`projects-controller`, `projects-controller:edge`) · `workflow` (`workflow:nudge`) · `tickets` (`ths-controller`) · `reminders` (`reminders-controller:due-nudge`, `reminders-controller:due-today-edge`) · `reminders-badge` (`reminders-controller`) |
 | `notifications` (4 rows → 2 subgroups) | `direct` (`posts-controller`, `contacts-controller`) · `channels` (`channels-controller`, `channels-controller:edge`) |
 | `content` (4 rows → 2 subgroups) | `calendar` (`shared-events`, `special-days`) · `media` (`feeds`, `gallery-controller`) |
-| `compliance` (3 rows → 2 subgroups) | `tracking` (`dms-controller`, `energy-controller`) · `reports` (`reports-controller`) |
+| `compliance` (4 rows → 3 subgroups) | `tracking` (`dms-controller`, `energy-controller`) · `reports` (`reports-controller`) · `tasksheet` (`tasksheet-controller`) |
 
 Every catalog row that belongs to a configured group carries a `'subgroup'` key naming which bucket it
 lands in (25 of the 27 rows — every row except `opportunities`'s 2). `grouped()` returns each group with an additional `'subgroups'` key — `[]`
@@ -1349,7 +1347,7 @@ See `viewPattern.md` §8.5 for the full row-shape spec, kept in sync there.
 Tests: `MenuServiceTest.php` (`grouped()` partitions all 4 configured groups generically off
 `subgroups()`'s own keys, every item lands in exactly one subgroup, `opportunities` stays flat, and a
 generic assertion pins **no group or subgroup ever exceeds 2 items** — the actual regression this whole
-section guards), `ProfileTest.php` (the master catalog modal renders all 11 sub-pill labels across the
+section guards), `ProfileTest.php` (the master catalog modal renders 11 of the 15 sub-pill labels across the
 4 configured groups).
 
 ---

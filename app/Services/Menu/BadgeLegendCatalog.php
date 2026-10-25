@@ -236,7 +236,7 @@ class BadgeLegendCatalog
                 'group' => 'compliance', 'subgroup' => 'tasksheet', 'tone' => 'sage', 'icon' => 'assignment_turned_in',
                 'label' => 'گزارش تسک‌شیت به اشتراک گذاشته شد',
                 'lights' => 'وقتی مدیرتان یا خودتان یک گزارش تسک‌شیت را برای کسی ارسال کنید. این مورد دات ندارد، فقط زنگوله.',
-                'clears' => 'با بستن زنگوله؛ دکمهٔ «مشاهده» همان گزارش را در تب جدید باز می‌کند — لینک تا ۱۴ روز معتبر است.',
+                'clears' => 'با بستن زنگوله؛ دکمهٔ «مشاهده» همان گزارش را در تب جدید باز می‌کند — لینک تا ۷ روز معتبر است.',
             ],
             'reminders-controller' => [
                 'group' => 'tasks', 'subgroup' => 'reminders-badge', 'tone' => 'gold', 'icon' => 'notifications_active',
