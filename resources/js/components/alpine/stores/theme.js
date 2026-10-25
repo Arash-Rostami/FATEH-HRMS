@@ -17,6 +17,10 @@ export const THEME_COLORS = [
 ];
 
 export default (Alpine) => {
+    const root = document.documentElement;
+    const live = getComputedStyle(root).getPropertyValue('--md-sys-color-primary').trim();
+    if (live && !root.hasAttribute('data-theme') && !root.classList.contains('dark')) THEME_COLORS[0].color = live;
+
     Alpine.store('appTheme', {
         current: window.ThemeManager ? window.ThemeManager.getUserTheme() : 'default',
         mode: window.ThemeManager ? window.ThemeManager.getUserMode() : 'light',

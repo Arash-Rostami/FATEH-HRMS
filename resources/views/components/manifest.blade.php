@@ -8,8 +8,8 @@
   "orientation": "portrait",
   "dir": "rtl",
   "lang": "fa",
-  "background_color": "#08191e",
-  "theme_color": "#4e5f66",
+  "background_color": @json(config('app.theme_header_bg')),
+  "theme_color": @json(config('app.theme_primary')),
   "icons": [
     {
       "src": @json(asset(config('app.favicon'))),

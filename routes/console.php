@@ -16,11 +16,13 @@ Schedule::command('notifications:prune-stale')
     ->withoutOverlapping();
 
 Schedule::command('tasks:sweep-overdue')
+    ->when(fn () => !tenantOff('taskboard'))
     ->hourly()
     ->between('06:00', '22:00')
     ->withoutOverlapping();
 
 Schedule::command('reminders:sweep-due')
+    ->when(fn () => !tenantOff('reminder'))
     ->hourly()
     ->between('06:00', '22:00')
     ->withoutOverlapping();

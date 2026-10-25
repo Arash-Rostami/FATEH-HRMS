@@ -27,10 +27,13 @@ export default (initialState = false) => ({
 
     toggle() {
         this.enabled = !this.enabled;
+        this.persist(this.enabled);
+        window.location.reload();
+    },
 
-        const value = this.enabled ? '/fa/en' : '';
-        const expiry = this.enabled ? '' : `; expires=${EXPIRY_DATE}`;
-        const lsValue = this.enabled ? 'true' : 'false';
+    persist(on) {
+        const value = on ? '/fa/en' : '';
+        const expiry = on ? '' : `; expires=${EXPIRY_DATE}`;
 
         const domain = location.hostname;
         const baseCookie = `googtrans=${value}${expiry}; path=/`;
@@ -38,8 +41,7 @@ export default (initialState = false) => ({
         document.cookie = `${baseCookie}; domain=${domain}`;
         document.cookie = `${baseCookie}; domain=.${domain}`;
 
-        localStorage.setItem(LS_KEY, lsValue);
-        window.location.reload();
+        localStorage.setItem(LS_KEY, on ? 'true' : 'false');
     },
 
     loadGoogleScript() {
@@ -63,6 +65,13 @@ export default (initialState = false) => ({
         script.id = SCRIPT_ID;
         script.type = 'text/javascript';
         script.src = SCRIPT_URL;
+        script.onerror = () => {
+            script.remove();
+            this.enabled = false;
+            this.persist(false);
+            this.$dispatch('toast', {message: 'ترجمه بدون اینترنت در دسترس نیست.', type: 'warning'});
+            window.dispatchEvent(new CustomEvent('internet-unreachable'));
+        };
         document.body.appendChild(script);
     },
 

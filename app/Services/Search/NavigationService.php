@@ -18,6 +18,7 @@ class NavigationService
         $tokens = array_values(array_filter(explode(' ', $query)));
 
         return $this->getSearchableItems()
+            ->reject(fn($item) => tenantOff($item['id']) || tenantOff(trim(strtok(Str::after($item['action'], ':'), '?'), '/')) || (str_contains($item['action'], 'tab=') && tenantOffName(Str::before(Str::after($item['action'], 'tab='), '&'))))
             ->map(function ($item) use ($query, $tokens) {
                 $score = 0;
 
@@ -287,7 +288,7 @@ class NavigationService
                 ],
             ],
             [
-                'id' => 'auth',
+                'id' => 'authority',
                 'title' => 'اختیارات',
                 'subtitle' => 'مجوزهای تفویض‌شده توسط مدیرعامل به صورت شفاف',
                 'icon' => 'verified_user',

@@ -259,7 +259,7 @@
                                                 </div>
                                             </div>
                                         @else
-                                            <a wire:key="dms-rendition-link" href="{{ route('secure-file', $doc->file) }}"
+                                            <a wire:key="dms-rendition-link" href="{{ route('dms.file',$doc->file) }}"
                                                target="_blank"
                                                wire:loading.class="pointer-events-none" wire:target="incrementRead"
                                                wire:click="incrementRead({{ $doc->id }})"
@@ -320,14 +320,14 @@
                                         @elseif ($isConfirmed && !$isRead)
                                             @if(str_ends_with(strtolower($doc->file), '.pdf'))
                                                 <button type="button" wire:key="dms-row-open"
-                                                        data-url="{{ route('secure-file', $doc->file) }}"
+                                                        data-url="{{ route('dms.file',$doc->file) }}"
                                                         x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.dataset.url }); confirmAndSend({{ $doc->id }}, @js($doc->file))"
                                                         class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-tertiary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
                                                     <span class="material-symbols-rounded text-[22px]">menu_book</span>
                                                     <span class="text-[11px] font-bold">مشاهده و تایید</span>
                                                 </button>
                                             @else
-                                                <a wire:key="dms-row-open" href="{{ route('secure-file', $doc->file) }}"
+                                                <a wire:key="dms-row-open" href="{{ route('dms.file',$doc->file) }}"
                                                    target="_blank"
                                                    wire:loading.class="pointer-events-none" wire:target="incrementRead"
                                                    wire:click="incrementRead({{ $doc->id }})"
@@ -338,7 +338,7 @@
                                                 </a>
                                             @endif
                                         @else
-                                            <a wire:key="dms-row-reopen" href="{{ route('secure-file', $doc->file) }}"
+                                            <a wire:key="dms-row-reopen" href="{{ route('dms.file',$doc->file) }}"
                                                target="_blank"
                                                wire:loading.class="pointer-events-none" wire:target="incrementRead"
                                                wire:click="incrementRead({{ $doc->id }})"

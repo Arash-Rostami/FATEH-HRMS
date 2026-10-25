@@ -6,24 +6,29 @@ const SENTENCE_MARKS = new Set(['.', '!', '؟', '?']);
 const PAUSE_MARKS = new Set(['،', ',', ';']);
 const CONNECTION_ONLINE = { label: 'متصل', icon: 'wifi' };
 const CONNECTION_OFFLINE = { label: 'آفلاین', icon: 'wifi_off' };
+const CONNECTION_LAN = { label: 'فقط شبکه داخلی', icon: 'lan' };
 
 export default function home(greetingText = '') {
     return {
         full: greetingText,
         displayed: '',
         online: navigator.onLine,
+        lan: false,
         _typeTimeout: null,
         _onlineListener: null,
         _offlineListener: null,
+        _lanListener: null,
 
         init() {
             this.typeGreeting();
 
-            this._onlineListener = () => { this.online = true; };
+            this._onlineListener = () => { this.online = true; this.lan = false; };
             this._offlineListener = () => { this.online = false; };
+            this._lanListener = () => { this.lan = true; };
 
             window.addEventListener('online', this._onlineListener);
             window.addEventListener('offline', this._offlineListener);
+            window.addEventListener('internet-unreachable', this._lanListener);
         },
 
         typeGreeting() {
@@ -64,7 +69,8 @@ export default function home(greetingText = '') {
         },
 
         get connection() {
-            return this.online ? CONNECTION_ONLINE : CONNECTION_OFFLINE;
+            if (!this.online) return CONNECTION_OFFLINE;
+            return this.lan ? CONNECTION_LAN : CONNECTION_ONLINE;
         },
 
         destroy() {
@@ -81,6 +87,11 @@ export default function home(greetingText = '') {
             if (this._offlineListener) {
                 window.removeEventListener('offline', this._offlineListener);
                 this._offlineListener = null;
+            }
+
+            if (this._lanListener) {
+                window.removeEventListener('internet-unreachable', this._lanListener);
+                this._lanListener = null;
             }
         }
     };

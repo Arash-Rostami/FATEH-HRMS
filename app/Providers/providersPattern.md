@@ -21,3 +21,5 @@ A trivial one-liner (no branching, just `$view->with('key', some_call())`) can s
 ## Everything else in `app/Providers/`
 
 The other providers (`AppServiceProvider`, `FilamentServiceProvider`, `FortifyServiceProvider`, `ModelCacheServiceProvider`, `NudgeServiceProvider`, `EdgeServiceProvider`, `Filament/`) are standard Laravel/Filament bootstrapping — package registration, macro definitions, Filament panel config. No project-specific convention beyond normal Laravel service-provider usage; nothing here warrants its own doc section unless a future addition introduces real branching logic the way `ModuleChunkComposer` did.
+
+**One exception — `AppServiceProvider::boot()` carries the tenant module-off route guard (2026-10-24):** `Event::listen(RouteMatched::class, …)` aborts 404 when `tenantOffName()` matches the module slot of the matched route name (or, for `livewire.update`, of each payload component name). It is a listener, not route middleware, because a closure in a route group breaks `route:cache`. See `config/tenantPattern.md` "Module `off` list".

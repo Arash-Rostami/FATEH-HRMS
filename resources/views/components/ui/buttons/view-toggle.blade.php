@@ -2,12 +2,16 @@
     'state' => 'view',
     'action' => 'toggleView',
     'responsive' => false,
+    'module' => null,
     'modes' => [
         ['value' => 'card', 'icon' => 'grid_view', 'title' => 'نمای کارتی'],
         ['value' => 'list', 'icon' => 'view_list', 'title' => 'نمای لیستی'],
     ],
 ])
 
+@php($modes = $module ? array_filter($modes, fn ($mode) => ! tenantOff("{$module}:{$mode['value']}")) : $modes)
+
+@if(count($modes) > 1)
 <div class="{{ $responsive ? 'flex' : 'hidden md:flex' }} bg-[var(--md-sys-color-surface-container-high)] p-0.5 rounded-lg border border-[var(--md-sys-color-outline-variant)]/40">
     @foreach($modes as $mode)
         @php($click = $state . " = '" . $mode['value'] . "'" . ($action ? ";\$wire." . $action . "('" . $mode['value'] . "')" : ''))
@@ -21,3 +25,4 @@
         </button>
     @endforeach
 </div>
+@endif

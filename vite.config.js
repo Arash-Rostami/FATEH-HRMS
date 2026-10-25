@@ -52,6 +52,7 @@ export default defineConfig({
                     src: 'node_modules/material-symbols/material-symbols-rounded.woff2',
                     dest: 'assets/material-symbols'
                 },
+                // {src: 'resources/fallback', dest: '.'},
             ]
         }),
         VitePWA({

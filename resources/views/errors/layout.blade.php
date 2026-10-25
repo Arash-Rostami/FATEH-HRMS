@@ -295,12 +295,20 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-[var(--tool-gold-color)] animate-pulse"></span>
                 <span>وضعیت سرویس: <span class="font-bold text-[var(--md-sys-color-on-surface)]">اختلال عملیاتی</span></span>
             </div>
+            @if(config('app.support.phone') || config('app.support.email'))
             <div class="flex items-center gap-3 flex-wrap justify-center text-[var(--md-sys-color-on-surface-variant)]">
                 <span class="opacity-60">پشتیبانی:</span>
+                @if(config('app.support.phone'))
                 <a href="tel:{{ config('app.support.phone') }}" class="hover:underline transition-colors font-bold ltr text-[var(--md-sys-color-primary)]">{{ convertToPersian(config('app.support.phone')) }}</a>
+                @endif
+                @if(config('app.support.phone') && config('app.support.email'))
                 <span class="opacity-30">|</span>
+                @endif
+                @if(config('app.support.email'))
                 <a href="mailto:{{ config('app.support.email') }}" class="hover:underline transition-colors font-bold ltr text-[var(--md-sys-color-primary)]">{{ config('app.support.email') }}</a>
+                @endif
             </div>
+            @endif
         </div>
     </div>
 

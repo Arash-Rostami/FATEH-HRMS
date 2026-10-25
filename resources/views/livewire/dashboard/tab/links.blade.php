@@ -11,7 +11,7 @@
 
     <x-ui.title icon="open_in_new" title="لینک‌ها و مسیرهای دیجیتال سازمان" :count="$this->totalLinks" countLabel="لینک">
         <x-slot:actions>
-            <x-ui.buttons.view-toggle :modes="$viewModes" />
+            <x-ui.buttons.view-toggle module="links" :modes="$viewModes" />
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'links-legend' })"

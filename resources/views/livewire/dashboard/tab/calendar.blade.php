@@ -10,7 +10,7 @@
     <x-ui.title icon="calendar_month" title="تقویم کاری">
         <x-slot:actions>
             <div class="flex items-center gap-2 flex-wrap justify-end">
-                <x-ui.buttons.view-toggle state="view" :modes="[
+                <x-ui.buttons.view-toggle module="calendar" state="view" :modes="[
                     ['value' => 'month', 'icon' => 'calendar_month', 'title' => 'نمای ماهانه'],
                     ['value' => 'week', 'icon' => 'view_week', 'title' => 'نمای هفتگی'],
                     ['value' => 'day', 'icon' => 'calendar_today', 'title' => 'نمای روزانه'],

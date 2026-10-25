@@ -123,7 +123,7 @@ class ProfilePresenter
 
     public function tabs(): array
     {
-        return [
+        return array_filter([
             'info' => ['label' => 'اطلاعات فردی', 'icon' => 'person', 'sub' => 'مشخصات و تماس', 'title' => 'ویرایش اطلاعات فردی', 'component' => 'dashboard.profile.info', 'key' => 'tab-info', 'lazy' => false],
             'details' => ['label' => 'اطلاعات تکمیلی', 'icon' => 'list_alt', 'sub' => 'سوابق و جزئیات', 'title' => 'اطلاعات تکمیلی پرسنلی', 'component' => 'dashboard.profile.details', 'key' => 'tab-details', 'lazy' => 'on-load'],
             'skills' => ['label' => 'استعدادها', 'icon' => 'military_tech', 'sub' => 'مهارت‌ها و تخصص‌ها', 'title' => 'استعدادها و مهارت‌ها', 'component' => 'dashboard.profile.skills', 'key' => 'tab-skills', 'lazy' => 'on-load', 'isNew' => $this->newBadgeVisible()],
@@ -134,6 +134,6 @@ class ProfilePresenter
             'notifications' => ['label' => 'اعلان‌ها و یادآوری‌ها', 'icon' => 'notifications', 'sub' => 'اعلان‌ها و یادآوری‌های شما', 'title' => 'اعلان‌ها و یادآوری‌های من', 'component' => 'dashboard.profile.notifications', 'key' => 'tab-notifications', 'lazy' => 'on-load'],
             'onboarding' => ['label' => 'آنبوردینگ', 'icon' => 'apartment', 'sub' => 'آشنایی با شرکت', 'title' => 'آنبوردینگ (آشنایی با شرکت)', 'component' => 'dashboard.profile.onboarding', 'key' => 'tab-onboarding', 'lazy' => 'on-load'],
             'settings' => ['label' => 'تنظیمات', 'icon' => 'tune', 'sub' => 'تنظیمات شخصی و تمرکز', 'title' => 'تنظیمات', 'component' => 'dashboard.profile.settings', 'key' => 'tab-settings', 'lazy' => 'on-load'],
-        ];
+        ], fn (string $tab) => !tenantOff($tab === 'tickets' ? 'ths' : $tab), ARRAY_FILTER_USE_KEY);
     }
 }

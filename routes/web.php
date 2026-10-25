@@ -70,11 +70,11 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(Dms::class)->group(function () {
         Route::get('/authorized/{filename}', 'getAuthorizedFile')
             ->where('filename', '.*')
-            ->name('secure-file');
+            ->name('dms.file');
 
         Route::get('/authorized-extra/{filename}', 'getAuthorizedExtraFile')
             ->where('filename', '.*')
-            ->name('secure-extra-file');
+            ->name('dms.extra-file');
     });
 
     Route::view('/coming', 'layouts.toCome')->name('coming');

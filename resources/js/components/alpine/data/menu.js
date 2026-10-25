@@ -499,6 +499,7 @@ export default function menu(options = {}) {
         init() {
             const canAdmin = options.canAdmin === true;
             const disabledTypes = new Set(options.disabledReservationTypes || []);
+            const off = new Set(options.off || []);
             const menuState = options.menuState || {};
 
             const map = this._itemMap;
@@ -507,7 +508,7 @@ export default function menu(options = {}) {
 
             for (let i = 0; i < len; i++) {
                 const item = BASE_ITEMS[i];
-                if (canAdmin || !item.adminOnly) {
+                if ((canAdmin || !item.adminOnly) && !off.has(item.module) && !off.has(item.id.split('-')[0])) {
                     const title = item.title || '';
                     const sub = item.sub || '';
                     const mod = item.module || '';

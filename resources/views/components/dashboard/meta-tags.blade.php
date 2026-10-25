@@ -1,7 +1,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <meta name="language" content="fa">
-<meta name="theme-color" content="#4e5f66">
+<meta name="theme-color" content="{{ config('app.theme_primary') }}">
 <meta name="color-scheme" content="light dark">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="format-detection" content="telephone=no">
@@ -30,7 +30,6 @@
 <meta property="twitter:title" content="{{ config('app.name') }}">
 <meta property="twitter:description" content="{{ config('app.slogan_en') }}">
 
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload"
       href="/build/assets/material-symbols/material-symbols-rounded.woff2"
       as="font" type="font/woff2" crossorigin>

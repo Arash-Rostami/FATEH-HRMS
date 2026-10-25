@@ -91,9 +91,9 @@ class Faqs extends Component
     public function mount(): void
     {
         $view = session('faqs_view_mode', 'list');
-        $this->view = in_array($view, ['card', 'list'], true) ? $view : 'list';
+        $this->view = in_array($view, ['card', 'list'], true) && !tenantOff("faq:{$view}") ? $view : 'list';
 
-        if ($this->open) {
+        if ($this->open && !tenantOff('faq:card')) {
             $this->perPage = max($this->perPage, 50);
             $this->view = 'card';
         }
@@ -101,7 +101,7 @@ class Faqs extends Component
 
     public function toggleView(string $view): void
     {
-        if (!in_array($view, ['card', 'list'], true)) {
+        if (!in_array($view, ['card', 'list'], true) || tenantOff("faq:{$view}")) {
             return;
         }
 

@@ -606,6 +606,10 @@ badge's `attentionRequired` scope already uses — single source of truth, no dr
 Both rely on the **same** `exists()` → leave-it-alone primitive for no-resurface, in pull vs push
 form. Both write rows of the same `type`/`notifiable_type`; only the `menu_key` shape separates them.
 
+## Tenant `off` modules (2026-10-24)
+
+`StateService::get()` drops indicators and `NudgeService::register()` skips rules whose key's module slot is off (`tenantOffName(Str::before($key, ':'))`, a no-op when `app.off` is empty). Edges are filtered at READ time only: `EdgeService::forUser()` rejects rows whose `edge_key` module is off (`tenantOffName($e->edge_key)`), while registration is never skipped because `edges:prune-stale` deletes rows of unregistered rules and would purge data. Stored bell notifications follow the same read-time rule (`UnreadNotifications::getNotifications()` and `computeUnreadCount()` reject off `menu_key` rows; nothing is deleted). Menu state is cached for hours — bump `VERSION_KEY` on deploy. See `config/tenantPattern.md`.
+
 ## Keys & isolation
 
 - Badge keys are **bare** (`ads-controller`). `syncBatch()` filters `whereIn('data->menu_key', $keys)`

@@ -6,6 +6,11 @@ use Filament\Actions\Action;
 
 trait FilamentAdminGuide
 {
+    public static function shouldRegisterNavigation(): bool
+    {
+        return parent::shouldRegisterNavigation() && !tenantOffName(static::getSlug());
+    }
+
     public static function guideTabs(): array
     {
         return property_exists(static::class, 'guide') ? static::$guide : [];

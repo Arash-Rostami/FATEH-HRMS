@@ -16,6 +16,7 @@
             <x-slot:actions>
                 <x-ui.buttons.form variant="ghost" icon="groups" wire:click="openDaily" title="رزروهای همکاران" aria-label="رزروهای همکاران" class="!h-8 !w-8 !p-0 !rounded-lg" />
                 <x-ui.buttons.view-toggle
+                    module="reservation"
                     responsive
                     state="view"
                     action="toggleView"
@@ -44,7 +45,7 @@
         @include('components.dashboard.header.focus-chip', ['open' => $deckOnly ? null : $open])
 
 
-        @if($view === 'avantgarde')
+        @if($view === 'avantgarde' && ! tenantOff('reservation:avantgarde'))
             <div wire:key="reservation-view-avantgarde" class="contents">
                 @include('livewire.dashboard.reservation.avantgarde')
             </div>

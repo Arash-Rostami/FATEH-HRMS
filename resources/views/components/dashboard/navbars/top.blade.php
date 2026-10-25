@@ -5,7 +5,7 @@
 
 @php($navbarIsHome = request()->routeIs('dashboard') && request('tab', 'home') === 'home')
 
-<div x-data='menu({ canAdmin: @json(canAdmin()), disabledReservationTypes: @json(disabledReservationTypes()), menuState: @json($menuState) })'
+<div x-data='menu({ canAdmin: @json(canAdmin()), disabledReservationTypes: @json(disabledReservationTypes()), menuState: @json($menuState)@if(config('app.off')), off: @json(tenantOffKeys())@endif })'
      id="navbar"
      @resize.window="updatePerPage"
      :class="isVisible ? 'translate-y-0' : '-translate-y-[60px] lg:-translate-y-[80px]'"
@@ -80,7 +80,7 @@
                  cur: window.innerWidth < 640 ? 'bell' : 'settings',
                  unread: @js($navHasUnread),
                  due: 0,
-                 order() { const tools = ['settings', 'fullscreen', 'palette', 'presence']; return window.innerWidth < 640 ? ['bell', 'reminder', ...tools] : tools; },
+                 order() { const tools = ['settings', 'fullscreen', 'palette', 'presence']; return window.innerWidth < 640 ? ['bell', @unless(tenantOff('reminder'))'reminder', @endunless...tools] : tools; },
                  next() { const o = this.order(); this.cur = o[(o.indexOf(this.cur) + 1) % o.length]; },
                  cls(name) {
                      const d = this.order().indexOf(name) - this.order().indexOf(this.cur);
@@ -110,6 +110,7 @@
                     <div class="sm:hidden absolute inset-0 flex items-center justify-center transition-all duration-500" :class="cls('bell')">
                         <x-dashboard.navbars.top.notification :lit="$navHasUnread"/>
                     </div>
+                    @unless(tenantOff('reminder'))
                     <div class="sm:hidden absolute inset-0 flex items-center justify-center transition-all duration-500" :class="cls('reminder')">
                         <button type="button" x-on:click="$dispatch('open-reminders')" aria-label="یادآوری‌ها"
                                 class="group relative w-10 h-10 active:scale-95 transition-all duration-200 flex items-center justify-center">
@@ -117,6 +118,7 @@
                             <span x-show="due > 0" x-cloak class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[var(--md-sys-color-error)] animate-pulse"></span>
                         </button>
                     </div>
+                    @endunless
                 @endauth
                 <div class="absolute inset-0 flex items-center justify-center transition-all duration-500" :class="cls('settings')">
                     <livewire:dashboard.navbar.quick-settings/>
@@ -136,9 +138,11 @@
         <div class="flex items-center gap-1 sm:gap-1.5 mr-1 xl:mr-0">
             <div data-declutter-hide class="w-px h-6 bg-[var(--md-sys-color-on-primary)]/15 mx-1 hidden sm:block"></div>
             @auth
+                @unless(tenantOff('reminder'))
                 <div data-declutter-hide class="hidden sm:block">
                     <livewire:dashboard.reminder.main wire:key="reminder-navbar"/>
                 </div>
+                @endunless
             @endauth
             <div class="max-sm:hidden"><x-dashboard.navbars.top.notification :lit="$navHasUnread"/></div>
             <x-dashboard.navbars.top.account/>

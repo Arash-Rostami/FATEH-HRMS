@@ -26,6 +26,7 @@ class ModulesGuideWidget extends Widget
         $icons = $this->moduleFilamentIcons();
 
         return collect(config('modules', []))
+            ->reject(fn (array $module) => tenantOff($module['id'] ?? ''))
             ->map(function (array $module) use ($meta, $icons) {
                 $id = $module['id'] ?? '';
                 return array_merge(
@@ -86,7 +87,6 @@ class ModulesGuideWidget extends Widget
             'contact' => ['filament_icon' => 'heroicon-o-chat-bubble-left-right'],
             'channel' => ['filament_icon' => 'heroicon-o-hashtag'],
             'energy' => ['filament_icon' => 'heroicon-o-bolt'],
-            'auth' => ['filament_icon' => 'heroicon-o-shield-check'],
             'authority' => ['filament_icon' => 'heroicon-o-clipboard-document-check'],
             'reminder' => ['filament_icon' => 'heroicon-o-clock'],
             'ai-assistant' => ['filament_icon' => 'heroicon-o-cpu-chip'],
@@ -125,7 +125,6 @@ class ModulesGuideWidget extends Widget
             'onboarding' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'مسیرهای شروع‌به‌کار را به‌صورت گام‌به‌گام طراحی کنید. با استفاده از ابزار مرتب‌سازی سطرها (Reorder Actions)، اولویت و توالی مراحل را به‌راحتی تنظیم نمایید.'],
             'documents' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'مدارک الزامی کاربران را کنترل کنید. از قابلیت‌های نمایش وضعیت با استفاده از آیکون‌ها و رنگ‌های مختلف (Badge Columns) برای رهگیری سریع تاییدیه اسناد استفاده کنید.'],
             'credentials' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'اطلاعات کاربری و دسترسی‌های سازمانی را با امنیت بالا نگهداری کنید. فیلترهای پیشرفته برای رهگیری تاریخ انقضا و وضعیت اکانت‌های اختصاص‌یافته در دسترس است.'],
-            'auth' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'اختیارات تفویض‌شده را شفاف‌سازی کنید. مدیریت تاریخ‌های اعتبار از طریق فیلترهای زمانی و امکان تمدید گروهی با Bulk Actions تسهیل شده است.'],
             'analytics' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'این ماژول صرفاً نمایشی است و منبع مستقلی در پنل ادمین ندارد. برای تغییر آمار نمایش‌داده‌شده، اطلاعات پروفایل و حساب کاربری پرسنل را در ماژول «وضعیت کاریر» به‌روزرسانی کنید.'],
             'status' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'این ماژول صرفاً نمایشی است و منبع مستقلی در پنل ادمین ندارد. حالت‌های حضور و آیکون‌ها در «PresenceStatus» تعریف شده‌اند؛ برای تغییر فهرست حالت‌ها، آن فهرست را ویرایش کنید.'],
         ];

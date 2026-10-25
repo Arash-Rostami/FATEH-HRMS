@@ -1,10 +1,10 @@
 <div class="space-y-5 animate-[fade-in_0.4s_ease-out]" dir="rtl">
 
     <x-ui.buttons.tab-selector
-        :tabs="[
+        :tabs="array_filter([
             ['id' => 'notifications', 'icon' => 'notifications', 'label' => 'اعلان‌ها'],
-            ['id' => 'reminders', 'icon' => 'alarm', 'label' => 'یادآوری‌ها'],
-        ]"
+            tenantOff('reminder') ? null : ['id' => 'reminders', 'icon' => 'alarm', 'label' => 'یادآوری‌ها'],
+        ])"
         :active-tab="$activeSection"
         class="!mb-0"
     />
@@ -95,7 +95,7 @@
     </div>
     @endif
 
-    @if($activeSection === 'reminders')
+    @if($activeSection === 'reminders' && !tenantOff('reminder'))
     <div wire:key="profile-notifications-section-reminders" class="mt-5">
         <livewire:dashboard.reminder.main variant="embedded" wire:key="profile-reminders"/>
     </div>

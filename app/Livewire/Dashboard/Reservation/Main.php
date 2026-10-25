@@ -756,7 +756,7 @@ class Main extends Component
     public function mount(): void
     {
         $view = session('reservation_view_mode', 'classic');
-        $this->view = in_array($view, self::VIEWS, true) ? $view : 'classic';
+        $this->view = in_array($view, self::VIEWS, true) && ! tenantOff("reservation:{$view}") ? $view : 'classic';
 
         if (!isset(self::HISTORY_TAB_IDS[$this->activeHistoryTab])) {
             $this->activeHistoryTab = 'upcoming';
@@ -854,9 +854,15 @@ class Main extends Component
             : ['groups' => [], 'total' => 0, 'shown' => 0, 'resources' => 0, 'more' => false, 'capped' => false, 'label' => '', 'presets' => []];
     }
 
+    public function updatedView(string $view): void
+    {
+        $this->view = 'classic';
+        $this->toggleView($view);
+    }
+
     public function toggleView(string $view): void
     {
-        if (! in_array($view, self::VIEWS, true)) {
+        if (! in_array($view, self::VIEWS, true) || tenantOff("reservation:{$view}")) {
             return;
         }
 

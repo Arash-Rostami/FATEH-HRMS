@@ -5,7 +5,7 @@
 
     <x-ui.title icon="show_chart" title="گزارشات" :count="$this->totalReports" countLabel="گزارش">
         <x-slot:actions>
-            <x-ui.buttons.view-toggle />
+            <x-ui.buttons.view-toggle module="reports" />
             <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'card'" x-cloak />
 
             <button

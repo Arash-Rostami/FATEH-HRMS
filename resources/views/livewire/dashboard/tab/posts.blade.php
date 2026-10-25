@@ -7,7 +7,7 @@
 >
     <x-ui.title icon="campaign" title="اعلانات‌" :count="$this->totalPosts">
         <x-slot:actions>
-            <x-ui.buttons.view-toggle />
+            <x-ui.buttons.view-toggle module="announce" />
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'posts-badge-legend' })"
@@ -41,23 +41,27 @@
     @include('livewire.dashboard.tab.posts.filters')
 
     <div class="w-full relative flex flex-col gap-6 lg:flex-1 lg:overflow-hidden">
-        <div x-show="view === 'card'" x-cloak
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             class="w-full relative flex flex-col lg:flex-row gap-6 lg:flex-1 lg:overflow-hidden">
-            @include('livewire.dashboard.tab.posts.pinned')
+        @unless(tenantOff('announce:card'))
+            <div wire:key="posts-view-card" x-show="view === 'card'" x-cloak
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="w-full relative flex flex-col lg:flex-row gap-6 lg:flex-1 lg:overflow-hidden">
+                @include('livewire.dashboard.tab.posts.pinned')
 
-            @include('livewire.dashboard.tab.posts.grid')
-        </div>
+                @include('livewire.dashboard.tab.posts.grid')
+            </div>
+        @endunless
 
-        <div x-show="view === 'list'" x-cloak
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             class="w-full lg:flex-1 lg:overflow-hidden">
-            @include('livewire.dashboard.tab.posts.list')
-        </div>
+        @unless(tenantOff('announce:list'))
+            <div wire:key="posts-view-list" x-show="view === 'list'" x-cloak
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="w-full lg:flex-1 lg:overflow-hidden">
+                @include('livewire.dashboard.tab.posts.list')
+            </div>
+        @endunless
 
         @if($this->selectedPost)
             @include('livewire.dashboard.tab.posts.details')

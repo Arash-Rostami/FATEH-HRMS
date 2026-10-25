@@ -6,7 +6,7 @@ return [
     'danger' => Color::Red,
     'gray' => Color::Zinc,
     'info' => Color::Blue,
-    'primary' => Color::Amber,
+    'primary' => defined($name = Color::class . '::' . ucfirst(config('app.theme_admin_primary'))) ? constant($name) : Color::Amber,
     'success' => Color::Green,
     'warning' => Color::Amber,
 

@@ -229,7 +229,7 @@ class Calendar extends Component
         }
 
         $persisted = session('calendar_view_mode');
-        if (in_array($persisted, ['month', 'week', 'day'], true)) {
+        if (in_array($persisted, ['month', 'week', 'day'], true) && !tenantOff("calendar:{$persisted}")) {
             $this->view = $persisted;
         }
     }
@@ -301,7 +301,7 @@ class Calendar extends Component
 
     public function toggleView(string $view): void
     {
-        if (!in_array($view, ['month', 'week', 'day'], true)) {
+        if (!in_array($view, ['month', 'week', 'day'], true) || tenantOff("calendar:{$view}")) {
             return;
         }
 

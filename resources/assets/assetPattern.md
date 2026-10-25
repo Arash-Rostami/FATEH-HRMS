@@ -53,6 +53,10 @@ viteStaticCopy({
 })
 ```
 
+## Offline fallback copy — `resources/fallback/`
+
+Sibling of `resources/assets/` (not inside it): a dormant committed copy of the font/icon files (`fonts/`, `material-symbols/`), most importantly the real 5 MB `material-symbols-rounded.woff2` that otherwise exists only in gitignored `node_modules` (the `resources/assets/fonts/` copy is a 0-byte decoy). Its `viteStaticCopy` target (`{src: 'resources/fallback', dest: '.'}` → `public/build/fallback/`) is deliberately commented out in `vite.config.js`; uncomment + `npm run build` only for a rainy day. Details in `resources/fallback/README.md`. No other runtime asset is CDN-loaded — the only internet-dependent features are Google Translate and the radio streams, which degrade gracefully.
+
 ## Reference Patterns
 
 ```blade

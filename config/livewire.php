@@ -194,7 +194,7 @@ return [
 
     'navigate' => [
         'show_progress_bar' => true,
-        'progress_bar_color' => '#4e5f66',
+        'progress_bar_color' => config('app.theme_primary'),
         'back_button_cache' => true,
     ],
 

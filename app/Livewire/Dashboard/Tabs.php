@@ -73,7 +73,7 @@ class Tabs extends Component
     #[Computed]
     public function tabs()
     {
-        return [
+        return array_filter([
             'home' => [
                 'component' => Home::class,
                 'label' => 'خانه',
@@ -131,6 +131,6 @@ class Tabs extends Component
                 'icon' => 'help',
                 'bg' => 'bg-info-container'
             ],
-        ];
+        ], fn ($key) => !tenantOff($key), ARRAY_FILTER_USE_KEY);
     }
 }

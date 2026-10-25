@@ -133,7 +133,7 @@ class TabPresenter
         foreach (config('modules', []) as $module) {
             $nav = $module['nav'] ?? null;
 
-            if ($nav === null) {
+            if ($nav === null || tenantOff($module['id'])) {
                 continue;
             }
 

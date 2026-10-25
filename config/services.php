@@ -41,6 +41,6 @@ return [
     ],
 
     'ai_assistant' => [
-        'url' => env('AI_ASSISTANT_URL'),
+        'url' => config('app.ai_assistant_url'),
     ],
 ];

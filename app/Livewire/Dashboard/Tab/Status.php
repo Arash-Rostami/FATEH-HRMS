@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Lazy;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -33,6 +34,7 @@ class Status extends Component
     public string $activeFilter = 'all';
     public string $activeClassifier = 'all';
     public string $search = '';
+    #[Locked]
     public string $view = 'grid';
     public $showAboutModal = false;
 
@@ -46,7 +48,7 @@ class Status extends Component
 
     public function mount(): void
     {
-        $this->view = session('status_view_mode', 'grid');
+        $this->view = session('status_view_mode') === 'chart' && !tenantOff('status:chart') ? 'chart' : 'grid';
 
         $skillId = (int) request()->query('skill', 0);
 
@@ -85,7 +87,7 @@ class Status extends Component
 
     public function toggleView(string $view): void
     {
-        if (!in_array($view, ['grid', 'chart'], true)) {
+        if (!in_array($view, ['grid', 'chart'], true) || tenantOff("status:{$view}")) {
             return;
         }
 

@@ -10,7 +10,7 @@
             :count="array_sum($this->stats)"
             countLabel="نفر">
             <x-slot:actions>
-                <x-ui.buttons.view-toggle :modes="[
+                <x-ui.buttons.view-toggle module="status" :modes="[
                     ['value' => 'grid', 'icon' => 'grid_view', 'title' => 'نمای کارتی'],
                     ['value' => 'chart', 'icon' => 'account_tree', 'title' => 'نمای ساختار سازمانی'],
                 ]"/>
@@ -55,14 +55,17 @@
         @include('livewire.dashboard.tab.status.grid')
     </div>
 
-    <div x-show="view === 'chart'"
-         x-cloak
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 translate-y-4"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         class="w-full">
-        @include('livewire.dashboard.tab.status.chart')
-    </div>
+    @unless(tenantOff('status:chart'))
+        <div wire:key="status-view-chart"
+             x-show="view === 'chart'"
+             x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="w-full">
+            @include('livewire.dashboard.tab.status.chart')
+        </div>
+    @endunless
 
     @include('livewire.dashboard.tab.status.about-me')
 </div>

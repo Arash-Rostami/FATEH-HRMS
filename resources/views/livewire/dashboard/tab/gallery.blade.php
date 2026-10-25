@@ -20,7 +20,7 @@
         :count="$this->totalPhotos"
         countLabel="مورد">
         <x-slot:actions>
-            <x-ui.buttons.view-toggle :modes="$viewModes" />
+            <x-ui.buttons.view-toggle module="gallery" :modes="$viewModes" />
             <x-ui.month-filter :months="$months" />
             <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'filmstrip'" x-cloak/>
 

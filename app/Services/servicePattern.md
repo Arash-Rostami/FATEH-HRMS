@@ -97,6 +97,10 @@ Twelve implementations under `App\Services\ProjectTask\Renderers\` — `CommentR
 
 ---
 
+## 4b. `App\Services\TenantService` — a flat stateful service bound `scoped` (2026-10-24)
+
+Holds the tenant module on/off lookup, the off-link CSS and the default-theme CSS (`off()`, `offName()`, `lookup()`, `offCss()`, `themeCss()`). It is a Service, not a helper, because it carries memoized state (the lookup, the CSS) that must be reset per request/queue job: it is registered with `$this->app->scoped(TenantService::class)`, never `singleton` (a long-lived worker or the future per-request tenant must not reuse a stale lookup). Callers use the one-line helpers in `app/Helpers/index.php` (`tenantOff`, `tenantOffName`, `tenantOffKeys` (off module ids + raw `app.off` words like `radio`, handed to `menu.js` by `navbars/top.blade.php`), `tenantOffCss`, `tenantThemeCss`), which only resolve the service and forward — no logic lives in the helpers. Details and the `with` dependency policy: `config/tenantPattern.md`. Master test: `tests/Feature/Services/TenantServiceTest.php`.
+
 ## 5. Do / Don't
 
 **DO**

@@ -94,12 +94,12 @@ class Links extends Component
     public function mount(): void
     {
         $view = session('links_view_mode', 'rail');
-        $this->view = in_array($view, ['rail', 'launch'], true) ? $view : 'rail';
+        $this->view = in_array($view, ['rail', 'launch'], true) && !tenantOff("links:{$view}") ? $view : 'rail';
     }
 
     public function toggleView(string $view): void
     {
-        if (!in_array($view, ['rail', 'launch'], true)) {
+        if (!in_array($view, ['rail', 'launch'], true) || tenantOff("links:{$view}")) {
             return;
         }
 

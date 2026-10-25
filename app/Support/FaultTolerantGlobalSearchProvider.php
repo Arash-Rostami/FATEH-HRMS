@@ -22,7 +22,7 @@ class FaultTolerantGlobalSearchProvider implements GlobalSearchProvider
 
         foreach ($resources as $resource) {
             try {
-                if (!$resource::canGloballySearch()) {
+                if (tenantOffName($resource::getSlug()) || !$resource::canGloballySearch()) {
                     continue;
                 }
 

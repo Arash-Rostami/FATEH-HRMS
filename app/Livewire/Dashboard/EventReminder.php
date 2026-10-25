@@ -9,7 +9,7 @@ class EventReminder extends Component
 {
     public function render()
     {
-        $reminder = auth()->check() ? Event::nextReminderFor(auth()->user()) : null;
+        $reminder = auth()->check() && !tenantOff('calendar') ? Event::nextReminderFor(auth()->user()) : null;
 
         return view('livewire.dashboard.event-reminder', ['reminder' => $reminder]);
     }

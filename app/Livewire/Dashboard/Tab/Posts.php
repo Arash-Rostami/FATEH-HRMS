@@ -39,7 +39,7 @@ class Posts extends Component
     public function mount(): void
     {
         $view = session('posts_view_mode', 'card');
-        $this->view = in_array($view, ['card', 'list'], true) ? $view : 'card';
+        $this->view = in_array($view, ['card', 'list'], true) && !tenantOff("announce:{$view}") ? $view : 'card';
     }
 
     public function placeholder(): View
@@ -54,7 +54,7 @@ class Posts extends Component
 
     public function toggleView(string $view): void
     {
-        if (!in_array($view, ['card', 'list'], true)) {
+        if (!in_array($view, ['card', 'list'], true) || tenantOff("announce:{$view}")) {
             return;
         }
 

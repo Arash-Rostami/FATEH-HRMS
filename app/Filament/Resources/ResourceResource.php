@@ -32,6 +32,7 @@ class ResourceResource extends Resource
     use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = ResourceModel::class;
+    protected static ?string $slug = 'reservation-resources';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-archive-box';
     protected static ?int $navigationSort = 4;
 

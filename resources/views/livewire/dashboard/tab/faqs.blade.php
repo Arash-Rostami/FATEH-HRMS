@@ -10,7 +10,7 @@
     <div class="pb-0 shrink-0">
         <x-ui.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال">
             <x-slot:actions>
-                <x-ui.buttons.view-toggle/>
+                <x-ui.buttons.view-toggle module="faq"/>
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'faqs-legend' })"
@@ -38,27 +38,31 @@
             <x-ui.loaders.spin-badge text="در حال فیلتر کردن..."/>
         </div>
 
-        <div x-show="view === 'card'" x-cloak
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-            @forelse($this->faqs as $faq)
-                @include('livewire.dashboard.tab.faqs.cards')
-            @empty
-                <div wire:key="faq-empty" class="col-span-full">
-                    @include('livewire.dashboard.tab.faqs.empty')
-                </div>
-            @endforelse
-        </div>
+        @unless(tenantOff('faq:card'))
+            <div wire:key="faq-view-card" x-show="view === 'card'" x-cloak
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                @forelse($this->faqs as $faq)
+                    @include('livewire.dashboard.tab.faqs.cards')
+                @empty
+                    <div wire:key="faq-empty" class="col-span-full">
+                        @include('livewire.dashboard.tab.faqs.empty')
+                    </div>
+                @endforelse
+            </div>
+        @endunless
 
-        <div x-show="view === 'list'" x-cloak
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             class="space-y-3">
-            @include('livewire.dashboard.tab.faqs.list')
-        </div>
+        @unless(tenantOff('faq:list'))
+            <div wire:key="faq-view-list" x-show="view === 'list'" x-cloak
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="space-y-3">
+                @include('livewire.dashboard.tab.faqs.list')
+            </div>
+        @endunless
 
         @if($this->faqs->hasMorePages())
             <div wire:key="faq-load-more" class="flex justify-center py-6">

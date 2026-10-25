@@ -83,7 +83,10 @@ class StateService
         $cacheKey = "menu_state:v{$version}:" . ($user ? "u{$user->id}" : 'guest');
 
         return Cache::remember($cacheKey, now()->addHours(self::TTL_HOURS), function () use ($user) {
-            $instances = array_map(static fn (string $class) => app($class), $this->indicators);
+            $instances = array_filter(
+                array_map(static fn (string $class) => app($class), $this->indicators),
+                static fn ($indicator) => !tenantOffName($indicator->getKey())
+            );
 
             $resolved = [];
             foreach ($instances as $indicator) {

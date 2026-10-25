@@ -80,8 +80,8 @@ class DmsPresenter
             'bg' => $icon['bg'],
             'text' => $icon['text'],
             'route' => $rendition['path'] === $docFile
-                ? route('secure-file', $rendition['path'])
-                : route('secure-extra-file', $rendition['path']),
+                ? route('dms.file', $rendition['path'])
+                : route('dms.extra-file', $rendition['path']),
         ];
     }
 }

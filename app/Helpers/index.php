@@ -5,6 +5,7 @@ use App\Models\Permission;
 use App\Services\GreetingService;
 use App\Services\QuoteService;
 use App\Services\Reservation\ValidationService;
+use App\Services\TenantService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -567,6 +568,41 @@ if (!function_exists('tenantBackdrops')) {
             fn(string $file): string => "build/assets/img/{$tenant}/bg/" . basename($file),
             array_values($files)
         );
+    }
+}
+
+if (!function_exists('tenantOff')) {
+    function tenantOff(string $key): bool
+    {
+        return app(TenantService::class)->off($key);
+    }
+}
+
+if (!function_exists('tenantOffKeys')) {
+    function tenantOffKeys(): array
+    {
+        return app(TenantService::class)->offKeys();
+    }
+}
+
+if (!function_exists('tenantOffName')) {
+    function tenantOffName(string $name): bool
+    {
+        return app(TenantService::class)->offName($name);
+    }
+}
+
+if (!function_exists('tenantThemeCss')) {
+    function tenantThemeCss(): string
+    {
+        return app(TenantService::class)->themeCss();
+    }
+}
+
+if (!function_exists('tenantOffCss')) {
+    function tenantOffCss(): string
+    {
+        return app(TenantService::class)->offCss();
     }
 }
 

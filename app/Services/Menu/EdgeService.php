@@ -139,6 +139,7 @@ class EdgeService
             ->visible()
             ->orderBy('id')
             ->get()
+            ->reject(fn(Edge $e) => tenantOffName($e->edge_key))
             ->map(fn(Edge $e) => [
                 'key' => $e->edge_key,
                 'subject_id' => $e->subject_id,

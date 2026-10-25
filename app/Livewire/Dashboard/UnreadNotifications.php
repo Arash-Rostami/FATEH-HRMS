@@ -81,6 +81,7 @@ class UnreadNotifications extends DatabaseNotifications
             return $items;
         }
 
+        $items = $items->reject(fn (DatabaseNotification $n) => tenantOffName((string) ($n->data['menu_key'] ?? '')));
         $counts = $items->countBy(fn (DatabaseNotification $n) => $n->data['menu_key'] ?? null);
         $emitted = [];
         $folded = [];
@@ -165,6 +166,11 @@ class UnreadNotifications extends DatabaseNotifications
         foreach ($groups as $g) {
             $key = $g->menu_key;
             $cnt = (int) $g->cnt;
+
+            if ($key !== null && tenantOffName((string) $key)) {
+                $total -= $cnt;
+                continue;
+            }
 
             if ($key === null || $cnt <= self::AGGREGATE_THRESHOLD) {
                 continue;

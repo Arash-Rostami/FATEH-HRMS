@@ -133,7 +133,7 @@ class NudgeService
     {
         $key = $nudge->getKey();
 
-        if (isset(self::$registered[$key])) {
+        if (tenantOffName(Str::before($key, ':')) || isset(self::$registered[$key])) {
             return;
         }
 

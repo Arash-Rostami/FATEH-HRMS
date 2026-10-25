@@ -11,6 +11,7 @@ use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Lazy;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Isolate]
@@ -20,6 +21,7 @@ class Reports extends Component
     use FocusOnRecord;
 
     public int $perPage = 5;
+    #[Locked]
     public string $view = 'card';
     public string $search = '';
     public string $activeFilter = 'all';
@@ -72,7 +74,8 @@ class Reports extends Component
 
     public function mount()
     {
-        $this->view = session('reports_view_mode', 'card');
+        $view = session('reports_view_mode', 'card');
+        $this->view = tenantOff("reports:{$view}") ? 'card' : $view;
     }
 
     public function placeholder(): View
@@ -131,7 +134,7 @@ class Reports extends Component
 
     public function toggleView($view)
     {
-        if (in_array($view, ['card', 'list'])) {
+        if (in_array($view, ['card', 'list']) && !tenantOff("reports:{$view}")) {
             $this->view = $view;
             session(['reports_view_mode' => $view]);
         }

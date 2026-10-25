@@ -23,10 +23,18 @@
  * @var string|null APP_OFFICE_PHONE
  * @var string|null APP_INSTAGRAM
  * @var string|null APP_LINKEDIN
+ * @var string|null      AI_ASSISTANT_URL     Overrides the active tenant's own 'ai.assistant.url' key.
  * @var bool|string|null AI_ASSISTANT_ACCESS  Overrides the active tenant's own 'ai.assistant.access' key (true|false|'lock').
  * @var bool|null        AI_DOCUMENT_ACCESS   Overrides the active tenant's own 'ai.document.access' key.
  * @var bool|null        AI_DOCUMENT_AI       Overrides the active tenant's own 'ai.document.ai' key.
  * @var bool|null        AI_DOCUMENT_CHAT     Overrides the active tenant's own 'ai.document.chat' key.
+ * @var string|null      APP_OFF              Comma-separated module ids and 'module:view' keys to hide; when set it replaces the active tenant's own 'modules' map.
+ *
+ * Each tenant may carry an optional 'modules' map: 'modules' => ['reservation' => false, 'status:chart' => false].
+ * Keys are module ids from config/modules.php or 'module:view' keys; false hides it, true (or an unlisted key)
+ * leaves it on, so a missing key never needs a tenant edit and a sub-tenant can set true to un-hide.
+ * Small tools have no registry entry: 'radio' => false, 'calculator' => false, 'stopwatch' => false hide the tool's
+ * menu item and floating panel.
  *
  * Per-tenant plan-tier flags live in each tenant's 'ai' group below (not env vars by default). 'ai' nests one
  * array per AI feature:
@@ -50,7 +58,21 @@
  * it always has.
  */
 
-return [
+$tenants = [
+
+    '_base' => [
+        'company' => [
+            'support' => ['phone' => '', 'email' => ''],
+        ],
+        'theme' => [
+            'primary' => '#4e5f66',
+            'header_bg' => '#08191e',
+            'admin_primary' => 'amber',
+        ],
+        'ai' => [
+            'assistant' => ['url' => null],
+        ],
+    ],
 
     'fateh' => [
         'app' => [
@@ -69,6 +91,7 @@ return [
             'name_en' => 'Fateh',
             'logo' => tenantAsset('fateh', 'img', 'logo', 'build/assets/img/logo.svg'),
             'phone' => '',
+            'support' => ['phone' => '+9122398772', 'email' => 'arashrostami@time-gr.com'],
             'social' => [
                 'instagram' => 'https://www.instagram.com/fatehsanat/',
                 'linkedin' => 'https://www.linkedin.com/company/fatehgroup',
@@ -113,6 +136,15 @@ return [
                 'chat' => false,
             ],
         ],
+
+         'modules' => [                       // unlisted = on; list only what you want off. true = on again (a sub-tenant can re-enable)
+        //     'reservation' => false,          // whole module: pages, URL (404), admin, menus, search
+        //     'reservation:avantgarde' => false, // only one view of a module (see 'views' in config/modules.php)
+        //     'status:chart' => false,
+        //     'faq:card' => false,
+        //     'calendar:day' => false,
+        //     'taskboard' => false,            // also hides projects + tasksheet + ths (its 'with' list in config/modules.php)
+         ],                                   // see everything hidden: php artisan tenant:hidden   |  all keys: php artisan tenant:hidden --all
     ],
 
     'persol' => [
@@ -132,6 +164,7 @@ return [
             'name_en' => 'Persol Holding Corporation',
             'logo' => tenantAsset('persol', 'img', 'logo', 'build/assets/img/logo.png'),
             'phone' => '021-26208352',
+            'support' => ['phone' => '+9122398772', 'email' => 'arashrostami@time-gr.com'],
             'social' => [
                 'instagram' => 'https://www.instagram.com/persol_co/',
                 'linkedin' => 'https://www.linkedin.com/company/persol/',
@@ -156,6 +189,10 @@ return [
             'fit' => 'top',
         ],
 
+        'theme' => [
+            'primary' => '#375E90',
+        ],
+
         'logo_display' => [
             'admin_reverse' => true,
             'user_reverse' => true,
@@ -177,6 +214,20 @@ return [
                 'chat' => false,
             ],
         ],
+
+        'modules' => [
+            'reservation:avantgarde' => false,
+            'status:chart' => false,
+            'radio' => false,
+            'dms' => false,
+            'gallery' => false
+
+        ],
     ],
 
 ];
+
+$base = $tenants['_base'];
+unset($tenants['_base']);
+
+return array_map(fn($tenant) => array_replace_recursive($base, $tenant), $tenants);

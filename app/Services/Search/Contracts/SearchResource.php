@@ -46,6 +46,10 @@ abstract class SearchResource implements Searchable
 
     public function search(SearchContext $context): array
     {
+        if (tenantOffName($this->type)) {
+            return [];
+        }
+
         /** @var Builder $builder */
         $builder = ($this->model)::query();
 
@@ -62,7 +66,7 @@ abstract class SearchResource implements Searchable
             ->limit($this->groupLimit)
             ->get();
 
-        if ($rows->isEmpty()) {
+        if ($rows->isEmpty() || (config('app.off') && $this->offTarget($this->action($rows->first())))) {
             return [];
         }
 
@@ -201,6 +205,14 @@ abstract class SearchResource implements Searchable
     protected function url(string $path): string
     {
         return 'url:' . $path;
+    }
+
+    protected function offTarget(string $action): bool
+    {
+        $url = parse_url(substr($action, 4));
+        parse_str($url['query'] ?? '', $query);
+
+        return tenantOffName(ltrim($url['path'] ?? '', '/')) || (isset($query['tab']) && tenantOffName($query['tab']));
     }
 
     protected function me(): int

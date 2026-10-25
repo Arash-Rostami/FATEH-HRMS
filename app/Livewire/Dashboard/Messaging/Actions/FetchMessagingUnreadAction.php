@@ -10,8 +10,8 @@ class FetchMessagingUnreadAction
     public function execute(int $userId): array
     {
         return [
-            'contacts' => Message::totalUnreadFor($userId),
-            'channels' => ChannelMessage::totalUnreadFor($userId),
+            'contacts' => tenantOff('contact') ? 0 : Message::totalUnreadFor($userId),
+            'channels' => tenantOff('channel') ? 0 : ChannelMessage::totalUnreadFor($userId),
         ];
     }
 }

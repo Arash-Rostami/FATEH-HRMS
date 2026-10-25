@@ -97,6 +97,7 @@
         </div>
 
         @foreach($navItems as $item)
+            @continue(tenantOff($item['id']))
             <a href="{{ $item['href'] }}"
                target="_blank"
                data-module="{{ $item['module'] }}"

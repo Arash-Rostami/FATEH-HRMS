@@ -101,12 +101,14 @@
                                     </button>
                                 @endif
                             </span>
+                        @unless(tenantOff('status'))
                         <button type="button" wire:key="home-team-pulse-status-link"
                                 wire:click='$dispatch("switch-tab", { tab: "status" })'
                                 aria-label="مشاهده وضعیت همکاران" title="مشاهده وضعیت همکاران"
                                 class="text-[10px] font-bold text-[var(--md-sys-color-on-primary-container)]/80 whitespace-nowrap hover:underline focus:outline-none">
                             {{ convertToPersian($teamPulse->count()) }} حاضر
                         </button>
+                        @endunless
                     </div>
                 @endif
             </div>
@@ -179,9 +181,9 @@
 
                     <div
                         class="text-[11px] tracking-[0.2em] inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300"
-                        :class="online ? 'bg-[var(--md-sys-color-primary)]/15 border-[var(--md-sys-color-primary)]/20 text-[var(--md-sys-color-on-primary-container)]' : 'bg-red-500/15 border-red-500/30 text-red-500'">
+                        :class="!online ? 'bg-red-500/15 border-red-500/30 text-red-500' : (lan ? 'bg-amber-500/15 border-amber-500/30 text-amber-600' : 'bg-[var(--md-sys-color-primary)]/15 border-[var(--md-sys-color-primary)]/20 text-[var(--md-sys-color-on-primary-container)]')">
                         <span class="material-symbols-rounded text-[14px]"
-                              :class="online ? 'animate-pulse text-[var(--md-sys-color-primary)]' : 'text-red-500'"
+                              :class="!online ? 'text-red-500' : (lan ? 'text-amber-500' : 'animate-pulse text-[var(--md-sys-color-primary)]')"
                               x-text="connection.icon"></span>
                         <span x-text="connection.label"></span>
 
@@ -195,6 +197,7 @@
                 <div
                     class="grid grid-cols-3 sm:grid-cols-3 gap-2.5 sm:gap-3.5 shrink-0 self-center lg:self-auto w-full sm:w-auto">
                     @foreach($stats as $stat)
+                        @continue(tenantOff(str_replace('open-', '', $stat['nav']['name'] ?? $stat['nav']['tab'])))
                         @php($isRoute = ($stat['nav']['type'] ?? '') === 'route')
                         <{{ $isRoute ? 'a' : 'button' }}
                             @if($isRoute)

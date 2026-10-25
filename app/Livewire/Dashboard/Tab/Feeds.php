@@ -177,7 +177,7 @@ class Feeds extends Component
 
     public function toggleView(string $view): void
     {
-        if (!in_array($view, ['filmstrip', 'magazine'], true)) {
+        if (!in_array($view, ['filmstrip', 'magazine'], true) || tenantOff("feed:{$view}")) {
             return;
         }
         $this->view = $view;
@@ -187,7 +187,7 @@ class Feeds extends Component
     public function mount(MarkFeedsAsReadAction $markFeedsAsReadAction): void
     {
         $view = session('feeds_view_mode', 'filmstrip');
-        $this->view = in_array($view, ['filmstrip', 'magazine'], true) ? $view : 'filmstrip';
+        $this->view = in_array($view, ['filmstrip', 'magazine'], true) && !tenantOff("feed:{$view}") ? $view : 'filmstrip';
 
         if (Auth::id()) {
             $markFeedsAsReadAction->execute(Auth::id());

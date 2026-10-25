@@ -70,7 +70,7 @@ class Gallery extends Component
     public function mount(): void
     {
         $view = session('gallery_view_mode', 'filmstrip');
-        $this->view = in_array($view, ['filmstrip', 'wall'], true) ? $view : 'filmstrip';
+        $this->view = in_array($view, ['filmstrip', 'wall'], true) && !tenantOff("gallery:{$view}") ? $view : 'filmstrip';
 
         // FOCUS MODE: when arriving from the command palette with ?open={id},
         // show nothing but that single photo (respecting department visibility).
@@ -88,7 +88,7 @@ class Gallery extends Component
 
     public function toggleView(string $view): void
     {
-        if (!in_array($view, ['filmstrip', 'wall'], true)) {
+        if (!in_array($view, ['filmstrip', 'wall'], true) || tenantOff("gallery:{$view}")) {
             return;
         }
 

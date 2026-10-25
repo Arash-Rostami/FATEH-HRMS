@@ -19,7 +19,7 @@
                     ['value' => 'magazine', 'icon' => 'dashboard', 'title' => 'نمای مجله'],
                 ];
             @endphp
-            <x-ui.buttons.view-toggle :modes="$viewModes" />
+            <x-ui.buttons.view-toggle module="feed" :modes="$viewModes" />
             <x-ui.month-filter :months="$months" />
             <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'filmstrip'" x-cloak/>
 

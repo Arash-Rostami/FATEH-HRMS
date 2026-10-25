@@ -2,7 +2,7 @@
     <x-filament::section
         icon="heroicon-o-book-open"
         heading="{{ __('resources/dashboard/strings.guide.heading') }}"
-        description="{{ count(config('modules', [])) }} {{ __('resources/dashboard/strings.guide.module_count_suffix') }}"
+        description="{{ collect(config('modules', []))->reject(fn ($module) => tenantOff($module['id']))->count() }} {{ __('resources/dashboard/strings.guide.module_count_suffix') }}"
         collapsible
         collapsed
     >

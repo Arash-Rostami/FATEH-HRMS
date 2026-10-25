@@ -17,6 +17,8 @@ class FilamentPanelCustomizer
             ->darkModeBrandLogo(fn() => self::logoHtml(true))
             ->favicon(fn() => asset(config('app.favicon')))
             ->renderHook(PanelsRenderHook::HEAD_END, fn() => self::tenantBackgroundStyle())
+            ->renderHook(PanelsRenderHook::HEAD_END, fn() => new HtmlString(config('app.off') ? '<style>' . tenantOffCss() . '</style>' : ''))
+            ->renderHook(PanelsRenderHook::HEAD_END, fn() => new HtmlString(($css = tenantThemeCss()) ? '<style>' . $css . '</style>' : ''))
             ->sidebarCollapsibleOnDesktop(fn() => self::pref('sidebar_collapsible', false) || self::pref('nav_dock', false))
             ->sidebarFullyCollapsibleOnDesktop(fn() => self::pref('sidebar_fully_collapsible', false))
             ->breadcrumbs(fn() => self::pref('breadcrumbs', true))

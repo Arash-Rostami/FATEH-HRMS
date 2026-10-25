@@ -36,11 +36,13 @@ return [
     'admin_use_company_logo' => (bool)($tenant['logo_display']['admin_use_company'] ?? false),
     'user_use_company_logo' => (bool)($tenant['logo_display']['user_use_company'] ?? false),
     'ai_assistant_access' => env('AI_ASSISTANT_ACCESS', $tenant['ai']['assistant']['access'] ?? false),
+    'ai_assistant_url' => env('AI_ASSISTANT_URL', $tenant['ai']['assistant']['url'] ?? null),
     'ai_assistant_lang' => env('AI_ASSISTANT_LANG', $tenant['ai']['assistant']['lang'] ?? 'fa'),
     'ai_document_access' => env('AI_DOCUMENT_ACCESS', $tenant['ai']['document']['access'] ?? false),
     'ai_document_modules' => $tenant['ai']['document']['modules'] ?? [],
     'ai_document_ai' => env('AI_DOCUMENT_AI', $tenant['ai']['document']['ai'] ?? false),
     'ai_document_chat' => env('AI_DOCUMENT_CHAT', $tenant['ai']['document']['chat'] ?? false),
+    'off' => env('APP_OFF') === null ? array_keys(array_filter($tenant['modules'] ?? [], fn ($v) => !$v)) : array_values(array_filter(array_map('trim', explode(',', env('APP_OFF'))))),
     'favicon' => env('APP_FAVICON', $tenant['app']['favicon']),
     'background_image' => env('APP_BACKGROUND_IMAGE', $tenant['background']['user'] ),
     'admin_background_image' => $tenant['background']['admin'],
@@ -61,9 +63,13 @@ return [
     'cache_ttl' => (int) env('APP_CACHE_TTL', 300),
 
     'support' => [
-        'phone' => env('SUPPORT_PHONE', '+9122398772'),
-        'email' => env('SUPPORT_EMAIL', 'arashrostami@time-gr.com'),
+        'phone' => env('SUPPORT_PHONE', $tenant['company']['support']['phone'] ?? ''),
+        'email' => env('SUPPORT_EMAIL', $tenant['company']['support']['email'] ?? ''),
     ],
+
+    'theme_primary' => $tenant['theme']['primary'] ?? '#4e5f66',
+    'theme_header_bg' => $tenant['theme']['header_bg'] ?? '#08191e',
+    'theme_admin_primary' => $tenant['theme']['admin_primary'] ?? 'amber',
 
     /*
     |--------------------------------------------------------------------------

@@ -69,7 +69,7 @@
 
                     {{-- accordion items --}}
                     @php
-                        $allModules = collect(config('modules', []));
+                        $allModules = collect(config('modules', []))->reject(fn ($module) => tenantOff($module['id']));
                         $releaseNoteItem = function (string $icon, string $color, string $title, string $desc): string {
                             $dynamicIconClass = 'text-[var(--md-sys-color-' . $color . ')]';
 
