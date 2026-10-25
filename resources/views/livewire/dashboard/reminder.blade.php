@@ -1,4 +1,4 @@
-<div class="contents" @if($variant === 'icon') wire:poll.60s="$refresh" @else wire:poll.visible.60s="$refresh" @endif>
+<div class="contents">
 
     @if($variant === 'embedded')
         <div wire:key="reminder-embedded" class="space-y-5" dir="rtl">
@@ -53,7 +53,8 @@
             :readonly="$activeTab !== 'form'"
             class="!max-w-3xl !w-full"
         >
-            <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6 space-y-5" dir="rtl">
+            @if($show)
+            <div wire:key="reminder-modal-body" class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6 space-y-5" dir="rtl">
 
                 @if($this->hostUrl())
                     <a href="{{ $this->hostUrl() }}" wire:navigate
@@ -83,6 +84,7 @@
                 @endif
 
             </div>
+            @endif
         </x-ui.modals.action>
     @endunless
 

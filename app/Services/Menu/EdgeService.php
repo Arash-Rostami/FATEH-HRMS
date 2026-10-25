@@ -31,6 +31,7 @@ class EdgeService
             'hasUrl' => method_exists($edge, 'url'),
             'hasShow' => method_exists($edge, 'show'),
             'hasDismissRule' => method_exists($edge, 'dismissRule'),
+            'hasDismissed' => method_exists($edge, 'dismissed'),
             'localRoute' => method_exists($edge, 'localRoute') ? $edge->localRoute() : null,
         ];
 
@@ -165,6 +166,10 @@ class EdgeService
         $optionKey = ($rule !== null && $rule['hasDismissRule']) ? $rule['edge']->dismissRule() : 'forever';
 
         $edge->snooze($optionKey);
+
+        if ($rule !== null && $rule['hasDismissed'] && $subject = $edge->subject_type::find($edge->subject_id)) {
+            $rule['edge']->dismissed($subject, $userId);
+        }
     }
 
     public static function keys(): array

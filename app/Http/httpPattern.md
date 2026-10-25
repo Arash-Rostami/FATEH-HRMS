@@ -1,6 +1,6 @@
 # HTTP Middleware Layer — app/Http/Middleware
 
-Three middlewares, each one behavioral rule. No controllers live here.
+Three middlewares, each one behavioral rule. (Controllers live in `app/Http/Controllers/`: single-action JSON endpoints only — `ToggleCalendarController` and `ProjectPulseController`, the latter documented in `app/Livewire/Dashboard/Project/projectPattern.md` "Performance pass 2026-08-28"; tests: `tests/Feature/Http/ProjectPulseControllerTest.php` and `tests/Feature/Http/ToggleCalendarControllerTest.php`, one dedicated file per controller.)
 
 ## 1. `UpdateLastSeen` — presence throttle + inactive-session boot (2026-10-02)
 

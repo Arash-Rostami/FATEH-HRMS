@@ -74,7 +74,7 @@ trait HasAudience
 
         return User::active()
             ->when($codes, fn($q) => $q->whereHas('profile', fn($p) => $p->whereIn('department_id', $codes)))
-            ->get();
+            ->get(['users.id']);
     }
 
     protected static function audienceIncludesDepartmentId(): bool

@@ -82,12 +82,20 @@ class NudgeService
                 $title = $rule['title'];
                 $body = $rule['body'];
                 $newRows = [];
+                $staleIds = [];
                 $now = now();
+                $built = [];
+                $build = function (User $user) use (&$built, $subject, $title, $body, $ruleKey, $itemId, $rule): array {
+                    $resolvedTitle = $title($subject, $user);
+                    $resolvedBody = is_string($body) ? $body : $body($subject, $user);
+
+                    return $built["{$resolvedTitle}\0{$resolvedBody}"] ??= self::buildData($subject, $resolvedTitle, $resolvedBody, $ruleKey, $itemId, $rule['url']);
+                };
 
                 foreach ($recipients as $user) {
                     if (!$show($subject, $user)) {
                         if ($existingNotifications->has($user->id)) {
-                            $existingNotifications->get($user->id)->delete();
+                            $staleIds[] = $existingNotifications->get($user->id)->getKey();
                         }
                         continue;
                     }
@@ -96,7 +104,7 @@ class NudgeService
 
                     if ($existing !== null) {
                         if (($rule['refresh'] ?? false) && $existing->read_at === null) {
-                            $data = self::buildData($subject, $user, $title, $body, $ruleKey, $itemId, $rule['url']);
+                            $data = $build($user);
                             if ($existing->data != $data) {
                                 $existing->update(['data' => $data]);
                             }
@@ -113,15 +121,22 @@ class NudgeService
                         'type' => FilamentDatabaseNotification::class,
                         'notifiable_type' => User::class,
                         'notifiable_id' => $user->id,
-                        'data' => json_encode(self::buildData($subject, $user, $title, $body, $ruleKey, $itemId, $rule['url'])),
+                        'data' => json_encode($build($user)),
                         'read_at' => null,
                         'created_at' => $now,
                         'updated_at' => $now,
                     ];
                 }
 
+                if ($staleIds !== []) {
+                    DatabaseNotification::whereKey($staleIds)->delete();
+                    ModelCacheVersion::bump(DatabaseNotification::class);
+                }
+
                 if ($newRows !== []) {
-                    DatabaseNotification::insert($newRows);
+                    foreach (array_chunk($newRows, 500) as $chunk) {
+                        DatabaseNotification::insert($chunk);
+                    }
                     ModelCacheVersion::bump(DatabaseNotification::class);
                 }
             });
@@ -190,13 +205,12 @@ class NudgeService
     }
 
     private static function buildData(
-        Model           $subject,
-        User            $user,
-        callable        $title,
-        callable|string $body,
-        string          $ruleKey,
-        string          $itemId,
-        ?callable       $url = null,
+        Model     $subject,
+        string    $title,
+        string    $body,
+        string    $ruleKey,
+        string    $itemId,
+        ?callable $url = null,
     ): array
     {
         $actions = [];
@@ -213,8 +227,8 @@ class NudgeService
 
         return [
             ...Notification::make()
-                ->title($title($subject, $user))
-                ->body(is_string($body) ? $body : $body($subject, $user))
+                ->title($title)
+                ->body($body)
                 ->warning()
                 ->persistent()
                 ->actions($actions)

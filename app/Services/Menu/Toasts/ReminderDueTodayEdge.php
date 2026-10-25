@@ -39,8 +39,16 @@ class ReminderDueTodayEdge implements MenuEdge
         return $subject->completed_at === null
             && (!$subject->snoozed_until || $subject->snoozed_until->isPast())
             && $subject->due_at->isToday()
+            && $subject->due_at->lte(now())
             && Reminder::channelEnabled($subject->channels, 'edge')
             && !$subject->hostTrashed();
+    }
+
+    public function dismissed($subject, int $userId): void
+    {
+        if ($subject->user_id === $userId) {
+            $subject->complete();
+        }
     }
 
     public function url($subject): ?string

@@ -32,6 +32,8 @@ export default function stopwatch(mp3) {
             }
             this.restoreState();
             this.syncEventReminder();
+            this._eventReminderListener = () => this.syncEventReminder();
+            window.addEventListener('event-reminder-armed', this._eventReminderListener);
             this._tickInterval = setInterval(() => this.tick(), 1000);
         },
 
@@ -253,6 +255,7 @@ export default function stopwatch(mp3) {
             this.stopAlarm();
             if (this._windowStopwatchListener) window.removeEventListener('stopwatch', this._windowStopwatchListener);
             if (this._windowKeydownListener) window.removeEventListener('keydown', this._windowKeydownListener);
+            if (this._eventReminderListener) window.removeEventListener('event-reminder-armed', this._eventReminderListener);
             this.minimized = false;
             this._hideModal();
         }

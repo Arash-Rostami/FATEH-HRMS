@@ -78,6 +78,10 @@ class ChannelMessage extends Model
                     ->where('channel_members.user_id', $userId)
                     ->where('channel_messages.id', '>', DB::raw('COALESCE(channel_members.last_read_message_id, 0)'));
             })
+            ->join('channels', function ($join) {
+                $join->on('channels.id', '=', 'channel_messages.channel_id')
+                    ->whereNull('channels.deleted_at');
+            })
             ->whereNull('channel_messages.deleted_at')
             ->count();
     }

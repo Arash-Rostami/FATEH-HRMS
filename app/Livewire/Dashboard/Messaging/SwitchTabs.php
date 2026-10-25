@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Messaging;
 
 use App\Livewire\Dashboard\Messaging\Actions\FetchMessagingUnreadAction;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class SwitchTabs extends Component
@@ -20,6 +21,7 @@ class SwitchTabs extends Component
         $this->loadCounts();
     }
 
+    #[On('messaging-poll')]
     public function refreshCounts(): void
     {
         $this->loadCounts();

@@ -5,12 +5,15 @@ namespace App\Models;
 use App\Enums\ReminderRecurrence;
 use App\Jobs\ReconcileEdge;
 use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileReminderDue;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class Reminder extends Model
@@ -34,6 +37,32 @@ class Reminder extends Model
         'notified_at',
         'channels',
     ];
+
+    private static array $openByUser = [];
+
+    protected static function booted(): void
+    {
+        $forget = fn () => static::$openByUser = [];
+
+        static::saved(function (self $reminder) use ($forget) {
+            $forget();
+            $reminder->queueDueReconcile();
+        });
+        static::deleted($forget);
+    }
+
+    public function queueDueReconcile(): void
+    {
+        if ($this->completed_at !== null) {
+            return;
+        }
+
+        $at = $this->snoozed_until !== null && $this->snoozed_until->gt($this->due_at) ? $this->snoozed_until : $this->due_at;
+
+        if ($at->isFuture() && $at->lte(now()->addDay()) && Cache::add("reminder-due-queued:{$this->getKey()}:{$at->timestamp}", true, $at)) {
+            dispatch(new ReconcileReminderDue($this->getKey()))->delay($at)->afterCommit();
+        }
+    }
 
     public function user(): BelongsTo
     {
@@ -123,16 +152,22 @@ class Reminder extends Model
         return $result;
     }
 
+    public static function openForUser(int $userId): Collection
+    {
+        return static::$openByUser[$userId] ??= static::forUser($userId)
+            ->whereNull('completed_at')
+            ->orderBy('due_at')
+            ->get(['id', 'user_id', 'channels', 'remindable_type', 'remindable_id', 'due_at', 'snoozed_until']);
+    }
+
     public static function dueBadgeCount(int $userId, ?string $remindableType = null, mixed $remindableId = null): int
     {
-        return static::forUser($userId)
-            ->when($remindableType !== null, fn (Builder $q) => $q
-                ->where('remindable_type', $remindableType)
-                ->where('remindable_id', $remindableId))
-            ->active()
-            ->where('due_at', '<=', now()->endOfDay())
-            ->get(['id', 'channels', 'remindable_type', 'remindable_id'])
-            ->filter(fn (Reminder $reminder) => static::channelEnabled($reminder->channels, 'badge') && !$reminder->hostTrashed())
+        return static::openForUser($userId)
+            ->filter(fn (Reminder $reminder) => ($remindableType === null || ($reminder->remindable_type === $remindableType && $reminder->remindable_id == $remindableId))
+                && ($reminder->snoozed_until === null || $reminder->snoozed_until->lte(now()))
+                && $reminder->due_at->lte(now())
+                && static::channelEnabled($reminder->channels, 'badge')
+                && !$reminder->hostTrashed())
             ->count();
     }
 
@@ -190,6 +225,8 @@ class Reminder extends Model
             if ($affected === 0) {
                 return false;
             }
+
+            static::$openByUser = [];
 
             $this->completed_at = $now;
 

@@ -158,6 +158,29 @@ describe('chatBase polling lifecycle', () => {
         expect(c._repollNow).toHaveBeenCalledOnce();
     });
 
+    test('_runPollTick announces every real tick as messaging-poll (the switcher badge rides it), stays silent while a tick is in flight, and tolerates a missing Livewire', async () => {
+        const c = chatBase('contact');
+        const dispatch = vi.fn();
+        window.Livewire = { dispatch };
+        let resolveFirst;
+        c._pollTick = vi.fn(() => new Promise((r) => { resolveFirst = r; }));
+
+        try {
+            const firstCall = c._runPollTick(false);
+            await c._runPollTick(false);
+            expect(dispatch).toHaveBeenCalledOnce();
+            expect(dispatch).toHaveBeenCalledWith('messaging-poll');
+
+            resolveFirst();
+            await firstCall;
+        } finally {
+            delete window.Livewire;
+        }
+
+        c._pollTick = vi.fn(() => Promise.resolve());
+        await expect(c._runPollTick(false)).resolves.toBeUndefined();
+    });
+
     test('_repollNow resets the interval and restarts the timer chain', () => {
         const c = chatBase('contact');
         c._runPollTick = vi.fn(() => Promise.resolve());

@@ -24,7 +24,6 @@ Schedule::command('tasks:sweep-overdue')
 Schedule::command('reminders:sweep-due')
     ->when(fn () => !tenantOff('reminder'))
     ->hourly()
-    ->between('06:00', '22:00')
     ->withoutOverlapping();
 
 Schedule::command('tasks:archive-stale-done')

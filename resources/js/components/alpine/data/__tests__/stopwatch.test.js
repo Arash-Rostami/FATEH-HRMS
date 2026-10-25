@@ -98,6 +98,63 @@ describe('stopwatch.armReminder', () => {
     })
 })
 
+describe('stopwatch.syncEventReminder (page load, modal open and the live event-reminder-armed signal)', () => {
+    afterEach(() => {
+        delete window.__eventReminder
+    })
+
+    test('arms once: a second sync while the countdown runs never re-arms or shifts the deadline', () => {
+        vi.setSystemTime(new Date('2026-01-01T10:00:00.000Z'))
+        window.__eventReminder = { id: 5, eventAtIso: '2026-01-01T10:10:00.000Z', title: 'once' }
+        const s = stopwatch('a.mp3')
+
+        s.syncEventReminder()
+        const armedUntil = s.armedUntil
+        vi.advanceTimersByTime(120000)
+        s.syncEventReminder()
+
+        expect(s.timer.running).toBe(true)
+        expect(s.armedUntil).toBe(armedUntil)
+    })
+
+    test('a reminder that already rang is dismissed and a later live signal never re-arms or re-rings it', () => {
+        vi.setSystemTime(new Date('2026-01-01T10:00:00.000Z'))
+        window.__eventReminder = { id: 5, eventAtIso: '2026-01-01T10:00:05.000Z', title: 'rang' }
+        const s = stopwatch('a.mp3')
+        s.startAlarmLoop = vi.fn()
+        s.restore = vi.fn()
+
+        s.syncEventReminder()
+        vi.advanceTimersByTime(6000)
+        s.tick()
+        s.syncEventReminder()
+
+        expect(s.startAlarmLoop).toHaveBeenCalledTimes(1)
+        expect(s.timer.running).toBe(false)
+        expect(JSON.parse(localStorage.getItem(DISMISSED_KEY))).toBe(5)
+    })
+
+    test('init listens for event-reminder-armed to arm live, and destroy removes the listener', () => {
+        vi.setSystemTime(new Date('2026-01-01T10:00:00.000Z'))
+        const s = stopwatch('a.mp3')
+        s.$refs = {}
+        s.init()
+        expect(s.timer.running).toBe(false)
+
+        window.__eventReminder = { id: 8, eventAtIso: '2026-01-01T10:30:00.000Z', title: 'live' }
+        window.dispatchEvent(new Event('event-reminder-armed'))
+        expect(s.timer.running).toBe(true)
+        expect(s.armedReminderId).toBe(8)
+
+        s.destroy()
+        s.timer.running = false
+        s.armedUntil = null
+        window.__eventReminder = { id: 9, eventAtIso: '2026-01-01T11:00:00.000Z', title: 'ignored' }
+        window.dispatchEvent(new Event('event-reminder-armed'))
+        expect(s.timer.running).toBe(false)
+    })
+})
+
 describe('stopwatch.restoreState', () => {
     test('does nothing when no persisted state exists', () => {
         const s = stopwatch('a.mp3')

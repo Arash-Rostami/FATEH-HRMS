@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard;
 
 use App\Services\Menu\EdgeService;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Edge extends Component
@@ -17,6 +18,7 @@ class Edge extends Component
         $this->load();
     }
 
+    #[On('edges-changed')]
     public function load(): void
     {
         if (!auth()->check()) {
@@ -34,6 +36,10 @@ class Edge extends Component
 
         EdgeService::dismiss((int) auth()->id(), $edgeKey, $subjectId);
         $this->load();
+
+        if ($edgeKey === 'reminders-controller:due-today-edge') {
+            $this->dispatch('reminder-changed');
+        }
     }
 
     public function render()

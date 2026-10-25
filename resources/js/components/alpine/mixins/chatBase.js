@@ -131,6 +131,7 @@ export default function chatBase(scope) {
                 return;
             }
             this._pollInFlight = true;
+            window.Livewire?.dispatch('messaging-poll');
             try {
                 await this._pollTick(force);
             } finally {

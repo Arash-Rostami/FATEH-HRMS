@@ -88,12 +88,8 @@ class Main extends Component
             return null;
         }
 
-        return Reminder::forUser((int) auth()->id())
-            ->where('remindable_type', $this->remindableType)
-            ->where('remindable_id', $this->remindableId)
-            ->whereNull('completed_at')
-            ->orderBy('due_at')
-            ->first();
+        return Reminder::openForUser((int) auth()->id())
+            ->first(fn (Reminder $reminder) => $reminder->remindable_type === $this->remindableType && $reminder->remindable_id == $this->remindableId);
     }
 
     public function hostUrl(): ?string

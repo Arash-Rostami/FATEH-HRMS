@@ -35,7 +35,7 @@ class UnreadNotifications extends DatabaseNotifications
     {
         return Filament::getCurrentPanel()?->getId() === 'admin'
             ? parent::getPollingInterval()
-            : random_int(60, 75) . 's';
+            : null;
     }
 
     public function isPaginated(): bool

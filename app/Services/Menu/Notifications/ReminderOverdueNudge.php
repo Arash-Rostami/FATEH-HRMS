@@ -38,7 +38,7 @@ class ReminderOverdueNudge implements MenuNudge
     {
         return $subject->completed_at === null
             && (!$subject->snoozed_until || $subject->snoozed_until->isPast())
-            && $subject->due_at->lte(now()->endOfDay())
+            && $subject->due_at->lte(now())
             && Reminder::channelEnabled($subject->channels, 'nudge')
             && !$subject->hostTrashed();
     }

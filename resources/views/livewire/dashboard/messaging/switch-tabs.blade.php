@@ -5,7 +5,7 @@ $tabs = [
 ];
 $tabs = array_filter($tabs, fn ($t) => !tenantOff($t['id']));
 @endphp
-<div wire:poll.10s="refreshCounts" x-data="{ navigating: false }" class="flex p-1 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 w-fit mb-6 shadow-sm overflow-hidden relative">
+<div x-data="{ navigating: false }" class="flex p-1 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 w-fit mb-6 shadow-sm overflow-hidden relative">
     @foreach($tabs as $tab)
         @php($isActive = $active === $tab['id'])
         @if($isActive)

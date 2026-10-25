@@ -61,6 +61,7 @@
 @filamentScripts
 @livewireScripts
 @unless(request()->boolean('embed'))
+    @livewire(\App\Livewire\Dashboard\Pulse::class)
     @livewire(\App\Livewire\Dashboard\UnreadNotifications::class)
 @endunless
 </body>

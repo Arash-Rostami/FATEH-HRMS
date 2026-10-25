@@ -40,6 +40,7 @@ import report from "./data/report.js";
 import filters from "./data/filters.js";
 import calculator from "./data/calculator.js";
 import stopwatch from "./data/stopwatch.js";
+import pulse from "./data/pulse.js";
 import radio from "./data/radio.js";
 import audioPlayer from "./data/audioPlayer.js";
 import aiAssistant from "./data/aiAssistant.js";
@@ -95,6 +96,7 @@ export default function initAlpine() {
         Alpine.data('filters', filters)
         Alpine.data('calculator', calculator)
         Alpine.data('stopwatch', stopwatch)
+        Alpine.data('pulse', pulse)
         Alpine.data('radio', radio)
         Alpine.data('audioPlayer', audioPlayer)
         Alpine.data('aiAssistant', aiAssistant)

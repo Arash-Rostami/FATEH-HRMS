@@ -45,7 +45,7 @@ App\Services\Menu\
 │   ├── DmsBadge.php                key=dms-controller        isActive = auth()->user() !== null && DMS::hasPendingFor($user->id)
 │   ├── TasksImminent.php           key=tasks-deadline        isActive = one of the user's non-done/pending tasks has deadline ≤3 days out or overdue (Task::urgency_state kind ∈ {overdue,due}); no dot surface, bell-only
 │   ├── TasksPendingApproval.php    key=tasks-pending-approval isActive = user owns a requires_approval project holding a done task with approved_at IS NULL; bell-only (taskboardPattern.md §19.2)
-│   └── ReminderBadge.php           key=reminders-controller  isActive = auth()->user() !== null && a forUser().active() reminder due_at <= today's end exists whose channels pass Reminder::channelEnabled(..., 'badge') and whose host record (if any) is not soft-deleted (Reminder::hostTrashed())
+│   └── ReminderBadge.php           key=reminders-controller  isActive = auth()->user() !== null && a forUser().active() reminder due_at <= now (the due time has passed) exists whose channels pass Reminder::channelEnabled(..., 'badge') and whose host record (if any) is not soft-deleted (Reminder::hostTrashed())
 ├── Notifications\
 │   ├── AdNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
 │   ├── SharedEventsNudge.php       key=shared-events:nudge         triggers=EventShare created/deleted + Event updated/deleted
@@ -63,12 +63,12 @@ App\Services\Menu\
 │   ├── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=true  for=DMS::pendingRecipients() (visible live + pending users)  badgeSuppressesCreate=false
 │   ├── ChannelNudge.php            key=channels-controller:nudge  dual-state row migrates on entered_at (invited=entered_at IS NULL via Channel::invitedUserIds; unread=entered + count>0 via Channel::unreadCountsFor, whereNotNull(entered_at) + whereNull(msg.deleted_at)) like ThsNudge  triggers=Channel deleted/forceDeleted (cleanup) + ChannelMessage created/deleted (subject=$msg->channel)  show=true  for=invited∪unread (two indexed queries, for()-primes-body idiom)  reuses the three existing dispatch sites (SyncChannelMembers/MarkChannelRead/LeaveChannel); send path covered by ChannelMessage::created → no new dispatch
 │   ├── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false  — mark-as-read is a mass Builder::update() (bypasses the `updated` Eloquent event), so `MarkMessagesAsReadAction` dispatches `ReconcileNudge('contacts-controller:nudge', User::class, $contactId)` explicitly after commit (Channel/ShareEventAction precedent below); fixed 2026-09-04 — previously the bell's per-sender row never cleared on read
-│   └── ReminderOverdueNudge.php    key=reminders-controller:due-nudge  triggers=Reminder created/updated/deleted  subject=self  show=not completed, not future-snoozed, due_at <= today's end, channelEnabled(..., 'nudge'), and not hostTrashed()  for=[owner]  badgeSuppressesCreate=false (the badge is a superset window — due-today-or-overdue vs the nudge's own identical window here, but the badge's `badge` channel and this nudge's `nudge` channel can be toggled independently, so a badge-lit user must still get their own nudge if they enabled it)  also swept by `reminders:sweep-due` (hourly console command), like `TaskNudge('overdue')`  url=route('tasks'|'ths'|'projects'|'dms'|'reservation', ['open'=>id]) keyed on remindable_type (Task/Ticket/Project/DMS/Reservation), else null
+│   └── ReminderOverdueNudge.php    key=reminders-controller:due-nudge  triggers=Reminder created/updated/deleted  subject=self  show=not completed, not future-snoozed, due_at <= now (the due time has passed), channelEnabled(..., 'nudge'), and not hostTrashed()  for=[owner]  badgeSuppressesCreate=false (the badge is a superset window — due-time-passed (2026-10-26; was due-today-or-overdue) vs the nudge's own identical window here, but the badge's `badge` channel and this nudge's `nudge` channel can be toggled independently, so a badge-lit user must still get their own nudge if they enabled it)  also swept by `reminders:sweep-due` (hourly console command), like `TaskNudge('overdue')`  url=route('tasks'|'ths'|'projects'|'dms'|'reservation', ['open'=>id]) keyed on remindable_type (Task/Ticket/Project/DMS/Reservation), else null
 ├── Toasts\
 │   ├── ChannelToast.php            key=channels-controller:edge   triggers=ChannelMessage created/deleted + ChannelMember/Channel events  for=invited (Channel::invitedUserIds) ∪ mentioned (mentionedSenders regex)  icon=mail (invited) / alternate_email (mentioned)  url=route('channels',['open'=>id])
 │   ├── ProjectToast.php            key=projects-controller:edge  triggers=Project created + Reply created (added ids) + ChannelMember created (unopened project channel)  for=resolveAddedIds ∪ Channel::invitedUserIds(channel_id)  icon=workspaces (unopened) — now ONLY the «workspace not opened» card; the `added` (group_add) branch is unreachable because the invite NUDGE owns «added to project»  url=route('projects',['open'=>id])
 │   ├── TaskDueSoonToast.php        key=tasks-controller:due-soon-edge  triggers=Task created/updated (event) + hourly `tasks:sweep-overdue` sweep (time — see taskboardPattern.md §18, deadline BETWEEN now and now+24h)  show=deadline within 24h, not past, status not done/pending — tighter than TasksImminent's 3-day badge window, deliberately coexisting — «due soon» has two intentional windows: the 3-day chip/badge (`TaskMetrics::DUE_SOON_DAYS`) and this toast's 24h charter window (`dueSoonHours`); they are not meant to match  for=owner (assigned_to ?? user_id)  icon=schedule  url=route('tasks',['open'=>id])
-│   └── ReminderDueTodayEdge.php    key=reminders-controller:due-today-edge  triggers=Reminder created/updated/deleted  subject=self  show=not completed, not future-snoozed, due_at->isToday(), channelEnabled(..., 'edge'), and not hostTrashed() — strictly today, tighter than the nudge's due-or-overdue window  for=[owner]  icon=notifications  url=route('tasks'|'ths'|'projects'|'dms'|'reservation', ['open'=>id]) keyed on remindable_type (Task/Ticket/Project/DMS/Reservation), else null  also swept by `reminders:sweep-due`
+│   └── ReminderDueTodayEdge.php    key=reminders-controller:due-today-edge  triggers=Reminder created/updated/deleted  subject=self  show=not completed, not future-snoozed, due_at->isToday() && due_at <= now, channelEnabled(..., 'edge'), and not hostTrashed() — strictly today, tighter than the nudge's due-or-overdue window  for=[owner]  icon=notifications  url=route('tasks'|'ths'|'projects'|'dms'|'reservation', ['open'=>id]) keyed on remindable_type (Task/Ticket/Project/DMS/Reservation), else null  also swept by `reminders:sweep-due`
 ├── StateService.php                cache + version + sync orchestration (badge side)
 ├── BadgeSyncService.php            one-row-per-indicator reconcile (badge side)
 ├── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
@@ -119,7 +119,7 @@ all structurally identical (no per-user method, no sub-interface).
 | `ThsBadge` | `ths-controller` | `auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)` |
 | `DmsBadge` | `dms-controller` | `auth()->user() !== null && DMS::hasPendingFor($user->id)` |
 | `TasksImminent` | `tasks-deadline` | `auth()->user() !== null` and one of the user's non-done/pending tasks (`forUser`) has a deadline that is overdue or ≤3 days out (`Task::urgency_state['kind']` ∈ `{overdue, due}`) |
-| `ReminderBadge` | `reminders-controller` | `auth()->user() !== null` and a `forUser().active()` reminder with `due_at <=` today's end exists whose `channels` pass `Reminder::channelEnabled(..., 'badge')` and whose host record (if any) is not soft-deleted (`Reminder::hostTrashed()`) — the `badge` channel is scoped-only (2026-10-01: `Reminder\Main` strips it from unscoped reminders, so in practice only record-attached reminders light this; see `reminderPattern.md` §6) |
+| `ReminderBadge` | `reminders-controller` | `auth()->user() !== null` and a `forUser().active()` reminder with `due_at <=` now (the due time has passed) exists whose `channels` pass `Reminder::channelEnabled(..., 'badge')` and whose host record (if any) is not soft-deleted (`Reminder::hostTrashed()`) — the `badge` channel is scoped-only (2026-10-01: `Reminder\Main` strips it from unscoped reminders, so in practice only record-attached reminders light this; see `reminderPattern.md` §6) |
 
 `SharedEvents`, `TasksTodo`, `TasksImminent`, `UnreadPosts`, `UnreadFeeds`, `UnreadMessages`,
 `EnergyTestBadge`, `ThsBadge`, `DmsBadge` read the logged-in user **explicitly** inside `isActive()`.
@@ -447,7 +447,16 @@ Design choices:
   an existing **unread** row instead of `continue`-ing. All nudges with a live mutable label
   (`{event.title}`, `{ad.position}`, `{suggestion->title}`, etc.) set `refresh = true`. A **read**
   row is never rewritten (`read_at` preserved) → no re-notification. `buildData()` is a pure DRY
-  extraction shared by create + refresh paths.
+  extraction shared by create + refresh paths. **Payload sharing (2026-10-25):** `reconcile()` wraps it in a
+  per-call `$build($user)` closure that resolves `title()`/`body()` for the user and memoizes the built payload
+  in a LOCAL array keyed by the resolved title+body — a 2000-recipient broadcast builds one Filament
+  `Notification` instead of 2000, while per-user nudges (distinct strings) still get their own. The memo
+  must stay local to one `reconcile()` call (never static: it would leak `menu_key`/`item_id` across subjects
+  in a long-lived worker). `getDatabaseMessage()` strips the notification id and `fromDatabase()` re-sets it
+  from the row key, so sharing is byte-identical. Writes are batched too: rows of recipients whose `show()` is
+  false go in one `whereKey([...])->delete()` (followed by the same `ModelCacheVersion::bump` the per-row
+  delete events used to fire), and the insert runs in chunks of 500 (a 2000-row insert is ~4 MB, the MySQL 5.7
+  `max_allowed_packet` default).
 - **Prune `whereNotIn('notifiable_id', ids)`** — a user leaving the recipient set (role/dept change)
   while the record still qualifies has their stale row removed.
 - **`notifiable_type = User::class` filter** — cross-user deletes never sweep other notifiable types.
@@ -524,7 +533,7 @@ declare several triggers sharing the same key.
 | `Channel` | deleted, forceDeleted | self | `true` | invited∪unread (cleanup) |
 | `ChannelMessage` | created, deleted | `$msg->channel` | `true` | invited∪unread |
 | `Message` | created, updated, deleted, forceDeleted, restored | sender `User` | `true` | active recipients with unread (`unreadCountsFrom`) |
-| `Reminder` | created, updated, deleted | self | not completed, not future-snoozed, `due_at <=` today's end, `Reminder::channelEnabled($subject->channels, 'nudge')`, and not `Reminder::hostTrashed()` | `[owner]` (`user_id`) — also swept hourly by `reminders:sweep-due`, same shape as `Task` (overdue) |
+| `Reminder` | created, updated, deleted | self | not completed, not future-snoozed, `due_at <=` now (the due time has passed), `Reminder::channelEnabled($subject->channels, 'nudge')`, and not `Reminder::hostTrashed()` | `[owner]` (`user_id`) — also swept hourly by `reminders:sweep-due`, same shape as `Task` (overdue) |
 
 - Suggestion + Review share `suggestion-controller:nudge`, `item_id = suggestion id`.
 - EventShare + Event share `shared-events:nudge`, `item_id = event id` (EventShare sets
@@ -740,8 +749,8 @@ date query is a one-off aggregate with no nudge counterpart, left inline.
 sender-scoped, soft-delete-respecting), stores the `[recipient_id => count]` map on the instance,
 and returns the active users among those ids; `body()` reads `$this->unreadCountCache[$user->id] ?? 0`
 and `show()` returns `true`. Relies on `NudgeService::reconcile` always calling `for()` once before
-the per-recipient loop calls `body()` — guaranteed because `body()` is invoked only via `buildData`
-inside that loop. The cache is a flat array overwritten each reconcile (not keyed by subject), so it
+the per-recipient loop calls `body()` — guaranteed because `body()` is invoked only via the loop's
+`$build($user)` closure (which feeds `buildData`). The cache is a flat array overwritten each reconcile (not keyed by subject), so it
 neither stales nor grows across the process-singleton nudge instance's lifetime. The same
 `for()`-primes-`body()` pattern is used by `SharedEventsNudge::show()` (`for()` sets a flat
 `$hasShares` bool; non-owners pass `date >= now` then return `true` since `for()` guaranteed
@@ -1375,7 +1384,7 @@ Five **required** methods: `getKey()`, `triggers()`, `for($event, $user, $payloa
 `method_exists` (not declared on the interface, mirroring the nudge side): `show($subject, $user,
 $payload)` (default true — gate skipped), `refresh()` (default true — re-fetch subject on existing
 row), `icon($subject, $user)` (default `'info'`), `url($subject)` (default `''`), `dismissRule()`
-(default `'forever'`), `localRoute()` (default `null` = global). `EdgeService::register()` stores each
+(default `'forever'`), `localRoute()` (default `null` = global), `dismissed($subject, int $userId)` (2026-10-26; optional side effect run after the toast is dismissed — `ReminderDueTodayEdge` uses it to complete the reminder for its owner). `EdgeService::register()` stores each
 optional's flag/value in the static rule array.
 
 ### `EdgeService` — registry + engine
@@ -1388,17 +1397,22 @@ optional's flag/value in the static rule array.
 - `forUser($userId)` — `edges` visible for the user, mapped to a payload array (key, subject_id, icon,
   title, body, url, **localRoute**). `localRoute` is sourced from the static rule registry
   (`isset`-guarded — an orphan `edge_key` with no registered toast yields null, no warning).
-- `dismiss($userId, $edgeKey, $subjectId)` — looks up the toast's `dismissRule()` (or `'forever'` when
+- `dismiss($userId, $edgeKey, $subjectId)` — after the snooze below it calls the rule's optional `dismissed($subject, $userId)` when present; looks up the toast's `dismissRule()` (or `'forever'` when
   absent) → `Edge::snooze($optionKey)`: `'forever'`→`dismissed_at=now()`; `'1day'|'1week'|'1month'`→
   `snoozed_until = now()->addDay|addWeek|addMonth` (the model's `DURATIONS` map). Re-displays after
   snooze expiry; forever-dismissed never resurfaces.
 
-### Delivery — render-driven, no poll
+### Delivery — render-driven, no poll of its own
 
 `App\Livewire\Dashboard\Edge` is mounted **once globally** in `layouts/app.blade.php` (beside
-`Countdown`/`EventReminder`). `load()` runs in `mount()` + after `dismiss()` only — **not** in
-`render()` and **no** `wire:poll` — so zero recurring query; the card set is recomputed only on page
-load and on a dismiss. `render()` just returns the view.
+`Countdown`/`EventReminder`). `load()` runs in `mount()`, after `dismiss()` and (since 2026-10-25) on the
+`edges-changed` event fired by `Pulse` — **not** in `render()` and **no** `wire:poll` — so zero
+recurring query of its own; the card set is recomputed on page load, on a dismiss and when `Pulse`
+sees the user's visible edges change. `render()` just returns the view.
+
+### Pulse — one fingerprint poll for the bell, edges, reminder dot and event timer (2026-10-25)
+
+`App\Livewire\Dashboard\Pulse` (mounted in `layouts/app.blade.php` right before the bell; inline `render()`, no blade file) is the user panel's ONLY recurring background poll for these four surfaces, and it is driven from the browser, not by `wire:poll`: its root `<div x-data="pulse(@js($fingerprint))">` is the Alpine component `data/pulse.js`. **Leader-tab election (client side, same Web Locks + `BroadcastChannel` idea as the Project pulse):** only the visible tab that holds the `pulse-leader` lock polls (a `setTimeout` chain, 70 s ±10 % jitter, first tick immediate when the last check is older than the interval); a hidden tab steps down and releases the lock so a visible tab takes over; with every tab hidden nobody polls; the leader broadcasts each result and followers adopt the fingerprint, dispatching the events at once if visible or queueing them (deduplicated) until the tab is shown. Without `navigator.locks` every visible tab leads on its own. A different browser or device has its own leader. `mount()` computes the starting fingerprint (one query per page load) and the component is stateless afterwards: `pulse(array $known)` always `skipRender()`s, runs `App\Services\Menu\PulseService::fingerprint()` and returns `['events' => …, 'fingerprint' => …]` (the browser passes back the last fingerprint; a tampered `$known` can only cause extra refresh events, since the comparison is strict per part). The fingerprint is — ONE query of four scalar subqueries: the bell's unread set (`COUNT`, `MAX(created_at)`, `MAX(updated_at)`), the user's visible edges, the user's active reminders whose due time has passed, and the first due event reminder (`Event::scopeReminderDueFor`, shared with `Event::nextReminderFor`). `PulseService::changedEvents()` compares it with the last fingerprint and returns only the matching events, which the browser dispatches with `Livewire.dispatch`: `databaseNotificationsSent` (bell), `edges-changed` (`Edge::load`), `reminder-changed` (`Reminder\Main`), `event-reminder-changed` (`EventReminder::refresh`, whose keyed `event-reminder-{id}` div re-inits `x-init` and dispatches `event-reminder-armed` so `stopwatch.js` arms live; the stopwatch's own guards — no re-arm while running, dismissed id — prevent a double ring). Time-based transitions (midnight, a snooze ending, an event window opening) self-resolve because `now()` lives inside the subqueries' WHEREs — there is no version key, no bump site and no fallback tick to maintain, and sweeps/jobs/raw SQL/admin writes are covered by construction. The menu badges (`StateService`) are NOT in the fingerprint and stay page-load-only; the DMS aggregate title in the bell lags until the next notification change. Delay for an idle visible tab is 0–77 s; hidden tabs do not poll and catch up when shown. Tests: `PulseTest` (component), `MenuServiceTest` (fingerprint/diff) and `data/__tests__/pulse.test.js` (election, fan-out).
 
 ### Local vs global — `localRoute()` (the per-toast scope switch)
 
@@ -1522,5 +1536,5 @@ Alpine state in `contact.js`/`channel.js`, not part of the toast component.
 - **Quiet events never ring** (`TaskNudge::QUIET`): archive, deadline, priority, label, project, meta, settings, workflow-step, department changes. The actor never receives their own event. Unlogged field edits leave no Reply and therefore no bell.
 - **Anti-noise:** the activity kind scans only the newest 4 non-quiet replies, `ReconcileNudge` is `ShouldBeUniqueUntilProcessing` (`uniqueFor` 2s, id = rule|class|subject) so one save no longer queues several identical reconciles, `badgeSuppressesCreate()` is false for every Task kind (a bare tasks badge row no longer swallows the nudge).
 - **Escalation:** overdue notifies the doer; once overdue days reach the project's `escalation_days` (charter, default 3, 0 = off) the accountable (`responsible_user_id`) is also told. Approval notifies one approver and escalates by age (24h/48h) from `completed_at`. Suspended (`TaskState::Suspension`, «توقف») tasks are silent for overdue/urgency.
-- **Bell refresh:** `NudgeService::refreshBell()` dispatches `databaseNotificationsSent` on the current Livewire component (used by mark-read actions in Channel, Contact, Feeds, Posts). The bell DOT is an Alpine span fed by the `bell-unread` event that `UnreadNotifications::rendered()` dispatches on every redraw, so it follows dismiss, the poll (both panels 60–75 s jittered: admin via `databaseNotificationsPolling`, user via `UnreadNotifications::getPollingInterval()`) and `refreshBell()`. The aggregate-count cache key carries the live unread total and zero short-circuits, so raw writes cannot leave a stale count. No polling added. Known race: `refreshBell()` after a mark-read can run before the `afterCommit` prune job removes the row, so the bell may briefly still show it — it self-heals on the next poll.
+- **Bell refresh:** `NudgeService::refreshBell()` dispatches `databaseNotificationsSent` on the current Livewire component (used by mark-read actions in Channel, Contact, Feeds, Posts). The bell DOT is an Alpine span fed by the `bell-unread` event that `UnreadNotifications::rendered()` dispatches on every redraw, so it follows dismiss, the poll (admin: `databaseNotificationsPolling`, 60–75 s jittered; user panel: no bell poll of its own since 2026-10-25 — `UnreadNotifications::getPollingInterval()` returns `null` and `Dashboard\Pulse` drives it, see "Pulse — one fingerprint poll" below) and `refreshBell()`. The aggregate-count cache key carries the live unread total and zero short-circuits, so raw writes cannot leave a stale count. Known race: `refreshBell()` after a mark-read can run before the `afterCommit` prune job removes the row, so the bell may briefly still show it — it self-heals on the next poll.
 - **ThsNudge is multi-head:** while a ticket is open every head of the target department is an action recipient (`User::headsOfDepartment`, `Ticket::isActionRecipient`); a ticket withdrawn by its requester never asks for a rating (`isAwaitingRating`).

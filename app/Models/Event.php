@@ -7,6 +7,7 @@ use App\Models\Concerns\HasMenuState;
 use App\Services\ProjectTask\EventSyncService;
 use Carbon\Carbon;
 use Closure;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -105,17 +106,21 @@ class Event extends Model
         return $this->belongsTo(User::class);
     }
 
-    public static function nextReminderFor(User $user): ?array
+    public function scopeReminderDueFor(Builder $query, User $user): Builder
     {
-        $event = static::query()
-            ->whereNotNull('remind_hours')
+        return $query->whereNotNull('remind_hours')
             ->where('date', '>', now())
             ->whereRaw('DATE_SUB(date, INTERVAL remind_hours HOUR) <= ?', [now()])
             ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                     ->orWhere('private', false)
                     ->orWhereHas('shares', fn($sq) => $sq->where('user_id', $user->id));
-            })
+            });
+    }
+
+    public static function nextReminderFor(User $user): ?array
+    {
+        $event = static::reminderDueFor($user)
             ->orderBy('date')
             ->first(['id', 'title', 'date']);
 

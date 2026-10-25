@@ -15,7 +15,7 @@ class SweepDueReminders extends Command
 {
     protected $signature = 'reminders:sweep-due';
 
-    protected $description = 'Sweep reminders that are due today or overdue with no accompanying save (so no Eloquent event fired) and reconcile the due bell nudge and due-today edge toast for each, plus send the queued email notification for due-today reminders on the email channel that have not been notified yet.';
+    protected $description = 'Hourly safety net: reconcile the due bell nudge and due-today edge toast of every reminder whose due time has passed, send the queued email for due-today reminders on the email channel that have not been notified yet, and (re)queue the delayed due-time reconcile of every reminder that falls due within the next 24 hours.';
 
     public function handle(): int
     {
@@ -23,7 +23,7 @@ class SweepDueReminders extends Command
 
         Reminder::query()
             ->active()
-            ->where('due_at', '<=', now()->endOfDay())
+            ->where('due_at', '<=', now())
             ->select('id')
             ->chunkById(200, function ($reminders) use ($overdueKey) {
                 foreach ($reminders as $reminder) {
@@ -35,7 +35,8 @@ class SweepDueReminders extends Command
 
         Reminder::query()
             ->active()
-            ->whereDate('due_at', now()->toDateString())
+            ->where('due_at', '>', now()->subDay())
+            ->where('due_at', '<=', now())
             ->with('user')
             ->chunkById(200, function ($reminders) use ($dueTodayKey) {
                 foreach ($reminders as $reminder) {
@@ -50,6 +51,18 @@ class SweepDueReminders extends Command
                     if ($affected === 1) {
                         Notification::send($reminder->user, new ReminderDueNotification($reminder));
                     }
+                }
+            });
+
+        Reminder::query()
+            ->whereNull('completed_at')
+            ->where(fn ($q) => $q
+                ->whereBetween('due_at', [now(), now()->addDay()])
+                ->orWhereBetween('snoozed_until', [now(), now()->addDay()]))
+            ->select(['id', 'due_at', 'snoozed_until', 'completed_at'])
+            ->chunkById(200, function ($reminders) {
+                foreach ($reminders as $reminder) {
+                    $reminder->queueDueReconcile();
                 }
             });
 
