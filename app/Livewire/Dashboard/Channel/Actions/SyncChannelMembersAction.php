@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Channel\Actions;
 
+use App\Jobs\ReconcileEdge;
 use App\Jobs\ReconcileNudge;
 use App\Models\Channel;
 use App\Models\User;
@@ -54,6 +55,7 @@ class SyncChannelMembersAction
 
         if ($changed) {
             dispatch(new ReconcileNudge('channels-controller:nudge', Channel::class, $channelId))->afterCommit();
+            dispatch(new ReconcileEdge('channels-controller:edge', Channel::class, $channelId))->afterCommit();
         }
 
         return [

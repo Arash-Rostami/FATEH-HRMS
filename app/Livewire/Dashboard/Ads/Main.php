@@ -31,9 +31,10 @@ class Main extends Component
                     ->when($this->activeFilter === 'active', fn(Builder $query) => $query->active())
                     ->when($this->activeFilter === 'archived', fn(Builder $query) => $query->inactive())
                     ->when($this->search, function (Builder $query) {
-                        $query->where('position', 'like', "%{$this->search}%")
+                        $query->where(fn(Builder $s) => $s
+                            ->where('position', 'like', "%{$this->search}%")
                             ->orWhere('skill', 'like', "%{$this->search}%")
-                            ->orWhere('certificate', 'like', "%{$this->search}%");
+                            ->orWhere('certificate', 'like', "%{$this->search}%"));
                     })
                     ->latest()
             )
@@ -63,9 +64,11 @@ class Main extends Component
     #[Computed]
     public function stats()
     {
+        $counts = Ad::getActiveCounts();
+
         return [
-            'active' => Ad::active()->count(),
-            'archived' => Ad::inactive()->count(),
+            'active' => $counts['active'],
+            'archived' => $counts['inactive'],
         ];
     }
 

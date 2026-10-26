@@ -7,6 +7,7 @@ use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\Concerns\HasAvatar as HasImage;
 use App\Models\Concerns\HasDateHelpers;
 use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasModelCache;
 use App\Models\Concerns\HasOccasions;
 use App\Jobs\ReconcileNudge;
 use App\Jobs\SyncProjectChannelMembershipJob;
@@ -22,7 +23,7 @@ use RuntimeException;
 
 class Profile extends Model
 {
-    use HasFactory, HasDateHelpers, HasImage, HasMenuState, HasOccasions, CleansAttachedFiles;
+    use HasFactory, HasDateHelpers, HasImage, HasMenuState, HasModelCache, HasOccasions, CleansAttachedFiles;
 
     protected $fillable = [
         'personnel_id',
@@ -152,6 +153,18 @@ class Profile extends Model
     public function getHasDisplayPositionAttribute(): bool
     {
         return filled($this->position) || filled($this->detailsMap()->get('display_title'));
+    }
+
+    public static function cachedWithDates(): Collection
+    {
+        return static::cached(
+            'with_dates:u' . ModelCacheVersion::version(User::class),
+            fn() => static::query()
+                ->select('id', 'user_id', 'birthdate', 'start_date', 'image')
+                ->with('user:id,name')
+                ->where(fn($q) => $q->whereNotNull('birthdate')->orWhereNotNull('start_date'))
+                ->get()
+        );
     }
 
     protected function casts(): array

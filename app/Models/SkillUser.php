@@ -135,6 +135,16 @@ class SkillUser extends Model
         });
     }
 
+    public static function dismissNotice(int $userId, string $dedupeKey): void
+    {
+        Cache::lock("skill_notices_lock:{$userId}", 5)->block(2, function () use ($userId, $dedupeKey) {
+            $key = "skill_notices:{$userId}";
+            $list = Cache::get($key, []);
+            unset($list[$dedupeKey]);
+            Cache::put($key, $list, now()->addDays(7));
+        });
+    }
+
     protected function casts(): array
     {
         return [

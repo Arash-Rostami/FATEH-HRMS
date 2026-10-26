@@ -8,9 +8,10 @@
     {{-- ═══════════════════════ HERO DECK (MULTI-PANE) ═══════════════════════ --}}
     <div x-data="heroDeck()"
          x-on:keydown.escape.window="if (maximizedPane) toggleMaximize(maximizedPane); if (pickerFor) pickerFor = null"
-         class="relative mb-8 select-none-subtle">
+         :style="deckH ? 'height:' + deckH + 'px' : null"
+         class="relative mb-8 min-h-min select-none-subtle">
 
-        <div class="relative overflow-hidden rounded-2xl
+        <div class="relative overflow-hidden h-full rounded-2xl
                     bg-[var(--md-sys-color-primary-container)] transition-all duration-300
                     border border-[var(--md-sys-color-outline-variant)]/10 shadow-sm shadow-[0_4px_30px_color-mix(in_srgb,var(--md-sys-color-primary)_16%,transparent)]">
 
@@ -252,10 +253,10 @@
         {{-- Active Workspace Viewports --}}
         <template x-for="pane in panes" :key="pane">
             <div x-show="slide === pane" x-cloak x-transition.opacity.duration.300ms
-                 class="absolute inset-0 p-3 sm:p-5 pb-16">
+                 class="absolute inset-0 p-3 sm:p-5 pb-16 pointer-events-none">
 
                 <div :class="{ 'max-widget': maximizedPane === pane, 'max-widget-leaving': maximizedPane === pane && maxLeaving }"
-                     class="h-full flex flex-col rounded-xl overflow-hidden bg-[var(--md-sys-color-surface)]
+                     class="h-full flex flex-col rounded-xl overflow-hidden pointer-events-auto bg-[var(--md-sys-color-surface)]
                                 border border-[var(--md-sys-color-outline-variant)]/30
                                 shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-shadow)_16%,transparent)] transition-all">
 
@@ -294,6 +295,21 @@
                 </div>
             </div>
         </template>
+
+        <div x-data="{ y: 0, h: 0, base: 0, grown: false }"
+             x-on:pointerdown.prevent="y = $event.clientY; h = $el.parentElement.offsetHeight; if (!grown) base = h; $el.setPointerCapture($event.pointerId)"
+             x-on:pointermove="if ($el.hasPointerCapture($event.pointerId)) { const next = Math.max(base, h + $event.clientY - y); deckH = next; grown = next > base + 2 }"
+             x-on:pointerup="$el.releasePointerCapture($event.pointerId)"
+             class="group absolute inset-x-0 bottom-0 z-20 h-10 rounded-b-2xl flex items-end justify-start gap-2 px-3 pb-1 cursor-row-resize touch-none transition-colors hover:bg-[linear-gradient(to_top,color-mix(in_srgb,var(--md-sys-color-primary)_14%,transparent),transparent)]">
+            <button type="button" tabindex="-1"
+                    x-on:pointerdown="if (grown) $event.stopPropagation()"
+                    x-on:click="if (grown) { deckH = 0; grown = false }"
+                    :class="grown ? 'pointer-events-auto cursor-pointer hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)]' : 'pointer-events-none group-hover:bg-[var(--md-sys-color-primary)] group-hover:text-[var(--md-sys-color-on-primary)]'"
+                    class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-[var(--md-sys-color-surface)]/90 border border-[var(--md-sys-color-outline-variant)]/30 shadow-lg text-[var(--md-sys-color-primary)] transition-all duration-200 group-hover:scale-105 focus:outline-none">
+                <span class="material-symbols-rounded text-[18px] leading-none" aria-hidden="true" x-text="grown ? 'restart_alt' : 'unfold_more'">unfold_more</span>
+                <span class="hidden sm:inline text-[10px] font-bold" x-text="grown ? 'اندازه پیش‌فرض' : 'تغییر ارتفاع'">تغییر ارتفاع</span>
+            </button>
+        </div>
 
         {{-- Dock Navigation Bar --}}
         <div class="absolute bottom-1 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 p-1.5 rounded-xl

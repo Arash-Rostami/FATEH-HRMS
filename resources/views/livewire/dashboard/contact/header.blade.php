@@ -11,7 +11,7 @@
     $contactIdJs = \Illuminate\Support\Js::from($contact->id);
 @endphp
 
-<header class="relative z-20 flex h-16 flex-shrink-0 items-center justify-between gap-3 border-b px-3 sm:px-5 backdrop-blur-xl transition-all duration-300
+<header class="chat-scale relative z-20 flex h-16 flex-shrink-0 items-center justify-between gap-3 border-b px-3 sm:px-5 backdrop-blur-xl transition-all duration-300
                bg-[color-mix(in_srgb,var(--md-sys-color-surface)_94%,transparent)]
                border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_45%,transparent)]
                shadow-[0_2px_12px_-2px_color-mix(in_srgb,var(--md-sys-color-on-surface)_5%,transparent)]"

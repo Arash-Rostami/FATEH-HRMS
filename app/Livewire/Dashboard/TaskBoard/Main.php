@@ -369,28 +369,25 @@ class Main extends Component
         $archivedScope = $this->archivedScope();
 
         $counts = (clone $baseQuery)
-            ->whereIn('status', array_diff($this->columns, [TaskStatus::Done->value]))
+            ->where(fn(Builder $q) => $q
+                ->where('status', '!=', TaskStatus::Done->value)
+                ->orWhere(fn(Builder $done) => $done->where('status', TaskStatus::Done->value)->tap($archivedScope)))
             ->groupBy('status')
-            ->selectRaw('status, COUNT(*) as aggregate')
-            ->pluck('aggregate', 'status');
+            ->when($doneWindow !== null,
+                fn(Builder $q) => $q->selectRaw('status, COUNT(*) as aggregate, SUM(updated_at >= ?) as windowed', [now()->subDays(self::DONE_WINDOW_DAYS)]),
+                fn(Builder $q) => $q->selectRaw('status, COUNT(*) as aggregate'),
+            )
+            ->get();
 
-        $doneQuery = (clone $baseQuery)->where('status', TaskStatus::Done->value)->tap($archivedScope);
+        $doneRow = $counts->firstWhere('status', TaskStatus::Done->value);
+        $doneTotal = (int)($doneRow?->aggregate ?? 0);
 
         $this->archivedCount = $this->tabQuery()->where('status', TaskStatus::Done->value)->whereNotNull('archived_at')->count();
 
-        if ($doneWindow === null) {
-            $count = $doneQuery->count();
-            $this->doneTotalCount['done'] = $count;
-            $this->totalCount['done'] = $count;
-        } else {
-            $threshold = now()->subDays(self::DONE_WINDOW_DAYS);
-            $row = $doneQuery->selectRaw(
-                'COUNT(*) as total, SUM(CASE WHEN updated_at >= ? THEN 1 ELSE 0 END) as windowed',
-                [$threshold]
-            )->first();
-            $this->doneTotalCount['done'] = (int)($row->total ?? 0);
-            $this->totalCount['done'] = (int)($row->windowed ?? 0);
-        }
+        $this->doneTotalCount['done'] = $doneTotal;
+        $this->totalCount['done'] = $doneWindow === null ? $doneTotal : (int)($doneRow?->windowed ?? 0);
+
+        $counts = $counts->pluck('aggregate', 'status');
 
         $columnResults = [];
 

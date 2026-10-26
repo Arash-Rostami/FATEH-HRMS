@@ -94,7 +94,7 @@ class Workflow extends Model
     {
         $ids = array_unique($ids);
 
-        return $ids ? User::whereIn('id', $ids)->pluck('name', 'id')->all() : [];
+        return $ids ? array_intersect_key(User::getCachedAllOptions()->all(), array_flip(array_filter($ids))) : [];
     }
 
     public function currentStep(): ?array

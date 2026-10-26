@@ -17,7 +17,7 @@
         : null;
 @endphp
 
-<header class="relative z-20 flex h-16 flex-shrink-0 items-center justify-between gap-2.5 md:gap-4 border-b px-3 md:px-5 transition-all duration-300
+<header class="chat-scale relative z-20 flex h-16 flex-shrink-0 items-center justify-between gap-2.5 md:gap-4 border-b px-3 md:px-5 transition-all duration-300
                bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)]
                border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)]
                shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]"

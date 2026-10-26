@@ -3,6 +3,7 @@ import settings from "./settings.js";
 import maximizeMixin from "../mixins/maximize.js";
 import lastOpenMixin from "../mixins/lastOpen.js";
 import sidebarRailMixin from "../mixins/sidebarRail.js";
+import chatScaleMixin from "../mixins/chatScale.js";
 import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
@@ -39,6 +40,7 @@ export default function contact() {
         ...maximizeMixin('contact'),
         ...lastOpenMixin('contact'),
         ...sidebarRailMixin('contact'),
+        ...chatScaleMixin(),
         ...clipboardMixin(),
         ...pasteImageMixin(),
         ...chatBase(SCOPE),
@@ -48,6 +50,7 @@ export default function contact() {
         quoteChip: { visible: false, x: 0, y: 0, id: null, sender: '', snippet: '' },
 
         init() {
+            this.initChatScale();
             this.initFancybox();
             this.initPattern();
             this.syncPushNotify();
@@ -63,7 +66,12 @@ export default function contact() {
             ac = new AbortController();
             const { signal } = ac;
 
-            document.addEventListener('visibilitychange', () => document.hidden ? this.stopPolling() : this._repollNow(), { signal });
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    this._flushPendingRing();
+                    this._repollNow();
+                } else if (!this.$store.push.isEnabled(SCOPE)) this.stopPolling();
+            }, { signal });
 
             this._bindViewport();
 
@@ -193,7 +201,7 @@ export default function contact() {
 
         async _pollTick(force = false) {
             const fullSidebar = force || ++ticks % POLL_FALLBACK_EVERY === 0;
-            const open = !!this.$wire.activeUserId;
+            const open = !!this.$wire.activeUserId && !document.hidden;
             const lastBefore = open ? this._readLastMessageMarker() : null;
             const typingBefore = open ? this._readTypingMarker() : null;
             let changed = false;
@@ -202,12 +210,14 @@ export default function contact() {
             try {
                 const d = await this.$wire.pollDigest();
                 if (fullSidebar || d !== digest) {
+                    this._riseOnlyMuted();
                     const unreadBefore = this._readUnread();
                     await this._sidebar();
                     digest = d;
                     const unreadAfter = this._readUnread();
                     changed = unreadAfter !== unreadBefore;
                     unreadRose = unreadAfter > unreadBefore;
+                    if (unreadRose && document.hidden) this._ringIncoming(null);
                 }
 
                 if (open) {
@@ -247,6 +257,7 @@ export default function contact() {
         },
 
         syncPushNotify() {
+            this._riseOnlyMuted();
             const now = this._readUnread();
             if (this._lastUnread !== undefined && now > this._lastUnread) {
                 this.$store.push.notify('پیام جدید', 'یک گفتگو پیام جدید دارد', SCOPE);

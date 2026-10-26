@@ -49,9 +49,9 @@ class MarkChannelReadAction
                 PollDigestService::bump("ch:me:{$userId}");
                 PollDigestService::bump("ch:rv:{$channelId}");
             });
-        }
 
-        dispatch(new ReconcileNudge('channels-controller:nudge', Channel::class, $channelId))->afterCommit();
-        dispatch(new ReconcileEdge('channels-controller:edge', Channel::class, $channelId))->afterCommit();
+            dispatch(new ReconcileNudge('channels-controller:nudge', Channel::class, $channelId))->afterCommit();
+            dispatch(new ReconcileEdge('channels-controller:edge', Channel::class, $channelId))->afterCommit();
+        }
     }
 }

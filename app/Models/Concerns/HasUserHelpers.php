@@ -12,7 +12,7 @@ trait HasUserHelpers
      */
     protected static function userNames(): array
     {
-        return User::getCachedNames()->toArray();
+        return User::getCachedAllOptions()->toArray();
     }
 
     /* ─────────────────────────────────────────────

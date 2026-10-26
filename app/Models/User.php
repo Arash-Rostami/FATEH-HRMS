@@ -176,14 +176,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         );
     }
 
-    public static function getCachedNames(): Collection
-    {
-        return Cache::remember(ModelCacheVersion::key(self::class, 'user_names_map'),
-            now()->addHour(),
-            fn() => self::orderBy('name')->pluck('name', 'id')
-        );
-    }
-
     public function getExtraValue(string $key, mixed $default = null): mixed
     {
         return Arr::get($this->extra ?? [], $key, $default);
@@ -338,13 +330,15 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->hasOne(Permission::class);
     }
 
+    protected ?Permission $permissionRow = null;
+
     public function permits(string $module, string $action): bool
     {
         if ($this->isDeveloper()) {
             return true;
         }
 
-        return (bool)Permission::forUser($this->id)?->can($module, $action);
+        return (bool)($this->permissionRow ??= Permission::forUser($this->id))?->can($module, $action);
     }
 
     public function posts(): HasMany

@@ -115,9 +115,17 @@ class Main extends Component
     }
 
     #[Computed]
+    protected function testStats(): EnergyModel
+    {
+        return EnergyModel::where('user_id', auth()->id())
+            ->selectRaw('COUNT(*) as total, MAX(completed_at) as completed_at')
+            ->first();
+    }
+
+    #[Computed]
     public function userTestCount(): int
     {
-        return EnergyModel::where('user_id', auth()->id())->count();
+        return (int) $this->testStats->total;
     }
 
     #[Computed]
@@ -127,7 +135,7 @@ class Main extends Component
             return null;
         }
 
-        $last = EnergyModel::where('user_id', auth()->id())->latest('completed_at')->value('completed_at');
+        $last = $this->testStats->completed_at;
 
         if (!$last) {
             return null;

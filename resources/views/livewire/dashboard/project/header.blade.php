@@ -11,7 +11,7 @@
     $hasMobilePopoverData = $hasSpecs || !empty($riskChips);
 @endphp
 
-<div class="flex flex-shrink-0 items-center justify-between gap-2.5 md:gap-4">
+<div class="chat-scale flex flex-shrink-0 items-center justify-between gap-2.5 md:gap-4">
     <div class="flex min-w-0 flex-1 items-center gap-2.5 md:gap-3.5">
         <button type="button"
                 x-on:click="backToList()"

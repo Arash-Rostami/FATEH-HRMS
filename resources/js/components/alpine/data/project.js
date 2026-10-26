@@ -1,6 +1,7 @@
 import maximizeMixin from '../mixins/maximize.js';
 import lastOpenMixin from '../mixins/lastOpen.js';
 import sidebarRailMixin from '../mixins/sidebarRail.js';
+import chatScaleMixin from '../mixins/chatScale.js';
 import clipboardMixin from '../mixins/clipboard.js';
 import mentionMixin from '../mixins/mention.js';
 import kanbanDragMixin from '../mixins/kanbanDrag.js';
@@ -43,6 +44,7 @@ export default function project() {
         ...maximizeMixin('project'),
         ...lastOpenMixin('project'),
         ...sidebarRailMixin('project'),
+        ...chatScaleMixin(),
         ...clipboardMixin(),
         ...mentionMixin(),
         ...kanbanDragMixin(),
@@ -81,6 +83,7 @@ export default function project() {
         openingProject: false,
 
         init() {
+            this.initChatScale();
             this.initKanbanDrag();
             this._isDestroyed = false;
 

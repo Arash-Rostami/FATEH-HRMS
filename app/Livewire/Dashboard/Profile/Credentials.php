@@ -51,10 +51,10 @@ class Credentials extends Component
                 // FOCUS MODE: pin to the single record chosen in the command palette
                 fn($q) => $q->whereKey($this->open),
                 // NORMAL MODE: apply the search box.
-                fn($q) => $q->when($this->search !== '', fn($q) => $q
+                fn($q) => $q->when($this->search !== '', fn($q) => $q->where(fn($s) => $s
                     ->where('app_name', 'like', "%{$this->search}%")
                     ->orWhere('username', 'like', "%{$this->search}%")
-                )
+                ))
             )
             ->get();
     }
@@ -62,7 +62,7 @@ class Credentials extends Component
     #[Computed]
     public function hasAnyCredentials(): bool
     {
-        return Auth::user()->credentials()->exists();
+        return $this->credentials->isNotEmpty() || Auth::user()->credentials()->exists();
     }
 
     public function render()

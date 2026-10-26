@@ -104,7 +104,9 @@ class Main extends Component
     #[Computed]
     public function subject(): User
     {
-        return User::with('profile')->findOrFail($this->subjectUserId);
+        return $this->subjectUserId === (int) auth()->id()
+            ? auth()->user()->loadMissing('profile')
+            : User::with('profile')->findOrFail($this->subjectUserId);
     }
 
     #[Computed]

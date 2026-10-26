@@ -531,6 +531,7 @@ class Main extends Component
             $this->invalidateMessageCache();
             unset($this->contacts);
             $this->dispatch('message-sent');
+            rescue(fn() => $this->markRead($this->activeUserId));
         } catch (ValidationException $e) {
             $this->setErrorBag($e->validator->errors());
             $this->dispatch('message-error');

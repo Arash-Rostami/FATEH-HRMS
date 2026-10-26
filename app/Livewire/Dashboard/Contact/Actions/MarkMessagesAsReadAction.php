@@ -20,18 +20,18 @@ class MarkMessagesAsReadAction
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        DB::afterCommit(fn() => StateService::flush());
-
         if ($count > 0) {
+            DB::afterCommit(fn() => StateService::flush());
+
             NudgeService::refreshBell();
 
             DB::afterCommit(function () use ($contactId, $viewerId) {
                 PollDigestService::bump("dm:sv:{$contactId}");
                 PollDigestService::bump("dm:sv:{$viewerId}");
             });
-        }
 
-        dispatch(new ReconcileNudge('contacts-controller:nudge', User::class, $contactId))->afterCommit();
+            dispatch(new ReconcileNudge('contacts-controller:nudge', User::class, $contactId))->afterCommit();
+        }
 
         return $count;
     }

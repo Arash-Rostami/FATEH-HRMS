@@ -6,7 +6,7 @@
     $hasMoreContacts = $this->hasMoreContacts;
 @endphp
 <aside @class([
-    'flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)]',
+    'chat-scale flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)]',
     'hidden' => $mobileShowChat,
     'flex' => !$mobileShowChat,
     'md:flex w-full md:w-[320px] lg:w-[360px]',
@@ -94,10 +94,10 @@
                  x-on:click="selectContact({{ $contact['id'] }})"
                  x-on:keydown.enter.prevent="selectContact({{ $contact['id'] }})"
                  x-on:keydown.space.prevent="selectContact({{ $contact['id'] }})"
-                 data-rf="people-{{ $contact['id'] }}" role="option" tabindex="0"
+                 data-rf="people-{{ $contact['id'] }}" data-unread-id="{{ $contact['id'] }}" data-unread="{{ (int) $contact['unread'] }}" role="option" tabindex="0"
                  aria-selected="{{ $activeUserId === $contact['id'] ? 'true' : 'false' }}"
                  :style="{ order: $store.pinned.isPinned({{ $contact['id'] }}, 'contact') ? -1 : 0 }"
-                 title="{{ $contact['name'] }}"
+                 :title="sbCollapsed ? @js($contact['name']) : null"
                 @class([
                     'sb-row group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
                     'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeUserId === $contact['id'],

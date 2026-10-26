@@ -15,6 +15,7 @@
 
         <x-ui.title icon="campaign" title="گروه‌ها">
             <x-slot:actions>
+                <x-ui.buttons.chat-scale/>
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'messaging-badge-legend' })"

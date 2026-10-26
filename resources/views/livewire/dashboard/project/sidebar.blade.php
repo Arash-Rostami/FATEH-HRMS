@@ -1,7 +1,7 @@
 @php
     $allProjectIds = collect($this->myProjects['rows'])->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
 @endphp
-<aside class="flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:flex w-full md:w-[320px] lg:w-[360px] bg-[var(--md-sys-color-surface)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"
+<aside class="chat-scale flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:flex w-full md:w-[320px] lg:w-[360px] bg-[var(--md-sys-color-surface)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"
        :class="{ 'hidden': mobileShowChat, 'sb-collapsed': sbCollapsed, 'animate-sidebar-slide': sbSlide }"
        aria-label="لیست پروژه‌ها">
 
@@ -60,7 +60,7 @@
                     x-on:click="selectProject({{ $project['id'] }})"
                     x-on:keydown.enter.prevent="selectProject({{ $project['id'] }})"
                     x-on:keydown.space.prevent="selectProject({{ $project['id'] }})"
-                    data-rf="project-{{ $project['id'] }}" title="{{ $project['name'] }}"
+                    data-rf="project-{{ $project['id'] }}" :title="sbCollapsed ? @js($project['name']) : null"
                     role="option" tabindex="0" aria-selected="{{ $activeProjectId === $project['id'] ? 'true' : 'false' }}"
                     :style="{ order: $store.pinned.isPinned({{ $project['id'] }}, 'project') ? -1 : 0 }"
                     @class([
@@ -84,7 +84,7 @@
                             'truncate text-[13px] leading-tight',
                             'font-bold text-[var(--md-sys-color-on-surface)]' => $activeProjectId === $project['id'],
                             'font-medium text-[var(--md-sys-color-on-surface-variant)]' => $activeProjectId !== $project['id'],
-                        ]) title="{{ $project['name'] }}" dir="auto">{{ $project['name'] }}</span>
+                        ]) dir="auto">{{ $project['name'] }}</span>
 
                     <x-ui.decor.progress-ring :percent="$project['percent']" :size="24" :stroke="4" class="shrink-0"
                         :color="$project['percent'] >= 100 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)'"/>

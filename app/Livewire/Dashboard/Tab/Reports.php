@@ -125,7 +125,7 @@ class Reports extends Component
     #[Computed]
     public function departments()
     {
-        $codes = $this->visibleReportsQuery()->whereNotNull('department_id')->pluck('department_id');
+        $codes = $this->visibleReportsQuery()->whereNotNull('department_id')->distinct()->pluck('department_id');
 
         return Department::getCachedModels()
             ->filter(fn ($model, $code) => $codes->contains($code))

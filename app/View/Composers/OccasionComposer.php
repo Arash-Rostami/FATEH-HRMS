@@ -14,7 +14,7 @@ class OccasionComposer
         $user = auth()->user();
 
         if ($user && function_exists('isSpecialDay')) {
-            if (!cache()->has('birthdate_' . $user->id) && isSpecialDay('birthdate')) {
+            if (isSpecialDay('birthdate')) {
                 $birthdayQuotes = [
                     "امیدوارم روزت پر از خنده و شادی باشه.",
                     "برات آرزوی سلامتی، شادی و موفقیت در سال پیش رو دارم.",
@@ -28,9 +28,9 @@ class OccasionComposer
                 $occasionType = 'birthday';
                 $title = 'تولدتان مبارک ' . ($user->name ?? 'عزیز') . '!';
                 $message = $birthdayQuotes[array_rand($birthdayQuotes)];
-                cache()->put('birthdate_' . $user->id, 'shown', now()->addHours(12));
+                cache()->put('birthdate_' . $user->id, 'shown', now()->endOfDay());
 
-            } elseif (!cache()->has('start_date_' . $user->id) && isSpecialDay('start_date')) {
+            } elseif (isSpecialDay('start_date')) {
                 $startDateQuotes = [
                     "تبریک بابت رسیدن به یک نقطه عطف دیگر در مسیر شغلی‌تان!",
                     "به امید سالی سرشار از رشد، یادگیری و موفقیت.",
@@ -44,7 +44,7 @@ class OccasionComposer
                 $occasionType = 'anniversary';
                 $title = 'سالگرد همکاریتان مبارک ' . ($user->name ?? 'عزیز') . '!';
                 $message = $startDateQuotes[array_rand($startDateQuotes)];
-                cache()->put('start_date_' . $user->id, 'shown', now()->addHours(12));
+                cache()->put('start_date_' . $user->id, 'shown', now()->endOfDay());
             }
         }
 

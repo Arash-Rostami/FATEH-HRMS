@@ -31,9 +31,7 @@ class LastTouchResolver
             return [];
         }
 
-        $names = User::query()
-            ->whereIn('id', $touches->pluck('user_id')->unique())
-            ->pluck('name', 'id');
+        $names = User::getCachedAllOptions();
 
         return $touches
             ->mapWithKeys(fn(Reply $reply) => [

@@ -1486,6 +1486,10 @@
     }
 }
 
+.chat-scale {
+    zoom: var(--chat-scale, 1);
+}
+
 .max-widget-column {
     position: fixed !important;
     top: 50% !important;

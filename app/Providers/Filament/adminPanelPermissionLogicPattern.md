@@ -33,16 +33,15 @@ runs on every admin request **after** `canAccessPanel` and is the hard door:
 ## Developer bypass — every gate site
 
 A developer is super admin by role, so each gate short-circuits `true`/skip before
-touching `Permission::forUser()`. The bypass lives in **all seven** call sites
-(adding an eighth requires adding the same guard there too):
+touching `Permission::forUser()`. The bypass lives in **all six** call sites
+(adding a seventh requires adding the same guard there too):
 
 1. `app/Http/Middleware/EnsureHasPermission.php` — `if ($user->isDeveloper()) return $next($request);`
-2. `app/Traits/AuthorizesByPermission.php` `permits()` — `if ($user->isDeveloper()) return true;`
-3. `app/Models/User.php` `permits()` — `if ($this->isDeveloper()) return true;`
-4. `app/Filament/Resources/PermissionResource.php` `canViewAny()` — developer sees the Permission admin
-5. `app/Filament/Resources/UserResource/RelationManagers/PermissionsRelationManager.php` `canViewAny()` — developer may administer permissions (also enforces owner role === `admin`)
-6. `app/Helpers/index.php` `canAdmin()` — used by Livewire/dashboard nav
-7. `app/Http/Middleware/EnsureUserModulePermission.php` — per-module route middleware
+2. `app/Models/User.php` `permits()` — `if ($this->isDeveloper()) return true;` (`AuthorizesByPermission::permits()` has no guard of its own since 2026-10-26; it delegates here and inherits the bypass)
+3. `app/Filament/Resources/PermissionResource.php` `canViewAny()` — developer sees the Permission admin
+4. `app/Filament/Resources/UserResource/RelationManagers/PermissionsRelationManager.php` `canViewAny()` — developer may administer permissions (also enforces owner role === `admin`)
+5. `app/Helpers/index.php` `canAdmin()` — used by Livewire/dashboard nav
+6. `app/Http/Middleware/EnsureUserModulePermission.php` — per-module route middleware
 
 ## The two admin tiers (both stored on the same Permission row)
 
@@ -114,8 +113,8 @@ The trait maps every Filament authorization method to `permits($action)` in **tw
   none exists, so a canX-only trait never hid or blocked in-table Delete/Edit. Unauthorized actions now
   auto-hide. Resource-level `canX` overrides (`canCreate=false` on Contact/EnergyTest/ReservationPolicy,
   `canForceDelete=false` on Project) are **not** consulted by it.
-- `permits($action)` → `Permission::forUser(Auth::user()->id)?->can(static::moduleKey(), $action)`
-  (developer bypass first).
+- `permits($action)` → delegates to `Auth::user()->permits(static::moduleKey(), $action)`
+  (null-user guard first; developer bypass and the instance memo live in `User::permits()`).
 - `moduleKey()` = `Str::snake` of the class basename with the **trailing** `Resource`
   suffix stripped (`substr($base, 0, -strlen('Resource'))`) → `AuthorityResource` →
   `authority`, `EventResource` → `event`. **Must strip the suffix, not the first
@@ -141,8 +140,15 @@ visibility and row/header/bulk actions follow the **related** model's resource p
 related module loses that child tab (User page tabs each need that module's `view`; Channel
 Members needs `user` view). Overrides of `canViewForRecord()` must call `parent::`. Edit/View pages automatically show a callout naming tabs hidden by these permission checks (`RelationManager::deniedByPermission()` + `ExplainsHiddenRelationTabs`; see filamentPattern.md).
 
-**Cost:** each check = 2 Redis GETs, no DB queries — no `once()` memoization of
-`Permission::forUser` (see Caching).
+**Cost:** one request = 2 Redis GETs, not 2 per check — `User::permits()` memoizes
+the Permission row on the instance (`$this->permissionRow ??= Permission::forUser(...)`;
+the guard-cached `Auth::user()` is one object for the whole request, so nav ×
+~30 `canViewAny` + per-row action checks all hit the memo). The trait's
+`permits($action)` delegates to `Auth::user()->permits(static::moduleKey(), $action)`.
+Still no `once()` memoization of `Permission::forUser` (see Caching) — the memo is
+instance-scoped, dies with the request, and a null row re-resolves (never wrong, at
+worst the old per-check cost). A fresh User instance after a permission save reads
+the rotated version key and sees the change.
 
 ## Validation rules
 

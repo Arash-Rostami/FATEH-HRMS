@@ -43,7 +43,7 @@ class Skills extends Component
 
         foreach ($notices as $key => $notice) {
             $this->dispatch('toast', message: $notice['body'], type: $notice['type'] ?? 'success');
-            self::dismiss((int) Auth::id(), $key);
+            SkillUser::dismissNotice((int) Auth::id(), $key);
         }
     }
 
@@ -237,15 +237,5 @@ class Skills extends Component
             report($e);
             $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         }
-    }
-
-    private static function dismiss(int $userId, string $dedupeKey): void
-    {
-        Cache::lock("skill_notices_lock:{$userId}", 5)->block(2, function () use ($userId, $dedupeKey) {
-            $key = "skill_notices:{$userId}";
-            $list = Cache::get($key, []);
-            unset($list[$dedupeKey]);
-            Cache::put($key, $list, now()->addDays(7));
-        });
     }
 }

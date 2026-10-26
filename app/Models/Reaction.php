@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Services\Cache\SkipsAutomaticCacheVersioning;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Reaction extends Model
+class Reaction extends Model implements SkipsAutomaticCacheVersioning
 {
     use HasFactory;
 

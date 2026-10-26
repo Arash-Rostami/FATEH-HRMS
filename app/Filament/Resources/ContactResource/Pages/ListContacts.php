@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ContactResource\Pages;
 
 use App\Filament\Resources\ContactResource;
 use App\Models\Message;
+use App\Services\Cache\ModelCacheVersion;
 use App\Traits\FilamentHeaderActions;
 use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -35,7 +36,7 @@ class ListContacts extends ListRecords
 
             'unread' => Tab::make(__('resources/contact/strings.tabs.unread'))
                 ->icon('heroicon-o-envelope')
-                ->badge(fn() => $this->getStats()->unread_count ?: null)
+                ->badge(fn() => $this->getStats()['unread_count'] ?: null)
                 ->badgeColor('danger')
                 ->modifyQueryUsing(
                     fn(Builder $query) => $query->whereNull('read_at')
@@ -49,7 +50,7 @@ class ListContacts extends ListRecords
 
             'trashed' => Tab::make(__('resources/contact/strings.tabs.trashed'))
                 ->icon('heroicon-o-trash')
-                ->badge(fn() => $this->getStats()->trashed_count ?: null)
+                ->badge(fn() => $this->getStats()['trashed_count'] ?: null)
                 ->badgeColor('warning')
                 ->modifyQueryUsing(
                     fn(Builder $query) => $query->onlyTrashed()
@@ -57,7 +58,7 @@ class ListContacts extends ListRecords
 
             'pruning_soon' => Tab::make(__('resources/contact/strings.tabs.pruning_soon'))
                 ->icon('heroicon-o-exclamation-triangle')
-                ->badge(fn() => $this->getStats()->pruning_soon_count ?: null)
+                ->badge(fn() => $this->getStats()['pruning_soon_count'] ?: null)
                 ->badgeColor('danger')
                 ->modifyQueryUsing(
                     fn(Builder $query) => $query
@@ -67,9 +68,9 @@ class ListContacts extends ListRecords
         ];
     }
 
-    private function getStats(): object
+    private function getStats(): array
     {
-        return once(fn() => Message::query()
+        return once(fn() => ModelCacheVersion::rememberGlobal('contact_stats_badges', fn() => Message::query()
             ->withTrashed()
             ->selectRaw("
                 SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) AS unread_count,
@@ -77,6 +78,7 @@ class ListContacts extends ListRecords
                 SUM(CASE WHEN deleted_at IS NOT NULL AND deleted_at <= ? THEN 1 ELSE 0 END) AS pruning_soon_count
             ", [now()->subDays(30)])
             ->first()
-        );
+            ->only(['unread_count', 'trashed_count', 'pruning_soon_count'])
+        ));
     }
 }

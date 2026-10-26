@@ -15,7 +15,7 @@ class Onboarding extends Component
         return view('livewire.dashboard.profile.onboarding.placeholder');
     }
 
-    #[Computed(persist: true, seconds: 60)]
+    #[Computed]
     public function onboarding(): ?OnboardingModel
     {
         $userId = auth()->id();

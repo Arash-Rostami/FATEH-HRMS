@@ -795,11 +795,7 @@ class CalendarPresenter
 
     private function getProfilesWithDates(): Collection
     {
-        return $this->profilesWithDatesCache ??= Profile::query()
-            ->select('id', 'user_id', 'birthdate', 'start_date', 'image')
-            ->with('user:id,name')
-            ->where(fn($q) => $q->whereNotNull('birthdate')->orWhereNotNull('start_date'))
-            ->get();
+        return $this->profilesWithDatesCache ??= Profile::cachedWithDates();
     }
 
     private function reminderCountsByDay(Carbon $start, Carbon $end): array

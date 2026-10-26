@@ -4,11 +4,12 @@ namespace App\Models;
 
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasUserHelpers;
+use App\Services\Cache\SkipsAutomaticCacheVersioning;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Read extends Model
+class Read extends Model implements SkipsAutomaticCacheVersioning
 {
     use HasFactory;
     use HasMenuState;

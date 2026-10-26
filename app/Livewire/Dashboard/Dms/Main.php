@@ -300,20 +300,21 @@ class Main extends Component
     }
 
     #[Computed]
+    protected function visibleDocIds(): array
+    {
+        return $this->visibleTabQuery()->pluck('id')->all();
+    }
+
+    #[Computed]
     public function readPendingCount(): int
     {
-        return $this->visibleTabQuery()
-            ->whereIn('id', $this->confirmedDocs)
-            ->whereNotIn('id', $this->readDocs)
-            ->count();
+        return count(array_diff(array_intersect($this->visibleDocIds, $this->confirmedDocs), $this->readDocs));
     }
 
     #[Computed]
     public function receivePendingCount(): int
     {
-        return $this->visibleTabQuery()
-            ->whereNotIn('id', $this->confirmedDocs)
-            ->count();
+        return count(array_diff($this->visibleDocIds, $this->confirmedDocs));
     }
 
     public function placeholder(): View
@@ -358,7 +359,7 @@ class Main extends Component
     #[Computed]
     public function totalDocs(): int
     {
-        return $this->visibleTabQuery()->count();
+        return count($this->visibleDocIds);
     }
 
     public function updatedActiveFilter(): void

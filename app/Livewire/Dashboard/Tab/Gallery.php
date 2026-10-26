@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Tab;
 
 use App\Livewire\Dashboard\Tab\Presentation\GalleryPresenter;
 use App\Models\Photo;
+use App\Services\Cache\ModelCacheVersion;
 use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
@@ -131,7 +132,9 @@ class Gallery extends Component
     #[Computed]
     public function totalPhotos()
     {
-        return $this->getBaseQuery()->count();
+        $dept = auth()->user()?->profile?->department_id;
+
+        return ModelCacheVersion::remember(Photo::class, "total_count:{$dept}", now()->addMinutes(15), fn () => Photo::forViewer()->count());
     }
 
     private function getBaseQuery(): Builder

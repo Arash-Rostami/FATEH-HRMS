@@ -885,3 +885,187 @@ describe('chatBase auto-resize helpers', () => {
         expect(el.style.height).toBe('');
     });
 });
+
+describe('chatBase _ringIncoming while the tab is hidden (background pop-up polling keeps running)', () => {
+    let hidden;
+
+    beforeEach(() => {
+        hidden = true;
+        Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
+    });
+
+    afterEach(() => {
+        delete document.hidden;
+    });
+
+    test('a hidden ring is deferred silently and plays exactly once when the tab becomes visible', () => {
+        const c = chatBase('contact');
+        c.$store = { sound: { playIncoming: vi.fn() } };
+
+        c._ringIncoming(null);
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+
+        c._flushPendingRing();
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+
+        hidden = false;
+        c._flushPendingRing();
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledExactlyOnceWith(null, 'contact');
+
+        c._flushPendingRing();
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+    });
+
+    test('after the return ding, the catch-up tick\'s ring for the same event is suppressed for 8s, then dings resume', () => {
+        const c = chatBase('contact');
+        c.$store = { sound: { playIncoming: vi.fn() } };
+        const now = vi.spyOn(Date, 'now');
+        now.mockReturnValue(100_000);
+
+        c._ringIncoming(null);
+        hidden = false;
+        c._flushPendingRing();
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+
+        now.mockReturnValue(105_000);
+        c._ringIncoming(5);
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+
+        now.mockReturnValue(109_000);
+        c._ringIncoming(5);
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledTimes(2);
+
+        now.mockRestore();
+    });
+
+    test('the next poll delay is jittered ±25% while hidden but only ±10% while visible', () => {
+        const delays = [];
+        const spy = vi.spyOn(global, 'setTimeout').mockImplementation((_fn, ms) => { delays.push(ms); return 1; });
+        const rand = vi.spyOn(Math, 'random');
+        const c = chatBase('contact');
+        c._pollIntervalMs = 30000;
+        const range = (r) => { rand.mockReturnValue(r); c._schedulePollTick(); return delays.at(-1); };
+
+        expect([range(0), range(1)]).toEqual([22500, 37500]);
+
+        hidden = false;
+        expect([range(0), range(1)]).toEqual([27000, 33000]);
+
+        spy.mockRestore();
+        rand.mockRestore();
+    });
+});
+
+describe('chatBase general (id = null) ding respects per-room mute using the unread counts already in the sidebar rows', () => {
+    beforeEach(() => {
+        Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
+    });
+
+    afterEach(() => {
+        delete document.hidden;
+    });
+
+    function setup(muted = []) {
+        const c = chatBase('contact');
+        let total = 0;
+        c._readUnread = () => total;
+        c.$store = { sound: { isMuted: (id) => muted.includes(id), playIncoming: vi.fn() } };
+        const rows = (counts) => {
+            document.body.innerHTML = Object.entries(counts)
+                .map(([id, n]) => `<div data-unread-id="${id}" data-unread="${n}"></div>`)
+                .join('');
+            total = Object.values(counts).reduce((a, b) => a + b, 0);
+        };
+        return { c, rows };
+    }
+
+    test('a rise only in muted rooms stays silent', () => {
+        const { c, rows } = setup([2]);
+        rows({ 1: 0, 2: 0 });
+        c._ringIncoming(null);
+        c.$store.sound.playIncoming.mockClear();
+        c._lastIncomingAt = 0;
+
+        rows({ 1: 0, 2: 1 });
+        c._ringIncoming(null);
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+    })
+
+    test('a rise in an unmuted room rings even if a muted room also rose; all-muted stays silent', () => {
+        const { c, rows } = setup([2, 3]);
+        rows({ 1: 0, 2: 0, 3: 0 });
+        c._ringIncoming(null);
+        c.$store.sound.playIncoming.mockClear();
+        c._lastIncomingAt = 0;
+
+        rows({ 1: 0, 2: 1, 3: 1 });
+        c._ringIncoming(null);
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+
+        c._lastIncomingAt = 0;
+        rows({ 1: 1, 2: 2, 3: 1 });
+        c._ringIncoming(null);
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+    })
+
+    test('a rise the visible rows cannot explain (e.g. a room outside the loaded list) fails open and rings', () => {
+        const { c, rows } = setup([2]);
+        rows({ 2: 0 });
+        c._ringIncoming(null);
+        c.$store.sound.playIncoming.mockClear();
+        c._lastIncomingAt = 0;
+
+        rows({ 2: 1 });
+        c._readUnread = () => 3;
+        c._ringIncoming(null);
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+    })
+
+    test('hidden tab: an unmuted rise parked first still dings on return even if a muted-only rise follows before the user returns', () => {
+        const { c, rows } = setup([2]);
+        rows({ 1: 0, 2: 0 });
+        c._ringIncoming(null);
+        c.$store.sound.playIncoming.mockClear();
+        c._lastIncomingAt = 0;
+
+        Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+        rows({ 1: 1, 2: 0 });
+        c._ringIncoming(null);
+        rows({ 1: 1, 2: 1 });
+        c._ringIncoming(null);
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+
+        Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
+        c._flushPendingRing();
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+    })
+
+    test('a same-total change in the rows (one room read, a muted room up) does not leave a stale baseline that silences the next unmuted rise', () => {
+        const { c, rows } = setup([2]);
+        rows({ 1: 2, 2: 0 });
+        c._ringIncoming(null);
+        c.$store.sound.playIncoming.mockClear();
+        c._lastIncomingAt = 0;
+
+        rows({ 1: 0, 2: 2 });
+        c._riseOnlyMuted();
+        c._lastIncomingAt = 0;
+
+        rows({ 1: 1, 2: 2 });
+        c._ringIncoming(null);
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+    })
+
+    test('repeated null rings for the same total reuse one decision, and a muted decision is not overturned by the second call', () => {
+        const { c, rows } = setup([2]);
+        rows({ 2: 0 });
+        c._ringIncoming(null);
+        c.$store.sound.playIncoming.mockClear();
+        c._lastIncomingAt = 0;
+
+        rows({ 2: 1 });
+        c._ringIncoming(null);
+        c._ringIncoming(null);
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+    })
+});

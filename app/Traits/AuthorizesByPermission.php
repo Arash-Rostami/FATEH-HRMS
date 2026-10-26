@@ -2,7 +2,6 @@
 
 namespace App\Traits;
 
-use App\Models\Permission;
 use BackedEnum;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
@@ -97,9 +96,6 @@ trait AuthorizesByPermission
         $user = Auth::user();
         if (!$user) return false;
 
-        // Developers are super-admin by role — every module/action, no row.
-        if ($user->isDeveloper()) return true;
-
-        return (bool)Permission::forUser($user->id)?->can(static::moduleKey(), $action);
+        return $user->permits(static::moduleKey(), $action);
     }
 }

@@ -16,6 +16,7 @@ export default function heroDeck() {
         frameReady: {},
         maximizedPane: null,
         pickerFor: null,
+        deckH: 0,
 
         init() {
             try {

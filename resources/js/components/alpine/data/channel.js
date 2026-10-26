@@ -1,6 +1,7 @@
 import maximizeMixin from "../mixins/maximize.js";
 import lastOpenMixin from "../mixins/lastOpen.js";
 import sidebarRailMixin from "../mixins/sidebarRail.js";
+import chatScaleMixin from "../mixins/chatScale.js";
 import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
@@ -39,6 +40,7 @@ export default function channel() {
         ...maximizeMixin('channel'),
         ...lastOpenMixin('channel'),
         ...sidebarRailMixin('channel'),
+        ...chatScaleMixin(),
         ...clipboardMixin(),
         ...pasteImageMixin(),
         ...chatBase(SCOPE),
@@ -58,6 +60,7 @@ export default function channel() {
         mentionActiveIndex: 0,
 
         init() {
+            this.initChatScale();
             this.initFancybox();
             this._loadChatSettings();
             this.headerDeclutterMenuBridge();
@@ -73,7 +76,12 @@ export default function channel() {
             ac = new AbortController();
             const { signal } = ac;
 
-            document.addEventListener('visibilitychange', () => document.hidden ? this.stopPolling() : this._repollNow(), { signal });
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    this._flushPendingRing();
+                    this._repollNow();
+                } else if (!this.$store.push.isEnabled(SCOPE)) this.stopPolling();
+            }, { signal });
 
             this._bindViewport();
 
@@ -250,7 +258,7 @@ export default function channel() {
 
         async _pollTick(force = false) {
             const fullSidebar = force || ++ticks % POLL_FALLBACK_EVERY === 0;
-            const open = !!this.$wire.activeChannelId;
+            const open = !!this.$wire.activeChannelId && !document.hidden;
             const lastBefore = open ? this._readLastMessageMarker() : null;
             const typingBefore = open ? this._readTypingMarker() : null;
             let changed = false;
@@ -259,6 +267,7 @@ export default function channel() {
             try {
                 const d = await this.$wire.pollDigest();
                 if (fullSidebar || d !== digest) {
+                    this._riseOnlyMuted();
                     const unreadBefore = this._readUnread();
                     await this._sidebar();
                     this.syncChannelCount();
@@ -266,6 +275,7 @@ export default function channel() {
                     const unreadAfter = this._readUnread();
                     changed = unreadAfter !== unreadBefore;
                     unreadRose = unreadAfter > unreadBefore;
+                    if (unreadRose && document.hidden) this._ringIncoming(null);
                 }
 
                 if (open) {
@@ -310,6 +320,7 @@ export default function channel() {
         },
 
         syncPushNotify() {
+            this._riseOnlyMuted();
             const now = this._readUnread();
             if (this._lastUnread !== undefined && now > this._lastUnread) {
                 this.$store.push.notify('پیام جدید', 'یک گروه پیام جدید دارد', SCOPE);

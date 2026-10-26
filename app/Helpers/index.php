@@ -218,10 +218,6 @@ if (!function_exists('isSpecialDay')) {
             return false;
         }
 
-        if (cache()->has($type . '_' . $user->id)) {
-            return false;
-        }
-
         $user->loadMissing('profile');
 
         $date = match ($type) {
@@ -230,11 +226,11 @@ if (!function_exists('isSpecialDay')) {
             default => null,
         };
 
-        if (!$date instanceof CarbonInterface) {
+        if (!$date instanceof CarbonInterface || $date->format('m-d') !== Carbon::now()->format('m-d')) {
             return false;
         }
 
-        return $date->format('m-d') === Carbon::now()->format('m-d');
+        return !cache()->has($type . '_' . $user->id);
     }
 }
 

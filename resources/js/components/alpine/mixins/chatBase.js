@@ -14,6 +14,9 @@ const SCROLL_TO_BOTTOM_PX = 999999;
 const LOAD_OLDER_PEEK_PX = 96;
 const SCROLL_SETTLE_MS = 150;const POLL_BASE_MS = 10000;
 const INCOMING_DEDUPE_MS = 1500;
+const RETURN_RING_GRACE_MS = 8000;
+const POLL_JITTER = 0.2;
+const POLL_JITTER_HIDDEN = 0.5;
 
 const EVENT_TOAST = 'toast';
 const ID_VIEWPORT = 'msg-viewport';
@@ -50,11 +53,56 @@ export default function chatBase(scope) {
         ...highlightMatchMixin(),
         ...headerDeclutterMixin(),
         _lastIncomingAt: 0,
-        _ringIncoming(id) {
+        _ringPending: null,
+        _muteEval: null,
+        _riseOnlyMuted() {
+            if (typeof this._readUnread !== 'function') return false;
+
+            const total = this._readUnread();
+            const previous = this._muteEval;
+            const sameTotal = previous?.total === total;
+            const snap = new Map();
+            let mutedRise = 0;
+            let otherRise = 0;
+
+            document.querySelectorAll('[data-unread-id]').forEach((el) => {
+                const id = Number(el.dataset.unreadId);
+                const count = Number(el.dataset.unread) || 0;
+                snap.set(id, count);
+
+                if (sameTotal || !previous) return;
+                const rise = count - (previous.snap.get(id) ?? 0);
+                if (rise <= 0) return;
+                if (this.$store.sound?.isMuted(id, scope)) mutedRise += rise;
+                else otherRise += rise;
+            });
+
+            const muted = sameTotal
+                ? previous.muted
+                : previous !== null && previous.snap.size > 0 && otherRise === 0 && mutedRise > 0 && mutedRise >= total - previous.total;
+            this._muteEval = { total, snap, muted };
+            return muted;
+        },
+        _playRing(id) {
             const now = Date.now();
             if (now - this._lastIncomingAt < INCOMING_DEDUPE_MS) return;
             this._lastIncomingAt = now;
             this.$store.sound?.playIncoming(id, scope);
+        },
+        _ringIncoming(id) {
+            if (id === null && this._riseOnlyMuted()) return;
+            if (document.hidden) {
+                this._ringPending = { id };
+                return;
+            }
+            this._playRing(id);
+        },
+        _flushPendingRing() {
+            const pending = this._ringPending;
+            if (!pending || document.hidden) return;
+            this._ringPending = null;
+            this._playRing(pending.id);
+            this._lastIncomingAt = Date.now() + RETURN_RING_GRACE_MS - INCOMING_DEDUPE_MS;
         },
         showScrollFab: false,
         newBelow: 0,
@@ -131,7 +179,7 @@ export default function chatBase(scope) {
                 return;
             }
             this._pollInFlight = true;
-            window.Livewire?.dispatch('messaging-poll');
+            if (!document.hidden) window.Livewire?.dispatch('messaging-poll');
             try {
                 await this._pollTick(force);
             } finally {
@@ -221,7 +269,8 @@ export default function chatBase(scope) {
         },
 
         _schedulePollTick() {
-            const delay = this._pollIntervalMs * (0.9 + Math.random() * 0.2);
+            const spread = document.hidden ? POLL_JITTER_HIDDEN : POLL_JITTER;
+            const delay = this._pollIntervalMs * (1 - spread / 2 + Math.random() * spread);
             clearTimeout(this._timer);
             this._timer = setTimeout(() => {
                 this._runPollTick().finally(() => {

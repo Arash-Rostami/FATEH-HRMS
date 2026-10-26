@@ -48,7 +48,7 @@ class Main extends Component
             ->all();
     }
 
-    #[Computed(persist: true, seconds: 1)]
+    #[Computed]
     public function departmentNames(): array
     {
         return Department::getCachedOptions()->toArray();
