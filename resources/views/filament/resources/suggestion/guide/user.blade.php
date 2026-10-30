@@ -71,7 +71,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">tips_and_updates</span>
-                اگر کاربر می‌گوید «دکمهٔ بازخورد/تصمیم را نمی‌بینم»، احتمالاً در مرحلهٔ درستی نیست یا نقشش آن اکشن را مجاز نمی‌کند — نه باگ سیستم. همان قواعد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">SuggestionAccessPolicy</code> برای ادمین و کاربر اجرا می‌شود.
+                اگر کاربر می‌گوید «دکمهٔ بازخورد/تصمیم را نمی‌بینم»، احتمالاً پیشنهاد در مرحلهٔ مناسب نیست یا نقش او اجازهٔ این کار را نمی‌دهد؛ خطای سیستم نیست. همان قواعد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">SuggestionAccessPolicy</code> برای ادمین و کاربر اجرا می‌شود.
             </p>
         </div>
     </div>

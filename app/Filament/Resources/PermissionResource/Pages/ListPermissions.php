@@ -25,13 +25,13 @@ class ListPermissions extends ListRecords
             'all' => Tab::make('همه')
                 ->icon('heroicon-o-list-bullet'),
 
-            'super_admins' => Tab::make('مدیران کل')
+            'super_admins' => Tab::make('مدیران ارشد')
                 ->icon('heroicon-o-star')
                 ->badge(fn() => $this->getStats()->super_admin_count ?: null)
                 ->badgeColor('warning')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_super_admin', true)),
 
-            'regular' => Tab::make('کاربران عادی')
+            'regular' => Tab::make('مدیران عادی')
                 ->icon('heroicon-o-user')
                 ->badge(fn() => $this->getStats()->regular_count ?: null)
                 ->badgeColor('gray')

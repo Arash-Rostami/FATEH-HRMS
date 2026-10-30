@@ -23,7 +23,7 @@ export default function reservation() {
         nowTick: 0,
         _morphHook: null,
         _clockInterval: null,
-        _timeCache: { tick: -1, date: '', isToday: false, now: 0, todayStart: 0 },
+        _timeCache: { tick: -1, date: '', now: 0, dayStart: 0, serverWall: '', skew: 0 },
 
         init() {
             this.view = this.$wire.get('view') || 'classic';
@@ -59,8 +59,8 @@ export default function reservation() {
                     this.$nextTick(() => {
                         this.deckSyncFromDom();
                         this.deckReconcileOpen();
+                        this.syncTimePreview();
                     });
-                    this.syncTimePreview();
                 }
             });
         },
@@ -75,34 +75,34 @@ export default function reservation() {
             }
         },
 
-        slotState(time, minNoticeHours, serverState) {
+        slotState(time, minNoticeHours, serverState, renderDate, serverWall) {
             void this.nowTick;
 
             const date = this.$wire.get('date');
             const cache = this._timeCache;
+            const wall = serverWall || '';
+            const wallChanged = cache.serverWall !== wall;
 
-            if (cache.tick !== this.nowTick || cache.date !== date) {
+            if (wallChanged) {
+                cache.serverWall = wall;
+                const skew = wall ? new Date(wall).getTime() - Date.now() : 0;
+                cache.skew = Number.isNaN(skew) ? 0 : skew;
+            }
+
+            if (wallChanged || cache.tick !== this.nowTick || cache.date !== date) {
                 cache.tick = this.nowTick;
                 cache.date = date;
-                const now = new Date();
-                cache.now = now.getTime();
-                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-                cache.todayStart = todayStart;
-                const slotDate = new Date(`${date}T00:00:00`).getTime();
-                cache.isToday = (slotDate === todayStart);
+                cache.now = Date.now() + cache.skew;
+                cache.dayStart = new Date(`${date}T00:00:00`).getTime();
             }
 
-            let state = 'ok';
-            if (cache.isToday) {
-                const h = parseInt(time.slice(0, 2), 10);
-                const m = parseInt(time.slice(3, 5), 10);
-                const slot = cache.todayStart + (h * 3600000) + (m * 60000);
-                const cutoff = cache.now + (minNoticeHours || 0) * 3600000;
+            const h = parseInt(time.slice(0, 2), 10);
+            const m = parseInt(time.slice(3, 5), 10);
+            const slot = cache.dayStart + (h * 3600000) + (m * 60000);
+            const cutoff = cache.now + (minNoticeHours || 0) * 3600000;
+            const state = slot < cache.now ? 'past' : (slot < cutoff ? 'soon' : 'ok');
 
-                state = slot < cache.now ? 'past' : (slot < cutoff ? 'soon' : 'ok');
-            }
-
-            const serverRank = STATE_RANK[serverState] || 0;
+            const serverRank = renderDate === date ? (STATE_RANK[serverState] || 0) : 0;
             const localRank = STATE_RANK[state] || 0;
 
             return serverRank > localRank ? serverState : state;

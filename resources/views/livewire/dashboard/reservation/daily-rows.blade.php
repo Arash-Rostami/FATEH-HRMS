@@ -99,9 +99,13 @@
                                         <div class="px-4 pb-0.5 pt-2">
                                             <x-ui.badge variant="warning" class="!px-1.5 !py-0.5 !text-[10px]">درخواست سیستمی</x-ui.badge>
                                         </div>
+                                        @php($urgentSms = $row['contact']['mobileTel'] && ! tenantOff('notify:sms'))
                                         @foreach($data['presets'] as $key => $preset)
-                                            <x-ui.modals.popover-item wire:key="reservation-daily-preset-{{ $row['reservation']->id }}-{{ $key }}" :icon="$preset['icon']" :label="$preset['label']" :last="$loop->last" wire:click="reachOut({{ $row['reservation']->id }}, '{{ $key }}')" />
+                                            <x-ui.modals.popover-item wire:key="reservation-daily-preset-{{ $row['reservation']->id }}-{{ $key }}" :icon="$preset['icon']" :label="$preset['label']" :last="$loop->last && ! $urgentSms" wire:click="reachOut({{ $row['reservation']->id }}, '{{ $key }}')" />
                                         @endforeach
+                                        @if($urgentSms)
+                                            <x-ui.modals.popover-item wire:key="reservation-daily-sms-{{ $row['reservation']->id }}" icon="sms" label="پیامک فوری: جابه‌جایی رزرو" :last="true" wire:click="reachOutSms({{ $row['reservation']->id }})" />
+                                        @endif
                                     </x-slot:content>
                                 </x-ui.modals.popover>
                             @else

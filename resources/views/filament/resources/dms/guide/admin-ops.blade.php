@@ -12,23 +12,23 @@
         ],
         [
             'icon' => 'rule',
-            'label' => 'یکتایی کد+نسخه فقط برای اسناد فعال',
-            'hint' => 'قاعدهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">UniqueLiveDocument</code> ترکیب (code, version) را فقط در میان اسنادِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">live</code> یکتا می‌کند — اسناد منسوخ یا در بررسی می‌توانند کد/نسخهٔ تکراری داشته باشند. این قاعده روی سه فیلد code/version/status هم‌زمان می‌نشیند تا تغییر هرکدام، کل سه‌تایی را دوباره بررسی کند. MySQL ایندکس یکتای فیلترشده ندارد، بنابراین این لایهٔ اعتبارسنجی فقط در فرم است.',
+            'label' => 'یکتایی کد و نسخه فقط برای اسناد فعال',
+            'hint' => 'قاعدهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">UniqueLiveDocument</code> ترکیب (code, version) را فقط در میان اسنادِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">live</code> یکتا می‌کند — اسناد منسوخ یا در بررسی می‌توانند کد/نسخهٔ تکراری داشته باشند. این قاعده روی سه فیلد code/version/status هم‌زمان می‌نشیند تا تغییر هرکدام، کل سه‌تایی را دوباره بررسی کند. این بررسی فقط هنگام ذخیرهٔ فرم انجام می‌شود.',
         ],
         [
             'icon' => 'visibility',
-            'label' => 'مدیریت ارتباط «آمار مطالعه»',
-            'hint' => 'روی صفحهٔ ویرایش، RelationManager «آمار مطالعه» ظاهر می‌شود: کاربر، وضعیت خوانده‌شده، تعداد مطالعه و آخرین زمان. کوئری این جدول <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">reads.user</code> را eager-load می‌کند. اینفولیست اصلی سند هم شمارش کلی و فهرست مطالعه‌کنندگان (قابل جمع‌شدن) را نشان می‌دهد.',
+            'label' => 'بخش «آمار مطالعه»',
+            'hint' => 'در صفحهٔ ویرایش، بخش «آمار مطالعه» نمایش داده می‌شود: کاربر، وضعیت خوانده‌شده، تعداد مطالعه و آخرین زمان. کوئری این جدول <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">reads.user</code> را eager-load می‌کند. صفحهٔ جزئیات سند هم شمارش کلی و فهرست مطالعه‌کنندگان (قابل جمع‌شدن) را نشان می‌دهد.',
         ],
         [
             'icon' => 'account_tree',
-            'label' => 'گروه‌بندی پویا از کلیدهای JSON',
-            'hint' => 'گروه‌بندی‌های پویا (دینامیک) از کلیدهای داخل <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra</code> و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">tags</code> ساخته می‌شوند (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">DmsKeyGrouper</code>) — کلیدهایی که فقط در فضای‌های خالی یا بزرگی حروف متفاوت‌اند در یک گروه ادغام می‌شوند. فهرست گروه‌ها به‌مدت ' . convertToPersian('15') . ' دقیقه کش می‌شود و با هر ذخیرهٔ سند خودکار بازنشانی می‌شود.',
+            'label' => 'گروه‌بندی خودکار از عنوان‌های اطلاعات تکمیلی و برچسب‌ها',
+            'hint' => 'گروه‌بندی‌های پویا (دینامیک) از کلیدهای داخل <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra</code> و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">tags</code> ساخته می‌شوند (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">DmsKeyGrouper</code>) — کلیدهایی که فقط در فضای‌های خالی یا بزرگی حروف متفاوت‌اند در یک گروه ادغام می‌شوند. فهرست گروه‌ها به‌مدت ' . convertToPersian('15') . ' دقیقه نگه داشته می‌شود و با هر ذخیرهٔ سند خودکار به‌روز می‌شود.',
         ],
         [
             'icon' => 'download',
             'label' => 'خروجی اکسل',
-            'hint' => 'با اکشن گروهی «خروجی Excel» می‌توانید اسناد انتخاب‌شده را صادر کنید — شامل کد، نسخه، نوع، وضعیت، واحدهای مالک (به‌صورت متن)، شمارش کاربران اختصاصی، مجموع مطالعه، توضیحات بازبینی، تگ‌ها و تاریخ ایجاد (شمسی).',
+            'hint' => 'با عملیات گروهی «خروجی Excel» می‌توانید اسناد انتخاب‌شده را صادر کنید — شامل کد، نسخه، نوع، وضعیت، واحدهای مالک (به‌صورت متن)، شمارش کاربران اختصاصی، مجموع مطالعه، توضیحات بازبینی، برچسب‌ها و تاریخ ایجاد (شمسی).',
         ],
     ];
 @endphp
@@ -46,7 +46,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">build</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">اکشن‌های ردیف و فرم</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">عملیات روی هر سند و فرم</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($rows as $r)
@@ -70,7 +70,7 @@
             </p>
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2 mt-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                زبانهٔ «خوانندگان» ماژول جدا ندارد؛ هر کس بتواند رکورد DMS را باز کند آن را می‌بیند و در صفحهٔ ویرایش می‌تواند مدیریتش کند.
+                آمار مطالعه بخش جداگانه ندارد؛ هر کس بتواند سند را باز کند آن را می‌بیند و در صفحهٔ ویرایش می‌تواند مدیریتش کند.
             </p>
         </div>
     </div>

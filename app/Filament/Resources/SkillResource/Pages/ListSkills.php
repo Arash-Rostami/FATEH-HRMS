@@ -11,9 +11,16 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ListSkills extends ListRecords
 {
-    use FilamentHeaderActions;
+    use FilamentHeaderActions {
+        getHeaderActions as private baseHeaderActions;
+    }
 
     protected static string $resource = SkillResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [...SkillResource::switchActions(static::$resource), ...$this->baseHeaderActions()];
+    }
 
     protected function getTableQuery(): Builder
     {

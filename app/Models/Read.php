@@ -11,9 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Read extends Model implements SkipsAutomaticCacheVersioning
 {
-    use HasFactory;
-    use HasMenuState;
-    use HasUserHelpers;
+    use HasFactory,
+        HasMenuState,
+        HasUserHelpers;
 
     protected $table = 'reads';
 

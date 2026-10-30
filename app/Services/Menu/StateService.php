@@ -105,7 +105,7 @@ class StateService
         });
     }
 
-    private static function version(): int
+    public static function version(): int
     {
         return Cache::rememberForever(self::VERSION_KEY, fn(): int => now()->getPreciseTimestamp());
     }

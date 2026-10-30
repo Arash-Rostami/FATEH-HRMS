@@ -6,6 +6,7 @@ use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
 use App\Models\Concerns\HasPublicAssetUrl;
 use App\Models\Concerns\HasResourceMetadata;
+use App\Models\Concerns\Hooks\HasResourceHooks;
 use App\Traits\CleansAttachedFiles;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,10 +15,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Concerns\HasNotifyEvents;
 
 class Resource extends Model
 {
-    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles, HasResourceMetadata;
+    use HasFactory,
+        HasPublicAssetUrl,
+        CleansAttachedFiles,
+        HasResourceMetadata,
+        HasNotifyEvents,
+        HasResourceHooks;
 
     protected $fillable = [
         'name',
@@ -125,14 +132,8 @@ class Resource extends Model
         );
     }
 
-    protected static function booted(): void
+    public static function notifyFields(): array
     {
-        static::deleting(fn(self $resource) => static::deleteStoredFiles($resource->getRawOriginal('image')));
-        static::deleted(function (self $resource): void {
-            if (! static::where('type', $resource->type)->exists()) {
-                ReservationPolicy::where('resource_type', $resource->type)->delete();
-                ResourceType::forgetCache();
-            }
-        });
+        return ['status' => \App\Filament\Resources\ResourceResource\Enums\ResourceStatus::class];
     }
 }

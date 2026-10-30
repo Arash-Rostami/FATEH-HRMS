@@ -87,7 +87,7 @@
             @endif
 
             <x-ui.buttons.submit
-                wire:click="book({{ $resource->id }})"
+                x-on:click="{{ confirmDialog('book', 'تأیید رزرو', 'منبع: ' . $resource->name . chr(10) . \App\Livewire\Dashboard\Reservation\Presentation\ReservationSummaryPresenter::summary($this, $resource), $resource->id) }}"
                 :disabled="$blocked"
                 :target="'book('.$resource->id.')'"
                 :text="!(ResourceType::tryFrom($activeTab)?->isFullDay() ?? true) ? 'ثبت زمان ('.convertToPersian($startTime).' - '.convertToPersian($endTime).')' : 'ثبت رزرو کامل'"

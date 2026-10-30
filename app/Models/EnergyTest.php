@@ -3,19 +3,32 @@
 namespace App\Models;
 
 use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Models\Concerns\HasUser;
 use App\Models\Concerns\HasMenuState;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use App\Models\Concerns\HasNotifyEvents;
 
 class EnergyTest extends Model
 {
-    use HasFactory,
-        HasMenuState;
+    use HasUser,
+        HasFactory,
+        HasMenuState,
+        HasNotifyEvents;
+
+    public static function notifyExcept(): array
+    {
+        return ['mind_score', 'emotion_score', 'physique_score', 'soul_score', 'overall_score', 'answers'];
+    }
+
+    public static function notifyFields(): array
+    {
+        return ['user_id' => 'user', 'month_index' => 'number'];
+    }
 
     protected $fillable = [
         'user_id',
@@ -84,12 +97,6 @@ class EnergyTest extends Model
             ->where('completed_at', '>=', now()->subDays(25));
 
         return !($lock ? $query->lockForUpdate() : $query)->exists();
-    }
-
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
 

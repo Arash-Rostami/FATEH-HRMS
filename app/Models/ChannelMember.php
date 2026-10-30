@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChannelMember extends Model
 {
-    use HasFactory;
+    use HasUser,
+        HasFactory;
 
     protected $primaryKey = ['user_id', 'channel_id'];
 
@@ -25,11 +27,6 @@ class ChannelMember extends Model
     public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     public function lastReadMessage(): BelongsTo

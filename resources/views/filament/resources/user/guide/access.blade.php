@@ -4,19 +4,19 @@
             'code' => 'user',
             'label' => 'کاربر',
             'chip' => 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]',
-            'note' => 'بدون دسترسی به پنل ادمین — canAccessPanel برای این نقش false برمی‌گرداند. فقط وارد پنل کاربری می‌شود.',
+            'note' => 'بدون دسترسی به پنل ادمین؛ فقط وارد پنل کاربری می‌شود.',
         ],
         [
             'code' => 'admin',
             'label' => 'مدیر',
             'chip' => 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]',
-            'note' => 'ورود به پنل ادمین فقط اگر رکورد Permission او super_admin باشد یا حداقل یک ability داشته باشد. زیرِ صفحهٔ ویرایش، مدیریت ارتباط «دسترسی‌ها» برایش ظاهر می‌شود.',
+            'note' => 'ورود به پنل ادمین فقط وقتی ممکن است که او مدیر ارشد باشد یا دست‌کم یک دسترسی تعریف‌شده داشته باشد. زیر صفحهٔ ویرایش، زبانهٔ «دسترسی‌ها» برایش نمایش داده می‌شود.',
         ],
         [
             'code' => 'developer',
             'label' => 'توسعه‌دهنده',
             'chip' => 'bg-[var(--md-sys-color-warning-container)] text-[var(--md-sys-color-on-warning-container)]',
-            'note' => 'سوپرادمینِ خودکار — هر ماژول، هر عملیات، بدون استثنا. در فرم ساخت، گزینهٔ «توسعه‌دهنده» غیرفعال است و فقط از دیتابیس قابل افزودن است.',
+            'note' => 'سوپرادمینِ خودکار — هر ماژول، هر عملیات، بدون استثنا. در فرم ساخت، گزینهٔ «توسعه‌دهنده» غیرفعال است و فقط تیم فنی می‌تواند آن را تعیین کند.',
         ],
     ];
     $tabMap = [
@@ -29,23 +29,23 @@
         ['tab' => 'پروفایل', 'module' => 'profile'],
         ['tab' => 'رزروها', 'module' => 'reservation'],
         ['tab' => 'مهارت‌ها', 'module' => 'skill_request'],
-        ['tab' => 'دسترسی‌ها', 'module' => 'فقط مدیر ارشد / developer'],
+        ['tab' => 'دسترسی‌ها', 'module' => 'فقط مدیر ارشد یا توسعه‌دهنده'],
     ];
     $perm = [
         [
             'icon' => 'verified_user',
-            'label' => 'سوپرادمین (is_super_admin)',
-            'hint' => 'اگر روشن باشد، دسترسی کامل به همهٔ ماژول‌ها دارد مگر ماژولهایی که در «ماژولهای مستثنی» فهرست شده‌اند. بخش abilities برای سوپرادمین نمایش داده نمی‌شود.',
+            'label' => 'مدیر ارشد',
+            'hint' => 'با روشن بودن این گزینه، به همهٔ ماژول‌ها دسترسی کامل دارد، مگر ماژول‌هایی که در «ماژول‌های محدودشده» آمده‌اند. بخش «دسترسی ماژول‌ها» برای مدیر ارشد نمایش داده نمی‌شود.',
         ],
         [
             'icon' => 'block',
-            'label' => 'ماژولهای مستثنی (excluded_modules)',
-            'hint' => 'فقط برای سوپرادمین — فهرست ماژولهایی که می‌خواهید این مدیر به آن‌ها دسترسی نداشته باشد.',
+            'label' => 'ماژول‌های محدودشده',
+            'hint' => 'فقط برای مدیر ارشد — ماژول‌هایی که می‌خواهید این مدیر به آن‌ها دسترسی نداشته باشد.',
         ],
         [
             'icon' => 'key',
-            'label' => 'توانایی‌ها (abilities)',
-            'hint' => 'فقط برای مدیر غیرِسوپرادمین — دسترسیِ دقیقِ به‌ازای ماژول و عملیات. وقتی is_super_admin خاموش باشد این بخش نمایش داده می‌شود.',
+            'label' => 'دسترسی ماژول‌ها',
+            'hint' => 'فقط برای مدیری که مدیر ارشد نیست — دسترسی دقیق به‌ازای هر ماژول و عملیات. وقتی «مدیر ارشد» خاموش باشد این بخش نمایش داده می‌شود.',
         ],
     ];
 @endphp
@@ -54,10 +54,10 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">shield_person</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">نقش تعیین می‌کند چه‌کس وارد پنل ادمین می‌شود</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">نقش تعیین می‌کند چه کسی وارد پنل ادمین شود</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        دسترسی به پنل ادمین مبتنی بر نقش است نه تنها وضعیت. کاربر عادی به پنل ادمین راه ندارد؛ مدیر تنها اگر رکورد «دسترسی» (Permission) داشته باشد وارد می‌شود؛ توسعه‌دهنده همیشه سوپرادمین است. مدیریت ارتباط «دسترسی‌ها» فقط برای مدیران ظاهر می‌شود — برای کاربر عادی یا توسعه‌دهنده پنهان است.
+        ورود به پنل ادمین به نقش بستگی دارد، نه فقط به وضعیت. کاربر عادی به پنل ادمین راه ندارد؛ مدیر تنها اگر رکورد «دسترسی» (Permission) داشته باشد وارد می‌شود؛ توسعه‌دهنده همیشه سوپرادمین است. زبانهٔ «دسترسی‌ها» فقط برای مدیران ظاهر می‌شود — برای کاربر عادی یا توسعه‌دهنده پنهان است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade ring-2 ring-[var(--md-sys-color-primary)]/30">
@@ -80,7 +80,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)] mt-2">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                زبانهٔ «چرخه‌های کاری» ماژول جدا ندارد و برای هر کسی که رکورد کاربر را باز کند دیده می‌شود. جزئیات کامل (دکمه‌ها، مثال‌ها، آنچه اجرا نمی‌شود) در راهنمای ماژول «دسترسی‌ها»، زبانهٔ «قوانین دسترسی در عمل» است.
+                زبانهٔ «چرخه‌های کاری» ماژول جدا ندارد و برای هر کسی که صفحهٔ کاربر را باز کند دیده می‌شود. جزئیات کامل (دکمه‌ها، مثال‌ها، آنچه اجرا نمی‌شود) در راهنمای ماژول «دسترسی‌ها»، زبانهٔ «قوانین دسترسی در عمل» است.
             </p>
         </div>
     </div>
@@ -110,7 +110,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                مدیریت ارتباط «دسترسی‌ها» تنها زمانی ظاهر می‌شود که کاربرِ انتخاب‌شده نقش «مدیر» داشته باشد و شما خودتان سوپرادمین یا توسعه‌دهنده باشید.
+                زبانهٔ «دسترسی‌ها» تنها زمانی ظاهر می‌شود که کاربرِ انتخاب‌شده نقش «مدیر» داشته باشد و شما خودتان مدیر ارشد یا توسعه‌دهنده باشید.
             </p>
         </div>
     </div>
@@ -118,7 +118,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">lock_person</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">بخشهای فرمِ دسترسی (Permission)</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">بخش‌های فرمِ دسترسی</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($perm as $p)
@@ -138,7 +138,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                یک مدیر می‌تواند سوپرادمین باشد یا دارای abilities — نه هر دو. سوپرادمین بخش abilities را نمی‌بیند و برعکس.
+                یک مدیر یا مدیر ارشد است یا «دسترسی ماژول‌ها» دارد — نه هر دو. مدیر ارشد بخش «دسترسی ماژول‌ها» را نمی‌بیند و برعکس.
             </p>
         </div>
     </div>

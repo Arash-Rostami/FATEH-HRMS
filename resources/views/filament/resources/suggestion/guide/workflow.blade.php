@@ -1,8 +1,8 @@
 @php
     $stages = [
         ['icon' => 'hourglass_empty', 'chip' => 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]', 'code' => 'pending', 'label' => 'ارسال شده', 'hint' => 'ثبت اولیه؛ هنوز هیچ واحدی بازخورد نداده.'],
-        ['icon' => 'group', 'chip' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]', 'code' => 'team_remarks', 'label' => 'منتظر هم‌تیمی‌ها', 'hint' => 'واحد ثبت‌کننده (اولین واحد ذی‌نفع) هنوز بازخورد موافق/نیمه‌موافق/مخالف نداده است.'],
-        ['icon' => 'corporate_fare', 'chip' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]', 'code' => 'dept_remarks', 'label' => 'منتظر ذینفعان', 'hint' => 'بازخورد واحد ثبت‌کننده ثبت شده ولی حداقل یکی از سایر واحدهای ذی‌نفع هنوز پاسخ نداده.'],
+        ['icon' => 'group', 'chip' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]', 'code' => 'team_remarks', 'label' => 'منتظر واحد پیشنهاددهنده', 'hint' => 'واحد ثبت‌کننده (اولین واحد ذی‌نفع) هنوز بازخورد موافق/نیمه‌موافق/مخالف نداده است.'],
+        ['icon' => 'corporate_fare', 'chip' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]', 'code' => 'dept_remarks', 'label' => 'منتظر واحدهای ذی‌نفع', 'hint' => 'بازخورد واحد ثبت‌کننده ثبت شده ولی حداقل یکی از سایر واحدهای ذی‌نفع هنوز پاسخ نداده.'],
         ['icon' => 'gavel', 'chip' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]', 'code' => 'awaiting_decision', 'label' => 'منتظر تصمیم نهایی', 'hint' => 'همهٔ واحدها بازخورد داده‌اند و منتظر تصمیم مدیریت ارشد است.'],
         ['icon' => 'check_circle', 'chip' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]', 'code' => 'accepted', 'label' => 'پذیرفته شده', 'hint' => 'مدیریت ارشد پذیرفت. اگر واحدی برای ارجاع مشخص شده باشد، در این مرحله می‌مانَد تا همهٔ واحدهای ارجاع‌شده اقدام را تکمیل‌شده اعلام کنند.'],
         ['icon' => 'cancel', 'chip' => 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]', 'code' => 'rejected', 'label' => 'پذیرفته نشده', 'hint' => 'مدیریت ارشد رد کرد. فرآیند در این مرحله پایان می‌یابد.'],
@@ -49,7 +49,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">smart_toy</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">اتوماسیون پنهان</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">کارهای خودکار سیستم</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             <div class="flex items-start gap-4 p-5">
@@ -59,8 +59,8 @@
                     </span>
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">سکوت = نیمه‌موافق پس از {{ convertToPersian('48') }} ساعت</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">اگر واحدی در بازهٔ {{ convertToPersian('48') }} ساعته پاسخ ندهد، بازخورد او به‌صورت خودکار «نیمه‌موافق» ثبت می‌شود و یادداشتِ «خودکار» می‌گیرد. مهلت بررسی در اینفولیست با علامت ⚠ نشان داده می‌شود وقتی گذشته باشد.</p>
+                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">بی‌پاسخی = نیمه‌موافق پس از {{ convertToPersian('48') }} ساعت</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">اگر واحدی در بازهٔ {{ convertToPersian('48') }} ساعته پاسخ ندهد، بازخورد او به‌صورت خودکار «نیمه‌موافق» ثبت می‌شود و یادداشتِ «خودکار» می‌گیرد. وقتی مهلت بررسی گذشته باشد، در صفحهٔ مشاهده با علامت ⚠ نشان داده می‌شود.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5">
@@ -81,7 +81,7 @@
                     </span>
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">رد کردن فقط با تصمیم مدیریت ارشد</p>
+                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">رد شدن فقط با تصمیم مدیریت ارشد</p>
                     <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">مرحلهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">rejected</code> فقط وقتی رخ می‌دهد که بازخورد واحد MA برابر <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">disagree</code> باشد. <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">under_review</code> یعنی «نیازمند تکمیل مجدد» — نه رد شدن.</p>
                 </div>
             </div>
@@ -89,7 +89,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">tips_and_updates</span>
-                زبانهٔ اینفولیست «روند بررسی» همین مسیر را به‌صورت یک تایم‌لاین بصری روی هر رکورد نشان می‌دهد — مرحلهٔ فعلی با انیمیشن مشخص است (تایم‌لاین دیداری، متفاوت از این هشت مرحلهٔ وضعیت).
+                زبانهٔ «پیشنهاد» در صفحهٔ مشاهده همین مسیر را به‌صورت نمودار زمانی نشان می‌دهد — مرحلهٔ فعلی با انیمیشن مشخص است (این نمودار با هشت مرحلهٔ بالا یکی نیست).
             </p>
         </div>
     </div>

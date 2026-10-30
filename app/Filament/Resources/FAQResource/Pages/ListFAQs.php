@@ -25,7 +25,7 @@ class ListFAQs extends ListRecords
             'all' => Tab::make('همه')
                 ->icon('heroicon-o-list-bullet'),
 
-            'has_department' => Tab::make('مربوط به دپارتمان')
+            'has_department' => Tab::make('مربوط به واحد')
                 ->icon('heroicon-o-building-office-2')
                 ->badge(fn() => $this->getStats()->has_dept_count ?: null)
                 ->badgeColor('info')

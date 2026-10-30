@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 
@@ -140,5 +141,17 @@ class DepartmentFormPresenter
             ->placeholder(__('resources/department/strings.fields.units_placeholder'))
             ->helperText(__('resources/department/strings.hints.units'))
             ->splitKeys(['Enter', ',', ' ']);
+    }
+
+    public static function freeAssignment(): Toggle
+    {
+        return Toggle::make('free_assignment')
+            ->label(__('resources/department/strings.fields.free_assignment'))
+            ->helperText(__('resources/department/strings.hints.free_assignment'))
+            ->rules([fn (?Department $record): \Closure => function (string $attribute, $value, \Closure $fail) use ($record) {
+                if (! $value && $record?->free_assignment && Department::flipOffBlocked($record->code)) {
+                    $fail(__('resources/department/strings.errors.free_assignment_blocked'));
+                }
+            }]);
     }
 }

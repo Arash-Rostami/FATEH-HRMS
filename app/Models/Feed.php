@@ -6,18 +6,29 @@ use App\Models\Concerns\HasAudience;
 use App\Models\Concerns\HasModelCache;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasNudgeTracking;
+use App\Models\Concerns\Hooks\HasFeedHooks;
 use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\HasUser;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Concerns\HasNotifyEvents;
 
 class Feed extends Model
 {
-    use HasModelCache, HasFactory, HasMenuState, HasNudgeTracking, HasPublicAssetUrl, CleansAttachedFiles, HasAudience;
+    use HasModelCache,
+        HasFactory,
+        HasMenuState,
+        HasNudgeTracking,
+        HasPublicAssetUrl,
+        CleansAttachedFiles,
+        HasAudience,
+        HasNotifyEvents,
+        HasUser,
+        HasFeedHooks;
 
     public const NUDGE_KEY = 'feeds:nudge';
     public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -32,18 +43,6 @@ class Feed extends Model
     ];
 
     private ?array $pollSettingsCache = null;
-
-    public static function boot()
-    {
-        parent::boot();
-
-        static::deleting(function (self $feed) {
-            $feed->comments()->delete();
-            $feed->reactions()->delete();
-            $feed->polls()->delete();
-            static::deleteStoredFiles($feed->media_paths);
-        });
-    }
 
     public function comments(): HasMany
     {
@@ -127,9 +126,12 @@ class Feed extends Model
         return $query->where('category', $category);
     }
 
-    public function user(): BelongsTo
+    public static function notifyFields(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'category' => \App\Filament\Resources\FeedResource\Enums\FeedCategory::class,
+            'user_id' => 'user',
+        ];
     }
 
     protected function casts(): array

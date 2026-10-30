@@ -89,6 +89,7 @@ class ModulesGuideWidget extends Widget
             'energy' => ['filament_icon' => 'heroicon-o-bolt'],
             'authority' => ['filament_icon' => 'heroicon-o-clipboard-document-check'],
             'reminder' => ['filament_icon' => 'heroicon-o-clock'],
+            'notify' => ['filament_icon' => 'heroicon-o-envelope'],
             'ai-assistant' => ['filament_icon' => 'heroicon-o-cpu-chip'],
             'others' => ['filament_icon' => 'heroicon-o-sparkles'],
         ];
@@ -118,6 +119,7 @@ class ModulesGuideWidget extends Widget
             'authority' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'شرح وظایف، مسئولان و موارد تفویض اختیار واحدها را دوره‌ای بازبینی و تکمیل کنید. حالت تمرکز (Focus) برای پین‌کردن یک ردیف خاص و باز/بسته‌کردن یکجای همه ردیف‌ها در دسترس است.'],
             'energy' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'نتایج ارزیابی انرژی را تحلیل کنید. استفاده از ویجت‌های نموداری (Chart Widgets) و فیلترهای بازه زمانی، رهگیری الگوهای رفتاری سازمان را ساده می‌سازد.'],
             'reminder' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'این ماژول از طریق پنل ادمین قابل پیکربندی نیست؛ یادآورها داده شخصی هر کاربر هستند و اعلان‌های سررسید و تأخیر از مسیر سیستم نوتیفیکیشن ارسال می‌شوند.'],
+            'notify' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'برای هر ماژول یک قانون بسازید و پیش از فعال‌کردن آن با «ارسال آزمایشی» نتیجه را در ایمیل خودتان ببینید. اگر یک قانون پیام‌های زیادی می‌فرستد، از «فقط با تغییر این اطلاعات» و بازهٔ اعتبار استفاده کنید. برای خاموش‌کردن کل امکان یا فقط ایمیل یا پیامک یک سازمان، کلیدهای notify، notify:mail و notify:sms را در config/tenants.php ثبت کنید.'],
             'others' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'تنظیمات امکانات رفاهی و ابزارهای کوچک سازمان را یکپارچه مدیریت کنید. از قابلیت شخصی‌سازی ستون‌ها (Column Toggling) برای تمرکز بر داده‌های کلیدی استفاده کنید.'],
             'ai-assistant' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'این ماژول صرفاً نمایشی است و منبع مستقلی در پنل ادمین ندارد. برای فعال‌سازی یا محدودسازی دسترسی هر سازمان، کلید ai.assistant را در config/tenants.php ویرایش کنید.'],
             'profile' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'پروفایل‌های پرسنلی را با جزئیات کامل سازمانی یکپارچه کنید. از Relation Managers برای مدیریت اسناد هویتی و سوابق فعالیت‌های کاربر در سیستم بهره‌مند شوید.'],

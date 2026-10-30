@@ -74,7 +74,6 @@
             <livewire:dashboard.navbar.quick-settings/>
         </div>
 
-        @php($navHasUnread = auth()->check() && auth()->user()->unreadNotifications()->exists())
         <div data-declutter-hide class="xl:hidden flex shrink-0 items-center gap-1.5"
              x-data="{
                  cur: window.innerWidth < 640 ? 'bell' : 'settings',

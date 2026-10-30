@@ -52,15 +52,26 @@ class ReminderPresenter
         ];
     }
 
+    private static function smsToggle(): array
+    {
+        $missing = blank(auth()->user()?->sms_number);
+
+        return [
+            'name' => 'form.smsEnabled',
+            'label' => $missing ? 'پیامک (شمارهٔ موبایل ثبت نشده)' : 'پیامک',
+            'disabled' => $missing,
+        ];
+    }
+
     public static function channelToggles(bool $scoped = true): array
     {
-        return [
+        return array_values(array_filter([
             ['name' => 'form.emailEnabled', 'label' => 'ایمیل'],
-            ['name' => null, 'label' => 'پیامک (به‌زودی)', 'disabled' => true],
+            tenantOff('notify:sms') ? null : static::smsToggle(),
             ['name' => 'form.inAppBadge', 'label' => $scoped ? 'نشانگر منو' : 'نشانگر منو (فقط رکورد متصل)', 'disabled' => ! $scoped],
             ['name' => 'form.inAppNudge', 'label' => 'پیام اعلانات'],
             ['name' => 'form.inAppEdge', 'label' => 'پیام ثابت صفحه'],
-        ];
+        ]));
     }
 
     public function channelBadges(): array
@@ -70,6 +81,10 @@ class ReminderPresenter
 
         if (in_array('email', $channels, true)) {
             $badges[] = ['icon' => 'mail', 'label' => 'ایمیل'];
+        }
+
+        if (in_array('sms', $channels, true)) {
+            $badges[] = ['icon' => 'sms', 'label' => 'پیامک'];
         }
 
         foreach ([

@@ -7,6 +7,10 @@ Schedule::command('model:prune')
     ->daily()
     ->withoutOverlapping();
 
+Schedule::command('queue:prune-failed --hours=720')
+    ->daily()
+    ->withoutOverlapping();
+
 Schedule::command('suggestions:auto-resolve-stale')
     ->hourly()
     ->withoutOverlapping();

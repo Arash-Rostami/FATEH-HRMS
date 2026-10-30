@@ -4,15 +4,15 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">هر پروژه یک گروه گفتگوی خصوصی متصل دارد</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        این گروه هنگام ایجاد پروژه به‌صورت خودکار ساخته می‌شود و از همان زیرساخت ماژول «گروه‌ها» استفاده می‌کند — نوعی «خصوصی» دارد و در فهرست عمومی گروه‌ها نمایان نیست. اگر به هر دلیلی گروه یک پروژه از بین برود (مثلاً حذف دستی)، سیستم در اولین باز شدن گفتگوی پروژه به‌صورت خودکار یک گروه جدید می‌سازد — تاریخچهٔ پیام‌های قبلی در این حالت بازیابی نمی‌شود.
+        این گروه هنگام ایجاد پروژه خودکار ساخته می‌شود و در ماژول «گروه‌ها» از نوع «خصوصی» است؛ در فهرست عمومی گروه‌ها دیده نمی‌شود. اگر به هر دلیلی گروه یک پروژه از بین برود (مثلاً حذف دستی)، سیستم در اولین باز شدن گفتگوی پروژه به‌صورت خودکار یک گروه جدید می‌سازد — تاریخچهٔ پیام‌های قبلی در این حالت بازیابی نمی‌شود.
     </p>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        اعضای گروه همیشه با فهرست اعضای فعال پروژه (مالک + اعضا + دپارتمان‌ها) همگام می‌شوند؛ کاربر پنل کاربر نمی‌تواند این گروه را حذف یا عمومی کند. حذف کامل (Force Delete) یک پروژه، گروه متصل آن را هم حذف کامل می‌کند و وظایف مرتبط را بدون حذف، فقط از پروژه جدا می‌کند.
+        اعضای گروه همیشه با فهرست اعضای فعال پروژه (مالک + اعضا + واحدها) همگام می‌شوند؛ کاربر پنل کاربر نمی‌تواند این گروه را حذف یا عمومی کند. با حذف همیشگی پروژه، گروه گفتگوی آن هم برای همیشه پاک می‌شود؛ وظایف مرتبط حذف نمی‌شوند و فقط از پروژه جدا می‌شوند.
     </p>
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">compare_arrows</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">سه سطح گفت‌وگو در محصول — جای هرکدام و مخاطبش</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">سه نوع گفتگو در سامانه، جای هرکدام و مخاطبش</p>
         </div>
         <div class="p-5 flex flex-col gap-2">
             <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">چت زندهٔ تیم</span> (همین برگه) — همان گروه بالا؛ پیام‌رسانی آنی برای همهٔ اعضای پروژه.</p>

@@ -17,7 +17,7 @@
         ],
         [
             'icon' => 'verified_user',
-            'label' => 'دو تأیید جداگانه = امضای دیجیتال',
+            'label' => 'دو تأیید جداگانه برای هر سند',
             'hint' => 'هر کاربر برای هر سند دو مرحله دارد: «تأیید دریافت» (فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read=true</code> در جدول <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">reads</code>) و «تأیید مطالعه» (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read_count&gt;0</code>). تا هر دو ثبت نشود، سند در کارتابل کاربر «اقدام مورد نیاز» می‌ماند. این مدل در زبانهٔ «تجربهٔ کاربر» کامل توضیح داده شده است.',
         ],
         [
@@ -35,7 +35,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«مدیریت اسناد» سامانهٔ انتشار و تأیید اسناد رسمی سازمان است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        شما (ادمین) سند را با کد، نسخه، فایل و مالکیت واحدها ثبت می‌کنید؛ کاربران آن را در پنل کاربری دیده و در دو مرحله تأیید می‌کنند. این صفحه نظارت کل‌سازمان است: همهٔ اسناد (فعال/در بررسی/منسوخ) را می‌بینید، آمار مطالعه را بازبینی می‌کنید، فایل‌ها را جایگزانی می‌کنید و خروجی اکسل می‌گیرید.
+        شما (ادمین) سند را با کد، نسخه، فایل و مالکیت واحدها ثبت می‌کنید؛ کاربران آن را در پنل کاربری دیده و در دو مرحله تأیید می‌کنند. این صفحه نظارت کل‌سازمان است: همهٔ اسناد (فعال/در بررسی/منسوخ) را می‌بینید، آمار مطالعه را بازبینی می‌کنید، فایل‌ها را جایگزین می‌کنید و خروجی اکسل می‌گیرید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -61,7 +61,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                تنها اسنادِ «فعال» به کاربران می‌رسد؛ برای جمع‌آوری یک سند از دسترس کاربران، کافی است وضعیت را به «منسوخ» تغییر دهید — حذف ردیف لازم نیست.
+                تنها اسنادِ «فعال» به کاربران می‌رسد؛ برای جمع‌آوری یک سند از دسترس کاربران، کافی است وضعیت را به «منسوخ» تغییر دهید — حذف سند لازم نیست.
             </p>
         </div>
     </div>

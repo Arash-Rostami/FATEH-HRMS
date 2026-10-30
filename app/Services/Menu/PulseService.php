@@ -2,6 +2,7 @@
 
 namespace App\Services\Menu;
 
+use App\Livewire\Dashboard\Tab\Presentation\TabPresenter;
 use App\Models\Edge;
 use App\Models\Event;
 use App\Models\Reminder;
@@ -15,6 +16,7 @@ class PulseService
         'edges' => 'edges-changed',
         'reminders' => 'reminder-changed',
         'eventReminder' => 'event-reminder-changed',
+        'homeStats' => 'home-stats-changed',
     ];
 
     private const STAMP = "CONCAT_WS('|', COUNT(*), MAX(created_at), MAX(updated_at))";
@@ -23,12 +25,16 @@ class PulseService
 
     public static function fingerprint(User $user): array
     {
-        return (array) DB::query()
+        $fingerprint = (array) DB::query()
             ->selectSub($user->notifications()->reorder()->where('data->format', 'filament')->unread()->selectRaw(self::STAMP), 'notifications')
             ->selectSub(Edge::where('user_id', $user->id)->visible()->selectRaw(self::EDGE_STAMP), 'edges')
             ->selectSub(Reminder::forUser($user->id)->active()->where('due_at', '<=', now())->selectRaw(self::STAMP), 'reminders')
             ->selectSub(Event::reminderDueFor($user)->orderBy('date')->limit(1)->selectRaw("CONCAT_WS('@', id, date)"), 'eventReminder')
             ->first();
+
+        $fingerprint['homeStats'] = TabPresenter::statStamp($user->id);
+
+        return $fingerprint;
     }
 
     public static function changedEvents(array $before, array $after): array

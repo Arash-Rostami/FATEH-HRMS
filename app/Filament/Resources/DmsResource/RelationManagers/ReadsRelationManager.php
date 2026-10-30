@@ -58,7 +58,7 @@ class ReadsRelationManager extends RelationManager
                     ->label('کاربر')
                     ->searchable(),
                 IconColumn::make('read')
-                    ->label('خوانده شده')
+                    ->label('خوانده‌شده')
                     ->boolean(),
                 TextColumn::make('read_count')
                     ->label(__('resources/dms/strings.fields.read_count'))

@@ -19,12 +19,12 @@ class RerouteTicketAction
 
         abort_unless($department, 422, 'واحد انتخاب‌شده معتبر نیست.');
         abort_if(blank(trim($form->body)), 422, 'توضیح ارجاع را بنویسید.');
-        abort_if(User::headsOfDepartment($department->code)->isEmpty(), 422, 'واحد انتخاب‌شده مسئولی ندارد و امکان ارجاع به آن وجود ندارد.');
 
         DB::transaction(function () use ($form, $ticket, $department, $actor) {
             $locked = Ticket::lockForUpdate()->find($ticket->id);
 
             abort_unless($locked && TicketAccessPolicy::canReroute($locked, $actor), 403);
+            abort_if(! Department::isTicketable($department->code), 422, 'واحد انتخاب‌شده مسئولی ندارد و امکان ارجاع به آن وجود ندارد.');
             abort_if($locked->effectiveTargetDepartment() === $department->code, 422, 'تیکت هم‌اکنون در این واحد است.');
 
             $locked->update([

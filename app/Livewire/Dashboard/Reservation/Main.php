@@ -11,9 +11,11 @@ use App\Livewire\Dashboard\Reservation\Presentation\DailyPresenter;
 use App\Livewire\Dashboard\Reservation\Presentation\PolicySummaryPresenter;
 use App\Livewire\Dashboard\Reservation\Presentation\AvantgardePresenter;
 use App\Livewire\Dashboard\Reservation\Presentation\CalendarPresenter;
+use App\Livewire\Dashboard\Reservation\Presentation\ReservationSummaryPresenter;
 use App\Livewire\Dashboard\Reservation\Presentation\TimeSlotPresenter;
 use App\Models\Reservation;
 use App\Models\Resource;
+use App\Services\Notify\Channels\SmsChannel;
 use App\Services\Reservation\ValidationService;
 use App\Traits\FocusOnRecord;
 use Carbon\Carbon;
@@ -176,6 +178,8 @@ class Main extends Component
             $this->currentMonth = 1;
             $this->currentYear++;
         }
+
+        unset($this->canNextMonth);
     }
 
     public function prevMonth(): void
@@ -188,6 +192,8 @@ class Main extends Component
             $this->currentMonth = 12;
             $this->currentYear--;
         }
+
+        unset($this->canPrevMonth);
     }
 
     #[Computed]
@@ -200,6 +206,20 @@ class Main extends Component
     public function availableTimeSlots(): array
     {
         return TimeSlotPresenter::slots($this->policies['allowed_hours'] ?? null, $this->openResourceSlot());
+    }
+
+    private function firstEndAfter(string $t): ?string
+    {
+        $minGap = max(1, (int) ($this->policies['min_duration_minutes'] ?? 0));
+        $toMinutes = fn (string $s) => (int) substr($s, 0, 2) * 60 + (int) substr($s, 3, 2);
+
+        return collect($this->availableTimeSlots)->first(fn ($s) => $toMinutes($s) - $toMinutes($t) >= $minGap);
+    }
+
+    #[Computed]
+    public function lastValidStartSlot(): ?string
+    {
+        return collect($this->availableTimeSlots)->last(fn ($s) => $this->firstEndAfter($s) !== null);
     }
 
     private function effectivePolicies(): array
@@ -230,8 +250,19 @@ class Main extends Component
             return null;
         }
 
-        return $this->resources->firstWhere('id', $this->open)
-            ?? ($this->openResources[$this->open] ??= Resource::where('type', $this->activeTab)->find($this->open));
+        $listed = $this->resources->firstWhere('id', $this->open);
+
+        if ($listed) {
+            return $listed;
+        }
+
+        $key = "{$this->activeTab}:{$this->open}";
+
+        if (! array_key_exists($key, $this->openResources)) {
+            $this->openResources[$key] = Resource::where('type', $this->activeTab)->find($this->open);
+        }
+
+        return $this->openResources[$key];
     }
 
     #[Computed]
@@ -333,30 +364,12 @@ class Main extends Component
             return [];
         }
 
-        $intervalDays = $this->recurPattern === 'weekly' ? 7 : 1;
-        $count = max(2, min(52, (int) $this->recurCount));
-
-        $start = Carbon::parse($this->date);
-        $now = Carbon::now()->startOfDay();
         $windowDays = $this->policies['window_days'] ?? null;
-        $horizon = $windowDays !== null
-            ? Carbon::now()->addDays((int) $windowDays)->endOfDay()
-            : null;
-        $allowed = $this->allowedDays;
 
-        $items = [];
-        for ($i = 0; $i < $count; $i++) {
-            $day = $start->copy()->addDays($i * $intervalDays);
-            $ok = $day >= $now
-                && ($horizon === null || $day <= $horizon)
-                && ($allowed === null || in_array(strtolower($day->englishDayOfWeek), $allowed, true));
-            $items[] = [
-                'date' => toJalali($day, 'j F'),
-                'ok' => $ok,
-            ];
-        }
-
-        return $items;
+        return array_map(
+            fn (array $item) => ['date' => toJalali($item['day'], 'j F'), 'ok' => $item['ok']],
+            ReservationSummaryPresenter::occurrences($this->date, $this->recurPattern, (int) $this->recurCount, $windowDays === null ? null : (int) $windowDays, $this->allowedDays, auth()->user()->hasElevatedRole())
+        );
     }
 
     #[Computed]
@@ -393,7 +406,7 @@ class Main extends Component
 
         [$start, $end, $fullDay] = $this->timeRange();
 
-        if ($end->isPast() || ((! $fullDay || $this->minNoticeHours > 0) && $start->lt(now()->addHours($this->minNoticeHours ?? 0)->startOfMinute()))) {
+        if ($end->isPast() || ((! $fullDay || $this->minNoticeHours > 0) && $start->lt(now()->addHours($this->minNoticeHours ?? 0)))) {
             return 'زمان انتخابی گذشته یا کمتر از حداقل مهلت رزرو است';
         }
 
@@ -463,7 +476,7 @@ class Main extends Component
 
     private function invalidateAfterMutation(): void
     {
-        $this->invalidateResourceCache();
+        $this->invalidateResourceCache(false);
         unset($this->activeLimitUsage, $this->cancelLimitUsage, $this->historyReservations, $this->gridReservations, $this->totalHistoryReservations);
     }
 
@@ -472,12 +485,16 @@ class Main extends Component
         $resource = Resource::find($id);
 
         if (! $resource || ! $this->canBookTab($resource->type)) {
+            $this->open = null;
+            $this->deckOnly = false;
+
             return;
         }
 
         if ($resource->type !== $this->activeTab) {
             $this->activeTab = $resource->type;
             $this->resetFilters();
+            $this->rollWhenNoSlotLeft();
         }
 
         $this->facetFilters = [];
@@ -490,17 +507,20 @@ class Main extends Component
         $this->resourcesLimit = max($this->resourcesLimit, 50);
         $this->open = $id;
         $this->deckOnly = true;
-        unset($this->resources, $this->totalResources, $this->availableTimeSlots, $this->startSlotMeta, $this->allowedDays, $this->availableDates, $this->policyChips);
+        unset($this->resources, $this->totalResources, $this->availableTimeSlots, $this->lastValidStartSlot, $this->startSlotMeta, $this->allowedDays, $this->availableDates, $this->policyChips);
 
         if (! in_array($this->date, array_column($this->availableDates, 'value'), true)) {
             $this->date = $this->availableDates[0]['value'] ?? $this->date;
+            $this->rollWhenNoSlotLeft();
+            unset($this->resources, $this->totalResources);
         }
 
         if (! in_array($this->startTime, $this->availableTimeSlots, true) || ! in_array($this->endTime, $this->availableTimeSlots, true)) {
             $this->syncDefaultTimes();
+            unset($this->resources, $this->totalResources);
         }
 
-        unset($this->resources, $this->totalResources, $this->openResourceBusySegments, $this->bookingBlockReason, $this->selectedDuration);
+        unset($this->openResourceBusySegments, $this->bookingBlockReason, $this->selectedDuration);
     }
 
     public function viewInCanvas(int $reservationId): void
@@ -528,7 +548,7 @@ class Main extends Component
 
         if ($wasOpen) {
             $this->resourcesLimit = 6;
-            unset($this->resources, $this->totalResources, $this->allowedDays, $this->availableDates, $this->availableTimeSlots, $this->policyChips);
+            unset($this->resources, $this->totalResources, $this->allowedDays, $this->availableDates, $this->availableTimeSlots, $this->lastValidStartSlot, $this->policyChips);
         }
     }
 
@@ -541,6 +561,7 @@ class Main extends Component
 
             $this->ensurePermittedTab();
             $this->resetFilters();
+            $this->rollWhenNoSlotLeft();
         }
 
         if ($name === 'date' && ! (is_string($value) && preg_match('/^(20\d{2})-(\d{2})-(\d{2})$/', $value, $part) && checkdate((int) $part[2], (int) $part[3], (int) $part[1]))) {
@@ -549,6 +570,10 @@ class Main extends Component
 
         if (in_array($name, ['startTime', 'endTime'], true) && ! (is_string($value) && preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $value))) {
             $this->{$name} = $name === 'startTime' ? '09:00' : '10:00';
+        }
+
+        if ($name === 'recurPattern' && ! in_array($value, ['daily', 'weekly'], true)) {
+            $this->recurPattern = 'daily';
         }
     }
 
@@ -768,7 +793,12 @@ class Main extends Component
         $this->ensurePermittedTab();
         $this->resetMonthCursor();
         $this->date = $this->availableDates[0]['value'] ?? now()->toDateString();
-        $this->syncDefaultTimes();
+
+        if (! $this->syncDefaultTimes()) {
+            $this->rollToNextBookableDate();
+        }
+
+        unset($this->resources, $this->totalResources);
         $this->daily = DailyPresenter::defaults($this->date, $this->activeTab);
     }
 
@@ -840,6 +870,29 @@ class Main extends Component
         }
     }
 
+    public function reachOutSms(int $reservationId, ContactColleagueAction $action, SmsChannel $sms): void
+    {
+        try {
+            $reservation = Reservation::with('resource')->findOrFail($reservationId);
+
+            if (! $this->userCanBook((string) $reservation->resource?->type)) {
+                throw new Exception('اجازهٔ این کار را ندارید.');
+            }
+
+            $action->execute($reservation, auth()->user(), 'move', $sms);
+
+            $action->smsDelivered
+                ? $this->dispatch('toast', message: 'پیام و پیامک برای همکار ارسال شد', type: 'success')
+                : $this->dispatch('toast', message: 'پیام ارسال شد، اما ارسال پیامک ناموفق بود.', type: 'warning');
+        } catch (ModelNotFoundException $e) {
+            report($e);
+            $this->dispatch('toast', message: 'این مورد یافت نشد.', type: 'error');
+        } catch (Exception $e) {
+            report($e);
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+    }
+
     #[Computed]
     public function bookableTabs(): array
     {
@@ -872,17 +925,22 @@ class Main extends Component
 
     public function goToday(): void
     {
+        if (! in_array(now()->toDateString(), array_column($this->availableDates, 'value'), true)) {
+            $this->dispatch('toast', message: 'امروز قابل رزرو نیست', type: 'info');
+            return;
+        }
+
         $this->resetMonthCursor();
         unset($this->canNextMonth, $this->canPrevMonth, $this->currentMonthName);
         $this->setDate(now()->toDateString());
         $this->dispatch('scroll-to-selected');
     }
 
-    private function resetMonthCursor(): void
+    private function resetMonthCursor(?string $date = null): void
     {
-        $now = Jalalian::now();
-        $this->currentYear = $now->getYear();
-        $this->currentMonth = $now->getMonth();
+        $at = $date === null ? Jalalian::now() : Jalalian::fromCarbon(Carbon::parse($date));
+        $this->currentYear = $at->getYear();
+        $this->currentMonth = $at->getMonth();
     }
 
     public function placeholder(): View
@@ -955,22 +1013,37 @@ class Main extends Component
         }
     }
 
-    public function resetFilters(): void
+    public function resetFilters(bool $keepTimes = false): void
     {
+        $dateBefore = $this->date;
         $this->facetFilters = [];
         $this->resourceSearch = '';
         unset($this->policies, $this->facets);
-        $this->invalidateResourceCache();
+        $this->invalidateResourceCache(false);
         $this->resetMonthCursor();
-        unset($this->availableDates, $this->dayFreeCounts, $this->fullyBookedDates, $this->dateWindow, $this->canNextMonth, $this->canPrevMonth, $this->currentMonthName, $this->availableTimeSlots, $this->minNoticeHours, $this->lastMinuteHours, $this->lastMinuteOpensAt, $this->policyChips, $this->allowedDays, $this->durationBounds, $this->activeLimitUsage, $this->cancelLimitUsage, $this->allowsRepeat, $this->recurPreview, $this->selectedDuration, $this->bookingBlockReason, $this->startSlotMeta);
+        unset($this->availableDates, $this->dayFreeCounts, $this->fullyBookedDates, $this->dateWindow, $this->canNextMonth, $this->canPrevMonth, $this->currentMonthName, $this->availableTimeSlots, $this->lastValidStartSlot, $this->minNoticeHours, $this->lastMinuteHours, $this->lastMinuteOpensAt, $this->policyChips, $this->allowedDays, $this->durationBounds, $this->activeLimitUsage, $this->cancelLimitUsage, $this->allowsRepeat, $this->recurPreview, $this->selectedDuration, $this->bookingBlockReason, $this->startSlotMeta);
 
         if (! in_array($this->date, array_column($this->availableDates, 'value'), true)) {
             $this->date = $this->availableDates[0]['value'] ?? $this->date;
         }
 
         unset($this->resources, $this->totalResources);
-        $this->syncDefaultTimes();
-        unset($this->resources, $this->totalResources, $this->availableTimeSlots, $this->startSlotMeta);
+
+        if (! ($keepTimes && $this->date === $dateBefore && $this->timesStillValid())) {
+            $this->syncDefaultTimes();
+        }
+
+        unset($this->resources, $this->totalResources, $this->availableTimeSlots, $this->lastValidStartSlot, $this->startSlotMeta);
+    }
+
+    private function timesStillValid(): bool
+    {
+        $slots = $this->availableTimeSlots;
+
+        return in_array($this->startTime, $slots, true)
+            && in_array($this->endTime, $slots, true)
+            && $this->startTime < $this->endTime
+            && ($this->startSlotMeta['states'][$this->startTime] ?? 'ok') === 'ok';
     }
 
     private function applyFacets($query)
@@ -1040,6 +1113,11 @@ class Main extends Component
             return;
         }
 
+        if ($t <= $this->startTime && in_array($this->startTime, $this->availableTimeSlots, true)) {
+            $this->dispatch('toast', message: 'زمان پایان باید بعد از زمان شروع باشد', type: 'warning');
+            return;
+        }
+
         $this->endTime = $t;
         $this->invalidateResourceCache();
     }
@@ -1062,7 +1140,20 @@ class Main extends Component
             return;
         }
 
+        if ($this->endTime <= $t) {
+            $newEnd = $this->firstEndAfter($t);
+
+            if (! $newEnd) {
+                $this->dispatch('toast', message: 'برای این ساعت شروع زمان پایان معتبری وجود ندارد', type: 'warning');
+                return;
+            }
+
+            $this->endTime = $newEnd;
+            $this->dispatch('toast', message: 'زمان پایان به‌طور خودکار روی '.convertToPersian($newEnd).' تنظیم شد', type: 'info');
+        }
+
         $this->startTime = $t;
+
         $this->invalidateResourceCache();
     }
 
@@ -1086,6 +1177,7 @@ class Main extends Component
         if ($this->activeTab === $tab || !$this->canBookTab($tab)) return;
         $this->activeTab = $tab;
         $this->resetFilters();
+        $this->rollWhenNoSlotLeft();
     }
 
     #[Computed]
@@ -1112,36 +1204,66 @@ class Main extends Component
         return 'resource';
     }
 
-    private function invalidateResourceCache(): void
+    private function invalidateResourceCache(bool $notify = true): void
     {
         $this->resourcesLimit = $this->open ? 50 : 6;
-        unset($this->availableTimeSlots, $this->resources, $this->totalResources, $this->recurPreview, $this->selectedDuration, $this->bookingBlockReason, $this->startSlotMeta, $this->openResourceBusySegments, $this->lastMinuteOpensAt);
+        unset($this->availableTimeSlots, $this->lastValidStartSlot, $this->resources, $this->totalResources, $this->recurPreview, $this->selectedDuration, $this->bookingBlockReason, $this->startSlotMeta, $this->openResourceBusySegments, $this->lastMinuteOpensAt);
 
         if ($this->open && ! $this->resources->contains('id', $this->open)) {
             $this->clearFocus();
+
+            if ($notify) {
+                $this->dispatch('toast', message: 'این مورد با انتخاب جدید شما در دسترس نیست', type: 'info');
+            }
         }
     }
 
-    private function syncDefaultTimes(): void
+    private function rollWhenNoSlotLeft(): void
+    {
+        if (! $this->syncDefaultTimes()) {
+            $this->rollToNextBookableDate();
+        }
+    }
+
+    private function rollToNextBookableDate(): void
+    {
+        if (ResourceType::tryFrom($this->activeTab)?->isFullDay() ?? true) {
+            return;
+        }
+
+        $original = $this->date;
+        $dates = array_column($this->availableDates, 'value');
+
+        foreach ($dates as $candidate) {
+            if ($candidate <= $original) {
+                continue;
+            }
+
+            $this->date = $candidate;
+
+            if ($this->syncDefaultTimes()) {
+                $this->resetMonthCursor($candidate);
+
+                return;
+            }
+        }
+
+        $this->date = $original;
+    }
+
+    private function syncDefaultTimes(): bool
     {
         $policies = $this->policies;
         [$start, $end] = TimeSlotPresenter::allowedHoursBounds($policies['allowed_hours'] ?? null, $this->openResourceSlot());
 
         $today = Carbon::parse($this->date)->startOfDay();
-        $now = Carbon::now();
-
-        if ($today->isSameDay($now)) {
-            $minNotice = $policies['window_hours'] ?? null;
-            $earliest = $minNotice !== null ? $now->copy()->addHours((int) $minNotice) : $now->copy();
-        } else {
-            $earliest = $today->copy();
-        }
+        $earliest = $today->copy()->max(Carbon::now()->addHours((int) ($policies['window_hours'] ?? 0)));
 
         $dayStart = $today->copy()->setTime($start->hour, $start->minute);
         $dayEnd = $today->copy()->setTime($end->hour, $end->minute);
 
         if ($earliest >= $dayEnd) {
-            return;
+            return false;
         }
 
         $slot = $dayStart->copy();
@@ -1150,7 +1272,7 @@ class Main extends Component
         }
 
         if ($slot >= $dayEnd) {
-            return;
+            return false;
         }
 
         $this->startTime = $slot->format('H:i');
@@ -1160,7 +1282,9 @@ class Main extends Component
             $endSlot = $dayEnd->copy();
         }
 
-        $this->endTime = $endSlot->format('H:i');
+        $this->endTime = $this->firstEndAfter($this->startTime) ?? $endSlot->format('H:i');
+
+        return true;
     }
 
     private function timeRange(): array

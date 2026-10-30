@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Ths\Presentation;
 
 use App\Filament\Resources\ThsResource\Enums\TicketPriority;
+use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Livewire\Dashboard\Ths\Actions\ReleaseTicketAction;
 use App\Livewire\Dashboard\Ths\Actions\RerouteTicketAction;
@@ -237,7 +238,13 @@ class TicketPresenter
         $isRequester = $user !== null && (int) ($ticket['requester_id'] ?? 0) === $user->id;
         $isAssignee = $user !== null && (int) ($ticket['assigned_to'] ?? 0) === $user->id;
         $dept = $ticket['target_department_code'] ?? null;
-        $canAssign = $user !== null && !$isRequester && (($dept && $user->isHeadOfDepartment($dept)) || $user->hasElevatedRole());
+        $freeQueue = $status === 'open' && $dept && Department::freeAssignment($dept)
+            && $user !== null && $user->status === 'active' && $user->type !== UserType::Guest->value;
+        $canAssign = $user !== null && !$isRequester && (
+            ($dept && $user->isHeadOfDepartment($dept))
+            || $user->hasElevatedRole()
+            || ($freeQueue && (string) ($user->profile?->department_id ?? '') === $dept)
+        );
 
         return match (true) {
             $this->isWithdrawn($ticket) => $this->ball('error', 'cancel', 'لغو شد', 'این درخواست توسط درخواست‌کننده لغو شد.'),
@@ -249,6 +256,7 @@ class TicketPresenter
             $status === 'in-progress' && $isAssignee => $this->ball('mine', 'sports_score', 'نوبت شماست — پاسخ دهید یا ببندید', $timeline['response'] ?? null, ['پاسخ', 'response']),
             $status === 'in-progress' => $this->ball('wait', 'person', 'در دست ' . ($ticket['assignee']['name'] ?? '—'), $timeline['response'] ?? null),
             $canAssign => $this->ball('mine', 'person_add', 'نوبت شماست — کارشناس را تخصیص دهید', 'تا زمان تخصیص، درخواست در صف واحد می‌ماند.', ['تخصیص', 'response']),
+            $freeQueue => $this->ball('wait', 'hourglass_top', 'در صف واحد — هر عضوی می‌تواند آن را بردارد', $timeline['typical'] ?? null),
             default => $this->ball('wait', 'hourglass_top', 'در انتظار تخصیص توسط سرپرست واحد', $timeline['typical'] ?? null),
         };
     }

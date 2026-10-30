@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\DepartmentResource\Schemas;
 
 use App\Traits\FilamentFormDivider;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\FontWeight;
@@ -44,6 +45,17 @@ class DepartmentInfolistPresenter
             ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull()
             ->placeholder('-');
+    }
+
+    public static function freeAssignment(): IconEntry
+    {
+        return IconEntry::make('free_assignment')
+            ->label(__('resources/department/strings.fields.free_assignment'))
+            ->boolean()
+            ->trueIcon('heroicon-o-check-circle')
+            ->falseIcon('heroicon-o-x-circle')
+            ->trueColor('success')
+            ->falseColor('danger');
     }
 
     public static function level(): TextEntry

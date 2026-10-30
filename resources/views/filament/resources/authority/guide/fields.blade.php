@@ -1,14 +1,14 @@
 @php
     $delegation = [
-        ['code' => 'decision_implementation', 'label' => 'تصمیم گیری و اجرا', 'color' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'],
+        ['code' => 'decision_implementation', 'label' => 'تصمیم‌گیری و اجرا', 'color' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'],
         ['code' => 'review_proposal',         'label' => 'بررسی و پیشنهاد',     'color' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'],
         ['code' => 'review_reporting',        'label' => 'بررسی و گزارش',       'color' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]'],
-        ['code' => 'decision_reporting',      'label' => 'تصمیم گیری و گزارش',  'color' => 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'],
+        ['code' => 'decision_reporting',      'label' => 'تصمیم‌گیری و گزارش',  'color' => 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'],
     ];
     $execution = [
         ['code' => 'yes',     'label' => 'دارد',                  'color' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'],
         ['code' => 'no',      'label' => 'ندارد',                 'color' => 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'],
-        ['code' => 'pending', 'label' => 'در انتظار (تصویب / بروزرسانی)', 'color' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]'],
+        ['code' => 'pending', 'label' => 'در انتظار (تصویب / به‌روزرسانی)', 'color' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]'],
     ];
     $impact = [
         ['code' => 'very_high', 'label' => 'خیلی زیاد', 'color' => 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'],
@@ -34,7 +34,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">چهار فیلدِ انتخابیِ داخلِ JSON، مقادیرِ ثابتِ پیش‌فرض دارند</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        چهار فیلدِ «روش اجرایی»، «فراوانی تکرار»، «شاخص اثر» و دو فیلدِ «تفویض» همگی از نوعِ Select هستند و مقادیرِشان از یک enumِ پشتِ صحنه خوانده می‌شود. این مقادیر در جدول به‌صورت Badge و در خروجیِ اکسل به‌صورت برچسبِ فارسی نمایش داده می‌شوند. اگر رکوردی مقداری نداشته باشد، «داده نشده» جای آن می‌نشیند.
+        چهار گزینهٔ «روش اجرایی»، «فراوانی تکرار»، «شاخص اثر» و دو گزینهٔ «تفویض» همگی انتخابی‌اند و مقدارهایشان از فهرستی ثابت می‌آید. این مقادیر در جدول به‌صورت نشان رنگی و در خروجی اکسل به‌صورت برچسبِ فارسی نمایش داده می‌شوند. اگر اختیاری مقداری نداشته باشد، «ثبت نشده» جای آن می‌نشیند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

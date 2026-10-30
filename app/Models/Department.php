@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Jobs\ReconcileNudge;
 use App\Models\Concerns\HasDepartmentLabel;
 use App\Services\Cache\ModelCacheVersion;
+use App\Services\Menu\StateService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,11 +15,15 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use RuntimeException;
+use App\Models\Concerns\HasNotifyEvents;
+use App\Models\Concerns\Hooks\HasDepartmentHooks;
 
 class Department extends Model
 {
-    use HasFactory, HasDepartmentLabel;
+    use HasFactory,
+        HasDepartmentLabel,
+        HasNotifyEvents,
+        HasDepartmentHooks;
 
     protected $fillable = [
         'code',
@@ -28,22 +34,35 @@ class Department extends Model
         'sections',
         'level',
         'subordinate_to',
+        'free_assignment',
     ];
     protected $primaryKey = 'code';
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected static function booted(): void
+    public static function afterFreeAssignmentChange(string $code): void
     {
-        static::saving(function (self $department) {
-            if ($department->subordinate_to !== null && (int) $department->level === 0) {
-                $department->level = 1;
-            }
+        StateService::flush();
 
-            if (static::wouldCreateCycle($department->code, $department->subordinate_to)) {
-                throw new RuntimeException(__('resources/department/strings.errors.cyclic_hierarchy'));
-            }
-        });
+        Ticket::query()->targetedAt($code)->where('status', '!=', 'closed')
+            ->pluck('id')
+            ->each(fn ($id) => ReconcileNudge::dispatch('ths-controller:nudge', Ticket::class, $id));
+    }
+
+    public static function freeAssignment(?string $code): bool
+    {
+        return (bool) static::getCachedModels()->get($code)?->free_assignment;
+    }
+
+    public static function flipOffBlocked(string $code): bool
+    {
+        return User::headsOfDepartment($code)->isEmpty()
+            && Ticket::query()->targetedAt($code)->where('status', '!=', 'closed')->exists();
+    }
+
+    public static function isTicketable(string $code): bool
+    {
+        return User::headsOfDepartment($code)->isNotEmpty() || static::freeAssignment($code);
     }
 
     public static function wouldCreateCycle(?string $code, ?string $subordinateTo): bool
@@ -118,7 +137,7 @@ class Department extends Model
 
     public static function withHeads(Collection $options): Collection
     {
-        return $options->filter(fn($label, $code) => User::headsOfDepartment($code)->isNotEmpty());
+        return $options->filter(fn($label, $code) => static::isTicketable($code));
     }
 
     public static function getOfferedTicketOptions(): Collection
@@ -181,11 +200,17 @@ class Department extends Model
         return $this->hasManyThrough(User::class, Profile::class, 'department_id', 'id', 'code', 'user_id');
     }
 
+    public static function notifyFields(): array
+    {
+        return ['units' => 'list', 'sections' => 'list', 'subordinate_to' => 'department'];
+    }
+
     protected function casts(): array
     {
         return [
             'ticket_options' => 'array',
             'level' => 'integer',
+            'free_assignment' => 'boolean',
         ];
     }
 

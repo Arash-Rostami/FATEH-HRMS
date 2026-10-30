@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\ChannelType;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
 use App\Models\Concerns\HasPrunableStatus;
-use App\Services\Messaging\PollDigestService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use App\Models\Concerns\HasNotifyEvents;
+use App\Models\Concerns\Hooks\HasChannelHooks;
 
 class Channel extends Model
 {
@@ -22,7 +23,9 @@ class Channel extends Model
         SoftDeletes,
         Prunable,
         HasPrunableStatus,
-        CleansAttachedFiles;
+        CleansAttachedFiles,
+        HasNotifyEvents,
+        HasChannelHooks;
 
     protected $fillable = [
         'name',
@@ -92,37 +95,9 @@ class Channel extends Model
         app(ForceDeleteChannelAction::class)->execute($this);
     }
 
-    protected static function booted(): void
+    public static function notifyFields(): array
     {
-        static::created(function (self $channel) {
-            if ($channel->owner_id) {
-                $channel->memberUsers()->attach($channel->owner_id, [
-                    'joined_at' => now(),
-                    'entered_at' => now(),
-                    'last_read_message_id' => null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        });
-
-        static::saving(function (self $channel) {
-            if ($channel->exists && $channel->isDirty('type') && $channel->type === ChannelType::Open && $channel->isProjectLinked()) {
-                $channel->type = ChannelType::Private;
-            }
-        });
-
-        static::deleting(fn(self $channel) => !($channel->isProjectLinked() && !$channel->isForceDeleting()));
-
-        static::forceDeleted(fn(self $channel) => static::deleteStoredDirectory("channel_messages/{$channel->id}"));
-
-        static::updated(function (self $channel) {
-            if ($channel->wasChanged(['name', 'type', 'deleted_at'])) {
-                DB::afterCommit(fn() => PollDigestService::bump("ch:tv:{$channel->id}"));
-            }
-        });
-
-        static::deleted(fn(self $channel) => DB::afterCommit(fn() => PollDigestService::bump("ch:tv:{$channel->id}")));
+        return ['owner_id' => 'user'];
     }
 
     protected function casts(): array

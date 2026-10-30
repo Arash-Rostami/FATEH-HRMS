@@ -2,16 +2,25 @@
 
 namespace App\Models;
 
+use App\Filament\Resources\AuthorityResource\Enums\DelegationLevel;
+use App\Filament\Resources\AuthorityResource\Enums\ExecutionProcedure;
+use App\Filament\Resources\AuthorityResource\Enums\ImpactScore;
+use App\Filament\Resources\AuthorityResource\Enums\RepeatFrequency;
+use App\Models\Concerns\HasDepartment;
+use App\Models\Concerns\HasUser;
 use App\Models\Concerns\HasModelCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
+use App\Models\Concerns\HasNotifyEvents;
 
 class Authority extends Model
 {
-    use HasModelCache,
-        HasFactory;
+    use HasDepartment,
+        HasUser,
+        HasModelCache,
+        HasFactory,
+        HasNotifyEvents;
 
     protected $fillable = [
         'department_id',
@@ -19,11 +28,6 @@ class Authority extends Model
         'sub_duty',
         'details',
     ];
-
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class, 'department_id', 'code');
-    }
 
     public function scopeSearch($query, ?string $search)
     {
@@ -53,11 +57,6 @@ class Authority extends Model
         );
     }
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public static function cachedCount(): int
     {
         return static::cached('count', fn () => static::query()->count());
@@ -75,6 +74,21 @@ class Authority extends Model
                 ->map(fn($code) => $models->get($code))
                 ->values();
         });
+    }
+
+    public static function notifyFields(): array
+    {
+        return [
+            'department_id' => 'department',
+            'user_id' => 'user',
+            'details.duty' => 'text',
+            'details.execution_procedure' => ExecutionProcedure::class,
+            'details.repeat_frequency' => RepeatFrequency::class,
+            'details.impact_score' => ImpactScore::class,
+            'details.proposed_delegation' => DelegationLevel::class,
+            'details.approved_delegation' => DelegationLevel::class,
+            'details.co_delegate' => 'text',
+        ];
     }
 
     protected function casts(): array

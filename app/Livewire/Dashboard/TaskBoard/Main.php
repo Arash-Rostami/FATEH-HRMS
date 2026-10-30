@@ -27,7 +27,6 @@ use App\Support\TaskAccessPolicy;
 use App\Traits\FocusOnRecord;
 use App\Traits\HasDateSpan;
 use App\Traits\ManagesTaskModal;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\View\View;
@@ -689,19 +688,6 @@ class Main extends Component
         };
     }
 
-    private function deadlineFilterScope(?string $filter = null): callable
-    {
-        return match ($filter ?? $this->deadlineFilter) {
-            'overdue' => fn(Builder $q) => TaskMetrics::overdue($q),
-            'today' => fn(Builder $q) => $q->whereDate('deadline', now()->toDateString()),
-            'week' => fn(Builder $q) => $q->whereBetween('deadline', [
-                now()->startOfWeek(Carbon::SATURDAY),
-                now()->startOfWeek(Carbon::SATURDAY)->addDays(6)->endOfDay(),
-            ]),
-            default => fn(Builder $q) => $q,
-        };
-    }
-
     private function doneWindowScope(): ?callable
     {
         if ($this->showAllDone || $this->showArchived || $this->search !== '' || $this->open) {
@@ -745,18 +731,10 @@ class Main extends Component
                 ->whereNotNull('deadline')
                 ->whereNull('archived_at')
                 ->where('status', '!=', TaskStatus::Done->value)
-                ->tap($this->deadlineFilterScope()))
+                ->tap(TaskMetrics::deadlineFilterScope($this->deadlineFilter)))
             ->when($this->projectFilter, fn($q) => $q->where('project_id', $this->projectFilter))
             ->when($this->priorityFilter !== '', fn($q) => $q->where('priority', $this->priorityFilter))
-            ->when(!empty($this->labelFilter), function (Builder $q) {
-                foreach ($this->labelFilter as $label) {
-                    $canonical = str_replace(['ي', 'ك'], ['ی', 'ک'], $label);
-                    $variant = str_replace(['ی', 'ک'], ['ي', 'ك'], $canonical);
-                    $q->where(fn(Builder $sub) => $sub
-                        ->whereJsonContains('labels', $canonical)
-                        ->orWhereJsonContains('labels', $variant));
-                }
-            })
+            ->when(!empty($this->labelFilter), fn(Builder $q) => $q->labelFilter($this->labelFilter))
             ->when(
                 $this->responsibleFilter || $this->departmentFilter || $this->schemeFilter !== '' || $this->unitFilter || $this->sectionFilter || $this->actionSourceDomainFilter !== '' || $this->actionSourceFilter !== '',
                 fn(Builder $q) => $q->whereHas('detail', fn(Builder $dq) => $dq

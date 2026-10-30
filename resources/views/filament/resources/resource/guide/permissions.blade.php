@@ -15,7 +15,7 @@
         [
             'icon' => 'block',
             'label' => 'بدون دسترسی',
-            'code' => '(پرچم وجود ندارد)',
+            'code' => '(مجوزی ثبت نشده است)',
             'hint' => 'کاربر هیچ زبانه‌ای در صفحهٔ رزرو نمی‌بیند — صفحه خالی می‌ماند. این شایع‌ترین علت «رزرو برای کاربر نمایش داده نمی‌شود» است.',
         ],
     ];
@@ -23,13 +23,13 @@
     $gates = [
         [
             'icon' => 'key',
-            'label' => 'پرچم booking روی کاربر',
-            'hint' => 'در منوی «کاربران»، رکورد کاربر را ویرایش کنید و کلید booking را تنظیم کنید. بدون این پرچم، هیچ زبانه‌ای در /reservation ظاهر نمی‌شود.',
+            'label' => 'مجوزهای رزرو روی کاربر',
+            'hint' => 'در منوی «کاربران»، صفحهٔ ویرایش کاربر را باز کنید و «مجوزهای رزرو» را تنظیم کنید. بدون این مجوز، هیچ زبانه‌ای در صفحهٔ رزرو ظاهر نمی‌شود.',
         ],
         [
             'icon' => 'event_available',
             'label' => 'نوع در سیاست فعال باشد',
-            'hint' => 'حتی با داشتن پرچم booking، زبانهٔ نوعی که window_days آن صفر باشد غیرفعال (خاکستری) نمایش داده می‌شود. برای فعال بودن، window_days آن نوع باید بزرگ‌تر از صفر باشد — این در منوی «سیاست رزرو» تنظیم می‌شود و معمولاً از پیش درست است.',
+            'hint' => 'حتی با داشتن مجوز رزرو، زبانهٔ نوعی که «بازه مجاز پیش‌رزرو (روز)» و «حداقل زمان قبل از رزرو» آن هر دو صفر باشد غیرفعال (خاکستری) نمایش داده می‌شود. برای فعال بودن، «بازه مجاز پیش‌رزرو (روز)» آن نوع باید بزرگ‌تر از صفر باشد — این از دکمهٔ «قوانین رزرو» در بالای صفحهٔ رزروها تنظیم می‌شود و معمولاً از پیش درست است.',
         ],
     ];
 @endphp
@@ -47,7 +47,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">flag</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">سه حالت پرچم booking</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">سه حالت مجوز رزرو</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($flags as $f)
@@ -90,7 +90,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                اگر کاربری می‌گوید «زبانهٔ رزرو نمی‌بینم»: اول پرچم booking او را در منوی «کاربران» بررسی کنید؛ بعد window_days آن نوع را در منوی «سیاست رزرو».
+                اگر کاربری می‌گوید «زبانهٔ رزرو نمی‌بینم»: اول مجوزهای رزرو او را در منوی «کاربران» بررسی کنید؛ بعد «بازه مجاز پیش‌رزرو (روز)» آن نوع را از دکمهٔ «قوانین رزرو».
             </p>
         </div>
     </div>

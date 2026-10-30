@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDepartment;
+use App\Models\Concerns\HasUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +11,9 @@ use Illuminate\Support\Collection;
 
 class Review extends Model
 {
-    use HasFactory;
+    use HasDepartment,
+        HasUser,
+        HasFactory;
 
     public const FEEDBACKS = [
         'agree' => 'موافق',
@@ -40,11 +44,6 @@ class Review extends Model
         'suggestion_id',
     ];
 
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class, 'department_id', 'code');
-    }
-
     protected function casts(): array
     {
         return [
@@ -65,11 +64,6 @@ class Review extends Model
     public function suggestion(): BelongsTo
     {
         return $this->belongsTo(Suggestion::class);
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     public function isComplete(): bool

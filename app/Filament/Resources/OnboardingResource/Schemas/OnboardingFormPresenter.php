@@ -26,7 +26,7 @@ class OnboardingFormPresenter
     {
         return [
             Select::make('_extras_template')
-                ->label('✨ افزودن سریع از الگوها')
+                ->label('افزودن سریع از نمونه‌ها')
                 ->live()
                 ->multiple()
                 ->native(false)

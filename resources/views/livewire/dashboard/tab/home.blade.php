@@ -201,6 +201,7 @@
                         @continue(tenantOff(str_replace('open-', '', $stat['nav']['name'] ?? $stat['nav']['tab'])))
                         @php($isRoute = ($stat['nav']['type'] ?? '') === 'route')
                         <{{ $isRoute ? 'a' : 'button' }}
+                            wire:key="home-stat-tile-{{ $stat['key'] }}"
                             @if($isRoute)
                             href="{{ route($stat['nav']['name']) }}" wire:navigate
                         @else
@@ -218,7 +219,7 @@
                         focus:ring-[var(--md-sys-color-primary)]/50">
 
                         @if(($stat['value'] ?? 0) > 0)
-                            <span class="absolute top-2 left-2 flex h-2 w-2" title="نیازمند بررسی">
+                            <span wire:key="home-stat-ping-{{ $stat['key'] }}" class="absolute top-2 left-2 flex h-2 w-2" title="نیازمند بررسی">
                                     <span
                                         class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--md-sys-color-primary)] opacity-75"></span>
                                     <span

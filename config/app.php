@@ -54,7 +54,7 @@ return [
     'office_phone' => env('APP_OFFICE_PHONE', $tenant['company']['phone'] ?? ''),
     'instagram' => env('APP_INSTAGRAM', $tenant['company']['social']['instagram'] ?? null),
     'linkedin' => env('APP_LINKEDIN', $tenant['company']['social']['linkedin'] ?? null),
-    'version' => env('APP_VERSION', $latestVersion),
+    'version' => env('APP_VERSION') ?: $latestVersion,
     'developer' => env('DEVELOPER', 'Arash R.'),
     'owner' => env('OWNER', 'PBS'),
     'last_update' => env('APP_UPDATE', now()),

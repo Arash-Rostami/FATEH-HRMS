@@ -4,17 +4,23 @@ namespace App\Models;
 
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
+use App\Models\Concerns\HasUser;
+use App\Models\Concerns\Hooks\HasReleaseRequestHooks;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Concerns\HasNotifyEvents;
 
 class ReleaseRequest extends Model
 {
-    use HasFactory, CleansAttachedFiles;
+    use HasFactory,
+        CleansAttachedFiles,
+        HasNotifyEvents,
+        HasUser,
+        HasReleaseRequestHooks;
 
     protected $fillable = [
         'user_id',
@@ -26,21 +32,25 @@ class ReleaseRequest extends Model
         'response',
     ];
 
+    public static function notifyExcept(): array
+    {
+        return ['attachments'];
+    }
+
+    public static function notifyFields(): array
+    {
+        return [
+            'type' => \App\Enums\ReleaseRequestType::class,
+            'status' => \App\Enums\ReleaseRequestStatus::class,
+            'user_id' => 'user',
+        ];
+    }
+
     protected function casts(): array
     {
         return [
             'attachments' => 'array',
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(fn(self $request) => static::deleteStoredFiles($request->attachments));
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     public function scopeForType(Builder $query, ReleaseRequestType $type): Builder

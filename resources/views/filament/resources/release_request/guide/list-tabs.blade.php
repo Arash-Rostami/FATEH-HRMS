@@ -1,6 +1,6 @@
 @php
     $tabs = [
-        ['icon' => 'list', 'label' => 'همه', 'badge' => null, 'hint' => 'تمام درخواست‌ها در یک فهرست، مرتب بر اساس تاریخ ایجاد (نزولی).'],
+        ['icon' => 'list', 'label' => 'همه', 'badge' => null, 'hint' => 'همهٔ درخواست‌ها در یک فهرست، از جدیدترین به قدیمی‌ترین.'],
         ['icon' => 'forum', 'label' => 'باز', 'badge' => 'info', 'hint' => 'درخواست‌های در انتظار بازبینی — وضعیت <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">open</code>.'],
         ['icon' => 'schedule', 'label' => 'در حال بررسی', 'badge' => 'warning', 'hint' => 'درخواست‌های در حال پیگیری — وضعیت <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">in_review</code>.'],
         ['icon' => 'check_circle', 'label' => 'حل‌شده', 'badge' => 'success', 'hint' => 'درخواست‌های پایش‌شده — وضعیت <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">resolved</code>.'],
@@ -8,7 +8,7 @@
     ];
 
     $filters = [
-        ['icon' => 'person', 'label' => 'ثبت‌کننده', 'hint' => 'فیلتر بر اساس کاربر ثبت‌کننده — فهرست قابل‌جستجو با preload.'],
+        ['icon' => 'person', 'label' => 'ثبت‌کننده', 'hint' => 'فیلتر بر اساس کاربر ثبت‌کننده — در فهرست کاربران می‌توانید جستجو کنید.'],
         ['icon' => 'category', 'label' => 'نوع درخواست', 'hint' => 'فیلتر بر اساس نوع (پشتیبانی / پیشنهاد / باگ).'],
         ['icon' => 'flag', 'label' => 'وضعیت', 'hint' => 'فیلتر بر اساس وضعیت (باز / در حال بررسی / حل‌شده / رد شد).'],
         ['icon' => 'event', 'label' => 'تاریخ ایجاد', 'hint' => 'فیلتر بازهٔ زمانیِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">created_at</code> — فیلتر مشترک همهٔ منابع.'],

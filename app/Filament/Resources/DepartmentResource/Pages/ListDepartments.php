@@ -25,13 +25,13 @@ class ListDepartments extends ListRecords
             'all' => Tab::make('همه')
                 ->icon('heroicon-o-list-bullet'),
 
-            'with_ticket_options' => Tab::make('دارای گزینه تیکت')
+            'with_ticket_options' => Tab::make('دارای گزینهٔ تیکت')
                 ->icon('heroicon-o-adjustments-horizontal')
                 ->badge(fn() => $this->getStats()->with_ticket_options_count ?: null)
                 ->badgeColor('success')
                 ->modifyQueryUsing(fn(Builder $query) => $query->excludingEmptyTicketOptions()),
 
-            'no_ticket_options' => Tab::make('بدون گزینه تیکت')
+            'no_ticket_options' => Tab::make('بدون گزینهٔ تیکت')
                 ->icon('heroicon-o-document-minus')
                 ->badge(fn() => $this->getStats()->no_ticket_options_count ?: null)
                 ->badgeColor('gray')

@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Enums\CancelReason;
-use App\Enums\ReservationError;
 use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
+use App\Models\Concerns\HasNotifyEvents;
 use App\Models\Concerns\HasReminders;
-use App\Services\Reservation\EventSyncService;
+use App\Models\Concerns\HasUser;
+use App\Models\Concerns\Hooks\HasReservationHooks;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -18,7 +19,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Reservation extends Model
 {
-    use HasFactory, HasReminders;
+    use HasFactory,
+        HasNotifyEvents,
+        HasReminders,
+        HasUser,
+        HasReservationHooks;
 
     public const LONG_HOLD_DAYS = 7;
 
@@ -139,11 +144,6 @@ class Reservation extends Model
         return $q->where('status', ReservationStatus::Released->value);
     }
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public function isCancellable(): bool
     {
         return $this->status === ReservationStatus::Active->value
@@ -169,22 +169,13 @@ class Reservation extends Model
         return (float) $this->start_time->diffInDays($this->end_time);
     }
 
-    protected static function booted(): void
+    public static function notifyFields(): array
     {
-        static::saving(function (self $reservation) {
-            if ($reservation->parent_id && $reservation->id && (int)$reservation->parent_id === (int)$reservation->id) {
-                $reservation->parent_id = null;
-                ReservationError::DataCorruption->throw();
-            }
-        });
-
-        static::saved(function (self $reservation) {
-            app(EventSyncService::class)->sync($reservation->loadMissing(['user', 'resource']));
-        });
-
-        static::deleted(function (self $reservation) {
-            app(EventSyncService::class)->purge($reservation);
-        });
+        return [
+            'status' => \App\Enums\ReservationStatus::class,
+            'user_id' => 'user',
+            'cancelled_by_id' => 'user',
+        ];
     }
 
     protected function casts(): array

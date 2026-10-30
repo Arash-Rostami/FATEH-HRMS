@@ -72,6 +72,7 @@ class DepartmentResource extends Resource
                 ->icon('heroicon-o-ticket')
                 ->schema([
                     DepartmentFormPresenter::ticketOptions(),
+                    DepartmentFormPresenter::freeAssignment(),
                 ])
                 ->columnSpanFull(),
         ])->columns(3);
@@ -162,6 +163,7 @@ class DepartmentResource extends Resource
                     DepartmentInfolistPresenter::sections(),
                     DepartmentInfolistPresenter::level(),
                     DepartmentInfolistPresenter::subordinateTo(),
+                    DepartmentInfolistPresenter::freeAssignment(),
 
                     DepartmentInfolistPresenter::divider(),
                     DepartmentInfolistPresenter::createdAt(),

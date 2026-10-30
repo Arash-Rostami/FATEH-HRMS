@@ -114,7 +114,8 @@ class Calendar extends Component
             'message' => 'آیا مطمئن هستید که می‌خواهید این رویداد را حذف کنید؟ این عملیات غیرقابل بازگشت است.',
             'method' => 'deleteEvent',
             'params' => $eventId,
-            'type' => 'non-livewire'
+            'type' => 'non-livewire',
+            'tone' => 'danger',
         ]);
     }
 

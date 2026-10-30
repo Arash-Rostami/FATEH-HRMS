@@ -23,7 +23,7 @@
         [
             'icon' => 'history',
             'label' => 'مشاهده‌های اخیر و اولویت‌بندی',
-            'hint' => 'کارتابل اسنادِ تأییدنشده/نخوانده را بالاتر می‌آورد (اولویت <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">COALESCE</code> روی <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read_count</code>). فهرست با «بارگذاری بیشتر» صفحه‌بندی می‌شود. بخش «اخیراً مشاهده‌شده» به‌صورت سمت‌کلاینت (localStorage) آخرین سندهای بازشده را نگه می‌دارد و قابل پاک‌کردن است.',
+            'hint' => 'کارتابل اسنادِ تأییدنشده/نخوانده را بالاتر می‌آورد (اولویت <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">COALESCE</code> روی <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read_count</code>). فهرست با «بارگذاری بیشتر» صفحه‌بندی می‌شود. بخش «اخیراً مشاهده‌شده» آخرین سندهای بازشده را فقط در مرورگر خود کاربر نگه می‌دارد و قابل پاک‌کردن است.',
         ],
         [
             'icon' => 'view_column',
@@ -97,7 +97,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                اگر کاربر می‌گوید «سند را می‌بینم ولی فایل باز نمی‌شود»، احتمالاً سند برای او قابل‌مشاهده نیست (واحدش مالک نیست و در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">users</code> هم نیست) یا وضعیت سند «فعال» نیست — مسیر امن ۴۰۴ برمی‌گرداند.
+                اگر کاربر می‌گوید «سند را می‌بینم ولی فایل باز نمی‌شود»، احتمالاً سند برای او قابل‌مشاهده نیست (واحدش مالک نیست و در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">users</code> هم نیست) یا وضعیت سند «فعال» نیست — صفحهٔ «پیدا نشد» نشان داده می‌شود.
             </p>
         </div>
     </div>

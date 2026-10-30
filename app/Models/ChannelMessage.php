@@ -4,19 +4,15 @@ namespace App\Models;
 
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelMessageAction;
 use App\Models\Concerns\HasPrunableStatus;
-use App\Services\ContentSanitizerService;
-use App\Services\Messaging\PollDigestService;
-use App\Services\ProjectTask\ProjectHeartbeat;
+use App\Models\Concerns\HasThreadMessages;
+use App\Models\Concerns\Hooks\HasChannelMessageHooks;
 use App\Traits\CleansAttachedFiles;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class ChannelMessage extends Model
 {
@@ -24,7 +20,9 @@ class ChannelMessage extends Model
         SoftDeletes,
         Prunable,
         HasPrunableStatus,
-        CleansAttachedFiles;
+        CleansAttachedFiles,
+        HasThreadMessages,
+        HasChannelMessageHooks;
 
     protected $fillable = [
         'channel_id',
@@ -38,29 +36,6 @@ class ChannelMessage extends Model
     public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);
-    }
-
-    public function sender(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'sender_id');
-    }
-
-    public function replyTo(): BelongsTo
-    {
-        return $this->belongsTo(self::class, 'reply_to_id');
-    }
-
-    public function replies(): HasMany
-    {
-        return $this->hasMany(self::class, 'reply_to_id');
-    }
-
-    public function attachmentUrls(): array
-    {
-        return array_map(
-            fn($item) => [...$item, 'url' => Storage::disk('public')->url($item['path'])],
-            $this->attachments ?? []
-        );
     }
 
     public static function lastIdForChannel(int $channelId): ?int
@@ -96,13 +71,6 @@ class ChannelMessage extends Model
         app(ForceDeleteChannelMessageAction::class)->execute($this);
     }
 
-    protected function body(): Attribute
-    {
-        return Attribute::make(
-            set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
-        );
-    }
-
     protected function casts(): array
     {
         return [
@@ -110,21 +78,5 @@ class ChannelMessage extends Model
             'is_edited' => 'boolean',
             'deleted_at' => 'datetime',
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::forceDeleted(fn(self $message) => static::deleteStoredDirectory("channel_messages/{$message->channel_id}/{$message->id}"));
-
-        $bumpThread = fn(self $message) => DB::afterCommit(function () use ($message) {
-            PollDigestService::bump("ch:tv:{$message->channel_id}");
-
-            if ($projectId = Project::idForChannel($message->channel_id)) {
-                ProjectHeartbeat::bump($projectId, 'chat');
-            }
-        });
-        static::created($bumpThread);
-        static::updated($bumpThread);
-        static::deleted($bumpThread);
     }
 }

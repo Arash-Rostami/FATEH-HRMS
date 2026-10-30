@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'label'        => 'تایید مهارت',
-    'plural_label' => 'تایید مهارت‌ها',
+    'label'        => 'تأیید مهارت',
+    'plural_label' => 'تأیید مهارت‌ها',
     'nav_group'    => 'کاربران و سازمان',
 
     'fields' => [
@@ -22,16 +22,16 @@ return [
     'filters' => [
         'status'     => 'وضعیت',
         'department' => 'واحد',
-        'stale'      => 'کهنه (بیش از ۱۴ روز)',
+        'stale'      => 'قدیمی (بیش از ۱۴ روز)',
     ],
 
     'actions' => [
         'approve'         => 'تأیید',
         'reject'          => 'رد',
-        'approve_selected' => 'تأیید انتخاب‌شده‌ها',
-        'reject_selected'  => 'رد انتخاب‌شده‌ها',
+        'approve_selected' => 'تأیید موارد انتخاب‌شده',
+        'reject_selected'  => 'رد موارد انتخاب‌شده',
         'reject_heading'   => 'رد درخواست مهارت',
-        'reject_description' => 'در صورت تمایل دلیل رد را ثبت کنید.',
+        'reject_description' => 'اگر می‌خواهید، دلیل رد را بنویسید.',
         'reason'           => 'دلیل رد (اختیاری)',
     ],
 
@@ -40,6 +40,6 @@ return [
         'rejected' => 'درخواست مهارت «:skill» رد شد.',
         'approve_done' => ':count درخواست تأیید شد.',
         'reject_done'  => ':count درخواست رد شد.',
-        'nothing_pending' => 'هیچ درخواست در حال بررسی‌ای انتخاب نشده است.',
+        'nothing_pending' => 'هیچ درخواست «در حال بررسی»ای انتخاب نشده است.',
     ],
 ];

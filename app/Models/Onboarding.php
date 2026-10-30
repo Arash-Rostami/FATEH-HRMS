@@ -3,17 +3,24 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasExtraCatalog;
+use App\Models\Concerns\HasUser;
+use App\Models\Concerns\Hooks\HasOnboardingHooks;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Concerns\HasNotifyEvents;
 
 class Onboarding extends Model
 {
-    use HasFactory, HasExtraCatalog, CleansAttachedFiles;
+    use HasFactory,
+        HasExtraCatalog,
+        CleansAttachedFiles,
+        HasNotifyEvents,
+        HasUser,
+        HasOnboardingHooks;
 
     protected $fillable = [
         'welcome',
@@ -27,22 +34,14 @@ class Onboarding extends Model
         'user_id'
     ];
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public function scopeVisibleTo(Builder $query, ?int $userId): Builder
     {
         return $query->where(fn(Builder $q) => $q->where('user_id', $userId)->orWhereNull('user_id'));
     }
 
-    protected static function booted(): void
+    public static function notifyFields(): array
     {
-        static::deleting(function (self $onboarding) {
-            static::deleteStoredFiles($onboarding->videos, ['url', 'thumbnail']);
-            static::deleteStoredFiles($onboarding->guides, ['url']);
-        });
+        return ['user_id' => 'user'];
     }
 
     protected function casts(): array

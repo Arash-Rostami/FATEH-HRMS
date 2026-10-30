@@ -47,7 +47,7 @@
                             <span class="material-symbols-rounded text-[12px]">link</span> parent_id
                         </span>
                     </div>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">وقتی کاربر «رزرو تکراری» را روشن می‌کند، یک رزرو «اصلی» (master) ثبت می‌شود و چند رزرو «تکرار» (occurrence) با فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">parent_id</code> که به آیدی رزرو اصلی اشاره می‌کند. در جدول ستون «سری» روی «تکراری» می‌نشیند. روی صفحهٔ ویرایش یک رزرو اصلی، مدیریت ارتباط «تکرارها» (OccurrencesRelationManager) زیرِ صفحه ظاهر می‌شود.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">وقتی کاربر «رزرو تکراری» را روشن می‌کند، یک رزرو «اصلی» ثبت می‌شود و چند رزرو «تکرار» با فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">parent_id</code> که به شناسه رزرو اصلی اشاره می‌کند. در جدول ستون «سری» روی «تکراری» می‌نشیند. روی صفحهٔ ویرایش یک رزرو اصلی، بخش «تکرارها» زیرِ صفحه ظاهر می‌شود.</p>
                 </div>
             </div>
         </div>

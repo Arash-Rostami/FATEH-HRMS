@@ -36,10 +36,10 @@ enum TaskStatus: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::Todo => 'انجام نشده',
+            self::Todo => 'انجام‌نشده',
             self::InProgress => 'در حال انجام',
             self::Pending => ' در انتظار / بازنگری',
-            self::Done => 'انجام شده',
+            self::Done => 'انجام‌شده',
         };
     }
 }

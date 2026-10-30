@@ -15,7 +15,7 @@ use App\Models\Profile;
 use App\Models\Skill;
 use App\Models\SkillUser;
 use App\Models\User;
-use App\Services\SmsService;
+use App\Services\Notify\Channels\SmsChannel;
 use App\Services\User\UserKeyGrouper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -37,6 +37,9 @@ class Status extends Component
     #[Locked]
     public string $view = 'grid';
     public $showAboutModal = false;
+    public bool $showSmsModal = false;
+    public ?int $smsUserId = null;
+    public string $smsText = '';
 
     public ?int $skillId = null;
     public string $skillSearch = '';
@@ -74,10 +77,29 @@ class Status extends Component
         return view('livewire.dashboard.tab.status.placeholder');
     }
 
-    public function sendSms(string $userId, SendSmsAction $action, SmsService $smsService)
+    public function submitSms(SendSmsAction $action, SmsChannel $sms): void
     {
-        $result = $action->execute($userId, $smsService);
+        $this->validate(
+            ['smsText' => 'required|string|max:140'],
+            ['smsText.required' => 'متن پیام را بنویسید.', 'smsText.max' => 'متن پیام حداکثر ۱۴۰ نویسه است.'],
+        );
+
+        if ($this->sendSms((string) $this->smsUserId, $action, $sms, $this->smsText)) {
+            $this->showSmsModal = false;
+            $this->smsText = '';
+        }
+    }
+
+    public function sendSms(string $userId, SendSmsAction $action, SmsChannel $sms, ?string $text = null): bool
+    {
+        if (tenantOff('notify:sms')) {
+            return false;
+        }
+
+        $result = $action->execute($userId, $sms, $text);
         $this->dispatch('toast', message: $result['message'], type: $result['type']);
+
+        return $result['type'] === 'success';
     }
 
     public function setFilter(string $filter)

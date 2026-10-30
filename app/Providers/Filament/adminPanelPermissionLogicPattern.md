@@ -101,7 +101,7 @@ flushes the per-user permission cache on `saved`/`deleted`.
 
 ## Resource-level gating (`AuthorizesByPermission` trait)
 
-All 30 resources in `app/Filament/Resources/*Resource.php` `use AuthorizesByPermission`.
+All 31 resources in `app/Filament/Resources/*Resource.php` `use AuthorizesByPermission`.
 The trait maps every Filament authorization method to `permits($action)` in **two layers**:
 
 - `canViewAny / canView / canCreate / canEdit / canDelete / canRestore / canForceDelete …`
@@ -185,7 +185,11 @@ the rotated version key and sees the change.
   autoloader reload = worker restart anyway). `once()` collapses the 4-5 calls
   within a single Permission form/table/infolist render (`PermissionFormPresenter`,
   `PermissionTablePresenter`, `PermissionInfolistPresenter`, `ModuleGroup`) into
-  one Redis round trip.
+  one Redis round trip. Because the key is never forgotten in code, a **new resource**
+  (e.g. `NotifyRuleResource` → module `notify_rule`, 2026-10-27) only appears in the
+  permission form's module list after the cache is cleared: the deploy runs
+  `php artisan optimize:clear` (which also drops `notify:trackables`), or
+  `Cache::forget('permission_modules')` by hand.
 
 ## Developer role cannot be granted from the UI
 

@@ -23,6 +23,8 @@ class ReconcileReminderDue implements ShouldQueue
 
     public function handle(): void
     {
+        Reminder::find($this->reminderId)?->deliverDue();
+
         DB::transaction(
             fn () => NudgeService::reconcile('reminders-controller:due-nudge', Reminder::class, $this->reminderId),
             3,

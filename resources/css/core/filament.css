@@ -613,10 +613,20 @@
 
     .fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) > .fi-modal-window-ctn > .fi-modal-window:has(fieldset, .fi-in-entry) {
         @apply !h-[85dvh] !overflow-y-auto;
+        overflow-anchor: none;
     }
 
     .fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) .fi-modal-content {
         @apply !flex-1;
+    }
+
+    .fi-modal-header-quick-actions {
+        position: absolute;
+        top: 1.1rem;
+        inset-inline-end: 3rem;
+        display: flex;
+        gap: 0.35rem;
+        z-index: 1;
     }
 
 

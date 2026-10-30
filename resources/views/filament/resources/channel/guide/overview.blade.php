@@ -5,7 +5,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«گروه» یک گفتگوی موضوعی گروهی است که چند کاربر در آن پیام رد و بدل می‌کنند</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        کاربران گروه را از صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/channel</code> در پنل کاربری می‌سازند و مدیریت می‌کنند. شما (ادمین) در این صفحه نظارت کل‌سازمان دارید: همهٔ گروه‌ها را می‌بینید، اعضا و پیام‌ها را بازبینی می‌کنید، گروه‌های نامناسب را حذف نرم می‌کنید و خروجی اکسل می‌گیرید. ساخت گروه از طرف ادمین کارِ این صفحه نیست — کاربران خودشان گروه می‌سازند و مالک آن می‌شوند.
+        کاربران گروه را از صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/channel</code> در پنل کاربری می‌سازند و مدیریت می‌کنند. شما (ادمین) در این صفحه نظارت کل‌سازمان دارید: همهٔ گروه‌ها را می‌بینید، اعضا وپیام‌ها را بازبینی می‌کنید، گروه‌های نامناسب را حذف موقت می‌کنید و خروجی اکسل می‌گیرید. ساخت گروه از طرف ادمین کارِ این صفحه نیست — کاربران خودشان گروه می‌سازند و مالک آن می‌شوند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -22,7 +22,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">یک گروه فعال</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر گروه یک نام، یک شناسهٔ یکتا (slug)، یک مالک و یک نوع (عمومی/خصوصی) دارد. ستون «تعداد اعضا» و «تعداد پیام‌ها» به‌صورت شمارش‌شده نمایش داده می‌شوند. فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">owner_id</code> مالکِ گروه را مشخص می‌کند که خودکار عضو گروه می‌شود و نمی‌تواند از آن خارج شود.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر گروه یک نام، یک کد گروه (نمای کلی)، یک مالک و یک نوع (عمومی/خصوصی) دارد. ستون «تعداد اعضا» و «تعدادپیام‌ها» به‌صورت شمارش‌شده نمایش داده می‌شوند. فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">owner_id</code> مالکِ گروه را مشخص می‌کند که خودکار عضو گروه می‌شود و نمی‌تواند از آن خارج شود.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -38,14 +38,14 @@
                             <span class="material-symbols-rounded text-[12px]">history</span> deleted_at
                         </span>
                     </div>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">وقتی یک گروه را حذف نرم می‌کنید، فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">deleted_at</code> پر می‌شود ولی ردیف از جدول نمی‌رود. این صفحه حذف‌شده‌های نرم را هم نشان می‌دهد (بدون اسکوپ SoftDelete) و دکمهٔ «بازگرداندن» برای آن‌ها ظاهر می‌شود. پس از {{ convertToPersian('30') }} روز، گروه به‌صورت خودکار و دائمی حذف می‌شود (Prunable).</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">وقتی یک گروه را حذف موقت می‌کنید، فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">deleted_at</code> پر می‌شود ولی اطلاعات گروه پاک نمی‌شود. این صفحه گروه‌های حذف‌شده را هم نشان می‌دهد و دکمهٔ «بازگرداندن» برای آن‌ها ظاهر می‌شود. پس از {{ convertToPersian('30') }} روز، گروه به‌صورت خودکار و دائمی حذف می‌شود (Prunable).</p>
                 </div>
             </div>
         </div>
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                با فیلتر «در آستانه حذف خودکار» می‌توانید گروه‌هایی که موعد حذف دائمی‌شان ({{ convertToPersian('30') }} روز پس از حذف نرم) فرا رسیده را ببینید و در صورت نیاز بازگردانید.
+                با فیلتر «در آستانهٔ حذف خودکار» می‌توانید گروه‌هایی که موعد حذف دائمی‌شان ({{ convertToPersian('30') }} روز پس از حذف موقت) فرا رسیده را ببینید و در صورت نیاز بازگردانید.
             </p>
         </div>
     </div>

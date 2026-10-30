@@ -15,6 +15,7 @@ use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
+use App\Traits\FilamentResourceSwitch;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -29,7 +30,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReservationResource extends Resource
 {
-    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission, FilamentResourceSwitch;
 
     protected static ?string $model = Reservation::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office';
@@ -43,6 +44,11 @@ class ReservationResource extends Resource
         ['label' => 'قابلیت‌های هوشمند', 'icon' => 'tips_and_updates', 'view' => 'filament.resources.reservation.guide.smart'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.reservation.guide.user'],
     ];
+
+    protected static function switchGroup(): array
+    {
+        return [self::class, ReservationPolicyResource::class, ResourceResource::class];
+    }
 
     public static function getRecordTitle(?Model $record): ?string
     {

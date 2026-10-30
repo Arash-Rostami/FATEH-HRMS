@@ -26,7 +26,7 @@ class ListPosts extends ListRecords
             'all' => Tab::make('همه')
                 ->icon('heroicon-o-list-bullet'),
 
-            'pinned' => Tab::make('سنجاق شده')
+            'pinned' => Tab::make('سنجاق‌شده')
                 ->icon('heroicon-o-paper-clip')
                 ->badge(fn() => $this->getStats()->pinned_count ?: null)
                 ->badgeColor('warning')

@@ -12,7 +12,7 @@
             'label' => 'آزادشده',
             'code' => 'released',
             'chip' => 'bg-info-100 text-info-700',
-            'hint' => 'ادمین با دکمهٔ «آزادسازی» رزرو را پیش از موعد پایان از حالت فعال خارج کرده. رزرو در سوابق می‌ماند، علیه سقف ماهانه می‌شمارد و کاربر دیگر نمی‌تواند آن را لغو کند. برای رزروهای بلندمدتِ در‌حال‌انجام، پایان به همین لحظه کوتاه می‌شود و باقی‌ماندهٔ بازه برای دیگران آزاد می‌گردد. برای رزروهای ساعتی، منبع تنها در صورت فعال‌بودنِ «مجوز رزرو در زمان آزادشده» (در قوانین رزرو) آزاد می‌شود؛ در غیر این صورت وضعیت آزادشده می‌ماند ولی منبع هنوز اشغال است.',
+            'hint' => 'ادمین با دکمهٔ «آزادسازی» رزرو را پیش از موعد پایان از حالت فعال خارج کرده. رزرو در سوابق می‌ماند، در سقف ماهانه محاسبه می‌شود و کاربر دیگر نمی‌تواند آن را لغو کند. برای رزروهای بلندمدتِ در‌حال‌انجام، پایان به همین لحظه کوتاه می‌شود و باقی‌ماندهٔ بازه برای دیگران آزاد می‌گردد. برای رزروهای ساعتی، منبع تنها در صورت فعال‌بودنِ «مجوز رزرو در زمان آزادشده» (در قوانین رزرو) آزاد می‌شود؛ در غیر این صورت وضعیت آزادشده می‌ماند ولی منبع هنوز اشغال است.',
         ],
         [
             'icon' => 'cancel',
@@ -38,7 +38,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">چهار وضعیت — رنگ و آیکون هرکدام در جدول همین است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر رزرو یکی از این چهار حالت را دارد. رنگ و آیکون ستون «وضعیت» در جدول/اینفولیست مستقیماً از همین تعریف می‌آید: <span class="font-black text-[var(--md-sys-color-primary)]">فعال</span> (سبز/تیک)، <span class="font-black text-[var(--md-sys-color-primary)]">آزادشده</span> (آبی/چرخش)، <span class="font-black text-[var(--md-sys-color-primary)]">لغو کاربر</span> (زرد/ضربدر) و <span class="font-black text-[var(--md-sys-color-primary)]">لغو ادمین</span> (قرمز/سپر). لغوها (کاربر یا ادمین) هر دو در دامنهٔ اسکوپ «لغو شده» قرار می‌گیرند و در زبانهٔ «لغو شده» تاریخچهٔ کاربر ظاهر می‌شوند.
+        هر رزرو یکی از این چهار حالت را دارد. رنگ و آیکون ستون «وضعیت» در جدول/صفحهٔ جزئیات مستقیماً از همین تعریف می‌آید: <span class="font-black text-[var(--md-sys-color-primary)]">فعال</span> (سبز/تیک)، <span class="font-black text-[var(--md-sys-color-primary)]">آزادشده</span> (آبی/چرخش)، <span class="font-black text-[var(--md-sys-color-primary)]">لغو توسط کاربر</span> (زرد/ضربدر) و <span class="font-black text-[var(--md-sys-color-primary)]">لغو توسط ادمین</span> (قرمز/سپر). لغوها (کاربر یا ادمین) هر دو در گروه «لغو شده» قرار می‌گیرند و در زبانهٔ «لغو شده» تاریخچهٔ کاربر ظاهر می‌شوند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -91,7 +91,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">لغوها می‌شمارند ولی در سقفِ دیگری</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">رزروهای لغو‌شده از سقف <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">max_per_user</code> کسر نمی‌شوند (جایشان آزاد می‌شود)، ولی لغوِ کاربر به سقف جداگانهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">max_cancel_count</code> در پنجرهٔ سی‌روزه می‌افزاید. لغوی ادمین به این سقف اضافه نمی‌شود.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">رزروهای لغوشده از سقف <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">max_per_user</code> کسر نمی‌شوند (جایشان آزاد می‌شود)، ولی لغوِ کاربر به سقف جداگانهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">max_cancel_count</code> در بازهٔ شمارش لغو می‌افزاید. لغوی ادمین به این سقف اضافه نمی‌شود.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">

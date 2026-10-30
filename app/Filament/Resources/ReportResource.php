@@ -38,7 +38,7 @@ class ReportResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'description', 'view' => 'filament.resources.report.guide.overview'],
         ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.report.guide.admin-ops'],
-        ['label' => 'دسترسی و اشتراک', 'icon' => 'lock', 'view' => 'filament.resources.report.guide.visibility'],
+        ['label' => 'دسترسی واحدها', 'icon' => 'lock', 'view' => 'filament.resources.report.guide.visibility'],
         ['label' => 'زبانه‌های فهرست و فیلترها', 'icon' => 'filter_list', 'view' => 'filament.resources.report.guide.list-tabs'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.report.guide.user'],
     ];

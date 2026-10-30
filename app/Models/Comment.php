@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUser;
 use App\Services\Cache\SkipsAutomaticCacheVersioning;
 use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -13,7 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Comment extends Model implements SkipsAutomaticCacheVersioning
 {
 
-    use HasFactory;
+    use HasUser,
+        HasFactory;
 
     protected $fillable = [
         'user_id',
@@ -40,11 +42,6 @@ class Comment extends Model implements SkipsAutomaticCacheVersioning
     public function replies(): HasMany
     {
         return $this->hasMany(Comment::class, 'parent_id');
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     public function getTypeLabelAttribute()

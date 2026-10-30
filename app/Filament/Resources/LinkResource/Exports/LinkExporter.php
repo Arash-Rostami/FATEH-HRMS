@@ -15,7 +15,7 @@ class LinkExporter extends Exporter
     public static function getColumns(): array
     {
         return [
-            ExportColumn::make('id')->label('ID'),
+            ExportColumn::make('id')->label('شناسه'),
             ExportColumn::make('sequence')->label(__('resources/link/strings.fields.sequence')),
             ExportColumn::make('url_title')->label(__('resources/link/strings.fields.url_title')),
             ExportColumn::make('url')->label(__('resources/link/strings.fields.url')),

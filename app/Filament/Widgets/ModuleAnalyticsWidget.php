@@ -9,6 +9,7 @@ use App\Enums\ReservationStatus;
 use App\Enums\SkillRequestStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\Department;
+use App\Models\NotifyRule;
 use App\Models\User;
 use App\Services\ProjectTask\TaskMetrics;
 use Filament\Schemas\Components\Grid;
@@ -27,6 +28,8 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
 
     protected static bool $isLazy = true;
     protected static ?int $sort = -1;
+    private const TAB_MODULES = ['events' => 'calendar', 'resources' => 'reservation', 'reservation_policies' => 'reservation'];
+
     public string $activeTab = 'users';
     protected string $view = 'livewire.admin.widgets.filament-analytics';
     protected int|string|array $columnSpan = 'full';
@@ -366,6 +369,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'feeds' => count($this->feedsData),
             'galleries' => count($this->galleriesData),
             'links' => count($this->linksData),
+            'notify' => count($this->notifyData),
             'onboardings' => count($this->onboardingsData),
             'permissions' => count($this->permissionsData),
             'posts' => count($this->postsData),
@@ -387,7 +391,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     #[Computed]
     public function getAllTabs(): array
     {
-        return [
+        $tabs = [
             'users' => ['icon' => 'heroicon-o-users', 'label' => __('resources/dashboard/strings.analytics.tabs.users')],
             'profiles' => ['icon' => 'heroicon-o-identification', 'label' => __('resources/profile/strings.navigation.plural')],
             'departments' => ['icon' => 'heroicon-o-building-office', 'label' => __('resources/department/strings.plural_label')],
@@ -405,6 +409,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'feeds' => ['icon' => 'heroicon-o-rss', 'label' => __('resources/feed/strings.plural_label')],
             'galleries' => ['icon' => 'heroicon-o-photo', 'label' => __('resources/gallery/strings.plural_label')],
             'links' => ['icon' => 'heroicon-o-link', 'label' => __('resources/link/strings.plural_label')],
+            'notify' => ['icon' => 'heroicon-o-envelope', 'label' => __('resources/notify_rule/strings.plural_label')],
             'onboardings' => ['icon' => 'heroicon-o-academic-cap', 'label' => __('resources/onboarding/strings.plural_label')],
             'faqs' => ['icon' => 'heroicon-o-question-mark-circle', 'label' => __('resources/faq/strings.plural_label')],
             'ths' => ['icon' => 'heroicon-o-ticket', 'label' => __('resources/ths/strings.plural_label')],
@@ -418,6 +423,8 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'permissions' => ['icon' => 'heroicon-o-shield-check', 'label' => __('resources/permission/strings.plural_label')],
             'projects' => ['icon' => 'heroicon-o-rectangle-stack', 'label' => __('resources/project/strings.plural_label')],
         ];
+
+        return array_filter($tabs, fn (string $key) => ! tenantOff(self::TAB_MODULES[$key] ?? $key), ARRAY_FILTER_USE_KEY);
     }
 
     #[Computed(seconds: 300, cache: true)]
@@ -449,6 +456,38 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     public function mount(): void
     {
         $this->activeTab = 'users';
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function notifyData(): array
+    {
+        $rules = DB::table('notify_rules')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN JSON_CONTAINS(channels, '\"mail\"') THEN 1 ELSE 0 END) as mail,
+            SUM(CASE WHEN JSON_CONTAINS(channels, '\"sms\"') THEN 1 ELSE 0 END) as sms
+        ")->where('model', '!=', NotifyRule::ONE_OFF)->first();
+
+        $logs = DB::table('notify_logs')->where('created_at', '>=', now()->subDay())->selectRaw("
+            SUM(CASE WHEN status = 'sent' THEN count ELSE 0 END) as sent,
+            SUM(CASE WHEN status = 'failed' THEN count ELSE 0 END) as failed
+        ")->first();
+
+        return [
+            Stat::make(__('resources/notify_rule/strings.plural_label'), $rules->total ?? 0)
+                ->description(__('resources/dashboard/strings.analytics.notify.active') . ': ' . ($rules->active ?? 0))
+                ->icon('heroicon-o-envelope')
+                ->color('primary'),
+            Stat::make(__('resources/dashboard/strings.analytics.notify.sent'), $logs->sent ?? 0)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make(__('resources/dashboard/strings.analytics.notify.failed'), $logs->failed ?? 0)
+                ->icon('heroicon-o-exclamation-triangle')
+                ->color(($logs->failed ?? 0) > 0 ? 'danger' : 'gray'),
+            Stat::make(__('resources/dashboard/strings.analytics.notify.channels'), __('resources/dashboard/strings.analytics.notify.mail') . ' ' . ($rules->mail ?? 0) . ' · ' . __('resources/dashboard/strings.analytics.notify.sms') . ' ' . ($rules->sms ?? 0))
+                ->icon('heroicon-o-paper-airplane')
+                ->color('info'),
+        ];
     }
 
     #[Computed(seconds: 300, cache: true)]
@@ -783,6 +822,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'feeds' => $this->feedsData,
             'galleries' => $this->galleriesData,
             'links' => $this->linksData,
+            'notify' => $this->notifyData,
             'onboardings' => $this->onboardingsData,
             'permissions' => $this->permissionsData,
             'posts' => $this->postsData,

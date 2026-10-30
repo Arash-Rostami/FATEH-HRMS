@@ -4,15 +4,20 @@ namespace App\Models;
 
 use App\Enums\TaskActivityType;
 use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\HasUser;
+use App\Models\Concerns\Hooks\HasReplyHooks;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Reply extends Model
 {
-    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles;
+    use HasFactory,
+        HasPublicAssetUrl,
+        CleansAttachedFiles,
+        HasUser,
+        HasReplyHooks;
 
     protected $fillable = [
         'repliable_type',
@@ -27,11 +32,6 @@ class Reply extends Model
     public function repliable(): MorphTo
     {
         return $this->morphTo();
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     public function projectId(): ?int
@@ -51,10 +51,5 @@ class Reply extends Model
             'reactions' => 'array',
             'type' => TaskActivityType::class,
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(fn(self $reply) => static::deleteStoredFiles($reply->files));
     }
 }

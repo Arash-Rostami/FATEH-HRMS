@@ -16,7 +16,7 @@ class ChannelMessageFactory extends Factory
         return [
             'channel_id' => Channel::factory(),
             'sender_id' => User::factory(),
-            'body' => fake()->optional(0.9)->paragraph(),
+            'body' => fake()->paragraph(),
             'attachments' => [],
             'reply_to_id' => null,
             'is_edited' => false,

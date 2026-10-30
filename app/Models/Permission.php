@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUser;
+use App\Models\Concerns\Hooks\HasPermissionHooks;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 class Permission extends Model
 {
-    use HasFactory;
+    use HasFactory,
+        HasUser,
+        HasPermissionHooks;
 
     public const ACTIONS = ['view', 'create', 'update', 'delete', 'restore'];
 
@@ -101,28 +103,6 @@ class Permission extends Model
     public function isModuleExcluded(string $module): bool
     {
         return in_array($module, $this->excluded_modules ?? [], true);
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    protected static function booted(): void
-    {
-        static::saving(function (self $m) {
-            if ($m->is_super_admin) {
-                $m->abilities = null;
-            } else {
-                $m->excluded_modules = null;
-            }
-        });
-
-        static::creating(function (self $permission) {
-            if (static::where('user_id', $permission->user_id)->exists()) {
-                throw new RuntimeException(__('resources/permission/strings.validation.duplicate'));
-            }
-        });
     }
 
     protected function casts(): array

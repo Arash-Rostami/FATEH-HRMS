@@ -2255,6 +2255,26 @@
             }
         ]
     },
+    "notify": {
+        "title": {
+            "en": "Automated Email & SMS Notifications",
+            "fa": "اعلان‌های خودکار ایمیل و پیامک"
+        },
+        "standard": [
+            {
+                "en": "Admin-defined notification rules per module: choose which changes (create, edit, delete) trigger a message, which channels (email, SMS) deliver it, and which employees or outside contacts receive it, with an optional validity window and an on/off switch per rule.",
+                "fa": "قوانین اعلان تعریف‌شده توسط مدیر برای هر ماژول: تعیین اینکه کدام تغییر (ایجاد، ویرایش، حذف) پیام را فعال کند، پیام با کدام کانال (ایمیل، پیامک) و برای کدام کارمند یا مخاطب خارج از سیستم ارسال شود، همراه با بازهٔ اعتبار اختیاری و کلید روشن و خاموش برای هر قانون."
+            },
+            {
+                "en": "Message builder with fill-in phrases (module name, change type, actor, date and the module's own fields), a plain or branded organization email style, and a one-click test send to your own inbox.",
+                "fa": "سازندهٔ پیام با عبارت‌های جایگزین‌شونده (نام ماژول، نوع تغییر، انجام‌دهنده، تاریخ و فیلدهای همان ماژول)، دو ظاهر ایمیل ساده و سازمانی با رنگ و لوگوی برند، و ارسال آزمایشی با یک کلیک به ایمیل خودتان."
+            },
+            {
+                "en": "Full send history per rule showing recipient, channel, event and result, and per-organization switches to turn the whole feature, or only email or SMS, on or off.",
+                "fa": "گزارش کامل ارسال برای هر قانون با گیرنده، کانال، رویداد و نتیجه، و کلیدهای هر سازمان برای روشن یا خاموش‌کردن کل این امکان یا فقط ایمیل یا پیامک."
+            }
+        ]
+    },
     "global": {
         "title": {
             "en": "Global System Standards & Features",

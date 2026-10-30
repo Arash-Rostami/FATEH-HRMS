@@ -14,6 +14,7 @@ use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
+use App\Traits\FilamentResourceSwitch;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -25,7 +26,7 @@ use Illuminate\Support\Collection;
 
 class SkillResource extends Resource
 {
-    use FilamentActions, FilamentFilters, FilamentAdminGuide, AuthorizesByPermission;
+    use FilamentActions, FilamentFilters, FilamentAdminGuide, AuthorizesByPermission, FilamentResourceSwitch;
 
     protected static ?string $model = Skill::class;
     protected static ?string $recordTitleAttribute = 'name';
@@ -57,6 +58,11 @@ class SkillResource extends Resource
                 ->columns(2)
                 ->columnSpanFull(),
         ]);
+    }
+
+    protected static function switchGroup(): array
+    {
+        return [self::class, SkillRequestResource::class];
     }
 
     public static function getEloquentQuery(): Builder

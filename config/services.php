@@ -40,6 +40,15 @@ return [
         'city' => env('OPENWEATHER_CITY', 'Tehran'),
     ],
 
+    'sms' => [
+        'provider' => env('SMS_PROVIDER') ?: 'kavenegar',
+    ],
+
+    'kavenegar' => [
+        'key' => env('KAVENEGAR_API_KEY'),
+        'sender' => env('KAVENEGAR_SENDER'),
+    ],
+
     'ai_assistant' => [
         'url' => config('app.ai_assistant_url'),
     ],

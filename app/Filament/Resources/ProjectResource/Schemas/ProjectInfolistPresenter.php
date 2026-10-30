@@ -91,9 +91,9 @@ class ProjectInfolistPresenter
                 $s = app(ReportingService::class)->summary($record->id, 0);
                 $byStatus = $s['by_status'] ?? [];
                 $parts = [
-                    'انجام نشده ' . convertToPersian((string) ($byStatus['todo'] ?? 0)),
+                    'انجام‌نشده ' . convertToPersian((string) ($byStatus['todo'] ?? 0)),
                     'در حال انجام ' . convertToPersian((string) ($byStatus['in-progress'] ?? 0)),
-                    'در انتظار / بازنگری ' . convertToPersian((string) ($byStatus['pending'] ?? 0)),
+                    'در انتظار یا بازنگری ' . convertToPersian((string) ($byStatus['pending'] ?? 0)),
                     'فراتر از مهلت ' . convertToPersian((string) ($s['overdue'] ?? 0)),
                     TaskMetrics::LABEL_BREACH . ' ' . convertToPersian((string) ($s['at_risk'] ?? 0)),
                     TaskMetrics::LABEL_DUE_SOON . ' ' . convertToPersian((string) ($s['due_soon'] ?? 0)),

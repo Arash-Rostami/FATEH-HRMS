@@ -7,27 +7,27 @@
         ],
         [
             'icon' => 'tag',
-            'label' => 'شناسهٔ یکتا (Serial)',
-            'hint' => 'هر پیشنهاد یک شناسهٔ نمایشی به‌صورت <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">SN-YYYYMMDD-NNNNNN</code> می‌گیرد — ترکیب تاریخ ثبت و شناسهٔ ردیف. جستجوی سراسری و جستجوی ستون «شناسه» هر دو این شناسه را می‌شناسند (جستجو با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">SN-</code> هم کار می‌کند).',
+            'label' => 'شناسهٔ پیشنهاد',
+            'hint' => 'هر پیشنهاد یک شناسهٔ نمایشی به‌صورت <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">SN-YYYYMMDD-NNNNNN</code> می‌گیرد — ترکیب تاریخ ثبت و شمارهٔ ترتیبی پیشنهاد. جستجوی سراسری و جستجوی ستون «شناسه» هر دو این شناسه را می‌شناسند (جستجو با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">SN-</code> هم کار می‌کند).',
         ],
         [
             'icon' => 'visibility',
-            'label' => 'دید ادمین در برابر کاربر',
+            'label' => 'نمای مدیر و نمای کاربر',
             'hint' => 'این ماژول دوطرفه است. کاربر از صفحهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">/suggestion</code> پیشنهاد می‌سازد و بازخورد می‌دهد؛ ادمین در همین صفحهٔ فیلامنت روی همهٔ پیشنهادها نظارت کل‌سازمان دارد. زبانهٔ «تجربهٔ کاربر» نشان می‌دهد کاربر در پنل خودش چه چیزی می‌بیند.',
         ],
         [
             'icon' => 'block',
-            'label' => 'مدیریت ارشد نمی‌تواند ثبت‌کننده باشد',
+            'label' => 'مدیریت ارشد نمی‌تواند پیشنهاد ثبت کند',
             'hint' => 'کاربران واحد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">MA</code> مجاز به ثبت پیشنهاد نیستند — هم یک قانون اعتبارسنجی (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">SuggestionSubmitterNotFromMa</code>) و هم یک نگهبان در اکشن ساخت این محدودیت را اجرا می‌کنند. فیلد «ثبت‌کننده» در فرم ادمین قفل‌شده و پیش‌فرض روی کاربر جاری است.',
         ],
         [
             'icon' => 'edit_note',
-            'label' => 'تکمیل شخصی (self_fill)',
-            'hint' => 'وقتی این پرچم روشن باشد، ثبت‌کننده می‌تواند بازخورد همهٔ واحدهای ذی‌نفع را هنگام ساخت پیش‌فرض پر کند. در این حالت برای هر واحد ذی‌نفع یک ردیف بررسی (Review) در زمان ساخت ساخته می‌شود؛ در غیر این صورت فقط ردیف بررسیِ واحدِ ثبت‌کننده ساخته می‌شود.',
+            'label' => 'تکمیل شخصی نظرات واحدها',
+            'hint' => 'وقتی این گزینه روشن باشد، پیشنهاددهنده می‌تواند هنگام ثبت پیشنهاد، بازخورد همهٔ واحدهای ذی‌نفع را خودش بنویسد. در غیر این صورت فقط بازخورد واحد پیشنهاددهنده ثبت می‌شود.',
         ],
         [
             'icon' => 'speed',
-            'label' => 'شمارش از پیش محاسبه‌شده',
+            'label' => 'شمارش بازخوردها',
             'hint' => 'کوئری پایهٔ این منبع <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">withReviewCounts</code> را می‌زند تا شمارش موافق/نیمه‌موافق/مخالف به‌صورت ستون‌های مجزا بیاید — ستون‌های جدول این سه رقم را از همان کوئری می‌خوانند، نه با یک کوئری جداگانه در هر ردیف (بدون N+1).',
         ],
     ];

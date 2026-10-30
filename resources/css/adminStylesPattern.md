@@ -147,16 +147,33 @@ The descendant selector on the first rule (`.fi-infolist-panel .fi-section`, not
 Centered content modals (infolist/view/form) have one fixed standard height in `filament.css` — never taller, never collapsed; small confirmation modals stay content-sized:
 
 ```css
+.fi-modal-window,
+.fi-modal:not(.fi-no-database) .fi-modal-window {
+    @apply !rounded-3xl ...;
+}
+
 .fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) > .fi-modal-window-ctn > .fi-modal-window:has(fieldset, .fi-in-entry) {
     @apply !h-[85dvh] !overflow-y-auto;
+    overflow-anchor: none;
 }
 
 .fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) .fi-modal-content {
     @apply !flex-1;
 }
+
+.fi-modal-header-quick-actions {
+    position: absolute;
+    top: 1.1rem;
+    inset-inline-end: 3rem;
+    display: flex;
+    gap: 0.35rem;
+    z-index: 1;
+}
 ```
 
 *Content modals — infolist/view (`.fi-in-entry` is the root class of every infolist entry, from vendor `entry-wrapper.blade.php`) and form (`<fieldset>` wraps every Filament form schema) — are exactly 85dvh; longer content scrolls inside the window, sparser content leaves breathing room with the footer pinned via `flex-1`.* Confirmation and other small action modals contain neither marker, so the `:has()` guard excludes them and they keep vendor auto-height (content-sized, never super-tall). Slide-overs (`fi-modal-slide-over`), full-screen (`fi-width-screen`), and the `#database-notifications` drawer (a slide-over) are excluded by the `:not()` guards — their geometry stays vendor/`notification.css`-owned. `:has()` is the only scoping lever here: Filament gives all modals the same `.fi-modal-window` classes and hardcodes `role="dialog"`, so no class/width/role discriminator exists (community pattern, GitHub Discussion #14413). The `!flex-1` content rule is a no-op on auto-height windows.
+
+*2026-10-28 additions, tied to the `FilamentViewActionDefaults` trait (filamentPattern.md §3.5):* the absolutely-positioned `.fi-modal-header-quick-actions` strip (the icon-only Create/Edit/Delete quick actions a render hook overlays on the view-modal header — `inset-inline-end` keeps it beside the close button at the left in RTL) is anchored by the vendor's own `relative` on `.fi-modal-window` (modal.css:145) — a project `!relative` was tried and deleted the same day as a pure duplicate (the app never uses `fi-width-screen`, the only surface where the `!important` would have overridden vendor `fixed`); the visual order **close, add, edit, delete** left-to-right comes from `quickActionIcons()` REVERSING the footer order in the DOM — the RTL flex row renders the first DOM child rightmost, so [delete, edit, create] DOM yields add, edit, delete visually. Do NOT add `direction: ltr` to the strip to fix ordering: the logical `inset-inline-end` offset resolves against the strip's OWN direction, so flipping it to LTR silently moves the whole strip to the RIGHT edge, on top of the modal title (tried and reverted 2026-10-28). `overflow-anchor: none` stops browser scroll-anchoring from jumping the window during Livewire morphs, complementing the open-time `scrollTop = 0` reset in `core/filament.js` (`resources/js/scriptPattern.md`).
 
 ---
 

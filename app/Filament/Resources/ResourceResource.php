@@ -82,6 +82,11 @@ class ResourceResource extends Resource
         ]);
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return ! ReservationResource::canViewAny() && ! tenantOffName(static::getSlug());
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

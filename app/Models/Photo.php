@@ -3,16 +3,24 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAudience;
+use App\Models\Concerns\HasDepartment;
 use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\Hooks\HasPhotoHooks;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Concerns\HasNotifyEvents;
 
 class Photo extends Model
 {
-    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles, HasAudience;
+    use HasFactory,
+        HasPublicAssetUrl,
+        CleansAttachedFiles,
+        HasAudience,
+        HasNotifyEvents,
+        HasDepartment,
+        HasPhotoHooks;
 
     public const AUDIENCE_INCLUDES_DEPARTMENT_ID = true;
 
@@ -23,11 +31,6 @@ class Photo extends Model
         'description',
         'event_date',
     ];
-
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class, 'department_id', 'code');
-    }
 
     public function scopeByDepartment($query, string $departmentCode)
     {
@@ -62,6 +65,11 @@ class Photo extends Model
         );
     }
 
+    public static function notifyFields(): array
+    {
+        return ['department_id' => 'department'];
+    }
+
     protected function casts(): array
     {
         return [
@@ -78,10 +86,5 @@ class Photo extends Model
                 array_values(array_filter($this->path ?? [], fn($p) => !empty($p))),
             ),
         )->shouldCache();
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(fn(self $photo) => static::deleteStoredFiles($photo->path));
     }
 }

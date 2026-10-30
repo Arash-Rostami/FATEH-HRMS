@@ -22,6 +22,7 @@ class ReminderForm extends Form
     public string $recurs = 'none';
 
     public bool $emailEnabled = false;
+    public bool $smsEnabled = false;
     public bool $inAppEdge = true;
     public bool $inAppBadge = true;
     public bool $inAppNudge = true;
@@ -49,12 +50,17 @@ class ReminderForm extends Form
             $channels[] = 'email';
         }
 
+        if ($this->smsEnabled) {
+            $channels[] = 'sms';
+        }
+
         return $channels;
     }
 
     public function fromChannels(array $channels): void
     {
         $this->emailEnabled = in_array('email', $channels, true);
+        $this->smsEnabled = in_array('sms', $channels, true);
         $this->inAppEdge = Reminder::channelEnabled($channels, 'edge');
         $this->inAppBadge = Reminder::channelEnabled($channels, 'badge');
         $this->inAppNudge = Reminder::channelEnabled($channels, 'nudge');

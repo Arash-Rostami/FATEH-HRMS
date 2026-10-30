@@ -34,7 +34,7 @@ class ProjectResource extends Resource
 
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.project.guide.overview'],
-        ['label' => 'دسترسی و اعضا', 'icon' => 'group', 'view' => 'filament.resources.project.guide.membership'],
+        ['label' => 'اعضا و دسترسی', 'icon' => 'group', 'view' => 'filament.resources.project.guide.membership'],
         ['label' => 'گروه گفتگو', 'icon' => 'forum', 'view' => 'filament.resources.project.guide.channel'],
         ['label' => 'چرخهٔ کاری', 'icon' => 'conversion_path', 'view' => 'filament.resources.project.guide.workflow'],
         ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.project.guide.admin-ops'],
@@ -185,7 +185,7 @@ class ProjectResource extends Resource
             ->filtersFormColumns(2)
             ->recordActions([
                 Action::make('tasksheet')
-                    ->label('مشاهده تسک‌شیت')
+                    ->label('مشاهدهٔ برگهٔ کارکرد')
                     ->icon('heroicon-o-arrow-top-right-on-square')
                     ->iconButton()
                     ->url(fn($record) => route('tasksheet', ['user' => $record->owner_id]))

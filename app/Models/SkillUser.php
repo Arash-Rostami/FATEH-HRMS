@@ -10,11 +10,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Concerns\AsPivot;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Concerns\HasNotifyEvents;
+use App\Models\Concerns\HasUser;
 
 class SkillUser extends Model
 {
-    use HasFactory;
-    use AsPivot;
+    use HasFactory,
+        HasNotifyEvents,
+        HasUser,
+        AsPivot;
 
     public const ACTIVE_WINDOW_DAYS = 90;
 
@@ -41,11 +45,6 @@ class SkillUser extends Model
         'endorsers',
         'endorsements_count',
     ];
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
 
     public function skill(): BelongsTo
     {
@@ -143,6 +142,11 @@ class SkillUser extends Model
             unset($list[$dedupeKey]);
             Cache::put($key, $list, now()->addDays(7));
         });
+    }
+
+    public static function notifyFields(): array
+    {
+        return ['user_id' => 'user', 'approved_by' => 'user'];
     }
 
     protected function casts(): array

@@ -5,11 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasNotifyEvents;
 
 
 class ReservationPolicy extends Model
 {
-    use HasFactory;
+    use HasFactory,
+        HasNotifyEvents;
 
     protected $fillable = [
         'resource_type',

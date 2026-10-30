@@ -1,5 +1,5 @@
     <div
-        wire:key="reservation-avantgarde-time-rail-{{ $this->activeTab }}-{{ $this->open ?? 'none' }}-{{ $this->date }}"
+        wire:key="reservation-avantgarde-time-rail-{{ $this->activeTab }}-{{ $this->open ?? 'none' }}-{{ $this->date }}-{{ md5(json_encode($timeRail['busyIdx'])) }}"
         class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] p-4"
         x-data="reservationTimeRail(@js($timeRail['slots']), @js($timeRail['busyIdx']), {{ $timeRail['nowIdx'] ?? 'null' }}, {{ $timeRail['startIdx'] }}, {{ $timeRail['endIdx'] }})"
         x-on:mousemove.window="onMove"

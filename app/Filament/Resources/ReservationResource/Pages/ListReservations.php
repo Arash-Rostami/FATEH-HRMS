@@ -8,7 +8,14 @@ use App\Filament\Pages\ListRecords;
 
 class ListReservations extends ListRecords
 {
-    use FilamentHeaderActions;
+    use FilamentHeaderActions {
+        getHeaderActions as private baseHeaderActions;
+    }
 
     protected static string $resource = ReservationResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [...ReservationResource::switchActions(static::$resource), ...$this->baseHeaderActions()];
+    }
 }

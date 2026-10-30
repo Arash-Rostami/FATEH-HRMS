@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Traits\FilamentViewActionDefaults;
+use Filament\Actions\ViewAction;
+use Filament\Actions\View\ActionsRenderHook;
 use Filament\Support\Facades\FilamentView;
 use Filament\Tables\Table;
 use Filament\View\PanelsRenderHook;
@@ -11,6 +14,7 @@ use Illuminate\Support\ServiceProvider;
 
 class FilamentServiceProvider extends ServiceProvider
 {
+    use FilamentViewActionDefaults;
     public function boot(): void
     {
         $this->registerThemeBootstrap();
@@ -40,6 +44,15 @@ class FilamentServiceProvider extends ServiceProvider
             PanelsRenderHook::BODY_END,
             fn (): string => view('components.ui.loaders.screen-saver')->render()
                 . view('components.ui.loaders.page-transition')->render()
+        );
+
+        ViewAction::configureUsing(function (ViewAction $action): void {
+            $action->extraModalFooterActions(fn (?Table $table): array => static::viewModalShortcuts($table));
+        });
+
+        FilamentView::registerRenderHook(
+            ActionsRenderHook::MODAL_CUSTOM_CONTENT_BEFORE,
+            fn (array $data): string => static::quickActionIcons($data['action'] ?? null)
         );
     }
 

@@ -68,4 +68,6 @@
     @endunless
 
     @include('livewire.dashboard.tab.status.about-me')
+
+    @include('livewire.dashboard.tab.status.sms-modal')
 </div>

@@ -1,15 +1,15 @@
 @php
     $types = [
         ['icon' => 'support_agent', 'color' => 'primary', 'label' => 'پشتیبانی نرم‌افزار', 'code' => 'support', 'hint' => 'درخواست راهنمایی یا رفع مشکل فنی — برای زمانی که کاربر به کمک تیم پشتیبانی نیاز دارد.'],
-        ['icon' => 'lightbulb', 'color' => 'secondary', 'label' => 'پیشنهاد ماژول', 'code' => 'recommendation', 'hint' => 'ایدهٔ کاربر برای افزودن یا بهبود یک ماژول سیستم. این نوع، پیش‌فرضِ فرم ثبت است.'],
-        ['icon' => 'bug_report', 'color' => 'error', 'label' => 'گزارش باگ', 'code' => 'bug', 'hint' => 'گزارش خطا یا رفتار غیرمنتظرهٔ سیستم؛ اولویت بازبینی بالاتری دارد.'],
+        ['icon' => 'lightbulb', 'color' => 'secondary', 'label' => 'پیشنهاد ماژول', 'code' => 'recommendation', 'hint' => 'ایدهٔ کاربر برای افزودن یا بهبود یکی از بخش‌های سیستم. این نوع در فرم ثبت از ابتدا انتخاب شده است.'],
+        ['icon' => 'bug_report', 'color' => 'error', 'label' => 'گزارش باگ', 'code' => 'bug', 'hint' => 'گزارش خطا یا رفتار غیرمنتظرهٔ سیستم؛ در بررسی اولویت بالاتری دارد.'],
     ];
 
     $statuses = [
-        ['icon' => 'forum', 'color' => 'primary', 'label' => 'باز', 'code' => 'open', 'hint' => 'وضعیت اولیهٔ هر درخواستِ ثبت‌شده (کاربر یا ادمین). منتظر بازبینی ادمین است.'],
-        ['icon' => 'schedule', 'color' => 'tertiary', 'label' => 'در حال بررسی', 'code' => 'in_review', 'hint' => 'ادمین در حال پیگیری درخواست است؛ هنوز پاسخ نهایی ثبت نشده.'],
-        ['icon' => 'check_circle', 'color' => 'secondary', 'label' => 'حل‌شده', 'code' => 'resolved', 'hint' => 'درخواست پایش کامل شده و (در صورت نیاز) پاسخ ادمین برای کاربر نمایش داده می‌شود.'],
-        ['icon' => 'cancel', 'color' => 'error', 'label' => 'رد شد', 'code' => 'rejected', 'hint' => 'وضعیت پایانی و غیرقابل‌بازگشت — در فرم ویرایش، فیلد «وضعیت» قفل می‌شود و گزینهٔ «رد شد» در فهرست وضعیت‌ها نمی‌آید.'],
+        ['icon' => 'forum', 'color' => 'primary', 'label' => 'باز', 'code' => 'open', 'hint' => 'وضعیت اولیهٔ هر درخواستِ ثبت‌شده (توسط کاربر یا مدیر). منتظر بررسی شماست.'],
+        ['icon' => 'schedule', 'color' => 'tertiary', 'label' => 'در حال بررسی', 'code' => 'in_review', 'hint' => 'درخواست در حال پیگیری است؛ هنوز پاسخ نهایی ثبت نشده.'],
+        ['icon' => 'check_circle', 'color' => 'secondary', 'label' => 'حل‌شده', 'code' => 'resolved', 'hint' => 'درخواست انجام شده و (در صورت نیاز) پاسخ شما برای کاربر نمایش داده می‌شود.'],
+        ['icon' => 'cancel', 'color' => 'error', 'label' => 'رد شد', 'code' => 'rejected', 'hint' => 'وضعیت پایانی و بازگشت‌ناپذیر — در فرم ویرایش، «وضعیت» قفل می‌شود و گزینهٔ «رد شد» در فهرست وضعیت‌ها نمی‌آید.'],
     ];
 @endphp
 
@@ -17,10 +17,10 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">auto_awesome</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«درخواست‌ها» کانال ارتباطی کاربر با تیم پشتیبانی است</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«پشتیبانی» راه ارتباطی کاربر با تیم پشتیبانی است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        کاربر از پنل خود از طریق دکمهٔ پشتیبانی یک درخواست (پشتیبانی، پیشنهاد ماژول یا گزارش باگ) ثبت می‌کند و آن در جدول این صفحه با وضعیت <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">open</code> ظاهر می‌شود. شما (ادمین) درخواست‌ها را بازبینی می‌کنید، وضعیت را تغییر می‌دهید، پاسخ می‌نویسید و در صورت لزوم رد می‌کنید. عنوان و متن درخواست هنگام ذخیره از تگ‌های HTML پاک‌سازی می‌شوند و فایل‌های پیوست روی دیسک <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">public</code> نگهداری می‌شوند.
+        کاربر از پنل خود از طریق دکمهٔ پشتیبانی یک درخواست (پشتیبانی، پیشنهاد ماژول یا گزارش باگ) ثبت می‌کند و آن در جدول این صفحه با وضعیت <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">open</code> ظاهر می‌شود. شما (ادمین) درخواست‌ها را بازبینی می‌کنید، وضعیت را تغییر می‌دهید، پاسخ می‌نویسید و در صورت لزوم رد می‌کنید. عنوان و متن درخواست هنگام ذخیره از کدهای ظاهری (HTML) پاک می‌شوند و فایل‌های پیوست روی دیسک <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">public</code> نگهداری می‌شوند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -89,7 +89,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                وقتی درخواستی «رد شد» می‌شود، فیلد وضعیت در فرم ویرایش غیرفعال می‌شود و اکشن «رد کردن» از ردیف ناپدید می‌گردد — این وضعیت برگشت‌ناپذیر است.
+                وقتی درخواستی «رد شد» می‌شود، وضعیت آن در فرم ویرایش قفل می‌شود و دکمهٔ «رد کردن» دیگر دیده نمی‌شود — این وضعیت بازگشت‌ناپذیر است.
             </p>
         </div>
     </div>

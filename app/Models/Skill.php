@@ -9,10 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Concerns\HasNotifyEvents;
+use App\Models\Concerns\Hooks\HasSkillHooks;
 
 class Skill extends Model
 {
-    use HasFactory;
+    use HasFactory,
+        HasNotifyEvents,
+        HasSkillHooks;
 
     protected $fillable = [
         'name',
@@ -82,15 +86,6 @@ class Skill extends Model
     public function skillUsers(): HasMany
     {
         return $this->hasMany(SkillUser::class);
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(function (Skill $skill) {
-            if ($skill->skillUsers()->exists()) {
-                throw new \RuntimeException('این مهارت توسط کاربران اتخاب شده و قابل حذف نیست.');
-            }
-        });
     }
 
     protected function casts(): array

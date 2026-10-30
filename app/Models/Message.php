@@ -5,18 +5,14 @@ namespace App\Models;
 use App\Livewire\Dashboard\Contact\Actions\ForceDeleteMessageAction;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasPrunableStatus;
-use App\Services\ContentSanitizerService;
-use App\Services\Messaging\PollDigestService;
+use App\Models\Concerns\HasThreadMessages;
+use App\Models\Concerns\Hooks\HasMessageHooks;
 use App\Traits\CleansAttachedFiles;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class Message extends Model
 {
@@ -25,7 +21,9 @@ class Message extends Model
         SoftDeletes,
         Prunable,
         HasPrunableStatus,
-        CleansAttachedFiles;
+        CleansAttachedFiles,
+        HasThreadMessages,
+        HasMessageHooks;
 
     public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted', 'restored', 'forceDeleted'];
 
@@ -39,14 +37,6 @@ class Message extends Model
         'read_at',
     ];
 
-
-    public function attachmentUrls(): array
-    {
-        return array_map(
-            fn($item) => [...$item, 'url' => Storage::disk('public')->url($item['path'])],
-            $this->attachments ?? []
-        );
-    }
 
     public function isRead(): bool
     {
@@ -101,28 +91,6 @@ class Message extends Model
         return $this->belongsTo(User::class, 'recipient_id');
     }
 
-    public function replies(): HasMany
-    {
-        return $this->hasMany(Message::class, 'reply_to_id');
-    }
-
-    public function replyTo(): BelongsTo
-    {
-        return $this->belongsTo(Message::class, 'reply_to_id');
-    }
-
-    public function sender(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'sender_id');
-    }
-
-    protected function body(): Attribute
-    {
-        return Attribute::make(
-            set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
-        );
-    }
-
     protected function casts(): array
     {
         return [
@@ -130,18 +98,5 @@ class Message extends Model
             'is_edited' => 'boolean',
             'read_at' => 'datetime',
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::forceDeleted(fn(self $message) => static::deleteStoredFiles($message->attachments));
-
-        $bumpThread = fn(self $message) => DB::afterCommit(function () use ($message) {
-            PollDigestService::bump("dm:sv:{$message->sender_id}");
-            PollDigestService::bump("dm:sv:{$message->recipient_id}");
-        });
-        static::created($bumpThread);
-        static::updated($bumpThread);
-        static::deleted($bumpThread);
     }
 }

@@ -15,10 +15,10 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">account_tree</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">سمت‌ها هشت رتبه دارند؛ واحد تعیین می‌کند چه‌کس رئیسِ آن واحد است</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">سمت‌ها هشت رتبه دارند؛ واحد تعیین می‌کند چه کسی رئیسِ آن واحد است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        سمتِ هر پرسنل روی پروفایل او ذخیره می‌شود (فیلد position) و یکی از هشت مقدار جدول زیر است. رتبه از ۱ (بالاترین) تا ۷ (پایین‌ترین) شمرده می‌شود؛ «رئیس هیئت مدیره» و «مدیرعامل» هر دو رتبهٔ ۱ دارند. واحد سازمانیِ کاربر (کد واحد روی پروفایل) تعیین می‌کند که در همان واحد، آیا کسی با رتبهٔ بالاتر از او هست یا نه — اگر نبود، همان کاربر «رئیس واحد» محسوب می‌شود.
+        سمتِ هر پرسنل در پروفایل او ثبت می‌شود و یکی از هشت مقدار جدول زیر است. رتبه از ۱ (بالاترین) تا ۷ (پایین‌ترین) شمرده می‌شود؛ «رئیس هیئت مدیره» و «مدیرعامل» هر دو رتبهٔ ۱ دارند. واحد سازمانیِ کاربر (کد واحد روی پروفایل) تعیین می‌کند که در همان واحد، آیا کسی با رتبهٔ بالاتر از او هست یا نه — اگر نبود، همان کاربر «رئیس واحد» محسوب می‌شود.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -47,7 +47,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                رتبه‌ها در پروفایل کاربر ذخیره می‌شوند، نه در این صفحه — اینجا فقط واحدها تعریف می‌شوند؛ سمتِ پرسنل از صفحهٔ «کاربران» و پروفایل اوセット می‌شود.
+                رتبه‌ها در پروفایل کاربر ذخیره می‌شوند، نه در این صفحه — اینجا فقط واحدها تعریف می‌شوند؛ سمتِ پرسنل از صفحهٔ «کاربران» و پروفایل او تنظیم می‌شود.
             </p>
         </div>
     </div>
@@ -65,7 +65,7 @@
                     </span>
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">رئیس واحد (isDeptHead)</p>
+                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">رئیس واحد</p>
                     <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">کاربر «رئیس واحد» است اگر در همان واحدِ سازمانی، هیچ کاربرِ فعالِ دیگری با رتبهٔ بالاتر (عدد کوچک‌تر) وجود نداشته باشد. مثلاً اگر در واحدی یک «مدیر» (رتبهٔ ۳) و یک «سرپرست» (رتبهٔ ۴) باشند، مدیر رئیسِ واحد است. اگر کسی بالاتر از مدیر نباشد، خودِ مدیر رئیس می‌شود.</p>
                 </div>
             </div>
@@ -110,7 +110,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">شرکتِ زیرمجموعه با علامت *</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">اگر در پروفایل یک رئیس هیئت‌مدیره یا مدیرعامل، به‌جای عدد، علامت <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">*</code> را در «ترتیب در چارت» بنویسید، او به‌عنوان مدیرعاملِ یک شرکتِ زیرمجموعه شناخته می‌شود: کارتش در همان ردیف بالای چارت و هم‌رتبهٔ مدیرعامل می‌ماند (کمی پایین‌تر و با خطِ اتصال به کارت کناری)، و واحدِ او به‌همراه همهٔ واحدهایی که (با «زیرمجموعه واحد») زیر آن قرار دارند با رنگ پس‌زمینه و نمادِ شرکت نمایش داده می‌شوند. واحدِ این شخص باید حداقل یک همکارِ دیگر داشته باشد و سطح آن ۰ نباشد تا در نمودار دیده شود.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">اگر در پروفایل یک رئیس هیئت‌مدیره یا مدیرعامل، به‌جای عدد، علامت <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">*</code> را در «ترتیب در چارت» بنویسید، او به‌عنوان مدیرعاملِ یک شرکتِ زیرمجموعه شناخته می‌شود: کارتش در همان ردیف بالای چارت و هم‌رتبهٔ مدیرعامل می‌ماند (کمی پایین‌تر و با خطِ اتصال به کارت کناری)، و واحدِ او به‌همراه همهٔ واحدهایی که (با «زیرمجموعهٔ واحد») زیر آن قرار دارند با رنگ پس‌زمینه و نمادِ شرکت نمایش داده می‌شوند. واحدِ این شخص باید حداقل یک همکارِ دیگر داشته باشد و سطح آن ۰ نباشد تا در نمودار دیده شود.</p>
                 </div>
             </div>
         </div>
@@ -128,7 +128,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">layers</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">فیلد «سطح نمایش در نمودار سازمانی» (level)</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">فیلد «سطح نمایش در نمودار سازمانی»</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             <div class="flex items-start gap-4 p-4 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -149,12 +149,12 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">account_tree</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">فیلد «زیرمجموعه واحد» (subordinate_to)</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">فیلد «زیرمجموعهٔ واحد»</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shrink-0"><span class="material-symbols-rounded text-[20px]">subdirectory_arrow_left</span></span>
-                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">اگر واحدی زیرمجموعهٔ واحد دیگری تعریف شود، به‌جای گرفتن ردیف مستقل، به‌صورت تودرتو زیر همان واحد والد نمایش داده می‌شود — سطح (level) آن دیگر نمی‌تواند ۰ باشد و در صورت انتخاب زیرمجموعه، سطح ۰ به‌طور خودکار به ۱ اصلاح می‌شود.</p>
+                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">اگر واحدی زیرمجموعهٔ واحد دیگری تعریف شود، به‌جای گرفتن ردیف مستقل، به‌صورت تودرتو زیر همان واحد والد نمایش داده می‌شود — سطح آن دیگر نمی‌تواند ۰ باشد و در صورت انتخاب زیرمجموعه، سطح ۰ به‌طور خودکار به ۱ اصلاح می‌شود.</p>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shrink-0"><span class="material-symbols-rounded text-[20px]">block</span></span>

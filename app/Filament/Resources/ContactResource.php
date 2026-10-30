@@ -35,7 +35,7 @@ class ContactResource extends Resource
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.contact.guide.overview'],
         ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.contact.guide.admin-ops'],
         ['label' => 'زبانه‌های فهرست', 'icon' => 'tab', 'view' => 'filament.resources.contact.guide.list-tabs'],
-        ['label' => 'حذف و هرس خودکار', 'icon' => 'delete_sweep', 'view' => 'filament.resources.contact.guide.prune'],
+        ['label' => 'حذف و بازیابی', 'icon' => 'delete_sweep', 'view' => 'filament.resources.contact.guide.prune'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.contact.guide.user'],
     ];
 

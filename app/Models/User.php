@@ -6,14 +6,18 @@ use App\Enums\PresenceStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Jobs\ReconcileNudge;
 use App\Models\Concerns\HasAvatar as HasImage;
+use App\Models\Concerns\HasBookingRows;
+use App\Models\Concerns\HasExtraPreferences;
 use App\Models\Concerns\HasProfileHierarchy;
+use App\Models\Concerns\HasPresence;
+use App\Models\Concerns\HasTodaysDesk;
+use App\Models\Concerns\Hooks\HasUserHooks;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\Cache\SkipsAutomaticCacheVersioning;
 use App\Services\User\UserKeyGrouper;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,7 +26,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -32,17 +35,18 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
     use HasFactory,
         Notifiable,
         HasProfileHierarchy,
-        HasImage;
+        HasImage,
+        HasBookingRows,
+        HasExtraPreferences,
+        HasPresence,
+        HasTodaysDesk,
+        HasUserHooks;
 
     public const ONLINE_MINUTES = 10;
 
     public const TOUCH_MINUTES = 3;
 
     public const INDEFINITE_FOCUS_MINUTES = 525600;
-
-    protected static ?array $todaysDeskCache = null;
-    protected static ?array $todaysReservationsCache = null;
-    protected static ?array $todaysStatusSummaryCache = null;
 
     protected $fillable = [
         'name',
@@ -176,11 +180,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         );
     }
 
-    public function getExtraValue(string $key, mixed $default = null): mixed
-    {
-        return Arr::get($this->extra ?? [], $key, $default);
-    }
-
     public static function forgetDynamicGroupCache(): void
     {
         Cache::forget(UserKeyGrouper::CACHE_KEY);
@@ -196,68 +195,9 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->generateInitialsAvatar($this->name);
     }
 
-    public function getPreference(string $key, mixed $default = null): mixed
-    {
-        return $this->getExtraValue("preferences.{$key}", $default);
-    }
-
     public function getProfileImageUrl(): ?string
     {
         return $this->profile?->getImageUrl();
-    }
-
-    public function getTodaysDeskExtension(): ?string
-    {
-        return static::$todaysDeskCache[$this->id] ?? null;
-    }
-
-    public function getTodaysReservationsLabel(): ?string
-    {
-        return static::$todaysReservationsCache[$this->id] ?? null;
-    }
-
-    public function getTodaysStatusSummary(): ?string
-    {
-        return static::$todaysStatusSummaryCache[$this->id] ?? null;
-    }
-
-    public static function primeTodaysDeskCache(): void
-    {
-        if (static::$todaysDeskCache !== null) {
-            return;
-        }
-
-        $reservations = Reservation::forToday()
-            ->whereHas('resource', fn(Builder $q) => $q->whereIn('type', ['seat', 'car', 'meeting']))
-            ->with('resource:id,type,name,metadata')
-            ->get(['id', 'user_id', 'resource_id']);
-
-        static::$todaysDeskCache = $reservations
-            ->mapWithKeys(fn(Reservation $r) => [
-                $r->user_id => Arr::get((array) $r->resource?->metadata, 'extension'),
-            ])
-            ->filter()
-            ->all();
-
-        static::$todaysStatusSummaryCache = $reservations
-            ->mapWithKeys(fn(Reservation $r) => [
-                $r->user_id => $r->resource?->status_summary,
-            ])
-            ->filter()
-            ->all();
-
-        static::$todaysReservationsCache = $reservations
-            ->groupBy('user_id')
-            ->map(fn(Collection $rows) => $rows->pluck('resource.labeled_name')->filter()->implode('، '))
-            ->filter()
-            ->all();
-    }
-
-    public static function resetTodaysDeskCache(): void
-    {
-        static::$todaysDeskCache = null;
-        static::$todaysReservationsCache = null;
-        static::$todaysStatusSummaryCache = null;
     }
 
     public function hasElevatedRole(): bool
@@ -294,25 +234,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->focus_until->gt(now()->addDay())
             ? 'حالت تمرکز فعال'
             : 'متمرکز تا ' . toJalali($this->focus_until, 'H:i');
-    }
-
-    public function isOnline(): bool
-    {
-        return $this->last_seen !== null && $this->last_seen->gte(static::onlineSince());
-    }
-
-    public function lastSeenLabel(): string
-    {
-        return match (true) {
-            $this->isOnline() => 'آنلاین',
-            $this->last_seen === null => 'هرگز',
-            default => toJalaliRelative($this->last_seen),
-        };
-    }
-
-    public static function onlineSince(): Carbon
-    {
-        return now()->subMinutes(static::ONLINE_MINUTES);
     }
 
     public function latestEnergyTest(): HasOne
@@ -408,11 +329,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $query->where('type', $type);
     }
 
-    public function scopeOnline(Builder $query): Builder
-    {
-        return $query->where('users.last_seen', '>=', static::onlineSince());
-    }
-
     public function scopeSearch(Builder $query, string $term): void
     {
         $query->when($term !== '', fn($q) => $q->where(fn($q) => $q
@@ -434,13 +350,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->hasMany(Message::class, 'sender_id');
     }
 
-    public function setExtraValue(string $key, mixed $value): void
-    {
-        $extra = $this->extra ?? [];
-        Arr::set($extra, $key, $value);
-        $this->extra = $extra;
-    }
-
     public function suggestions(): HasMany
     {
         return $this->hasMany(Suggestion::class);
@@ -459,102 +368,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
     public function workflows(): HasMany
     {
         return $this->hasMany(Workflow::class, 'owner_id');
-    }
-
-    public function touchLastSeen(): void
-    {
-        $was = $this->timestamps;
-        $this->timestamps = false;
-        try {
-            $this->forceFill(['last_seen' => now()])->saveQuietly();
-        } finally {
-            $this->timestamps = $was;
-        }
-    }
-
-    public function markOffline(): void
-    {
-        $was = $this->timestamps;
-        $this->timestamps = false;
-        try {
-            $this->forceFill(['last_seen' => now()->subMinutes(static::ONLINE_MINUTES + 1)])->saveQuietly();
-            Cache::forget('last_seen:' . $this->id);
-        } finally {
-            $this->timestamps = $was;
-        }
-    }
-
-    public function bookingRows(): array
-    {
-        $raw = $this->attributes['booking'] ?? [];
-        $raw = is_array($raw) ? $raw : json_decode($raw ?? '[]', true);
-
-        return is_array($raw) ? $raw : [];
-    }
-
-    public function bookingMax(string $type): ?int
-    {
-        return $this->bookingRowMax($type) ?? $this->bookingRowMax('all');
-    }
-
-    private function bookingRowMax(string $type): ?int
-    {
-        foreach ($this->bookingRows() as $row) {
-            if (is_array($row) && ($row['key'] ?? null) === $type && filled($row['max'] ?? null)) {
-                return max(1, (int) $row['max']);
-            }
-        }
-
-        return null;
-    }
-
-    protected function booking(): Attribute
-    {
-        return Attribute::make(
-            get: function ($value) {
-                $raw = is_array($value) ? $value : json_decode($value ?? '[]', true);
-                if (!is_array($raw)) return [];
-
-                $permissions = [];
-                foreach ($raw as $k => $v) {
-                    if (is_array($v)) {
-                        if (array_key_exists('key', $v) && array_key_exists('value', $v)) {
-                            $permissions[$v['key']] = $v['value'];
-                        }
-                        continue;
-                    }
-                    $permissions[$k] = $v;
-                }
-
-                return $permissions;
-            },
-            set: fn($value) => is_array($value) ? json_encode($value) : $value
-        );
-    }
-
-    protected static function booted(): void
-    {
-        static::created(fn() => static::bumpCacheVersion());
-
-        static::saved(function (self $user) {
-            if ($user->wasChanged(['name', 'role', 'status', 'type'])) {
-                static::bumpCacheVersion();
-            }
-
-            self::forgetDynamicGroupCache();
-
-            if (!$user->wasRecentlyCreated && $user->wasChanged(['status', 'type'])
-                && $user->getOriginal('status') === 'active' && $user->getOriginal('type') !== UserType::Guest->value
-                && ($user->status !== 'active' || $user->type === UserType::Guest->value)) {
-                $user->releaseFromProjectWork();
-                $user->reconcileDepartmentTickets();
-            }
-        });
-
-        static::deleted(function () {
-            static::bumpCacheVersion();
-            self::forgetDynamicGroupCache();
-        });
     }
 
     protected function releaseFromProjectWork(): void
@@ -618,69 +431,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
             'presence' => PresenceStatus::class,
             'focus_until' => 'datetime',
         ];
-    }
-
-    protected function extra(): Attribute
-    {
-        return Attribute::make(
-            get: fn($value) => $this->decodeExtra($value),
-            set: fn($value) => $this->mergeExtra($value),
-        );
-    }
-
-    private function decodeExtra($value): array
-    {
-        $raw = is_array($value) ? $value : json_decode($value ?? '[]', true);
-
-        return is_array($raw) ? $raw : [];
-    }
-
-    private function decodeStoredExtra(): array
-    {
-        if (!isset($this->attributes['extra'])) {
-            return [];
-        }
-
-        $decoded = json_decode($this->attributes['extra'], true);
-
-        return is_array($decoded) ? $decoded : [];
-    }
-
-    private function mergeExtra($value): string
-    {
-        $incoming = is_array($value) ? $value : json_decode($value ?? '[]', true);
-        if (!is_array($incoming)) {
-            $incoming = [];
-        }
-
-        $existing = $this->decodeStoredExtra();
-        $result = array_filter($existing, fn($v) => is_array($v));
-
-        $reserved = ['preferences', 'admin'];
-
-        if (array_key_exists('preferences', $incoming) && is_array($incoming['preferences'] ?? null)) {
-            $result['preferences'] = array_merge($result['preferences'] ?? [], $incoming['preferences']);
-
-            if (array_key_exists('admin', $incoming)) {
-                $result['admin'] = is_array($incoming['admin']) ? $incoming['admin'] : [];
-            }
-
-            foreach ($incoming as $k => $v) {
-                if (!in_array($k, $reserved, true)) {
-                    $result['admin'][$k] = $v;
-                }
-            }
-        } else {
-            $adminOverride = array_key_exists('admin', $incoming) && is_array($incoming['admin'])
-                ? $incoming['admin']
-                : [];
-
-            unset($incoming['preferences'], $incoming['admin']);
-
-            $result['admin'] = array_merge($adminOverride, $incoming);
-        }
-
-        return json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     protected function smsNumber(): Attribute

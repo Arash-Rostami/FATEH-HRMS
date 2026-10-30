@@ -138,6 +138,7 @@ $tenants = [
         ],
 
          'modules' => [                       // unlisted = on; list only what you want off. true = on again (a sub-tenant can re-enable)
+            'notify' => false,
         //     'reservation' => false,          // whole module: pages, URL (404), admin, menus, search
         //     'reservation:avantgarde' => false, // only one view of a module (see 'views' in config/modules.php)
         //     'status:chart' => false,
@@ -216,11 +217,6 @@ $tenants = [
         ],
 
         'modules' => [
-            'reservation:avantgarde' => false,
-            'status:chart' => false,
-            'radio' => false,
-            'dms' => false,
-            'gallery' => false
 
         ],
     ],

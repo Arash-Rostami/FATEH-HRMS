@@ -7,7 +7,7 @@
     <div class="flex items-start gap-4 rounded-2xl bg-[var(--md-sys-color-surface)] p-5 shadow-md shadow-[var(--md-sys-color-shadow)]/5">
         <span class="material-symbols-rounded text-[28px] text-[var(--md-sys-color-primary)] mt-0.5">power_settings_new</span>
         <div class="flex-1 flex flex-col gap-2">
-            <h3 class="text-[15px] font-black text-[var(--md-sys-color-on-surface)]">قطع‌کننده‌ی نوع منبع</h3>
+            <h3 class="text-[15px] font-black text-[var(--md-sys-color-on-surface)]">روشن و خاموش کردن یک نوع منبع</h3>
             <p class="text-[13px] leading-relaxed font-semibold text-[var(--md-sys-color-on-surface-variant)]">
                 هر نوع منبع با یک شرط ساده روشن یا خاموش می‌شود: اگر <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_days</code> و <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_hours</code> هر دو صفر باشند، آن نوع کاملاً غیرفعال می‌شود. کافی است یکی از این دو بزرگ‌تر از صفر باشد تا نوع فعال بماند.
             </p>
@@ -48,7 +48,7 @@
             <div class="flex items-start gap-4 p-5">
                 <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-error)] mt-0.5">block</span>
                 <p class="flex-1 text-[12.5px] leading-relaxed font-semibold text-[var(--md-sys-color-on-surface-variant)]">
-                    هر دو فیلد <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_days</code> و <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_hours</code> را روی ۰ تنظیم کنید و ذخیره کنید. تب آن نوع در /reservation کم‌رنگ و قفل‌شده نشان داده می‌شود و ثبت رزرو (حتی توسط ادمین) مسدود می‌شود.
+                    هر دو فیلد <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_days</code> و <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_hours</code> را روی ۰ تنظیم کنید و ذخیره کنید. زبانهٔ آن نوع در صفحهٔ رزرو کاربر کم‌رنگ و قفل‌شده نشان داده می‌شود و ثبت رزرو (حتی توسط ادمین) مسدود می‌شود.
                 </p>
             </div>
             <div class="flex items-start gap-4 p-5">
@@ -93,7 +93,7 @@
     <div class="flex items-start gap-4 rounded-2xl bg-[var(--md-sys-color-tertiary-container)] p-5">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-on-tertiary-container)] mt-0.5">tips_and_updates</span>
         <p class="text-[12px] leading-relaxed font-bold text-[var(--md-sys-color-on-tertiary-container)]">
-            نکته‌ی هوشمند: اگر کلید window_days خالی گذاشته شود، سیستم آن را ۱ فرض می‌کند (نه ۰). پس غیرفعال کردن فقط با پر کردن هر دو فیلد با عدد ۰ ممکن است؛ خالی گذاشتن نوع را خاموش نمی‌کند.
+            نکته: اگر «بازهٔ مجاز پیش‌رزرو» خالی بماند، سیستم آن را ۱ فرض می‌کند (نه ۰). پس برای خاموش کردن یک نوع باید هر دو فیلد را با عدد ۰ پر کنید؛ خالی گذاشتن آن را خاموش نمی‌کند.
         </p>
     </div>
 </div>

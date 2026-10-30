@@ -7,6 +7,8 @@ beforeEach(() => {
 
 afterEach(() => {
     vi.useRealTimers()
+    vi.unstubAllGlobals()
+    delete globalThis.Livewire
 })
 
 function withWireDate(date) {
@@ -16,40 +18,96 @@ function withWireDate(date) {
 }
 
 describe('reservation.slotState', () => {
-    test('a day other than today is always ok, regardless of the time of day', () => {
+    test('a future day with no notice window is ok', () => {
         vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
         const r = withWireDate('2026-01-02')
-        expect(r.slotState('09:00', 0, 'ok')).toBe('ok')
+        expect(r.slotState('09:00', 0, 'ok', '2026-01-02')).toBe('ok')
+    })
+
+    test('a future day slot inside the notice window is soon', () => {
+        vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
+        const r = withWireDate('2026-01-02')
+        expect(r.slotState('09:00', 48, 'ok', '2026-01-02')).toBe('soon')
+    })
+
+    test('a browser clock two days ahead of the server wall clock does not turn future slots past', () => {
+        vi.setSystemTime(new Date(2026, 0, 3, 10, 0, 0))
+        const r = withWireDate('2026-01-02')
+        expect(r.slotState('09:00', 0, 'ok', '2026-01-02', '2026-01-01T10:00:00')).toBe('ok')
+    })
+
+    test('a browser clock two days behind the server wall clock still marks server-past slots past', () => {
+        vi.setSystemTime(new Date(2025, 11, 30, 10, 0, 0))
+        const r = withWireDate('2026-01-02')
+        expect(r.slotState('09:00', 0, 'ok', '2026-01-02', '2026-01-01T10:00:00')).toBe('ok')
+
+        const today = withWireDate('2026-01-01')
+        expect(today.slotState('09:00', 0, 'ok', '2026-01-01', '2026-01-01T10:00:00')).toBe('past')
+    })
+
+    test('time advances after the skew is measured', () => {
+        vi.setSystemTime(new Date(2026, 0, 3, 10, 0, 0))
+        const r = withWireDate('2026-01-01')
+        expect(r.slotState('10:30', 0, 'ok', '2026-01-01', '2026-01-01T10:00:00')).toBe('ok')
+
+        vi.advanceTimersByTime(3600 * 1000)
+        r.nowTick++
+        expect(r.slotState('10:30', 0, 'ok', '2026-01-01', '2026-01-01T10:00:00')).toBe('past')
+    })
+
+    test('an invalid server wall clock falls back to no skew without throwing', () => {
+        vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
+        const r = withWireDate('2026-01-01')
+        expect(() => r.slotState('09:00', 0, 'ok', '2026-01-01', 'not-a-date')).not.toThrow()
+        expect(r.slotState('09:00', 0, 'ok', '2026-01-01', 'not-a-date')).toBe('past')
+    })
+
+    test('a past day slot is past', () => {
+        vi.setSystemTime(new Date(2026, 0, 2, 10, 0, 0))
+        const r = withWireDate('2026-01-01')
+        expect(r.slotState('23:30', 0, 'ok', '2026-01-01')).toBe('past')
+    })
+
+    test('a stale baked server state (past) is ignored once the selected date is not today', () => {
+        vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
+        const r = withWireDate('2026-01-02')
+        expect(r.slotState('09:00', 0, 'past', '2026-01-01')).toBe('ok')
+    })
+
+    test('a server state (past) rendered for the selected date applies even when the browser clock disagrees', () => {
+        vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
+        const r = withWireDate('2026-01-02')
+        expect(r.slotState('09:00', 0, 'past', '2026-01-02')).toBe('past')
     })
 
     test('today: a slot already behind the current time is past', () => {
         vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
         const r = withWireDate('2026-01-01')
-        expect(r.slotState('09:00', 0, 'ok')).toBe('past')
+        expect(r.slotState('09:00', 0, 'ok', '2026-01-01')).toBe('past')
     })
 
     test('today: a slot ahead of now but inside the notice window is soon', () => {
         vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
         const r = withWireDate('2026-01-01')
-        expect(r.slotState('10:30', 1, 'ok')).toBe('soon')
+        expect(r.slotState('10:30', 1, 'ok', '2026-01-01')).toBe('soon')
     })
 
     test('today: a slot beyond the notice window is ok', () => {
         vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
         const r = withWireDate('2026-01-01')
-        expect(r.slotState('12:00', 1, 'ok')).toBe('ok')
+        expect(r.slotState('12:00', 1, 'ok', '2026-01-01')).toBe('ok')
     })
 
     test('a stricter server state (past) overrides a laxer local state (ok)', () => {
         vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
         const r = withWireDate('2026-01-01')
-        expect(r.slotState('12:00', 0, 'past')).toBe('past')
+        expect(r.slotState('12:00', 0, 'past', '2026-01-01')).toBe('past')
     })
 
     test('a laxer server state (ok) never downgrades a stricter local state (past)', () => {
         vi.setSystemTime(new Date(2026, 0, 1, 10, 0, 0))
         const r = withWireDate('2026-01-01')
-        expect(r.slotState('09:00', 0, 'ok')).toBe('past')
+        expect(r.slotState('09:00', 0, 'ok', '2026-01-01')).toBe('past')
     })
 })
 
@@ -150,6 +208,37 @@ describe('reservation.syncTimePreview / pickStart / pickEnd', () => {
         r.pickEnd('09:00')
         expect(r.start).toBe('08:00')
         expect(r.end).toBe('09:00')
+    })
+})
+
+describe('reservation.init morph hook', () => {
+    test('syncTimePreview runs only after the queued nextTick, not inside the morph callback', () => {
+        let captured
+        globalThis.Livewire = { hook: vi.fn((n, cb) => { captured = cb; return () => {} }) }
+        const queued = []
+        const r = reservation()
+        r.$wire = { get: vi.fn(() => null), set: vi.fn(), __instance: { id: 'x' } }
+        r.$nextTick = (fn) => queued.push(fn)
+        r.$store = {}
+        r.initMaximize = vi.fn()
+        r.initTableTools = vi.fn()
+        r.deckSyncFromDom = vi.fn()
+        r.deckReconcileOpen = vi.fn()
+        r.syncTimePreview = vi.fn()
+
+        r.init()
+        clearInterval(r._clockInterval)
+        queued.length = 0
+        r.syncTimePreview.mockClear()
+
+        captured({ component: { id: 'x' } })
+        expect(r.syncTimePreview).not.toHaveBeenCalled()
+        expect(queued).toHaveLength(1)
+
+        queued[0]()
+        expect(r.syncTimePreview).toHaveBeenCalledTimes(1)
+        expect(r.deckSyncFromDom).toHaveBeenCalled()
+        expect(r.deckReconcileOpen).toHaveBeenCalled()
     })
 })
 

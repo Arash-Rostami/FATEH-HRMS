@@ -16,10 +16,10 @@ enum DelegationLevel: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::DecisionImplementation => 'تصمیم گیری و اجرا',
+            self::DecisionImplementation => 'تصمیم‌گیری و اجرا',
             self::ReviewProposal         => 'بررسی و پیشنهاد',
             self::ReviewReporting        => 'بررسی و گزارش',
-            self::DecisionReporting      => 'تصمیم گیری و گزارش',
+            self::DecisionReporting      => 'تصمیم‌گیری و گزارش',
         };
     }
 

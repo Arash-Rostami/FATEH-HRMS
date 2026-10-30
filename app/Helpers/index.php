@@ -456,7 +456,7 @@ if (!function_exists('jalaliSpanFromParts')) {
 }
 
 if (!function_exists('confirmDialog')) {
-    function confirmDialog(string $method, string $title, string $message, mixed $params = null, ?string $type = 'dispatch'): string
+    function confirmDialog(string $method, string $title, string $message, mixed $params = null, ?string $type = 'dispatch', ?string $tone = null): string
     {
         $payload = ['title' => $title, 'message' => $message, 'method' => $method];
 
@@ -466,6 +466,10 @@ if (!function_exists('confirmDialog')) {
 
         if ($type !== null) {
             $payload['type'] = $type;
+        }
+
+        if ($tone !== null) {
+            $payload['tone'] = $tone;
         }
 
         return "\$dispatch('open-confirmation', " . json_encode($payload, JSON_UNESCAPED_UNICODE) . ')';

@@ -4,19 +4,23 @@ namespace App\Models;
 
 use App\Models\Concerns\HasModelCache;
 use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\Hooks\HasLinkHooks;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use App\Models\Concerns\HasNotifyEvents;
 
 class Link extends Model
 {
     use HasModelCache,
         HasFactory,
         HasPublicAssetUrl,
-        CleansAttachedFiles;
+        CleansAttachedFiles,
+        HasNotifyEvents,
+        HasLinkHooks;
 
     protected $fillable = [
         'url',
@@ -31,18 +35,6 @@ class Link extends Model
         'sequence',
         'extra'
     ];
-
-    protected static function booted(): void
-    {
-        static::saving(function (self $link) {
-            $link->extra = $link->normalizedExtra();
-        });
-
-        static::deleting(function (self $link) {
-            static::deleteStoredFiles($link->image);
-            static::deleteStoredFiles($link->icon);
-        });
-    }
 
     public function normalizedExtra(): ?array
     {
@@ -110,6 +102,14 @@ class Link extends Model
         }
 
         return $this->url ?: '';
+    }
+
+    public static function notifyFields(): array
+    {
+        return [
+            'link' => \App\Filament\Resources\LinkResource\Enums\LinkType::class,
+            'sequence' => 'number',
+        ];
     }
 
     protected function casts(): array

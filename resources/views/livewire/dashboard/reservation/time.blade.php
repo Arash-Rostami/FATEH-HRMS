@@ -17,6 +17,8 @@
     @php($slotMeta = $this->startSlotMeta)
     @php($firstOk = $slotMeta['first'])
     @php($minNoticeArg = $this->minNoticeHours ?? 'null')
+    @php($lastStart = $this->lastValidStartSlot)
+    @php($serverWall = now()->format('Y-m-d\TH:i:s'))
 
     @foreach($timePickers as $picker)
         @php($isStart = $picker['type'] === 'start')
@@ -38,16 +40,19 @@
                     @foreach($this->availableTimeSlots as $time)
                         @php($isSelected = $picker['activeValue'] === $time ? 'true' : 'false')
                         @php($serverState = $slotMeta['states'][$time] ?? 'ok')
+                        @php($slotArgs = "'{$time}', {$minNoticeArg}, '{$serverState}', '{$date}', '{$serverWall}'")
+                        @php($guard = $isStart ? ($lastStart === null ? 'true' : "'{$time}' > '{$lastStart}'") : "'{$time}' <= start")
+                        @php($guardTitle = $isStart ? 'پس از این ساعت زمان پایان معتبری وجود ندارد' : 'باید بعد از زمان شروع باشد')
                         <button
                             wire:key="{{ $picker['type'] }}-time-{{ $time }}"
                             wire:click="{{ $picker['method'] }}('{{ $time }}')"
                             @click="{{ $isStart ? 'pickStart' : 'pickEnd' }}('{{ $time }}')"
-                            :disabled="slotState('{{ $time }}', {{ $minNoticeArg }}, '{{ $serverState }}') !== 'ok'"
+                            :disabled="slotState({{ $slotArgs }}) !== 'ok' || ({{ $guard }})"
                             {{ ($isStart && $firstOk === $time) ? 'data-first-ok' : '' }}
-                            :title="slotTitle(slotState('{{ $time }}', {{ $minNoticeArg }}, '{{ $serverState }}'))"
-                            class="shrink-0 px-4 py-2.5 rounded-lg text-sm transition-all duration-300 snap-center border outline-none"
-                            :class="slotButtonClass(slotState('{{ $time }}', {{ $minNoticeArg }}, '{{ $serverState }}'), {{ $isSelected }})"
-                            :style="slotButtonStyle(slotState('{{ $time }}', {{ $minNoticeArg }}, '{{ $serverState }}'), {{ $isSelected }})"
+                            :title="slotTitle(slotState({{ $slotArgs }})) || (({{ $guard }}) ? '{{ $guardTitle }}' : '')"
+                            class="shrink-0 px-4 py-2.5 rounded-lg text-sm transition-all duration-300 snap-center border outline-none disabled:opacity-30 disabled:cursor-not-allowed disabled:line-through"
+                            :class="slotButtonClass(slotState({{ $slotArgs }}),{{ $isSelected }})"
+                            :style="slotButtonStyle(slotState({{ $slotArgs }}),{{ $isSelected }})"
                         >
                             {{ convertToPersian($time) ?? $time }}
                         </button>

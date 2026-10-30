@@ -2,18 +2,23 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDepartment;
 use App\Models\Concerns\HasModelCache;
+use App\Models\Concerns\HasUser;
 use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
+use App\Models\Concerns\HasNotifyEvents;
 
 class FAQ extends Model
 {
     use HasModelCache,
-        HasFactory;
+        HasFactory,
+        HasDepartment,
+        HasUser,
+        HasNotifyEvents;
 
     protected $table = 'faqs';
 
@@ -25,16 +30,6 @@ class FAQ extends Model
         'answer'
     ];
 
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class, 'department_id', 'code');
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public static function cachedCategories(): Collection
     {
         return static::cached('categories', fn () => static::query()->whereNotNull('category')->where('category', '!=', '')->distinct()->pluck('category'));
@@ -43,6 +38,11 @@ class FAQ extends Model
     public static function cachedCategoryFilter(): array
     {
         return static::cached('category_filter', fn () => static::distinct()->orderBy('category')->pluck('category', 'category')->toArray());
+    }
+
+    public static function notifyFields(): array
+    {
+        return ['user_id' => 'user', 'department_id' => 'department'];
     }
 
     protected function answer(): Attribute

@@ -34,6 +34,11 @@ class SkillRequestResource extends Resource
     ];
 
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return ! SkillResource::canViewAny() && ! tenantOffName(static::getSlug());
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

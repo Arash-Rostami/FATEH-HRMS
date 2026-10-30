@@ -37,7 +37,7 @@ class DmsResource extends Resource
         ['label' => 'بررسی', 'icon' => 'description', 'view' => 'filament.resources.dms.guide.overview'],
         ['label' => 'مالکیت و دسترسی', 'icon' => 'groups', 'view' => 'filament.resources.dms.guide.ownership'],
         ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.dms.guide.admin-ops'],
-        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'tab', 'view' => 'filament.resources.dms.guide.list-tabs'],
+        ['label' => 'زبانه‌ها و برچسب‌ها', 'icon' => 'tab', 'view' => 'filament.resources.dms.guide.list-tabs'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.dms.guide.user'],
     ];
 

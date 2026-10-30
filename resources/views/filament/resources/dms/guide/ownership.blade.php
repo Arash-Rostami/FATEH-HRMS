@@ -2,12 +2,12 @@
     $rows = [
         [
             'icon' => 'corporate_fare',
-            'label' => 'واحدهای مالک (owners)',
+            'label' => 'واحدهای مالک',
             'hint' => 'فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">owners</code> یک آرایهٔ JSON از کدهای واحد است. انتخاب «همه واحدها» مقدار ویژهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">ALL</code> را ذخیره می‌کند — این کلمهٔ کلیدی است، نه یک واحد واقعی. اسکوپ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">visibleToUser</code> با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">orWhereJsonContains(owners, ALL)</code> سند را به کل سازمان منتشر می‌کند.',
         ],
         [
             'icon' => 'person',
-            'label' => 'کاربران اختصاصی (users)',
+            'label' => 'کاربران اختصاصی',
             'hint' => 'فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">users</code> برای زمانی است که یک فرد خاص (بدون توجه به واحدش) باید سند را ببیند — مثلاً یک مدیر پروژه از واحد دیگر. این کاربران در کنار اعضای واحدهای مالک، سند را دریافت می‌کنند.',
         ],
         [
@@ -17,7 +17,7 @@
         ],
         [
             'icon' => 'groups',
-            'label' => 'فیلتر زبانهٔ فهرست بر اساس واحد',
+            'label' => 'فیلتر فهرست بر اساس واحد',
             'hint' => 'فیلتر «واحد سازمانی» در فهرست، با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">orWhereJsonContains</code> روی هر کد کار می‌کند و سندهای <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">ALL</code> را هم شامل می‌شود — یعنی فیلتر کردن روی واحد «مالی»، اسناد سراسری را هم می‌آورد.',
         ],
     ];
@@ -30,7 +30,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">مالکیت و دسترسی تعیین می‌کند سند به کی می‌رسد</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر سند با ترکیب «واحدهای مالک» + «کاربران اختصاصی» توزیع می‌شود. هیچ خروجی اعلانِ فعال نیست — سند به‌محض «فعال» شدن در کارتابل کاربران ظاهر می‌شود و وضعیت تأیید آنها در جدول <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">reads</code> ثبت می‌شود.
+        هر سند با ترکیب «واحدهای مالک» + «کاربران اختصاصی» توزیع می‌شود. اعلان خودکاری برای کاربران ارسال نمی‌شود — سند به‌محض «فعال» شدن در کارتابل کاربران ظاهر می‌شود و وضعیت تأیید آنها در جدول <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">reads</code> ثبت می‌شود.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

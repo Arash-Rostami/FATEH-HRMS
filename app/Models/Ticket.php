@@ -2,23 +2,27 @@
 
 namespace App\Models;
 
-use App\Enums\TicketError;
-use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
+use App\Filament\Resources\ThsResource\Enums\TicketPriority;
+use App\Filament\Resources\ThsResource\Enums\TicketStatus;
+use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasPublicAssetUrl;
 use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasReplies;
 use App\Models\Concerns\HasTicketCountHelpers;
 use App\Models\Concerns\HasTicketOptions;
+use App\Models\Concerns\HasUrgencyState;
 use App\Traits\CleansAttachedFiles;
 use BackedEnum;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Validation\ValidationException;
+use App\Models\Concerns\HasNotifyEvents;
+use App\Models\Concerns\Hooks\HasTicketHooks;
 
 class Ticket extends Model
 {
@@ -29,7 +33,10 @@ class Ticket extends Model
         HasTicketCountHelpers,
         HasTicketOptions,
         CleansAttachedFiles,
-        HasReminders;
+        HasReminders,
+        HasNotifyEvents,
+        HasUrgencyState,
+        HasTicketHooks;
 
     public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted'];
 
@@ -56,6 +63,8 @@ class Ticket extends Model
         'extra',
     ];
 
+    protected array $actionRecipientsMemo = [];
+
     public function assignee(): BelongsTo { return $this->belongsTo(User::class, 'assigned_to'); }
 
     public function effectiveTargetDepartment(): ?string
@@ -81,14 +90,32 @@ class Ticket extends Model
 
     public function currentActionRecipients(): Collection
     {
-        $target = $this->effectiveTargetDepartment();
-
-        return match (true) {
-            $this->status === 'open' => $target ? User::headsOfDepartment($target) : collect(),
+        return $this->actionRecipientsMemo[$this->actionRecipientsKey()] ??= match (true) {
+            $this->status === 'open' => $this->openActionRecipients(),
             $this->status === 'in-progress' => collect([$this->assignee])->filter(),
             $this->isAwaitingRating() => collect([$this->requester])->filter(),
             default => collect(),
         };
+    }
+
+    private function actionRecipientsKey(): string
+    {
+        return "{$this->status}:" . ($this->assigned_to ?? '-') . ':' . ($this->effectiveTargetDepartment() ?? '-') . ':' . (int) $this->isAwaitingRating();
+    }
+
+    private function openActionRecipients(): Collection
+    {
+        $target = $this->effectiveTargetDepartment();
+        $recipients = $target ? User::headsOfDepartment($target) : collect();
+
+        if ($recipients->isEmpty() && $target && Department::freeAssignment($target)) {
+            $recipients = User::whereIn('id', User::getCachedDepartmentOptions($target)->keys()->all())
+                ->get()
+                ->reject(fn($u) => $u->id === $this->requester_id)
+                ->values();
+        }
+
+        return $recipients;
     }
 
     public function isActionRecipient(User $user): bool
@@ -107,6 +134,30 @@ class Ticket extends Model
     {
         return once(fn() => collect(['PS', 'BS'])
             ->first(fn($dept) => User::headsOfDepartment($dept)->isNotEmpty()));
+    }
+
+    public static function notifyExcept(): array
+    {
+        return ['requester_files', 'assignee_files', 'attachment'];
+    }
+
+    public static function notifyFields(): array
+    {
+        return [
+            'extra.target_department' => 'department',
+            'extra.department' => 'department',
+            'status' => TicketStatus::class,
+            'priority' => TicketPriority::class,
+            'requester_id' => 'user',
+            'assigned_to' => 'user',
+            'effectiveness' => [
+                '5' => '★★★★★ — بسیار مؤثر',
+                '4' => '★★★★☆ — مؤثر',
+                '3' => '★★★☆☆ — خنثی',
+                '2' => '★★☆☆☆ — کم‌اثر',
+                '1' => '★☆☆☆☆ — بی‌اثر',
+            ],
+        ];
     }
 
     public function composeActionResultFromReplies(): string
@@ -145,13 +196,18 @@ class Ticket extends Model
     {
         $deptCode = $user->profile?->department_id;
         $isHead = $deptCode && $user->isHeadOfDepartment($deptCode);
+        $isFreeDept = $deptCode && $user->status === 'active' && $user->type !== UserType::Guest->value && Department::freeAssignment($deptCode);
 
-        return $query->where(function (Builder $q) use ($user, $isHead, $deptCode) {
+        return $query->where(function (Builder $q) use ($user, $isHead, $isFreeDept, $deptCode) {
             $q->where(fn(Builder $sq) => $sq->where('assigned_to', $user->id)->where('status', 'in-progress'))
                 ->orWhere(fn(Builder $sq) => $sq->awaitingRatingBy($user->id));
 
             if ($isHead) {
                 $q->orWhere(fn(Builder $sq) => $sq->where('status', 'open')->targetedAt($deptCode));
+            }
+
+            if ($isFreeDept) {
+                $q->orWhere(fn(Builder $sq) => $sq->where('status', 'open')->targetedAt($deptCode)->where('requester_id', '!=', $user->id));
             }
         });
     }
@@ -185,109 +241,6 @@ class Ticket extends Model
     protected function targetDepartment(): Attribute
     {
         return Attribute::make(get: fn(): ?Department => $this->targetDepartmentId ? Department::getCachedModels()->get($this->targetDepartmentId) : null);
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(function (Ticket $ticket) {
-            Task::syncingFromTicket(fn() => Task::where('ticket_id', $ticket->id)->get()->each->delete());
-            $ticket->replies->each->delete();
-            static::deleteStoredFiles($ticket->attachment);
-            static::deleteStoredFiles($ticket->requester_files, ['file']);
-            static::deleteStoredFiles($ticket->assignee_files, ['file']);
-        });
-
-        static::creating(function (Ticket $ticket) {
-            $extra = $ticket->extra ?? [];
-
-            if (empty($ticket->targetDepartmentId)) {
-                $extra['target_department'] = static::defaultTargetDepartment();
-            }
-
-            if (empty($extra['department']) && filled($ticket->requester_id)) {
-                $dept = Profile::where('user_id', $ticket->requester_id)->value('department_id');
-                if (filled($dept)) {
-                    $extra['department'] = $dept;
-                }
-            }
-
-            $ticket->extra = $extra;
-        });
-
-        static::updated(function (Ticket $ticket) {
-            if ($ticket->wasChanged('completion_deadline')) {
-                Task::syncingFromTicket(fn() => Task::where('ticket_id', $ticket->id)->first()?->update(['deadline' => $ticket->completion_deadline]));
-            }
-        });
-
-        static::saved(function (Ticket $ticket) {
-            if ($ticket->wasRecentlyCreated) return;
-
-            $syncs = $ticket->wasChanged(['assigned_to', 'priority']);
-            $closes = $ticket->wasChanged('status') && static::isClosingStatus($ticket->status);
-
-            if (!$syncs && !$closes) return;
-
-            $assign = app(AssignTicketAction::class);
-
-            if ($syncs) {
-                $assign->syncForAdmin($ticket, $ticket->assigned_to);
-            }
-
-            if ($closes) {
-                $assign->markLinkedTaskDone($ticket);
-            }
-        });
-
-        static::saving(function (Ticket $ticket) {
-            if ($ticket->exists && $ticket->isDirty('extra')) {
-                $ticket->extra = [...($ticket->getOriginal('extra') ?? []), ...($ticket->extra ?? [])];
-            }
-
-            if ($ticket->exists && $ticket->isDirty('status') && $ticket->getOriginal('status') === 'closed' && !static::isClosingStatus($ticket->status)) {
-                throw ValidationException::withMessages(['status' => 'تیکت بسته‌شده دوباره باز نمی‌شود.']);
-            }
-
-            if ($ticket->isDirty('assigned_to') && filled($ticket->assigned_to)) {
-                if (static::isClosingStatus($ticket->status)) {
-                    throw ValidationException::withMessages(['assigned_to' => 'امکان تغییر مسئول تیکت بسته‌شده وجود ندارد.']);
-                }
-
-                if (!$ticket->assignableUsers()->whereKey($ticket->assigned_to)->exists()) {
-                    throw ValidationException::withMessages(['assigned_to' => 'کاربر انتخاب‌شده متعلق به این واحد سازمانی نیست.']);
-                }
-            }
-
-            if ($ticket->exists && $ticket->isDirty('status') && $ticket->status === 'open') {
-                $ticket->assigned_to = null;
-            }
-
-            if ($ticket->isDirty('assigned_to') && !$ticket->isDirty('status')) {
-                if (blank($ticket->assigned_to) && $ticket->getOriginal('status') === 'in-progress') {
-                    $ticket->status = 'open';
-                } elseif (filled($ticket->assigned_to) && in_array($ticket->getOriginal('status'), ['open', null], true)) {
-                    $ticket->status = 'in-progress';
-                }
-            }
-
-            if (!$ticket->isDirty('status') || !static::isClosingStatus($ticket->status)) {
-                return;
-            }
-
-            $ticket->completion_date ??= now();
-
-            if ($ticket->action_result === static::WITHDRAWN_RESULT) {
-                return;
-            }
-
-            if (blank($ticket->effectiveness)) {
-                TicketError::EffectivenessRequired->throw();
-            }
-
-            if ($ticket->exists) {
-                $ticket->action_result = $ticket->composeActionResultFromReplies();
-            }
-        });
     }
 
     protected function casts(): array
@@ -356,88 +309,23 @@ class Ticket extends Model
         return Attribute::make(get: fn(): string => static::getCustomRequestAreaLabel($this->request_type, $this->request_area, $this->effectiveTargetDepartment()));
     }
 
-    protected function urgencyState(): Attribute
+    protected function urgencyExemptState(): ?array
     {
-        return Attribute::make(get: fn() => $this->calculateUrgencyState());
+        return $this->status === 'closed'
+            ? ['score' => 0.0, 'kind' => null, 'label' => null]
+            : null;
     }
 
-    protected function calculateUrgencyState(): array
+    protected function urgencyDeadline(): ?CarbonInterface
     {
-        if ($this->status === 'closed') {
-            return ['score' => 0.0, 'kind' => null, 'label' => null];
-        }
-
-        $today = now()->startOfDay();
-        $urgency = ['score' => 0.0, 'kind' => null, 'label' => null];
-
-        $urgency = $this->applyDeadlineUrgency($urgency, $today);
-        $urgency = $this->applyPriorityFloor($urgency);
-        $urgency = $this->applyIdleUrgency($urgency, $today);
-
-        $urgency['score'] = round($urgency['score'], 2);
-
-        return $urgency;
+        return $this->completion_deadline;
     }
 
-    protected function applyDeadlineUrgency(array $urgency, $today): array
+    protected function urgencyPriorityFloor(): float
     {
-        if (!$this->completion_deadline) {
-            return $urgency;
-        }
-
-        $due = clone $this->completion_deadline;
-        $due = $due->startOfDay();
-        $daysDiff = (int)$due->diffInDays($today, true);
-
-        if ($due->isBefore($today)) {
-            return ['score' => 1.0, 'kind' => 'overdue', 'label' => $daysDiff . ' روز تأخیر'];
-        }
-
-        if ($daysDiff <= 3) {
-            $label = match ($daysDiff) {
-                0 => 'امروز',
-                1 => 'فردا',
-                default => $daysDiff . ' روز دیگر',
-            };
-
-            return ['score' => 0.7, 'kind' => 'due', 'label' => $label];
-        }
-
-        return $urgency;
-    }
-
-    protected function applyPriorityFloor(array $urgency): array
-    {
-        $floor = match ($this->priority) {
+        return match ($this->priority) {
             'high' => 0.55,
             default => 0.0,
         };
-
-        $urgency['score'] = max($urgency['score'], $floor);
-
-        return $urgency;
-    }
-
-    protected function applyIdleUrgency(array $urgency, $today): array
-    {
-        if (!$this->updated_at) {
-            return $urgency;
-        }
-
-        $updatedAt = clone $this->updated_at;
-        $idleDays = (int)$updatedAt->startOfDay()->diffInDays($today, true);
-
-        if ($idleDays >= 7) {
-            $urgency['score'] = max($urgency['score'], 0.45);
-        } elseif ($idleDays >= 3) {
-            $urgency['score'] = max($urgency['score'], 0.22);
-        } else {
-            return $urgency;
-        }
-
-        $urgency['kind'] ??= 'idle';
-        $urgency['label'] ??= 'چند روز بی‌تغیر';
-
-        return $urgency;
     }
 }

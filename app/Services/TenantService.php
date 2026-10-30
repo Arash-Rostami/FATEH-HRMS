@@ -138,6 +138,19 @@ final class TenantService
         return $this->memo[$primary . '|' . $header] ??= $this->build($primary, $header);
     }
 
+    public function mailPalette(): array
+    {
+        $primary = $this->normalize((string)config('app.theme_primary')) ?? self::DEFAULT_PRIMARY;
+        $container = $this->mix($primary, 0.18, 255);
+
+        return [
+            'primary' => $primary,
+            'on_primary' => $this->contrast($primary),
+            'container' => $container,
+            'on_container' => $this->mix($primary, 0.8, 0),
+        ];
+    }
+
     private function word(string $word): string
     {
         $word = str_replace(['-', '_'], '', strtolower($word));

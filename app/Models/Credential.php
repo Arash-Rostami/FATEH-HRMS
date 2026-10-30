@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUser;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Crypt;
 
 class Credential extends Model
 {
-    use HasFactory;
+    use HasUser,
+        HasFactory;
 
     protected $table = 'credentials';
 
@@ -23,11 +24,6 @@ class Credential extends Model
         'link',
         'note',
     ];
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
 
     protected function password(): Attribute
     {

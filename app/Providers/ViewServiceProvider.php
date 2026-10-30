@@ -7,6 +7,7 @@ use App\View\Composers\ErrorTraceComposer;
 use App\View\Composers\MenuStateComposer;
 use App\View\Composers\ModuleAssetChunksComposer;
 use App\View\Composers\ModuleChunkComposer;
+use App\View\Composers\NavUnreadComposer;
 use App\View\Composers\OccasionComposer;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -31,5 +32,10 @@ class ViewServiceProvider extends ServiceProvider
         View::composer('components.dashboard.modal.occasion', OccasionComposer::class);
 
         View::composer('components.dashboard.module-chunks', ModuleAssetChunksComposer::class);
+
+        View::composer([
+            'components.dashboard.navbars.top',
+            'components.dashboard.navbars.top.notification',
+        ], NavUnreadComposer::class);
     }
 }

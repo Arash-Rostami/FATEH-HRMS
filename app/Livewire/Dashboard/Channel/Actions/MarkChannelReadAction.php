@@ -6,6 +6,7 @@ use App\Jobs\ReconcileEdge;
 use App\Jobs\ReconcileNudge;
 use App\Models\Channel;
 use App\Models\ChannelMessage;
+use App\Services\Cache\ModelCacheVersion;
 use App\Services\Menu\NudgeService;
 use App\Services\Messaging\PollDigestService;
 use Illuminate\Support\Facades\DB;
@@ -43,6 +44,7 @@ class MarkChannelReadAction
         });
 
         if ($changed) {
+            ModelCacheVersion::bump("channel-read:{$userId}");
             NudgeService::refreshBell();
 
             DB::afterCommit(function () use ($channelId, $userId) {

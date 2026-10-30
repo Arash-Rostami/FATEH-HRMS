@@ -20,7 +20,6 @@ use App\Services\ProjectTask\TaskMetrics;
 use App\Services\ProjectTask\UpdateTaskStatusAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\UnarchiveTaskAction;
 use App\Support\TaskAccessPolicy;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
@@ -172,17 +171,9 @@ class Kanban extends Component
             ->when($this->kanbanDeadlineFilter !== '', fn(Builder $q) => $q
                 ->whereNotNull('deadline')
                 ->where('status', '!=', TaskStatus::Done->value)
-                ->tap($this->kanbanDeadlineFilterScope()))
+                ->tap(TaskMetrics::deadlineFilterScope($this->kanbanDeadlineFilter)))
             ->when($this->kanbanPriorityFilter !== '', fn(Builder $q) => $q->where('priority', $this->kanbanPriorityFilter))
-            ->when(!empty($this->kanbanLabelFilter), function (Builder $q) {
-                foreach ($this->kanbanLabelFilter as $label) {
-                    $canonical = str_replace(['ي', 'ك'], ['ی', 'ک'], $label);
-                    $variant = str_replace(['ی', 'ک'], ['ي', 'ك'], $canonical);
-                    $q->where(fn(Builder $sub) => $sub
-                        ->whereJsonContains('labels', $canonical)
-                        ->orWhereJsonContains('labels', $variant));
-                }
-            })
+            ->when(!empty($this->kanbanLabelFilter), fn(Builder $q) => $q->labelFilter($this->kanbanLabelFilter))
             ->when(
                 $this->kanbanResponsibleFilter || $this->kanbanDepartmentFilter || $this->kanbanSchemeFilter !== '' || $this->kanbanUnitFilter || $this->kanbanSectionFilter,
                 fn(Builder $q) => $q->whereHas('detail', fn(Builder $dq) => $dq
@@ -199,19 +190,6 @@ class Kanban extends Component
     private function visibleTasks(): Builder
     {
         return Task::visibleTo(auth()->user())->where('project_id', $this->activeProjectId);
-    }
-
-    private function kanbanDeadlineFilterScope(): callable
-    {
-        return match ($this->kanbanDeadlineFilter) {
-            'overdue' => fn(Builder $q) => TaskMetrics::overdue($q),
-            'today' => fn(Builder $q) => $q->whereDate('deadline', now()->toDateString()),
-            'week' => fn(Builder $q) => $q->whereBetween('deadline', [
-                now()->startOfWeek(Carbon::SATURDAY),
-                now()->startOfWeek(Carbon::SATURDAY)->addDays(6)->endOfDay(),
-            ]),
-            default => fn(Builder $q) => $q,
-        };
     }
 
     #[Computed]

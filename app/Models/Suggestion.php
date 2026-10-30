@@ -6,14 +6,16 @@ use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasStageHelpers;
 use App\Models\Concerns\HasSuggestionAlert;
+use App\Models\Concerns\HasUser;
+use App\Models\Concerns\Hooks\HasSuggestionHooks;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Concerns\HasNotifyEvents;
 
 
 class Suggestion extends Model
@@ -23,7 +25,10 @@ class Suggestion extends Model
         HasReminders,
         HasStageHelpers,
         HasSuggestionAlert,
-        CleansAttachedFiles;
+        CleansAttachedFiles,
+        HasNotifyEvents,
+        HasUser,
+        HasSuggestionHooks;
 
 
     public const PURPOSES = [
@@ -137,9 +142,12 @@ class Suggestion extends Model
         ]);
     }
 
-    public function user(): BelongsTo
+    public static function notifyFields(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'stage' => \App\Filament\Resources\SuggestionResource\Enums\SuggestionStage::class,
+            'priority' => ['low' => 'کم', 'medium' => 'متوسط', 'high' => 'زیاد'],
+        ];
     }
 
     protected function casts(): array
@@ -158,10 +166,5 @@ class Suggestion extends Model
         return Attribute::make(
             set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
         );
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(fn(self $suggestion) => static::deleteStoredFiles($suggestion->attachment));
     }
 }

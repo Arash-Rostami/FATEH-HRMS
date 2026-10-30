@@ -367,8 +367,9 @@ class TaskBoardPresenter
                 : (($task['is_delegator'] || $frozen) && !$isArchived ? ['view', 'wire:click', "viewTask($taskId)", 'مشاهده', 'visibility', 'neu'] : null))
             : ['open', 'x-on:click', "Livewire.dispatch('project-open-task', { taskId: $taskId })", $mayEdit ? 'ویرایش' : 'مشاهده', $mayEdit ? 'edit' : 'visibility', $mayEdit ? 'pri' : 'neu'];
 
-        $canArchive = $isPersonalBoard && $task['can_delete'];
-        $canDelete = $canArchive && !$frozen;
+        $canArchive = $isPersonalBoard && ($task['can_delete'] || ($ticketId
+            && in_array(auth()->id(), [$task['user_id'], $task['assigned_to']], true)));
+        $canDelete = $isPersonalBoard && $task['can_delete'] && !$frozen;
 
         $rail = array_values(array_filter([
             $card['canApprove'] ? ['approve', 'wire:click', "approveTask($taskId)", 'تأیید وظیفه', 'task_alt', 'ter', true] : null,
@@ -381,10 +382,10 @@ class TaskBoardPresenter
                 ? ['duplicate', $isPersonalBoard ? 'wire:click' : 'x-on:click', $isPersonalBoard ? "duplicateTask($taskId)" : "Livewire.dispatch('project-duplicate-task', { taskId: $taskId })", 'تکثیر', 'copy_all', 'neu']
                 : null,
             ['k' => 'copy', 'show' => true],
-            $canArchive && $task['status'] === 'done' && !$isArchived && !$ticketId && !$card['isPendingApproval'] ? ['archive', 'wire:click', "archiveTask($taskId)", 'آرشیو', 'archive', 'neu'] : null,
+            $canArchive && $task['status'] === 'done' && !$isArchived && !$card['isPendingApproval'] ? ['archive', 'wire:click', "archiveTask($taskId)", 'آرشیو', 'archive', 'neu'] : null,
             $canArchive && $isArchived ? ['unarchive', 'wire:click', "unarchiveTask($taskId)", 'خروج از آرشیو', 'unarchive', 'ut'] : null,
             $isPersonalBoard && $task['is_delegator'] && $column !== 'done' && !$ticketId ? ['undo', 'wire:click', "undoAssignment($taskId)", 'لغو واگذاری', 'undo', 'neu'] : null,
-            $canDelete && !$ticketId && !$isArchived ? ['delete', 'x-on:click', confirmDialog('deleteTask', 'حذف وظیفه', 'این وظیفه حذف خواهد شد. مطمئن هستید؟', $taskId), 'حذف', 'delete', 'err'] : null,
+            $canDelete && !$ticketId && !$isArchived ? ['delete', 'x-on:click', confirmDialog('deleteTask', 'حذف وظیفه', 'این وظیفه حذف خواهد شد. مطمئن هستید؟', $taskId, 'dispatch', 'danger'), 'حذف', 'delete', 'err'] : null,
             ['k' => 'reminder', 'show' => $isPersonalBoard],
         ]));
 

@@ -22,12 +22,12 @@ class EventSharesRelationManager extends RelationManager
 
     public static function getPluralModelLabel(): string
     {
-        return 'اشتراک‌های رویداد';
+        return 'اشتراک‌گذاری‌های رویداد';
     }
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return 'اشتراک‌های این رویداد';
+        return 'اشتراک‌گذاری‌های این رویداد';
     }
 
     public function isReadOnly(): bool
@@ -70,13 +70,13 @@ class EventSharesRelationManager extends RelationManager
             ])
             ->recordActions([
                 Action::make('revoke')
-                    ->label('لغو اشتراک')
+                    ->label('لغو اشتراک‌گذاری')
                     ->icon('heroicon-o-x-mark')
                     ->iconButton()
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('لغو اشتراک؟')
-                    ->modalDescription('این اشتراک برای کاربر گیرنده لغو می‌شود.')
+                    ->modalHeading('لغو اشتراک‌گذاری؟')
+                    ->modalDescription('این رویداد دیگر برای کاربر گیرنده نمایش داده نمی‌شود.')
                     ->visible(fn() => EventResource::canDeleteAny())
                     ->action(fn(Model $record) => $record->delete()),
             ], RecordActionsPosition::AfterCells)

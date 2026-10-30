@@ -234,7 +234,7 @@
                                     type="button"
                                     wire:key="grid-cancel-button"
                                     x-data
-                                    @click="{{ confirmDialog('cancel', $reservation->cancel_warning ? 'لغو سری تکرارشونده' : 'لغو رزرو', $reservation->cancel_warning ?? 'آیا از لغو این رزرو اطمینان دارید؟', $reservation->id) }}"
+                                    @click="{{ confirmDialog('cancel', $reservation->cancel_warning ? 'لغو سری تکرارشونده' : 'لغو رزرو', $reservation->cancel_warning ?? 'آیا از لغو این رزرو اطمینان دارید؟', $reservation->id, 'dispatch', 'danger') }}"
                                     class="p-2 rounded-xl text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] transition-colors inline-flex"
                                     title="لغو رزرو">
                                     <span class="material-symbols-rounded text-[20px]">delete</span>

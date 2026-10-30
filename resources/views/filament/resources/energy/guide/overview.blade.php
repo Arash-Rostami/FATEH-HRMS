@@ -8,8 +8,8 @@
 
     $rows = [
         ['icon' => 'trending_down', 'color' => 'error', 'label' => 'امتیاز بالاتر یعنی فرسودگی بیشتر', 'text' => 'این پرسشنامه سنجهٔ فرسودگی است، نه انرژی. هر گزینهٔ انتخابی یک «بله» محسوب می‌شود و امتیازِ بالاتر یعنی وضعیت بدتر. امتیاز کلی از ' . convertToPersian('0') . ' تا ' . convertToPersian('16') . ' است؛ ' . convertToPersian('12') . ' به‌ بالا در زبانهٔ «پرخطر» و زیر ' . convertToPersian('9') . ' در زبانهٔ «مطلوب» قرار می‌گیرد.'],
-        ['icon' => 'event_repeat', 'color' => 'primary', 'label' => 'دورهٔ خنک‌سازی ' . convertToPersian('25') . ' روزه', 'text' => 'پس از تکمیل، کاربر تا ' . convertToPersian('25') . ' روز نمی‌تواند پرسشنامهٔ تازه ثبت کند. این قفل سمت سرور با lockForUpdate در یک تراکنش بررسی می‌شود، نه فقط پنهان‌سازی فرم.'],
-        ['icon' => 'event', 'color' => 'tertiary', 'label' => 'بانک پرسش‌های چرخشی ماهانه', 'text' => 'برای هر بعد، ' . convertToPersian('12') . ' مجموعهٔ متفاوت پرسش وجود دارد که بر اساس ماه شمسی (اندیس ' . convertToPersian('0') . ' تا ' . convertToPersian('11') . ') انتخاب می‌شود. همین پرسش در یک ماه برای همهٔ کاربران یکسان است.'],
+        ['icon' => 'event_repeat', 'color' => 'primary', 'label' => 'فاصلهٔ ثبت ' . convertToPersian('25') . ' روزه', 'text' => 'پس از تکمیل، کاربر تا ' . convertToPersian('25') . ' روز نمی‌تواند پرسشنامهٔ تازه ثبت کند. این محدودیت در خود سیستم بررسی می‌شود، نه فقط با پنهان‌کردن فرم.'],
+        ['icon' => 'event', 'color' => 'tertiary', 'label' => 'بانک پرسش‌های ماهانه', 'text' => 'برای هر بعد، ' . convertToPersian('12') . ' مجموعهٔ متفاوت پرسش وجود دارد که بر اساس ماه شمسی (شمارهٔ ' . convertToPersian('0') . ' تا ' . convertToPersian('11') . ') انتخاب می‌شود. همین پرسش در یک ماه برای همهٔ کاربران یکسان است.'],
     ];
 @endphp
 
@@ -20,7 +20,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">پرسشنامهٔ انرژی، یک سنجهٔ ماهانهٔ فرسودگی در چهار بعد است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        کاربران پرسشنامه را از پنل خودشان در صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/energy</code> تکمیل می‌کنند. شما (ادمین) در این صفحه فقط نظارت می‌کنید — ثبت پاسخ از طرف ادمین ممکن نیست. هر ردیف این جدول یک پاسخنامهٔ تکمیل‌شدهٔ یک کاربر است.
+        کاربران پرسشنامه را از پنل خودشان در صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/energy</code> تکمیل می‌کنند. شما (ادمین) در این صفحه فقط نظارت می‌کنید — ثبت پاسخ از طرف ادمین ممکن نیست. هر ردیف این جدول یک پاسخ‌نامهٔ تکمیل‌شدهٔ یک کاربر است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -58,7 +58,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">insights</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">نکته‌های غیر بدیهی</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">نکته‌های مهم</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($rows as $row)

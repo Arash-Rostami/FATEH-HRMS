@@ -33,6 +33,19 @@ class TaskMetrics
         return self::active($query, $table)->where($table . 'deadline', '<', now()->startOfDay());
     }
 
+    public static function deadlineFilterScope(string $filter): callable
+    {
+        return match ($filter) {
+            'overdue' => fn(EloquentBuilder $q) => self::overdue($q),
+            'today' => fn(EloquentBuilder $q) => $q->whereDate('deadline', now()->toDateString()),
+            'week' => fn(EloquentBuilder $q) => $q->whereBetween('deadline', [
+                now()->startOfWeek(Carbon::SATURDAY),
+                now()->startOfWeek(Carbon::SATURDAY)->addDays(6)->endOfDay(),
+            ]),
+            default => fn(EloquentBuilder $q) => $q,
+        };
+    }
+
     public static function dueSoon(EloquentBuilder|Builder $query, string $table = ''): EloquentBuilder|Builder
     {
         return self::active($query, $table)->whereBetween($table . 'deadline', [

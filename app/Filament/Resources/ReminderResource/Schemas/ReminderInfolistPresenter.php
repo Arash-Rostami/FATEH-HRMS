@@ -31,6 +31,10 @@ class ReminderInfolistPresenter
                     $labels[] = __('resources/reminder/strings.channels.email');
                 }
 
+                if (in_array('sms', $channels, true)) {
+                    $labels[] = __('resources/reminder/strings.channels.sms');
+                }
+
                 foreach (['badge', 'nudge', 'edge'] as $signal) {
                     if (Reminder::channelEnabled($channels, $signal)) {
                         $labels[] = __('resources/reminder/strings.channels.' . $signal);

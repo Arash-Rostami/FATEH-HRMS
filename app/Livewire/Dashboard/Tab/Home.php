@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Lazy]
@@ -48,6 +49,13 @@ class Home extends Component
     public function loadMoreTeam(): void
     {
         $this->teamShowCount += 10;
+    }
+
+    #[On('home-stats-changed')]
+    #[On('reminder-changed')]
+    public function refreshStats(): void
+    {
+        TabPresenter::forgetStats();
     }
 
     public function updatedTeamSearch(): void

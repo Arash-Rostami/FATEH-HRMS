@@ -54,12 +54,6 @@ class TimeSlotPresenter
             return ['states' => [], 'first' => null];
         }
 
-        $today = Carbon::parse($date)->startOfDay();
-
-        if (! $today->isSameDay(Carbon::now()->startOfDay())) {
-            return ['states' => array_fill_keys($slots, 'ok'), 'first' => $slots[0]];
-        }
-
         $now = Carbon::now();
         $cutoff = $now->copy()->addHours($minNoticeHours ?? 0);
         $states = [];

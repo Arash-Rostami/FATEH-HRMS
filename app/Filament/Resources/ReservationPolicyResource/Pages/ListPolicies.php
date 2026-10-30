@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ReservationPolicyResource\Pages;
 
 use App\Filament\Resources\ReservationPolicyResource;
+use App\Filament\Resources\ReservationResource;
 use App\Traits\FilamentHeaderActions;
 use App\Filament\Pages\ListRecords;
 
@@ -14,6 +15,6 @@ class ListPolicies extends ListRecords
 
     protected function listHeaderActions(): array
     {
-        return [ReservationPolicyResource::setupGuideAction()];
+        return [...ReservationResource::switchActions(static::$resource), ReservationPolicyResource::setupGuideAction()];
     }
 }

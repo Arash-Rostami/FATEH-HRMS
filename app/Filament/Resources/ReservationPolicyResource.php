@@ -31,10 +31,15 @@ class ReservationPolicyResource extends Resource
 
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.policy.guide.overview'],
-        ['label' => 'کلیدها', 'icon' => 'key', 'view' => 'filament.resources.policy.guide.keys'],
-        ['label' => 'قطع‌کننده', 'icon' => 'power_settings_new', 'view' => 'filament.resources.policy.guide.killswitch'],
+        ['label' => 'تنظیم‌ها', 'icon' => 'key', 'view' => 'filament.resources.policy.guide.keys'],
+        ['label' => 'روشن/خاموش کردن نوع', 'icon' => 'power_settings_new', 'view' => 'filament.resources.policy.guide.killswitch'],
         ['label' => 'خطاها', 'icon' => 'error', 'view' => 'filament.resources.policy.guide.errors'],
     ];
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return ! ReservationResource::canViewAny() && ! tenantOffName(static::getSlug());
+    }
 
     public static function canCreate(): bool
     {

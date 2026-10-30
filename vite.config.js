@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/core/filament.css',
                 'resources/js/app.js',
+                'resources/js/auth.js',
                 'resources/js/core/filament.js',
 
                 'resources/js/core/theme-manager.js',

@@ -198,7 +198,7 @@
                 </button>
                 @if(!$isOwner)
                     <button type="button"
-                            x-on:click="open = false; {{ confirmDialog('leaveChannel', 'خروج از گروه', 'از این گروه خارج می‌شوید؟', $header['id']) }}"
+                            x-on:click="open = false; {{ confirmDialog('leaveChannel', 'خروج از گروه', 'از این گروه خارج می‌شوید؟', $header['id'], 'dispatch', 'danger') }}"
                             class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--md-sys-color-error)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)]">
                         <span class="material-symbols-rounded text-[16px]">logout</span>
                         <span>خروج از گروه</span>
@@ -209,7 +209,7 @@
 
         @if(!$isOwner)
             <button type="button"
-                    x-on:click="{{ confirmDialog('leaveChannel', 'خروج از گروه', 'از این گروه خارج می‌شوید؟', $header['id']) }}"
+                    x-on:click="{{ confirmDialog('leaveChannel', 'خروج از گروه', 'از این گروه خارج می‌شوید؟', $header['id'], 'dispatch', 'danger') }}"
                     aria-label="خروج از گروه"
                     title="خروج از گروه"
                     class="h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] hover:shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] active:scale-95"

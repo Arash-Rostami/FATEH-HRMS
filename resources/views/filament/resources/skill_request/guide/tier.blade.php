@@ -13,42 +13,42 @@
         [
             'key' => 'endorsed',
             'icon' => 'military_tech',
-            'label' => 'تأییدشده (Endorsed)',
-            'hint' => 'حداقل ' . $d4 . ' تأیید همکار. بالاترین سطح — نشانِ طلایی. ترتیب در فهرست بالاتر از «فعال».',
+            'label' => 'تأییدشده',
+            'hint' => 'حداقل ' . $d4 . ' تأیید همکار. بالاترین سطح — با نشان طلایی. در فهرست بالاتر از «فعال» می‌آید.',
         ],
         [
             'key' => 'active',
             'icon' => 'bolt',
-            'label' => 'فعال (Active)',
-            'hint' => 'استفاده در ' . $d90 . ' روز اخیر (last_used_at). حتی با کمتر از ' . $d4 . ' تأیید هم فعال است.',
+            'label' => 'فعال',
+            'hint' => 'استفاده در ' . $d90 . ' روز اخیر. حتی با کمتر از ' . $d4 . ' تأیید هم فعال است.',
         ],
         [
             'key' => 'unused',
             'icon' => 'hourglass_empty',
-            'label' => 'آماده مشارکت (Unused)',
+            'label' => 'آمادهٔ مشارکت',
             'hint' => 'نه ' . $d4 . ' تأیید رسانده و نه در ' . $d90 . ' روز اخیر استفاده شده — پایین‌ترین سطح.',
         ],
     ];
     $rules = [
         [
             'icon' => 'rule',
-            'label' => 'آستانه vs سقف اشباع',
-            'hint' => 'آستانهٔ تأیید ' . $d1 . ' است (isEndorsed) ولی سقفِ سطحِ «تأییدشده» ' . $d4 . ' است (ENDORSEMENT_SATURATION_CAP). مهارتی با ' . $d1 . ' تا ' . $d4 . ' تأیید در سطحِ «فعال» می‌ماند — فقط ' . $d4 . ' تأیید به بالا سطحِ بالا می‌آورد.',
+            'label' => 'تفاوت «تأیید یک همکار» با سطح «تأییدشده»',
+            'hint' => 'مهارت با ' . $d1 . ' تأیید همکار، «تأییدشده» حساب می‌شود، اما برای رسیدن به سطح «تأییدشده» در جدول ' . $d4 . ' تأیید لازم است. مهارتی با ' . $d1 . ' تا ' . $d4 . ' تأیید در سطح «فعال» می‌ماند — فقط ' . $d4 . ' تأیید به بالا، سطح را بالا می‌برد.',
         ],
         [
             'icon' => 'hourglass_top',
-            'label' => 'کم‌فعالیت (Dormant)',
-            'hint' => 'پرچمی جدا از سطح‌ها — فقط روی ردیفِ «تأییدشده»ای که در ' . $d90 . ' روز اخیر استفاده نشده فعال می‌شود. «فعال» به‌تعریفِ اخیراً استفاده‌شده است و «آماده مشارکت» خودش عدمِ استفاده را می‌رساند، پس این پرچم فقط برای «تأییدشده» معنی دارد.',
+            'label' => 'کم‌فعالیت',
+            'hint' => 'نشانی جدا از سطح‌ها — فقط روی ردیفِ «تأییدشده»ای که در ' . $d90 . ' روز اخیر استفاده نشده فعال می‌شود. «فعال» به‌تعریفِ اخیراً استفاده‌شده است و «آماده مشارکت» خودش عدمِ استفاده را می‌رساند، پس این پرچم فقط برای «تأییدشده» معنی دارد.',
         ],
         [
             'icon' => 'groups',
             'label' => 'برچسبِ تأیید همکاران',
-            'hint' => 'بدون تأیید / تأیید یک همکار / تأیید N همکار (از ' . $d4 . ') / تأیید N همکار. ستونِ endorsements_count پیش‌فرض پنهان است؛ از تنظیمات ستون بازش کنید.',
+            'hint' => 'بدون تأیید / تأیید یک همکار / تأیید چند همکار (از ' . $d4 . ') / تأیید چند همکار. ستون «تأیید همکاران» از ابتدا پنهان است؛ از منوی ستون‌ها نمایشش دهید.',
         ],
         [
             'icon' => 'verified_user',
             'label' => 'فقط برای تأییدشده‌ها',
-            'hint' => 'ستونِ سطح فقط برای درخواست‌های Approved محاسبه می‌شود؛ ردیفِ «در حال بررسی» و «رد شده» خط تیره نشان می‌دهد — نه نشانِ «آماده مشارکت» — تا خواننده فکر نکند بررسی و رد شده است.',
+            'hint' => 'ستون سطح فقط برای درخواست‌های تایید شده محاسبه می‌شود؛ درخواست «در حال بررسی» و «رد شده» خط تیره نشان می‌دهد — نه «آمادهٔ مشارکت» — تا کسی فکر نکند آن مهارت بررسی یا رد شده است.',
         ],
     ];
 @endphp
@@ -60,13 +60,13 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">سطحِ مهارت فقط برای تأییدشده‌ها محاسبه می‌شود — از تأییدِ همکاران و استفادهٔ اخیر</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        ستونِ «سطح» در جدول، سه حالت دارد که از endorsements_count و last_used_at مشتق می‌شود — هیچ‌جا ذخیره نمی‌شود. روی هر ستونِ سطح در جدول، راهنمای کوچک (tooltip) همان آستانه‌ها را نشان می‌دهد.
+        ستون «سطح» در جدول سه حالت دارد که از تعداد تأیید همکاران و زمان آخرین استفاده محاسبه می‌شود و جایی ذخیره نمی‌شود. با نگه داشتن نشانگر روی هر سطح، راهنمای کوچکی همین شرایط را نشان می‌دهد.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">leaderboard</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">سه سطح و پیشینیِ آنها</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">سه سطح و اولویت آن‌ها</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($tiers as $t)
@@ -86,7 +86,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                پیشینی: «تأییدشده» ({{ $d4 }}+) بر «فعال» بر «آماده مشارکت» — اول شمارشِ تأیید تصمیم می‌گیرد، سپس استفادهٔ اخیر.
+                اولویت: «تأییدشده» ({{ $d4 }}+) بر «فعال» بر «آماده مشارکت» — اول شمارشِ تأیید تصمیم می‌گیرد، سپس استفادهٔ اخیر.
             </p>
         </div>
     </div>
@@ -94,7 +94,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">rule</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">قواعدِ سطح‌بندی</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">قواعد سطح‌بندی</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($rules as $r)

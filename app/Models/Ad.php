@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasNotifyEvents;
 
 class Ad extends Model
 {
     use HasActive,
         HasMenuState,
-        HasFactory;
+        HasFactory,
+        HasNotifyEvents;
 
     protected $table = 'ads';
 
@@ -83,6 +85,11 @@ class Ad extends Model
                 default => ['icon' => 'group', 'color' => 'green', 'title' => 'همه'],
             }
         );
+    }
+
+    public static function notifyFields(): array
+    {
+        return ['gender' => \App\Filament\Resources\AdResource\Enums\AdGender::class];
     }
 
     protected function casts(): array

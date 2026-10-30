@@ -12,10 +12,56 @@ export default function reservationTimeRail(slots, busyIdx, nowIdx, startIdx, en
 
         _rectCache: null,
         _raf: null,
+        _pending: 0,
+        _unwatch: [],
+
+        init() {
+            if (typeof this.$wire?.$watch !== 'function') return;
+
+            const sync = () => this._syncFromServer();
+            this._unwatch = [this.$wire.$watch('startTime', sync), this.$wire.$watch('endTime', sync)];
+        },
+
+        destroy() {
+            this._unwatch.forEach(u => typeof u === 'function' && u());
+            this._unwatch = [];
+        },
+
+        _send(method, slot) {
+            this._pending++;
+            Promise.resolve(this.$wire[method](slot)).catch(() => {}).finally(() => {
+                this._pending--;
+                this._syncFromServer();
+            });
+        },
+
+        _syncFromServer() {
+            if (this.dragging || this._pending > 0 || typeof this.$wire?.get !== 'function') return;
+
+            const s = this.slots.indexOf(this.$wire.get('startTime'));
+            const e = this.slots.indexOf(this.$wire.get('endTime'));
+
+            if (s === -1 || e === -1 || s >= e) return;
+
+            this.startIdx = s;
+            this.endIdx = e;
+        },
 
         get _len() {
             const l = this.slots.length;
             return l > 1 ? l - 1 : 1;
+        },
+
+        get _last() {
+            return Math.max(this.slots.length - 1, 0);
+        },
+
+        _clampStart(i) {
+            return Math.max(0, Math.min(i, this.endIdx - 1));
+        },
+
+        _clampEnd(i) {
+            return Math.min(this._last, Math.max(i, this.startIdx + 1));
         },
 
         pct(i) {
@@ -97,11 +143,11 @@ export default function reservationTimeRail(slots, busyIdx, nowIdx, startIdx, en
             const absEnd = dEnd < 0 ? -dEnd : dEnd;
 
             if (absStart <= absEnd) {
-                const next = i < this.endIdx ? i : this.endIdx;
+                const next = this._clampStart(i);
                 if (this.startIdx !== next) this.startIdx = next;
                 this.dragging = 'start';
             } else {
-                const next = i > this.startIdx ? i : this.startIdx;
+                const next = this._clampEnd(i);
                 if (this.endIdx !== next) this.endIdx = next;
                 this.dragging = 'end';
             }
@@ -125,10 +171,10 @@ export default function reservationTimeRail(slots, busyIdx, nowIdx, startIdx, en
                 const i = Math.round(ratio * this._len);
 
                 if (this.dragging === 'start') {
-                    const next = i < this.endIdx ? i : this.endIdx;
+                    const next = this._clampStart(i);
                     if (this.startIdx !== next) this.startIdx = next;
                 } else {
-                    const next = i > this.startIdx ? i : this.startIdx;
+                    const next = this._clampEnd(i);
                     if (this.endIdx !== next) this.endIdx = next;
                 }
             });
@@ -143,33 +189,29 @@ export default function reservationTimeRail(slots, busyIdx, nowIdx, startIdx, en
             const which = this.dragging;
             this.dragging = null;
 
+            if (this.startIdx >= this.endIdx) return;
+
             if (which === 'start') {
-                this.$wire.setStartTime(this.slots[this.startIdx]);
+                this._send('setStartTime', this.slots[this.startIdx]);
             } else {
-                this.$wire.setEndTime(this.slots[this.endIdx]);
+                this._send('setEndTime', this.slots[this.endIdx]);
             }
         },
 
         nudge(handle, delta) {
-            const len = this._len;
-
             if (handle === 'start') {
-                let next = this.startIdx + delta;
-                if (next < 0) next = 0;
-                if (next > this.endIdx) next = this.endIdx;
+                const next = this._clampStart(this.startIdx + delta);
 
                 if (this.startIdx !== next) {
                     this.startIdx = next;
-                    this.$wire.setStartTime(this.slots[next]);
+                    this._send('setStartTime', this.slots[next]);
                 }
             } else {
-                let next = this.endIdx + delta;
-                if (next > len) next = len;
-                if (next < this.startIdx) next = this.startIdx;
+                const next = this._clampEnd(this.endIdx + delta);
 
                 if (this.endIdx !== next) {
                     this.endIdx = next;
-                    this.$wire.setEndTime(this.slots[next]);
+                    this._send('setEndTime', this.slots[next]);
                 }
             }
         }

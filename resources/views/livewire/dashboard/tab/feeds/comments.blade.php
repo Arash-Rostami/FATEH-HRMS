@@ -216,7 +216,7 @@
                                     </button>
 
                                     <button
-                                        @click="{{ confirmDialog('delete-comment-confirmed', 'حذف نظر', 'آیا از حذف این نظر مطمئن هستید؟ این عملیات غیرقابل بازگشت است.', $comment->id, 'js') }}"
+                                        @click="{{ confirmDialog('delete-comment-confirmed', 'حذف نظر', 'آیا از حذف این نظر مطمئن هستید؟ این عملیات غیرقابل بازگشت است.', $comment->id, 'js', 'danger') }}"
                                         class="p-1.5 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] rounded-full transition-colors"
                                     >
                                         <span class="material-symbols-rounded !text-[13px]">delete</span>

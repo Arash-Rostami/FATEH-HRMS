@@ -45,6 +45,6 @@ class CredentialExporter extends Exporter
     {
         $count = number_format($export->successful_rows);
 
-        return "خروجی {$count} مورد از اطلاعات ورود با موفقیت آماده شد.";
+        return "خروجی {$count} مورد اطلاعات ورود با موفقیت آماده شد.";
     }
 }

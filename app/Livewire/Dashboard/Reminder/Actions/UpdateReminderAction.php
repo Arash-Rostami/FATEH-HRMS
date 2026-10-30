@@ -16,12 +16,14 @@ class UpdateReminderAction
 
         $form->validate();
 
+        $dueAt = $this->resolveDueAt($form);
+
         return $reminder->update([
             'title' => trim($form->title),
             'notes' => $form->notes !== '' ? trim($form->notes) : null,
-            'due_at' => $this->resolveDueAt($form),
+            'due_at' => $dueAt,
             'recurs' => $form->recurs,
             'channels' => $form->toChannels(),
-        ]);
+        ] + ($dueAt?->eq($reminder->due_at) ? [] : ['notified_at' => null]));
     }
 }

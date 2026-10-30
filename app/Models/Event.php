@@ -2,23 +2,27 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUser;
 use App\Models\Concerns\HasCountdown;
 use App\Models\Concerns\HasMenuState;
-use App\Services\ProjectTask\EventSyncService;
+use App\Models\Concerns\Hooks\HasEventHooks;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Concerns\HasNotifyEvents;
 
 class Event extends Model
 {
     use HasMenuState,
+        HasUser,
         HasCountdown,
-        HasFactory;
+        HasFactory,
+        HasNotifyEvents,
+        HasEventHooks;
 
     public const MENU_STATE_EVENTS = ['updated', 'deleted'];
 
@@ -51,14 +55,6 @@ class Event extends Model
     ];
 
     private static bool $taskSyncing = false;
-
-    protected static function booted(): void
-    {
-        $guard = fn(self $event) => self::$taskSyncing || !EventSyncService::isTaskEvent($event->getOriginal('description'));
-
-        static::updating($guard);
-        static::deleting($guard);
-    }
 
     public static function syncingTask(Closure $callback): mixed
     {
@@ -101,11 +97,6 @@ class Event extends Model
         return $this->hasMany(EventShare::class);
     }
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public function scopeReminderDueFor(Builder $query, User $user): Builder
     {
         return $query->whereNotNull('remind_hours')
@@ -133,6 +124,11 @@ class Event extends Model
             'title' => $event->title,
             'event_at_iso' => $event->date->toIso8601String(),
         ];
+    }
+
+    public static function notifyFields(): array
+    {
+        return ['user_id' => 'user'];
     }
 
     protected function casts(): array

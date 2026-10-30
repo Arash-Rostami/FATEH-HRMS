@@ -10,6 +10,7 @@
             <x-ui.empty icon="search_off" title="هیچ موردی یافت نشد" description="برای تاریخ و فیلترهای انتخاب شده، هیچ موردی جهت رزرو وجود ندارد. لطفاً تاریخ دیگری را امتحان کنید." variant="list" watermark="event_busy" />
         </div>
     @else
+        <div wire:key="reservation-dossier-branch" class="contents">
         <div id="reservation-dossier-stage" wire:key="reservation-dossier-stage" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-start">
             @foreach($this->resources as $resource)
                 @php($slot = $resource->metadata['time_slots'] ?? [])
@@ -116,7 +117,7 @@
 
                                 <span @click.stop>
                                     <x-ui.buttons.submit
-                                        wire:click="book({{ $resource->id }})"
+                                        x-on:click="{{ confirmDialog('book', 'تأیید رزرو', 'منبع: ' . $resource->name . chr(10) . \App\Livewire\Dashboard\Reservation\Presentation\ReservationSummaryPresenter::summary($this, $resource), $resource->id) }}"
                                         :disabled="$isBlocked"
                                         :target="'book('.$resource->id.')'"
                                         :text="!$isFullDayTab ? 'ثبت زمان ('.convertToPersian($startTime).' - '.convertToPersian($endTime).')' : 'ثبت رزرو کامل'"
@@ -189,4 +190,5 @@
                 />
             </div>
         @endif
+        </div>
     @endif

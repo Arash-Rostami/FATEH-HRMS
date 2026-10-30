@@ -2,19 +2,19 @@
     $fields = [
         [
             'icon' => 'person',
-            'label' => 'کاربر اختصاصی (user_id)',
+            'label' => 'کاربر مشخص',
             'tag' => 'مخاطب',
-            'hint' => 'اگر خالی بگذارید، این آنبوردینگ برای «همه کاربران» نمایش داده می‌شود (مخاطب عمومی). اگر یک کاربر خاص را انتخاب کنید، نسخهٔ اختصاصی همان کاربر می‌شود. کلیدِ تصمیم‌گیری در پنل کاربری همین فیلد است.',
+            'hint' => 'اگر خالی بگذارید، این آنبوردینگ برای «همهٔ کاربران» نمایش داده می‌شود (مخاطب عمومی). اگر یک کاربر خاص را انتخاب کنید، نسخهٔ اختصاصی همان کاربر می‌شود. پنل کاربری بر اساس همین کادر تصمیم می‌گیرد چه کسی کدام نسخه را ببیند.',
         ],
         [
             'icon' => 'toggle_on',
-            'label' => 'فعال (is_active)',
+            'label' => 'فعال',
             'tag' => 'کلید',
             'hint' => 'فقط یک آنبوردینگ فعال برای هر مخاطب مجاز است (عمومی یا کاربر خاص). وقتی رکوردی را فعال ذخیره می‌کنید، بقیهٔ رکوردهای فعالِ همان مخاطب به‌صورت خودکار غیرفعال می‌شوند. همین قانون هنگام تغییر سریع ستون در جدول هم اعمال می‌شود.',
         ],
         [
             'icon' => 'waving_hand',
-            'label' => 'خوش‌آمدگویی (welcome)',
+            'label' => 'خوش‌آمدگویی',
             'tag' => 'محتوا',
             'hint' => 'پیام خوش‌آمدگویی که جدیدالاستخدامان هنگام اولین ورود می‌بینند. ویرایشگر غنی با رنگِ متن، جدول و تیتر است؛ تنها فیلدِ اجباریِ محتواست.',
         ],
@@ -26,21 +26,21 @@
         ],
         [
             'icon' => 'videocam',
-            'label' => 'ویدیوها (videos)',
-            'tag' => 'آرایه‌ای',
-            'hint' => 'Repeater از ویدیوها: عنوان، فایل ویدیو (دیسک public، مسیر onboarding/video، حداکثر ۹۵ مگابایت)، تصویر بندانگشتی (حداکثر ۵ مگابایت) و مدت زمان دلخواه. ترتیب قابل تغییر است.',
+            'label' => 'ویدیوها',
+            'tag' => 'فهرستی',
+            'hint' => 'Repeater از ویدیوها: عنوان، فایل ویدیو (دیسک public، مسیر onboarding/video، حداکثر ۹۵ مگابایت)، تصویر پیش‌نمایش (حداکثر ۵ مگابایت) و مدت زمان دلخواه. ترتیب قابل تغییر است.',
         ],
         [
             'icon' => 'menu_book',
-            'label' => 'راهنماها (guides)',
-            'tag' => 'آرایه‌ای',
+            'label' => 'راهنماها',
+            'tag' => 'فهرستی',
             'hint' => 'Repeater از مستندات قابل دانلود: عنوان و فایل (PDF/Word/Excel، مسیر onboarding/guides، حداکثر ۱۰ مگابایت). پسوند و حجم فایل هنگام ذخیره از دیسک خوانده و خودکار پر می‌شود.',
         ],
         [
             'icon' => 'dashboard_customize',
-            'label' => 'بخش‌های اضافی (extras)',
-            'tag' => 'آرایه‌ای',
-            'hint' => 'Repeater از کارت‌های متغیر: کلید (مثل parking)، عنوان نمایشی و محتوای غنی. ۴۵ کلید از پیش‌تعریف‌شده در ۹ دسته موجود است؛ با «افزودن سریع از الگوها» می‌توانید چند مورد را یکجا اضافه کنید.',
+            'label' => 'بخش‌های اضافی',
+            'tag' => 'فهرستی',
+            'hint' => 'Repeater از کارت‌های متغیر: کلید (مثل parking)، عنوان بخش و محتوای غنی. ۴۵ کلید از پیش‌تعریف‌شده در ۹ دسته موجود است؛ با «افزودن سریع از الگوها» می‌توانید چند مورد را یکجا اضافه کنید.',
         ],
     ];
 @endphp
@@ -52,13 +52,13 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«آنبوردینگ» صفحهٔ آشنایی کارکنان جدید با سازمان است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر ردیف یک پکیج محتوایی است که در زبانهٔ «آنبوردینگ» صفحهٔ پروفایل کاربر به نمایش درمی‌آید: پیام خوش‌آمد، ویدیوها، مأموریت/چشم‌انداز، مستندات، برنامهٔ روز اول و کارت‌های اضافی. مخاطبِ هر رکورد یا «همه کاربران» است (user_id خالی) یا یک کاربر خاص. کاربر فقط یک نسخه می‌بیند: نسخهٔ اختصاصیِ خودش (اگر باشد) وگرنه نسخهٔ عمومی.
+        هر مورد یک مجموعهٔ محتوایی است که در زبانهٔ «آنبوردینگ» صفحهٔ پروفایل کاربر به نمایش درمی‌آید: پیام خوش‌آمد، ویدیوها، مأموریت/چشم‌انداز، مستندات، برنامهٔ روز اول و کارت‌های اضافی. مخاطبِ هر رکورد یا «همهٔ کاربران» است (user_id خالی) یا یک کاربر خاص. کاربر فقط یک نسخه می‌بیند: نسخهٔ اختصاصیِ خودش (اگر باشد) وگرنه نسخهٔ عمومی.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">table</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">فیلدهای هر رکورد آنبوردینگ</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">فیلدهای هر مورد</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($fields as $f)
@@ -83,7 +83,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                مدل ذخیره‌سازی: videos و guides به‌صورت Collection و extras به‌صورت ArrayObject در پایگاه‌داده می‌نشینند — بدون مهاجرت، فقط با همین Repeater‌ها اداره می‌شوند.
+               
             </p>
         </div>
     </div>

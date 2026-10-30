@@ -4,20 +4,20 @@ namespace App\Models;
 
 use App\Casts\IntegerList;
 use App\Enums\TaskActivityType;
+use App\Models\Concerns\HasDepartment;
 use App\Models\Concerns\HasTaskActivityLog;
-use App\Services\Menu\StateService;
-use App\Services\ProjectTask\CycleLinkResolver;
-use App\Support\TaskAccessPolicy;
+use App\Models\Concerns\Hooks\HasTaskDetailHooks;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 class TaskDetail extends Model
 {
-    use HasFactory, HasTaskActivityLog;
+    use HasFactory,
+        HasDepartment,
+        HasTaskActivityLog,
+        HasTaskDetailHooks;
 
     public array $activityMap = [
         'collaborators' => TaskActivityType::Assignment,
@@ -51,11 +51,6 @@ class TaskDetail extends Model
         return User::whereIn('id', $this->collaborators ?? [])->pluck('name');
     }
 
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class, 'department_id', 'code');
-    }
-
     public function responsibleUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsible_user_id');
@@ -64,66 +59,6 @@ class TaskDetail extends Model
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
-    }
-
-    protected static function booted(): void
-    {
-        static::saved(function (self $detail) {
-            if ($detail->wasChanged('state')) {
-                DB::afterCommit(fn() => StateService::flush());
-            }
-        });
-
-        static::creating(function (self $detail) {
-            if (static::where('task_id', $detail->task_id)->exists()) {
-                throw new RuntimeException(__('resources/task/strings.validation.duplicate_detail'));
-            }
-        });
-
-        static::saving(function (self $detail) {
-            $moved = Task::pullProjectMove($detail->task_id);
-
-            if (!$moved && !$detail->isDirty(['collaborators', 'responsible_user_id'])) return;
-
-            $people = array_filter([...($detail->collaborators ?? []), $detail->responsible_user_id]);
-
-            if (!$moved && $detail->exists) {
-                $people = array_diff($people, $detail->getOriginal('collaborators') ?? [], [$detail->getOriginal('responsible_user_id')]);
-            }
-
-            if ($people === []) return;
-
-            $projectId = Task::withTrashed()->whereKey($detail->task_id)->value('project_id');
-
-            TaskAccessPolicy::assertAssignable($people, $projectId ? Project::find($projectId) : null);
-        });
-
-        static::saving(function (self $detail) {
-            $needsOrg = (!$detail->exists || ($detail->relationLoaded('task') && $detail->task->wasChanged('assigned_to')))
-                && (blank($detail->department_id) || blank($detail->unit) || blank($detail->section));
-
-            if (!$needsOrg && !empty($detail->project)) return;
-
-            $task = $detail->task ?? Task::find($detail->task_id);
-
-            if ($needsOrg && $task?->assigned_to) {
-                $detail->fillOrgFromProfile($task);
-            }
-
-            if (empty($detail->project) && $task?->project_id) {
-                $detail->project = Project::find($task->project_id)?->name;
-            }
-        });
-
-        static::saved(function (self $detail) {
-            if ($detail->wasRecentlyCreated || !$detail->wasChanged('collaborators')) return;
-
-            $task = Task::find($detail->task_id, ['id', 'project_id', 'assigned_to']);
-
-            if ($task?->project_id) {
-                app(CycleLinkResolver::class)->syncAssignees($task, $detail->collaborators ?? []);
-            }
-        });
     }
 
     protected function fillOrgFromProfile(Task $task): void

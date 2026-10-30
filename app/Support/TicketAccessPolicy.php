@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\User;
 
@@ -21,7 +23,7 @@ final class TicketAccessPolicy
             return true;
         }
 
-        return self::isHeadOfTargetDepartment($ticket, $user);
+        return self::isHeadOfTargetDepartment($ticket, $user) || self::isFreeDepartmentMember($ticket, $user);
     }
 
     public static function canReply(Ticket $ticket, ?User $user): bool
@@ -39,7 +41,7 @@ final class TicketAccessPolicy
             return self::isHeadOfTargetDepartment($ticket, $user);
         }
 
-        return $user->hasElevatedRole() || self::isHeadOfTargetDepartment($ticket, $user);
+        return $user->hasElevatedRole() || self::isHeadOfTargetDepartment($ticket, $user) || self::isFreeDepartmentMember($ticket, $user);
     }
 
     public static function canWithdraw(Ticket $ticket, ?User $user): bool
@@ -53,7 +55,7 @@ final class TicketAccessPolicy
     {
         return $user !== null
             && $ticket->status !== 'closed'
-            && ($user->hasElevatedRole() || self::isHeadOfTargetDepartment($ticket, $user));
+            && ($user->hasElevatedRole() || self::isHeadOfTargetDepartment($ticket, $user) || self::isFreeDepartmentMember($ticket, $user));
     }
 
     public static function canRelease(Ticket $ticket, ?User $user): bool
@@ -102,5 +104,18 @@ final class TicketAccessPolicy
         }
 
         return $user->isHeadOfDepartment($target);
+    }
+
+    private static function isFreeDepartmentMember(Ticket $ticket, User $user): bool
+    {
+        $target = $ticket->effectiveTargetDepartment();
+
+        return $ticket->status === 'open'
+            && $target !== null
+            && Department::freeAssignment($target)
+            && (string) ($user->profile?->department_id ?? '') === $target
+            && $ticket->requester_id !== $user->id
+            && $user->status === 'active'
+            && $user->type !== UserType::Guest->value;
     }
 }

@@ -79,7 +79,10 @@ trait AuthorizesByPermission
             default => null,
         };
 
-        return $mapped && static::permits($mapped) ? Response::allow() : Response::deny();
+        return match ($mapped) {
+            'create' => static::canCreate(),
+            default => $mapped && static::permits($mapped),
+        } ? Response::allow() : Response::deny();
     }
 
     public static function moduleKey(): string

@@ -5,17 +5,15 @@ namespace App\Console\Commands;
 use App\Jobs\ReconcileEdge;
 use App\Jobs\ReconcileNudge;
 use App\Models\Reminder;
-use App\Notifications\ReminderDueNotification;
 use App\Services\Menu\Notifications\ReminderOverdueNudge;
 use App\Services\Menu\Toasts\ReminderDueTodayEdge;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Notification;
 
 class SweepDueReminders extends Command
 {
     protected $signature = 'reminders:sweep-due';
 
-    protected $description = 'Hourly safety net: reconcile the due bell nudge and due-today edge toast of every reminder whose due time has passed, send the queued email for due-today reminders on the email channel that have not been notified yet, and (re)queue the delayed due-time reconcile of every reminder that falls due within the next 24 hours.';
+    protected $description = 'Hourly safety net: reconcile the due bell nudge and due-today edge toast of every reminder whose due time has passed, deliver the due email and SMS of reminders due within the last 24 hours through Reminder::deliverDue(), and (re)queue the delayed due-time reconcile of every reminder that falls due within the next 24 hours.';
 
     public function handle(): int
     {
@@ -42,15 +40,7 @@ class SweepDueReminders extends Command
                 foreach ($reminders as $reminder) {
                     ReconcileEdge::dispatch($dueTodayKey, Reminder::class, $reminder->id);
 
-                    if (!in_array('email', $reminder->channels, true) || $reminder->notified_at !== null || $reminder->hostTrashed()) {
-                        continue;
-                    }
-
-                    $affected = Reminder::whereKey($reminder->id)->whereNull('notified_at')->update(['notified_at' => now()]);
-
-                    if ($affected === 1) {
-                        Notification::send($reminder->user, new ReminderDueNotification($reminder));
-                    }
+                    $reminder->deliverDue();
                 }
             });
 

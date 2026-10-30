@@ -29,7 +29,7 @@ class LinkResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.link.guide.overview'],
         ['label' => 'مسیریابی هوشمند', 'icon' => 'alt_route', 'view' => 'filament.resources.link.guide.smart-routing'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.link.guide.admin-ops'],
+        ['label' => 'کار با لینک‌ها', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.link.guide.admin-ops'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.link.guide.user'],
     ];
 

@@ -12,11 +12,33 @@ use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
+use App\Services\Menu\StateService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class TabPresenter
 {
+    public static function statStamp(int $userId): string
+    {
+        return implode('.', [
+            StateService::version(),
+            ModelCacheVersion::version(ChannelMessage::class),
+            ModelCacheVersion::version(Reminder::class),
+            ModelCacheVersion::version(Event::class),
+            ModelCacheVersion::version("channel-read:{$userId}"),
+        ]);
+    }
+
+    private static function statsKey(): string
+    {
+        return 'home_stats_' . auth()->id() . ':' . self::statStamp(auth()->id());
+    }
+
+    public static function forgetStats(): void
+    {
+        Cache::forget(self::statsKey());
+    }
+
     public function teamPulse(): Collection
     {
         return $this->rankedOnlineUsers()->reject(fn(User $u) => $u->id === auth()->id())->values();
@@ -40,7 +62,7 @@ class TabPresenter
     {
         $uid = auth()->id();
 
-        return Cache::remember("home_stats_{$uid}", now()->addSeconds(60), fn(): array => [
+        return Cache::remember(self::statsKey(), now()->addSeconds(60), fn(): array => [
             [
                 'key' => 'documents',
                 'icon' => 'verified',

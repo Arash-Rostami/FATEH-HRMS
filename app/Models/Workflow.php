@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Enums\TaskActivityType;
 use App\Services\ProjectTask\ActivityLogger;
-use App\Services\ProjectTask\HandleWorkflowTransition;
+use App\Models\Concerns\Hooks\HasWorkflowHooks;
 use App\Support\TaskAccessPolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Workflow extends Model
 {
-    use HasFactory;
+    use HasFactory,
+        HasWorkflowHooks;
 
     public const STATUS_DRAFT = 'draft';
     public const STATUS_ACTIVE = 'active';
@@ -177,14 +178,6 @@ class Workflow extends Model
 
             return array_values(array_slice($ordered, 0, $max));
         }, $stepsIds);
-    }
-
-    protected static function booted(): void
-    {
-        static::updated(function (self $wf) {
-            if (!$wf->wasChanged(['current_step', 'status'])) return;
-            app(HandleWorkflowTransition::class)->execute($wf);
-        });
     }
 
     protected function casts(): array

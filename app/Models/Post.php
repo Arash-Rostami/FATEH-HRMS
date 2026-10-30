@@ -7,14 +7,16 @@ use App\Models\Concerns\HasModelCache;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasNudgeTracking;
 use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\HasUser;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
+use App\Models\Concerns\HasNotifyEvents;
+use App\Models\Concerns\Hooks\HasPostHooks;
 
 class Post extends Model
 {
@@ -24,7 +26,10 @@ class Post extends Model
         HasPublicAssetUrl,
         HasNudgeTracking,
         CleansAttachedFiles,
-        HasAudience;
+        HasAudience,
+        HasNotifyEvents,
+        HasUser,
+        HasPostHooks;
 
     public const NUDGE_KEY = 'posts-controller:nudge';
     protected $fillable = [
@@ -38,11 +43,6 @@ class Post extends Model
     public function scopeNotPinned(Builder $query): Builder
     {
         return $query->where(fn ($q) => $q->where('pinned', '<>', 1)->orWhereNull('pinned'));
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     public static function cachedPins(?string $department = null): Collection
@@ -69,8 +69,8 @@ class Post extends Model
         )->shouldCache();
     }
 
-    protected static function booted(): void
+    public static function notifyFields(): array
     {
-        static::deleting(fn(self $post) => static::deleteStoredFiles($post->image));
+        return ['pinned' => 'bool', 'user_id' => 'user'];
     }
 }

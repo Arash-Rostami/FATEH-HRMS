@@ -8,9 +8,9 @@
         ],
         [
             'icon' => 'bar_chart',
-            'label' => 'زبانهٔ اطلاعات سازمانی (detail)',
+            'label' => 'زبانهٔ اطلاعات تکمیلی',
             'tag' => 'HasOne',
-            'hint' => 'متادیتای سازمانیِ وظیفه (واحد، بخش، پروژه، طرح، مبدأ اقدام، همکاران، مسئول ردگیری، وضعیتِ فرآیندی و پیوست‌ها) در یک رابطهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">detail</code> از نوع HasOne ذخیره می‌شود — روی همان ردیفِ وظیفه، نه در جدول اصلی. ستون‌های <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">detail.*</code> و زبانهٔ «اطلاعات سازمانی» فرم/اینفولیست همین رابطه را می‌خوانند.',
+            'hint' => 'اطلاعات تکمیلی وظیفه (واحد، بخش، پروژه، طرح، منشأ اقدام، همکاران، جوابگو، تعیین تکلیف و پیوست‌ها) در یک رابطهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">detail</code> از نوع HasOne ذخیره می‌شود — روی همان ردیفِ وظیفه، نه در جدول اصلی. ستون‌های <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">detail.*</code> و زبانهٔ «اطلاعات سازمانی» فرم/صفحهٔ جزئیات همین رابطه را می‌خوانند.',
         ],
         [
             'icon' => 'archive',
@@ -31,7 +31,7 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">info</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«وظیفه» یک رکورد گردش‌کار است؛ کلیدهای اصلی‌اش دو نفر و یک ضرب‌الاجل است</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«وظیفه» یک کار قابل پیگیری است؛ عناصر اصلی‌اش دو نفر (ایجادکننده و مسئول انجام) و یک سررسید است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
         هر ردیف در این صفحه یک وظیفه است که یک ایجادکننده و یک مسئول انجام دارد و در یکی از چهار وضعیت قرار می‌گیرد. متادیتای سازمانی در رابطهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">detail</code> می‌نشیند. این ماژول دو طرف دارد: پنل ادمین (همین صفحه، نظارت کل‌سازمان) و پنل کاربری (برد وظایف در <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/taskboard</code>) — زبانهٔ «تجربهٔ کاربر» را ببینید.
@@ -63,7 +63,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                وضعیت یک منبع واحد است: <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]">TaskStatus</code> رنگ/آیکون/برچسب جدول، اینفولیست و خروجی اکسل را هم‌زمان تغذیه می‌کند.
+                وضعیت یک منبع واحد است: <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]">TaskStatus</code> رنگ/آیکون/برچسب جدول، صفحهٔ جزئیات و خروجی اکسل را هم‌زمان تغذیه می‌کند.
             </p>
         </div>
     </div>

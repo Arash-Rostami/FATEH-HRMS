@@ -17,7 +17,7 @@ enum ExecutionProcedure: string implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::Yes     => 'دارد',
             self::No      => 'ندارد',
-            self::Pending => 'در انتظار (تصویب / بروزرسانی)',
+            self::Pending => 'در انتظار (تصویب / به‌روزرسانی)',
         };
     }
 

@@ -45,7 +45,7 @@ class UserTablePresenter
             ->visible(fn() => UserResource::canEditAny())
             ->requiresConfirmation()
             ->modalHeading('غیرفعال‌سازی گروهی کاربران')
-            ->modalDescription('کاربران انتخاب‌شده از داشبورد و لیست‌ها حذف می‌شوند و دیگر نمی‌توانند وارد شوند؛ سوابقشان (پیام‌ها، گزارش‌ها، رزروها) دست‌نخورده می‌ماند. حساب خودتان نادیده گرفته می‌شود.')
+            ->modalDescription('کاربران انتخاب‌شده از داشبورد و فهرست‌ها حذف می‌شوند و دیگر نمی‌توانند وارد شوند؛ سوابقشان (پیام‌ها، گزارش‌ها، رزروها) دست‌نخورده می‌ماند. حساب خودتان نادیده گرفته می‌شود.')
             ->deselectRecordsAfterCompletion()
             ->action(function (Collection $records) {
                 $targets = $records->reject(fn($record) => $record->id === auth()->id());
@@ -310,8 +310,8 @@ class UserTablePresenter
             ->requiresConfirmation()
             ->modalHeading(fn(User $record) => $record->status === UserStatus::Active->value ? 'غیرفعال‌سازی کاربر' : 'فعال‌سازی کاربر')
             ->modalDescription(fn(User $record) => $record->status === UserStatus::Active->value
-                ? 'کاربر از داشبورد و لیست‌ها حذف می‌شود و دیگر نمی‌تواند وارد شود؛ سوابقش (پیام‌ها، گزارش‌ها، رزروها) دست‌نخورده می‌ماند.'
-                : 'کاربر دوباره می‌تواند وارد شود و در داشبورد و لیست‌ها ظاهر می‌شود.')
+                ? 'کاربر از داشبورد و فهرست‌ها حذف می‌شود و دیگر نمی‌تواند وارد شود؛ سوابقش (پیام‌ها، گزارش‌ها، رزروها) دست‌نخورده می‌ماند.'
+                : 'کاربر دوباره می‌تواند وارد شود و در داشبورد و فهرست‌ها ظاهر می‌شود.')
             ->action(function (User $record) {
                 $record->forceFill([
                     'status' => $record->status === UserStatus::Active->value

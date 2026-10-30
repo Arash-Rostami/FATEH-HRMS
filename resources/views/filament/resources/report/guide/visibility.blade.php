@@ -4,40 +4,40 @@
             'chip' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
             'icon' => 'public',
             'label' => 'عمومی',
-            'hint' => 'وقتی «دسترسی واحدها» (departments) خالی باشد، گزارش برای همهٔ کاربران در زبانهٔ «گزارشات» قابل دید است. در جدول با آیکون کره و رنگ success نشان داده می‌شود.',
-            'rule' => 'departments = خالی',
+            'hint' => 'وقتی «دسترسی واحدها» (departments) خالی باشد، گزارش برای همهٔ کاربران در زبانهٔ «گزارش‌ها» قابل دید است. در جدول با آیکون کره و رنگ سبز نشان داده می‌شود.',
+            'rule' => 'دسترسی واحدها = خالی',
         ],
         [
             'chip' => 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]',
             'icon' => 'lock',
             'label' => 'محدود به یک واحد',
-            'hint' => 'وقتی فقط یک واحد در «دسترسی واحدها» انتخاب شده باشد، گزارش فقط برای کاربران همان واحد قابل دید است. در جدول با آیکون قفل و رنگ warning.',
-            'rule' => 'departments = [یک کد]',
+            'hint' => 'وقتی فقط یک واحد در «دسترسی واحدها» انتخاب شده باشد، گزارش فقط برای کاربران همان واحد قابل دید است. در جدول با آیکون قفل و رنگ نارنجی نشان داده می‌شود.',
+            'rule' => 'دسترسی واحدها = یک واحد',
         ],
         [
             'chip' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
             'icon' => 'groups',
             'label' => 'محدود به چند واحد',
-            'hint' => 'وقتی چند واحد در «دسترسی واحدها» انتخاب شده باشد، گزارش برای کاربران همهٔ آن واحدها قابل دید است. در جدول با آیکون گروه و رنگ info.',
-            'rule' => 'departments = [کد۱، کد۲، ...]',
+            'hint' => 'وقتی چند واحد در «دسترسی واحدها» انتخاب شده باشد، گزارش برای کاربران همهٔ آن واحدها قابل دید است. در جدول با آیکون گروه و رنگ آبی نشان داده می‌شود.',
+            'rule' => 'دسترسی واحدها = چند واحد',
         ],
     ];
 
     $publishing = [
         [
             'icon' => 'bookmark',
-            'label' => 'سنجاق (pinned)',
-            'hint' => 'گزارش‌های مهم را سنجاق کنید تا در صدر فهرستِ زبانهٔ کاربر (بالای ترتیبِ تاریخ) بنشینند. مناسب گزارش‌های رسمیِ دوره‌ای که دیرنگام می‌خواهید بالا بمانند.',
+            'label' => 'سنجاق',
+            'hint' => 'گزارش‌های مهم را سنجاق کنید تا در صدر فهرستِ زبانهٔ کاربر (بالای ترتیبِ تاریخ) بنشینند. مناسب گزارش‌های رسمیِ دوره‌ای که می‌خواهید مدت طولانی بالا بمانند.',
         ],
         [
             'icon' => 'calendar_month',
-            'label' => 'تاریخ گزارش (report_date)',
-            'hint' => 'تاریخ یا دورهٔ شمسی که گزارش به آن تعلق دارد (مستقل از تاریخ بارگذاری). یک گزارشِ ماهانه که دیر بارگذاری شده، همچنان با تاریخِ همان ماه نشان داده می‌شود. در جدول sortable و دارای فیلترِ بازه‌ای است.',
+            'label' => 'تاریخ گزارش',
+            'hint' => 'تاریخ یا دورهٔ زمانی که گزارش به آن مربوط است؛ با تاریخ بارگذاری فرق دارد. یک گزارشِ ماهانه که دیر بارگذاری شده، همچنان با تاریخِ همان ماه نشان داده می‌شود. در جدول sortable و دارای فیلترِ بازه‌ای است.',
         ],
         [
             'icon' => 'event_busy',
-            'label' => 'تاریخ انقضا (expires_at)',
-            'hint' => 'تاریخ شمسیِ پس از آن گزارش به‌صورت خودکار از زبانهٔ کاربر مخفی می‌شود (بدون حذف). خالی = بدون انقضا. ادمین همچنان گزارش را در پنل می‌بیند و می‌تواند بازنشانی کند.',
+            'label' => 'تاریخ انقضا',
+            'hint' => 'تاریخ شمسی‌ای که پس از آن گزارش به‌صورت خودکار از زبانهٔ کاربر پنهان می‌شود (بدون حذف). خالی = بدون انقضا. ادمین همچنان گزارش را در پنل می‌بیند و می‌تواند تاریخ انقضا را حذف یا تغییر دهد.',
         ],
     ];
 @endphp
@@ -49,7 +49,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">دسترسیِ گزارش: عمومی یا محدود به واحدها</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        دیدِ یک گزارش با فیلدِ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">departments</code> (آرایهٔ JSON از کدهای واحدها) تعیین می‌شود. توجه: فیلدِ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">department_id</code> «موضوع» گزارش است (این گزارش دربارهٔ کدام واحد است)، نه مخاطبِ آن؛ پس یک گزارش دربارهٔ واحدِ الف می‌تواند فقط برای واحدهای ب و ج قابل‌مشاهده باشد.
+        دیدِ یک گزارش با فیلدِ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">departments</code> تعیین می‌شود. توجه: فیلدِ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">department_id</code> «موضوع» گزارش است (این گزارش دربارهٔ کدام واحد است)، نه مخاطبِ آن؛ پس یک گزارش دربارهٔ واحدِ الف می‌تواند فقط برای واحدهای ب و ج قابل‌مشاهده باشد.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -78,7 +78,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                ستون «مخاطبان» جدول و اینفولیست، مقادیر را از اکسسورِ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">audience_departments</code> می‌خواند که از کشِ واحدها (Department::getCachedModels) ساخته می‌شود — بدون کوئری اضافه per-row.
+                ستون «مخاطبان» در جدول و صفحهٔ جزئیات، نام واحدهای مجاز را نشان می‌دهد؛ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">audience_departments</code> می‌خواند که از کشِ واحدها (Department::getCachedModels) ساخته می‌شود — بدون کوئری اضافه per-row.
             </p>
         </div>
     </div>
@@ -118,8 +118,8 @@
                     </span>
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">فیلتر دسترسی (Ternary)</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">«محدود» فقط رکوردهایی که <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> غیرخالی است (<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">JSON_LENGTH &gt; 0</code>)؛ «عمومی» فقط رکوردهای بدون مخاطب.</p>
+                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">فیلتر دسترسی</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">«محدود» فقط گزارش‌هایی را نشان می‌دهد که واحد مخاطب دارند؛ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> غیرخالی است (<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">JSON_LENGTH &gt; 0</code>)؛ «عمومی» فقط رکوردهای بدون مخاطب.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -129,15 +129,15 @@
                     </span>
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">اشتراکِ گروهی با واحدها (Bulk)</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">از منوی bulk actions روی چند گزارش، «اشتراک با واحدها» را بزنید، واحدهای مخاطب را انتخاب کنید و ذخیره کنید — دسترسیِ همهٔ گزارش‌های انتخاب‌شده در یک گام به‌روز می‌شود. خالی گذاشتن = عمومی.</p>
+                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">تعیین گروهیِ دسترسی واحدها</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">از منوی عملیات گروهی روی چند گزارش، «تعیین دسترسی واحدها» را بزنید، واحدهای مخاطب را انتخاب کنید و ذخیره کنید — دسترسیِ همهٔ گزارش‌های انتخاب‌شده در یک گام به‌روز می‌شود. خالی گذاشتن = عمومی.</p>
                 </div>
             </div>
         </div>
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                کاربری که گزارش را نمی‌بیند: در زبانهٔ «گزارشات» کاربر، کوئری فقط رکوردهای عمومی یا آن‌هایی که واحدِ کاربر در <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> دارند می‌آورد (<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">orWhereJsonContains</code>)؛ گزارش‌های محدودِ واحدِ دیگر هرگز برایش قابل‌مشاهده یا دانلود نیست (دانلود هم با ۴۰۳ مسدود است).
+                کاربری که گزارش را نمی‌بیند: در زبانهٔ «گزارش‌ها» کاربر، کوئری فقط رکوردهای عمومی یا آن‌هایی که واحدِ کاربر در <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> دارند می‌آورد (<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">orWhereJsonContains</code>)؛ گزارش‌های محدودِ واحدِ دیگر هرگز برایش قابل‌مشاهده یا دانلود نیست (دانلود هم مسدود است).
             </p>
         </div>
     </div>

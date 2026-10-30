@@ -9,7 +9,7 @@
             <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-primary)]">error</span>
             کدهای خطای رزرو
         </h3>
-        <p class="text-[12px] font-semibold text-[var(--md-sys-color-on-surface-variant)] mt-1">هر خطا در پیام کاربر به‌شکل [ERR-XXX] نمایش داده می‌شود. ستون «کلید سیاست» نشان می‌دهد کدام قانون این خطا را تولید کرده است.</p>
+        <p class="text-[12px] font-semibold text-[var(--md-sys-color-on-surface-variant)] mt-1">هر خطا در پیام کاربر به‌شکل [ERR-XXX] نمایش داده می‌شود. ستون «قانون مربوط» نشان می‌دهد کدام قانون این خطا را ایجاد کرده است.</p>
     </div>
 
     <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
@@ -23,7 +23,7 @@
 
                 <div class="flex-1 flex flex-col gap-2">
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-outline)]">کلید سیاست</span>
+                        <span class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-outline)]">قانون مربوط</span>
                         @if($row['policy'] === '—')
                             <span class="text-[var(--md-sys-color-outline-variant)] text-xs font-bold">—</span>
                         @else

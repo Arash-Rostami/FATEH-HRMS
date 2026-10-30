@@ -125,7 +125,7 @@
                 searchModel="resourceSearch"
                 filterTitle="فیلتر منابع"
                 activeCondition="Object.keys(this.$wire.get('facetFilters') || {}).length > 0"
-                clearAction="this.$wire.call('resetFilters')"
+                clearAction="this.$wire.call('resetFilters', true)"
             >
                 @include('livewire.dashboard.reservation.filter')
             </x-ui.forms.filters>

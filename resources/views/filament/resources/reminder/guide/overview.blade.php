@@ -1,6 +1,7 @@
 @php
     $channels = [
         ['icon' => 'mail', 'color' => 'primary', 'label' => 'ایمیل', 'code' => 'email'],
+        ['icon' => 'sms', 'color' => 'primary', 'label' => 'پیامک', 'code' => 'sms'],
         ['icon' => 'badge', 'color' => 'secondary', 'label' => 'نشانگر', 'code' => 'badge'],
         ['icon' => 'campaign', 'color' => 'tertiary', 'label' => 'پیام اعلانات', 'code' => 'nudge'],
         ['icon' => 'push_pin', 'color' => 'error', 'label' => 'پیام ثابت', 'code' => 'edge'],
@@ -18,10 +19,10 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">alarm</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«ماژول یادآوری زمان» — یک زمان‌بند شخصی و دستی، نه یک وظیفه</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«یادآوری» یک زمان‌بند شخصی است که خود کاربر تنظیم می‌کند، نه یک وظیفه</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        این ماژول ابزاری برای زمان‌بندی دستی توسط خود کاربر است — کاملاً جدا از سامانهٔ خودکار اعلان‌های نشانگر/پیام اعلانات/پیام ثابت (Badge/Nudge/Edge)؛ فقط از همان سامانه برای رساندن یادآوری در لحظهٔ سررسید استفاده می‌کند. هر یادآوری همیشه به یک کاربر مشخص (<code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">user_id</code>) تعلق دارد و در پنل خودش، از طریق زنگ شناور در نوار بالا یا دکمهٔ یادآوری روی رکوردهای وظیفه/تیکت/پروژه/سند/رزرو، مدیریت می‌شود. از این صفحه فقط برای بازبینی، اصلاح دستی عنوان/سررسید یا حذف یک ردیف استفاده کنید — تکمیل («انجام شد»)، به‌تعویق‌انداختن و توقف تکرار منطق ویژه‌ای دارند که فقط از پنل کاربر قابل انجام‌اند و در این فرم در دسترس نیستند.
+        این ماژول ابزاری برای زمان‌بندی دستی توسط خود کاربر است — کاملاً جدا از اعلان‌های خودکار سیستم (نشانگر، پیام اعلانات و پیام ثابت)؛ فقط از همان‌ها برای رساندن یادآوری در لحظهٔ سررسید استفاده می‌کند. هر یادآوری همیشه به یک کاربر مشخص (<code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">user_id</code>) تعلق دارد و در پنل خودش، از طریق زنگ شناور در نوار بالا یا دکمهٔ یادآوری روی رکوردهای وظیفه/تیکت/پروژه/سند/رزرو، مدیریت می‌شود. از این صفحه فقط برای بازبینی، اصلاح دستی عنوان/سررسید یا حذف یک ردیف استفاده کنید — تکمیل («انجام شد»)، به‌تعویق‌انداختن و توقف تکرار فقط از پنل کاربر انجام می‌شوند و در این فرم نیستند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -49,7 +50,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">check_circle</span>
-                وقتی یادآوری تکرارشونده «انجام شد» می‌شود، سیستم یک نمونهٔ جدید با سررسید بعدی می‌سازد؛ این نمونه‌سازی فقط از اقدام «انجام شد» در پنل کاربر اتفاق می‌افتد، نه از ویرایش این فرم.
+                وقتی یادآوری تکرارشونده «انجام شد» می‌شود، سیستم یک یادآوری جدید با سررسید بعدی می‌سازد؛ این کار فقط از اقدام «انجام شد» در پنل کاربر اتفاق می‌افتد، نه از ویرایش این فرم.
             </p>
         </div>
     </div>
@@ -57,7 +58,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">campaign</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">کانال‌های اعلان — فقط قابل مشاهده</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">روش‌های اعلان — فقط قابل مشاهده</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($channels as $c)
@@ -87,7 +88,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">visibility</span>
-                کاربر این چهار کانال را از پنل خودش (چک‌باکس‌های فرم یادآوری) تنظیم می‌کند؛ این صفحه فقط ترکیب فعلی هر ردیف را نشان می‌دهد و امکان تغییر آن‌ها از این‌جا وجود ندارد.
+                کاربر این چهار روش اعلان را از پنل خودش (با تیک‌زدن در فرم یادآوری) تنظیم می‌کند؛ این صفحه فقط روش‌های فعلی هر یادآوری را نشان می‌دهد و امکان تغییر آن‌ها از اینجا وجود ندارد.
             </p>
         </div>
     </div>

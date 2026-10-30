@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Poll extends Model
 {
-    use HasFactory;
+    use HasUser,
+        HasFactory;
 
     protected $fillable = [
         'user_id',
@@ -19,11 +21,6 @@ class Poll extends Model
     public function feed(): BelongsTo
     {
         return $this->belongsTo(Feed::class);
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     protected function casts(): array

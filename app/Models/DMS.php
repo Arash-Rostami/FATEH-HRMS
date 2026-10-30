@@ -6,6 +6,7 @@ use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Models\Concerns\HasDepartmentHelpers;
 use App\Models\Concerns\HasDmsCountHelpers;
 use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\Hooks\HasDmsHooks;
 use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasUserHelpers;
 use App\Services\Dms\DmsKeyGrouper;
@@ -18,17 +19,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Concerns\HasNotifyEvents;
 
 
 class DMS extends Model
 {
-    use HasFactory;
-    use HasUserHelpers;
-    use HasDepartmentHelpers;
-    use HasDmsCountHelpers;
-    use HasMenuState;
-    use CleansAttachedFiles;
-    use HasReminders;
+    use HasFactory,
+        HasNotifyEvents,
+        HasUserHelpers,
+        HasDepartmentHelpers,
+        HasDmsCountHelpers,
+        HasMenuState,
+        CleansAttachedFiles,
+        HasReminders,
+        HasDmsHooks;
 
 
     private static $statusMapping = [
@@ -278,32 +282,18 @@ class DMS extends Model
             });
     }
 
-    protected static function booted(): void
-    {
-        static::saved(fn() => static::forgetListCaches());
-
-        static::updated(function (DMS $document): void {
-            if ($document->wasChanged('file') || $document->wasChanged('revision')) {
-                $document->reads()->update(['read' => false, 'read_count' => 0]);
-                $document->newQuery()->whereKey($document->getKey())->update(['combined_read_count' => 0]);
-            }
-        });
-
-        static::deleting(function (DMS $document): void {
-            static::deleteStoredFiles($document->file);
-            static::deleteStoredFiles($document->extra_files);
-        });
-
-        static::deleted(function (DMS $document): void {
-            $document->reads()->delete();
-            static::forgetListCaches();
-        });
-    }
-
     private static function forgetListCaches(): void
     {
         Cache::forget('dms_document_counts');
         Cache::forget(DmsKeyGrouper::CACHE_KEY);
+    }
+
+    public static function notifyFields(): array
+    {
+        return [
+            'status' => \App\Filament\Resources\DmsResource\Enums\DocumentStatus::class,
+            'combined_read_count' => 'number',
+        ];
     }
 
     protected function casts(): array

@@ -3,17 +3,27 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAudience;
+use App\Models\Concerns\HasDepartment;
 use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\HasUser;
+use App\Models\Concerns\Hooks\HasReportHooks;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Concerns\HasNotifyEvents;
 
 class Report extends Model
 {
-    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles, HasAudience;
+    use HasFactory,
+        HasPublicAssetUrl,
+        CleansAttachedFiles,
+        HasAudience,
+        HasNotifyEvents,
+        HasDepartment,
+        HasUser,
+        HasReportHooks;
 
     protected $fillable = [
         'user_id',
@@ -26,11 +36,6 @@ class Report extends Model
         'report_date',
         'expires_at',
     ];
-
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class, 'department_id', 'code');
-    }
 
     public function scopeByDepartment($query, string $departmentId)
     {
@@ -52,9 +57,9 @@ class Report extends Model
         return $query->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
     }
 
-    public function user(): BelongsTo
+    public static function notifyFields(): array
     {
-        return $this->belongsTo(User::class);
+        return ['user_id' => 'user', 'department_id' => 'department'];
     }
 
     protected function casts(): array
@@ -72,14 +77,6 @@ class Report extends Model
             get: fn(?string $value): ?string => $value,
             set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
         );
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(function (self $report) {
-            static::deleteStoredFiles($report->cover_image);
-            static::deleteStoredFiles($report->file_path);
-        });
     }
 
     protected function fileType(): Attribute

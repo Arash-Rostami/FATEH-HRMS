@@ -4,6 +4,7 @@ namespace App\Filament\Resources\SkillRequestResource\Pages;
 
 use App\Enums\SkillRequestStatus;
 use App\Filament\Resources\SkillRequestResource;
+use App\Filament\Resources\SkillResource;
 use App\Models\SkillUser;
 use App\Traits\FilamentHeaderActions;
 use App\Filament\Pages\ListRecords;
@@ -18,7 +19,7 @@ class ListSkillRequests extends ListRecords
 
     protected function listHeaderActions(): array
     {
-        return [SkillRequestResource::setupGuideAction()];
+        return [...SkillResource::switchActions(static::$resource), SkillRequestResource::setupGuideAction()];
     }
 
     public function getTabs(): array

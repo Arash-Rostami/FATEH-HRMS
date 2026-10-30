@@ -6,19 +6,35 @@ use App\Enums\ReminderRecurrence;
 use App\Jobs\ReconcileEdge;
 use App\Jobs\ReconcileNudge;
 use App\Jobs\ReconcileReminderDue;
+use App\Jobs\SendReminderSms;
+use App\Models\Concerns\HasNotifyEvents;
+use App\Models\Concerns\HasUser;
+use App\Models\Concerns\Hooks\HasReminderHooks;
+use App\Notifications\ReminderDueNotification;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class Reminder extends Model
 {
-    use HasFactory;
+    use HasFactory,
+        HasNotifyEvents,
+        HasUser,
+        HasReminderHooks;
+
+    public const HOST_ROUTES = [
+        Task::class => 'tasks',
+        Ticket::class => 'ths',
+        Project::class => 'projects',
+        DMS::class => 'dms',
+        Reservation::class => 'reservation',
+    ];
 
     protected $attributes = [
         'channels' => '["inapp:edge,badge,nudge"]',
@@ -40,17 +56,6 @@ class Reminder extends Model
 
     private static array $openByUser = [];
 
-    protected static function booted(): void
-    {
-        $forget = fn () => static::$openByUser = [];
-
-        static::saved(function (self $reminder) use ($forget) {
-            $forget();
-            $reminder->queueDueReconcile();
-        });
-        static::deleted($forget);
-    }
-
     public function queueDueReconcile(): void
     {
         if ($this->completed_at !== null) {
@@ -59,14 +64,46 @@ class Reminder extends Model
 
         $at = $this->snoozed_until !== null && $this->snoozed_until->gt($this->due_at) ? $this->snoozed_until : $this->due_at;
 
-        if ($at->isFuture() && $at->lte(now()->addDay()) && Cache::add("reminder-due-queued:{$this->getKey()}:{$at->timestamp}", true, $at)) {
+        $deliverable = $at->isFuture() || ($at->gte(now()->subDay()) && array_intersect(['email', 'sms'], (array) $this->channels) !== []);
+
+        if ($at->lte(now()->addDay()) && $deliverable && Cache::add("reminder-due-queued:{$this->getKey()}:{$at->timestamp}", true, $at->isFuture() ? $at : now()->addMinute())) {
             dispatch(new ReconcileReminderDue($this->getKey()))->delay($at)->afterCommit();
         }
     }
 
-    public function user(): BelongsTo
+    public function deliverDue(): void
     {
-        return $this->belongsTo(User::class);
+        $email = in_array('email', $this->channels, true);
+        $sms = in_array('sms', $this->channels, true) && !tenantOff('notify:sms');
+
+        if ((!$email && !$sms)
+            || $this->notified_at !== null
+            || $this->completed_at !== null
+            || $this->due_at->isFuture()
+            || $this->snoozed_until?->isFuture()
+            || tenantOff('reminder')
+            || $this->user?->status !== 'active'
+            || $this->hostTrashed()) {
+            return;
+        }
+
+        $stamped = static::whereKey($this->getKey())
+            ->whereNull('notified_at')
+            ->whereNull('completed_at')
+            ->where(fn ($q) => $q->whereNull('snoozed_until')->orWhere('snoozed_until', '<=', now()))
+            ->update(['notified_at' => now()]);
+
+        if ($stamped !== 1) {
+            return;
+        }
+
+        if ($email) {
+            Notification::send($this->user, new ReminderDueNotification($this));
+        }
+
+        if ($sms) {
+            SendReminderSms::dispatch($this->getKey());
+        }
     }
 
     public function remindable(): MorphTo
@@ -177,19 +214,21 @@ class Reminder extends Model
             return null;
         }
 
-        return match ($remindableType) {
-            Task::class => route('tasks', ['open' => $remindableId]),
-            Ticket::class => route('ths', ['open' => $remindableId]),
-            Project::class => route('projects', ['open' => $remindableId]),
-            DMS::class => route('dms', ['open' => $remindableId]),
-            Reservation::class => route('reservation', ['open' => $remindableId]),
-            default => null,
-        };
+        $route = static::HOST_ROUTES[$remindableType] ?? null;
+
+        return $route ? route($route, ['open' => $remindableId]) : null;
     }
 
     public function hostUrl(): ?string
     {
         return static::urlFor($this->remindable_type, $this->remindable_id);
+    }
+
+    public function hostUrlIfAvailable(): ?string
+    {
+        $route = static::HOST_ROUTES[$this->remindable_type] ?? null;
+
+        return $route === null || tenantOffName($route) ? null : $this->hostUrl();
     }
 
     public function hostTrashed(): bool
@@ -253,6 +292,11 @@ class Reminder extends Model
 
             return true;
         });
+    }
+
+    public static function notifyFields(): array
+    {
+        return ['user_id' => 'user'];
     }
 
     protected function casts(): array

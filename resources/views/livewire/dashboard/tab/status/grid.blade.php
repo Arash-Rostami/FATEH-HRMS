@@ -137,13 +137,15 @@
                                     <span class="material-symbols-rounded">call</span>
                                 </a>
                             @endif
-                            <button
-                                type="button"
-                                x-on:click.stop="$dispatch('toast', {message: 'ارسال پیامک به‌زودی فعال می‌شود', type: 'info'})"
-                                title="ارسال پیامک"
-                                class="sc-a">
-                                <span class="material-symbols-rounded">sms</span>
-                            </button>
+                            @unless(tenantOff('notify:sms'))
+                                <button
+                                    type="button"
+                                    x-on:click.stop="$dispatch('open-sms', { id: {{ $user->id }}, name: @js($user->name) })"
+                                    title="ارسال پیامک"
+                                    class="sc-a">
+                                    <span class="material-symbols-rounded">sms</span>
+                                </button>
+                            @endunless
                         </div>
                     @endif
 
