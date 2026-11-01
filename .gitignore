@@ -27,7 +27,6 @@ resources/assets/audio/music/
 public/audio/music/
 /public/img
 /public/img/*
-/tests/
 .claude/
 claude-launcher.bat
 claude-agent.ps1
