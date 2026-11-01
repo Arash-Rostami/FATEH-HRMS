@@ -1,6 +1,6 @@
 @if(auth()->check() && config('app.ai_assistant_access') === true && config('services.ai_assistant.url'))
     @php
-        $aiAssistantBaseSrc = rtrim(config('services.ai_assistant.url'), '/') . '/?user=' . \Illuminate\Support\Str::slug(config('app.name_en')) . '_' . auth()->id() . '&lang=' . config('app.ai_assistant_lang');
+        $aiAssistantBaseSrc = rtrim(config('services.ai_assistant.url'), '/') . '/?user=' . \Illuminate\Support\Str::slug(config('app.name_en')) . '_' . auth()->id() . '&lang=' . config('app.ai_assistant_lang') . '&role=' . (auth()->user()->hasElevatedRole() ? 'admin' : 'user');
     @endphp
     <div x-data="aiAssistant(@js($aiAssistantBaseSrc))" dir="rtl" x-cloak @keydown.escape.window="handleEscape()">
 

@@ -64,14 +64,24 @@
                     </a>
                 @endif
 
-                <x-ui.buttons.tab-selector
-                    :tabs="[
-                        ['id' => 'form', 'icon' => 'add_circle', 'label' => 'یادآوری جدید'],
-                        ['id' => 'list', 'icon' => 'list', 'label' => 'لیست'],
-                    ]"
-                    :active-tab="$activeTab"
-                    class="!mb-0"
-                />
+                <div class="flex items-center justify-between gap-2">
+                    <x-ui.buttons.tab-selector
+                        :tabs="[
+                            ['id' => 'form', 'icon' => 'add_circle', 'label' => 'یادآوری جدید'],
+                            ['id' => 'list', 'icon' => 'list', 'label' => 'لیست'],
+                        ]"
+                        :active-tab="$activeTab"
+                        class="!mb-0"
+                    />
+                    <button
+                        type="button"
+                        @click="$dispatch('open-modal', { name: 'reminder-legend' })"
+                        title="راهنمای یادآوری‌ها"
+                        class="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                    >
+                        <span class="material-symbols-rounded text-lg">help</span>
+                    </button>
+                </div>
 
                 @if($activeTab === 'list')
                     <div wire:key="reminder-tab-list" class="mt-5 space-y-5">
@@ -86,6 +96,14 @@
             </div>
             @endif
         </x-ui.modals.action>
+
+        @if($show)
+            <div wire:key="reminder-legend-dialog" class="contents">
+                <x-ui.modals.dialog name="reminder-legend" title="راهنمای یادآوری‌ها">
+                    @include('livewire.dashboard.reminder.legend')
+                </x-ui.modals.dialog>
+            </div>
+        @endif
     @endunless
 
 </div>

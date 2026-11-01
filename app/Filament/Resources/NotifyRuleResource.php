@@ -39,6 +39,8 @@ class NotifyRuleResource extends Resource
 
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.notify_rule.guide.overview'],
+        ['label' => 'فیلدهای فرم', 'icon' => 'edit_note', 'view' => 'filament.resources.notify_rule.guide.fields'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.notify_rule.guide.admin-ops'],
     ];
 
     public static function form(Schema $schema): Schema

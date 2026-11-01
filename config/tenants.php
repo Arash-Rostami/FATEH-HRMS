@@ -216,9 +216,7 @@ $tenants = [
             ],
         ],
 
-        'modules' => [
-
-        ],
+        'modules' => [],
     ],
 
 ];

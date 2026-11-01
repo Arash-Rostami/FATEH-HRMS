@@ -88,7 +88,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">visibility</span>
-                کاربر این چهار روش اعلان را از پنل خودش (با تیک‌زدن در فرم یادآوری) تنظیم می‌کند؛ این صفحه فقط روش‌های فعلی هر یادآوری را نشان می‌دهد و امکان تغییر آن‌ها از اینجا وجود ندارد.
+                کاربر این پنج روش اعلان را از پنل خودش (با تیک‌زدن در فرم یادآوری) تنظیم می‌کند؛ این صفحه فقط روش‌های فعلی هر یادآوری را نشان می‌دهد و امکان تغییر آن‌ها از اینجا وجود ندارد.
             </p>
         </div>
     </div>

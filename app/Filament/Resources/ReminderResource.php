@@ -32,6 +32,9 @@ class ReminderResource extends Resource
 
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.reminder.guide.overview'],
+        ['label' => 'ستون‌ها و فیلترها', 'icon' => 'tab', 'view' => 'filament.resources.reminder.guide.list-tabs'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.reminder.guide.admin-ops'],
+        ['label' => 'ارسال و تکرار', 'icon' => 'schedule_send', 'view' => 'filament.resources.reminder.guide.delivery'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.reminder.guide.user'],
     ];
 
