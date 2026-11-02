@@ -4,7 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Livewire\Auth\ForgotPassword;
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\PasswordResetNotification as ResetPassword;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
@@ -60,6 +60,47 @@ class ForgotPasswordTest extends TestCase
             ->assertHasNoErrors();
 
         Notification::assertSentTo($user, ResetPassword::class);
+    }
+
+    public function test_after_sending_the_button_is_replaced_by_the_message_and_cannot_resubmit()
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::test(ForgotPassword::class)
+            ->set('email', $user->email)
+            ->call('send')
+            ->assertSet('sent', true)
+            ->assertDontSee('ارسال لینک بازیابی<', false)
+            ->call('send');
+
+        Notification::assertSentToTimes($user, ResetPassword::class, 1);
+    }
+
+    public function test_reset_mail_uses_the_organization_template_with_a_working_link()
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        $mail = (new ResetPassword('tok123'))->toMail($user);
+        $html = $mail->render();
+
+        $this->assertStringContainsString('تغییر رمز عبور', $html);
+        $this->assertStringContainsString('/reset-password/tok123?email=' . urlencode($user->email), $html);
+        $this->assertStringContainsString(config('app.organization_name'), $html);
+    }
+
+    public function test_admin_panel_reset_uses_the_same_notification_with_its_own_url_and_persian_toast()
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        $notification = app(\Filament\Auth\Notifications\ResetPassword::class, ['token' => 'adm1']);
+        $this->assertInstanceOf(ResetPassword::class, $notification);
+
+        $notification->url = 'http://localhost/admin/password-reset/reset?token=adm1';
+        $this->assertStringContainsString('/admin/password-reset/reset?token=adm1', $notification->toMail($user)->render());
+
+        $this->assertSame('لینک بازیابی رمز عبور به ایمیل شما ارسال شد.', __('passwords.sent'));
     }
 
     public function test_unknown_email_adds_error_and_does_not_flash()

@@ -165,4 +165,13 @@ class LoginTest extends TestCase
         $this->actingAs($user)->get('/dashboard')->assertRedirect('/login');
         $this->assertGuest();
     }
+
+    public function test_forgot_password_link_follows_the_tenant_password_reset_switch(): void
+    {
+        config(['app.off' => []]);
+        Livewire::test(Login::class)->assertSee('فراموشی رمز عبور؟');
+
+        config(['app.off' => ['password-reset']]);
+        Livewire::test(Login::class)->assertDontSee('فراموشی رمز عبور؟');
+    }
 }

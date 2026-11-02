@@ -66,7 +66,7 @@ class ReminderPresenter
     public static function channelToggles(bool $scoped = true): array
     {
         return array_values(array_filter([
-            ['name' => 'form.emailEnabled', 'label' => 'ایمیل'],
+            tenantOff('notify:mail') ? null : ['name' => 'form.emailEnabled', 'label' => 'ایمیل'],
             tenantOff('notify:sms') ? null : static::smsToggle(),
             ['name' => 'form.inAppBadge', 'label' => $scoped ? 'نشانگر منو' : 'نشانگر منو (فقط رکورد متصل)', 'disabled' => ! $scoped],
             ['name' => 'form.inAppNudge', 'label' => 'پیام اعلانات'],
@@ -79,11 +79,11 @@ class ReminderPresenter
         $channels = $this->reminder->channels ?? [];
         $badges = [];
 
-        if (in_array('email', $channels, true)) {
+        if (in_array('email', $channels, true) && ! tenantOff('notify:mail')) {
             $badges[] = ['icon' => 'mail', 'label' => 'ایمیل'];
         }
 
-        if (in_array('sms', $channels, true)) {
+        if (in_array('sms', $channels, true) && ! tenantOff('notify:sms')) {
             $badges[] = ['icon' => 'sms', 'label' => 'پیامک'];
         }
 

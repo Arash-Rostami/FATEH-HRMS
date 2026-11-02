@@ -28,6 +28,18 @@ describe('THEME_COLORS', () => {
     })
 })
 
+describe('THEME_COLORS stays the fixed palette whatever the tenant colour is (2026-11-02)', () => {
+    test('the "default" swatch keeps its own colour even when a tenant primary is live on the page, so the original default is never repainted into a duplicate of another palette', () => {
+        document.documentElement.style.setProperty('--md-sys-color-primary', '#375E90')
+        freshStore()
+
+        expect(THEME_COLORS.find((c) => c.name === 'default').color).toBe('#4e5f66')
+        expect(THEME_COLORS.find((c) => c.name === 'blue').color).toBe('#375E90')
+
+        document.documentElement.style.removeProperty('--md-sys-color-primary')
+    })
+})
+
 describe('appTheme initial state', () => {
     test('falls back to default/light when window.ThemeManager is absent', () => {
         delete window.ThemeManager

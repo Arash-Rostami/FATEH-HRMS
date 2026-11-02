@@ -562,6 +562,22 @@ class SuggestionTest extends TestCase
         $this->assertSame(3, (int) $top->first()->accepted_suggestions);
     }
 
+    public function test_top_contributors_refresh_as_soon_as_a_suggestion_is_saved()
+    {
+        $first = User::factory()->create(['status' => 'active']);
+        $this->makeSuggestion(['user_id' => $first->id, 'stage' => 'accepted']);
+        $viewer = User::factory()->create(['status' => 'active']);
+
+        $this->assertSame($first->id, Livewire::actingAs($viewer)->test(Main::class)->instance()->topContributors->first()->user_id);
+
+        $second = User::factory()->create(['status' => 'active']);
+        foreach (range(1, 3) as $i) {
+            $this->makeSuggestion(['user_id' => $second->id, 'stage' => 'accepted']);
+        }
+
+        $this->assertSame($second->id, Livewire::actingAs($viewer)->test(Main::class)->instance()->topContributors->first()->user_id);
+    }
+
     public function test_suggestions_aggregates_review_counts()
     {
         $user = $this->deptUser('TST', 'expert');

@@ -7,6 +7,8 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Route;
 use League\Flysystem\UnableToRetrieveMetadata;
 use PDOException;
@@ -58,6 +60,26 @@ class ExceptionPresenterTest extends TestCase
         $presented = ExceptionPresenter::present($exception);
 
         $this->assertSame($reference, $presented['reference']);
+    }
+
+    public function test_framework_benign_exceptions_are_presented_without_logging(): void
+    {
+        Log::shouldReceive('error')->never();
+
+        $tokenMismatch = ExceptionPresenter::present(new TokenMismatchException());
+        $validation = ExceptionPresenter::present(ValidationException::withMessages(['assigned_to' => 'blocked']));
+
+        $this->assertSame('پایان نشست کاربری', $tokenMismatch['title']);
+        $this->assertStringNotContainsString('کد پیگیری', $tokenMismatch['body']);
+        $this->assertSame('عملیات مجاز نیست', $validation['title']);
+        $this->assertSame('blocked', $validation['body']);
+    }
+
+    public function test_reported_exceptions_keep_the_reference_line_in_the_body(): void
+    {
+        $presented = ExceptionPresenter::present(new RuntimeException('boom'));
+
+        $this->assertStringContainsString('کد پیگیری: ' . $presented['reference'], $presented['body']);
     }
 
     public function test_generic_fallback_presents_the_system_error_title_and_body(): void

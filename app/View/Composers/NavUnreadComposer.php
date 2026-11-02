@@ -8,6 +8,8 @@ class NavUnreadComposer
 {
     public function compose(View $view): void
     {
-        $view->with('navHasUnread', auth()->check() && auth()->user()->unreadNotifications()->exists());
+        $user = auth()->user();
+
+        $view->with('navHasUnread', $user ? $user->unreadNotifications()->exists() : false);
     }
 }

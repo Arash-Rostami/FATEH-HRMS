@@ -460,6 +460,23 @@ describe('share', () => {
         expect(writeText).toHaveBeenCalled()
     })
 
+    test('a failed native share falls back to copying the link, but a user cancel does not', async () => {
+        const writeText = vi.fn(() => Promise.resolve())
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+        Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true })
+
+        Object.defineProperty(navigator, 'share', { configurable: true, value: () => Promise.reject(new Error('blocked')) })
+        window.filamentMenu.share()
+        await new Promise((r) => setTimeout(r, 0))
+        expect(writeText).toHaveBeenCalledTimes(1)
+
+        const abort = Object.assign(new Error('cancel'), { name: 'AbortError' })
+        Object.defineProperty(navigator, 'share', { configurable: true, value: () => Promise.reject(abort) })
+        window.filamentMenu.share()
+        await new Promise((r) => setTimeout(r, 0))
+        expect(writeText).toHaveBeenCalledTimes(1)
+    })
+
     test('a rejected share/clipboard promise is swallowed, not propagated', async () => {
         Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('x')) } })
         expect(() => window.filamentMenu.share()).not.toThrow()

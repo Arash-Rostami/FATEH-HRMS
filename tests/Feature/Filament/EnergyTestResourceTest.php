@@ -47,6 +47,22 @@ class EnergyTestResourceTest extends TestCase
         config(['database.default' => 'mysql']);
     }
 
+    public function test_row_click_edit_preference_never_takes_a_record_without_an_edit_page_away_from_its_view_page()
+    {
+        $admin = $this->developer();
+        $test = EnergyTest::factory()->create(['overall_score' => 10]);
+        $viewUrl = \App\Filament\Resources\EnergyTestResource::getUrl('view', ['record' => $test]);
+
+        foreach ([false, true] as $editOnClick) {
+            $admin->setExtraValue('preferences.row_click_edit', $editOnClick);
+            $admin->save();
+
+            $table = Livewire::actingAs($admin)->test(ListEnergyTests::class)->instance()->getTable();
+
+            $this->assertSame($viewUrl, $table->getRecordUrl($test));
+        }
+    }
+
     private function developer(): User
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'developer']);

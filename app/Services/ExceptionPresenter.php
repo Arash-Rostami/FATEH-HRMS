@@ -3,12 +3,14 @@
 namespace App\Services;
 
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use League\Flysystem\FilesystemException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
@@ -18,17 +20,20 @@ class ExceptionPresenter
     public static function present(Throwable $e): array
     {
         $reference = static::makeReference();
+        $reported = app(ExceptionHandler::class)->shouldReport($e);
 
-        Log::error("[{$reference}] " . $e->getMessage(), [
-            'reference' => $reference,
-            'exception' => $e,
-        ]);
+        if ($reported) {
+            Log::error("[{$reference}] " . $e->getMessage(), [
+                'reference' => $reference,
+                'exception' => $e,
+            ]);
+        }
 
         [$title, $body] = static::classify($e);
 
         return [
             'title' => $title,
-            'body' => $body . "\n\n" . __('errors/strings.notifications.reference_line', ['ref' => $reference]),
+            'body' => $reported ? $body . "\n\n" . __('errors/strings.notifications.reference_line', ['ref' => $reference]) : $body,
             'reference' => $reference,
         ];
     }
@@ -76,6 +81,13 @@ class ExceptionPresenter
             return [
                 __('errors/strings.notifications.file_upload_incomplete_title'),
                 __('errors/strings.notifications.file_upload_incomplete_body'),
+            ];
+        }
+
+        if ($e instanceof ValidationException) {
+            return [
+                __('errors/strings.notifications.validation_title'),
+                $e->validator->errors()->first() ?: __('errors/strings.notifications.generic_body'),
             ];
         }
 

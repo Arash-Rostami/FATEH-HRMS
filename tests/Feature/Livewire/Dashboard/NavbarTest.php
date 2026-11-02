@@ -9,6 +9,7 @@ use App\Livewire\Dashboard\Navbar\QuickSettings;
 use App\Livewire\Dashboard\Navbar\StatusSwitcher;
 use App\Livewire\Dashboard\Navbar\Weather;
 use App\Models\Onboarding;
+use App\Models\Profile;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -504,6 +505,43 @@ class NavbarTest extends TestCase
         preg_match('/<a[^>]*tab=onboarding[\s\S]*?<\/a>/', $html, $matches);
 
         return $matches[0] ?? '';
+    }
+
+    private function profileLinkHtml(string $html): string
+    {
+        preg_match('/<a[^>]*tab=info[\s\S]*?<\/a>/', $html, $matches);
+
+        return $matches[0] ?? '';
+    }
+
+    public function test_account_dropdown_shows_profile_completion_percentage_below_100(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        Profile::factory()->create(['user_id' => $user->id]);
+
+        $html = $this->actingAs($user)->get(route('dashboard'))->getContent();
+        $link = $this->profileLinkHtml($html);
+
+        $this->assertStringContainsString('account-profile-completion-badge', $link);
+        $this->assertStringContainsString('٪', $link);
+    }
+
+    public function test_account_dropdown_hides_profile_completion_badge_when_profile_is_complete(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        Profile::factory()->create([
+            'user_id' => $user->id,
+            'id_card_number' => '0012345678',
+            'field' => 'نرم‌افزار',
+            'address' => 'تهران',
+            'insurance' => 'بیمه',
+            'emergency_phone' => '09120000000',
+        ]);
+
+        $html = $this->actingAs($user)->get(route('dashboard'))->getContent();
+        $link = $this->profileLinkHtml($html);
+
+        $this->assertStringNotContainsString('account-profile-completion-badge', $link);
     }
 
     private function releaseTriggerHtml(string $html): string

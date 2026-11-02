@@ -27,3 +27,7 @@ Role-first permission model with developer bypass. Full model: `app/Providers/Fi
 ## 4. `EnsureUserModulePermission` — alias `module:{name}` (user panel)
 
 Per-module view gate on user-panel routes (`bootstrap/app.php` alias): guests → login, developers → always pass, everyone else needs a `Permission::forUser()` row with `can($module, 'view')`, else 403. This is the user-panel counterpart of the admin panel's `EnsureHasPermission`.
+
+## 5. `EnsureTenantModuleOn` — alias `tenant.on:{key}` (2026-11-02)
+
+Per-company switch gate: `abort_if(tenantOff($key), 404)`, so a route can be turned off per tenant in `config/tenants.php` `modules` without an `if` in the routes file. First user: `Route::middleware(['guest', 'tenant.on:password-reset'])` around the forgot/reset pages (Fateh off, Persol on; full list of what the switch touches in `config/tenantPattern.md`). The key is read at request time, so it works with a cached route table. Test: `tests/Feature/Http/HttpRoutesTest.php`.

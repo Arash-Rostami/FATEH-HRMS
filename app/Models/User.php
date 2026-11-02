@@ -76,6 +76,11 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         'presence' => PresenceStatus::Onsite->value,
     ];
 
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\PasswordResetNotification($token));
+    }
+
     public function assignedTasks(): HasMany
     {
         return $this->hasMany(Task::class, 'assigned_to');

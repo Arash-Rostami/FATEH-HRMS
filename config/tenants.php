@@ -66,6 +66,7 @@ $tenants = [
         ],
         'theme' => [
             'primary' => '#4e5f66',
+            'palette' => 'default',
             'header_bg' => '#08191e',
             'admin_primary' => 'amber',
         ],
@@ -139,7 +140,8 @@ $tenants = [
 
          'modules' => [                       // unlisted = on; list only what you want off. true = on again (a sub-tenant can re-enable)
             'notify' => false,
-        //     'reservation' => false,          // whole module: pages, URL (404), admin, menus, search
+            'password-reset' => false,       // no mail server: hides forgot-password link, routes, admin reset and Fortify endpoints
+        //     'reservation' => false,        // whole module: pages, URL (404), admin, menus, search
         //     'reservation:avantgarde' => false, // only one view of a module (see 'views' in config/modules.php)
         //     'status:chart' => false,
         //     'faq:card' => false,
@@ -192,6 +194,7 @@ $tenants = [
 
         'theme' => [
             'primary' => '#375E90',
+            'palette' => 'blue',
         ],
 
         'logo_display' => [

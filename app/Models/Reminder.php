@@ -73,7 +73,7 @@ class Reminder extends Model
 
     public function deliverDue(): void
     {
-        $email = in_array('email', $this->channels, true);
+        $email = in_array('email', $this->channels, true) && !tenantOff('notify:mail');
         $sms = in_array('sms', $this->channels, true) && !tenantOff('notify:sms');
 
         if ((!$email && !$sms)

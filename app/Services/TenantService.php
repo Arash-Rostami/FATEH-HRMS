@@ -132,10 +132,9 @@ final class TenantService
 
     public function themeCss(): string
     {
-        $primary = (string)config('app.theme_primary');
         $header = (string)config('app.theme_header_bg');
 
-        return $this->memo[$primary . '|' . $header] ??= $this->build($primary, $header);
+        return $this->memo['theme|' . $header] ??= $this->build($header);
     }
 
     public function mailPalette(): array
@@ -158,25 +157,15 @@ final class TenantService
         return str_ends_with($word, 'ies') ? substr($word, 0, -3) . 'y' : (str_ends_with($word, 's') ? substr($word, 0, -1) : $word);
     }
 
-    private function build(string $primary, string $header): string
+    private function build(string $header): string
     {
-        $primary = $this->normalize($primary);
         $header = $this->normalize($header);
 
-        if (!$primary || !$header || ($primary === self::DEFAULT_PRIMARY && $header === self::DEFAULT_HEADER)) {
+        if (!$header || $header === self::DEFAULT_HEADER) {
             return '';
         }
 
-        $light = $this->contrast($primary);
-        $lightened = $this->mix($primary, 0.6, 255);
-        $dark = $this->contrast($lightened);
-
-        return ":root:not([data-theme]){--md-sys-color-primary:{$primary};--md-sys-color-on-primary:{$light};"
-            . "--md-sys-color-primary-container:color-mix(in srgb,{$primary} 18%,white);"
-            . "--md-sys-color-on-primary-container:color-mix(in srgb,{$primary} 80%,black);--header-bg:{$header}}"
-            . ":root.dark:not([data-theme]){--md-sys-color-primary:color-mix(in srgb,{$primary} 60%,white);--md-sys-color-on-primary:{$dark};"
-            . "--md-sys-color-primary-container:color-mix(in srgb,{$primary} 35%,black);"
-            . "--md-sys-color-on-primary-container:color-mix(in srgb,{$primary} 20%,white);--header-bg:{$header}}";
+        return ":root:not([data-theme]){--header-bg:{$header}}:root.dark:not([data-theme]){--header-bg:{$header}}";
     }
 
     private function normalize(string $color): ?string

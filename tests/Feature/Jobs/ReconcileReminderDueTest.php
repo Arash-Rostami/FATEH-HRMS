@@ -197,7 +197,7 @@ class ReconcileReminderDueTest extends TestCase
         $this->assertNull($reminder->fresh()->notified_at);
     }
 
-    public function test_delivery_respects_the_tenant_reminder_switch_and_the_sms_switch(): void
+    public function test_delivery_respects_the_tenant_reminder_switch_and_each_channel_switch(): void
     {
         Notification::fake();
         $user = User::factory()->create(['status' => 'active']);
@@ -216,6 +216,13 @@ class ReconcileReminderDueTest extends TestCase
 
         Queue::assertNotPushed(SendReminderSms::class);
         $this->assertNull($smsOnly->fresh()->notified_at);
+
+        config(['app.off' => ['notify:mail']]);
+        $emailOnly = $this->deliverable($user, ['channels' => ['email']]);
+        $this->runJob($emailOnly);
+
+        Notification::assertNothingSent();
+        $this->assertNull($emailOnly->fresh()->notified_at);
     }
 
     public function test_an_inactive_owner_gets_nothing_and_the_reminder_stays_unstamped_until_the_owner_is_active(): void

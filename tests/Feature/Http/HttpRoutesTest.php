@@ -657,4 +657,13 @@ class HttpRoutesTest extends TestCase
             $this->assertIsBool(tenantOffName('filament.admin.resources.ads.index'));
         }
     }
+
+    public function test_tenant_on_middleware_404s_a_switched_off_key_and_passes_otherwise(): void
+    {
+        config(['app.off' => ['password-reset']]);
+        $this->get('/forgot-password')->assertNotFound();
+
+        config(['app.off' => []]);
+        $this->get('/forgot-password')->assertOk();
+    }
 }

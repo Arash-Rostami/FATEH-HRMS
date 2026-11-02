@@ -48,6 +48,21 @@ class AuthorityResourceTest extends TestCase
         config(['database.default' => 'mysql']);
     }
 
+    public function test_row_click_edit_preference_switches_a_row_between_the_view_modal_and_the_edit_page()
+    {
+        $admin = $this->developer();
+        $authority = Authority::factory()->create(['sub_duty' => false]);
+        $table = fn () => Livewire::actingAs($admin)->test(ListAuthorities::class)->instance()->getTable();
+
+        $this->assertNull($table()->getRecordUrl($authority));
+        $this->assertNotNull($table()->getRecordAction($authority));
+
+        $admin->setExtraValue('preferences.row_click_edit', true);
+        $admin->save();
+
+        $this->assertSame(\App\Filament\Resources\AuthorityResource::getUrl('edit', ['record' => $authority]), $table()->getRecordUrl($authority));
+    }
+
     private function developer(): User
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'developer']);

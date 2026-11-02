@@ -8,6 +8,7 @@ use App\Livewire\Dashboard\Suggestion\Presentation\SuggestionPresenter;
 use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
+use App\Services\Cache\ModelCacheVersion;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -108,14 +109,14 @@ class Main extends Component
     #[Computed]
     public function topContributors()
     {
-        return Suggestion::query()
+        return ModelCacheVersion::remember(Suggestion::class, 'top-contributors', now()->addSeconds(ModelCacheVersion::defaultSeconds()), fn () => Suggestion::query()
             ->select('user_id', \DB::raw('count(*) as total_suggestions'), \DB::raw("SUM(stage IN ('accepted', 'closed')) as accepted_suggestions"))
-            ->with('user')
+            ->with('user:id,name')
             ->groupBy('user_id')
             ->orderByDesc('accepted_suggestions')
             ->orderByDesc('total_suggestions')
             ->limit(3)
-            ->get();
+            ->get());
     }
 
     public function selectSuggestion(int $id): void

@@ -87,6 +87,9 @@ class Main extends Component
     public ?int $focusAnchorId = null;
     #[Locked]
     public int $focusOlder = 5;
+    #[Locked]
+    public int $focusNewer = 5;
+    public bool $hasNewer = false;
 
     public bool $isManageMembersOpen = false;
     public array $memberRecipientIds = [];
@@ -265,6 +268,7 @@ class Main extends Component
     {
         if (!$this->activeChannelId) {
             $this->hasOlder = false;
+            $this->hasNewer = false;
             return [];
         }
 
@@ -275,8 +279,10 @@ class Main extends Component
                 ->with(['sender.profile', 'replyTo.sender'])
                 ->where('id', '>=', $anchor)
                 ->oldest('id')
-                ->take(6)
+                ->take($this->focusNewer + 2)
                 ->get();
+            $this->hasNewer = $newer->count() > $this->focusNewer + 1;
+            $newer = $newer->take($this->focusNewer + 1);
             $older = ChannelMessage::withoutTrashed()
                 ->where('channel_id', $this->activeChannelId)
                 ->with(['sender.profile', 'replyTo.sender'])
@@ -287,6 +293,7 @@ class Main extends Component
             $this->hasOlder = $older->count() > $this->focusOlder;
             $rows = $older->take($this->focusOlder)->merge($newer)->sortBy('id')->values();
         } else {
+            $this->hasNewer = false;
             $rows = ChannelMessage::withoutTrashed()
                 ->where('channel_id', $this->activeChannelId)
                 ->with(['sender.profile', 'replyTo.sender'])
@@ -499,6 +506,7 @@ class Main extends Component
         $this->hasOlder = false;
         $this->focusAnchorId = null;
         $this->focusOlder = 5;
+        $this->focusNewer = 5;
         $this->editingMsg = null;
         $this->lastDeleted = null;
         $this->messageSearch = '';
@@ -549,6 +557,7 @@ class Main extends Component
             if ($this->focusAnchorId !== null) {
                 $this->focusAnchorId = null;
                 $this->focusOlder = 5;
+                $this->focusNewer = 5;
                 unset($this->messages, $this->groupedMessages);
             }
             $this->dispatch('record-focus', type: 'channel-message', id: $id);
@@ -557,6 +566,7 @@ class Main extends Component
 
         $this->focusAnchorId = $id;
         $this->focusOlder = 5;
+        $this->focusNewer = 5;
         unset($this->messages, $this->groupedMessages);
         $this->dispatch('record-focus', type: 'channel-message', id: $id);
         return true;
@@ -591,6 +601,7 @@ class Main extends Component
         }
         $this->focusAnchorId = null;
         $this->focusOlder = 5;
+        $this->focusNewer = 5;
         $this->loadedLimit = 10;
         unset($this->messages, $this->groupedMessages);
     }
@@ -720,6 +731,7 @@ class Main extends Component
         $this->hasOlder = false;
         $this->focusAnchorId = null;
         $this->focusOlder = 5;
+        $this->focusNewer = 5;
         $this->editingMsg = null;
         $this->messageSearch = '';
         $this->composer->reset();
@@ -756,6 +768,25 @@ class Main extends Component
             $this->loadedLimit += self::LOAD_STEP;
         }
         unset($this->messages);
+    }
+
+    public function loadNewer(): void
+    {
+        if ($this->focusAnchorId === null) {
+            return;
+        }
+
+        $this->focusNewer += self::LOAD_STEP;
+        unset($this->messages);
+        $rows = $this->messages;
+
+        if (!$this->hasNewer) {
+            $this->focusAnchorId = null;
+            $this->focusOlder = 5;
+            $this->focusNewer = 5;
+            $this->loadedLimit = max(10, count($rows));
+            $this->markRead((int) $this->activeChannelId);
+        }
     }
 
     #[Renderless]
@@ -814,6 +845,7 @@ class Main extends Component
             $this->editingMsg = null;
             $this->focusAnchorId = null;
             $this->focusOlder = 5;
+            $this->focusNewer = 5;
             unset($this->messages, $this->channels);
             $this->dispatch('message-sent');
         } catch (ValidationException $e) {
@@ -887,6 +919,7 @@ class Main extends Component
             $this->hasOlder = false;
             $this->focusAnchorId = null;
             $this->focusOlder = 5;
+            $this->focusNewer = 5;
             $this->messageSearch = '';
         }
         unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
@@ -905,6 +938,7 @@ class Main extends Component
             $this->hasOlder = false;
             $this->focusAnchorId = null;
             $this->focusOlder = 5;
+            $this->focusNewer = 5;
             $this->messageSearch = '';
         }
         unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);

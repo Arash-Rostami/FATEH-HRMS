@@ -1535,6 +1535,138 @@ class ChannelTest extends TestCase
             ->assertSet('focusOlder', 30);
     }
 
+    private function anchorChannel(int $count): array
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelWithMembers($owner, [], 'open');
+
+        $ids = [];
+        foreach (range(1, $count) as $i) {
+            $ids[] = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => "n $i"])->id;
+        }
+
+        return [$owner, $channel, $ids];
+    }
+
+    public function test_anchor_mode_exposes_anchor_plus_five_newer_and_has_newer()
+    {
+        [$owner, $channel, $ids] = $this->anchorChannel(40);
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('focusMessage', $ids[9]);
+
+        $this->assertSame(array_slice($ids, 4, 11), array_column($component->instance()->messages, 'id'));
+        $this->assertTrue($component->instance()->hasNewer);
+        $component->assertSet('focusNewer', 5);
+    }
+
+    public function test_anchor_mode_stays_one_row_past_the_newer_window_and_exits_exactly_at_it()
+    {
+        [$owner, $channel, $ids] = $this->anchorChannel(41);
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('focusMessage', $ids[9])
+            ->call('loadNewer')
+            ->assertSet('focusAnchorId', $ids[9])
+            ->assertSet('focusNewer', 30)
+            ->assertSet('hasNewer', true);
+
+        [$owner, $channel, $ids] = $this->anchorChannel(40);
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('focusMessage', $ids[9])
+            ->call('loadNewer')
+            ->assertSet('focusAnchorId', null)
+            ->assertSet('focusNewer', 5)
+            ->assertSet('hasNewer', false);
+    }
+
+    public function test_load_newer_pages_forward_then_exits_anchor_mode_at_the_tail()
+    {
+        [$owner, $channel, $ids] = $this->anchorChannel(80);
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('focusMessage', $ids[9])
+            ->call('loadNewer')
+            ->assertSet('focusNewer', 30)
+            ->assertSet('focusAnchorId', $ids[9]);
+
+        $this->assertSame(array_slice($ids, 4, 36), array_column($component->instance()->messages, 'id'));
+        $this->assertTrue($component->instance()->hasNewer);
+
+        $component->call('loadNewer')->assertSet('focusNewer', 55);
+        $this->assertTrue($component->instance()->hasNewer);
+
+        $component->call('loadNewer')
+            ->assertSet('focusAnchorId', null)
+            ->assertSet('focusNewer', 5)
+            ->assertSet('focusOlder', 5)
+            ->assertSet('loadedLimit', 76);
+
+        $this->assertSame(array_slice($ids, 4), array_column($component->instance()->messages, 'id'));
+        $this->assertFalse($component->instance()->hasNewer);
+    }
+
+    public function test_load_newer_exit_advances_the_read_cursor_to_the_tail()
+    {
+        [$owner, $channel, $ids] = $this->anchorChannel(30);
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('focusMessage', $ids[9]);
+
+        ChannelMember::where(['user_id' => $owner->id, 'channel_id' => $channel->id])->update(['last_read_message_id' => null]);
+
+        $component->call('loadNewer')->assertSet('focusAnchorId', null);
+
+        $pivot = ChannelMember::where(['user_id' => $owner->id, 'channel_id' => $channel->id])->first();
+        $this->assertSame(end($ids), (int) $pivot->last_read_message_id);
+    }
+
+    public function test_load_newer_is_noop_in_recent_mode()
+    {
+        [$owner, $channel] = $this->anchorChannel(30);
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('loadNewer')
+            ->assertSet('focusNewer', 5)
+            ->assertSet('focusAnchorId', null)
+            ->assertSet('loadedLimit', 10);
+
+        $component->instance()->messages;
+
+        $this->assertFalse($component->instance()->hasNewer);
+    }
+
+    public function test_focus_newer_resets_to_five_on_every_anchor_exit_path()
+    {
+        [$owner, $channel, $ids] = $this->anchorChannel(80);
+
+        $anchored = fn() => Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('focusMessage', $ids[9])
+            ->call('loadNewer')
+            ->assertSet('focusNewer', 30);
+
+        $anchored()->call('selectChannel', $channel->id)->assertSet('focusNewer', 5);
+        $anchored()->call('backToList')->assertSet('focusNewer', 5);
+        $anchored()->call('clearFocus')->assertSet('focusNewer', 5);
+        $anchored()->call('focusMessage', $ids[40])->assertSet('focusNewer', 5);
+        $anchored()->set('composer.body', 'reset probe')->call('send')->assertSet('focusNewer', 5)->assertSet('focusAnchorId', null);
+    }
+
     public function test_updated_attachments_dispatches_attachments_updated_self_event()
     {
         $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
@@ -1698,6 +1830,9 @@ class ChannelTest extends TestCase
         $blade = file_get_contents(base_path('resources/views/livewire/dashboard/channel/messages.blade.php'));
 
         $this->assertStringContainsString('action="loadOlder"', $blade);
+        $this->assertStringContainsString('action="loadNewer"', $blade);
+        $this->assertStringContainsString('wrap="loadNewer"', $blade);
+        $this->assertStringContainsString('wire:key="load-newer"', $blade);
         $this->assertStringContainsString('island="messages"', $blade);
     }
 

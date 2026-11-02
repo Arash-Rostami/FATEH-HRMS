@@ -6,7 +6,7 @@
     <p dir="auto" style="text-align: start;">{{ $line }}</p>
 @endforeach
 @if($notify->url)
-    <p><a href="{{ $notify->url }}">مشاهده</a></p>
+    <p><a href="{{ $notify->url }}">{{ $notify->action ?? 'مشاهده' }}</a></p>
 @endif
 </body>
 </html>

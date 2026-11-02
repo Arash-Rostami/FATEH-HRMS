@@ -68,6 +68,7 @@ return [
     ],
 
     'theme_primary' => $tenant['theme']['primary'] ?? '#4e5f66',
+    'theme_palette' => $tenant['theme']['palette'] ?? 'default',
     'theme_header_bg' => $tenant['theme']['header_bg'] ?? '#08191e',
     'theme_admin_primary' => $tenant['theme']['admin_primary'] ?? 'amber',
 

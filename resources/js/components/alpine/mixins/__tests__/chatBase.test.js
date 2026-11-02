@@ -538,6 +538,43 @@ describe('chatBase toast + scroll', () => {
         await c.loadOlderKeepingPlace(load);
         expect(load).not.toHaveBeenCalled();
     });
+
+    test('loadNewer runs the load, then records the last-message marker as _selfMarker and clears its flag', async () => {
+        const c = chatBase('contact');
+        c.$nextTick = () => Promise.resolve();
+        c._readLastMessageMarker = vi.fn(() => 'message-9');
+        const load = vi.fn(async () => { expect(c._loadingNewer).toBe(true); });
+
+        await c.loadNewer(load);
+
+        expect(load).toHaveBeenCalledOnce();
+        expect(c._selfMarker).toBe('message-9');
+        expect(c._loadingNewer).toBe(false);
+    });
+
+    test('loadNewer ignores a second call while one is running', async () => {
+        const c = chatBase('contact');
+        c.$nextTick = () => Promise.resolve();
+        c._readLastMessageMarker = vi.fn(() => 'message-9');
+        const load = vi.fn(async () => {});
+        c._loadingNewer = true;
+
+        await c.loadNewer(load);
+
+        expect(load).not.toHaveBeenCalled();
+        expect(c._selfMarker).toBeNull();
+    });
+
+    test('loadNewer swallows a failing load, leaves _selfMarker untouched and releases the flag', async () => {
+        const c = chatBase('contact');
+        c.$nextTick = () => Promise.resolve();
+        c._readLastMessageMarker = vi.fn(() => 'message-9');
+
+        await expect(c.loadNewer(async () => { throw new Error('boom'); })).resolves.toBeUndefined();
+
+        expect(c._selfMarker).toBeNull();
+        expect(c._loadingNewer).toBe(false);
+    });
 });
 
 describe('chatBase search/filter panel toggles', () => {
@@ -955,6 +992,139 @@ describe('chatBase _ringIncoming while the tab is hidden (background pop-up poll
         rand.mockRestore();
     });
 });
+
+describe('chatBase.loadOlderKeepingPlace — anchor-row restore (added 2026-11-02)', () => {
+    let docTop
+    let vp
+    let row
+    let c
+
+    const setup = (rowDocTop = 30) => {
+        vi.useFakeTimers()
+        vi.stubGlobal('requestAnimationFrame', (cb) => setTimeout(cb, 16))
+        docTop = rowDocTop
+        vp = document.createElement('div')
+        vp.id = 'msg-viewport'
+        vp.scrollTop = 30
+        vp.getBoundingClientRect = () => ({ top: 0 })
+        row = document.createElement('div')
+        row.dataset.rf = 'message-7'
+        row.getBoundingClientRect = () => ({ top: docTop - vp.scrollTop })
+        vp.appendChild(row)
+        document.body.appendChild(vp)
+        c = chatBase('contact')
+        c.$nextTick = () => Promise.resolve()
+        c.$wire = { activeUserId: 5 }
+    }
+
+    afterEach(() => {
+        document.body.innerHTML = ''
+        vi.useRealTimers()
+        vi.unstubAllGlobals()
+    })
+
+    test('keeps the same message on screen with a 96px peek of the new page above it', async () => {
+        setup()
+        await c.loadOlderKeepingPlace(async () => { docTop += 700 })
+        expect(docTop - vp.scrollTop).toBe(96)
+    })
+
+    test('keeps correcting for height that changes above the message right after the load', async () => {
+        setup()
+        await c.loadOlderKeepingPlace(async () => { docTop += 700 })
+        docTop += 40
+        vi.advanceTimersByTime(40)
+        expect(docTop - vp.scrollTop).toBe(96)
+    })
+
+    test('stops correcting once the reader scrolls', async () => {
+        setup()
+        await c.loadOlderKeepingPlace(async () => { docTop += 700 })
+        vp.dispatchEvent(new Event('wheel'))
+        const stopped = vp.scrollTop
+        docTop += 40
+        vi.advanceTimersByTime(100)
+        expect(vp.scrollTop).toBe(stopped)
+    })
+
+    test('stops correcting after the settle window', async () => {
+        setup()
+        await c.loadOlderKeepingPlace(async () => { docTop += 700 })
+        vi.advanceTimersByTime(600)
+        const settled = vp.scrollTop
+        docTop += 40
+        vi.advanceTimersByTime(100)
+        expect(vp.scrollTop).toBe(settled)
+    })
+
+    test('does not scroll when nothing was added above', async () => {
+        setup()
+        await c.loadOlderKeepingPlace(async () => {})
+        expect(vp.scrollTop).toBe(30)
+    })
+
+    test('falls back to the height difference when the reference message disappears', async () => {
+        setup()
+        let height = 1000
+        Object.defineProperty(vp, 'scrollHeight', { get: () => height })
+        await c.loadOlderKeepingPlace(async () => { height = 1700; vp.removeChild(row) })
+        expect(vp.scrollTop).toBe(30 + 700 - 96)
+    })
+
+    test('does not snap the reader back when they scrolled during the load round trip', async () => {
+        setup()
+        let height = 1000
+        Object.defineProperty(vp, 'scrollHeight', { get: () => height })
+        await c.loadOlderKeepingPlace(async () => { docTop += 700; height = 1700; vp.scrollTop += 500 })
+        expect(vp.scrollTop).toBe(30 + 500 + 700 - 96)
+        const settled = vp.scrollTop
+        vi.advanceTimersByTime(100)
+        expect(vp.scrollTop).toBe(settled)
+    })
+
+    test('a clamped short pane no longer lands inside the new block', async () => {
+        setup(0)
+        vp.scrollTop = 0
+        let height = 300
+        Object.defineProperty(vp, 'scrollHeight', { get: () => height })
+        await c.loadOlderKeepingPlace(async () => { docTop += 900; height = 1200 })
+        expect(docTop - vp.scrollTop).toBe(96)
+    })
+})
+
+describe('chatBase _conv — the open conversation id survives Livewire\'s function fallback for foreign properties (added 2026-11-02)', () => {
+    const livewireWire = (state) => new Proxy(state, { get: (t, p) => (p in t ? t[p] : () => {}) })
+
+    test('returns whichever of the two ids is a real integer, and null when none is', () => {
+        const c = chatBase('channel')
+
+        c.$wire = livewireWire({ activeChannelId: 3 })
+        expect(c._conv()).toBe(3)
+
+        c.$wire = livewireWire({ activeUserId: 8 })
+        expect(c._conv()).toBe(8)
+
+        c.$wire = livewireWire({ activeChannelId: null })
+        expect(c._conv()).toBeNull()
+    })
+
+    test('loadOlderKeepingPlace still restores the scroll position inside a channel, where activeUserId is not a property', async () => {
+        const c = chatBase('channel')
+        c.$nextTick = () => Promise.resolve()
+        c.$wire = livewireWire({ activeChannelId: 3 })
+
+        const vp = document.createElement('div')
+        vp.id = 'msg-viewport'
+        let height = 1000
+        Object.defineProperty(vp, 'scrollHeight', { get: () => height })
+        vp.scrollTop = 30
+        document.body.appendChild(vp)
+
+        await c.loadOlderKeepingPlace(async () => { height = 1700 })
+
+        expect(vp.scrollTop).toBe(30 + 700 - 96)
+    })
+})
 
 describe('chatBase general (id = null) ding respects per-room mute using the unread counts already in the sidebar rows', () => {
     beforeEach(() => {

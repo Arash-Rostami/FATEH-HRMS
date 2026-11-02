@@ -41,7 +41,12 @@ trait FilamentPreferences
     {
         $user = Auth::user();
 
-        $this->form->fill($user?->extra['preferences'] ?? []);
+        $defaults = collect($this->getPreferenceFields())
+            ->filter(fn ($field) => $field instanceof Toggle && $field->getDefaultState() !== null)
+            ->mapWithKeys(fn (Toggle $field) => [$field->getName() => $field->getDefaultState()])
+            ->all();
+
+        $this->form->fill(array_replace($defaults, $user?->extra['preferences'] ?? []));
     }
 
     public function save(): void
@@ -169,6 +174,20 @@ trait FilamentPreferences
                 ->onIcon('heroicon-o-calendar-days')
                 ->offIcon('heroicon-o-calendar')
                 ->default(true),
+
+            Toggle::make('row_click_edit')
+                ->label('کلیک روی ردیف مستقیم به صفحهٔ ویرایش برود')
+                ->helperText('اگر فعال باشد، کلیک روی ردیف جدول مستقیماً صفحهٔ ویرایش را باز می‌کند؛ در حالت غیرفعال (پیش‌فرض) پنجرهٔ نمایش (اطلاعات رکورد) باز می‌شود. رکوردی که قابل ویرایش نیست همیشه با پنجرهٔ نمایش باز می‌شود.')
+                ->onIcon('heroicon-o-pencil-square')
+                ->offIcon('heroicon-o-eye')
+                ->default(false),
+
+            Toggle::make('persist_table_state')
+                ->label('به‌خاطر سپردن جست‌وجو، فیلتر و مرتب‌سازی جداول')
+                ->helperText('جست‌وجو، فیلترها و ترتیب هر جدول در نشست شما حفظ می‌شود تا هنگام بازگشت به همان جدول دوباره تنظیم نکنید.')
+                ->onIcon('heroicon-o-bookmark')
+                ->offIcon('heroicon-o-bookmark-slash')
+                ->default(false),
 
             Slider::make('records_per_page')
                 ->label('تعداد ردیف در هر صفحه')

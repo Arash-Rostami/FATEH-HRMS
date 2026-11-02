@@ -267,7 +267,8 @@ public ?array $editingMsg = null;               // {id,body} being edited (UI st
 #[Locked] public int $loadedLimit = 10;         // growing-LIMIT window (Locked = client can't inflate take(N+1); grow by `LOAD_STEP` = 25 per loadOlder (was 10, 2026-10-22; Contact's `messagesLimit` identical), reset to 10 server-side)
 public bool $hasOlder = false;                  // more older messages exist (count > loadedLimit)
 #[Locked] public ?int $focusAnchorId = null;   // message-id anchor for in-chat search "focus" (focusMessage); null = recent-N mode (reset on selectChannel/backToList/leaveChannel/send)
-#[Locked] public int $focusOlder = 5;           // older-side window size in anchor mode (5 older + anchor + 5 newer; grow by 10 per loadOlder)
+#[Locked] public int $focusOlder = 5;           // older-side window size in anchor mode (5 older + anchor + 5 newer; grow by LOAD_STEP per loadOlder)
+#[Locked] public int $focusNewer = 5;           // newer-side window size in anchor mode, excluding the anchor (2026-11-02 two-way paging, mirror of Contact: +1 probe → public bool $hasNewer; loadNewer() grows it by LOAD_STEP and exits anchor mode at the tail with loadedLimit = rendered count + markRead; reset beside every focusOlder = 5 site; bottom wire:key="load-newer" block + downward auto-trigger in channel.js)
 public string $messageSearch = '';              // in-chat message-search query (messaging/search.blade.php input; reset on selectChannel/backToList/leaveChannel)
 ```
 

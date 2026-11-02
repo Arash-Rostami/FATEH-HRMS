@@ -65,6 +65,9 @@ class Main extends Component
     public int $focusOlder = 5;
     public bool $hasOlder = false;
     #[Locked]
+    public int $focusNewer = 5;
+    public bool $hasNewer = false;
+    #[Locked]
     public ?int $newMessagesAnchorId = null;
     #[Locked]
     public ?string $pollStamp = null;
@@ -94,6 +97,7 @@ class Main extends Component
         $this->messageSearch = '';
         $this->focusAnchorId = null;
         $this->focusOlder = 5;
+        $this->focusNewer = 5;
         $this->hasOlder = false;
         $this->messagesLimit = 10;
         $this->newMessagesAnchorId = null;
@@ -280,6 +284,7 @@ class Main extends Component
             if ($this->focusAnchorId !== null) {
                 $this->focusAnchorId = null;
                 $this->focusOlder = 5;
+                $this->focusNewer = 5;
                 $this->invalidateMessageCache();
             }
             $this->dispatch('record-focus', type: 'message', id: $id);
@@ -288,6 +293,7 @@ class Main extends Component
 
         $this->focusAnchorId = $id;
         $this->focusOlder = 5;
+        $this->focusNewer = 5;
         $this->invalidateMessageCache();
         $this->dispatch('record-focus', type: 'message', id: $id);
         return true;
@@ -317,6 +323,7 @@ class Main extends Component
 
         $this->focusAnchorId = null;
         $this->focusOlder = 5;
+        $this->focusNewer = 5;
         $this->messagesLimit = 10;
         $this->invalidateMessageCache();
     }
@@ -329,6 +336,25 @@ class Main extends Component
             $this->messagesLimit += self::LOAD_STEP;
         }
         $this->invalidateMessageCache();
+    }
+
+    public function loadNewerMessages(): void
+    {
+        if ($this->focusAnchorId === null) {
+            return;
+        }
+
+        $this->focusNewer += self::LOAD_STEP;
+        $this->invalidateMessageCache();
+        $rows = $this->messages;
+
+        if (!$this->hasNewer) {
+            $this->focusAnchorId = null;
+            $this->focusOlder = 5;
+            $this->focusNewer = 5;
+            $this->messagesLimit = max(10, count($rows));
+            $this->markRead((int) $this->activeUserId);
+        }
     }
 
     #[Renderless]
@@ -398,15 +424,19 @@ class Main extends Component
 
         if ($this->focusAnchorId !== null) {
             $anchor = (int) $this->focusAnchorId;
-            $newer = $direction($me, $peer)->where('id', '>=', $anchor)->oldest('id')->take(6)->get()
-                ->merge($direction($peer, $me)->where('id', '>=', $anchor)->oldest('id')->take(6)->get())
-                ->sortBy('id')->take(6)->values();
+            $probe = $this->focusNewer + 2;
+            $newer = $direction($me, $peer)->where('id', '>=', $anchor)->oldest('id')->take($probe)->get()
+                ->merge($direction($peer, $me)->where('id', '>=', $anchor)->oldest('id')->take($probe)->get())
+                ->sortBy('id')->take($probe)->values();
+            $this->hasNewer = $newer->count() > $this->focusNewer + 1;
+            $newer = $newer->take($this->focusNewer + 1);
             $older = $direction($me, $peer)->where('id', '<', $anchor)->latest('id')->take($this->focusOlder + 1)->get()
                 ->merge($direction($peer, $me)->where('id', '<', $anchor)->latest('id')->take($this->focusOlder + 1)->get())
                 ->sortByDesc('id')->take($this->focusOlder + 1)->values();
             $this->hasOlder = $older->count() > $this->focusOlder;
             $rows = $older->take($this->focusOlder)->merge($newer)->sortBy('id')->values();
         } else {
+            $this->hasNewer = false;
             $rows = $direction($me, $peer)->latest('id')->take($this->messagesLimit + 1)->get()
                 ->merge($direction($peer, $me)->latest('id')->take($this->messagesLimit + 1)->get())
                 ->sortByDesc('id')->take($this->messagesLimit + 1)->values();
@@ -485,6 +515,7 @@ class Main extends Component
         $this->messageSearch = '';
         $this->focusAnchorId = null;
         $this->focusOlder = 5;
+        $this->focusNewer = 5;
         $this->hasOlder = false;
         $this->invalidateMessageCache();
         $this->resetAllStates();
@@ -528,6 +559,7 @@ class Main extends Component
             $this->composer->reset();
             $this->focusAnchorId = null;
             $this->focusOlder = 5;
+            $this->focusNewer = 5;
             $this->invalidateMessageCache();
             unset($this->contacts);
             $this->dispatch('message-sent');

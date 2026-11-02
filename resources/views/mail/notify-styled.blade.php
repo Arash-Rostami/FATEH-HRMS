@@ -55,7 +55,7 @@
                             <p dir="auto" style="text-align:start;margin:0 0 16px 0;color:{{ $loop->first ? '#1e293b' : '#475569' }};font-size:{{ $loop->first ? '16' : '15' }}px;line-height:2.1;">{{ $line }}</p>
                         @endforeach
                         @if($notify->url)
-                            <a href="{{ $notify->url }}" style="display:inline-block;background-color:{{ $c['primary'] }};color:{{ $c['on_primary'] }};font-size:14px;font-weight:bold;line-height:1;text-decoration:none;padding:15px 28px;border-radius:10px;text-align:center;">مشاهده</a>
+                            <a href="{{ $notify->url }}" style="display:inline-block;background-color:{{ $c['primary'] }};color:{{ $c['on_primary'] }};font-size:14px;font-weight:bold;line-height:1;text-decoration:none;padding:15px 28px;border-radius:10px;text-align:center;">{{ $notify->action ?? 'مشاهده' }}</a>
                         @endif
                     </td>
                 </tr>

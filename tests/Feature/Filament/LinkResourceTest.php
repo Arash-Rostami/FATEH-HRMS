@@ -8,6 +8,7 @@ use App\Filament\Resources\LinkResource\Pages\ListLinks;
 use App\Models\Link;
 use App\Models\Permission;
 use App\Models\User;
+use Filament\Tables\Table;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -67,6 +68,76 @@ class LinkResourceTest extends TestCase
             ->test(ListLinks::class)
             ->assertSuccessful()
             ->assertCanSeeTableRecords([$link]);
+    }
+
+    public function test_deferred_table_stays_empty_until_loaded_as_the_panel_default_ships()
+    {
+        Table::configureUsing(fn (Table $table) => $table->deferLoading());
+        $admin = $this->developer();
+        $link = Link::factory()->create(['url_title' => 'Fateh Portal', 'sequence' => 0]);
+
+        Livewire::actingAs($admin)
+            ->test(ListLinks::class)
+            ->assertSuccessful()
+            ->assertCanNotSeeTableRecords([$link])
+            ->loadTable()
+            ->assertCanSeeTableRecords([$link]);
+    }
+
+    public function test_top_bar_quick_create_menu_lists_create_pages_the_user_may_use_and_exposes_the_recents_config()
+    {
+        $admin = $this->developer();
+
+        $html = $this->actingAs($admin)->get('/admin/links')->getContent();
+
+        $this->assertStringContainsString('data-popover="quick-create"', $html);
+        $this->assertStringContainsString(\App\Filament\Resources\LinkResource::getUrl('create'), $html);
+        $this->assertStringContainsString('window.__adminRecents', $html);
+        $this->assertStringContainsString('"links"', $html);
+        $this->assertStringContainsString('data-popover="recents"', $html);
+    }
+
+    public function test_top_bar_settings_buttons_live_together_in_the_utilities_row()
+    {
+        $admin = $this->developer();
+
+        $html = $this->actingAs($admin)->get('/admin/links')->getContent();
+
+        $this->assertStringContainsString('data-popover="palette"', $html);
+        $this->assertSame(1, substr_count($html, 'data-icon="palette"'));
+        $this->assertStringContainsString("id: 'database-notifications'", $html);
+        $this->assertStringContainsString('md:w-max md:max-w-none', $html);
+    }
+
+    public function test_row_click_goes_to_the_view_modal_by_default_and_to_the_edit_page_when_the_preference_is_on()
+    {
+        $admin = $this->developer();
+        $link = Link::factory()->create(['url_title' => 'Fateh Portal', 'sequence' => 0]);
+        $table = fn () => Livewire::actingAs($admin)->test(ListLinks::class)->instance()->getTable();
+
+        $this->assertNull($table()->getRecordUrl($link));
+        $this->assertNotNull($table()->getRecordAction($link));
+
+        $admin->setExtraValue('preferences.row_click_edit', true);
+        $admin->save();
+
+        $this->assertSame(\App\Filament\Resources\LinkResource::getUrl('edit', ['record' => $link]), $table()->getRecordUrl($link));
+    }
+
+    public function test_persist_table_state_preference_turns_on_filter_search_and_sort_memory()
+    {
+        $admin = $this->developer();
+
+        $table = fn () => Livewire::actingAs($admin)->test(ListLinks::class)->instance()->getTable();
+
+        $this->assertFalse($table()->persistsFiltersInSession());
+
+        $admin->setExtraValue('preferences.persist_table_state', true);
+        $admin->save();
+
+        $this->assertTrue($table()->persistsFiltersInSession());
+        $this->assertTrue($table()->persistsSearchInSession());
+        $this->assertTrue($table()->persistsSortInSession());
     }
 
     public function test_create_link_persists_url_title_and_link_type()

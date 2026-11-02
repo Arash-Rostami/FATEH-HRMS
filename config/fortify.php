@@ -143,9 +143,9 @@ return [
     |
     */
 
-    'features' => [
+    'features' => array_filter([
         Features::registration(),
-        Features::resetPasswords(),
+        in_array('password-reset', config('app.off', []), true) ? null : Features::resetPasswords(),
         Features::updateProfileInformation(),
         Features::updatePasswords(),
         // Features::emailVerification(),
@@ -155,6 +155,6 @@ return [
 //            'confirmPassword' => true,
 //            // 'window' => 0,
 //        ]),
-    ],
+    ]),
 
 ];

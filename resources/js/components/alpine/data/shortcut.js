@@ -1,6 +1,9 @@
+import { clearVisits, readVisits, visitIdForItem } from '../../../core/nav-tracker.js';
+
 const USAGE_KEY = 'qa.usage';
 const PINNED_KEY = 'qa.pinned';
 const MAX_SHORTCUTS = 8;
+const RECENT_COUNT = 3;
 const DEBOUNCE_MS = 800;
 const MS_PER_DAY = 86400000;
 const COUNT_WEIGHT = 2;
@@ -10,6 +13,7 @@ export default function shortcut(catalog = []) {
     return {
         catalog,
         usage: {},
+        visits: [],
         pinned: [],
         editing: false,
         _last: { key: null, at: 0 },
@@ -18,6 +22,7 @@ export default function shortcut(catalog = []) {
         init() {
             this.usage = this._read(USAGE_KEY, {});
             this.pinned = this._read(PINNED_KEY, []);
+            this.visits = readVisits();
 
             this._switchTabHandler = (e) => {
                 const d = e?.detail;
@@ -96,6 +101,17 @@ export default function shortcut(catalog = []) {
                 .sort((a, b) => b.score - a.score)
                 .slice(0, MAX_SHORTCUTS)
                 .map(mapped => mapped.item);
+        },
+
+        get recent() {
+            const byVisitId = new Map(this.catalog.map(i => [visitIdForItem(i), i]));
+
+            return this.visits.map(id => byVisitId.get(id)).filter(Boolean).slice(0, RECENT_COUNT);
+        },
+
+        clearRecent() {
+            this.visits = [];
+            clearVisits();
         },
 
         get showEmpty() {

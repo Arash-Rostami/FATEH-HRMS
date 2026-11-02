@@ -86,6 +86,19 @@ describe('ThemeManager.getUserTheme', () => {
         localStorage.setItem('user-theme', 'blue')
         expect(ThemeManager.getUserTheme()).toBe('blue')
     })
+
+    test('falls back to the tenant default palette when the user has not chosen one', () => {
+        window.__defaultTheme = 'blue'
+        expect(ThemeManager.getUserTheme()).toBe('blue')
+        delete window.__defaultTheme
+    })
+
+    test('a stored choice always beats the tenant default, including an explicit "default" (the original palette)', () => {
+        window.__defaultTheme = 'blue'
+        localStorage.setItem('user-theme', 'default')
+        expect(ThemeManager.getUserTheme()).toBe('default')
+        delete window.__defaultTheme
+    })
 })
 
 describe('ThemeManager.init', () => {

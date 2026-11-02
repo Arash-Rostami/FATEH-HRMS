@@ -5,6 +5,7 @@
       data-uid="{{ auth()->id() }}"
       data-max-scope="{{ $maxScope }}">
 <head>
+    <script>window.__defaultTheme = @json(config('app.theme_palette'));</script>
     <script src="{{ asset('js/mode-manager.js') }}"></script>
     <script src="{{ asset('js/prefs-manager.js') }}"></script>
     <x-dashboard.meta-tags/>

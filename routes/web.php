@@ -40,6 +40,9 @@ Route::get('/site.webmanifest', fn () => response()
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
     Route::get('/register', Register::class)->name('register');
+});
+
+Route::middleware(['guest', 'tenant.on:password-reset'])->group(function () {
     Route::get('/forgot-password', ForgotPassword::class)->name('password.request');
     Route::get('/reset-password/{token}', ResetPassword::class)->name('password.reset');
 });
@@ -78,7 +81,7 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/coming', 'layouts.toCome')->name('coming');
     Route::get('/ping', fn() => response('', 204)->header('Cache-Control', 'no-store'));
 
-    Route::get('/projects/{id}/pulse', ProjectPulseController::class)->name('projects.pulse');
+    Route::get('/projects/{id}/pulse', ProjectPulseController::class)->whereNumber('id')->name('projects.pulse');
 });
 
 

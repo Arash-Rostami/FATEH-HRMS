@@ -36,7 +36,7 @@ class ResetPassword extends Component
             [
                 'token' => 'required',
                 'email' => $this->emailRules(),
-                'password' => $this->passwordRules(true),
+                'password' => [...$this->passwordRules(true), \Illuminate\Validation\Rules\Password::min(8)->letters()->numbers()],
             ],
             $this->validationMessages()
         );

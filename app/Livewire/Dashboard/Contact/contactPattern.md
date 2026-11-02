@@ -229,7 +229,8 @@ resources/js/components/alpine/main.js                 import + Alpine.data('con
 | `#[Locked] int $messagesLimit = 10` | growing-LIMIT window (Locked = client can't inflate `take(N+1)`; grow by 10 per `loadMoreMessages`, reset to 10 server-side) |
 | `string $messageSearch = ''` | in-chat message-search query (reset on `selectContact`/`backToList`) |
 | `#[Locked] ?int $focusAnchorId = null` | message-id anchor for in-chat search "focus"; `null` = recent-N mode (reset on `selectContact`/`backToList`/`send`) |
-| `#[Locked] int $focusOlder = 5` | older-side window size in anchor mode (grow by 10 per `loadMoreMessages`) |
+| `#[Locked] int $focusOlder = 5` | older-side window size in anchor mode (grow by `LOAD_STEP` per `loadMoreMessages`) |
+| `#[Locked] int $focusNewer = 5` / `bool $hasNewer` | newer-side window size in anchor mode, EXCLUDING the anchor (2026-11-02, two-way paging): `messages()` probes `focusNewer + 2` rows per direction, `hasNewer = count > focusNewer + 1` (+1 probe, no COUNT), trims to anchor + `focusNewer`; recent-N mode forces `hasNewer = false`. `loadNewerMessages()` grows `focusNewer` by `LOAD_STEP` and, when no newer rows remain, EXITS anchor mode in the same request (anchor null, `focusOlder`/`focusNewer` back to 5, `messagesLimit = rendered count`, `markRead`) without a second cache invalidation. Every site that resets `focusOlder = 5` also resets `focusNewer = 5`. UI: bottom `wire:key="load-newer"` block («پیام‌های جدیدتر», no keep-place) + a downward near-bottom auto-trigger in `contact.js`; `chatBase.loadNewer` records `_selfMarker` so a poll straddling the load does not ring. Loading ALL rows from the jump point to the latest was rejected (a deep jump in a busy thread = tens of thousands of rows re-rendered per poll). |
 | `bool $hasOlder = false` | more older messages exist (`count > limit`) |
 
 ### 6.2 Computeds (remember §3.1 — use `$this->` in islands)

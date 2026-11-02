@@ -79,6 +79,6 @@
 
         <div class="w-[1px] h-5 bg-gray-300 dark:bg-white/10"></div>
 
-        <x-dashboard.navbars.top.palette/>
+        <x-dashboard.navbars.top.palette :auth="true"/>
     </div>
 </div>

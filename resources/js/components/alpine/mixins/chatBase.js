@@ -12,6 +12,7 @@ const DIR_RE = /([A-Za-z])|[؀-ۿ]/;
 
 const SCROLL_TO_BOTTOM_PX = 999999;
 const LOAD_OLDER_PEEK_PX = 96;
+const SETTLE_PIN_MS = 300;
 const SCROLL_SETTLE_MS = 150;const POLL_BASE_MS = 10000;
 const INCOMING_DEDUPE_MS = 1500;
 const RETURN_RING_GRACE_MS = 8000;
@@ -144,6 +145,8 @@ export default function chatBase(scope) {
         _onVisibility: null,
         _onScroll: null,
         _loadingOlder: false,
+        _loadingNewer: false,
+        _selfMarker: null,
         _selRaf: null,
         _pollIntervalMs: POLL_BASE_MS,
         _lastTypingPing: 0,
@@ -311,23 +314,88 @@ export default function chatBase(scope) {
             return n;
         },
 
+        _conv() {
+            const wire = this.$wire;
+
+            return [wire.activeChannelId, wire.activeUserId].find(Number.isInteger) ?? null;
+        },
+
+        _rowOffset(vp, rf) {
+            const row = rf && vp.querySelector(`[data-rf="${rf}"]`);
+
+            return row ? row.getBoundingClientRect().top - vp.getBoundingClientRect().top : null;
+        },
+
+        _settlePin(vp, pin) {
+            const ac = new AbortController();
+            const stop = () => ac.abort();
+            const end = Date.now() + SETTLE_PIN_MS;
+
+            for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) {
+                vp.addEventListener(type, stop, { once: true, passive: true, signal: ac.signal });
+            }
+
+            const tick = () => {
+                if (ac.signal.aborted) return;
+                if (!vp.isConnected || !pin() || Date.now() > end) return stop();
+                requestAnimationFrame(tick);
+            };
+
+            requestAnimationFrame(tick);
+        },
+
         async loadOlderKeepingPlace(load) {
             const vp = byId(ID_VIEWPORT);
             if (!vp || this._loadingOlder) return;
 
             this._loadingOlder = true;
-            const before = vp.scrollHeight;
-            const conv = this.$wire.activeUserId ?? this.$wire.activeChannelId;
+            const rf = vp.querySelector('[data-rf*="message-"]')?.dataset.rf ?? null;
+            const before = this._rowOffset(vp, rf);
+            const beforeHeight = vp.scrollHeight;
+            const startTop = vp.scrollTop;
+            const conv = this._conv();
 
             try {
                 await load();
                 await this.$nextTick();
-                if (conv !== (this.$wire.activeUserId ?? this.$wire.activeChannelId)) return;
-                const added = vp.scrollHeight - before;
-                if (added > 0) this.programmaticScroll(() => { vp.scrollTop += Math.max(added - LOAD_OLDER_PEEK_PX, 0); });
+                if (conv !== this._conv()) return;
+
+                const now = this._rowOffset(vp, rf);
+
+                if (before === null || now === null || vp.scrollTop !== startTop) {
+                    const added = vp.scrollHeight - beforeHeight;
+                    if (added > 0) this.programmaticScroll(() => { vp.scrollTop += Math.max(added - LOAD_OLDER_PEEK_PX, 0); });
+                    return;
+                }
+
+                const target = before + Math.min(LOAD_OLDER_PEEK_PX, Math.max(now - before, 0));
+                const pin = () => {
+                    const current = this._rowOffset(vp, rf);
+                    if (current === null) return false;
+                    const delta = current - target;
+                    if (Math.abs(delta) > 1) this.programmaticScroll(() => { vp.scrollTop += delta; });
+                    return true;
+                };
+
+                pin();
+                this._settlePin(vp, pin);
             } catch {
             } finally {
                 this._loadingOlder = false;
+            }
+        },
+
+        async loadNewer(load) {
+            if (this._loadingNewer) return;
+
+            this._loadingNewer = true;
+            try {
+                await load();
+                await this.$nextTick();
+                this._selfMarker = this._readLastMessageMarker();
+            } catch {
+            } finally {
+                this._loadingNewer = false;
             }
         },
 
@@ -492,7 +560,7 @@ export default function chatBase(scope) {
             this._setDays(loaded.sort(byNewestDay));
             if (!loaded.length || (!this.$wire.hasOlder && this.$wire.focusAnchorId == null)) return;
 
-            const conv = this.$wire.activeUserId ?? this.$wire.activeChannelId;
+            const conv = this._conv();
             const cached = this._daysCache;
             if (cached && cached.conv === conv && Date.now() - cached.at < DAYS_CLIENT_TTL_MS) return merge(cached.list);
 
@@ -518,7 +586,7 @@ export default function chatBase(scope) {
             if (!this.filesOpen) return;
 
             this.filesFilter = 'all';
-            const conv = this.$wire.activeChannelId ?? this.$wire.activeUserId;
+            const conv = this._conv();
             const cached = this._filesCache;
 
             if (cached && cached.conv === conv && Date.now() - cached.at < DAYS_CLIENT_TTL_MS) {

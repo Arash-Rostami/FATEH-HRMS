@@ -243,3 +243,44 @@ describe('shortcut.init / destroy — switch-tab tracking', () => {
         expect(c.usage).toEqual({})
     })
 })
+
+describe('shortcut.recent — pick up where you left off', () => {
+    const catalog = ['home', 'a', 'b', 'c', 'd'].map(key => ({ key, type: 'tab', target: key }))
+
+    test('returns the 3 newest visits mapped to catalog items, never home or unknown ids', () => {
+        localStorage.setItem('nav.visits', JSON.stringify(['tab:c', 'route:/nowhere', 'tab:a', 'tab:d', 'tab:b']))
+        const c = shortcut(catalog)
+        c.init()
+        expect(c.recent.map(i => i.key)).toEqual(['c', 'a', 'd'])
+        c.destroy()
+    })
+
+    test('maps route items through their url path', () => {
+        const withRoute = [...catalog, { key: 'project', type: 'route', target: 'projects', url: 'http://localhost/projects' }]
+        localStorage.setItem('nav.visits', JSON.stringify(['route:/projects']))
+        const c = shortcut(withRoute)
+        c.init()
+        expect(c.recent.map(i => i.key)).toEqual(['project'])
+        c.destroy()
+    })
+
+    test('clearRecent empties the row and the stored history, leaving the usage log alone', () => {
+        localStorage.setItem('nav.visits', JSON.stringify(['tab:a']))
+        localStorage.setItem('qa.usage', JSON.stringify({ a: { count: 2, last: 1 } }))
+        const c = shortcut(catalog)
+        c.init()
+        expect(c.recent).toHaveLength(1)
+        c.clearRecent()
+        expect(c.recent).toEqual([])
+        expect(localStorage.getItem('nav.visits')).toBeNull()
+        expect(c.usage.a.count).toBe(2)
+        c.destroy()
+    })
+
+    test('is empty when nothing has been visited yet', () => {
+        const c = shortcut(catalog)
+        c.init()
+        expect(c.recent).toEqual([])
+        c.destroy()
+    })
+})

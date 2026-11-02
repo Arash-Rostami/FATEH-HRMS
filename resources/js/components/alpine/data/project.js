@@ -102,7 +102,7 @@ export default function project() {
             this.headerDeclutterMenuBridge();
 
             const wire = this.$wire;
-            this._electLeaderFor(wire.activeProjectId);
+            this._electLeaderFor(this._projectId());
 
             wire.on('activity-delete-failed', () => { this.activityDeletingId = null; });
 
@@ -508,6 +508,12 @@ export default function project() {
             this._timer = setTimeout(() => this._tick(), jitter);
         },
 
+        _projectId() {
+            const id = this.$wire.activeProjectId;
+
+            return Number.isInteger(id) ? id : null;
+        },
+
         _pulseUrl(projectId, activeTab) {
             return `/projects/${projectId}/pulse` + (activeTab === 'teamChat' ? '?tab=teamChat' : '');
         },
@@ -559,7 +565,7 @@ export default function project() {
 
         async _syncVersionSilently() {
             const wire = this.$wire;
-            const projectId = wire.activeProjectId;
+            const projectId = this._projectId();
             if (!projectId) return;
 
             try {
@@ -570,7 +576,7 @@ export default function project() {
 
         async _tick() {
             const wire = this.$wire;
-            const projectId = wire.activeProjectId;
+            const projectId = this._projectId();
 
             if (projectId) {
                 this._electLeaderFor(projectId);

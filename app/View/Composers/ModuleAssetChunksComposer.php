@@ -11,15 +11,19 @@ class ModuleAssetChunksComposer
 
     public function compose(View $view): void
     {
+        $view->with('chunks', $this->moduleChunks());
+    }
+
+    private function moduleChunks(): array
+    {
         $chunks = [];
 
         foreach (self::MODULES as $module) {
             try {
                 $chunks[$module] = Vite::asset("resources/js/components/alpine/modules/{$module}.js");
-            } catch (\Throwable $e) {
-            }
+            } catch (\Throwable) {}
         }
 
-        $view->with('chunks', $chunks);
+        return $chunks;
     }
 }

@@ -80,10 +80,12 @@
                         مرا به خاطر بسپار
                     </span>
                 </label>
-                <a href="{{ route('password.request') }}"
-                   class="text-xs font-bold text-[var(--md-sys-color-primary)] hover:underline decoration-2 underline-offset-4 px-2 py-1 rounded-lg transition-colors">
-                    فراموشی رمز عبور؟
-                </a>
+                @unless(tenantOff('password-reset'))
+                    <a href="{{ route('password.request') }}"
+                       class="text-xs font-bold text-[var(--md-sys-color-primary)] hover:underline decoration-2 underline-offset-4 px-2 py-1 rounded-lg transition-colors">
+                        فراموشی رمز عبور؟
+                    </a>
+                @endunless
             </div>
 
             <div class="space-y-4 pt-2">

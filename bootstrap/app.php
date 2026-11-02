@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureTenantModuleOn;
 use App\Http\Middleware\EnsureUserModulePermission;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Services\ExceptionPresenter;
@@ -24,7 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         then: fn () => Route::middleware('web')->group(base_path('routes/cache.php')),
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['module' => EnsureUserModulePermission::class]);
+        $middleware->alias([
+            'module' => EnsureUserModulePermission::class,
+            'tenant.on' => EnsureTenantModuleOn::class,
+        ]);
         $middleware->appendToGroup('web', [UpdateLastSeen::class]);
 
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));

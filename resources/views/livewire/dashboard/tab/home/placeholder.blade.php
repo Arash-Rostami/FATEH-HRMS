@@ -1,4 +1,5 @@
-<div class="animate-fade w-full max-w-[88rem] mx-auto !pt-0 pb-10" dir="rtl" role="status" aria-label="در حال بارگذاری خانه">
+<div x-data="home('{{ addslashes(shortGreeting(auth()->user()?->casual_name ?? '')) }}')"
+     class="animate-fade w-full max-w-[88rem] mx-auto !pt-0 pb-10" dir="rtl" role="status" aria-label="در حال بارگذاری خانه">
     <x-ui.loaders.skeleton.bar width="w-24" height="h-7" class="mb-4"/>
 
     <x-ui.loaders.skeleton.card :lines="1" class="mb-4 min-h-[200px]"/>

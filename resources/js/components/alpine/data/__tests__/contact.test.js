@@ -896,6 +896,61 @@ describe('contact() scroll behaviour — programmatic guard, upward-only auto-lo
         expect(c.$wire._islands.messages.loadMoreMessages).toHaveBeenCalledTimes(1);
     });
 
+    describe('downward auto-load of newer messages (anchor mode)', () => {
+        function nearBottom(wireProps = {}) {
+            const c = contact();
+            c.$wire = createWireMock({ hasNewer: true, activeUserId: 5, ...wireProps });
+            c.$nextTick = () => Promise.resolve();
+            const { vp, s } = bound(c, { top: 400 });
+            const scrollTo = async (top) => { s.top = top; vp.dispatchEvent(new Event('scroll')); await frame(); };
+            return { c, scrollTo };
+        }
+
+        test('scrolling down near the bottom calls loadNewerMessages once, even across repeated events while it is in flight', async () => {
+            const { c, scrollTo } = nearBottom();
+            c.$wire._islands.messages = { loadNewerMessages: vi.fn(() => new Promise(() => {})) };
+
+            await scrollTo(450);
+            await scrollTo(460);
+
+            expect(c.$wire._islands.messages.loadNewerMessages).toHaveBeenCalledTimes(1);
+            expect(c._loadingNewer).toBe(true);
+        });
+
+        test('does not fire while the scroll is programmatic', async () => {
+            const { c, scrollTo } = nearBottom();
+            c.markProgrammaticScroll();
+
+            await scrollTo(450);
+
+            expect(c.$wire.$island('messages').loadNewerMessages).not.toHaveBeenCalled();
+            clearTimeout(c._scrollSettleTimer);
+        });
+
+        test('does not fire while a newer load is already running', async () => {
+            const { c, scrollTo } = nearBottom();
+            c._loadingNewer = true;
+
+            await scrollTo(450);
+
+            expect(c.$wire.$island('messages').loadNewerMessages).not.toHaveBeenCalled();
+        });
+
+        test('does not fire when hasNewer is false, when scrolling up, or when far from the bottom', async () => {
+            const off = nearBottom({ hasNewer: false });
+            await off.scrollTo(450);
+            expect(off.c.$wire.$island('messages').loadNewerMessages).not.toHaveBeenCalled();
+
+            const up = nearBottom();
+            await up.scrollTo(390);
+            expect(up.c.$wire.$island('messages').loadNewerMessages).not.toHaveBeenCalled();
+
+            const far = nearBottom();
+            await far.scrollTo(410);
+            expect(far.c.$wire.$island('messages').loadNewerMessages).not.toHaveBeenCalled();
+        });
+    });
+
     test('reaching the bottom with newBelow > 0 calls markRead once and zeroes newBelow', async () => {
         const c = contact();
         c.$wire = createWireMock({ activeUserId: 5 });
@@ -980,6 +1035,28 @@ describe('contact() scroll behaviour — programmatic guard, upward-only auto-lo
             expect(c.newBelow).toBe(2);
             expect(c.$wire.markRead).not.toHaveBeenCalled();
             expect(c.scrollToBottom).not.toHaveBeenCalled();
+        });
+
+        test('a last-message change equal to _selfMarker (a loadNewer straddling the poll) neither rings, badges, nor scrolls', async () => {
+            const c = contact();
+            threadWith(c, { top: 0, sh: 1000, ch: 500 });
+            c._selfMarker = 'message-3';
+
+            await c._pollTick();
+
+            expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+            expect(c.newBelow).toBe(0);
+            expect(c.scrollToBottom).not.toHaveBeenCalled();
+        });
+
+        test('a last-message change that differs from _selfMarker still rings', async () => {
+            const c = contact();
+            threadWith(c, { top: 480, sh: 1000, ch: 500 });
+            c._selfMarker = 'message-2';
+
+            await c._pollTick();
+
+            expect(c.$store.sound.playIncoming).toHaveBeenCalledExactlyOnceWith(5, 'contact');
         });
     });
 

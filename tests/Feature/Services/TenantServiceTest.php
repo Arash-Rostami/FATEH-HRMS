@@ -10,57 +10,50 @@ use Tests\TestCase;
 
 class TenantServiceTest extends TestCase
 {
-    private function css(string $primary, string $header = '#08191e'): string
+    private function css(string $header, string $primary = '#4e5f66'): string
     {
         config(['app.theme_primary' => $primary, 'app.theme_header_bg' => $header]);
 
         return (new TenantService())->themeCss();
     }
 
-    public function test_default_seed_emits_nothing(): void
+    public function test_default_header_emits_nothing_whatever_the_tenant_primary_is(): void
     {
-        $this->assertSame('', $this->css('#4e5f66'));
-        $this->assertSame('', $this->css('#4E5F66', '#08191E'));
+        $this->assertSame('', $this->css('#08191e'));
+        $this->assertSame('', $this->css('#08191E', '#375E90'));
     }
 
-    public function test_custom_seed_is_scoped_to_default_theme_only(): void
+    public function test_custom_header_is_scoped_to_default_theme_and_never_overrides_the_primary_palette(): void
     {
-        $css = $this->css('#0F766E', '#042f2e');
+        $css = $this->css('#042f2e', '#0F766E');
 
-        $this->assertStringContainsString('--md-sys-color-primary:#0f766e', $css);
         $this->assertStringContainsString('--header-bg:#042f2e', $css);
         $this->assertStringContainsString(':root:not([data-theme]){', $css);
         $this->assertStringContainsString(':root.dark:not([data-theme]){', $css);
+        $this->assertStringNotContainsString('--md-sys-color-primary', $css);
         $this->assertStringNotContainsString('[data-theme=', $css);
     }
 
-    public function test_on_primary_is_readable(): void
+    public function test_short_hex_header_is_expanded(): void
     {
-        $this->assertStringContainsString('--md-sys-color-on-primary:#ffffff', $this->css('#0f2a3d'));
-        $this->assertStringContainsString('--md-sys-color-on-primary:#000000', $this->css('#f5e6a8'));
+        $this->assertStringContainsString('--header-bg:#aabbcc', $this->css('#abc'));
     }
 
-    public function test_short_hex_is_expanded(): void
-    {
-        $this->assertStringContainsString('--md-sys-color-primary:#aabbcc', $this->css('#abc'));
-    }
-
-    public function test_invalid_colors_emit_nothing(): void
+    public function test_invalid_headers_emit_nothing(): void
     {
         foreach (['red', '#12345', '#gggggg', 'url(x)', '#fff;}body{display:none'] as $bad) {
             $this->assertSame('', $this->css($bad));
-            $this->assertSame('', $this->css('#0f766e', $bad));
         }
     }
 
     public function test_memo_does_not_leak_between_configs(): void
     {
-        $a = $this->css('#0f766e');
-        $b = $this->css('#b45309');
+        $a = $this->css('#042f2e');
+        $b = $this->css('#1a2b3c');
 
         $this->assertNotSame($a, $b);
-        $this->assertSame($a, $this->css('#0f766e'));
-        $this->assertSame('', $this->css('#4e5f66'));
+        $this->assertSame($a, $this->css('#042f2e'));
+        $this->assertSame('', $this->css('#08191e'));
     }
 
     private function off(array $off): TenantService

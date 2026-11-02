@@ -83,6 +83,16 @@ class HomeTest extends TestCase
             ->assertHasNoErrors();
     }
 
+    public function test_placeholder_root_carries_the_same_home_x_data_as_the_real_root()
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        $this->actingAs($user);
+        $placeholder = view('livewire.dashboard.tab.home.placeholder')->render();
+
+        $this->assertStringContainsString('x-data="home(\'', $placeholder);
+    }
+
     public function test_modules_computed_returns_config_modules_array()
     {
         $user = User::factory()->create(['status' => 'active']);
@@ -467,6 +477,24 @@ class HomeTest extends TestCase
         $employeeIndex = $ranked->search(fn(User $u) => $u->id === $employee->id);
 
         $this->assertLessThan($employeeIndex, $managerIndex);
+    }
+
+    public function test_team_pulse_shows_the_quiet_chip_only_when_nobody_else_is_online()
+    {
+        User::query()->update(['last_seen' => now()->subDay()]);
+        $me = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'last_seen' => now()]);
+
+        Cache::flush();
+        Livewire::withoutLazyLoading();
+        $quiet = Livewire::actingAs($me)->test(Home::class)->html();
+
+        $this->assertStringContainsString('home-team-pulse-quiet', $quiet);
+
+        User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'last_seen' => now()]);
+        Cache::flush();
+        $busy = Livewire::actingAs($me)->test(Home::class)->html();
+
+        $this->assertStringNotContainsString('home-team-pulse-quiet', $busy);
     }
 
     public function test_team_pulse_still_renders_each_online_colleague_avatar_with_status_badge_and_no_redundant_dot()

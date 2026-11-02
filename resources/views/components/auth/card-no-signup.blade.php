@@ -1,4 +1,4 @@
-@props(['title' => '', 'description' => '', 'imageContent' => null])
+@props(['title' => '', 'description' => '', 'imageContent' => null, 'icon' => null])
 
 @php
     $lightLogo = asset(tenantLogo(false, 'user', true));
@@ -63,6 +63,11 @@
 
         {{-- Logo --}}
         <div class="relative z-10 isolate flex w-full scale-[0.9] flex-col items-center justify-center px-8 pb-8 pt-14 transition-transform ease-out animate-scale-in animate-delay-2500">
+            @if ($icon)
+                <div class="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 bg-[color-mix(in_srgb,var(--md-sys-color-primary)_8%,transparent)] transition-transform duration-700 group-hover:-translate-y-0.5 group-hover:scale-105">
+                    <span class="material-symbols-rounded !text-4xl text-[var(--md-sys-color-primary)]">{{ $icon }}</span>
+                </div>
+            @else
             <div class="relative block dark:hidden">
                 <img src="{{ $lightLogo }}" alt="{{ $appName }}" title="{{ $appName }}" class="h-12 w-auto transition-all duration-700 group-hover:-translate-y-0.5 group-hover:scale-105">
                 <div class="pointer-events-none absolute inset-0 animate-logo-shine" style="-webkit-mask-image:url('{{ $lightLogo }}');mask-image:url('{{ $lightLogo }}');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></div>
@@ -71,6 +76,7 @@
                 <img src="{{ $darkLogo }}" alt="{{ $appName }}" title="{{ $appName }}" class="h-12 w-auto transition-all duration-700 group-hover:-translate-y-0.5 group-hover:scale-105">
                 <div class="pointer-events-none absolute inset-0 animate-logo-shine" style="-webkit-mask-image:url('{{ $darkLogo }}');mask-image:url('{{ $darkLogo }}');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></div>
             </div>
+            @endif
         </div>
 
         {{-- Content --}}
@@ -79,7 +85,7 @@
             x-init="window.matchMedia('(min-width: 1024px)').matches && $nextTick(() => $el.querySelector('input:not([type=hidden]), select, textarea')?.focus())"
         >
             <div class="mb-10 space-y-3.5 text-center">
-                <h1 class="font-display text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--md-sys-color-on-surface)] sm:text-3xl">
+                <h1class="font-display text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--md-sys-color-on-surface)] sm:text-3xl">
                     {{ $title }}
                 </h1>
                 @if ($description)

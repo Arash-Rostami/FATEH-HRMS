@@ -145,7 +145,7 @@ class TenantsConfigTest extends TestCase
             foreach (array_keys($tenant['modules'] ?? []) as $key) {
                 [$id, $view] = array_pad(explode(':', $key, 2), 2, null);
 
-                $this->assertTrue($modules->has($id) || in_array($key, ['calculator', 'radio', 'stopwatch'], true), "tenant '{$slug}' key '{$key}' is not a module id");
+                $this->assertTrue($modules->has($id) || in_array($key, ['calculator', 'radio', 'stopwatch', 'password-reset'], true), "tenant '{$slug}' key '{$key}' is not a module id");
 
                 if ($view !== null) {
                     $this->assertContains($view, $modules[$id]['views'] ?? [], "tenant '{$slug}' key '{$key}' is not a view of '{$id}'");
@@ -158,6 +158,13 @@ class TenantsConfigTest extends TestCase
     {
         $this->assertSame('#4e5f66', config('tenants.fateh.theme.primary'));
         $this->assertSame('#375E90', config('tenants.persol.theme.primary'));
+    }
+
+    public function test_each_tenant_picks_an_existing_palette_as_its_default_selection(): void
+    {
+        $this->assertSame('default', config('tenants.fateh.theme.palette'));
+        $this->assertSame('blue', config('tenants.persol.theme.palette'));
+        $this->assertSame(config('tenants.' . config('app.tenant') . '.theme.palette'), config('app.theme_palette'));
     }
 
     public function test_no_tenant_switches_off_a_modules_default_view(): void
@@ -174,5 +181,13 @@ class TenantsConfigTest extends TestCase
                 $this->assertNotContains($key, $defaults, "tenant '{$slug}' hides default view '{$key}'");
             }
         }
+    }
+
+    public function test_password_reset_is_off_for_fateh_and_on_for_persol(): void
+    {
+        $tenants = require base_path('config/tenants.php');
+
+        $this->assertFalse($tenants['fateh']['modules']['password-reset']);
+        $this->assertArrayNotHasKey('password-reset', $tenants['persol']['modules']);
     }
 }

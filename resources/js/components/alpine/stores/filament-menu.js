@@ -269,9 +269,10 @@ export default class FilamentMenuManager {
 
     share() {
         const d = { title: document.title, url: location.href };
+        const copy = () => navigator.clipboard?.writeText(d.url);
         const sharePromise = navigator.canShare?.(d)
-            ? navigator.share(d)
-            : navigator.clipboard?.writeText(d.url);
+            ? navigator.share(d).catch((e) => (e?.name === 'AbortError' ? undefined : copy()))
+            : copy();
 
         if (sharePromise) {
             sharePromise

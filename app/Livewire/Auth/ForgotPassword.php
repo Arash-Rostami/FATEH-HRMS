@@ -11,8 +11,14 @@ class ForgotPassword extends Component
 
     public string $email = '';
 
+    public bool $sent = false;
+
     public function send()
     {
+        if ($this->sent) {
+            return;
+        }
+
         $this->validate(
             [
                 'email' => $this->emailRules(),
@@ -23,7 +29,7 @@ class ForgotPassword extends Component
         $status = Password::sendResetLink(['email' => $this->email]);
 
         if ($status === Password::RESET_LINK_SENT) {
-            session()->flash('statusSwitcher', 'لینک بازیابی رمز عبور به ایمیل شما ارسال شد.');
+            $this->sent = true;
         } else {
             $this->addError('email', 'ایمیل یافت نشد.');
         }

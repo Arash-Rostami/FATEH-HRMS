@@ -155,3 +155,32 @@ describe('project.scrollToMessage (added 2026-10-09)', () => {
         expect(() => project().scrollToMessage(99)).not.toThrow()
     })
 })
+
+describe('project pulse project-id guard (added 2026-11-02)', () => {
+    afterEach(() => vi.unstubAllGlobals())
+
+    test('a numeric project id is used, anything else (null, a stringified function, text) is treated as no project', () => {
+        const c = project()
+        c.$wire = createWireMock()
+
+        c.$wire.activeProjectId = 12
+        expect(c._projectId()).toBe(12)
+
+        for (const bad of [null, undefined, '12', () => {}]) {
+            c.$wire.activeProjectId = bad
+            expect(c._projectId()).toBeNull()
+        }
+    })
+
+    test('the silent version sync never requests the pulse endpoint without a real project id', async () => {
+        const fetchMock = vi.fn()
+        vi.stubGlobal('fetch', fetchMock)
+        const c = project()
+        c.$wire = createWireMock()
+        c.$wire.activeProjectId = () => {}
+
+        await c._syncVersionSilently()
+
+        expect(fetchMock).not.toHaveBeenCalled()
+    })
+})

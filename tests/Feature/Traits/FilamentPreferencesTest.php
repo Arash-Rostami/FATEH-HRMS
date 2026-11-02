@@ -70,6 +70,23 @@ class FilamentPreferencesTest extends TestCase
         $this->assertSame(true, $user->fresh()->extra['preferences']['sidebar_collapsible']);
     }
 
+    public function test_table_behaviour_toggles_default_to_todays_behaviour_and_save_like_the_other_options(): void
+    {
+        $user = User::factory()->create(['extra' => ['preferences' => []]]);
+
+        $component = Livewire::actingAs($user)->test(ManagePreferences::class);
+
+        $this->assertSame(false, $component->instance()->data['row_click_edit']);
+        $this->assertSame(false, $component->instance()->data['persist_table_state']);
+
+        $component->set('data.row_click_edit', true)->set('data.persist_table_state', true);
+        $component->call('save')->assertHasNoFormErrors();
+
+        $preferences = $user->fresh()->extra['preferences'];
+        $this->assertSame(true, $preferences['row_click_edit']);
+        $this->assertSame(true, $preferences['persist_table_state']);
+    }
+
     public function test_get_toggles_count_returns_count_of_preference_fields(): void
     {
         $user = User::factory()->create([

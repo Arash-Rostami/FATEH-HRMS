@@ -144,7 +144,7 @@
                 @endunless
             @endauth
             <div class="max-sm:hidden"><x-dashboard.navbars.top.notification :lit="$navHasUnread"/></div>
-            <x-dashboard.navbars.top.account/>
+            <x-dashboard.navbars.top.account :showAi="! $navbarIsHome"/>
         </div>
         <x-ui.modals.confirmation />
     </nav>

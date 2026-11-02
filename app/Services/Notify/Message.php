@@ -12,6 +12,7 @@ final readonly class Message
         public string $event,
         public string $template = 'plain',
         public ?string $url = null,
+        public ?string $action = null,
     ) {}
 
     public function text(): string

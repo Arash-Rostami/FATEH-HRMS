@@ -1,5 +1,6 @@
 @php
     $hasOlder = $this->hasOlder;
+    $hasNewer = $this->hasNewer;
 @endphp
 
 @php $chipNames = count($this->groupedMessages) > 0 ? array_keys($this->mentionMemberMap) : []; @endphp
@@ -311,6 +312,19 @@
             </div>
         </div>
     @endforelse
+
+    <div wire:key="load-newer" class="flex justify-center py-2" x-show="$wire.hasNewer" x-transition style="{{ $hasNewer ? '' : 'display:none;' }}">
+        <x-ui.buttons.load-more
+            action="loadNewer"
+            island="messages"
+            wrap="loadNewer"
+            text="پیام‌های جدیدتر"
+            loadingText="..."
+            icon="expand_more"
+            wire:loading.attr="disabled"
+            wire:target="loadNewer"
+            class="px-4 py-2 rounded-xl bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] text-xs font-semibold shadow-sm transition-all disabled:opacity-50" />
+    </div>
 
 </div>
 

@@ -667,6 +667,141 @@ class ContactTest extends TestCase
         $this->assertContains($anchorId, array_column($component->instance()->messages, 'id'));
     }
 
+    private function anchorThread(int $count): array
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        $ids = [];
+        foreach (range(1, $count) as $i) {
+            $msg = $i % 2 === 0
+                ? Message::create(['sender_id' => $me->id, 'recipient_id' => $contact->id, 'body' => "me {$i}"])
+                : Message::create(['sender_id' => $contact->id, 'recipient_id' => $me->id, 'body' => "contact {$i}"]);
+            $ids[] = $msg->id;
+        }
+
+        return [$me, $contact, $ids];
+    }
+
+    public function test_contact_anchor_mode_exposes_anchor_plus_five_newer_and_has_newer(): void
+    {
+        [$me, $contact, $ids] = $this->anchorThread(40);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('focusMessage', $ids[9]);
+
+        $this->assertSame(array_slice($ids, 4, 11), array_column($component->instance()->messages, 'id'));
+        $this->assertTrue($component->instance()->hasNewer);
+        $component->assertSet('focusNewer', 5);
+    }
+
+    public function test_contact_anchor_mode_stays_one_row_past_the_newer_window_and_exits_exactly_at_it(): void
+    {
+        [$me, $contact, $ids] = $this->anchorThread(41);
+
+        Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('focusMessage', $ids[9])
+            ->call('loadNewerMessages')
+            ->assertSet('focusAnchorId', $ids[9])
+            ->assertSet('focusNewer', 30)
+            ->assertSet('hasNewer', true);
+
+        [$me, $contact, $ids] = $this->anchorThread(40);
+
+        Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('focusMessage', $ids[9])
+            ->call('loadNewerMessages')
+            ->assertSet('focusAnchorId', null)
+            ->assertSet('focusNewer', 5)
+            ->assertSet('hasNewer', false);
+    }
+
+    public function test_contact_load_newer_messages_pages_forward_then_exits_anchor_mode_at_the_tail(): void
+    {
+        [$me, $contact, $ids] = $this->anchorThread(80);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('focusMessage', $ids[9])
+            ->call('loadNewerMessages')
+            ->assertSet('focusNewer', 30)
+            ->assertSet('focusAnchorId', $ids[9]);
+
+        $this->assertSame(array_slice($ids, 4, 36), array_column($component->instance()->messages, 'id'));
+        $this->assertTrue($component->instance()->hasNewer);
+
+        $component->call('loadNewerMessages')->assertSet('focusNewer', 55);
+        $this->assertTrue($component->instance()->hasNewer);
+
+        $component->call('loadNewerMessages')
+            ->assertSet('focusAnchorId', null)
+            ->assertSet('focusNewer', 5)
+            ->assertSet('focusOlder', 5)
+            ->assertSet('messagesLimit', 76);
+
+        $rendered = array_column($component->instance()->messages, 'id');
+        $this->assertSame(array_slice($ids, 4), $rendered);
+        $this->assertFalse($component->instance()->hasNewer);
+    }
+
+    public function test_contact_load_newer_exit_marks_inbound_messages_read(): void
+    {
+        [$me, $contact, $ids] = $this->anchorThread(30);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('focusMessage', $ids[9]);
+
+        Message::where('sender_id', $contact->id)->where('recipient_id', $me->id)->update(['read_at' => null]);
+
+        $component->call('loadNewerMessages')->assertSet('focusAnchorId', null);
+
+        $this->assertSame(0, Message::where('sender_id', $contact->id)->where('recipient_id', $me->id)->whereNull('read_at')->count());
+    }
+
+    public function test_contact_load_newer_messages_is_noop_in_recent_mode(): void
+    {
+        [$me, $contact] = $this->anchorThread(30);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('loadNewerMessages')
+            ->assertSet('focusNewer', 5)
+            ->assertSet('focusAnchorId', null)
+            ->assertSet('messagesLimit', 10);
+
+        $component->instance()->messages;
+
+        $this->assertFalse($component->instance()->hasNewer);
+    }
+
+    public function test_contact_focus_newer_resets_to_five_on_every_anchor_exit_path(): void
+    {
+        [$me, $contact, $ids] = $this->anchorThread(80);
+
+        $anchored = fn() => Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('focusMessage', $ids[9])
+            ->call('loadNewerMessages')
+            ->assertSet('focusNewer', 30);
+
+        $anchored()->call('selectContact', $contact->id)->assertSet('focusNewer', 5);
+        $anchored()->call('backToList')->assertSet('focusNewer', 5);
+        $anchored()->call('clearFocus')->assertSet('focusNewer', 5);
+        $anchored()->call('focusMessage', $ids[40])->assertSet('focusNewer', 5);
+        $anchored()->set('composer.body', 'reset probe')->call('send')->assertSet('focusNewer', 5)->assertSet('focusAnchorId', null);
+    }
+
     public function test_contact_grouped_messages_partitions_by_day(): void
     {
         $me = User::factory()->create(['status' => 'active']);
@@ -1425,6 +1560,9 @@ class ContactTest extends TestCase
 
         $this->assertStringContainsString('action="loadMoreMessages"', $blade);
         $this->assertStringContainsString('island="messages"', $blade);
+        $this->assertStringContainsString('action="loadNewerMessages"', $blade);
+        $this->assertStringContainsString('wrap="loadNewer"', $blade);
+        $this->assertStringContainsString('wire:key="load-newer"', $blade);
     }
 
     public function test_sidebar_load_more_visibility_matches_whether_the_list_exceeds_the_page_size(): void

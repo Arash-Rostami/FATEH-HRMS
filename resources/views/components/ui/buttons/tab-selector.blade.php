@@ -63,7 +63,7 @@
                     wire:key="tab-{{ $tab['id'] }}"
                     data-tab-pill="{{ $tab['id'] }}"
                     href="{{ $tab['route'] }}"
-                    wire:navigate
+                    wire:navigate.hover
                     x-on:click="navigating = true; setTimeout(() => navigating = false, 6000)"
                     @if($hasA11y) role="tab" aria-selected="false" tabindex="-1" @endif
                     class="{{ $buttonBaseClass }} {{ $buttonInactiveClass }}"
@@ -170,7 +170,7 @@
                         $rowUnread = $tab['unread'] ?? 0;
                     @endphp
                     @if($rowRoute && !$rowDisabled)
-                        <a href="{{ $rowRoute }}" wire:navigate x-show="hidden.includes('{{ $tab['id'] }}')"
+                        <a href="{{ $rowRoute }}" wire:navigate.hover x-show="hidden.includes('{{ $tab['id'] }}')"
                            x-on:click="moreOpen = false; navigating = true; setTimeout(() => navigating = false, 6000)"
                            class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
                             <span class="material-symbols-rounded text-[16px]">{{ $tab['icon'] }}</span>

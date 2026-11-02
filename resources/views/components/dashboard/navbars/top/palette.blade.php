@@ -1,10 +1,12 @@
+@props(['auth' => false])
+
 <div class="relative" x-data="{ open: false }">
     <button @click="open = !open"
             @class([
-                'group relative w-10 h-10 active:scale-95 transition items-center justify-center',
-                'hidden md:flex rounded-xl hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)] right-2' => request()->is('admin*'),
-                'flex' => !request()->is('admin*'),
-                'text-[var(--md-sys-color-on-primary-container)]' => request()->is('*login*'),
+                'group relative w-10 h-10 active:scale-95 transition items-center justify-center' => ! $auth,
+                'hidden md:flex rounded-xl hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)] right-2' => ! $auth && request()->is('admin*'),
+                'flex' => ! $auth && ! request()->is('admin*'),
+                'group relative w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100/50 hover:dark:bg-white/10 transition-all' => $auth,
             ])
             :class="open ? 'bg-[var(--md-sys-color-on-primary)]/10' : ''">
         <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100"

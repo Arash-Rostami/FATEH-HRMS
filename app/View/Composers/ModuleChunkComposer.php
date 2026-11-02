@@ -16,17 +16,27 @@ class ModuleChunkComposer
 
     public function compose(View $view): void
     {
-        $route = request()->route()?->getName();
+        $moduleChunk = $this->moduleChunk();
+
+        $view->with([
+            'moduleChunk' => $moduleChunk,
+            'maxScope' => $this->maxScope($moduleChunk),
+        ]);
+    }
+
+    private function moduleChunk(): ?string
+    {
+        return self::MODULE_CHUNKS[request()->route()?->getName()] ?? null;
+    }
+
+    private function maxScope(?string $moduleChunk): ?string
+    {
         $tab = request()->query('tab');
 
-        $moduleChunk = self::MODULE_CHUNKS[$route] ?? null;
-
-        $maxScope = match ($route) {
+        return match (request()->route()?->getName()) {
             'dashboard' => ['home' => 'hero', 'feed' => 'feed', 'calendar' => 'calendar'][$tab ?? 'home'] ?? null,
             'energy' => $tab === 'chart' ? 'energy' : null,
             default => $moduleChunk,
         };
-
-        $view->with('moduleChunk', $moduleChunk)->with('maxScope', $maxScope);
     }
 }

@@ -1,6 +1,7 @@
 @php
     $p = $this->presenter;
     $hasOlder = $this->hasOlder;
+    $hasNewer = $this->hasNewer;
     $firstUnreadId = $this->newMessagesAnchorId;
 @endphp
 
@@ -210,6 +211,19 @@
             </div>
         </div>
     @endforelse
+
+    <div wire:key="load-newer" class="flex justify-center py-2" x-show="$wire.hasNewer" x-transition style="{{ $hasNewer ? '' : 'display:none;' }}">
+        <x-ui.buttons.load-more
+            action="loadNewerMessages"
+            island="messages"
+            wrap="loadNewer"
+            text="پیام‌های جدیدتر"
+            loadingText="..."
+            icon="expand_more"
+            wire:loading.attr="disabled"
+            wire:target="loadNewerMessages"
+            class="px-4 py-2 rounded-xl bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] text-xs font-semibold shadow-sm transition-all disabled:opacity-50" />
+    </div>
 
     @include('livewire.dashboard.messaging.latest-button', ['show' => 'showScrollFab || $wire.focusAnchorId != null', 'position' => 'fixed bottom-28 left-8 z-20'])
 </div>

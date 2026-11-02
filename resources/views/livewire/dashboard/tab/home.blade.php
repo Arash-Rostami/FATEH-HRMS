@@ -111,6 +111,12 @@
                         </button>
                         @endunless
                     </div>
+                @else
+                    <div wire:key="home-team-pulse-quiet" title="در حال حاضر همکاری آنلاین نیست"
+                         class="shrink-0 inline-flex items-center gap-1.5 h-6 px-2.5 rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-primary-container)_10%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-on-primary-container)_18%,transparent)] text-[var(--md-sys-color-on-primary-container)]/80">
+                        <span class="material-symbols-rounded text-[15px] leading-none">bedtime</span>
+                        <span class="text-[10px] font-bold whitespace-nowrap">همکاری آنلاین نیست</span>
+                    </div>
                 @endif
             </div>
 
@@ -450,6 +456,30 @@
             </div>
 
             <div x-show="!editing">
+                <div x-show="recent.length" class="flex items-center gap-2 mb-3 overflow-x-auto">
+                    <span class="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                        <span class="material-symbols-rounded text-[15px]">history</span>
+                        ادامه از همان‌جا که بودید
+                    </span>
+                    <template x-for="item in recent" :key="'recent-' + item.key">
+                        <button type="button" @click="open(item)"
+                                class="shrink-0 inline-flex items-center gap-1.5 px-2.5 h-7 rounded-lg
+                                       bg-[color-mix(in_srgb,var(--md-sys-color-primary)_8%,transparent)]
+                                       text-[var(--md-sys-color-on-surface)] text-[11px] font-bold
+                                       border border-[var(--md-sys-color-outline-variant)]/40
+                                       hover:border-[var(--md-sys-color-primary)]/50 active:scale-95 transition-all duration-200
+                                       focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40">
+                            <span class="material-symbols-rounded text-[15px] text-[var(--md-sys-color-primary)]" x-text="item.icon"></span>
+                            <span class="whitespace-nowrap" x-text="item.title"></span>
+                        </button>
+                    </template>
+                    <button @click.stop="clearRecent()" type="button"
+                            class="ms-auto shrink-0 text-[11px] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] transition-colors duration-200 flex items-center gap-1 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-primary)]">
+                        <span class="material-symbols-rounded text-[15px] leading-none">delete_sweep</span>
+                        پاک کردن
+                    </button>
+                </div>
+
                 <div x-show="shortcuts.length"
                      class="flex gap-2.5 overflow-x-auto pt-1 pb-3 px-1 -mx-1 scrollbar-thin scrollbar-thumb-[var(--md-sys-color-outline-variant)]/30 scrollbar-track-transparent snap-x">
                     <template x-for="item in shortcuts" :key="item.key">

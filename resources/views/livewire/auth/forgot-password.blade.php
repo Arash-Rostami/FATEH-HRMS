@@ -1,16 +1,10 @@
-<x-auth.card title="بازیابی رمز عبور" description="جهت دریافت لینک تغییر رمز، ایمیل سازمانی خود را وارد نمایید.">
-    @if (session('statusSwitcher'))
-        <div class="mb-6 p-4 rounded-xl bg-[var(--md-sys-color-primary-container)]/30 border border-[var(--md-sys-color-primary)]/20 text-[var(--md-sys-color-on-primary-container)] text-sm flex items-start gap-3 shadow-sm animate-slide-up">
-            <span class="material-symbols-rounded text-[20px] mt-0.5">check_circle</span>
-            <div class="leading-relaxed font-medium">{{ session('statusSwitcher') }}</div>
-        </div>
-    @endif
-
+<x-auth.card-no-signup icon="fingerprint" title="بازیابی رمز عبور" description="جهت دریافت لینک تغییر رمز، ایمیل سازمانی خود را وارد نمایید.">
     <form wire:submit.prevent="send" class="space-y-6 mt-2">
         <div class="md3-input-group group relative">
             <div class="relative transition-transform duration-200 focus-within:scale-[1.01]">
                 <input
                     wire:model.lazy="email"
+                    @readonly($sent)
                     type="email"
                     id="email"
                     class="md3-input peer ps-14 pe-4 py-3.5 text-base bg-[var(--md-sys-color-surface-container)]/50 focus:bg-[var(--md-sys-color-surface-container)]"
@@ -34,22 +28,31 @@
         </div>
 
         <div class="space-y-4 pt-6">
-            <button type="submit"
+            @if ($sent)
+                <div wire:key="forgot-password-sent"
+                     class="p-4 rounded-xl bg-[var(--md-sys-color-primary-container)]/30 border border-[var(--md-sys-color-primary)]/20 text-[var(--md-sys-color-on-primary-container)] text-sm flex items-start gap-3 shadow-sm animate-slide-up"
+                     role="status">
+                    <span class="material-symbols-rounded text-[20px] mt-0.5">check_circle</span>
+                    <div class="leading-relaxed font-medium">لینک بازیابی رمز عبور به ایمیل شما ارسال شد.</div>
+                </div>
+            @else
+            <button wire:key="forgot-password-send" type="submit"
                     class="md3-btn w-full h-12 text-base shadow-lg shadow-[var(--md-sys-color-primary)]/15 active:shadow-none transition-all group hover:scale-[1.01]"
                     wire:loading.attr="disabled"
                     wire:target="send">
                 <div class="relative flex items-center justify-center gap-2 w-full">
-                    <span class="material-symbols-rounded text-[22px]" wire:loading.remove wire:target="send">send</span>
+                    <span wire:loading.remove wire:target="send" class="font-bold tracking-wide">ارسال لینک بازیابی</span>
+                    <span wire:loading wire:target="send" class="font-bold tracking-wide">در حال پردازش...</span>
+
+                    <span class="material-symbols-rounded text-[22px] rtl:-scale-x-100" wire:loading.remove wire:target="send">send</span>
 
                     <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" wire:loading wire:target="send">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-
-                    <span wire:loading.remove wire:target="send" class="font-bold tracking-wide">ارسال لینک بازیابی</span>
-                    <span wire:loading wire:target="send" class="font-bold tracking-wide">در حال پردازش...</span>
                 </div>
             </button>
+            @endif
 
             <div class="relative flex py-1 items-center">
                 <div class="flex-grow border-t border-[var(--md-sys-color-outline-variant)]/30"></div>
@@ -69,8 +72,8 @@
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--md-sys-color-surface-variant)]/30 border border-[var(--md-sys-color-outline-variant)]/10">
             <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">info</span>
             <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
-                لینک ارسالی به مدت ۲۴ ساعت معتبر خواهد بود
+                لینک ارسالی به مدت ۶۰ دقیقه معتبر خواهد بود
             </span>
         </div>
     </div>
-</x-auth.card>
+</x-auth.card-no-signup>

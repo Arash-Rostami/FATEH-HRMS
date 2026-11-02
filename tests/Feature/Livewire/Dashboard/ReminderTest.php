@@ -462,7 +462,7 @@ class ReminderTest extends TestCase
         $this->assertFalse($scopedRow['disabled']);
     }
 
-    public function test_channel_toggles_keep_email_always_hide_sms_when_the_tenant_switches_it_off_and_keep_the_in_app_rows(): void
+    public function test_channel_toggles_hide_the_email_or_sms_row_when_the_tenant_switches_it_off_and_keep_the_in_app_rows(): void
     {
         $names = fn () => collect(ReminderPresenter::channelToggles())->pluck('name')->all();
 
@@ -470,9 +470,9 @@ class ReminderTest extends TestCase
         $this->assertContains('form.smsEnabled', $names());
 
         config(['app.off' => ['notify:mail']]);
-        $this->assertContains('form.emailEnabled', $names());
+        $this->assertNotContains('form.emailEnabled', $names());
         $this->assertContains('form.inAppNudge', $names());
-        $this->assertCount(5, ReminderPresenter::channelToggles());
+        $this->assertCount(4, ReminderPresenter::channelToggles());
 
         config(['app.off' => ['notify:sms']]);
         $this->assertContains('form.emailEnabled', $names());
@@ -480,9 +480,9 @@ class ReminderTest extends TestCase
         $this->assertCount(4, ReminderPresenter::channelToggles());
 
         config(['app.off' => ['notify']]);
-        $this->assertContains('form.emailEnabled', $names());
+        $this->assertNotContains('form.emailEnabled', $names());
         $this->assertNotContains('form.smsEnabled', $names());
-        $this->assertCount(4, ReminderPresenter::channelToggles());
+        $this->assertCount(3, ReminderPresenter::channelToggles());
     }
 
     public function test_complete_marks_it_done_and_a_recurring_reminder_spawns_a_successor(): void

@@ -29,7 +29,7 @@ export default class ThemeManager {
     }
 
     static getUserTheme() {
-        return localStorage.getItem(THEME_KEY) || 'default';
+        return localStorage.getItem(THEME_KEY) || window.__defaultTheme || 'default';
     }
 
     static init() {

@@ -39,6 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 ->id('admin')
                 ->path('admin')
                 ->login(\App\Filament\Pages\Auth\Login::class)
+                ->when(! tenantOff('password-reset'), fn (Panel $panel) => $panel->passwordReset())
                 ->colors(config('colors'))
                 ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
                 ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

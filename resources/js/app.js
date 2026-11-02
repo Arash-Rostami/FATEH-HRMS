@@ -4,6 +4,7 @@ import initAlpine from './components/alpine/main.js';
 import initRecordFocus from './core/record-focus.js';
 import initLivewireErrors from './core/livewire-errors.js';
 import initTooltip from './core/tooltip.js';
+import initNavTracker from './core/nav-tracker.js';
 import { initModulePrefetch } from './components/alpine/module-runtime.js';
 
 ThemeManager.init();
@@ -11,5 +12,6 @@ initAlpine();
 initRecordFocus();
 initLivewireErrors();
 initTooltip();
+initNavTracker();
 initModulePrefetch();
 

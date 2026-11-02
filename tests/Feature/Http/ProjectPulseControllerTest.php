@@ -65,6 +65,13 @@ class ProjectPulseControllerTest extends TestCase
             ->assertRedirect();
     }
 
+    public function test_a_non_numeric_id_is_a_plain_404(): void
+    {
+        [$owner] = $this->ownerWithProject();
+
+        $this->actingAs($owner)->get('/projects/abc/pulse')->assertNotFound();
+    }
+
     public function test_returns_404_for_a_project_the_user_cannot_see(): void
     {
         [, $project] = $this->ownerWithProject();

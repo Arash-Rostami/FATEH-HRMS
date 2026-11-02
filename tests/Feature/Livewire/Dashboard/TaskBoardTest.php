@@ -1672,6 +1672,20 @@ class TaskBoardTest extends TestCase
         $this->assertNull($task->fresh()->archived_at);
     }
 
+    public function test_archived_count_badge_stays_fresh_across_every_task_write()
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $task = Task::factory()->ownedBy($user)->withStatus('done')->updatedAt('-5 days')->create();
+
+        $board = Livewire::actingAs($user)->test(Main::class)->assertSet('archivedCount', 0);
+
+        Task::factory()->ownedBy($user)->withStatus('done')->updatedAt('-5 days')->create(['archived_at' => now()]);
+        $board->call('loadTasks')->assertSet('archivedCount', 1);
+
+        $board->call('archiveTask', $task->id)->assertSet('archivedCount', 2);
+        $board->call('unarchiveTask', $task->id)->assertSet('archivedCount', 1);
+    }
+
     public function test_only_done_tasks_can_be_archived()
     {
         $user = User::factory()->create(['status' => 'active']);

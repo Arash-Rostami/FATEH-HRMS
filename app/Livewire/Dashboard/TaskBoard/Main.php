@@ -21,6 +21,7 @@ use App\Livewire\Dashboard\Dms\Presentation\DmsPresenter;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Models\Task;
 use App\Models\TaskDetail;
+use App\Services\Cache\ModelCacheVersion;
 use App\Services\ProjectTask\ReportingService;
 use App\Services\ProjectTask\TaskMetrics;
 use App\Support\TaskAccessPolicy;
@@ -381,7 +382,12 @@ class Main extends Component
         $doneRow = $counts->firstWhere('status', TaskStatus::Done->value);
         $doneTotal = (int)($doneRow?->aggregate ?? 0);
 
-        $this->archivedCount = $this->tabQuery()->where('status', TaskStatus::Done->value)->whereNotNull('archived_at')->count();
+        $this->archivedCount = ModelCacheVersion::remember(
+            Task::class,
+            'archived:' . auth()->id() . ':' . $this->activeTab,
+            now()->addSeconds(60),
+            fn() => $this->tabQuery()->where('status', TaskStatus::Done->value)->whereNotNull('archived_at')->count(),
+        );
 
         $this->doneTotalCount['done'] = $doneTotal;
         $this->totalCount['done'] = $doneWindow === null ? $doneTotal : (int)($doneRow?->windowed ?? 0);

@@ -925,4 +925,51 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->assertSame(1, Artisan::call('exports:prune-old', ['--days' => 0]));
     }
+
+    public function test_tenant_hidden_rejects_an_unknown_tenant(): void
+    {
+        $this->assertSame(1, Artisan::call('tenant:hidden', ['--tenant' => 'bogus-tenant']));
+        $this->assertStringContainsString('Unknown tenant: bogus-tenant', Artisan::output());
+    }
+
+    public function test_tenant_hidden_prints_the_active_tenant_and_its_expanded_hidden_modules(): void
+    {
+        config(['app.off' => ['gallery']]);
+
+        $this->assertSame(0, Artisan::call('tenant:hidden'));
+        $out = Artisan::output();
+
+        $this->assertStringContainsString('Tenant: ' . config('app.tenant'), $out);
+        $this->assertStringContainsString('Hidden: gallery', $out);
+    }
+
+    public function test_tenant_hidden_inspects_another_tenant_using_its_own_off_modules(): void
+    {
+        config(['app.tenant' => 'persol', 'app.off' => []]);
+
+        $this->assertSame(0, Artisan::call('tenant:hidden', ['--tenant' => 'fateh']));
+        $out = Artisan::output();
+
+        $this->assertStringContainsString('Tenant: fateh', $out);
+        $this->assertStringContainsString('notify', $out);
+    }
+
+    public function test_tenant_hidden_all_lists_every_switchable_module_and_view_key(): void
+    {
+        $this->assertSame(0, Artisan::call('tenant:hidden', ['--all' => true]));
+        $out = Artisan::output();
+
+        $this->assertStringContainsString('Switchable: ', $out);
+        $this->assertStringContainsString('announce', $out);
+        $this->assertStringContainsString('gallery', $out);
+    }
+
+    public function test_tenant_hidden_every_sweeps_every_configured_tenant(): void
+    {
+        $this->assertSame(0, Artisan::call('tenant:hidden', ['--every' => true]));
+
+        $out = Artisan::output();
+        $this->assertStringContainsString('Tenant: fateh', $out);
+        $this->assertStringContainsString('Tenant: persol', $out);
+    }
 }

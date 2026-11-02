@@ -63,14 +63,14 @@ class ResetPasswordTest extends TestCase
 
         Livewire::test(ResetPassword::class, ['token' => $token])
             ->set('email', $user->email)
-            ->set('password', 'newsupersecret')
-            ->set('password_confirmation', 'newsupersecret')
+            ->set('password', 'newsupersecret1')
+            ->set('password_confirmation', 'newsupersecret1')
             ->call('submitReset')
             ->assertRedirect(route('login'))
             ->assertSessionHas('statusSwitcher')
             ->assertHasNoErrors();
 
-        $this->assertTrue(Hash::check('newsupersecret', $user->fresh()->password));
+        $this->assertTrue(Hash::check('newsupersecret1', $user->fresh()->password));
         $this->assertNotSame($originalRememberToken, $user->fresh()->remember_token);
     }
 
@@ -80,11 +80,26 @@ class ResetPasswordTest extends TestCase
 
         Livewire::test(ResetPassword::class, ['token' => 'bad-token'])
             ->set('email', $user->email)
-            ->set('password', 'newsupersecret')
-            ->set('password_confirmation', 'newsupersecret')
+            ->set('password', 'newsupersecret1')
+            ->set('password_confirmation', 'newsupersecret1')
             ->call('submitReset')
             ->assertHasErrors(['email'])
             ->assertSessionMissing('statusSwitcher');
+    }
+
+    public function test_submit_reset_requires_both_letters_and_numbers(): void
+    {
+        $user = User::factory()->create();
+        $token = Password::broker()->createToken($user);
+
+        foreach (['onlyletterspass', '1234567890'] as $weak) {
+            Livewire::test(ResetPassword::class, ['token' => $token])
+                ->set('email', $user->email)
+                ->set('password', $weak)
+                ->set('password_confirmation', $weak)
+                ->call('submitReset')
+                ->assertHasErrors(['password']);
+        }
     }
 
     public function test_submit_reset_validation_requires_password_min_eight(): void

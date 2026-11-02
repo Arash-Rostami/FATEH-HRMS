@@ -21,6 +21,9 @@ export default defineConfig({
                 'resources/js/core/filament.js',
                 'resources/js/core/topbar-autohide.js',
                 'resources/js/core/nav-dock.js',
+                'resources/js/core/auto-close.js',
+                'resources/js/core/table-density.js',
+                'resources/js/core/recents.js',
                 'resources/js/components/alpine/stores/filament-menu.js',
 
                 'resources/js/components/alpine/modules/dms.js',

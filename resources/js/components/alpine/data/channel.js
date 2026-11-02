@@ -191,6 +191,10 @@ export default function channel() {
                     if (up && st < LOAD_OLDER_SCROLL_THRESHOLD && this.$wire.hasOlder) {
                         this.loadOlderKeepingPlace(() => this._isl().loadOlder());
                     }
+
+                    if (!up && sh - st - ch < LOAD_OLDER_SCROLL_THRESHOLD && this.$wire.hasNewer && !this._loadingNewer) {
+                        this.loadNewer(() => this._isl().loadNewer());
+                    }
                 });
             }, { passive: true, signal });
 
@@ -283,7 +287,7 @@ export default function channel() {
                     const nearBottom = !!vp && vp.scrollHeight - vp.scrollTop - vp.clientHeight < NEAR_BOTTOM_PX;
                     await this._isl().refreshActive();
                     const lastAfter = this._readLastMessageMarker();
-                    const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null;
+                    const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null && lastAfter !== this._selfMarker;
                     const incoming = threadChanged && !this._lastMessageIsMine();
                     if (threadChanged) {
                         if (nearBottom) this.$nextTick(() => this.scrollToBottom(true));

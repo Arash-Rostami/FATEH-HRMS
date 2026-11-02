@@ -154,6 +154,7 @@ class CalendarTest extends TestCase
             Livewire::actingAs($user)->test(EventReminder::class)->assertViewHas('reminder', null);
 
             config(['app.off' => []]);
+            Livewire::withoutLazyLoading();
             Livewire::actingAs($user)->test(EventReminder::class)->assertViewHas('reminder', fn ($r) => $r !== null);
         } finally {
             config(['app.off' => []]);
@@ -2308,6 +2309,37 @@ class CalendarTest extends TestCase
             ->assertViewHas('reminder', function ($reminder) use ($event) {
                 return $reminder['id'] === $event->id;
             });
+    }
+
+    public function test_due_reminder_arms_the_hidden_js_bridge(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        Event::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'جلسه بررسی پروژه',
+            'date' => now()->addHour(),
+            'remind_hours' => 2,
+            'private' => true,
+        ]);
+
+        $html = Livewire::actingAs($user)->test(EventReminder::class)->html();
+
+        $this->assertStringContainsString('eventAtIso', $html);
+        $this->assertStringNotContainsString('event-reminder-none', $html);
+    }
+
+    public function test_event_reminder_placeholder_is_a_zero_cost_hidden_div(): void
+    {
+        $this->assertSame('<div class="hidden"></div>', (new EventReminder)->placeholder());
+    }
+
+    public function test_event_reminder_stays_error_free_when_the_pulse_event_fires(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::actingAs($user)->test(EventReminder::class)
+            ->dispatch('event-reminder-changed')
+            ->assertHasNoErrors();
     }
 
     public function test_calendar_range_advance_months_recovers_from_invalid_input_and_clamps_month_end_dates(): void
