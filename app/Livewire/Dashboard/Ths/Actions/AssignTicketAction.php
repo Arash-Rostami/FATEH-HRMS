@@ -44,6 +44,7 @@ class AssignTicketAction
         DB::transaction(function () use ($ticket, $actor) {
             $locked = Ticket::lockForUpdate()->find($ticket->id);
 
+            abort_if($locked?->status === 'closed', 422, 'این تیکت قبلاً بسته شده است.');
             abort_unless($locked && TicketAccessPolicy::canClose($locked, $actor), 403);
 
             $locked->update(['status' => 'closed']);

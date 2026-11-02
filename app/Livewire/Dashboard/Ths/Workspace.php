@@ -13,6 +13,7 @@ use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Models\Department;
 use App\Models\Ticket;
 use App\Support\TicketAccessPolicy;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -29,13 +30,16 @@ class Workspace extends Component
     public int $ticketId;
     #[Locked]
     public string $seenStatus = '';
+    #[Locked]
+    public bool $embedded = false;
     public ReplyForm $replyForm;
     public string $assigneeId = '';
     public string $rerouteTo = '';
 
-    public function mount(int $ticketId): void
+    public function mount(int $ticketId, bool $embedded = false): void
     {
         $this->ticketId = $ticketId;
+        $this->embedded = $embedded;
 
         $ticket = Ticket::findOrFail($ticketId);
 
@@ -120,7 +124,7 @@ class Workspace extends Component
 
         $this->replyForm->reset();
         unset($this->ticket);
-        $this->dispatch('toast', message: 'پاسخ شما ثبت شد.', type: 'success');
+        $this->notify('پاسخ شما ثبت شد.', 'success');
         $this->dispatch('ths-reply-posted');
         $this->dispatch('ths-ticket-updated');
     }
@@ -152,7 +156,7 @@ class Workspace extends Component
         $this->assigneeId = '';
         unset($this->ticket);
         $this->seenStatus = $this->ticket->status;
-        $this->dispatch('toast', message: 'تیکت با موفقیت تخصیص داده شد.', type: 'success');
+        $this->notify('تیکت با موفقیت تخصیص داده شد.', 'success');
         $this->dispatch('ths-ticket-updated');
     }
 
@@ -168,7 +172,7 @@ class Workspace extends Component
         }
 
         unset($this->ticket);
-        $this->dispatch('toast', message: 'اثربخشی ثبت شد.', type: 'success');
+        $this->notify('اثربخشی ثبت شد.', 'success');
         $this->dispatch('ths-ticket-updated');
     }
 
@@ -179,17 +183,12 @@ class Workspace extends Component
             return;
         }
 
-        if (blank($this->ticket->effectiveness)) {
-            $this->dispatch('toast', message: 'برای بستن تیکت ابتدا اثربخشی را ثبت کنید.', type: 'error');
-            return;
-        }
-
         if (! $this->runGuarded(fn () => $action->close($this->ticket, auth()->user()))) {
             return;
         }
 
         unset($this->ticket);
-        $this->dispatch('toast', message: 'تیکت با موفقیت بسته شد.', type: 'success');
+        $this->notify('تیکت با موفقیت بسته شد.', 'success');
         $this->dispatch('ths-ticket-updated');
     }
 
@@ -222,7 +221,7 @@ class Workspace extends Component
         $this->replyForm->reset();
         $this->rerouteTo = '';
         unset($this->ticket);
-        $this->dispatch('toast', message: $message, type: 'success');
+        $this->notify($message, 'success');
         $this->dispatch('ths-ticket-updated');
     }
 
@@ -233,11 +232,21 @@ class Workspace extends Component
         } catch (ValidationException $e) {
             throw $e;
         } catch (HttpException $e) {
-            $this->dispatch('toast', message: $e->getMessage() ?: 'دسترسی لازم برای این عملیات وجود ندارد.', type: 'error');
+            $this->notify($e->getMessage() ?: 'دسترسی لازم برای این عملیات وجود ندارد.', 'error');
             return false;
         }
 
         return true;
+    }
+
+    private function notify(string $message, string $type): void
+    {
+        if (! $this->embedded) {
+            $this->dispatch('toast', message: $message, type: $type);
+            return;
+        }
+
+        Notification::make()->title($message)->{$type === 'error' ? 'danger' : 'success'}()->send();
     }
 
     public function render()

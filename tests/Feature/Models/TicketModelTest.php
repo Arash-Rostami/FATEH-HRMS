@@ -230,11 +230,8 @@ class TicketModelTest extends TestCase
         $this->assertSame('in-progress', $ticket->fresh()->status);
     }
 
-    public function test_saving_ticket_closing_requires_effectiveness(): void
+    public function test_saving_ticket_closing_does_not_require_effectiveness(): void
     {
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('ERR-T001');
-
         $requester = User::factory()->create(['status' => 'active']);
         $assignee = User::factory()->create(['status' => 'active']);
         $ticket = Ticket::factory()->create([
@@ -246,6 +243,8 @@ class TicketModelTest extends TestCase
 
         $ticket->status = 'closed';
         $ticket->save();
+
+        $this->assertSame('closed', $ticket->fresh()->status);
     }
 
     public function test_saving_ticket_closing_composes_action_result_from_replies(): void

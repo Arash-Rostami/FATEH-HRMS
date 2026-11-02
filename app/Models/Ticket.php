@@ -163,6 +163,7 @@ class Ticket extends Model
     public function composeActionResultFromReplies(): string
     {
         return $this->replies()
+            ->with('user:id,name')
             ->get()
             ->map(fn(Reply $reply) => sprintf(
                 '%s (%s): %s',

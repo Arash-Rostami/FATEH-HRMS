@@ -156,7 +156,6 @@ class TicketFormPresenter
                 '2' => '★★☆☆☆ — کم‌اثر',
                 '1' => '★☆☆☆☆ — بی‌اثر',
             ])
-            ->required(fn(Get $get): bool => Ticket::isClosingStatus($get('status')))
             ->helperText(__('resources/ths/strings.hints.effectiveness'));
     }
 

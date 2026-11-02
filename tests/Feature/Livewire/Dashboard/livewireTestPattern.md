@@ -161,7 +161,7 @@ Only test the window/toggle that your module actually has — these are NOT univ
 ->assertSet('showAllDone', true)             // boolean
 ->assertHasNoErrors()                        // no validation/form errors
 ->assertHasErrors(['form.newTitle'])         // specific field has errors
-->assertHasFormErrors(['effectiveness' => 'required'])  // Filament-style form error
+->assertHasFormErrors(['assigned_to' => 'required'])  // Filament-style form error
 ->assertDispatched('task-created')
 ->assertDispatched('toast', message: '...', type: 'success')
 ->assertDispatchedTo('dashboard.energy.chart', 'energy-test-submitted')  // event to a specific component

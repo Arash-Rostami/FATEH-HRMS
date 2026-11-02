@@ -99,7 +99,7 @@ class ThsResource extends Resource
                                 ->icon('heroicon-o-chat-bubble-oval-left-ellipsis')
                                 ->visible(fn(?Ticket $record) => $record !== null)
                                 ->schema([
-                                    Livewire::make(Workspace::class, fn(?Ticket $record) => ['ticketId' => $record?->id ?? 0]),
+                                    Livewire::make(Workspace::class, fn(?Ticket $record) => ['ticketId' => $record?->id ?? 0, 'embedded' => true]),
                                 ]),
                         ]),
                 ])

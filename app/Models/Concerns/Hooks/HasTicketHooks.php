@@ -2,7 +2,6 @@
 
 namespace App\Models\Concerns\Hooks;
 
-use App\Enums\TicketError;
 use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Models\Profile;
 use App\Models\Task;
@@ -114,10 +113,6 @@ trait HasTicketHooks
 
         if ($ticket->action_result === static::WITHDRAWN_RESULT) {
             return;
-        }
-
-        if (blank($ticket->effectiveness)) {
-            TicketError::EffectivenessRequired->throw();
         }
 
         if ($ticket->exists) {

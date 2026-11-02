@@ -169,7 +169,7 @@ class ThsResourceTest extends TestCase
         $this->assertSame('development', $ticket->fresh()->request_type);
     }
 
-    public function test_effectiveness_field_is_required_only_when_closing_from_the_admin_panel()
+    public function test_effectiveness_is_optional_when_closing_from_the_admin_panel()
     {
         $admin = $this->developer();
 
@@ -190,9 +190,88 @@ class ThsResourceTest extends TestCase
             ->test(EditTicket::class, ['record' => $ticket->getRouteKey()])
             ->set('data.status', 'closed')
             ->call('save')
-            ->assertHasFormErrors(['effectiveness' => 'required']);
+            ->assertHasNoFormErrors();
 
-        $this->assertSame('in-progress', $ticket->fresh()->status);
+        $this->assertSame('closed', $ticket->fresh()->status);
+    }
+
+    public function test_workspace_close_refreshes_the_admin_form_without_losing_unsaved_edits()
+    {
+        $admin = $this->developer();
+        $dept = 'T' . Str::upper(Str::random(3));
+        $assignee = $this->deptStaff($dept);
+        $ticket = Ticket::factory()->create([
+            'status' => 'in-progress',
+            'assigned_to' => $assignee->id,
+            'effectiveness' => null,
+            'requester_id' => User::factory()->create(['status' => 'active', 'role' => 'user'])->id,
+            'extra' => ['target_department' => $dept],
+        ]);
+
+        $component = Livewire::actingAs($admin)
+            ->test(EditTicket::class, ['record' => $ticket->getRouteKey()])
+            ->set('data.effectiveness', '3');
+
+        Ticket::find($ticket->id)->update(['status' => 'closed']);
+
+        $component->dispatch('ths-ticket-updated')->assertSet('data.effectiveness', '3');
+
+        $status = $component->get('data.status');
+        $this->assertSame('closed', $status instanceof \BackedEnum ? $status->value : $status);
+        $this->assertNotEmpty($component->get('data.completion_date'));
+    }
+
+    public function test_workspace_signal_keeps_an_unsaved_assignee_after_a_save_and_drops_a_stale_completion_date()
+    {
+        $admin = $this->developer();
+        $dept = 'T' . Str::upper(Str::random(3));
+        $first = $this->deptStaff($dept);
+        $second = $this->deptStaff($dept);
+        $ticket = Ticket::factory()->create([
+            'requester_id' => User::factory()->create(['status' => 'active', 'role' => 'user'])->id,
+            'status' => 'open',
+            'assigned_to' => null,
+            'effectiveness' => null,
+            'extra' => ['target_department' => $dept],
+        ]);
+
+        $component = Livewire::actingAs($admin)
+            ->test(EditTicket::class, ['record' => $ticket->getRouteKey()])
+            ->fillForm(['assigned_to' => $first->id])
+            ->call('save')
+            ->assertHasNoFormErrors()
+            ->set('data.assigned_to', $second->id);
+
+        $component->dispatch('ths-ticket-updated')->assertSet('data.assigned_to', $second->id);
+
+        $component->set('data.status', 'closed');
+        $this->assertNotEmpty($component->get('data.completion_date'));
+
+        DB::table('tickets')->where('id', $ticket->id)->update(['status' => 'open', 'assigned_to' => null]);
+
+        $component->dispatch('ths-ticket-updated');
+        $this->assertEmpty($component->get('data.completion_date'));
+    }
+
+    public function test_assigning_someone_outside_the_department_from_the_admin_form_shows_a_message_beside_the_field()
+    {
+        $admin = $this->developer();
+        $dept = 'T' . Str::upper(Str::random(3));
+        $this->deptStaff($dept);
+        $outsider = $this->deptStaff('O' . Str::upper(Str::random(3)));
+        $ticket = Ticket::factory()->create([
+            'requester_id' => User::factory()->create(['status' => 'active', 'role' => 'user'])->id,
+            'status' => 'open',
+            'assigned_to' => null,
+            'extra' => ['target_department' => $dept],
+        ]);
+
+        Livewire::actingAs($admin)->test(EditTicket::class, ['record' => $ticket->getRouteKey()])
+            ->fillForm(['assigned_to' => $outsider->id])
+            ->call('save')
+            ->assertHasFormErrors(['assigned_to']);
+
+        $this->assertNull($ticket->fresh()->assigned_to);
     }
 
     public function test_closing_a_ticket_from_the_admin_panel_marks_its_linked_task_done()

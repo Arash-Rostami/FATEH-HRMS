@@ -486,7 +486,7 @@ class ThsTest extends TestCase
         $this->assertSame($originalStaff->id, $ticket->fresh()->assigned_to);
     }
 
-    public function test_effectiveness_settable_by_assignee_and_close_requires_it_first()
+    public function test_effectiveness_settable_by_assignee_and_close_works_without_it()
     {
         $requester = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
         $assignee = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
@@ -499,14 +499,59 @@ class ThsTest extends TestCase
 
         $component = Livewire::actingAs($assignee)->test(Workspace::class, ['ticketId' => $ticket->id]);
 
-        $component->call('closeTicket');
-        $this->assertSame('in-progress', $ticket->fresh()->status, 'closing without effectiveness must be blocked');
-
         $component->call('setEffectiveness', '4');
         $this->assertSame('4', $ticket->fresh()->effectiveness);
 
         $component->call('closeTicket');
         $this->assertSame('closed', $ticket->fresh()->status);
+
+        $bare = Ticket::factory()->create([
+            'requester_id' => $requester->id,
+            'status' => 'in-progress',
+            'assigned_to' => $assignee->id,
+            'effectiveness' => null,
+        ]);
+
+        Livewire::actingAs($assignee)->test(Workspace::class, ['ticketId' => $bare->id])->call('closeTicket');
+        $this->assertSame('closed', $bare->fresh()->status, 'closing without effectiveness must work');
+    }
+
+    public function test_workspace_messages_reach_the_right_notifier_in_each_panel()
+    {
+        $requester = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
+        $assignee = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
+        $ticket = Ticket::factory()->create([
+            'requester_id' => $requester->id,
+            'status' => 'in-progress',
+            'assigned_to' => $assignee->id,
+            'effectiveness' => null,
+        ]);
+
+        Livewire::actingAs($requester)
+            ->test(Workspace::class, ['ticketId' => $ticket->id])
+            ->call('closeTicket')
+            ->assertDispatched('toast', type: 'error');
+
+        Livewire::actingAs($requester)
+            ->test(Workspace::class, ['ticketId' => $ticket->id, 'embedded' => true])
+            ->call('closeTicket')
+            ->assertNotDispatched('toast');
+        \Filament\Notifications\Notification::assertNotified('دسترسی لازم برای این عملیات وجود ندارد.');
+
+        $this->assertSame('in-progress', $ticket->fresh()->status);
+
+        Livewire::actingAs($assignee)
+            ->test(Workspace::class, ['ticketId' => $ticket->id, 'embedded' => true])
+            ->call('closeTicket')
+            ->assertNotDispatched('toast');
+        \Filament\Notifications\Notification::assertNotified('تیکت با موفقیت بسته شد.');
+
+        $this->assertSame('closed', $ticket->fresh()->status);
+
+        Livewire::actingAs($assignee)
+            ->test(Workspace::class, ['ticketId' => $ticket->id, 'embedded' => true])
+            ->call('closeTicket');
+        \Filament\Notifications\Notification::assertNotified('این تیکت قبلاً بسته شده است.');
     }
 
     public function test_closing_a_ticket_marks_its_linked_task_done()
@@ -2202,19 +2247,15 @@ class ThsTest extends TestCase
         $this->assertStringContainsString('تخصیص به ' . $second->name, $closed->fresh()->action_result);
     }
 
-    public function test_closing_without_effectiveness_raises_a_validation_error_instead_of_a_bare_exception(): void
+    public function test_an_open_ticket_closes_in_one_step_without_effectiveness(): void
     {
         $ticket = Ticket::factory()->create(['status' => 'open', 'assigned_to' => null, 'effectiveness' => null]);
 
-        try {
-            $ticket->update(['status' => 'closed']);
-            $this->fail('closing without effectiveness must be rejected');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            $this->assertArrayHasKey('effectiveness', $e->errors());
-            $this->assertStringContainsString('ERR-T001', $e->errors()['effectiveness'][0]);
-        }
+        $ticket->update(['status' => 'closed']);
 
-        $this->assertSame('open', $ticket->fresh()->status);
+        $fresh = $ticket->fresh();
+        $this->assertSame('closed', $fresh->status);
+        $this->assertNotNull($fresh->completion_date);
     }
 
     public function test_a_department_head_can_release_an_in_progress_ticket_but_a_bystander_cannot(): void
