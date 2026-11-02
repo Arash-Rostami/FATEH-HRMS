@@ -85,7 +85,7 @@
             x-init="window.matchMedia('(min-width: 1024px)').matches && $nextTick(() => $el.querySelector('input:not([type=hidden]), select, textarea')?.focus())"
         >
             <div class="mb-10 space-y-3.5 text-center">
-                <h1class="font-display text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--md-sys-color-on-surface)] sm:text-3xl">
+                <h1 class="font-display text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--md-sys-color-on-surface)] sm:text-3xl">
                     {{ $title }}
                 </h1>
                 @if ($description)

@@ -1,4 +1,4 @@
-<x-auth.card-no-signup icon="fingerprint" title="بازیابی رمز عبور" description="جهت دریافت لینک تغییر رمز، ایمیل سازمانی خود را وارد نمایید.">
+<x-auth.card-no-signup icon="fingerprint" title="بازیابی رمز عبور" description="ایمیل سازمانی خود را وارد کنید تا لینک امن تغییر رمز برایتان ارسال شود (لینک به مدت ۶۰ دقیقه معتبر).">
     <form wire:submit.prevent="send" class="space-y-6 mt-2">
         <div class="md3-input-group group relative">
             <div class="relative transition-transform duration-200 focus-within:scale-[1.01]">
@@ -68,12 +68,4 @@
         </div>
     </form>
 
-    <div class="mt-8 text-center opacity-70">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--md-sys-color-surface-variant)]/30 border border-[var(--md-sys-color-outline-variant)]/10">
-            <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">info</span>
-            <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
-                لینک ارسالی به مدت ۶۰ دقیقه معتبر خواهد بود
-            </span>
-        </div>
-    </div>
 </x-auth.card-no-signup>

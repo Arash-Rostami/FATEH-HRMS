@@ -477,6 +477,18 @@ describe('share', () => {
         expect(writeText).toHaveBeenCalledTimes(1)
     })
 
+    test('cancelling the share sheet shows no success toast', async () => {
+        const calls = mockNotification()
+        const abort = Object.assign(new Error('cancel'), { name: 'AbortError' })
+        Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true })
+        Object.defineProperty(navigator, 'share', { configurable: true, value: () => Promise.reject(abort) })
+
+        window.filamentMenu.share()
+        await new Promise((r) => setTimeout(r, 0))
+
+        expect(calls.some((c) => c.method === 'success')).toBe(false)
+    })
+
     test('a rejected share/clipboard promise is swallowed, not propagated', async () => {
         Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('x')) } })
         expect(() => window.filamentMenu.share()).not.toThrow()

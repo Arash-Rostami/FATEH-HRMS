@@ -176,8 +176,8 @@ describe('nav-dock — wheel scrolls the docked bar sideways and the active item
 
     test('a vertical wheel over an overflowing docked bar scrolls it sideways and cancels the page scroll', () => {
         root.classList.add('nav-dock-bottom')
-        triggerInit()
         const nav = overflowingNav('ltr')
+        triggerInit()
 
         const event = wheel(nav, { deltaY: 40 })
 
@@ -187,8 +187,8 @@ describe('nav-dock — wheel scrolls the docked bar sideways and the active item
 
     test('in an RTL bar the same wheel direction moves the other way', () => {
         root.classList.add('nav-dock-bottom')
-        triggerInit()
         const nav = overflowingNav('rtl')
+        triggerInit()
 
         wheel(nav, { deltaY: 40 })
 

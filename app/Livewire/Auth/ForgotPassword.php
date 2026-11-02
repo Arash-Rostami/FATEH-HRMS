@@ -3,6 +3,7 @@ namespace App\Livewire\Auth;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use App\Traits\AuthValidationRules;
 
 class ForgotPassword extends Component
@@ -26,12 +27,22 @@ class ForgotPassword extends Component
             $this->validationMessages()
         );
 
+        $key = 'forgot:' . request()->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $this->addError('email', 'تعداد درخواست‌ها زیاد است؛ لطفاً کمی بعد دوباره تلاش کنید.');
+
+            return;
+        }
+
+        RateLimiter::hit($key, 60);
+
         $status = Password::sendResetLink(['email' => $this->email]);
 
         if ($status === Password::RESET_LINK_SENT) {
             $this->sent = true;
         } else {
-            $this->addError('email', 'ایمیل یافت نشد.');
+            $this->addError('email', __($status));
         }
     }
 

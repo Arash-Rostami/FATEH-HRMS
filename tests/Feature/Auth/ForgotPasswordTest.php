@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\PasswordResetNotification as ResetPassword;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -101,6 +102,38 @@ class ForgotPasswordTest extends TestCase
         $this->assertStringContainsString('/admin/password-reset/reset?token=adm1', $notification->toMail($user)->render());
 
         $this->assertSame('لینک بازیابی رمز عبور به ایمیل شما ارسال شد.', __('passwords.sent'));
+    }
+
+    public function test_repeat_request_within_the_broker_throttle_says_wait_not_not_found()
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::test(ForgotPassword::class)->set('email', $user->email)->call('send');
+
+        Livewire::test(ForgotPassword::class)
+            ->set('email', $user->email)
+            ->call('send')
+            ->assertHasErrors(['email'])
+            ->assertSee(__('passwords.throttled'))
+            ->assertDontSee(__('passwords.user'));
+    }
+
+    public function test_per_ip_limit_blocks_the_sixth_request_in_a_minute()
+    {
+        RateLimiter::clear('forgot:127.0.0.1');
+
+        foreach (range(1, 5) as $i) {
+            Livewire::test(ForgotPassword::class)->set('email', "nobody{$i}@example.test")->call('send');
+        }
+
+        Livewire::test(ForgotPassword::class)
+            ->set('email', 'nobody6@example.test')
+            ->call('send')
+            ->assertSee('تعداد درخواست‌ها زیاد است');
+
+        RateLimiter::clear('forgot:127.0.0.1');
     }
 
     public function test_unknown_email_adds_error_and_does_not_flash()

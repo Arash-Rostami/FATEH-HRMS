@@ -48,6 +48,14 @@ document.addEventListener('alpine:initialized', () => {
         if (nav && !nav._dockArrowsBound) {
             nav._dockArrowsBound = true
             nav.addEventListener('scroll', updateArrows, { passive: true })
+            nav.addEventListener('wheel', (e) => {
+                if (e.defaultPrevented || !root.classList.contains('nav-dock-bottom') || root.classList.contains(CLASS_MIN)) return
+
+                if (nav.scrollWidth <= nav.clientWidth || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return
+
+                e.preventDefault()
+                nav.scrollLeft += getComputedStyle(nav).direction === 'rtl' ? -e.deltaY : e.deltaY
+            }, { passive: false })
         }
 
         updateArrows()
@@ -74,16 +82,6 @@ document.addEventListener('alpine:initialized', () => {
     document.addEventListener('livewire:navigated', applyNavDock)
     window.addEventListener('resize', updateArrows)
 
-    document.addEventListener('wheel', (e) => {
-        if (e.defaultPrevented || !root.classList.contains('nav-dock-bottom') || root.classList.contains(CLASS_MIN)) return
-
-        const nav = e.target.closest?.('.fi-sidebar-nav')
-
-        if (!nav || nav.scrollWidth <= nav.clientWidth || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return
-
-        e.preventDefault()
-        nav.scrollLeft += getComputedStyle(nav).direction === 'rtl' ? -e.deltaY : e.deltaY
-    }, { passive: false })
 
     document.addEventListener('click', (e) => {
         if (!root.classList.contains('nav-dock-bottom')) return

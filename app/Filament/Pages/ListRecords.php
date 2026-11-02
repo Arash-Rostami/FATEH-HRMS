@@ -11,13 +11,13 @@ class ListRecords extends BaseListRecords
 {
     use HandlesActionExceptions;
 
-    protected function makeTable(): Table
+    protected function makeBaseTable(): Table
     {
-        $table = parent::makeTable();
+        $table = parent::makeBaseTable();
 
-        return $table->recordUrl(
-            fn (Model $record): ?string => $this->rowClickUrl($table, $record)
-        );
+        return $table->hasCustomRecordUrl()
+            ? $table
+            : $table->recordUrl(fn (Model $record): ?string => $this->rowClickUrl($table, $record));
     }
 
     private function rowClickUrl(Table $table, Model $record): ?string

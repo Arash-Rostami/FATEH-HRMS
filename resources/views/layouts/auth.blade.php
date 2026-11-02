@@ -8,6 +8,7 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl" class="h-full antialiased" x-data="authBackground(@js($videos))">
 <head>
+    <script>window.__defaultTheme = @json(config('app.theme_palette'));</script>
     <x-dashboard.meta-tags />
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/auth.js'])
     @livewireStyles
