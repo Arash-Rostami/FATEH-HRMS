@@ -100,6 +100,17 @@ class OccasionComposerTest extends TestCase
         $data = $this->compose();
 
         $this->assertSame('anniversary', $data['occasionType']);
+        $this->assertStringContainsString('خوش آمدید', $data['title']);
         $this->assertTrue(Cache::has('start_date_' . $user->id));
+    }
+
+    public function test_later_anniversary_keeps_the_anniversary_title(): void
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(8, 0));
+        $user = User::factory()->create(['status' => 'active']);
+        Profile::factory()->create(['user_id' => $user->id, 'start_date' => today()->subYears(2)]);
+        Auth::login($user);
+
+        $this->assertStringContainsString('سالگرد', $this->compose()['title']);
     }
 }

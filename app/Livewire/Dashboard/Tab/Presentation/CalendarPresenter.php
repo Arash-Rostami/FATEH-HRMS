@@ -501,11 +501,12 @@ class CalendarPresenter
         $anniversaries = $profiles->filter(fn($p) => $p->start_date?->month === $month && $p->start_date?->day === $day)
             ->map(function ($p) use ($gregorianDate) {
                 $years = $p->start_date->diffInYears($gregorianDate);
+                $firstDay = $p->start_date->isSameDay($gregorianDate);
                 return [
                     'id' => 'anniversary-' . $p->id,
                     'type' => 'anniversary',
-                    'title' => ($years > 0 ? $years . 'مین ' : '') . 'سالگرد همکاری ' . ($p->user->name ?? 'کاربر'),
-                    'description' => 'سالگرد همکاری مبارک!',
+                    'title' => $firstDay ? 'اولین روز کاری ' . ($p->user->name ?? 'کاربر') : ($years > 0 ? $years . 'مین ' : '') . 'سالگرد همکاری ' . ($p->user->name ?? 'کاربر'),
+                    'description' => $firstDay ? 'به تیم خوش آمدید!' : 'سالگرد همکاری مبارک!',
                     'time' => '00:00',
                     'is_owner' => false,
                     'private' => false,
@@ -1057,11 +1058,12 @@ class CalendarPresenter
 
             foreach ($anniversaryLookup[$mdKey] ?? [] as $p) {
                 $years = $p->start_date->diffInYears($carbon);
+                $firstDay = $p->start_date->isSameDay($carbon);
                 $entries[] = [
                     'id' => 'anniversary-' . $p->id,
                     'type' => 'anniversary',
-                    'title' => ($years > 0 ? $years . 'مین ' : '') . 'سالگرد همکاری ' . ($p->user->name ?? 'کاربر'),
-                    'description' => 'سالگرد همکاری مبارک!',
+                    'title' => $firstDay ? 'اولین روز کاری ' . ($p->user->name ?? 'کاربر') : ($years > 0 ? $years . 'مین ' : '') . 'سالگرد همکاری ' . ($p->user->name ?? 'کاربر'),
+                    'description' => $firstDay ? 'به تیم خوش آمدید!' : 'سالگرد همکاری مبارک!',
                     'is_owner' => false,
                     'locked' => true,
                     'date' => $jalaliKey,

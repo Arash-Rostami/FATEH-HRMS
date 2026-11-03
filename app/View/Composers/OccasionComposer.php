@@ -31,6 +31,12 @@ class OccasionComposer
         }
 
         if (isSpecialDay('start_date')) {
+            if ($user->profile->start_date->isToday()) {
+                cache()->put('start_date_' . $user->id, 'shown', now()->endOfDay());
+
+                return ['anniversary', 'به تیم خوش آمدید ' . ($user->name ?? 'عزیز') . '!', $this->pick($this->firstDayQuotes())];
+            }
+
             return ['anniversary', $this->anniversaryTitle($user), $this->pick($this->anniversaryQuotes())];
         }
 
@@ -67,6 +73,16 @@ class OccasionComposer
             "یک سال بزرگتر، یک سال عاقل‌تر.",
             "امروز همه چیز درباره توست. از هر لحظه‌اش لذت ببر.",
             "تولدت مبارک! امیدوارم بهترین سال زندگیت رو پیش رو داشته باشی."
+        ];
+    }
+
+    private function firstDayQuotes(): array
+    {
+        return [
+            "امروز اولین روز کاری شماست؛ از همکاری با شما خوشحالیم.",
+            "امیدواریم شروعی عالی و پر از یادگیری در کنار تیم داشته باشید.",
+            "به جمع ما خوش آمدید؛ آینده‌ای روشن در پیش دارید.",
+            "هر سفر بزرگی با یک قدم اول شروع می‌شود. موفق باشید!",
         ];
     }
 
