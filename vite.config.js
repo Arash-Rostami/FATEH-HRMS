@@ -3,6 +3,28 @@ import laravel from 'laravel-vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import {viteStaticCopy} from 'vite-plugin-static-copy'
 import {VitePWA} from 'vite-plugin-pwa'
+import {existsSync, readdirSync, renameSync, rmSync} from 'node:fs'
+
+const dropSiblingOriginals = () => ({
+    name: 'drop-sibling-originals',
+    apply: 'build',
+    closeBundle: {
+        order: 'post',
+        handler() {
+            const img = 'public/build/assets/img';
+            if (!existsSync(img)) return;
+            for (const tenant of readdirSync(img)) {
+                const dir = `${img}/${tenant}/sibling`;
+                if (!existsSync(dir)) continue;
+                const optimized = `${dir}/optimized`;
+                if (!existsSync(optimized)) continue;
+                for (const entry of readdirSync(dir)) if (entry !== 'optimized') rmSync(`${dir}/${entry}`, {recursive: true, force: true});
+                for (const file of readdirSync(optimized)) renameSync(`${optimized}/${file}`, `${dir}/${file}`);
+                rmSync(optimized, {recursive: true, force: true});
+            }
+        },
+    },
+})
 
 export default defineConfig({
     plugins: [
@@ -41,6 +63,8 @@ export default defineConfig({
             refresh: true,
         }),
 
+        dropSiblingOriginals(),
+
         viteStaticCopy({
             targets: [
                 {src: 'resources/assets/audio/*.mp3', dest: 'assets/audio'},
@@ -48,14 +72,6 @@ export default defineConfig({
                 {src: 'resources/assets/img', dest: 'assets'},
                 {src: 'resources/assets/fonts', dest: 'assets'},
                 {src: 'resources/assets/js', dest: 'assets'},
-                {
-                    src: 'node_modules/material-symbols/rounded.css',
-                    dest: 'assets/material-symbols'
-                },
-                {
-                    src: 'node_modules/material-symbols/material-symbols-rounded.woff2',
-                    dest: 'assets/material-symbols'
-                },
                 // {src: 'resources/fallback', dest: '.'},
             ]
         }),

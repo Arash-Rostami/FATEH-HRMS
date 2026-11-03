@@ -1,3 +1,7 @@
+import watchIcons from '../icons/guard.js';
+
+watchIcons();
+
 const DB_NAME = 'auth-media';
 const DB_STORE = 'media';
 const FADE = 1.2;

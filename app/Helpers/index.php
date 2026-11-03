@@ -535,6 +535,19 @@ if (!function_exists('tenantAsset')) {
     }
 }
 
+if (!function_exists('tenantSiblings')) {
+    function tenantSiblings(string $tenant, array $items): array
+    {
+        return array_map(function (array $item) use ($tenant) {
+            $found = glob(resource_path("assets/img/{$tenant}/sibling/optimized/" . strtolower($item['name']) . '.*')) ?: [];
+
+            $item['logo'] = ($item['logo'] ?? null) ?: ($found ? "build/assets/img/{$tenant}/sibling/" . basename($found[0]) : null);
+
+            return $item;
+        }, $items);
+    }
+}
+
 if (!function_exists('tenantVideos')) {
     function tenantVideos(string $tenant): array
     {

@@ -8,13 +8,13 @@
     </p>
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
-            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">rectangle_stack</span>
+            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">stacks</span>
             <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">هر پروژه چیست؟</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             <div class="flex items-start gap-4 p-5">
                 <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shrink-0">
-                    <span class="material-symbols-rounded text-[22px]">rectangle_stack</span>
+                    <span class="material-symbols-rounded text-[22px]">stacks</span>
                 </span>
                 <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر پروژه یک نام، یک مالک (<code class="px-1 rounded bg-[var(--md-sys-color-secondary-container)] font-mono text-[11px]">owner_id</code>)، فهرست اعضا و دپارتمان‌های مجاز، و یک گروه گفتگوی متصل دارد. ستون‌های «تعداد وظایف»، «پیشرفت» و «فراتر از مهلت» به‌صورت زنده محاسبه می‌شوند.</p>
             </div>

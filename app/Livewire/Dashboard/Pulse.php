@@ -30,7 +30,7 @@ class Pulse extends Component
     public function render(): string
     {
         return <<<'HTML'
-        <div x-data="pulse(@js($fingerprint))" class="hidden"></div>
+        <div x-data="pulse(@js($fingerprint))" class="hidden" data-notification-sound="{{ asset('build/assets/audio/notification.mp3') }}"></div>
         HTML;
     }
 }

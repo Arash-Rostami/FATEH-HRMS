@@ -1,6 +1,3 @@
-@php
-    $allProjectIds = collect($this->myProjects['rows'])->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
-@endphp
 <aside class="chat-scale flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:flex w-full md:w-[320px] lg:w-[360px] bg-[var(--md-sys-color-surface)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"
        :class="{ 'hidden': mobileShowChat, 'sb-collapsed': sbCollapsed, 'animate-sidebar-slide': sbSlide }"
        aria-label="لیست پروژه‌ها">
@@ -25,13 +22,13 @@
                 @include('livewire.dashboard.messaging.sidebar-toggle', ['margin' => 'ms-0'])
                 @if(count($this->myProjects['rows']))
                     <button type="button"
-                            x-on:click="$store.sound.toggleAll({{ $allProjectIds }}, 'project')"
-                            :aria-pressed="$store.sound.isAllMuted({{ $allProjectIds }}, 'project')"
-                            :aria-label="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'باصدا کردن همه پروژه‌ها' : 'بی‌صدا کردن همه پروژه‌ها'"
-                            :title="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'باصدا کردن همه پروژه‌ها' : 'بی‌صدا کردن همه پروژه‌ها'"
+                            x-on:click="$store.sound.toggleAll('project')"
+                            :aria-pressed="$store.sound.isAllMuted('project')"
+                            :aria-label="$store.sound.isAllMuted('project') ? 'باصدا کردن همه پروژه‌ها' : 'بی‌صدا کردن همه پروژه‌ها'"
+                            :title="$store.sound.isAllMuted('project') ? 'باصدا کردن همه پروژه‌ها' : 'بی‌صدا کردن همه پروژه‌ها'"
                             class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
-                            :class="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
-                        <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'volume_off' : 'volume_up'"></span>
+                            :class="$store.sound.isAllMuted('project') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
+                        <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted('project') ? 'volume_off' : 'volume_up'"></span>
                     </button>
                 @endif
                 <a href="{{ route('tasksheet', ['project' => $activeProjectId]) }}" target="_blank" rel="noopener noreferrer" title="تسک‌شیت" aria-label="تسک‌شیت"

@@ -21,12 +21,14 @@ class PulseService
 
     private const STAMP = "CONCAT_WS('|', COUNT(*), MAX(created_at), MAX(updated_at))";
 
+    private const NOTIFICATION_STAMP = "CONCAT_WS('|', COALESCE(SUM(JSON_UNQUOTE(JSON_EXTRACT(data, '\$.menu_key')) LIKE '%nudge'), 0), COUNT(*), MAX(created_at), MAX(updated_at))";
+
     private const EDGE_STAMP = "CONCAT_WS('|', COUNT(*), MAX(id), MAX(updated_at))";
 
     public static function fingerprint(User $user): array
     {
         $fingerprint = (array) DB::query()
-            ->selectSub($user->notifications()->reorder()->where('data->format', 'filament')->unread()->selectRaw(self::STAMP), 'notifications')
+            ->selectSub($user->notifications()->reorder()->where('data->format', 'filament')->unread()->selectRaw(self::NOTIFICATION_STAMP), 'notifications')
             ->selectSub(Edge::where('user_id', $user->id)->visible()->selectRaw(self::EDGE_STAMP), 'edges')
             ->selectSub(Reminder::forUser($user->id)->active()->where('due_at', '<=', now())->selectRaw(self::STAMP), 'reminders')
             ->selectSub(Event::reminderDueFor($user)->orderBy('date')->limit(1)->selectRaw("CONCAT_WS('@', id, date)"), 'eventReminder')

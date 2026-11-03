@@ -104,7 +104,7 @@
                 یک روز/ساعتِ وسطِ بازه را نمی‌توان مستثنی کرد — برای آزادکردنِ بازهٔ میانی، «پایان» را تا شروع آن بازه کوتاه کنید و سپس یک رزرو دوم برای ادامه بسازید.
             </p>
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
-                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">person_lock</span>
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lock_person</span>
                 این امکان فقط در پنل ادمین است؛ کاربر در پنل خود فقط رزروی ساعتی/تمام‌روز می‌سازد.
             </p>
         </div>

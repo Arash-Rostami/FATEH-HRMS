@@ -115,57 +115,15 @@ describe('sound.isMuted / toggleMute', () => {
     })
 })
 
-describe('sound.isAllMuted / toggleAll', () => {
-    test('isAllMuted is false for a non-array or empty ids argument', () => {
+describe('sound.isAllMuted', () => {
+    test('is false until the ALL marker is stored, and individual mutes never count as all', () => {
         const s = freshStore()
         s.init()
-        expect(s.isAllMuted(null, 'channel')).toBe(false)
-        expect(s.isAllMuted([], 'channel')).toBe(false)
-    })
+        expect(s.isAllMuted('channel')).toBe(false)
 
-    test('isAllMuted is true only when every given id is already muted', () => {
-        const s = freshStore()
-        s.init()
         s.toggleMute(1, 'channel')
         s.toggleMute(2, 'channel')
-
-        expect(s.isAllMuted([1, 2], 'channel')).toBe(true)
-        expect(s.isAllMuted([1, 2, 3], 'channel')).toBe(false)
-    })
-
-    test('toggleAll mutes every given id when not all are currently muted', () => {
-        const s = freshStore()
-        s.init()
-        s.toggleMute(1, 'channel')
-
-        s.toggleAll([1, 2, 3], 'channel')
-        expect(s.isAllMuted([1, 2, 3], 'channel')).toBe(true)
-    })
-
-    test('toggleAll unmutes every given id when all are currently muted', () => {
-        const s = freshStore()
-        s.init()
-        s.toggleAll([1, 2], 'channel')
-        expect(s.isAllMuted([1, 2], 'channel')).toBe(true)
-
-        s.toggleAll([1, 2], 'channel')
-        expect(s.isMuted(1, 'channel')).toBe(false)
-        expect(s.isMuted(2, 'channel')).toBe(false)
-    })
-
-    test('toggleAll is a no-op for a non-array or empty ids argument', () => {
-        const s = freshStore()
-        s.init()
-        expect(() => s.toggleAll(null, 'channel')).not.toThrow()
-        expect(() => s.toggleAll([], 'channel')).not.toThrow()
-        expect(s.mutedChannels).toEqual([])
-    })
-
-    test('toggleAll persists the final list', () => {
-        const s = freshStore()
-        s.init()
-        s.toggleAll([9, 10], 'contact')
-        expect(JSON.parse(localStorage.getItem('chat-muted-contacts'))).toEqual([9, 10])
+        expect(s.isAllMuted('channel')).toBe(false)
     })
 })
 
@@ -244,6 +202,116 @@ describe('sound.playOutgoing', () => {
         const s = freshStore()
         expect(() => s.playOutgoing()).not.toThrow()
         await new Promise((r) => setTimeout(r, 0))
+    })
+})
+
+describe('sound.playNotification (nudge/edge cue)', () => {
+    const notificationEl = '<div data-notification-sound="/notification.mp3"></div>'
+
+    test('plays once from [data-notification-sound], reusing one Audio', () => {
+        document.body.innerHTML = notificationEl
+        const s = freshStore()
+        s.playNotification()
+        s.playNotification()
+        expect(FakeAudio.instances).toHaveLength(1)
+        expect(FakeAudio.instances[0]._playCalls).toBe(1)
+    })
+
+    test('rings at most once per 15s cooldown, then again after it passes', () => {
+        vi.useFakeTimers()
+        document.body.innerHTML = notificationEl
+        const s = freshStore()
+        s.playNotification()
+        s.playNotification()
+        expect(FakeAudio.instances[0]._playCalls).toBe(1)
+
+        vi.advanceTimersByTime(15001)
+        s.playNotification()
+        expect(FakeAudio.instances[0]._playCalls).toBe(2)
+        vi.useRealTimers()
+    })
+
+    test('stays silent on a chat page (an element carrying data-outgoing-sound is mounted)', () => {
+        document.body.innerHTML = notificationEl + '<div data-outgoing-sound="/out.mp3"></div>'
+        const s = freshStore()
+        s.playNotification()
+        expect(FakeAudio.instances).toHaveLength(0)
+    })
+
+    test('stays silent when muted, hushed or hidden; the mute persists and restores on init', () => {
+        document.body.innerHTML = notificationEl
+        const s = freshStore()
+        s.toggleNotification()
+        s.playNotification()
+        expect(localStorage.getItem('notification-sound-muted')).toBe('true')
+        expect(FakeAudio.instances).toHaveLength(0)
+
+        const restored = freshStore()
+        restored.init()
+        expect(restored.notificationMuted).toBe(true)
+
+        const loud = freshStore()
+        loud.globalHush = true
+        loud.playNotification()
+        withHidden(true)
+        freshStore().playNotification()
+        expect(FakeAudio.instances).toHaveLength(0)
+    })
+})
+
+describe('sound mute-all sentinel (single source of truth)', () => {
+    const cues = '<div data-outgoing-sound="/out.mp3" data-incoming-sound="/in.mp3"></div>'
+
+    test('toggleAll stores one ALL marker, silences every id and the sidebar-wide cue, and persists it', () => {
+        document.body.innerHTML = cues
+        const s = freshStore()
+        s.init()
+        s.toggleAll('contact')
+
+        expect(JSON.parse(localStorage.getItem('chat-muted-contacts'))).toEqual([-1])
+        expect(s.isAllMuted('contact')).toBe(true)
+        expect(s.isMuted(7, 'contact')).toBe(true)
+        s.playIncoming(null, 'contact')
+        s.playOutgoing(7, 'contact')
+        expect(FakeAudio.instances).toHaveLength(0)
+
+        s.playIncoming(null, 'channel')
+        expect(FakeAudio.instances).toHaveLength(1)
+    })
+
+    test('mute all then unmute one: that id sounds, the rest stay muted, and the sidebar cue still rings', () => {
+        document.body.innerHTML = cues
+        const s = freshStore()
+        s.init()
+        s.toggleAll('channel')
+        s.toggleMute(5, 'channel')
+
+        expect(s.isMuted(5, 'channel')).toBe(false)
+        expect(s.isMuted(6, 'channel')).toBe(true)
+        s.playIncoming(null, 'channel')
+        expect(FakeAudio.instances).toHaveLength(1)
+    })
+
+    test('toggleAll again clears everything back to loud, and a mute-all from individual mutes replaces them', () => {
+        const s = freshStore()
+        s.init()
+        s.toggleMute(1, 'channel')
+        s.toggleAll('channel')
+        expect(s.mutedChannels).toEqual([-1])
+
+        s.toggleAll('channel')
+        expect(s.mutedChannels).toEqual([])
+        expect(s.isMuted(1, 'channel')).toBe(false)
+    })
+
+    test('the marker survives a reload and another tab\'s storage event', () => {
+        const s = freshStore()
+        s.init()
+        s.toggleAll('contact')
+
+        const restored = freshStore()
+        restored.init()
+        expect(restored.isAllMuted('contact')).toBe(true)
     })
 })
 

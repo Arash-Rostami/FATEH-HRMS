@@ -3,7 +3,7 @@ $tabs = [
     ['id' => 'contacts', 'label' => 'پیام‌رسان', 'icon' => 'perm_contact_calendar', 'route' => route('contact'), 'unread' => (int) $contactsUnread],
     ['id' => 'channels', 'label' => 'گروه‌ها', 'icon' => 'campaign', 'route' => route('channels'), 'unread' => (int) $channelsUnread],
 ];
-$tabs = array_filter($tabs, fn ($t) => !tenantOff($t['id']));
+$tabs = collect($tabs)->reject(fn ($t) => tenantOff($t['id']))->sortBy(fn ($t) => $t['id'] === $active ? 0 : 1)->values()->all();
 @endphp
 <div x-data="{ navigating: false }" class="flex p-1 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 w-fit mb-6 shadow-sm overflow-hidden relative">
     @foreach($tabs as $tab)

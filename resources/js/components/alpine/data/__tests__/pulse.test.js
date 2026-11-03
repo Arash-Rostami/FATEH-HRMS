@@ -228,6 +228,23 @@ describe('pulse tick and fan-out', () => {
         expect(p.fp).toEqual({ edges: '10' })
     })
 
+    test('asks the sound store to ring only when the nudge or edge count grows', () => {
+        mockLocks()
+        const play = vi.fn()
+        const p = pulse({ notifications: '1|a|a', edges: '2|5|a' })
+        p.$wire = { pulse: vi.fn() }
+        p.$store = { sound: { playNotification: play } }
+        made.push(p)
+        p.init()
+        const send = (fingerprint) => FakeChannel.last.onmessage({ data: { events: [], fingerprint, at: Date.now() } })
+
+        send({ notifications: '1|a|b', edges: '1|5|a' })
+        expect(play).not.toHaveBeenCalled()
+
+        send({ notifications: '1|a|b', edges: '2|6|a' })
+        expect(play).toHaveBeenCalledTimes(1)
+    })
+
     test('destroy stops the timer, releases the lock, closes the channel and ignores later visibility changes', async () => {
         const grants = mockLocks()
         const p = make()

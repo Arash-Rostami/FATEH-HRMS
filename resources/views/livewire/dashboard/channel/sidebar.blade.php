@@ -2,7 +2,6 @@
     $p = $this->presenter;
     $channelList = $p->sidebar($this->channels, auth()->id());
     $totalUnread = $this->totalUnread;
-    $allChannelIds = json_encode($this->allChannelIds);
     $hasMoreChannels = $this->hasMoreChannels;
 @endphp
 <aside @class([
@@ -47,13 +46,13 @@
                 @endif
                 @if(count($channelList))
                     <button type="button"
-                            x-on:click="$store.sound.toggleAll({{ $allChannelIds }}, 'channel')"
-                            :aria-pressed="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel')"
-                            :aria-label="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه گروه‌ها' : 'بی‌صدا کردن همه گروه‌ها'"
-                            :title="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه گروه‌ها' : 'بی‌صدا کردن همه گروه‌ها'"
+                            x-on:click="$store.sound.toggleAll('channel')"
+                            :aria-pressed="$store.sound.isAllMuted('channel')"
+                            :aria-label="$store.sound.isAllMuted('channel') ? 'باصدا کردن همه گروه‌ها' : 'بی‌صدا کردن همه گروه‌ها'"
+                            :title="$store.sound.isAllMuted('channel') ? 'باصدا کردن همه گروه‌ها' : 'بی‌صدا کردن همه گروه‌ها'"
                             class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
-                            :class="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
-                        <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'volume_off' : 'volume_up'"></span>
+                            :class="$store.sound.isAllMuted('channel') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
+                        <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted('channel') ? 'volume_off' : 'volume_up'"></span>
                     </button>
                 @endif
                 <button type="button" x-show="$store.push.supported" x-cloak

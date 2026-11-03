@@ -44,7 +44,7 @@ const EXPORT_KEYS = [
     'dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden',
     'table-tools:dms', 'table-tools:ths', 'table-tools:reservation', 'table-tools:taskboard',
     'menu_declutter',
-    'chat-muted-channels', 'chat-muted-contacts', 'chat-muted-projects',
+    'chat-muted-channels', 'chat-muted-contacts', 'chat-muted-projects', 'notification-sound-muted',
     'chat-push-channel', 'chat-push-contact', 'chat-push-project'
 ];
 
@@ -207,6 +207,7 @@ export default function settings() {
 
         resetNotifications() {
             ['channel', 'contact', 'project'].forEach(scope => this.$store.sound?.clearAll(scope));
+            if (this.$store.sound?.notificationMuted) this.$store.sound.toggleNotification();
         },
 
         _readFlag(key, expected) {

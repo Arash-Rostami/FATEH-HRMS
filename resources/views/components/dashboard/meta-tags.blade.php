@@ -31,9 +31,8 @@
 <meta property="twitter:description" content="{{ config('app.slogan_en') }}">
 
 <link rel="preload"
-      href="/build/assets/material-symbols/material-symbols-rounded.woff2"
+      href="{{ Vite::asset('resources/icons/generated/material-symbols-rounded.woff2') }}"
       as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/build/assets/material-symbols/rounded.css">
 
 <script type="application/ld+json">
 

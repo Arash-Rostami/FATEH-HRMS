@@ -35,6 +35,7 @@ return [
     'user_auth_reverse_logo' => (bool)($tenant['logo_display']['user_auth_reverse'] ?? false),
     'admin_use_company_logo' => (bool)($tenant['logo_display']['admin_use_company'] ?? false),
     'user_use_company_logo' => (bool)($tenant['logo_display']['user_use_company'] ?? false),
+    'siblings' => $tenant['sibling'] ?? [],
     'ai_assistant_access' => env('AI_ASSISTANT_ACCESS', $tenant['ai']['assistant']['access'] ?? false),
     'ai_assistant_url' => env('AI_ASSISTANT_URL', $tenant['ai']['assistant']['url'] ?? null),
     'ai_assistant_lang' => env('AI_ASSISTANT_LANG', $tenant['ai']['assistant']['lang'] ?? 'fa'),

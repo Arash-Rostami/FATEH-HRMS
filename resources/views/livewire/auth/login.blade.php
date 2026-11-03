@@ -1,4 +1,4 @@
-<x-auth.card-no-signup title="ورود به سیستم" description="جهت دسترسی به پنل کاربری، اطلاعات ورود خود را وارد نمایید.">
+<x-auth.card-no-signup title="ورود به سیستم" description="جهت دسترسی به پنل کاربری، اطلاعات ورود خود را وارد نمایید." :siblings="tenantOff('auth:sibling') ? [] : config('app.siblings')">
     <div x-data="{ showPassword: false, remember: @entangle('remember') }">
         <form wire:submit.prevent="login" class="space-y-6">
             <div class="space-y-5">

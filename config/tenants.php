@@ -34,7 +34,8 @@
  * Keys are module ids from config/modules.php or 'module:view' keys; false hides it, true (or an unlisted key)
  * leaves it on, so a missing key never needs a tenant edit and a sub-tenant can set true to un-hide.
  * Small tools have no registry entry: 'radio' => false, 'calculator' => false, 'stopwatch' => false hide the tool's
- * menu item and floating panel.
+ * menu item and floating panel. 'auth:sibling' => false hides the login card's sibling-apps flip (its list is the
+ * tenant's top-level 'sibling' => tenantSiblings('<slug>', [...]); logos are matched by name in resources/assets/img/<slug>/sibling/).
  *
  * Per-tenant plan-tier flags live in each tenant's 'ai' group below (not env vars by default). 'ai' nests one
  * array per AI feature:
@@ -138,9 +139,10 @@ $tenants = [
             ],
         ],
 
-         'modules' => [                       // unlisted = on; list only what you want off. true = on again (a sub-tenant can re-enable)
+        'modules' => [                       // unlisted = on; list only what you want off. true = on again (a sub-tenant can re-enable)
             'notify' => false,
             'password-reset' => false,       // no mail server: hides forgot-password link, routes, admin reset and Fortify endpoints
+            'auth:sibling' => false,         // the login card's back face (sibling apps); on = list them in this tenant's top-level sibling list via tenantSiblings()
         //     'reservation' => false,        // whole module: pages, URL (404), admin, menus, search
         //     'reservation:avantgarde' => false, // only one view of a module (see 'views' in config/modules.php)
         //     'status:chart' => false,
@@ -148,6 +150,8 @@ $tenants = [
         //     'calendar:day' => false,
         //     'taskboard' => false,            // also hides projects + tasksheet + ths (its 'with' list in config/modules.php)
          ],                                   // see everything hidden: php artisan tenant:hidden   |  all keys: php artisan tenant:hidden --all
+
+        'sibling' => [],
     ],
 
     'persol' => [
@@ -220,6 +224,13 @@ $tenants = [
         ],
 
         'modules' => [],
+
+        'sibling' => tenantSiblings('persol', [
+            ['name' => 'ai', 'title' => 'AI Assistant', 'url' => 'https://ai.bmsflow.org/'],
+            ['name' => 'bms', 'title' => 'Export BMS', 'url' => 'https://export.bmsflow.org/'],
+            ['name' => 'crm', 'title' => 'Mini CRM', 'url' => 'https://mcrm.bmsflow.org/'],
+            ['name' => 'porterra', 'title' => 'PorterrA', 'url' => 'https://import.bmsflow.org/'],
+        ]),
     ],
 
 ];

@@ -48,7 +48,7 @@
          x-data="{
              names: { channel: {}, contact: {}, project: {} },
              async refresh(scope, ids) {
-                 this.names[scope] = ids.length ? await this.$wire.resolveMuted(scope, ids) : {};
+                 this.names[scope] = ids.some((i) => i > 0) ? await this.$wire.resolveMuted(scope, ids) : {};
              }
          }"
          x-init="
@@ -74,13 +74,13 @@
                             <div class="flex items-center justify-between gap-2 text-[11px] text-[var(--md-sys-color-on-surface)]">
                                 <span class="truncate" x-text="name"></span>
                                 <button type="button" @click="$store.sound.toggleMute(id, 'channel')"
-                                        aria-label="باصدا کردن" title="باصدا کردن"
+                                        :aria-label="$store.sound.isAllMuted('channel') ? 'بی‌صدا کردن' : 'باصدا کردن'" :title="$store.sound.isAllMuted('channel') ? 'بی‌صدا کردن' : 'باصدا کردن'"
                                         class="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
-                                    <span class="material-symbols-rounded text-[14px]">volume_off</span>
+                                    <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted('channel') ? 'volume_up' : 'volume_off'"></span>
                                 </button>
                             </div>
                         </template>
-                        <p x-show="Object.keys(names.channel).length === 0" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">هیچ موردی بی‌صدا نشده</p>
+                        <p x-show="Object.keys(names.channel).length === 0 || $store.sound.isAllMuted('channel')" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-70" x-text="$store.sound.isAllMuted('channel') ? 'همه بی‌صدا هستند' : 'هیچ موردی بی‌صدا نشده'"></p>
                     </div>
                 </div>
                 <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
@@ -93,13 +93,13 @@
                             <div class="flex items-center justify-between gap-2 text-[11px] text-[var(--md-sys-color-on-surface)]">
                                 <span class="truncate" x-text="name"></span>
                                 <button type="button" @click="$store.sound.toggleMute(id, 'contact')"
-                                        aria-label="باصدا کردن" title="باصدا کردن"
+                                        :aria-label="$store.sound.isAllMuted('contact') ? 'بی‌صدا کردن' : 'باصدا کردن'" :title="$store.sound.isAllMuted('contact') ? 'بی‌صدا کردن' : 'باصدا کردن'"
                                         class="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
-                                    <span class="material-symbols-rounded text-[14px]">volume_off</span>
+                                    <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted('contact') ? 'volume_up' : 'volume_off'"></span>
                                 </button>
                             </div>
                         </template>
-                        <p x-show="Object.keys(names.contact).length === 0" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">هیچ موردی بی‌صدا نشده</p>
+                        <p x-show="Object.keys(names.contact).length === 0 || $store.sound.isAllMuted('contact')" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-70" x-text="$store.sound.isAllMuted('contact') ? 'همه بی‌صدا هستند' : 'هیچ موردی بی‌صدا نشده'"></p>
                     </div>
                 </div>
                 <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
@@ -112,16 +112,22 @@
                             <div class="flex items-center justify-between gap-2 text-[11px] text-[var(--md-sys-color-on-surface)]">
                                 <span class="truncate" x-text="name"></span>
                                 <button type="button" @click="$store.sound.toggleMute(id, 'project')"
-                                        aria-label="باصدا کردن" title="باصدا کردن"
+                                        :aria-label="$store.sound.isAllMuted('project') ? 'بی‌صدا کردن' : 'باصدا کردن'" :title="$store.sound.isAllMuted('project') ? 'بی‌صدا کردن' : 'باصدا کردن'"
                                         class="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
-                                    <span class="material-symbols-rounded text-[14px]">volume_off</span>
+                                    <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted('project') ? 'volume_up' : 'volume_off'"></span>
                                 </button>
                             </div>
                         </template>
-                        <p x-show="Object.keys(names.project).length === 0" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">هیچ موردی بی‌صدا نشده</p>
+                        <p x-show="Object.keys(names.project).length === 0 || $store.sound.isAllMuted('project')" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-70" x-text="$store.sound.isAllMuted('project') ? 'همه بی‌صدا هستند' : 'هیچ موردی بی‌صدا نشده'"></p>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container)]/40">
+            <x-dashboard.settings.toggle-row icon="notifications_active" label="صدای اعلان‌ها (در صفحهٔ چت پخش نمی‌شود)" color="amber" active="!$store.sound.notificationMuted" action="$store.sound.toggleNotification()"/>
+            <x-dashboard.settings.toggle-row icon="forum" label="صدای چنل‌ها" color="amber" active="!$store.sound.isAllMuted('channel')" action="$store.sound.toggleAll('channel')"/>
+            <x-dashboard.settings.toggle-row icon="chat" label="صدای مخاطبین" color="amber" active="!$store.sound.isAllMuted('contact')" action="$store.sound.toggleAll('contact')"/>
         </div>
 
         <x-ui.buttons.form @click="resetNotifications()" variant="tonal" icon="notifications_off">

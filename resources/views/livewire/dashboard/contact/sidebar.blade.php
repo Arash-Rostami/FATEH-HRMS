@@ -2,7 +2,6 @@
     $p = $this->presenter;
     $contactList     = $p->sidebar($this->contacts, auth()->id());
     $totalUnread     = $this->totalUnread;
-    $allContactIds   = json_encode($this->allContactIds);
     $hasMoreContacts = $this->hasMoreContacts;
 @endphp
 <aside @class([
@@ -41,14 +40,14 @@
                 @endif
                 @if(count($contactList))
                     <button type="button"
-                            x-on:click="$store.sound.toggleAll({{ $allContactIds }}, 'contact')"
-                            :aria-pressed="$store.sound.isAllMuted({{ $allContactIds }}, 'contact')"
-                            :aria-label="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'باصدا کردن همه مخاطبین' : 'بی‌صدا کردن همه مخاطبین'"
-                            :title="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'باصدا کردن همه مخاطبین' : 'بی‌صدا کردن همه مخاطبین'"
+                            x-on:click="$store.sound.toggleAll('contact')"
+                            :aria-pressed="$store.sound.isAllMuted('contact')"
+                            :aria-label="$store.sound.isAllMuted('contact') ? 'باصدا کردن همه مخاطبین' : 'بی‌صدا کردن همه مخاطبین'"
+                            :title="$store.sound.isAllMuted('contact') ? 'باصدا کردن همه مخاطبین' : 'بی‌صدا کردن همه مخاطبین'"
                             class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
-                            :class="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
+                            :class="$store.sound.isAllMuted('contact') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
                         <span class="material-symbols-rounded text-[14px]"
-                              x-text="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'volume_off' : 'volume_up'"></span>
+                              x-text="$store.sound.isAllMuted('contact') ? 'volume_off' : 'volume_up'"></span>
                     </button>
                 @endif
                 <button type="button" x-show="$store.push.supported" x-cloak

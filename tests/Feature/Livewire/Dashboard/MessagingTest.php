@@ -67,6 +67,19 @@ class MessagingTest extends TestCase
             ->assertHasNoErrors();
     }
 
+    public function test_switch_tabs_puts_the_current_module_first_like_projects_and_tasks()
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::actingAs($user)
+            ->test(SwitchTabs::class, ['active' => 'channels'])
+            ->assertSeeInOrder(['گروه‌ها', 'پیام‌رسان']);
+
+        Livewire::actingAs($user)
+            ->test(SwitchTabs::class, ['active' => 'contacts'])
+            ->assertSeeInOrder(['پیام‌رسان', 'گروه‌ها']);
+    }
+
     public function test_switch_tabs_hides_the_off_sibling_and_zeroes_its_unread_count()
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);

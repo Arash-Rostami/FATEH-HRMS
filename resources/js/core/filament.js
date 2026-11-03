@@ -1,7 +1,9 @@
 import registerThemeStore from '../components/alpine/stores/theme.js';
 import Swiper from 'swiper/bundle';
+import watchIcons from '../../icons/guard.js';
 
 window.Swiper = Swiper;
+watchIcons();
 document.addEventListener('alpine:init', () => {
     registerThemeStore(window.Alpine);
 });

@@ -25,6 +25,7 @@ resources/assets/
 - **Images**: role-named, extension-agnostic — `logo.*`, `light.*`, `dark.*`, `favicon.*`, `user-background.*`, `admin-background.*`. Matched by basename only (`glob("{$dir}/{$role}.*")`), so `.jpg`/`.png`/`.svg`/`.webp` all work interchangeably per tenant.
 - **Videos**: sequentially numbered, no fixed count — `1.<ext>`, `2.<ext>`, ... as many as that tenant has.
 - **Backdrops** (`img/<tenant>/bg/`): a third shape — arbitrary count, any filename, matched by `glob("{$dir}/*.*")` (not a fixed role, not sequential numbering). Powers the user-panel quick-settings dynamic background; see `config/tenantPattern.md`'s "Dynamic user-panel backdrops" section for the full mechanism (`tenantBackdrops()`, the `backdrop_mode` flag, and why a `'time'`-mode tenant's filenames are semantically load-bearing — `morning`/`noon`/`evening`/`night` — while a `'tabs'`-mode tenant's aren't).
+- **Sibling-app logos** (`img/<tenant>/sibling/`, 2026-11-03): matched by NAME, not role — `<name>.<ext>` must equal the sibling's `name` in the tenant's `app.siblings` list (case-insensitive), resolved by `tenantSiblings()`; the build converts each one to an identical 160×160 WebP (`resources/icons/logos.mjs`, output `img/<tenant>/sibling/optimized/`; in `public/build/assets/img/<tenant>/sibling/` only the flat `.webp` files remain, the originals are not shipped); a missing file shows the generic app icon. See `config/tenantPattern.md` («Login-card sibling apps»).
 - A tenant may keep an `extra/` subfolder for unused/reference assets — the glob only checks the tenant's immediate folder, so `extra/` is correctly ignored by the mechanism.
 
 Onboarding a new tenant is purely additive: add the folder + files, add one `config/tenants.php` entry, set `APP_TENANT`. Never hardcode a tenant's asset path outside `config/tenants.php`.
@@ -41,17 +42,11 @@ viteStaticCopy({
         {src: 'resources/assets/img', dest: 'assets'},
         {src: 'resources/assets/fonts', dest: 'assets'},
         {src: 'resources/assets/js', dest: 'assets'},
-        {
-            src: 'node_modules/material-symbols/rounded.css',
-            dest: 'assets/material-symbols'
-        },
-        {
-            src: 'node_modules/material-symbols/material-symbols-rounded.woff2',
-            dest: 'assets/material-symbols'
-        },
     ]
 })
 ```
+
+**Icon font pipeline (2026-11-03) — now lives in ONE folder: `resources/icons/` (build script, guard, safelist, tests and `generated/`). Full documentation: `resources/icons/iconsPattern.md`.** In short: `npm run build` first runs `resources/icons/build.mjs`, which scans the repo, cuts the 5 MB `material-symbols-rounded.woff2` down to ≈225 KB of the icons actually used, and writes it with a full-font backup, `rounded.css` into the gitignored `resources/icons/generated/` (no static copy: both `app.css` and `filament.css` `@import` the generated `rounded.css`, so Vite content-hashes the fonts — safe under the one-year `immutable` cache). Never hand-edit or upload `generated/`.
 
 ## Offline fallback copy — `resources/fallback/`
 

@@ -11,6 +11,20 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
+describe('timer lifecycle', () => {
+    test('destroy stops the 1-second tick so a re-created header does not stack timers', () => {
+        const t = timer();
+        const spy = vi.spyOn(t, 'updateTime');
+        t.init();
+        vi.advanceTimersByTime(3000);
+        expect(spy).toHaveBeenCalledTimes(4);
+
+        t.destroy();
+        vi.advanceTimersByTime(3000);
+        expect(spy).toHaveBeenCalledTimes(4);
+    });
+});
+
 describe('timer mode', () => {
     test('defaults to fa mode when nothing is stored', () => {
         const t = timer();

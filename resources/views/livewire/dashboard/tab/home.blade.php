@@ -36,7 +36,7 @@
                  class="relative z-10 px-5 pt-3.5 pb-2.5 flex items-center justify-between gap-3 border-b border-[var(--md-sys-color-primary-container)] text-xs">
                 <div class="flex items-center gap-2 min-w-0">
                     <span
-                        class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-mono text-[10px] font-bold pt-1 shrink-0">⌘</span>
+                        class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shrink-0"><span class="material-symbols-rounded block !text-[13px] leading-none">keyboard_command_key</span></span>
                     <span
                         class="font-bold text-[var(--md-sys-color-on-primary-container)]/90 truncate">میز کار متمرکز سازمانی</span>
                     @php($updatedAt = rescue(fn() => \Illuminate\Support\Carbon::parse(config('app.last_update')), null, false))
@@ -189,15 +189,26 @@
                     <div
                         class="text-[11px] tracking-[0.2em] inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300"
                         :class="!online ? 'bg-red-500/15 border-red-500/30 text-red-500' : (lan ? 'bg-amber-500/15 border-amber-500/30 text-amber-600' : 'bg-[var(--md-sys-color-primary)]/15 border-[var(--md-sys-color-primary)]/20 text-[var(--md-sys-color-on-primary-container)]')">
-                        <span class="material-symbols-rounded text-[14px]"
+                        <span class="material-symbols-rounded !text-[20px]"
                               :class="!online ? 'text-red-500' : (lan ? 'text-amber-500' : 'animate-pulse text-[var(--md-sys-color-primary)]')"
                               x-text="connection.icon"></span>
                         <span x-text="connection.label"></span>
 
                         <span class="opacity-50 mx-0.5">|</span>
 
-                        <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">sync</span>
-                        <span>همگامسازی ابری پیوسته</span>
+                        <span class="contents" x-data="{
+                            get push() { return ['channel', 'contact', 'project'].some((s) => $store.push.isEnabled(s)); },
+                            get chat() { return ['channel', 'contact'].filter((s) => !$store.sound.isAllMuted(s)); },
+                            tone(level) { return level === 2 ? 'text-[var(--md-sys-color-primary)] font-bold' : (level === 1 ? 'text-[var(--md-sys-color-primary)] opacity-60' : 'opacity-40 line-through'); }
+                        }">
+                            <span :class="tone(push ? 2 : 0)" :title="push ? 'اعلان مرورگر فعال است' : 'اعلان مرورگر غیرفعال است'"><span class="material-symbols-rounded inline-block align-middle !text-[20px] opacity-70 me-1.5" x-text="push ? 'notifications_active' : 'notifications_off'"></span>اعلان</span>
+                            <span class="opacity-50 mx-0.5">|</span>
+                            <span :class="tone($store.sound.notificationMuted ? 0 : 2)" :title="$store.sound.notificationMuted ? 'صدای اعلان‌ها خاموش است' : 'صدای اعلان‌ها روشن است'"><span class="material-symbols-rounded inline-block align-middle !text-[20px] opacity-70 me-1.5" x-text="$store.sound.notificationMuted ? 'volume_off' : 'volume_up'"></span>صدا</span>
+                            <span class="opacity-50 mx-0.5">|</span>
+                            <span :class="tone(chat.length)" :title="chat.length === 2 ? 'صدای چنل و مخاطبین روشن است' : (chat.length === 0 ? 'صدای چنل و مخاطبین خاموش است' : (chat[0] === 'channel' ? 'فقط صدای چنل روشن است' : 'فقط صدای مخاطبین روشن است'))"><span class="material-symbols-rounded inline-block align-middle !text-[20px] opacity-70 me-1.5" x-text="chat.length ? 'forum' : 'comments_disabled'"></span>چت</span>
+                            <span class="opacity-50 mx-0.5">|</span>
+                            <span :class="tone($store.focus.active ? 2 : 0)" :title="$store.focus.active ? 'حالت تمرکز فعال است' : 'حالت تمرکز غیرفعال است'"><span class="material-symbols-rounded inline-block align-middle !text-[20px] opacity-70 me-1.5">self_improvement</span>تمرکز</span>
+                        </span>
                     </div>
                 </div>
 
@@ -206,8 +217,10 @@
                     @foreach($stats as $stat)
                         @continue(tenantOff(str_replace('open-', '', $stat['nav']['name'] ?? $stat['nav']['tab'])))
                         @php($isRoute = ($stat['nav']['type'] ?? '') === 'route')
+                        @php($statCount = (int) ($stat['value'] ?? 0))
                         <{{ $isRoute ? 'a' : 'button' }}
                             wire:key="home-stat-tile-{{ $stat['key'] }}"
+                            data-state="{{ $statCount >= 5 ? 'warm' : ($statCount > 0 ? 'awake' : 'idle') }}"
                             @if($isRoute)
                             href="{{ route($stat['nav']['name']) }}" wire:navigate
                         @else
@@ -216,7 +229,7 @@
                                         ? "\$dispatch('".$stat['nav']['name']."')"
                                         : "\$dispatch('switch-tab', { tab: '".($stat['nav']['tab'] ?? '')."' })" }}"
                         @endif
-                        class="group relative flex flex-col items-center justify-between p-3 sm:p-4 rounded-xl
+                        class="stat-tile group relative flex flex-col items-center justify-between p-3 sm:p-4 rounded-xl
                         bg-[var(--md-sys-color-surface)]/80 border border-[var(--md-sys-color-outline-variant)]/30
                         min-w-0 sm:min-w-[104px] hover:-translate-y-1.5 hover:bg-[var(--md-sys-color-surface)]/95
                         hover:border-[var(--md-sys-color-primary)]/50
@@ -224,26 +237,18 @@
                         active:scale-95 transition-all duration-300 focus:outline-none focus:ring-2
                         focus:ring-[var(--md-sys-color-primary)]/50">
 
-                        @if(($stat['value'] ?? 0) > 0)
-                            <span wire:key="home-stat-ping-{{ $stat['key'] }}" class="absolute top-2 left-2 flex h-2 w-2" title="نیازمند بررسی">
-                                    <span
-                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--md-sys-color-primary)] opacity-75"></span>
-                                    <span
-                                        class="relative inline-flex h-2 w-2 rounded-full bg-[var(--md-sys-color-primary)]"></span>
-                                </span>
-                        @endif
-
                         <div
-                            class="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--md-sys-color-primary-container)]/50 group-hover:bg-[var(--md-sys-color-primary-container)] transition-colors shadow-xs">
+                            class="stat-icon w-10 h-10 rounded-xl flex items-center justify-center">
+                                <span class="stat-ring pointer-events-none absolute -inset-[3px] rounded-xl border-2 animate-alert-soft"></span>
                                 <span
-                                    class="material-symbols-rounded text-xl text-[var(--md-sys-color-primary)] transition-transform duration-300 group-hover:scale-115">
+                                    class="stat-glyph material-symbols-rounded text-xl transition-transform duration-300 group-hover:scale-115">
                                     {{ $stat['icon'] }}
                                 </span>
                         </div>
 
                         <div class="my-1.5 text-center">
                                 <span
-                                    class="text-lg sm:text-xl font-black text-[var(--md-sys-color-on-primary-container)] leading-none">
+                                    class="stat-num text-lg sm:text-xl font-black leading-none">
                                     {{ convertToPersian($stat['value']) }}
                                 </span>
                         </div>

@@ -492,6 +492,36 @@ class HelpersTest extends TestCase
         $this->assertSame('build/assets/img/persol/dark.png', tenantAsset('persol', 'img', 'dark', 'fallback'));
     }
 
+    public function test_tenant_siblings_finds_the_served_logo_by_name_in_any_extension_and_an_explicit_logo_wins(): void
+    {
+        $dir = resource_path('assets/img/persol/sibling/optimized');
+        $made = !is_dir($dir);
+        @mkdir($dir, 0777, true);
+        file_put_contents("{$dir}/zz-opt-app.webp", 'x');
+        file_put_contents("{$dir}/zz-plain-app.png", 'x');
+
+        try {
+            $result = tenantSiblings('persol', [
+                ['name' => 'ZZ-Opt-App', 'title' => 'الف', 'url' => 'https://a.test'],
+                ['name' => 'zz-plain-app', 'title' => 'ب', 'url' => 'https://b.test'],
+                ['name' => 'no-such-logo', 'title' => 'ج', 'url' => 'https://c.test'],
+                ['name' => 'zz-opt-app', 'title' => 'د', 'url' => 'https://d.test', 'logo' => 'custom/logo.svg'],
+            ]);
+
+            $this->assertSame('build/assets/img/persol/sibling/zz-opt-app.webp', $result[0]['logo']);
+            $this->assertSame('build/assets/img/persol/sibling/zz-plain-app.png', $result[1]['logo']);
+            $this->assertNull($result[2]['logo']);
+            $this->assertSame('custom/logo.svg', $result[3]['logo']);
+            $this->assertSame('الف', $result[0]['title']);
+        } finally {
+            @unlink("{$dir}/zz-opt-app.webp");
+            @unlink("{$dir}/zz-plain-app.png");
+            if ($made) {
+                @rmdir($dir);
+            }
+        }
+    }
+
     public function test_tenant_videos_returns_numerically_sorted_paths(): void
     {
         foreach (['fateh', 'persol'] as $tenant) {

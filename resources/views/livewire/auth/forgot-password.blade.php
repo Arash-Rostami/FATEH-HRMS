@@ -61,7 +61,7 @@
             </div>
 
             <a href="{{ route('login') }}"
-               class="md3-btn-outlined w-full h-12 text-base border-2 border-[var(--md-sys-color-outline-variant)]/50 text-[var(--md-sys-color-on-surface-variant)] transition-all hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/5">
+               class="md3-btn-outlined !rounded-xl w-full h-12 text-base border-2 border-[var(--md-sys-color-outline-variant)]/50 text-[var(--md-sys-color-on-surface-variant)] transition-all hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/5">
                 <span class="material-symbols-rounded text-[20px] rtl:rotate-180">arrow_forward</span>
                 <span class="font-bold">بازگشت به صفحه ورود</span>
             </a>

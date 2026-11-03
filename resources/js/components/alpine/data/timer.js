@@ -23,7 +23,11 @@ export default function timer() {
 
         init() {
             this.updateTime();
-            setInterval(() => this.updateTime(), 1000);
+            this._tick = setInterval(() => this.updateTime(), 1000);
+        },
+
+        destroy() {
+            clearInterval(this._tick);
         },
 
         toggleMode() {

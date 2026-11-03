@@ -8,6 +8,10 @@ const CONNECTION_ONLINE = { label: 'متصل', icon: 'wifi' };
 const CONNECTION_OFFLINE = { label: 'آفلاین', icon: 'wifi_off' };
 const CONNECTION_LAN = { label: 'فقط شبکه داخلی', icon: 'lan' };
 
+const splitGraphemes = (text) => (typeof Intl !== 'undefined' && Intl.Segmenter
+    ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text), (s) => s.segment)
+    : Array.from(text));
+
 export default function home(greetingText = '') {
     return {
         full: greetingText,
@@ -18,9 +22,13 @@ export default function home(greetingText = '') {
         _onlineListener: null,
         _offlineListener: null,
         _lanListener: null,
+        _visibilityListener: null,
 
         init() {
             this.typeGreeting();
+
+            this._visibilityListener = () => { if (document.hidden) this.finishGreeting(); };
+            document.addEventListener('visibilitychange', this._visibilityListener);
 
             this._onlineListener = () => { this.online = true; this.lan = false; };
             this._offlineListener = () => { this.online = false; };
@@ -46,13 +54,20 @@ export default function home(greetingText = '') {
 
             sessionStorage.setItem(GREET_KEY, this.full);
 
+            const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+            if (reduced || document.hidden) {
+                this.displayed = this.full;
+                return;
+            }
+
+            const chars = splitGraphemes(this.full);
             let i = 0;
             const type = () => {
-                if (i >= this.full.length) return;
+                if (i >= chars.length) return;
 
-                this.displayed = this.full.slice(0, i + 1);
+                this.displayed = chars.slice(0, i + 1).join('');
 
-                const char = this.full[i];
+                const char = chars[i];
                 let delay = BASE_DELAY;
 
                 if (SENTENCE_MARKS.has(char)) {
@@ -68,6 +83,14 @@ export default function home(greetingText = '') {
             type();
         },
 
+        finishGreeting() {
+            if (this._typeTimeout) {
+                clearTimeout(this._typeTimeout);
+                this._typeTimeout = null;
+            }
+            if (this.full) this.displayed = this.full;
+        },
+
         get connection() {
             if (!this.online) return CONNECTION_OFFLINE;
             return this.lan ? CONNECTION_LAN : CONNECTION_ONLINE;
@@ -77,6 +100,11 @@ export default function home(greetingText = '') {
             if (this._typeTimeout) {
                 clearTimeout(this._typeTimeout);
                 this._typeTimeout = null;
+            }
+
+            if (this._visibilityListener) {
+                document.removeEventListener('visibilitychange', this._visibilityListener);
+                this._visibilityListener = null;
             }
 
             if (this._onlineListener) {

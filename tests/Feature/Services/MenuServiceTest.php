@@ -2078,4 +2078,23 @@ class MenuServiceTest extends TestCase
 
         $this->assertSame(['databaseNotificationsSent'], PulseService::changedEvents($before, PulseService::fingerprint($user)));
     }
+
+    public function test_pulse_notification_fingerprint_leads_with_the_nudge_count_only(): void
+    {
+        $user = $this->activeUser();
+        $insert = fn (array $data) => DB::table('notifications')->insert([
+            'id' => (string) Str::uuid(), 'type' => 'Filament\Notifications\DatabaseNotification', 'notifiable_type' => User::class,
+            'notifiable_id' => $user->id, 'data' => json_encode(['format' => 'filament'] + $data),
+            'read_at' => null, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $lead = fn () => (int) explode('|', PulseService::fingerprint($user)['notifications'])[0];
+        $base = $lead();
+
+        $insert(['menu_key' => 'pulse']);
+        $insert([]);
+        $this->assertSame($base, $lead());
+
+        $insert(['menu_key' => 'pulse:nudge']);
+        $this->assertSame($base + 1, $lead());
+    }
 }

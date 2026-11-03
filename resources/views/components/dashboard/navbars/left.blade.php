@@ -44,11 +44,12 @@
      @touchend.passive="handleTouchEnd"
      class="relative">
 
-    <aside @mouseenter="expand"
+    <aside x-cloak
+           @mouseenter="expand"
            @mouseleave="collapse"
            x-data="{
                ty: 0, raf: 0, until: 0,
-               init() { this.upd(); this.$nextTick(() => this.upd()); },
+               init() { this.$el.removeAttribute('x-cloak'); this.upd(); this.$nextTick(() => this.upd()); },
                destroy() { cancelAnimationFrame(this.raf); },
                upd() {
                    const el = this.$el;

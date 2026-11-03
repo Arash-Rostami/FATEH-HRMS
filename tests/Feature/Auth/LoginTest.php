@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Login;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -173,5 +174,45 @@ class LoginTest extends TestCase
 
         config(['app.off' => ['password-reset']]);
         Livewire::test(Login::class)->assertDontSee('فراموشی رمز عبور؟');
+    }
+
+    public function test_each_card_face_is_inert_while_hidden_and_only_the_login_page_gets_the_back_face()
+    {
+        $siblings = [['name' => 'BMS', 'title' => 'سامانه بی‌ام‌اس', 'url' => 'https://bms.example.test', 'logo' => null]];
+        config(['app.siblings' => $siblings, 'app.off' => []]);
+
+        Livewire::test(Login::class)
+            ->assertSee(':inert="flipped"', false)
+            ->assertSee(':inert="!flipped"', false)
+            ->assertSee('flip_to_front')
+            ->assertSee('north_east');
+
+        Livewire::test(ForgotPassword::class)
+            ->assertDontSee('سامانه‌های مرتبط')
+            ->assertDontSee('flip_to_front')
+            ->assertDontSee('bms.example.test');
+    }
+
+    public function test_sibling_back_face_follows_the_tenant_auth_sibling_switch_and_opens_in_a_new_tab(): void
+    {
+        $siblings = [
+            ['name' => 'BMS', 'title' => 'سامانه بی‌ام‌اس', 'url' => 'https://bms.example.test', 'logo' => 'build/assets/img/persol/sibling/bms.png'],
+            ['name' => 'CRM', 'title' => 'سامانه مشتریان', 'url' => 'https://crm.example.test', 'logo' => null],
+        ];
+
+        config(['app.siblings' => $siblings, 'app.off' => ['auth:sibling']]);
+        Livewire::test(Login::class)->assertDontSee('سامانه‌های مرتبط')->assertDontSee('bms.example.test');
+
+        config(['app.siblings' => [], 'app.off' => []]);
+        Livewire::test(Login::class)->assertDontSee('سامانه‌های مرتبط');
+
+        config(['app.siblings' => $siblings, 'app.off' => []]);
+        Livewire::test(Login::class)
+            ->assertSee('سامانه‌های مرتبط')
+            ->assertSee('سامانه بی‌ام‌اس')
+            ->assertSee('https://bms.example.test', false)
+            ->assertSee('target="_blank"', false)
+            ->assertSee('sibling', false)->assertSee('bms.png', false)
+            ->assertSee('web_asset');
     }
 }

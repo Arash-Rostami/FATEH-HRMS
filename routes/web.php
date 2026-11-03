@@ -20,6 +20,7 @@ use App\Livewire\Dashboard\Tabs;
 use App\Livewire\Dashboard\TaskBoard\Main as TaskBoard;
 use App\Livewire\Dashboard\Tasksheet\Main as Tasksheet;
 use App\Livewire\Dashboard\Ths\Main as Ths;
+use App\Http\Controllers\IconMissController;
 use App\Http\Controllers\ProjectPulseController;
 use App\Http\Controllers\ToggleCalendarController;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,8 @@ Route::get('/site.webmanifest', fn () => response()
     ->header('Cache-Control', 'no-store'))
     ->name('manifest');
 
+
+Route::post('/icon-miss', IconMissController::class)->middleware('throttle:icon-miss')->name('icon.miss');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');

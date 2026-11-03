@@ -44,6 +44,48 @@ describe('home typewriter', () => {
         h.init();
         expect(h.displayed).toBe('پ');
     });
+
+    test('a tab that is hidden when typing would start shows the whole greeting at once', () => {
+        Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+        h = home('خدا قوت 🚀');
+        h.init();
+        expect(h.displayed).toBe('خدا قوت 🚀');
+        Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    });
+
+    test('hiding the tab mid-typing completes the greeting instead of leaving it half written', () => {
+        h = home('سلام آرش، روزت قشنگ شروع بشه');
+        h.init();
+        vi.advanceTimersByTime(100);
+        expect(h.displayed).not.toBe(h.full);
+
+        Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+        document.dispatchEvent(new Event('visibilitychange'));
+        expect(h.displayed).toBe(h.full);
+        Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    });
+
+    test('reduced-motion users get the whole greeting at once', () => {
+        const original = window.matchMedia;
+        window.matchMedia = () => ({ matches: true });
+        h = home('شب بخیر');
+        h.init();
+        expect(h.displayed).toBe('شب بخیر');
+        window.matchMedia = original;
+    });
+
+    test('typing never shows half of an emoji (no lone surrogate, no bare base before its variation selector)', () => {
+        h = home('عصر بخیر 🌤️✨');
+        h.init();
+        const seen = [h.displayed];
+        for (let i = 0; i < 40; i++) {
+            vi.advanceTimersByTime(30);
+            seen.push(h.displayed);
+        }
+        expect(seen.every((s) => !/[\ud800-\udbff](?![\udc00-\udfff])/.test(s))).toBe(true);
+        expect(seen.some((s) => s.endsWith('🌤'))).toBe(false);
+        expect(h.displayed).toBe('عصر بخیر 🌤️✨');
+    });
 });
 
 describe('home connection state', () => {

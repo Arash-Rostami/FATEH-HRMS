@@ -41,6 +41,11 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($throttleKey);
         });
 
+        RateLimiter::for('icon-miss', fn (Request $request) => [
+            Limit::perMinute(20)->by($request->ip()),
+            Limit::perMinute(60),
+        ]);
+
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });

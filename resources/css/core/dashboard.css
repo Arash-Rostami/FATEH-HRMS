@@ -2683,3 +2683,23 @@ html.declutter .right-rail:hover button:not(.rail-home) {
 .right-rail button:nth-child(7) { --slide: 336px; --seq: 5; }
 .right-rail button:nth-child(8) { --slide: 392px; --seq: 6; }
 .right-rail button:nth-child(9) { --slide: 448px; --seq: 7; }
+
+.stat-tile .stat-icon { position: relative; transition: background-color .3s, border-color .3s, box-shadow .3s; }
+.stat-tile .stat-glyph { transition: color .3s, opacity .3s, transform .3s; }
+.stat-tile .stat-num { transition: color .3s, opacity .3s; }
+.stat-tile .stat-ring { border-color: color-mix(in srgb, var(--stat-ink, var(--md-sys-color-primary)) 55%, transparent); }
+
+.stat-tile[data-state="idle"] .stat-ring { display: none; }
+.stat-tile[data-state="idle"] .stat-icon { background: transparent; border: 1.5px dashed color-mix(in srgb, var(--md-sys-color-outline) 55%, transparent); }
+.stat-tile[data-state="idle"] .stat-glyph { color: var(--md-sys-color-on-surface-variant); opacity: .5; }
+.stat-tile[data-state="idle"] .stat-num { color: var(--md-sys-color-on-surface-variant); opacity: .45; font-weight: 700; }
+.stat-tile[data-state="idle"]:hover { box-shadow: none; border-color: color-mix(in srgb, var(--md-sys-color-outline) 55%, transparent); }
+
+.stat-tile[data-state="awake"] { --stat-bg: var(--tool-sapphire-bg); --stat-ink: var(--tool-sapphire-color); }
+.stat-tile[data-state="warm"] { --stat-bg: var(--tool-gold-bg); --stat-ink: var(--tool-gold-color); }
+.stat-tile:is([data-state="awake"], [data-state="warm"]) { border-color: color-mix(in srgb, var(--stat-ink) 32%, transparent); box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--stat-ink) 55%, transparent); }
+.stat-tile:is([data-state="awake"], [data-state="warm"]):hover { box-shadow: 0 14px 28px -12px color-mix(in srgb, var(--stat-ink) 60%, transparent); }
+.stat-tile:is([data-state="awake"], [data-state="warm"]) .stat-icon { background: var(--stat-bg); }
+.stat-tile:is([data-state="awake"], [data-state="warm"]) .stat-glyph { color: var(--stat-ink); }
+.stat-tile:is([data-state="awake"], [data-state="warm"]) .stat-num { color: var(--stat-ink); }
+.stat-tile:is([data-state="awake"], [data-state="warm"])::after { content: ''; position: absolute; bottom: 0; inset-inline: 24%; height: 2px; border-radius: 2px 2px 0 0; background: color-mix(in srgb, var(--stat-ink) 70%, transparent); }

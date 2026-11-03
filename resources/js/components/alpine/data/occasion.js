@@ -24,13 +24,19 @@ export default function occasion() {
 
             this.ctx = this.canvas.getContext('2d');
             this.resize();
-            window.addEventListener('resize', () => this.resize());
+            this._onResize = () => this.resize();
+            window.addEventListener('resize', this._onResize);
 
             this.createParticles();
             this.animate();
         },
 
+        destroy() {
+            this.stopConfetti();
+        },
+
         stopConfetti() {
+            window.removeEventListener('resize', this._onResize);
             if (this.animationId) cancelAnimationFrame(this.animationId);
             this.particles = [];
             if (this.ctx) this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);

@@ -33,7 +33,7 @@ resources/css/core/
 @import "./animation.css";
 ```
 
-(the snippet above is the Filament-relevant middle of the file — `filament.css` also imports `swiper-bundle`, `tailwindcss` and `material-symbols` around those three lines)
+(the snippet above is the Filament-relevant middle of the file — `filament.css` also imports `swiper-bundle`, `tailwindcss` and the GENERATED `../../icons/generated/rounded.css` (the ~225 KB icon subset built by `resources/icons/build.mjs`, see `resources/icons/iconsPattern.md`) around those three lines)
 
 ---
 

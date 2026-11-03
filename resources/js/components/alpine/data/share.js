@@ -16,9 +16,12 @@ export default function share() {
                 document.body.style.overflow = value ? 'hidden' : '';
             });
 
-            window.addEventListener('open-post-panel', () => {
-                this.panelOpen = true;
-            });
+            this._open = () => { this.panelOpen = true; };
+            window.addEventListener('open-post-panel', this._open);
+        },
+
+        destroy() {
+            window.removeEventListener('open-post-panel', this._open);
         },
 
         togglePanel() {

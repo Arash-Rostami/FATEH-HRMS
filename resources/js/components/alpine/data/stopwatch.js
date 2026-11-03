@@ -34,14 +34,27 @@ export default function stopwatch(mp3) {
             this.syncEventReminder();
             this._eventReminderListener = () => this.syncEventReminder();
             window.addEventListener('event-reminder-armed', this._eventReminderListener);
-            this._tickInterval = setInterval(() => this.tick(), 1000);
+            this._visibilityListener = () => document.hidden ? this._schedule() : this.tick();
+            document.addEventListener('visibilitychange', this._visibilityListener);
+            this._schedule();
+        },
+
+        _schedule() {
+            clearTimeout(this._tickTimer);
+            this._tickTimer = null;
+            if (!this.timer.running || !this.armedUntil) return;
+            const left = this.armedUntil - Date.now();
+            const delay = document.hidden ? left : (left % 1000) || 1000;
+            this._tickTimer = setTimeout(() => this.tick(), Math.max(0, delay));
         },
 
         tick() {
             if (!this.timer.running) return;
             const remaining = Math.max(0, Math.round((this.armedUntil - Date.now()) / 1000));
             this.timer.seconds = remaining;
-            if (remaining === 0) {
+            if (remaining > 0) {
+                this._schedule();
+            } else {
                 this.timer.running = false;
                 this.armedUntil = null;
                 if (this.armedReminderId !== null) this._saveState(DISMISSED_KEY, this.armedReminderId);
@@ -86,6 +99,7 @@ export default function stopwatch(mp3) {
         },
 
         saveState() {
+            this._schedule();
             this._saveState(STORAGE_KEY, {
                 running: this.timer.running,
                 seconds: this.timer.seconds,
@@ -236,6 +250,7 @@ export default function stopwatch(mp3) {
             this.missedNotice = false;
             this.minimized = false;
             this.clearState();
+            this._schedule();
             this._hideModal();
         },
         mounted() {
@@ -248,10 +263,9 @@ export default function stopwatch(mp3) {
             this.syncEventReminder();
         },
         destroy() {
-            if (this._tickInterval) {
-                clearInterval(this._tickInterval);
-                this._tickInterval = null;
-            }
+            clearTimeout(this._tickTimer);
+            this._tickTimer = null;
+            document.removeEventListener('visibilitychange', this._visibilityListener);
             this.stopAlarm();
             if (this._windowStopwatchListener) window.removeEventListener('stopwatch', this._windowStopwatchListener);
             if (this._windowKeydownListener) window.removeEventListener('keydown', this._windowKeydownListener);

@@ -621,17 +621,93 @@ describe('stopwatch.init / destroy', () => {
         delete window.__eventReminder
     })
 
-    test('destroy clears the tick interval and removes the window listeners', () => {
+    test('destroy clears the pending tick and removes the window listeners', () => {
         const s = stopwatch('a.mp3')
         s.$refs = { stopwatchModal: fakeModal() }
 
         s.init()
-        expect(vi.getTimerCount()).toBe(1)
+        s.toggleTimer()
+        const tick = vi.spyOn(s, 'tick')
 
         s.destroy()
 
-        expect(vi.getTimerCount()).toBe(0)
+        vi.advanceTimersByTime(5000)
+        expect(tick).not.toHaveBeenCalled()
         window.dispatchEvent(new Event('stopwatch'))
         expect(s.open).toBe(false)
+    })
+})
+
+describe('stopwatch lazy tick', () => {
+    function started(seconds = 300) {
+        const s = stopwatch('a.mp3')
+        s.$refs = { stopwatchModal: fakeModal() }
+        s.timer.seconds = seconds
+        s.init()
+        return s
+    }
+
+    test('an idle timer wakes nothing; starting arms one tick, pausing cancels it', () => {
+        const s = started()
+        const tick = vi.spyOn(s, 'tick')
+        vi.advanceTimersByTime(3000)
+        expect(tick).not.toHaveBeenCalled()
+
+        s.toggleTimer()
+        vi.advanceTimersByTime(1000)
+        expect(tick).toHaveBeenCalledTimes(1)
+
+        s.toggleTimer()
+        vi.advanceTimersByTime(5000)
+        expect(tick).toHaveBeenCalledTimes(1)
+        s.destroy()
+    })
+
+    test('the tick is phase-locked to the countdown: the first second lands exactly on its boundary', () => {
+        vi.setSystemTime(new Date('2026-01-01T10:00:00.000Z'))
+        const s = started(10)
+        s.startAlarmLoop = vi.fn()
+        s.toggleTimer()
+        s.armedUntil = Date.now() + 1500
+        s.saveState()
+
+        vi.advanceTimersByTime(500)
+        expect(s.timer.seconds).toBe(1)
+
+        vi.advanceTimersByTime(1000)
+        expect(s.timer.running).toBe(false)
+        expect(s.timer.seconds).toBe(0)
+        s.destroy()
+    })
+
+    test('arming the same reminder twice never stacks timers', () => {
+        vi.setSystemTime(new Date('2026-01-01T10:00:00.000Z'))
+        const s = started()
+        const reminder = { id: 1, eventAtIso: '2026-01-01T10:05:00.000Z', title: 'x' }
+        s.armReminder(reminder)
+        s.saveState()
+        s.saveState()
+        const tick = vi.spyOn(s, 'tick')
+        vi.advanceTimersByTime(1000)
+        expect(tick).toHaveBeenCalledTimes(1)
+        s.destroy()
+    })
+
+    test('a hidden tab sleeps on one timer set for the exact due moment, and the alarm still fires on time', () => {
+        vi.setSystemTime(new Date('2026-01-01T10:00:00.000Z'))
+        const s = started(5)
+        s.startAlarmLoop = vi.fn()
+        s.toggleTimer()
+        Object.defineProperty(document, 'hidden', { configurable: true, value: true })
+        document.dispatchEvent(new Event('visibilitychange'))
+        const tick = vi.spyOn(s, 'tick')
+
+        vi.advanceTimersByTime(4999)
+        expect(tick).not.toHaveBeenCalled()
+        vi.advanceTimersByTime(1)
+        expect(tick).toHaveBeenCalledTimes(1)
+        expect(s.startAlarmLoop).toHaveBeenCalledTimes(1)
+        Object.defineProperty(document, 'hidden', { configurable: true, value: false })
+        s.destroy()
     })
 })

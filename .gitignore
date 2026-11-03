@@ -34,3 +34,6 @@ claude-agent.ps1
 vendor.zip
 /public/module-features.json
 /public/winterra
+
+/resources/icons/generated/
+/resources/assets/img/*/sibling/optimized/

@@ -1,5 +1,3 @@
-import { Fancybox } from "@fancyapps/ui";
-
 let initialized = false;
 
 const FANCYBOX_OPTIONS = {
@@ -34,7 +32,9 @@ export default function fancyboxMixin() {
         initFancybox(options = FANCYBOX_OPTIONS) {
             if (initialized) return;
             initialized = true;
-            Fancybox.bind("[data-fancybox]", options);
+            import("@fancyapps/ui")
+                .then(({ Fancybox }) => Fancybox.bind("[data-fancybox]", options))
+                .catch(() => { initialized = false; });
         },
     };
 }

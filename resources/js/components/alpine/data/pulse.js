@@ -92,6 +92,8 @@ export default function pulse(fingerprint) {
         },
 
         _apply({ events, fingerprint, at }) {
+            const grew = ['notifications', 'edges'].some((k) => parseInt(fingerprint[k]) > (parseInt(this.fp[k]) || 0));
+            if (grew) this.$store?.sound?.playNotification();
             this.fp = fingerprint;
             this.lastAt = at;
             events.forEach((event) => this.pending.add(event));

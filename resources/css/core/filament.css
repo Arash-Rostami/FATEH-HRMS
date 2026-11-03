@@ -3,7 +3,7 @@
 @import "../../../vendor/filament/filament/resources/css/theme.css";
 @import "./theme.css";
 @import "./animation.css";
-@import "material-symbols/rounded.css";
+@import "../../icons/generated/rounded.css";
 
 @source "../../../app/**/*.php";
 @source "../../../resources/**/*.blade.php";

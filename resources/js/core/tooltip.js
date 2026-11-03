@@ -27,10 +27,15 @@ export default function initTooltip() {
         killFrames();
     };
 
+    const tipChild = (el) => {
+        for (const c of el.children) if (c.hasAttribute('data-tip')) return c;
+        return null;
+    };
+
     const resolve = (target) => {
         let el = target;
         while (el && el !== document.body) {
-            let holder = el.querySelector(':scope > [data-tip]');
+            let holder = tipChild(el);
             if (holder) return { holder, anchor: holder.parentElement, pos: holder.dataset.tipPos || 'bottom' };
             if (el.dataset && el.dataset.title !== undefined) {
                 const t = el.getAttribute('title');

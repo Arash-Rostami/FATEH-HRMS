@@ -10,6 +10,12 @@ const OUTGOING_VOLUME = 0.35;
 const INCOMING_SOUND_SELECTOR = '[data-incoming-sound]';
 const ATTR_INCOMING_SOUND = 'data-incoming-sound';
 const INCOMING_VOLUME = 0.35;
+const NOTIFICATION_KEY = 'notification-sound-muted';
+const NOTIFICATION_SOUND_SELECTOR = '[data-notification-sound]';
+const ATTR_NOTIFICATION_SOUND = 'data-notification-sound';
+const NOTIFICATION_VOLUME = 0.35;
+const NOTIFICATION_COOLDOWN_MS = 15000;
+const ALL = -1;
 
 export default function soundStore(Alpine) {
     Alpine.store('sound', {
@@ -17,16 +23,24 @@ export default function soundStore(Alpine) {
         mutedContacts: [],
         mutedProjects: [],
         globalHush: false,
+        notificationMuted: false,
         _audio: null,
         _incomingAudio: null,
+        _notificationAudio: null,
+        _notificationAt: 0,
 
         init() {
             this.mutedChannels = this._load(KEYS.channel);
             this.mutedContacts = this._load(KEYS.contact);
             this.mutedProjects = this._load(KEYS.project);
 
+            try {
+                this.notificationMuted = localStorage.getItem(NOTIFICATION_KEY) === 'true';
+            } catch (e) {}
+
             window.addEventListener('storage', (e) => {
-                if (e.key === KEYS.channel) this.mutedChannels = this._load(KEYS.channel);
+                if (e.key === NOTIFICATION_KEY) this.notificationMuted = e.newValue === 'true';
+                else if (e.key === KEYS.channel) this.mutedChannels = this._load(KEYS.channel);
                 else if (e.key === KEYS.contact) this.mutedContacts = this._load(KEYS.contact);
                 else if (e.key === KEYS.project) this.mutedProjects = this._load(KEYS.project);
             });
@@ -82,13 +96,8 @@ export default function soundStore(Alpine) {
 
         isMuted(id, scope = 'channel') {
             const list = this._set(scope);
-            const num = Number(id);
-            const len = list.length;
-
-            for (let i = 0; i < len; i++) {
-                if (list[i] === num) return true;
-            }
-            return false;
+            const listed = list.includes(Number(id));
+            return list.includes(ALL) ? !listed : listed;
         },
 
         toggleMute(id, scope = 'channel') {
@@ -104,60 +113,24 @@ export default function soundStore(Alpine) {
             this._persist(this._key(scope), next);
         },
 
-        isAllMuted(ids, scope = 'channel') {
-            if (!Array.isArray(ids)) return false;
-
-            const len = ids.length;
-            if (len === 0) return false;
-
-            const listSet = new Set(this._set(scope));
-
-            for (let i = 0; i < len; i++) {
-                if (!listSet.has(Number(ids[i]))) return false;
-            }
-            return true;
+        isAllMuted(scope = 'channel') {
+            return this._set(scope).includes(ALL);
         },
 
-        toggleAll(ids, scope = 'channel') {
-            if (!Array.isArray(ids)) return;
-
-            const len = ids.length;
-            if (len === 0) return;
-
-            const list = this._set(scope);
-            const listSet = new Set(list);
-            const numIds = new Array(len);
-            let allMuted = true;
-
-            for (let i = 0; i < len; i++) {
-                const num = Number(ids[i]);
-                numIds[i] = num;
-                if (!listSet.has(num)) {
-                    allMuted = false;
-                }
-            }
-
-            let next;
-            if (allMuted) {
-                const idSet = new Set(numIds);
-                next = list.filter((v) => !idSet.has(v));
-            } else {
-                next = list.slice();
-                for (let i = 0; i < len; i++) {
-                    const num = numIds[i];
-                    if (!listSet.has(num)) {
-                        next.push(num);
-                    }
-                }
-            }
-
+        toggleAll(scope = 'channel') {
+            const next = this.isAllMuted(scope) ? [] : [ALL];
             this._setList(scope, next);
             this._persist(this._key(scope), next);
         },
 
+        _silenced(id, scope) {
+            if (id !== null) return this.isMuted(id, scope);
+            const list = this._set(scope);
+            return list.includes(ALL) && list.length === 1;
+        },
+
         playOutgoing(id = null, scope = 'channel') {
-            if (this.globalHush) return;
-            if (id !== null && this.isMuted(id, scope)) return;
+            if (this.globalHush || this._silenced(id, scope)) return;
             if (document.hidden) return;
 
             if (this._audio === null) {
@@ -177,8 +150,7 @@ export default function soundStore(Alpine) {
         },
 
         playIncoming(id = null, scope = 'channel') {
-            if (this.globalHush) return;
-            if (id !== null && this.isMuted(id, scope)) return;
+            if (this.globalHush || this._silenced(id, scope)) return;
 
             if (this._incomingAudio === null) {
                 const el = document.querySelector(INCOMING_SOUND_SELECTOR);
@@ -194,6 +166,32 @@ export default function soundStore(Alpine) {
 
             this._incomingAudio.currentTime = 0;
             this._incomingAudio.play().catch(() => {});
+        },
+
+        toggleNotification() {
+            this.notificationMuted = !this.notificationMuted;
+            this._persist(NOTIFICATION_KEY, this.notificationMuted);
+        },
+
+        playNotification() {
+            if (this.globalHush || this.notificationMuted || document.hidden) return;
+            if (document.querySelector(OUTGOING_SOUND_SELECTOR) !== null) return;
+
+            const now = Date.now();
+            if (now - this._notificationAt < NOTIFICATION_COOLDOWN_MS) return;
+            this._notificationAt = now;
+
+            if (this._notificationAudio === null) {
+                const src = document.querySelector(NOTIFICATION_SOUND_SELECTOR)?.getAttribute(ATTR_NOTIFICATION_SOUND);
+                if (!src) return;
+
+                const a = new Audio(src);
+                a.volume = NOTIFICATION_VOLUME;
+                this._notificationAudio = a;
+            }
+
+            this._notificationAudio.currentTime = 0;
+            this._notificationAudio.play().catch(() => {});
         },
 
         clearAll(scope = 'channel') {

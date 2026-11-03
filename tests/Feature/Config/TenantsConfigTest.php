@@ -15,6 +15,23 @@ class TenantsConfigTest extends TestCase
         $this->assertSame([], array_diff_key($persol, $fateh));
     }
 
+    public function test_sibling_apps_are_a_top_level_list_with_unique_names_titles_and_https_urls(): void
+    {
+        $this->assertSame([], config('tenants.fateh.sibling'));
+        $this->assertTrue(config('tenants.fateh.modules')['auth:sibling'] === false);
+
+        $siblings = config('tenants.persol.sibling');
+        $this->assertNotEmpty($siblings);
+        $this->assertCount(count($siblings), array_unique(array_column($siblings, 'name')));
+
+        foreach ($siblings as $sibling) {
+            $this->assertNotSame('', trim($sibling['name']));
+            $this->assertNotSame('', trim($sibling['title']));
+            $this->assertStringStartsWith('https://', $sibling['url']);
+            $this->assertArrayHasKey('logo', $sibling);
+        }
+    }
+
     public function test_behavioral_flags_are_booleans_for_every_tenant(): void
     {
         foreach (['fateh', 'persol'] as $tenant) {
@@ -145,9 +162,11 @@ class TenantsConfigTest extends TestCase
             foreach (array_keys($tenant['modules'] ?? []) as $key) {
                 [$id, $view] = array_pad(explode(':', $key, 2), 2, null);
 
-                $this->assertTrue($modules->has($id) || in_array($key, ['calculator', 'radio', 'stopwatch', 'password-reset'], true), "tenant '{$slug}' key '{$key}' is not a module id");
+                $unregistered = in_array($key, ['calculator', 'radio', 'stopwatch', 'password-reset', 'auth:sibling'], true);
 
-                if ($view !== null) {
+                $this->assertTrue($modules->has($id) || $unregistered, "tenant '{$slug}' key '{$key}' is not a module id");
+
+                if ($view !== null && !$unregistered) {
                     $this->assertContains($view, $modules[$id]['views'] ?? [], "tenant '{$slug}' key '{$key}' is not a view of '{$id}'");
                 }
             }
