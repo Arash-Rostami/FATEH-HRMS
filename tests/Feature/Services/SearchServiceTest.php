@@ -3,6 +3,7 @@
 namespace Tests\Feature\Services;
 
 use App\Models\Ad;
+use App\Models\AiReport;
 use App\Models\Authority;
 use App\Models\Channel;
 use App\Models\ChannelMember;
@@ -32,6 +33,7 @@ use App\Services\Search\ContentService;
 use App\Services\Search\Contracts\SearchContext;
 use App\Services\Search\NavigationService;
 use App\Services\Search\Resources\AdResource;
+use App\Services\Search\Resources\AiReportResource;
 use App\Services\Search\Resources\AuthorityResource;
 use App\Services\Search\Resources\ChannelMessageResource;
 use App\Services\Search\Resources\ChannelResource;
@@ -920,5 +922,114 @@ class SearchServiceTest extends TestCase
         } finally {
             config(['app.off' => []]);
         }
+    }
+
+    public function test_ai_report_search_resource_returns_own_and_received_ready_saved_rows_only(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $viewer = User::factory()->create(['status' => 'active']);
+        $this->actingAs($viewer);
+        $token = $this->token();
+
+        $row = fn (array $attributes) => AiReport::create([
+            'user_id' => $owner->id,
+            'title' => $token,
+            'status' => AiReport::STATUS_READY,
+            'active' => true,
+            'saved_at' => now(),
+            'spec' => ['lang' => 'fa', 'title' => $token, 'pages' => []],
+            'versions' => [],
+            ...$attributes,
+        ]);
+
+        $own = AiReport::create([
+            'user_id' => $viewer->id, 'title' => $token, 'status' => AiReport::STATUS_READY,
+            'active' => true, 'saved_at' => now(), 'spec' => ['lang' => 'fa', 'title' => $token, 'pages' => []], 'versions' => [],
+        ]);
+        $ownDraft = AiReport::create([
+            'user_id' => $viewer->id, 'title' => $token, 'status' => AiReport::STATUS_READY,
+            'active' => true, 'saved_at' => null, 'spec' => ['lang' => 'fa', 'title' => $token, 'pages' => []], 'versions' => [],
+        ]);
+        $received = $row(['recipients' => [$viewer->id]]);
+        $receivedUnsaved = $row(['recipients' => [$viewer->id], 'saved_at' => null]);
+        $receivedOff = $row(['recipients' => [$viewer->id], 'active' => false]);
+        $stranger = User::factory()->create(['status' => 'active']);
+        $notForViewer = $row(['recipients' => [$stranger->id]]);
+        $ownOff = AiReport::create([
+            'user_id' => $viewer->id, 'title' => $token, 'status' => AiReport::STATUS_READY,
+            'active' => false, 'saved_at' => now(), 'spec' => ['lang' => 'fa', 'title' => $token, 'pages' => []], 'versions' => [],
+        ]);
+
+        $ids = collect($this->runResource(AiReportResource::class, $token)['items'] ?? [])->pluck('id')->all();
+
+        $this->assertContains($own->id, $ids);
+        $this->assertContains($ownDraft->id, $ids);
+        $this->assertContains($received->id, $ids);
+        $this->assertNotContains($receivedUnsaved->id, $ids);
+        $this->assertNotContains($receivedOff->id, $ids);
+        $this->assertNotContains($notForViewer->id, $ids);
+        $this->assertNotContains($ownOff->id, $ids);
+
+        $result = $this->runResource(AiReportResource::class, $token);
+        $this->assertItemShape($this->firstItem($result), 'ai-report', 'گزارش ساز هوشمند', 'article');
+        $this->assertSame('url:/ai-report?r=' . $own->id, collect($result['items'])->firstWhere('id', $own->id)['action']);
+
+        Auth::logout();
+        $this->assertSame([], $this->runResource(AiReportResource::class, $token));
+    }
+
+    public function test_navigation_search_routes_to_ai_report_and_hides_it_when_the_module_is_off(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $this->actingAs($owner);
+        $token = $this->token();
+        $report = AiReport::create([
+            'user_id' => $owner->id, 'title' => $token, 'status' => AiReport::STATUS_READY,
+            'active' => true, 'saved_at' => now(), 'spec' => ['lang' => 'fa', 'title' => $token, 'pages' => []], 'versions' => [],
+        ]);
+
+        $ids = fn (string $query) => array_column(app(NavigationService::class)->search($query), 'id');
+        $items = collect(app(NavigationService::class)->search('گزارش ساز'));
+
+        $this->assertContains('ai-report', $ids('گزارش ساز'));
+        $this->assertContains('ai-report', $ids('گزارش هوشمند'));
+        $this->assertContains('ai-report', $ids('گزارش ساز هوشمند'));
+        $this->assertSame('گزارش ساز هوشمند', $items->firstWhere('id', 'ai-report')['title']);
+        $this->assertSame('route:ai-report', $items->firstWhere('id', 'ai-report')['action']);
+        $this->assertNotEmpty($this->runResource(AiReportResource::class, $token));
+
+        try {
+            config(['app.off' => ['ai-report']]);
+
+            $this->assertNotContains('ai-report', $ids('گزارش ساز'));
+            $this->assertSame([], $this->runResource(AiReportResource::class, $token));
+        } finally {
+            config(['app.off' => []]);
+        }
+    }
+
+    public function test_ai_report_search_resource_recency_window_excludes_rows_older_than_six_months(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $this->actingAs($me);
+        $token = $this->token();
+
+        $row = fn (array $attributes = []) => AiReport::create([
+            'user_id' => $me->id, 'title' => $token, 'status' => AiReport::STATUS_READY,
+            'active' => true, 'saved_at' => now(), 'spec' => ['lang' => 'fa', 'title' => $token, 'pages' => []], 'versions' => [],
+            ...$attributes,
+        ]);
+
+        $recent = $row();
+        $old = $row();
+        AiReport::whereKey($old->id)->update(['created_at' => now()->subMonths(8)]);
+
+        $ids = collect($this->runResource(AiReportResource::class, $token)['items'] ?? [])->pluck('id')->all();
+
+        $this->assertContains($recent->id, $ids);
+        $this->assertNotContains($old->id, $ids);
+
+        $ids = collect($this->runResource(AiReportResource::class, $token, true)['items'] ?? [])->pluck('id')->all();
+        $this->assertContains($old->id, $ids);
     }
 }

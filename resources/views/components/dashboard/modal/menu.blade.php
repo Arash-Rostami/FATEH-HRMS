@@ -1,13 +1,15 @@
 <template x-teleport="body">
-    <div x-show="menuOpen" x-cloak>
-        <div @click.self="closeMenu"
-             @keydown.window="handleGlobalKeydown($event)"
-             class="transition-all duration-1000 fixed inset-0 z-[100] flex items-start justify-center pt-2 px-2 pb-2 sm:items-center sm:p-6 animate-slide-down bg-[var(--md-sys-color-primary)]/60"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="main-menu-title">
+    <div x-show="menuOpen" x-cloak
+         x-transition:enter="animate-slide-down"
+         x-transition:leave="animate-slide-down-out"
+         @click.self="closeMenu"
+         @keydown.window="handleGlobalKeydown($event)"
+         class="fixed inset-0 z-[100] flex items-start justify-center pt-2 px-2 pb-2 sm:items-center sm:p-6 bg-[var(--md-sys-color-primary)]/60"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="main-menu-title">
 
-            <div class="w-full h-[85dvh] sm:h-[680px] sm:max-h-[88vh] sm:w-[920px] sm:max-w-[95%] bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] rounded-3xl shadow-[0_16px_48px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
+            <div class="w-full h-[85dvh] sm:h-[680px] sm:max-h-[88vh] sm:w-[920px] sm:max-w-[95%] bg-[var(--md-sys-color-surface)] rounded-3xl modal-lift overflow-hidden flex flex-col"
                  @click.stop
                  @touchstart="touchStartX = $event.changedTouches[0].screenX"
                  @touchend="touchEndX = $event.changedTouches[0].screenX; handleSwipe()">
@@ -184,9 +186,9 @@
                                  :class="(search.trim() !== '' || (typeof showRecentOnly !== 'undefined' && showRecentOnly)) ? 'justify-start' : 'justify-center'">
 
                                 <div x-show="(search.trim() !== '' || (typeof showRecentOnly !== 'undefined' && showRecentOnly)) && allVisibleItems.length === 0" class="py-12 text-center">
-                                    <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-on-surface-variant)]/40 mb-2" x-text="(typeof showRecentOnly !== 'undefined' && showRecentOnly) ? 'history_toggle_off' : 'search_off'"></span>
-                                    <p class="text-[13px] sm:text-sm font-medium text-[var(--md-sys-color-on-surface-variant)]" x-text="(typeof showRecentOnly !== 'undefined' && showRecentOnly) ? 'هنوز موردی اخیراً باز نشده است.' : 'نتیجه‌ای برای این جستجو یافت نشد.'"></p>
-                                    <button x-show="search.trim() !== ''"
+                                    <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-on-surface-variant)]/40 mb-2" x-text="tabHints.length ? 'home' : ((typeof showRecentOnly !== 'undefined' && showRecentOnly) ? 'history_toggle_off' : 'search_off')"></span>
+                                    <p class="text-[13px] sm:text-sm font-medium text-[var(--md-sys-color-on-surface-variant)]" :class="tabHints.length ? 'max-w-sm mx-auto leading-relaxed' : ''" x-text="tabHints.length ? tabHintText : ((typeof showRecentOnly !== 'undefined' && showRecentOnly) ? 'هنوز موردی اخیراً باز نشده است.' : 'نتیجه‌ای برای این جستجو یافت نشد.')"></p>
+                                    <button x-show="search.trim() !== '' && !tabHints.length"
                                             @click="closeMenu(); $dispatch('open-command-palette')"
                                             type="button"
                                             class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium text-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_16%,transparent)] transition-colors">
@@ -265,9 +267,12 @@
                                                             </button>
 
                                                             <div class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-[color-mix(in_srgb,var(--md-sys-color-primary)_8%,var(--md-sys-color-surface))] border border-[color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)] shadow-sm transition-all duration-200"
-                                                                 :class="[item.disabled ? '' : 'group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary)] group-hover:shadow-[0_4px_14px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)]', pinEditMode ? 'animate-shiver' : '']">
-                                                                <span class="material-symbols-rounded text-[20px] sm:text-[22px] text-[var(--md-sys-color-primary)] transition-colors duration-200"
-                                                                      :class="item.disabled ? '' : 'group-hover:text-[var(--md-sys-color-on-primary)]'"
+                                                                 :class="[item.ai ? '!bg-[color-mix(in_srgb,var(--tool-amethyst-bg)_70%,var(--md-sys-color-surface))] !border-[color-mix(in_srgb,var(--tool-amethyst-color)_35%,transparent)]' : '', item.disabled ? '' : 'group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary)] group-hover:shadow-[0_4px_14px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)]', pinEditMode ? 'animate-shiver' : '']">
+                                                                <template x-if="item.ai">
+                                                                    <span aria-hidden="true" class="absolute inset-0 rounded-xl animate-alert-soft bg-[color-mix(in_srgb,var(--tool-amethyst-color)_25%,transparent)]"></span>
+                                                                </template>
+                                                                <span class="relative material-symbols-rounded text-[20px] sm:text-[22px] text-[var(--md-sys-color-primary)] transition-colors duration-200"
+                                                                      :class="[item.disabled ? '' : 'group-hover:text-[var(--md-sys-color-on-primary)]', item.ai ? '!text-[var(--tool-amethyst-color)]' : '']"
                                                                       x-text="item.icon"></span>
                                                                 <template x-if="$store.menuBadges.on(item.id, @js($menuState)[item.id])">
                                                                     <x-ui.notification-badge />
@@ -432,5 +437,4 @@
                 </div>
             </div>
         </div>
-    </div>
 </template>

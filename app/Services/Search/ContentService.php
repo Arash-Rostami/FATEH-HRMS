@@ -4,6 +4,7 @@ namespace App\Services\Search;
 
 use App\Services\Search\Contracts\SearchContext;
 use App\Services\Search\Resources\AdResource;
+use App\Services\Search\Resources\AiReportResource;
 use App\Services\Search\Resources\ChannelMessageResource;
 use App\Services\Search\Resources\ChannelResource;
 use App\Services\Search\Resources\CredentialResource;
@@ -38,6 +39,7 @@ class ContentService
         FeedResource::class,
         EventResource::class,
         ReportResource::class,
+        AiReportResource::class,
         GalleryResource::class,
         FaqResource::class,
         LinkResource::class,

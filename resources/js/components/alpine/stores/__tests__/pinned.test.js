@@ -97,6 +97,18 @@ describe('pinned.isPinned / togglePin', () => {
         await Promise.resolve()
         expect(JSON.parse(localStorage.getItem('pinned-reservations'))).toEqual([9])
     })
+
+    test('the ai-report scope restores, toggles and persists under its own key', async () => {
+        localStorage.setItem('pinned-ai-reports', JSON.stringify([3]))
+        const s = freshStore()
+        s.init()
+        expect(s.isPinned(3, 'ai-report')).toBe(true)
+        s.togglePin(5, 'ai-report')
+        await Promise.resolve()
+        expect(s.getPinned('ai-report').sort()).toEqual([3, 5])
+        expect(JSON.parse(localStorage.getItem('pinned-ai-reports')).sort()).toEqual([3, 5])
+        expect(localStorage.getItem('pinned-reservations')).toBeNull()
+    })
 })
 
 describe('pinned.getPinned', () => {

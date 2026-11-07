@@ -1,4 +1,4 @@
-<div dir="rtl" class="w-full h-[calc(100dvh-60px)] md:h-[calc(100dvh-80px)] px-4 py-4 md:px-6 md:py-8" role="status" aria-label="در حال بارگذاری پروژه‌ها">
+<div dir="rtl" class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] px-4 py-4 md:px-6 md:py-8" role="status" aria-label="در حال بارگذاری پروژه‌ها">
     <div class="max-w-[88rem] mx-auto h-full flex flex-col gap-4">
         <x-ui.loaders.skeleton.bar width="w-40" height="h-7"/>
 

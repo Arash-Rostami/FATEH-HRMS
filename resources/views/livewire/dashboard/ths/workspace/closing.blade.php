@@ -55,7 +55,7 @@
                 @if($score > 0)
                     <span wire:key="ths-rating-stars" class="inline-flex gap-0.5 shrink-0" dir="ltr" aria-label="امتیاز {{ convertToPersian($score) }} از ۵">
                         @for($i = 1; $i <= 5; $i++)
-                            <span class="material-symbols-rounded text-[16px] {{ $score >= $i ? 'text-[#FFB300] font-variation-fill' : 'text-[var(--md-sys-color-outline-variant)]/50' }}">star</span>
+                            <span class="material-symbols-rounded text-[16px] {{ $score >= $i ? 'text-[var(--md-sys-color-warning)] font-variation-fill' : 'text-[var(--md-sys-color-outline-variant)]/50' }}">star</span>
                         @endfor
                     </span>
                     <span class="shrink-0 text-xs font-bold text-[var(--md-sys-color-on-surface)] tabular-nums">{{ convertToPersian($score) }}/۵</span>

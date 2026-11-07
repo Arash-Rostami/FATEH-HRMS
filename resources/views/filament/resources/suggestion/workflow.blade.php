@@ -25,9 +25,9 @@
         ])>
             <div @class([
                 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold',
-                'bg-primary-500 text-white' => $state === 'active',
-                'bg-success-500 text-white' => $state === 'done',
-                'bg-danger-500 text-white' => $state === 'rejected',
+                'bg-primary-500 text-[var(--md-sys-color-on-primary)]' => $state === 'active',
+                'bg-success-700 text-white' => $state === 'done',
+                'bg-danger-700 text-white' => $state === 'rejected',
                 'bg-gray-300 text-gray-700 dark:bg-gray-700 dark:text-gray-200' => $state === 'pending',
             ])>
                 {{ $item['step'] }}

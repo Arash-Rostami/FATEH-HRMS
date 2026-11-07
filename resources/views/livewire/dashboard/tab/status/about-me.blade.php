@@ -168,14 +168,14 @@
                         </template>
 
                         <template x-if="aboutMe.food">
-                            <div class="bg-[var(--md-sys-color-surface)] rounded-2xl p-5 border border-[var(--md-sys-color-outline-variant)]/50 shadow-sm hover:shadow-[0_8px_25px_rgba(230,81,0,0.15)] transition-all duration-300 relative overflow-hidden group">
-                                <div class="absolute top-0 inset-x-0 h-[3px] bg-[#E65100] opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-[0_0_12px_#E65100]"></div>
+                            <div class="bg-[var(--md-sys-color-surface)] rounded-2xl p-5 border border-[var(--md-sys-color-outline-variant)]/50 shadow-sm hover:shadow-[0_8px_25px_color-mix(in_srgb,var(--tool-gold-color)_15%,transparent)] transition-all duration-300 relative overflow-hidden group">
+                                <div class="absolute top-0 inset-x-0 h-[3px] bg-[var(--tool-gold-color)] opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-[0_0_12px_var(--tool-gold-color)]"></div>
                                 <div class="flex items-start gap-4">
-                                    <div class="w-11 h-11 rounded-xl bg-[#FFF3E0] dark:bg-[#E65100]/20 text-[#E65100] flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110">
+                                    <div class="w-11 h-11 rounded-xl bg-[var(--tool-gold-bg)] text-[var(--tool-gold-color)] flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110">
                                         <span class="material-symbols-rounded text-xl font-fill">restaurant</span>
                                     </div>
                                     <div>
-                                        <h5 class="text-[10px] font-bold text-[#E65100] uppercase tracking-widest mb-1.5">غذا و خوراکی</h5>
+                                        <h5 class="text-[10px] font-bold text-[var(--tool-gold-text)] uppercase tracking-widest mb-1.5">غذا و خوراکی</h5>
                                         <p class="text-sm text-[var(--md-sys-color-on-surface)] leading-relaxed font-medium" x-text="aboutMe.food"></p>
                                     </div>
                                 </div>
@@ -183,14 +183,14 @@
                         </template>
 
                         <template x-if="aboutMe.sports">
-                            <div class="bg-[var(--md-sys-color-surface)] rounded-2xl p-5 border border-[var(--md-sys-color-outline-variant)]/50 shadow-sm hover:shadow-[0_8px_25px_rgba(46,125,50,0.15)] transition-all duration-300 relative overflow-hidden group">
-                                <div class="absolute top-0 inset-x-0 h-[3px] bg-[#2E7D32] opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-[0_0_12px_#2E7D32]"></div>
+                            <div class="bg-[var(--md-sys-color-surface)] rounded-2xl p-5 border border-[var(--md-sys-color-outline-variant)]/50 shadow-sm hover:shadow-[0_8px_25px_color-mix(in_srgb,var(--tool-sage-color)_15%,transparent)] transition-all duration-300 relative overflow-hidden group">
+                                <div class="absolute top-0 inset-x-0 h-[3px] bg-[var(--tool-sage-color)] opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-[0_0_12px_var(--tool-sage-color)]"></div>
                                 <div class="flex items-start gap-4">
-                                    <div class="w-11 h-11 rounded-xl bg-[#E8F5E9] dark:bg-[#2E7D32]/20 text-[#2E7D32] flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110">
+                                    <div class="w-11 h-11 rounded-xl bg-[var(--tool-sage-bg)] text-[var(--tool-sage-color)] flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110">
                                         <span class="material-symbols-rounded text-xl font-fill">directions_bike</span>
                                     </div>
                                     <div>
-                                        <h5 class="text-[10px] font-bold text-[#2E7D32] uppercase tracking-widest mb-1.5">ورزش و تفریح</h5>
+                                        <h5 class="text-[10px] font-bold text-[var(--tool-sage-text)] uppercase tracking-widest mb-1.5">ورزش و تفریح</h5>
                                         <p class="text-sm text-[var(--md-sys-color-on-surface)] leading-relaxed font-medium" x-text="aboutMe.sports"></p>
                                     </div>
                                 </div>

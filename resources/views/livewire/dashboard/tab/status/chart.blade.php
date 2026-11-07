@@ -38,7 +38,7 @@
 
                 <template x-teleport="body">
                     <div class="contents">
-                        <div x-show="!toolsOpen"
+                        <div x-show="view === 'chart' && !toolsOpen"
                              x-transition:enter="animate-pop"
                              x-transition:leave="animate-fade-out"
                              class="fixed bottom-24 right-6 md:bottom-10 md:right-13 z-50 group flex items-center justify-center"
@@ -52,7 +52,7 @@
                         </div>
 
                         <button type="button"
-                                x-show="hovering && !toolsOpen"
+                                x-show="view === 'chart' && hovering && !toolsOpen"
                                 x-cloak
                                 @click.stop="openTools"
                                 class="orgc-cursor-hint"
@@ -61,7 +61,7 @@
                             <span class="material-symbols-rounded">swipe</span>
                         </button>
 
-                        <div x-show="toolsOpen"
+                        <div x-show="view === 'chart' && toolsOpen"
                              x-cloak
                              @click.outside="toolsOpen = false"
                              class="orgc-compass"

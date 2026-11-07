@@ -23,7 +23,7 @@
                     'text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_85%,transparent)]' => $msg['is_mine'],
                     'text-[var(--md-sys-color-primary)]' => !$msg['is_mine']
                 ])>{{ $msg['reply_to']['sender_name'] }}</p>
-            <p @class([
+            <p dir="auto" @class([
                     'text-[11px] truncate',
                     'text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_55%,transparent)]' => $msg['is_mine'],
                     'text-[var(--md-sys-color-on-surface-variant)] opacity-70' => !$msg['is_mine']

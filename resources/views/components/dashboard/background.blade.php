@@ -9,6 +9,7 @@
     <div
         class="absolute inset-x-0 bottom-0 -z-10 pointer-events-none overflow-hidden"
         :class="$store.background.fit === 'top' ? 'top-[124px] lg:top-[144px]' : 'top-0'"
+        :data-fit-top="$store.background.fit === 'top'"
         x-show="$store.background.enabled"
         x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-600"
         x-transition:enter-start="opacity-0 scale-90"

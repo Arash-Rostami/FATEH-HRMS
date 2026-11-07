@@ -118,7 +118,7 @@
             </x-slot:controls>
 
             <x-slot:alarmText>
-                <span class="text-[12px] font-bold text-red-500 animate-bounce">آلارم!</span>
+                <span class="text-[12px] font-bold text-red-700 dark:text-red-300 animate-bounce">آلارم!</span>
             </x-slot:alarmText>
 
             <x-slot:alarmControls>
@@ -127,7 +127,7 @@
                     تعویق
                 </button>
                 <button @click.stop="stopAlarm(); restore()"
-                        class="flex items-center justify-center rounded-lg px-3 py-1 bg-red-500 text-white dark:bg-red-400 dark:text-red-950 hover:bg-red-600 dark:hover:bg-red-300 transition-colors text-[11px] font-bold">
+                        class="flex items-center justify-center rounded-lg px-3 py-1 bg-red-700 text-white dark:bg-red-400 dark:text-red-950 hover:bg-red-800 dark:hover:bg-red-300 transition-colors text-[11px] font-bold">
                     توقف
                 </button>
             </x-slot:alarmControls>

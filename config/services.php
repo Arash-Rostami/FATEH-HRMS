@@ -52,4 +52,12 @@ return [
     'ai_assistant' => [
         'url' => config('app.ai_assistant_url'),
     ],
+
+    'ai_report' => [
+        'key' => env('AI_REPORT_API_KEY'),
+        'model' => 'Gemini-3-Flash-Preview',
+        'url' => env('AI_REPORT_API_URL'),
+        'timeout' => 60,
+        'max_output' => 16384,
+    ],
 ];

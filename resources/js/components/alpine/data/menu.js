@@ -2,6 +2,8 @@ import fancyboxMixin from '../mixins/fancybox.js';
 import highlightMatchMixin from '../mixins/highlightMatch.js';
 import persistentStateMixin from '../mixins/persistentState.js';
 
+const withSearchKey = (i) => ({...i, _searchKey: `${i.title || ''} ${i.sub || ''} ${i.module || ''}`.toLowerCase()});
+
 const BASE_ITEMS = [
     {id: 'admin-controller', href: '/admin', icon: 'admin_panel_settings', title: 'پنل مدیریت', sub: 'تنظیمات سیستمی', adminOnly: true, group: 'اصلی'},
     {id: 'dashboard-controller', href: '/dashboard', icon: 'home', title: 'داشبورد', sub: 'نمای کلی', group: 'اصلی'},
@@ -10,6 +12,8 @@ const BASE_ITEMS = [
     {id: 'tasks-controller', href: '/tasks', icon: 'dashboard', title: 'برد وظایف', sub: 'فردی/تیمی', module: 'taskboard', group: 'فضای کاری'},
     {id: 'projects-controller', href: '/projects', icon: 'workspaces', title: 'پروژه‌ها', sub: 'فضای کاری تیمی', module: 'project', group: 'فضای کاری'},
     {id: 'tasksheet-controller', href: '/tasksheet', icon: 'assignment_turned_in', title: 'تسک‌شیت', sub: 'گزارش عملکرد شخصی', module: 'tasksheet', group: 'فضای کاری'},
+    {id: 'ai-report-controller', href: '/ai-report', icon: 'article', title: 'گزارش ساز هوشمند', sub: 'تولید گزارش با هوش مصنوعی', module: 'ai-report', group: 'فضای کاری', ai: true},
+    {id: 'ai-assistant', href: '-', icon: 'auto_awesome', title: 'دستیار هوش مصنوعی', sub: 'گفتگو با هوش مصنوعی', module: 'ai-assistant', action: 'ai-assistant', group: 'فضای کاری', ai: true, requires: 'aiAssistant'},
     {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس', module: 'dms', group: 'خدمات'},
     {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری', module: 'ths', group: 'خدمات'},
     {id: 'suggestion-controller', href: '/suggestion', icon: 'lightbulb', title: 'پیشنهادات', sub: 'کانون نقاط نظر سازمانی', group: 'سازمان'},
@@ -28,7 +32,27 @@ const BASE_ITEMS = [
     {id: 'documents-controller', href: '/profile?tab=documents', icon: 'folder_open', title: 'مدارک و اسناد', sub: 'آپلود و دانلود', module: 'profile', group: 'پروفایل'},
     {id: 'credentials-controller', href: '/profile?tab=credentials', icon: 'verified_user', title: 'دسترس', sub: 'مجوزها و رمزها', module: 'profile', group: 'پروفایل'},
     {id: 'analytics-controller', href: '/analytics', icon: 'analytics', title: 'تحلیل‌های سازمانی', sub: 'آمار منابع انسانی', module: 'analytics', group: 'سازمان'},
-];
+].map(withSearchKey);
+
+const FOLD_MAP = {'ي': 'ی', 'ك': 'ک', '\u200c': ''};
+
+function foldSearch(value) {
+    return String(value || '').trim().toLowerCase().replace(/[يك\u200c]/g, (c) => FOLD_MAP[c]);
+}
+
+const HOME_TABS = [
+    {id: 'home', label: 'خانه', alias: 'home'},
+    {id: 'post', label: 'اعلانات', alias: 'post announce', off: ['announce', 'post']},
+    {id: 'feed', label: 'اخبار', alias: 'feed news'},
+    {id: 'calendar', label: 'تقویم', alias: 'calendar'},
+    {id: 'status', label: 'وضعیت', alias: 'status'},
+    {id: 'gallery', label: 'گالری', alias: 'gallery'},
+    {id: 'reports', label: 'گزارش‌ها', alias: 'report reports'},
+    {id: 'links', label: 'لینک‌ها', alias: 'link links'},
+    {id: 'faqs', label: 'پرسش‌های متداول', alias: 'faq faqs', off: ['faq', 'faqs']},
+].map((tab) => ({...tab, _searchKey: foldSearch(`${tab.label} ${tab.alias}`)}));
+
+const tabIsOff = (tab, off) => (tab.off || [tab.id]).some((key) => off.has(key));
 
 const RECENT_KEY = 'menu_recent_items';
 const RECENT_MAX = 8;
@@ -38,6 +62,10 @@ const SORT_ALPHA_KEY = 'menu_sort_alpha';
 const DECLUTTER_KEY = 'menu_declutter';
 const MQ_LARGE = '(min-width: 640px)';
 const SWIPE_THRESHOLD = 50;
+const VIEW_MODES = new Set(['grid', 'list', 'grouped']);
+const COLLATOR = new Intl.Collator('fa');
+const SYNTHETIC_EVENT = Object.freeze({preventDefault() {}, ctrlKey: false, metaKey: false});
+const perPageFor = (large) => (large ? 12 : 8);
 
 export default function menu(options = {}) {
     return {
@@ -46,6 +74,7 @@ export default function menu(options = {}) {
         ...persistentStateMixin(),
         menuOpen: false,
         items: [],
+        homeTabs: [],
         current: 0,
         perPage: 12,
         search: '',
@@ -76,63 +105,44 @@ export default function menu(options = {}) {
 
         get sortedItems() {
             const pins = this.$store.pinned.sets.menu;
-            if (!this.sortAlpha && (!pins || pins.size === 0)) return this.items;
+            const alpha = this.sortAlpha;
+            if (!alpha && (!pins || pins.size === 0)) return this.items;
 
-            const key = (this.sortAlpha ? '1|' : '0|') + this._pinsVersion;
+            const key = (alpha ? '1|' : '0|') + this._pinsVersion;
             if (this._sortedKey === key) return this._sortedCache;
 
-            const sorted = this.items.slice().sort((a, b) => {
-                let pinDiff = 0;
-                if (pins) {
-                    const hasB = pins.has(b.id) ? 1 : 0;
-                    const hasA = pins.has(a.id) ? 1 : 0;
-                    pinDiff = hasB - hasA;
-                }
-                if (pinDiff !== 0) return pinDiff;
-                return this.sortAlpha ? a.title.localeCompare(b.title, 'fa') : 0;
-            });
-
+            const pinned = (item) => (pins && pins.has(item.id) ? 1 : 0);
+            this._sortedCache = this.items.slice().sort((a, b) =>
+                pinned(b) - pinned(a) || (alpha ? COLLATOR.compare(a.title, b.title) : 0)
+            );
             this._sortedKey = key;
-            this._sortedCache = sorted;
-            return sorted;
+            return this._sortedCache;
         },
 
         get groupedItems() {
             const visible = this.allVisibleItems;
             if (this._groupedSourceRef === visible) return this._groupedCache;
 
-            const groupsMap = new Map();
-            const len = visible.length;
-
-            for (let i = 0; i < len; i++) {
-                const item = visible[i];
+            const groups = new Map();
+            for (const item of visible) {
                 const label = item.group || 'سایر';
-                let g = groupsMap.get(label);
-                if (!g) {
-                    g = { label, items: [] };
-                    groupsMap.set(label, g);
-                }
-                g.items.push(item);
+                const group = groups.get(label);
+                if (group) group.items.push(item);
+                else groups.set(label, {label, items: [item]});
             }
 
             this._groupedSourceRef = visible;
-            this._groupedCache = Array.from(groupsMap.values());
+            this._groupedCache = [...groups.values()];
             return this._groupedCache;
         },
 
         get paginatedData() {
             const items = this.sortedItems;
-            if (this._paginatedSourceRef === items && this._paginatedPerPage === this.perPage) {
-                return this._paginatedCache;
-            }
+            const pp = this.perPage;
+            if (this._paginatedSourceRef === items && this._paginatedPerPage === pp) return this._paginatedCache;
 
             const pages = [];
-            const len = items.length;
-            const pp = this.perPage;
-
-            for (let i = 0; i < len; i += pp) {
-                pages.push(items.slice(i, i + pp));
-            }
+            for (let i = 0; i < items.length; i += pp) pages.push(items.slice(i, i + pp));
 
             this._paginatedSourceRef = items;
             this._paginatedPerPage = pp;
@@ -142,32 +152,13 @@ export default function menu(options = {}) {
 
         _filteredItems() {
             if (this.showRecentOnly) {
-                const recent = [];
-                const rIds = this.recentIds;
-                const rLen = rIds.length;
-                const map = this._itemMap;
-
-                for (let i = 0; i < rLen; i++) {
-                    const item = map.get(rIds[i]);
-                    if (item) recent.push(item);
-                }
-                return recent;
+                return this.recentIds.map((id) => this._itemMap.get(id)).filter(Boolean);
             }
 
             const q = this.search.trim().toLowerCase();
             if (!q) return null;
 
-            const sorted = this.sortedItems;
-            const filtered = [];
-            const len = sorted.length;
-
-            for (let i = 0; i < len; i++) {
-                const item = sorted[i];
-                if (item._searchKey.includes(q)) {
-                    filtered.push(item);
-                }
-            }
-            return filtered;
+            return this.sortedItems.filter((item) => item._searchKey.includes(q));
         },
 
         get activePages() {
@@ -176,23 +167,29 @@ export default function menu(options = {}) {
         },
 
         get allVisibleItems() {
-            const filtered = this._filteredItems();
-            return filtered !== null ? filtered : this.sortedItems;
+            return this._filteredItems() ?? this.sortedItems;
+        },
+
+        get tabHints() {
+            const q = foldSearch(this.search);
+            if (!q || this.showRecentOnly) return [];
+            return this.homeTabs.filter((tab) => tab._searchKey.includes(q));
+        },
+
+        get tabHintText() {
+            const names = this.tabHints.map((tab) => tab.label).join('، ');
+            if (!names) return '';
+            return names + ' از قبل در صفحهٔ خانه فهرست شده. نوار سمت راست را ببینید؛ در موبایل، نوار پایین.';
         },
 
         get activeIndex() {
-            const q = this.search.trim();
-            if (q !== '' || this.showRecentOnly) return 0;
-            return this.current;
+            return this.search.trim() !== '' || this.showRecentOnly ? 0 : this.current;
         },
 
         get currentFocusableItems() {
-            if (this.viewMode === 'grid') {
-                const pages = this.activePages;
-                const active = this.activeIndex;
-                return pages[active] || [];
-            }
-            return this.allVisibleItems;
+            return this.viewMode === 'grid'
+                ? this.activePages[this.activeIndex] || []
+                : this.allVisibleItems;
         },
 
         get searchEl() {
@@ -201,54 +198,25 @@ export default function menu(options = {}) {
         },
 
         get notifiedCount() {
-            let count = 0;
-            const items = this.items;
-            const len = items.length;
-
-            for (let i = 0; i < len; i++) {
-                if (items[i].hasNotification) count++;
-            }
-            return count;
+            return this.items.reduce((count, item) => count + (item.hasNotification ? 1 : 0), 0);
         },
 
         _pageForItem(id) {
             if (id == null) return 0;
-
-            const sorted = this.sortedItems;
-            const len = sorted.length;
-            let idx = -1;
-
-            for (let i = 0; i < len; i++) {
-                if (sorted[i].id === id) {
-                    idx = i;
-                    break;
-                }
-            }
-
+            const idx = this.sortedItems.findIndex((item) => item.id === id);
             return idx === -1 ? 0 : Math.floor(idx / this.perPage);
         },
 
         listCols(count) {
-            if (count > 12) return 3;
-            if (count > 4) return 2;
-            return 1;
+            return count > 12 ? 3 : count > 4 ? 2 : 1;
         },
 
         pageHasNotification(pageIndex) {
-            const page = this.paginatedData[pageIndex];
-            if (!page) return false;
-
-            const len = page.length;
-            for (let i = 0; i < len; i++) {
-                if (page[i].hasNotification) return true;
-            }
-            return false;
+            return !!this.paginatedData[pageIndex]?.some((item) => item.hasNotification);
         },
 
         toggleTheme() {
-            if (window.ThemeManager && window.ThemeManager.toggleMode) {
-                window.ThemeManager.toggleMode();
-            }
+            window.ThemeManager?.toggleMode?.();
             this.isDark = !this.isDark;
         },
 
@@ -262,7 +230,7 @@ export default function menu(options = {}) {
             this.declutter = !this.declutter;
             document.documentElement.classList.toggle('declutter', this.declutter);
             this._saveState(DECLUTTER_KEY, this.declutter);
-            window.dispatchEvent(new CustomEvent('declutter', { detail: { on: this.declutter } }));
+            window.dispatchEvent(new CustomEvent('declutter', {detail: {on: this.declutter}}));
         },
 
         togglePinEdit() {
@@ -271,8 +239,7 @@ export default function menu(options = {}) {
         },
 
         isPinned(item) {
-            if (!item || !item.id) return false;
-            return this.$store.pinned.isPinned(item.id, 'menu');
+            return item?.id ? this.$store.pinned.isPinned(item.id, 'menu') : false;
         },
 
         togglePin(item, event) {
@@ -280,35 +247,23 @@ export default function menu(options = {}) {
                 event.preventDefault();
                 event.stopPropagation();
             }
-            if (!item || !item.id) return;
+            if (!item?.id) return;
 
             const wasPinned = this.isPinned(item);
             this.$store.pinned.togglePin(item.id, 'menu');
             this._pinsVersion++;
             this.focusIndex = null;
 
-            const q = this.search.trim();
-            if (!wasPinned && q === '' && !this.showRecentOnly) {
+            if (!wasPinned && this.search.trim() === '' && !this.showRecentOnly) {
                 this.current = 0;
             }
         },
 
         recordRecent(item) {
-            if (!item || !item.id) return;
+            const id = item?.id;
+            if (!id) return;
 
-            const id = item.id;
-            const next = [id];
-            const current = this.recentIds;
-            const len = current.length;
-
-            for (let i = 0; i < len; i++) {
-                if (current[i] !== id) {
-                    next.push(current[i]);
-                    if (next.length === RECENT_MAX) break;
-                }
-            }
-
-            this.recentIds = next;
+            this.recentIds = [id, ...this.recentIds.filter((r) => r !== id)].slice(0, RECENT_MAX);
             this._saveState(RECENT_KEY, this.recentIds);
         },
 
@@ -333,92 +288,58 @@ export default function menu(options = {}) {
             this.closeMenu();
         },
 
+        _focusPageEdge(last) {
+            this.$nextTick(() => {
+                const page = this.currentFocusableItems;
+                this.focusIndex = (last ? page[page.length - 1] : page[0])?.id ?? null;
+            });
+        },
+
         moveFocus(delta) {
             const items = this.currentFocusableItems;
             const len = items.length;
             if (len === 0) return;
 
-            const q = this.search.trim();
-            const canPage = this.viewMode === 'grid' && q === '' && !this.showRecentOnly;
-            let pos = -1;
-
-            const fid = this.focusIndex;
-            for (let i = 0; i < len; i++) {
-                if (items[i].id === fid) {
-                    pos = i;
-                    break;
-                }
-            }
+            const canPage = this.viewMode === 'grid' && this.search.trim() === '' && !this.showRecentOnly;
+            const pos = items.findIndex((item) => item.id === this.focusIndex);
 
             if (pos === -1) {
-                const item = items[delta > 0 ? 0 : len - 1];
-                this.focusIndex = item ? item.id : null;
+                this.focusIndex = items[delta > 0 ? 0 : len - 1].id;
                 return;
             }
 
-            pos += delta;
+            const target = pos + delta;
 
-            if (pos < 0) {
-                if (canPage && this.current > 0) {
-                    this.prev();
-                    this.$nextTick(() => {
-                        const active = this.activeIndex;
-                        const pages = this.activePages;
-                        const next = pages[active] || [];
-                        const last = next[next.length - 1];
-                        this.focusIndex = last ? last.id : null;
-                    });
-                    return;
-                }
-                pos = 0;
-            } else if (pos >= len) {
-                const pData = this.paginatedData;
-                if (canPage && this.current < pData.length - 1) {
-                    this.next();
-                    this.$nextTick(() => {
-                        const active = this.activeIndex;
-                        const pages = this.activePages;
-                        const next = pages[active] || [];
-                        const first = next[0];
-                        this.focusIndex = first ? first.id : null;
-                    });
-                    return;
-                }
-                pos = len - 1;
+            if (target < 0 && canPage && this.current > 0) {
+                this.prev();
+                this._focusPageEdge(true);
+                return;
             }
 
-            const nextItem = items[pos];
-            this.focusIndex = nextItem ? nextItem.id : null;
+            if (target >= len && canPage && this.current < this.paginatedData.length - 1) {
+                this.next();
+                this._focusPageEdge(false);
+                return;
+            }
+
+            this.focusIndex = items[Math.min(Math.max(target, 0), len - 1)].id;
         },
 
         openFocused() {
-            const items = this.currentFocusableItems;
-            const len = items.length;
-            const fid = this.focusIndex;
-
-            for (let i = 0; i < len; i++) {
-                if (items[i].id === fid) {
-                    this.handleItemClick(items[i], { preventDefault() {}, ctrlKey: false, metaKey: false });
-                    break;
-                }
-            }
+            const item = this.currentFocusableItems.find((i) => i.id === this.focusIndex);
+            if (item) this.handleItemClick(item, SYNTHETIC_EVENT);
         },
 
         openTopResult() {
             const item = this.currentFocusableItems[0];
-            if (item) {
-                this.handleItemClick(item, { preventDefault() {}, ctrlKey: false, metaKey: false });
-            }
+            if (item) this.handleItemClick(item, SYNTHETIC_EVENT);
         },
 
         handleSwipe() {
             const d = this.touchEndX - this.touchStartX;
             if (Math.abs(d) < SWIPE_THRESHOLD) return;
-            if (d < 0) {
-                this.next();
-            } else {
-                this.prev();
-            }
+            if (d < 0) this.next();
+            else this.prev();
         },
 
         handleGlobalKeydown(e) {
@@ -426,36 +347,31 @@ export default function menu(options = {}) {
 
             const input = this.searchEl;
             const inSearch = document.activeElement === input;
-            const key = e.key;
+            const {key} = e;
 
             if (key === 'Escape') return this.closeMenu();
 
             if (key === '/' && !inSearch) {
                 e.preventDefault();
-                if (input) input.focus();
+                input?.focus();
                 return;
             }
 
             if (key === 'Enter') {
                 e.preventDefault();
-                if (inSearch) {
-                    this.openTopResult();
-                } else {
-                    this.openFocused();
-                }
-                return;
-            }
-
-            if (!inSearch && this.search === '' && key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                e.preventDefault();
-                this.search = key;
-                this.$nextTick(() => {
-                    if (this.searchEl) this.searchEl.focus();
-                });
+                if (inSearch) this.openTopResult();
+                else this.openFocused();
                 return;
             }
 
             if (inSearch) return;
+
+            if (this.search === '' && key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                this.search = key;
+                this.$nextTick(() => this.searchEl?.focus());
+                return;
+            }
 
             if (key === 'ArrowLeft' || key === 'ArrowRight') {
                 e.stopImmediatePropagation();
@@ -466,7 +382,7 @@ export default function menu(options = {}) {
         toggleMenu() {
             this.menuOpen = !this.menuOpen;
             if (this.menuOpen) {
-                this.perPage = this._mql.matches ? 12 : 8;
+                this.perPage = perPageFor(this._mql.matches);
                 this.current = this._pageForItem(this._loadState(LAST_ITEM_KEY, null));
             }
         },
@@ -484,14 +400,13 @@ export default function menu(options = {}) {
         },
 
         next() {
-            const pData = this.paginatedData;
-            if (this.current < pData.length - 1) this.current++;
+            if (this.current < this.paginatedData.length - 1) this.current++;
         },
 
         updatePerPage(e) {
-            const newPerPage = e.matches ? 12 : 8;
-            if (this.perPage !== newPerPage) {
-                this.perPage = newPerPage;
+            const perPage = perPageFor(e.matches);
+            if (this.perPage !== perPage) {
+                this.perPage = perPage;
                 this.current = 0;
             }
         },
@@ -502,63 +417,45 @@ export default function menu(options = {}) {
             const off = new Set(options.off || []);
             const menuState = options.menuState || {};
 
-            const map = this._itemMap;
-            const outItems = [];
-            const len = BASE_ITEMS.length;
-
-            for (let i = 0; i < len; i++) {
-                const item = BASE_ITEMS[i];
-                if ((canAdmin || !item.adminOnly) && !off.has(item.module) && !off.has(item.id.split('-')[0])) {
-                    const title = item.title || '';
-                    const sub = item.sub || '';
-                    const mod = item.module || '';
-
-                    const parsedItem = {
-                        id: item.id,
-                        href: item.href,
-                        icon: item.icon,
-                        title: title,
-                        sub: sub,
-                        adminOnly: item.adminOnly,
-                        group: item.group,
-                        module: item.module,
-                        resourceType: item.resourceType,
-                        action: item.action,
-                        disabled: !!item.resourceType && disabledTypes.has(item.resourceType),
+            const items = [];
+            for (const base of BASE_ITEMS) {
+                if ((!base.adminOnly || canAdmin) && !off.has(base.module) && !off.has(base.id.split('-')[0]) && (!base.requires || options[base.requires] === true)) {
+                    const {id} = base;
+                    const item = {
+                        ...base,
+                        disabled: !!base.resourceType && disabledTypes.has(base.resourceType),
                         get hasNotification() {
-                            return globalThis.Alpine?.store('menuBadges')?.on(item.id, menuState[item.id]) ?? !!menuState[item.id];
+                            return globalThis.Alpine?.store('menuBadges')?.on(id, menuState[id]) ?? !!menuState[id];
                         },
-                        _searchKey: (title + ' ' + sub + ' ' + mod).toLowerCase()
                     };
-
-                    outItems.push(parsedItem);
-                    map.set(item.id, parsedItem);
+                    items.push(item);
+                    this._itemMap.set(id, item);
                 }
             }
-            this.items = outItems;
+            this.items = items;
+
+            this.homeTabs = HOME_TABS
+                .filter((tab) => !tabIsOff(tab, off))
+                .map(({id, label, _searchKey}) => ({id, label, _searchKey}));
 
             this.recentIds = this._loadState(RECENT_KEY, []);
 
             const savedView = this._loadState(VIEW_MODE_KEY, 'grid');
-            if (savedView === 'grid' || savedView === 'list' || savedView === 'grouped') {
-                this.viewMode = savedView;
-            } else {
-                this.viewMode = 'grid';
-            }
+            this.viewMode = VIEW_MODES.has(savedView) ? savedView : 'grid';
 
             this.sortAlpha = !!this._loadState(SORT_ALPHA_KEY, false);
             this.declutter = !!this._loadState(DECLUTTER_KEY, false);
             this._declutterListener = (e) => { this.declutter = !!e?.detail?.on; };
             window.addEventListener('declutter', this._declutterListener);
 
-            if (window.ThemeManager && window.ThemeManager.getUserMode) {
+            if (window.ThemeManager?.getUserMode) {
                 this.isDark = window.ThemeManager.getUserMode() === 'dark';
             }
 
             this.initFancybox();
 
             this._mql = window.matchMedia(MQ_LARGE);
-            this.perPage = this._mql.matches ? 12 : 8;
+            this.perPage = perPageFor(this._mql.matches);
             this._mediaListener = (e) => this.updatePerPage(e);
             this._mql.addEventListener('change', this._mediaListener);
 
@@ -570,9 +467,7 @@ export default function menu(options = {}) {
             });
 
             this.$watch('current', (val) => {
-                const pData = this.paginatedData;
-                const page = pData[val];
-                this._saveState(LAST_ITEM_KEY, page && page[0] ? page[0].id : null);
+                this._saveState(LAST_ITEM_KEY, this.paginatedData[val]?.[0]?.id ?? null);
             });
 
             this.$watch('viewMode', (val) => {
@@ -582,12 +477,8 @@ export default function menu(options = {}) {
         },
 
         destroy() {
-            if (this._declutterListener) {
-                window.removeEventListener('declutter', this._declutterListener);
-            }
-            if (this._mql && this._mediaListener) {
-                this._mql.removeEventListener('change', this._mediaListener);
-            }
-        }
+            if (this._declutterListener) window.removeEventListener('declutter', this._declutterListener);
+            if (this._mql && this._mediaListener) this._mql.removeEventListener('change', this._mediaListener);
+        },
     };
 }

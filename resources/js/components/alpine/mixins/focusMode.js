@@ -66,8 +66,9 @@ export default function focusModeMixin() {
                 store.sound.globalHush = false;
             }
 
-            if (snapshot !== null && snapshot.backgroundEnabled && store.background !== undefined) {
-                store.background.enabled = true;
+            if (snapshot !== null && store.background !== undefined) {
+                if (snapshot.backgroundEnabled) store.background.enabled = true;
+                if (snapshot.patternEnabled) store.background.patternEnabled = true;
             }
 
             if (document.exitFullscreen !== undefined) {

@@ -8,12 +8,17 @@
  * from both panels (Task, Ths, ReleaseRequest, Profile) can't silently drift
  * apart. Read straight through the config repository: config('file_upload_limits.image').
  *
- * Add a new tier here if none of the four fit — never a bespoke number on the call site.
- */
+ * Add a new tier here if none of the tiers below fit — never a bespoke number on the call site. */
 
 return [
     'icon' => 1024,
     'image' => 5120,
     'document' => 10240,
     'video' => 97280,
+    'ai' => [
+        'report' => 10240,
+        'inline' => 4096,
+        'inline_total' => 12288,
+        'total' => 25600,
+    ],
 ];

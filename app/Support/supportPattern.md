@@ -2,7 +2,7 @@
 
 Static, framework-light rule classes. Every screen, action, bulk path, report, calendar, badge and the admin panel asks THESE, never a hand-rolled check. Authorization lives here; lifecycle lives in model hooks (`Task::booted`, `TaskDetail`, `Project::booted`); metrics live in `App\Services\ProjectTask\TaskMetrics`.
 
-Files: `TaskAccessPolicy`, `ProjectAccessPolicy`, `TicketAccessPolicy`, `SuggestionAccessPolicy` (unchanged, review-stage gate), `ProjectCharter`, plus the Filament helpers `FaultTolerantGlobalSearchProvider` / `FilamentPanelCustomizer` (see `app/Filament/filamentPattern.md`).
+Files: `TaskAccessPolicy`, `ProjectAccessPolicy`, `TicketAccessPolicy`, `SuggestionAccessPolicy` (unchanged, review-stage gate), `AiReportAccessPolicy` (§3b), `AiReportUploadLimits` (§3c), `ProjectCharter`, plus the Filament helpers `FaultTolerantGlobalSearchProvider` / `FilamentPanelCustomizer` (see `app/Filament/filamentPattern.md`).
 
 ## 1. `TaskAccessPolicy` (final, all static, user nullable -> false)
 
@@ -29,6 +29,14 @@ Cycle lock (`Task::isCycleLocked()`): the CURRENT step task of an ACTIVE cycle c
 ## 3. `TicketAccessPolicy`
 
 `canView` (elevated roles, requester, assignee, or a HEAD of the target department — heads see every department ticket in any status), `canReply` (view and not closed), `canAssign` (requester only if he is a head; elevated or head otherwise), `canWithdraw` (requester, open/in-progress), `canReroute` (not closed; elevated or head), `canRelease` (the assignee of an in-progress ticket, or a head of its target department), `canSetEffectiveness` / `canClose`. A closed ticket is FINAL: it cannot be reopened or reassigned (`Ticket::saving` throws), withdrawn tickets never ask for a rating. "Head" = `User::isHeadOfDepartment` (ties-aware, cached — modelPattern Tier V). **Free assignment (2026-10-29):** while the target department's `free_assignment` flag is on, its active non-guest members (never the ticket's requester) ALSO pass `canView`/`canAssign`/`canReroute` for OPEN tickets targeted at it — and only those three verbs (`isFreeDepartmentMember` gate: same dept, no queries); `canRelease`/`canSetEffectiveness`/`canClose`/`canWithdraw` stay untouched, so a member loses every power the moment a colleague claims the ticket (`canReply` follows transitively from `canView` while the ticket is open — accepted, see thsPattern rule 22). `Ticket::scopeActionableBy` mirrors the gate, so every pool row passes `canView`.
+
+## 3b. `AiReportAccessPolicy` (final, all static, user nullable -> false)
+
+`canView` (the owner always, even when inactive; otherwise the report must be `active` AND the viewer an elevated role or an active recipient of a SAVED + ready report), `canGenerate` (active non-Guest user AND `ReportAiService::isConfigured()`), `canRefine` (owner, `active`, ready or failed), `canSave` (owner, ready), `canShare` (`canSave` AND `active`), `canRename` / `canRevert` (`canSave` AND `active` AND no recipients - a shared or inactive report is frozen), `canDelete` (owner, not generating), `canToggleActive` (= `canDelete`). The presenter's permission helpers only delegate here. See `app/Livewire/Dashboard/AiReport/reportPattern.md`.
+
+## 3c. `AiReportUploadLimits` (final, all static, KB integers)
+
+The one resolver for the AI Report upload sizes: `perFileKb()`, `inlineKb()` (each PDF/image sent inline), `inlineTotalKb()` (all inline files together) and `totalKb()` (every attachment together). Each reads the nested `config('file_upload_limits.ai.{report,inline,inline_total,total}')` first; a value of 0 or missing falls back to `ai_report.upload.inline_kb` / `inline_total_kb` / `total_kb`, and for `report` to the flat tier named by `ai_report.upload.tier` (`file_upload_limits.document`). Consumers: `ComposerForm` (per-file `max:` rule), `GenerateReportAction::stage()` (inline, inline-total and grand-total caps) and `AiReportPresenter::limits()` (the megabyte figures in the composer hint and the legend) - never read the config keys directly, so form, action and copy cannot drift.
 
 ## 4. `ProjectCharter` (final; `Project::charter()` memoizes one instance per Project, reset on save)
 

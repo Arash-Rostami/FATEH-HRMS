@@ -1,28 +1,34 @@
 <?php
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
-
 
 Schedule::command('model:prune')
     ->daily()
-    ->withoutOverlapping();
+    ->at('01:10')
+    ->withoutOverlapping()
+    ->onFailure(fn () => Log::error('schedule failed: model:prune'));
 
 Schedule::command('queue:prune-failed --hours=720')
     ->daily()
-    ->withoutOverlapping();
+    ->at('01:40')
+    ->withoutOverlapping()
+    ->onFailure(fn () => Log::error('schedule failed: queue:prune-failed'));
 
 Schedule::command('suggestions:auto-resolve-stale')
-    ->hourly()
+    ->hourlyAt(45)
     ->withoutOverlapping();
 
 Schedule::command('notifications:prune-stale')
     ->daily()
-    ->withoutOverlapping();
+    ->at('02:05')
+    ->withoutOverlapping()
+    ->onFailure(fn () => Log::error('schedule failed: notifications:prune-stale'));
 
 Schedule::command('tasks:sweep-overdue')
     ->when(fn () => !tenantOff('taskboard'))
-    ->hourly()
-    ->between('06:00', '22:00')
+    ->hourlyAt(15)
+    ->between('06:00', '22:16')
     ->withoutOverlapping();
 
 Schedule::command('reminders:sweep-due')
@@ -32,23 +38,33 @@ Schedule::command('reminders:sweep-due')
 
 Schedule::command('tasks:archive-stale-done')
     ->daily()
-    ->at('02:30')
+    ->at('02:35')
     ->withoutOverlapping();
 
 Schedule::command('edges:prune-stale')
     ->daily()
-    ->withoutOverlapping();
+    ->at('03:05')
+    ->withoutOverlapping()
+    ->onFailure(fn () => Log::error('schedule failed: edges:prune-stale'));
 
 Schedule::command('reminders:prune-completed')
     ->daily()
-    ->withoutOverlapping();
+    ->at('03:15')
+    ->withoutOverlapping()
+    ->onFailure(fn () => Log::error('schedule failed: reminders:prune-completed'));
 
 Schedule::command('exports:prune-old')
     ->daily()
-    ->at('03:30')
+    ->at('03:35')
     ->withoutOverlapping();
 
 Schedule::command('presence:reset-stale')
     ->daily()
-    ->at('04:00')
+    ->at('04:05')
     ->withoutOverlapping();
+
+Schedule::command('storage:prune-tmp')
+    ->daily()
+    ->at('04:35')
+    ->withoutOverlapping()
+    ->onFailure(fn () => Log::error('schedule failed: storage:prune-tmp'));

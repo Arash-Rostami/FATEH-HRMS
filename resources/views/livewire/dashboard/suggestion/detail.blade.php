@@ -219,7 +219,7 @@
 
                                     @case('warning')
                                         <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold tracking-wide
-                                                     bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20">
+                                                     bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500/20">
                                             <span class="material-symbols-rounded text-[13px]">warning_amber</span>
                                             {{ str_replace('⚠', '', $row['value']) }}
                                         </span>

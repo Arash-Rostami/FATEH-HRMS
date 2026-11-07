@@ -233,10 +233,10 @@
         </div>
 
         <div class="p-4 rounded-2xl border-2 border-rose-500/30 bg-rose-500/5 space-y-2">
-            <p class="text-xs font-bold text-rose-500">بازنشانی کامل برنامه</p>
+            <p class="text-xs font-bold text-rose-700 dark:text-rose-300">بازنشانی کامل برنامه</p>
             <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">تمام تنظیمات محلی این مرورگر (ظاهر، اعلان‌ها، ستون‌ها) حذف و به حالت پیش‌فرض بازمی‌گردد.</p>
             <button type="button" @click="resetApp()"
-                    class="inline-flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-bold bg-rose-500 text-white dark:bg-rose-400 dark:text-rose-950 hover:brightness-110 transition-all active:scale-95">
+                    class="inline-flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-bold bg-rose-700 text-white dark:bg-rose-400 dark:text-rose-950 hover:brightness-110 transition-all active:scale-95">
                 <span class="material-symbols-rounded text-[20px]">warning</span>
                 بازنشانی کامل برنامه
             </button>

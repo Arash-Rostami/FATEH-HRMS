@@ -4,6 +4,8 @@ namespace Tests\Feature\Filament\Widgets;
 
 use App\Models\Task;
 use App\Filament\Widgets\ModuleAnalyticsWidget;
+use App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter;
+use App\Models\AiReport;
 use App\Models\Department;
 use App\Models\EnergyTest;
 use App\Models\NotifyRule;
@@ -79,6 +81,7 @@ class ModuleAnalyticsWidgetTest extends TestCase
         return [
             'usersData' => ['usersData'],
             'adsData' => ['adsData'],
+            'aiReportsData' => ['aiReportsData'],
             'channelsData' => ['channelsData'],
             'contactsData' => ['contactsData'],
             'faqsData' => ['faqsData'],
@@ -171,6 +174,35 @@ class ModuleAnalyticsWidgetTest extends TestCase
 
         $this->assertSame($before[3]->getValue() + 2, $after[3]->getValue());
         $this->assertSame($before[4]->getValue() + 1, $after[4]->getValue());
+    }
+
+    public function test_ai_reports_data_has_five_cards_with_today_week_descriptions_and_the_heaviest_user(): void
+    {
+        $nums = fn (array $stats, int $card): array => array_map('intval', preg_split('/\D+/', (string) $stats[$card]->getDescription(), -1, PREG_SPLIT_NO_EMPTY));
+        $before = $this->invoke($this->widget(), 'aiReportsData');
+        $heavy = User::factory()->create(['status' => 'active', 'type' => 'employee', 'name' => 'Heavy ' . uniqid()]);
+        $mk = fn (array $a) => AiReport::create(['user_id' => $heavy->id, 'status' => 'ready', 'active' => true, 'spec' => ['lang' => 'fa', 'title' => 't', 'pages' => []], 'versions' => [], 'tokens_total' => 0, ...$a]);
+        $top = (int) (DB::table('ai_reports')->where('created_at', '>=', now()->subDays(7))->groupBy('user_id')->selectRaw('SUM(tokens_total) as s')->orderByDesc('s')->value('s') ?? 0);
+        $tokens = $top + 50_000_000;
+        $mk(['tokens_total' => $tokens]);
+        $old = $mk(['tokens_total' => 5]);
+        DB::table('ai_reports')->where('id', $old->id)->update(['created_at' => now()->subDays(10)]);
+        $counts = DB::table('ai_reports')->where('status', 'failed')->where('created_at', '>=', now()->subDays(7))->whereNotNull('fail_reason')->selectRaw('fail_reason, COUNT(*) as n')->groupBy('fail_reason')->pluck('n', 'fail_reason');
+        $most = (int) ($counts->max() ?? 0);
+        $mine = (int) ($counts->get('http_5xx', 0) ?? 0);
+        for ($i = 0; $i <= $most; $i++) {
+            $mk(['status' => 'failed', 'fail_reason' => 'http_5xx']);
+        }
+
+        $after = $this->invoke($this->widget(), 'aiReportsData');
+
+        $this->assertCount(5, $after);
+        $this->assertSame($nums($before, 0)[0] + $most + 2, $nums($after, 0)[0]);
+        $this->assertSame($nums($before, 3)[0] + $tokens, $nums($after, 3)[0]);
+        $this->assertSame($nums($before, 3)[1] + $tokens, $nums($after, 3)[1]);
+        $this->assertSame((new AiReportPresenter)->failReason('http_5xx') . ' ×' . ($mine + $most + 1), (string) $after[2]->getDescription());
+        $this->assertSame($heavy->name, $after[4]->getValue());
+        $this->assertSame($tokens . ' ' . __('resources/ai_report/strings.stats.tokens_week'), (string) $after[4]->getDescription());
     }
 
     public function test_energy_data_excludes_guest_type_users_from_total(): void

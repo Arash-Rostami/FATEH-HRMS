@@ -39,7 +39,7 @@
 
                                 <span class="material-symbols-rounded text-4xl sm:text-5xl transition-colors duration-300"
                                       :class="(hoverRating >= {{ $i }} || (!hoverRating && currentRating >= {{ $i }}))
-                                            ? 'text-[#FFD700] font-variation-fill'
+                                            ? 'text-[var(--md-sys-color-warning)] font-variation-fill'
                                             : 'text-[var(--md-sys-color-outline-variant)]'">
                                     star
                                 </span>

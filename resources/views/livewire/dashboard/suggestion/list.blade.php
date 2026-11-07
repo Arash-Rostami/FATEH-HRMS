@@ -60,9 +60,15 @@
                     'relative w-full text-right rounded-2xl border p-4 transition-all text-left hover:-translate-y-[1px] cursor-pointer',
                     'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/30' => $selectedId !== $item->id,
                     'border-[var(--md-sys-color-primary)] shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]' => $selectedId === $item->id,
-                    'bg-gradient-to-l from-[var(--md-sys-color-error)]/10 to-transparent border-l-3 border-l-[var(--md-sys-color-error)] !border-r-none' => $p->requiresMyAction(),
+                    'bg-gradient-to-l from-[var(--md-sys-color-error)]/10 to-transparent border-r-3 border-r-[var(--md-sys-color-error)]' => $p->requiresMyAction(),
                 ])
             >
+
+                @if($p->requiresMyAction())
+                    <div wire:key="suggestion-action-badge" class="absolute top-1 left-2 z-10">
+                        <x-ui.notification-badge />
+                    </div>
+                @endif
 
                 @if($selectedId === $item->id)
                     <div wire:key="suggestion-selected-rail"
@@ -80,12 +86,6 @@
                               title="اولویت: {{ $prioLabel }}">
                             <span class="material-symbols-rounded !text-[13px]">{{ $prioIcon }}</span>{{ $prioLabel }}
                         </span>
-
-                        @if($p->requiresMyAction())
-                            <div wire:key="suggestion-action-badge" class="contents">
-                                <x-ui.notification-badge />
-                            </div>
-                        @endif
 
                         <span
                             class="px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 {{ $p->stageBadgeClasses() }}">

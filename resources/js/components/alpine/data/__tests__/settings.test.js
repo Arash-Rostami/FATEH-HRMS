@@ -84,7 +84,7 @@ describe('settings table panel', () => {
     })
 
     test('resetTables resets every module, density and declutter', () => {
-        ;['dms', 'ths', 'reservation', 'taskboard'].forEach(id => {
+        ;['dms', 'ths', 'reservation', 'taskboard', 'ai-report'].forEach(id => {
             localStorage.setItem(`table-tools:${id}`, 'true')
             localStorage.setItem(`max:${id}:7`, 'true')
         })
@@ -93,7 +93,32 @@ describe('settings table panel', () => {
         s.resetTables()
         expect(localStorage.length).toBe(1)
         expect(localStorage.getItem('menu_declutter')).toBe('false')
-        expect(s.$store.colVisibility.reset.mock.calls.map(c => c[0])).toEqual(['dms', 'ths', 'reservation', 'taskboard'])
+        expect(s.$store.colVisibility.reset.mock.calls.map(c => c[0])).toEqual(['dms', 'ths', 'reservation', 'taskboard', 'ai-report'])
         expect(s.$store.density.toggle).toHaveBeenCalledTimes(1)
+    })
+
+    test('ai-report is a registered table module that counts hidden columns and resets without a maximize key', () => {
+        const s = make()
+        s.$store.colVisibility.maps['ai-report'] = ['owner', 'state']
+        localStorage.setItem('table-tools:ai-report', 'true')
+        s.refreshTableState()
+        expect(s.tableModules.map(m => m.id)).toEqual(['dms', 'ths', 'reservation', 'taskboard', 'ai-report'])
+        expect(s.tableState.modules['ai-report']).toEqual({ hiddenCols: 2, toolbarCollapsed: true, maximized: false })
+
+        s.resetTableModule('ai-report')
+        expect(s.$store.colVisibility.reset).toHaveBeenCalledWith('ai-report')
+        expect(localStorage.getItem('table-tools:ai-report')).toBeNull()
+    })
+
+    test('export includes the ai-report column mask and toolbar keys', async () => {
+        localStorage.setItem('ai-report-col-hidden', '["owner"]')
+        localStorage.setItem('table-tools:ai-report', 'true')
+        const s = make()
+        let blob
+        URL.createObjectURL = vi.fn((b) => { blob = b; return 'blob:x' })
+        URL.revokeObjectURL = vi.fn()
+        s.exportSettings()
+        const data = JSON.parse(await blob.text())
+        expect(data).toEqual({ 'ai-report-col-hidden': '["owner"]', 'table-tools:ai-report': 'true' })
     })
 })

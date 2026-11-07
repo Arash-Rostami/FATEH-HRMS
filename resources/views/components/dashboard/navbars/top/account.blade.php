@@ -1,6 +1,6 @@
-@props(['title' => 'حساب کاربری', 'showAi' => true])
+@props(['title' => 'حساب کاربری'])
 
-<div class="relative" x-data="{ open: false, home: @json(! $showAi) }" x-on:tab-switched.window="home = $event.detail.tab === 'home'">
+<div class="relative" x-data="{ open: false }">
     <button @click="open = !open"
             class="group relative flex items-center gap-3 h-[40px] px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 hover:bg-[var(--md-sys-color-on-primary)]/10 active:bg-[var(--md-sys-color-on-primary)]/20 transition-all duration-300 shadow-sm outline-none"
         {{ $attributes->merge(['class' => '']) }}>
@@ -70,15 +70,6 @@
                           title="میزان تکمیل پروفایل">{{ convertToPersian($profileCompletion) }}٪</span>
                 @endif
             </a>
-
-            @php($aiAccess = config('app.ai_assistant_access'))
-            @if(auth()->check() && $aiAccess === true && config('services.ai_assistant.url'))
-                <button type="button" x-show="!home" x-cloak @click="open = false; $dispatch('ai-assistant')"
-                        class="md:hidden flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors group">
-                        <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:scale-110 transition-transform">auto_awesome</span>
-                    دستیار هوش مصنوعی
-                </button>
-            @endif
 
             <x-dashboard.modal.release/>
             @auth

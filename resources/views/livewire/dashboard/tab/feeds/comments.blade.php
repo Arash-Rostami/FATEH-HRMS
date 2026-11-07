@@ -160,7 +160,7 @@
                                 <span class="font-bold text-[12px] text-[var(--md-sys-color-primary)] truncate">
                                     {!! superClean($meta['user']?->name) ?? 'کاربر حذف شده' !!}
                                 </span>
-                                <sup class="!text-[10px] opacity-50 shrink-0 font-medium" dir="rtl">
+                                <sup class="!text-[10px] opacity-70 shrink-0 font-medium" dir="rtl">
                                     {{ $comment?->created_at ? convertToPersian(toJalali($comment->created_at, 'j F Y')) : 'زمان نامشخص' }}
                                 </sup>
                             </div>

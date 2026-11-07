@@ -8,7 +8,7 @@
     x-on:confirmation-confirmed.window="if ($event.detail.method === 'leaveChannel') leaveChannel($event.detail.params)"
     role="region"
     aria-label="گروه‌ها"
-    class="w-full h-[calc(100dvh-60px)] md:h-[calc(100dvh-80px)] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
+    class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
     style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">

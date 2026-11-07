@@ -37,6 +37,7 @@ App\Services\Menu\
 │   ├── SharedEvents.php            key=shared-events         isActive = !StateService::viewedToday('calendar') && (EventShare::hasImminentFor($u) || Event::hasImminentSharedFor($u))
 │   ├── UnreadPosts.php             key=posts-controller      isActive = Post::hasUnreadFor($u)
 │   ├── UnreadFeeds.php             key=feeds                 isActive = auth()->user() !== null && Feed::hasUnreadFor($user->id)   (per-user, via HasNudgeTracking)
+│   ├── UnseenAiReports.php         key=ai-report-controller  isActive = AiReport::unseenBy($u)->exists()   (saved + ready + active report shared with the user and not in `seen_by`; cleared by `markSeenBy` when a recipient opens it; `StateService::flush()` on open and on share/unshare)
 │   ├── UnreadMessages.php          key=contacts-controller   isActive = auth()->user() !== null && Message::hasUnreadFor($user->id)   (hasUnreadFor/totalUnreadFor scoped to senders passing User::visibleOnBoard() as of 2026-09-04 — an unread message from a deactivated/guest sender, invisible in the Contact sidebar and thus unreachable to mark read, no longer lights this dot or the messaging-tab pill forever; see contactPattern.md §2)
 │   ├── SpecialDays.php             key=special-days          isActive = !StateService::viewedToday('calendar') && Profile (non-terminated) whereMonth/whereDay(birthdate|start_date) = today
 │   ├── TasksTodo.php               key=tasks-controller      isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0   (per-user)

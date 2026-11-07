@@ -8,6 +8,7 @@ use App\Enums\ReleaseRequestType;
 use App\Enums\ReservationStatus;
 use App\Enums\SkillRequestStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter;
 use App\Models\Department;
 use App\Models\NotifyRule;
 use App\Models\User;
@@ -28,7 +29,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
 
     protected static bool $isLazy = true;
     protected static ?int $sort = -1;
-    private const TAB_MODULES = ['events' => 'calendar', 'resources' => 'reservation', 'reservation_policies' => 'reservation'];
+    private const TAB_MODULES = ['events' => 'calendar', 'resources' => 'reservation', 'reservation_policies' => 'reservation', 'ai_reports' => 'ai-report'];
 
     public string $activeTab = 'users';
     protected string $view = 'livewire.admin.widgets.filament-analytics';
@@ -58,6 +59,61 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             Stat::make('بدون محدودیت جنسیت', $stats->both_gender)
                 ->icon('heroicon-o-users')
                 ->color('gray'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function aiReportsData(): array
+    {
+        $today = now()->startOfDay();
+        $week = now()->subDays(7);
+        $stats = DB::table('ai_reports')->selectRaw("
+            COUNT(*) as total,
+            COUNT(CASE WHEN status = 'ready' THEN 1 END) as ready,
+            COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed,
+            COALESCE(SUM(tokens_total), 0) as tokens,
+            COUNT(CASE WHEN created_at >= ? THEN 1 END) as today,
+            COALESCE(SUM(CASE WHEN created_at >= ? THEN tokens_total END), 0) as tokens_today,
+            COALESCE(SUM(CASE WHEN created_at >= ? THEN tokens_total END), 0) as tokens_week
+        ", [$today, $today, $week])->first();
+        $topFail = DB::table('ai_reports')
+            ->where('status', 'failed')
+            ->where('created_at', '>=', $week)
+            ->whereNotNull('fail_reason')
+            ->selectRaw('fail_reason, COUNT(*) as n')
+            ->groupBy('fail_reason')
+            ->orderByDesc('n')
+            ->first();
+        $topUser = DB::table('ai_reports')
+            ->join('users', 'users.id', '=', 'ai_reports.user_id')
+            ->where('users.type', '!=', UserType::Guest->value)
+            ->where('ai_reports.created_at', '>=', $week)
+            ->selectRaw('users.name, COALESCE(SUM(ai_reports.tokens_total), 0) as tokens')
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('tokens')
+            ->first();
+        $s = fn (string $key): string => __('resources/ai_report/strings.stats.' . $key);
+
+        return [
+            Stat::make(__('resources/ai_report/strings.plural_label'), $stats->total)
+                ->description($s('today') . ': ' . $stats->today)
+                ->icon('heroicon-o-document-chart-bar')
+                ->color('primary'),
+            Stat::make(__('resources/ai_report/strings.statuses.ready'), $stats->ready)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make(__('resources/ai_report/strings.statuses.failed'), $stats->failed)
+                ->description($topFail ? (new AiReportPresenter)->failReason($topFail->fail_reason) . ' ×' . $topFail->n : null)
+                ->icon('heroicon-o-x-circle')
+                ->color('danger'),
+            Stat::make(__('resources/ai_report/strings.fields.tokens_total'), $stats->tokens)
+                ->description($s('today') . ' ' . $stats->tokens_today . ' · ' . $s('week') . ' ' . $stats->tokens_week)
+                ->icon('heroicon-o-cpu-chip')
+                ->color('info'),
+            Stat::make($s('top_user'), $topUser?->name ?? '—')
+                ->description($topUser ? $topUser->tokens . ' ' . $s('tokens_week') : null)
+                ->icon('heroicon-o-user')
+                ->color('warning'),
         ];
     }
 
@@ -357,6 +413,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'users' => count($this->usersData),
             'departments' => count($this->departmentsData),
             'ads' => count($this->adsData),
+            'ai_reports' => count($this->aiReportsData),
             'reports' => count($this->reportsData),
             'energy' => count($this->energyData),
             'authorities' => count($this->authoritiesData),
@@ -398,6 +455,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'authorities' => ['icon' => 'heroicon-o-shield-check', 'label' => __('resources/authority/strings.plural_label')],
             'credentials' => ['icon' => 'heroicon-o-key', 'label' => __('resources/credential/strings.plural_label')],
             'ads' => ['icon' => 'heroicon-o-megaphone', 'label' => __('resources/ad/strings.plural_label')],
+            'ai_reports' => ['icon' => 'heroicon-o-document-chart-bar', 'label' => __('resources/ai_report/strings.plural_label')],
             'posts' => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/post/strings.plural_label')],
             'reports' => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/report/strings.plural_label')],
             'events' => ['icon' => 'heroicon-o-calendar-days', 'label' => __('resources/event/strings.plural_label')],
@@ -810,6 +868,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'users' => $this->usersData,
             'departments' => $this->departmentsData,
             'ads' => $this->adsData,
+            'ai_reports' => $this->aiReportsData,
             'reports' => $this->reportsData,
             'energy' => $this->energyData,
             'authorities' => $this->authoritiesData,

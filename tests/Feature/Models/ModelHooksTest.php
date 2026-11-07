@@ -49,10 +49,11 @@ class ModelHooksTest extends TestCase
             'App\\Models\\ChannelMessage' => ['HasThreadMessages'],
             'App\\Models\\User' => ['HasBookingRows', 'HasExtraPreferences', 'HasPresence', 'HasTodaysDesk'],
             'App\\Models\\Project' => ['HasProjectFollowUps'],
+            'App\\Models\\AiReport' => ['HasActive', 'HasSharedRecipients', 'HasVersionHistory', 'HasDailyQuota', 'HasGenerationLifecycle'],
         ];
 
         $relationTraits = [
-            'HasUser' => ['Authority', 'ChannelMember', 'Comment', 'Credential', 'EnergyTest', 'Event', 'FAQ', 'Feed', 'Onboarding', 'Permission', 'Poll', 'Post', 'Profile', 'Reaction', 'ReleaseRequest', 'Reminder', 'Reply', 'Report', 'Reservation', 'Review', 'SkillUser', 'Suggestion'],
+            'HasUser' => ['AiReport', 'Authority', 'ChannelMember', 'Comment', 'Credential', 'EnergyTest', 'Event', 'FAQ', 'Feed', 'Onboarding', 'Permission', 'Poll', 'Post', 'Profile', 'Reaction', 'ReleaseRequest', 'Reminder', 'Reply', 'Report', 'Reservation', 'Review', 'SkillUser', 'Suggestion'],
             'HasDepartment' => ['Authority', 'FAQ', 'Photo', 'Profile', 'Report', 'Review', 'TaskDetail'],
         ];
 

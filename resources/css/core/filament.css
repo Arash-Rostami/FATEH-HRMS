@@ -13,6 +13,19 @@
 
 @source inline("{,-}rotate-180 rotate-90 -rotate-90");
 
+[data-theme='arctic']:not(.dark),
+[data-theme='obsidian']:not(.dark) {
+    --primary-700: color-mix(in srgb, var(--md-sys-color-primary), black 40%);
+    --primary-800: color-mix(in srgb, var(--md-sys-color-primary), black 55%);
+    --primary-900: color-mix(in srgb, var(--md-sys-color-primary), black 65%);
+}
+
+[data-theme='magneta']:not(.dark) {
+    --primary-700: color-mix(in srgb, var(--md-sys-color-primary), black 55%);
+    --primary-800: color-mix(in srgb, var(--md-sys-color-primary), black 65%);
+    --primary-900: color-mix(in srgb, var(--md-sys-color-primary), black 75%);
+}
+
 :root {
     --primary-50: var(--md-sys-color-primary-container);
     --primary-100: var(--md-sys-color-primary-container);
@@ -196,7 +209,7 @@
     }
 
     .fi-topbar-database-notifications-btn:hover {
-        @apply !bg-[var(--md-sys-color-on-primary)]/10 !text-[var(--md-sys-color-primary-container)] opacity-100;
+        @apply !bg-[var(--md-sys-color-on-primary)]/10 !text-[var(--md-sys-color-on-primary)] opacity-100;
     }
 
     .fi-topbar-database-notifications-btn svg {
@@ -205,7 +218,7 @@
 
 
     .fi-topbar {
-        @apply !bg-[var(--md-sys-color-primary)]
+        @apply !bg-[var(--toolbar-bg,var(--md-sys-color-primary))]
         !border-b-[4px]
         !border-[var(--header-border-color)]
         !shadow-[var(--md-sys-elevation-1)]
@@ -220,11 +233,11 @@
     }
 
     .fi-topbar-database-notifications-btn {
-        @apply text-[var(--md-sys-color-primary-container)] opacity-70 font-bold
+        @apply text-[var(--md-sys-color-on-primary)] opacity-70 font-bold
     }
 
     .material-symbols-rounded[data-icon="palette"] {
-        @apply text-[var(--md-sys-color-primary-container)]
+        @apply text-[var(--md-sys-color-on-primary)]
     }
 
     .fi-avatar.fi-user-avatar {
@@ -1063,13 +1076,17 @@
         @apply w-full max-w-xs sm:max-w-md md:max-w-2xl relative right-5
     }
 
-    .fi-global-search-field, .fi-input-wrp {
+    .fi-global-search-field {
+        @apply !rounded-xl cursor-pointer !bg-transparent
+    }
+
+    .fi-input-wrp {
         @apply !rounded-xl cursor-pointer !bg-[var(--md-sys-color-on-primary)]
     }
 
     .fi-global-search-field:focus-within {
-        @apply !bg-[var(--md-sys-color-on-primary)]
-        !ring-2 !ring-[var(--md-sys-color-primary)];
+        @apply !bg-transparent
+        !ring-2 !ring-[var(--md-sys-color-on-primary)]/60;
     }
 
     .fi-global-search-results {
@@ -1088,21 +1105,37 @@
         hover:!bg-[var(--md-sys-color-on-primary)];
     }
 
-    .fi-global-search-ctn [class*="fi-input-wrp"] {
-        @apply !bg-[var(--md-sys-color-primary)]/80 transition-all duration-300 !border-none cursor-pointer
-
+    .fi-global-search-ctn .fi-input-wrp {
+        @apply !bg-[var(--md-sys-color-on-primary)]/10 transition-all duration-300 !border-none !shadow-none !ring-0 cursor-pointer
     }
 
-    .fi-global-search-ctn .fi-input-wrp-label {
-        @apply !text-xs flex !items-center !justify-center !text-center p-[3px] text-[var(--md-sys-color-primary-container)]/60
+    .fi-global-search-ctn .fi-input-wrp:hover {
+        @apply !bg-[var(--md-sys-color-on-primary)]/15
+    }
+
+    .fi-global-search-ctn .fi-input-wrp [class*="fi-input-wrp-"] {
+        @apply !bg-transparent !border-none !shadow-none !ring-0
+    }
+
+    .fi-global-search-ctn .fi-input-wrp-label,
+    .fi-global-search-ctn .fi-input-wrp-suffix {
+        @apply !text-xs flex !items-center !justify-center !text-center p-[3px] !text-[var(--md-sys-color-on-primary)]/70
+    }
+
+    .fi-global-search-ctn .fi-input-wrp-suffix {
+        @apply !px-3
     }
 
     .fi-global-search-ctn .fi-input-wrp-prefix svg {
-        @apply !text-[var(--md-sys-color-primary-container)]/60
+        @apply !text-[var(--md-sys-color-on-primary)]/70
+    }
+
+    .fi-global-search-ctn .fi-input-wrp-content-ctn input {
+        @apply !text-[var(--md-sys-color-on-primary)]
     }
 
     .fi-global-search-ctn .fi-input-wrp-content-ctn input::placeholder {
-        @apply !text-[var(--md-sys-color-primary-container)]/60
+        @apply !text-[var(--md-sys-color-on-primary)]/70
     }
 
     @media (max-width: 767px) {

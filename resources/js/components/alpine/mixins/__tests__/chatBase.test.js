@@ -1239,3 +1239,83 @@ describe('chatBase general (id = null) ding respects per-room mute using the unr
         expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
     })
 });
+
+describe('chatBase send ghost', () => {
+    const seconds = new Intl.NumberFormat('fa-IR');
+
+    function withViewport() {
+        const vp = document.createElement('div');
+        vp.id = 'msg-viewport';
+        vp.scrollTo = vi.fn();
+        document.body.appendChild(vp);
+        return vp;
+    }
+
+    test('_ghostShow returns null and does nothing when the viewport is missing', () => {
+        const c = chatBase('contact');
+        expect(c._ghostShow('hello')).toBeNull();
+        expect(c._ghost).toBeNull();
+        expect(document.querySelector('[data-ghost]')).toBeNull();
+    });
+
+    test('_ghostShow appends one hidden ghost as the last child and escapes HTML into text', () => {
+        const c = chatBase('contact');
+        const vp = withViewport();
+        vp.appendChild(document.createElement('div'));
+        const raw = '<img src=x onerror=alert(1)>';
+
+        const el = c._ghostShow(raw);
+
+        expect(el).toBe(vp.lastElementChild);
+        expect(vp.querySelectorAll('[data-ghost]')).toHaveLength(1);
+        expect(el.getAttribute('aria-hidden')).toBe('true');
+        expect(el.querySelector('img')).toBeNull();
+        expect(el.querySelector('[dir="auto"]').textContent).toBe(raw);
+        expect(el.dataset.rf).toBeUndefined();
+        expect(el.dataset.day).toBeUndefined();
+        c._ghostHide();
+    });
+
+    test('_ghostHide removes the node, clears the timer, and is a no-op when called twice', () => {
+        vi.useFakeTimers();
+        try {
+            const c = chatBase('contact');
+            withViewport();
+            const el = c._ghostShow('hello');
+            const time = el.querySelector('time');
+
+            c._ghostHide(el);
+            vi.advanceTimersByTime(5000);
+
+            expect(time.textContent).toBe('');
+            expect(document.querySelector('[data-ghost]')).toBeNull();
+            expect(c._ghost).toBeNull();
+            expect(() => c._ghostHide()).not.toThrow();
+            expect(() => c._ghostHide(el)).not.toThrow();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    test('the timer stays blank until one second, then shows whole Persian seconds', () => {
+        vi.useFakeTimers();
+        try {
+            const c = chatBase('contact');
+            withViewport();
+            const el = c._ghostShow('hello');
+            const time = el.querySelector('time');
+
+            vi.advanceTimersByTime(999);
+            expect(time.textContent).toBe('');
+
+            vi.advanceTimersByTime(1);
+            expect(time.textContent).toBe(`${seconds.format(1)} ث`);
+
+            vi.advanceTimersByTime(1000);
+            expect(time.textContent).toBe(`${seconds.format(2)} ث`);
+            c._ghostHide();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+});

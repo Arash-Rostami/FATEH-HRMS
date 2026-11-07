@@ -84,6 +84,17 @@ describe('tagged.setTag / clearTag', () => {
         expect(localStorage.getItem('tagged-reservations')).toBeNull()
     })
 
+    test('the ai-report scope restores, sets and persists under its own key', async () => {
+        localStorage.setItem('tagged-ai-reports', JSON.stringify({ 7: 2 }))
+        const s = freshStore()
+        s.init()
+        expect(s.getTag(7, 'ai-report')).toBe(2)
+        s.setTag(8, 1, 'ai-report')
+        await Promise.resolve()
+        expect(JSON.parse(localStorage.getItem('tagged-ai-reports'))).toEqual({ 7: 2, 8: 1 })
+        expect(s.isTagged(8, 'reservation')).toBe(false)
+    })
+
     test('setTag persists the updated map to localStorage (microtask-deferred)', async () => {
         const s = freshStore()
         s.init()

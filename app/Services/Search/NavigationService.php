@@ -132,6 +132,17 @@ class NavigationService
                 ],
             ],
             [
+                'id' => 'ai-report',
+                'title' => 'گزارش ساز هوشمند',
+                'subtitle' => 'ساخت گزارش ساختاریافته از درخواست و فایل‌ها با هوش مصنوعی',
+                'icon' => 'article',
+                'action' => 'route:ai-report',
+                'keywords' => [
+                    'ai', 'ai report', 'smart report', 'generate report', 'gpt', 'llm', 'assistant', 'summary', 'summarize', 'analyze file',
+                    'گزارش ساز هوشمند', 'گزارش ساز', 'گزارش هوشمند', 'هوش مصنوعی', 'گزارش‌ساز', 'ساخت گزارش', 'تولید گزارش', 'خلاصه', 'خلاصه‌سازی', 'تحلیل فایل', 'گزارش مدیریتی', 'دستیار هوشمند',
+                ],
+            ],
+            [
                 'id' => 'links',
                 'title' => 'لینک‌ها و مسیرهای دیجیتال سازمان',
                 'subtitle' => 'دسترسی متمرکز به سامانه‌های داخلی و خارجی',

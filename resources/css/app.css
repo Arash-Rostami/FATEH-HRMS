@@ -54,6 +54,7 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+@source inline("{bg,text}-{emerald,blue,amber,rose,violet,red,gray}-700");
 
 
 

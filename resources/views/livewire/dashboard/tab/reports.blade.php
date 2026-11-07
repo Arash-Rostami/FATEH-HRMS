@@ -8,6 +8,18 @@
             <x-ui.buttons.view-toggle module="reports" />
             <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'card'" x-cloak />
 
+            @unless(tenantOff('ai-report'))
+                <a
+                    href="{{ route('ai-report') }}"
+                    wire:navigate
+                    title="گزارش ساز هوشمند"
+                    aria-label="گزارش ساز هوشمند"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">article</span>
+                </a>
+            @endunless
+
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'reports-badge-legend' })"

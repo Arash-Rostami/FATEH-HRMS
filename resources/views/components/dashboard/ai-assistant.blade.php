@@ -1,4 +1,4 @@
-@if(auth()->check() && config('app.ai_assistant_access') === true && config('services.ai_assistant.url'))
+@if(aiAssistantOn())
     @php
         $aiAssistantBaseSrc = rtrim(config('services.ai_assistant.url'), '/') . '/?user=' . \Illuminate\Support\Str::slug(config('app.name_en')) . '_' . auth()->id() . '&lang=' . config('app.ai_assistant_lang') . '&role=' . (auth()->user()->hasElevatedRole() ? 'admin' : 'user');
     @endphp

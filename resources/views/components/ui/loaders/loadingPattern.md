@@ -52,6 +52,7 @@ Composed per module, not copy-pasted per module. Each takes only sizing/count pr
 - `card` — a rounded rectangle with an optional inset bar-stack, for grid tiles.
 - `table-stripe` — a header bar + N body rows.
 - `column-stack` — a vertical stack of `card`s inside a bordered column, for kanban.
+- `report` — a report-shaped placeholder (title bar, `kpis` tiles default 4, three text bars, then a `table-stripe` of `rows` default 4). Root carries `aria-busy="true"`, an `sr-only` label, `print:hidden`, and merges `$attributes` (so a `wire:key` passes through). AI Report's in-flight viewer branch (`ai-report-viewer-generating`) uses it as `ai-report-generating-skeleton`.
 
 ## Enforcement
 

@@ -28,11 +28,11 @@
                     @click="isDocked = false"
                     class="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_8px_20px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.2)] hover:-translate-y-1 transition-transform duration-300 flex items-center justify-center outline-none focus:ring-4 focus:ring-[var(--md-sys-color-primary)]/30 will-change-transform relative"
                 >
-                    <span class="material-symbols-rounded text-[22px] md:text-[24px]">tune</span>
+                    <span class="material-symbols-rounded text-[22px] md:text-[24px]">manage_search</span>
                     <span x-show="hasActiveFilters" x-cloak
                           class="absolute top-2.5 right-2.5 w-3 h-3 rounded-full bg-[var(--md-sys-color-error)] border-2 border-[var(--md-sys-color-primary)] animate-pulse-ring"></span>
                 </button>
-                <x-ui.modals.tooltip text="فیلترها" position="right"/>
+                <x-ui.modals.tooltip text="جستجو و فیلتر" position="right"/>
             </div>
 
             <div
@@ -60,10 +60,10 @@
                             ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border-transparent'
                             : 'bg-transparent text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-container-low)] hover:text-[var(--md-sys-color-on-surface)]'"
                     >
-                        <span class="material-symbols-rounded text-[20px]">tune</span>
+                        <span class="material-symbols-rounded text-[20px]">manage_search</span>
                         <span
                             class="hidden sm:inline overflow-hidden transition-[max-width,opacity] duration-200 whitespace-nowrap"
-                            :style="compact ? 'max-width:0;opacity:0' : 'max-width:80px;opacity:1'">فیلترها</span>
+                            :style="compact ? 'max-width:0;opacity:0' : 'max-width:100px;opacity:1'">جستجو و فیلتر</span>
                         <span x-show="hasActiveFilters" x-cloak
                               class="absolute top-2 right-2 w-2.5 h-2.5 rounded-md bg-[var(--md-sys-color-error)] border-2 border-[var(--md-sys-color-surface)]"></span>
                     </button>

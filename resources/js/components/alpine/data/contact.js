@@ -124,6 +124,7 @@ export default function contact() {
         },
 
         destroy() {
+            this._ghostHide();
             this._destroyed = true;
             this.stopPolling();
             ac?.abort();
@@ -228,6 +229,7 @@ export default function contact() {
                     const vp = this._msgViewportEl;
                     const nearBottom = !!vp && vp.scrollHeight - vp.scrollTop - vp.clientHeight < NEAR_BOTTOM_PX;
                     await this._isl().refreshActive();
+                    this.autoDirection(ta());
                     const lastAfter = this._readLastMessageMarker();
                     const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null && lastAfter !== this._selfMarker;
                     const incoming = threadChanged && !this._lastMessageIsMine();
@@ -474,14 +476,18 @@ export default function contact() {
 
             this.sending = true;
             const wire = this.$wire;
+            const ghost = !wire.composer?.attachments?.length && !this.replyingTo && !wire.hasNewer
+                ? this._ghostShow(body)
+                : null;
             try {
                 await this._isl().send();
                 this.replyingTo = null;
                 this._syncSidebarAfterOwnAction(wire);
-                this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); });
+                this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); this.autoGrow(ta(), 160); });
             } catch {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             } finally {
+                this._ghostHide(ghost);
                 setTimeout(() => { this.sending = false; }, SEND_LOCK_RESET_MS);
             }
         },

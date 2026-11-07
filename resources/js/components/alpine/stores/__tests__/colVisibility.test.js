@@ -127,6 +127,38 @@ describe('colVisibility taskboard scope', () => {
     })
 })
 
+describe('colVisibility ai-report scope', () => {
+    test('restores, persists to ai-report-col-hidden, renders the table rule and resets', async () => {
+        localStorage.setItem('ai-report-col-hidden', JSON.stringify(['owner']))
+        const s = fresh()
+        s.init()
+        expect(s.maps['ai-report']).toEqual(['owner'])
+        expect(s.isHidden('owner', 'ai-report')).toBe(true)
+
+        s.toggle('state', 'ai-report')
+        await flushMicrotask()
+        expect(JSON.parse(localStorage.getItem('ai-report-col-hidden'))).toEqual(['owner', 'state'])
+
+        await flushRaf()
+        const css = document.getElementById('dms-col-visibility-style').textContent
+        expect(css).toContain('.ai-report-table [data-col="owner"]{display:none!important}')
+        expect(css).toContain('.ai-report-table [data-col="state"]{display:none!important}')
+
+        s.reset('ai-report')
+        await flushMicrotask()
+        expect(JSON.parse(localStorage.getItem('ai-report-col-hidden'))).toEqual([])
+        expect(s.maps['ai-report']).toEqual([])
+    })
+
+    test('other scopes keep their own keys and the ai-report map starts empty', () => {
+        localStorage.setItem('ths-col-hidden', JSON.stringify(['x']))
+        const s = fresh()
+        s.init()
+        expect(s.maps.ths).toEqual(['x'])
+        expect(s.maps['ai-report']).toEqual([])
+    })
+})
+
 describe('colVisibility.render — multi-domain rule building', () => {
     test('builds one display:none rule per hidden column across all three scoped tables, skipping empty domains', async () => {
         const s = fresh()

@@ -139,6 +139,19 @@ describe('focusModeMixin.activateFocus / deactivateFocus', () => {
         expect(JSON.parse(localStorage.getItem(SNAPSHOT_KEY)).endsAt).toBeNull();
     });
 
+    test('deactivateFocus restores a pattern background too, not only the image background (pattern stayed off after focus before)', () => {
+        const c = focusModeMixin();
+        c.$store = withStore({ background: { enabled: false, patternEnabled: false } });
+        c.$wire = { call: vi.fn() };
+        c.$store.focus.active = true;
+        localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ presence: 'onsite', backgroundEnabled: false, patternEnabled: true, endsAt: null }));
+
+        c.deactivateFocus();
+
+        expect(c.$store.background.patternEnabled).toBe(true);
+        expect(c.$store.background.enabled).toBe(false);
+    });
+
     test('deactivateFocus is a no-op when focus is not currently active', () => {
         const c = focusModeMixin();
         c.$store = withStore({ focus: { active: false, until: null, schedule: vi.fn(), clear: vi.fn() } });

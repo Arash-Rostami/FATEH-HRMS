@@ -322,7 +322,7 @@
                                                 <button type="button" wire:key="dms-row-open"
                                                         data-url="{{ route('dms.file',$doc->file) }}"
                                                         x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.dataset.url }); confirmAndSend({{ $doc->id }}, @js($doc->file))"
-                                                        class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-tertiary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
+                                                        class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-on-tertiary-container)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
                                                     <span class="material-symbols-rounded text-[22px]">menu_book</span>
                                                     <span class="text-[11px] font-bold">مشاهده و تایید</span>
                                                 </button>
@@ -332,7 +332,7 @@
                                                    wire:loading.class="pointer-events-none" wire:target="incrementRead"
                                                    wire:click="incrementRead({{ $doc->id }})"
                                                    x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
-                                                   class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-tertiary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
+                                                   class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-on-tertiary-container)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
                                                     <span class="material-symbols-rounded text-[22px]">menu_book</span>
                                                     <span class="text-[11px] font-bold">مشاهده و تایید</span>
                                                 </a>

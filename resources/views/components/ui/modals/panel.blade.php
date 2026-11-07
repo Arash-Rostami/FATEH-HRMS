@@ -10,13 +10,15 @@
 
 <template x-teleport="body">
     <div x-show="{!! $state !!}" x-cloak
-         x-on:keydown.escape.window="{!! $close !!}">
-        <div x-on:click.self="{!! $close !!}"
-             class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-[var(--md-sys-color-primary)]/60 animate-slide-down"
-             role="dialog" aria-modal="true" aria-label="{{ $title }}">
+         x-transition:enter="animate-slide-down"
+         x-transition:leave="animate-slide-down-out"
+         x-on:keydown.escape.window="{!! $close !!}"
+         x-on:click.self="{!! $close !!}"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-[var(--md-sys-color-primary)]/60"
+         role="dialog" aria-modal="true" aria-label="{{ $title }}">
 
             <div dir="rtl" x-on:click.stop
-                 class="w-full {{ $maxWidth }} {{ $height }} bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] rounded-2xl shadow-2xl dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col">
+                 class="w-full {{ $maxWidth }} {{ $height }} bg-[var(--md-sys-color-surface)] rounded-2xl modal-lift overflow-hidden flex flex-col">
 
                 <div class="px-4 sm:px-6 py-2.5 sm:py-4 bg-gradient-to-l from-[var(--md-sys-color-primary)] to-[color-mix(in_srgb,var(--md-sys-color-primary)_85%,transparent)] text-[var(--md-sys-color-on-primary)] border-b border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] shrink-0 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
@@ -59,5 +61,4 @@
                 @endisset
             </div>
         </div>
-    </div>
 </template>

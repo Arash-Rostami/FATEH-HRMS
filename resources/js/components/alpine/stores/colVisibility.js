@@ -1,13 +1,13 @@
 const STYLE_ID = 'dms-col-visibility-style';
-const DOMAINS = ['dms', 'ths', 'reservation', 'taskboard'];
-const KEYS = { dms: 'dms-col-hidden', ths: 'ths-col-hidden', reservation: 'reservation-col-hidden', taskboard: 'taskboard-col-hidden' };
-const SCOPES = { dms: '.dms-doc-table', ths: '.ths-ticket-table', reservation: '.reservation-command-table', taskboard: '.taskboard-card' };
+const DOMAINS = ['dms', 'ths', 'reservation', 'taskboard', 'ai-report'];
+const KEYS = { dms: 'dms-col-hidden', ths: 'ths-col-hidden', reservation: 'reservation-col-hidden', taskboard: 'taskboard-col-hidden', 'ai-report': 'ai-report-col-hidden' };
+const SCOPES = { dms: '.dms-doc-table', ths: '.ths-ticket-table', reservation: '.reservation-command-table', taskboard: '.taskboard-card', 'ai-report': '.ai-report-table' };
 
 let styleEl = null;
 
 export default function colVisibility(Alpine) {
     Alpine.store('colVisibility', {
-        maps: { dms: [], ths: [], reservation: [], taskboard: [] },
+        maps: { dms: [], ths: [], reservation: [], taskboard: [], 'ai-report': [] },
         _renderRaf: null,
 
         init() {

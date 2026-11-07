@@ -4,7 +4,7 @@
      x-on:project-open-task-create.window="$wire.openCreateModal()"
      x-on:project-duplicate-task.window="$wire.duplicateTask($event.detail.taskId)"
      x-on:project-switch-tab.window="$wire.switchTab($event.detail.tab)"
-     class="w-full h-[calc(100dvh-60px)] md:h-[calc(100dvh-80px)] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
+     class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
     >
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">

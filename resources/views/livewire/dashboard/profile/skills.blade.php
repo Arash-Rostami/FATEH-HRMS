@@ -87,12 +87,12 @@
                     </p>
                     <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5 flex-wrap">
                         @if($skillUser->status->value === 'pending')
-                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold tracking-wide bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold tracking-wide bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500/20">
                                 <span class="material-symbols-rounded text-[13px]">hourglass_top</span>
                                 {{ $skillUser->status->label() }}
                             </span>
                         @else
-                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold tracking-wide bg-rose-500/10 text-rose-600 ring-1 ring-rose-500/20">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold tracking-wide bg-rose-500/10 text-rose-700 dark:text-rose-300 ring-1 ring-rose-500/20">
                                 <span class="material-symbols-rounded text-[13px]">cancel</span>
                                 {{ $skillUser->status->label() }}
                             </span>

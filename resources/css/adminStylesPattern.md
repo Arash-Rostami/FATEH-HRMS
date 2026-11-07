@@ -53,6 +53,8 @@ Filament-required shades (e.g. `primary-600` for hovers) are generated with CSS 
 ```
 *Developer guideline:* add a new theme in `theme.css` — no need to update `filament.css`. The `color-mix()` math generates the Filament palette from the new primary automatically.
 
+*Exception (2026-11-07 contrast audit):* themes whose LIGHT primary is pale (arctic, obsidian, magneta) make `text-primary-700/800/900` unreadable on `primary-50` (magneta measured 2.1:1), so `filament.css` re-derives those three steps with more black for `[data-theme=…]:not(.dark)` only; a future pale-primary theme needs the same two-line entry. The admin top bar now follows the user toolbar: `.fi-topbar` takes `var(--toolbar-bg, primary)` and shares the `theme.css` toolbar rules through `:is(#navbar > nav, .fi-topbar)` (white `on-primary`, pale-red `--toolbar-error`); its icon buttons use `on-primary` instead of `primary-container`, which would vanish on the dark bar. The global search is styled on the WRAPPER only (`.fi-global-search-ctn .fi-input-wrp`: borderless 10% `on-primary` fill, 15% on hover, 2px `on-primary/60` focus ring) with every `fi-input-wrp-*` child AND the outer `.fi-global-search-field` transparent (that outer div used to be painted solid `on-primary`, which showed through the translucent fill as a white box) — the old `[class*="fi-input-wrp"]` selector painted the prefix, suffix and content parts separately, which showed up as a bordered patchwork box with a mismatched "Ctrl+K" chip. Solid step badges pair the fill with its own text: `bg-primary-500` with `--md-sys-color-on-primary`, success/danger fills use the `-700` step with white (`suggestion/workflow.blade.php`).
+
 ---
 
 ## 4. UI Morphing: Overriding Filament Core (`.fi-*`)

@@ -18,7 +18,7 @@
                         <button type="button"
                                 wire:loading.attr="disabled" wire:target="togglePendingFilter('receive')"
                                 wire:click="togglePendingFilter('receive')"
-                                class="font-bold rounded px-1.5 transition-colors {{ $pendingFilter === 'receive' ? 'bg-[var(--md-sys-color-error)] text-white' : 'underline decoration-dotted underline-offset-4 hover:text-[var(--md-sys-color-error)]' }}"
+                                class="font-bold rounded px-1.5 transition-colors {{ $pendingFilter === 'receive' ? 'bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]' : 'underline decoration-dotted underline-offset-4 hover:text-[var(--md-sys-color-error)]' }}"
                         >{{ convertToPersian($this->receivePendingCount) }}</button>
                         سند نیاز به تایید دریافت
                     </span>
@@ -31,7 +31,7 @@
                         <button type="button"
                                 wire:loading.attr="disabled" wire:target="togglePendingFilter('read')"
                                 wire:click="togglePendingFilter('read')"
-                                class="font-bold rounded px-1.5 transition-colors {{ $pendingFilter === 'read' ? 'bg-[var(--md-sys-color-error)] text-white' : 'underline decoration-dotted underline-offset-4 hover:text-[var(--md-sys-color-error)]' }}"
+                                class="font-bold rounded px-1.5 transition-colors {{ $pendingFilter === 'read' ? 'bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]' : 'underline decoration-dotted underline-offset-4 hover:text-[var(--md-sys-color-error)]' }}"
                         >{{ convertToPersian($this->readPendingCount) }}</button>
                         سند نیاز به تایید مطالعه
                     </span>

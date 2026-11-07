@@ -598,6 +598,16 @@ if (!function_exists('tenantOffKeys')) {
     }
 }
 
+if (!function_exists('aiAssistantOn')) {
+    function aiAssistantOn(): bool
+    {
+        return auth()->check()
+            && config('app.ai_assistant_access') === true
+            && filled(config('services.ai_assistant.url'))
+            && !tenantOff('ai-assistant');
+    }
+}
+
 if (!function_exists('tenantOffName')) {
     function tenantOffName(string $name): bool
     {

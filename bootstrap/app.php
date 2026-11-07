@@ -12,6 +12,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -38,6 +39,14 @@ return Application::configure(basePath: dirname(__DIR__))
             if (str_contains($e->getMessage(), 'Utime failed')) {
                 return false;
             }
+        });
+
+        $exceptions->render(function (InvalidSignatureException $e, Request $request) {
+            if ($request->routeIs('ai-report.shared') && $request->user() !== null) {
+                return redirect()->route('ai-report')->with('ai-report-notice', 'لینک منقضی شده؛ از فهرست «دریافتی» گزارش را باز کنید.');
+            }
+
+            return null;
         });
 
         $exceptions->render(function (Throwable $e, Request $request) {

@@ -7,7 +7,7 @@ use Illuminate\View\View;
 
 class ModuleAssetChunksComposer
 {
-    private const MODULES = ['dms', 'ths', 'taskboard', 'project', 'channel', 'contact', 'reservation', 'profile', 'analytics', 'energy', 'tasksheet'];
+    private const MODULES = ['dms', 'ths', 'taskboard', 'project', 'channel', 'contact', 'reservation', 'profile', 'analytics', 'energy', 'tasksheet', 'ai-report'];
 
     public function compose(View $view): void
     {

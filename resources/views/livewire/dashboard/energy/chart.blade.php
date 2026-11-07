@@ -129,8 +129,8 @@
                                                 title="{{ $member['name'] }}">{{ $member['name'] }}</td>
                                             <td class="px-5 py-3 text-left w-16">
                                                 <span
-                                                    class="inline-flex min-w-[28px] h-6 items-center justify-center rounded-full px-2 text-xs font-bold text-white dark:text-[var(--md-sys-color-background)] shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
-                                                    style="background-color: var({{ $presenter->getScoreColorVar($member['scores']['overall'] ?? 0) }}, var(--md-sys-color-primary));">
+                                                    class="inline-flex min-w-[28px] h-6 items-center justify-center rounded-full px-2 text-xs font-bold shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
+                                                    style="background-color: var({{ $presenter->getScoreColorVar($member['scores']['overall'] ?? 0) }}, var(--md-sys-color-primary)); color: var({{ str_replace('color-', 'color-on-', $presenter->getScoreColorVar($member['scores']['overall'] ?? 0)) }}, var(--md-sys-color-on-primary));">
                                                     {{ isset($member['scores']['overall']) ? convertToPersian($member['scores']['overall']) : '-' }}
                                                 </span>
                                             </td>

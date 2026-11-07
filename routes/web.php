@@ -13,6 +13,7 @@ use App\Livewire\Dashboard\Channel\Main as Channel;
 use App\Livewire\Dashboard\Dms\Main as Dms;
 use App\Livewire\Dashboard\Energy\Main as Energy;
 use App\Livewire\Dashboard\Profile\Main as Profile;
+use App\Livewire\Dashboard\AiReport\Main as AiReport;
 use App\Livewire\Dashboard\Project\Main as Project;
 use App\Livewire\Dashboard\Reservation\Main as Reservation;
 use App\Livewire\Dashboard\Suggestion\Main as Suggestion;
@@ -59,6 +60,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/projects', Project::class)->name('projects');
     Route::get('/tasksheet', Tasksheet::class)->name('tasksheet');
     Route::get('/tasksheet/shared/{subject}', Tasksheet::class)->middleware('signed')->name('tasksheet.shared');
+    Route::get('/ai-report', AiReport::class)->name('ai-report');
+    Route::get('/ai-report/shared/{report}', AiReport::class)->middleware('signed')->name('ai-report.shared');
     Route::get('/dms', Dms::class)->name('dms');
     Route::get('/ths', Ths::class)->name('ths');
     Route::get('/ads', Ads::class)->name('ads');

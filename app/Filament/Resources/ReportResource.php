@@ -14,6 +14,7 @@ use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
+use App\Traits\FilamentResourceSwitch;
 use App\Traits\FilamentVisibility;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -28,7 +29,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReportResource extends Resource
 {
-    use FilamentAdminGuide, FilamentActions, FilamentFilters, FilamentVisibility, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, FilamentVisibility, AuthorizesByPermission, FilamentResourceSwitch;
+
+    protected static function switchGroup(): array
+    {
+        return array_values(array_filter(
+            [self::class, AiReportResource::class],
+            fn (string $resource) => ! tenantOffName($resource::getSlug())
+        ));
+    }
 
     protected static ?string $model = Report::class;
     protected static ?string $recordTitleAttribute = 'title';

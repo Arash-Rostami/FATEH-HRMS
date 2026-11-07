@@ -149,6 +149,7 @@ $tenants = [
         //     'faq:card' => false,
         //     'calendar:day' => false,
         //     'taskboard' => false,            // also hides projects + tasksheet + ths (its 'with' list in config/modules.php)
+            'ai-report' => false,            // hides the AI report module: route 404, menu, admin resource, badges
          ],                                   // see everything hidden: php artisan tenant:hidden   |  all keys: php artisan tenant:hidden --all
 
         'sibling' => [],

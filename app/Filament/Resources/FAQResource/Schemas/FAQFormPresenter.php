@@ -26,10 +26,10 @@ class FAQFormPresenter
             ->helperText(__('resources/faq/strings.helper_text.answer'))
             ->hint(__('resources/faq/strings.hint.answer'))
             ->textColors([
-                'primary' => TextColor::make('Primary', '#3b82f6', darkColor: '#60a5fa'),
-                'success' => TextColor::make('Success', '#22c55e', darkColor: '#4ade80'),
-                'warning' => TextColor::make('Warning', '#f59e0b', darkColor: '#fbbf24'),
-                'danger' => TextColor::make('Danger', '#ef4444', darkColor: '#f87171'),
+                'primary' => TextColor::make('Primary', '#1D4ED8', darkColor: '#60a5fa'),
+                'success' => TextColor::make('Success', '#15803D', darkColor: '#4ade80'),
+                'warning' => TextColor::make('Warning', '#B45309', darkColor: '#fbbf24'),
+                'danger' => TextColor::make('Danger', '#B91C1C', darkColor: '#f87171'),
                 ...TextColor::getDefaults(),
             ])
             ->extraInputAttributes(['class' => 'fi-prose', 'style' => 'min-height: 280px;'])
@@ -96,7 +96,7 @@ class FAQFormPresenter
             ->columnSpanFull()
             ->placeholder(__('resources/faq/strings.placeholders.question'))
             ->textColors([
-                'primary' => TextColor::make('Primary', '#3b82f6', darkColor: '#60a5fa'),
+                'primary' => TextColor::make('Primary', '#1D4ED8', darkColor: '#60a5fa'),
                 ...TextColor::getDefaults(),
             ])
             ->toolbarButtons([

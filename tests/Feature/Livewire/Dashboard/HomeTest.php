@@ -90,7 +90,13 @@ class HomeTest extends TestCase
         $this->actingAs($user);
         $placeholder = view('livewire.dashboard.tab.home.placeholder')->render();
 
-        $this->assertStringContainsString('x-data="home(\'', $placeholder);
+        $this->assertStringContainsString('x-data="home($el.dataset.greeting)"', $placeholder);
+        $this->assertStringContainsString('data-greeting="', $placeholder);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Home::class)
+            ->assertSeeHtml('x-data="home($el.dataset.greeting)"')
+            ->assertSeeHtml('data-greeting="');
     }
 
     public function test_modules_computed_returns_config_modules_array()

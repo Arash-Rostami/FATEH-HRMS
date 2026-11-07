@@ -2,6 +2,8 @@
 
 Everything about the Material Symbols icon font lives in this one folder.
 
+**Gotcha (2026-11-07):** the subset only contains icons found in the code at the last `npm run icons`, and that step is wired as `prebuild`, so it runs for `npm run build` but NOT for `npx vite build` / `vite build` called directly. A new icon name added after the last icons run renders as its literal text (`format_color_fill`) until `node resources/icons/build.mjs` (or a full `npm run build`) is run and the page is hard-refreshed (the font URL carries a new version hash).
+
 ```
 resources/icons/
 ├── build.mjs        # build step: scans the repo, cuts the font, writes generated/

@@ -1,7 +1,8 @@
 <div
     class="w-full max-w-[88rem] mx-auto !pt-0 text-[var(--md-sys-color-on-surface)] transition-colors duration-300 antialiased selection:bg-[var(--md-sys-color-primary)] selection:text-[var(--md-sys-color-on-primary)]"
     dir="rtl"
-    x-data="home('{{ addslashes(shortGreeting(auth()->user()?->casual_name ?? '')) }}')">
+    data-greeting="{{ shortGreeting(auth()->user()?->casual_name ?? '') }}"
+    x-data="home($el.dataset.greeting)">
 
     <x-ui.title icon="home" title="خانه"/>
 
@@ -114,7 +115,7 @@
                 @else
                     <div wire:key="home-team-pulse-quiet" title="در حال حاضر همکاری آنلاین نیست"
                          class="shrink-0 inline-flex items-center gap-1.5 h-6 px-2.5 rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-primary-container)_10%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-on-primary-container)_18%,transparent)] text-[var(--md-sys-color-on-primary-container)]/80">
-                        <span class="material-symbols-rounded text-[15px] leading-none">bedtime</span>
+                        <span class="material-symbols-rounded text-[15px] leading-none">group_off</span>
                         <span class="text-[10px] font-bold whitespace-nowrap">همکاری آنلاین نیست</span>
                     </div>
                 @endif
@@ -188,9 +189,9 @@
 
                     <div
                         class="text-[11px] tracking-[0.2em] inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300"
-                        :class="!online ? 'bg-red-500/15 border-red-500/30 text-red-500' : (lan ? 'bg-amber-500/15 border-amber-500/30 text-amber-600' : 'bg-[var(--md-sys-color-primary)]/15 border-[var(--md-sys-color-primary)]/20 text-[var(--md-sys-color-on-primary-container)]')">
+                        :class="!online ? 'bg-[var(--md-sys-color-error)]/15 border-[var(--md-sys-color-error)]/30 text-[var(--md-sys-color-error)]' : (lan ? 'bg-[var(--md-sys-color-warning)]/15 border-[var(--md-sys-color-warning)]/30 text-[var(--md-sys-color-on-warning-container)]' : 'bg-[var(--md-sys-color-primary)]/15 border-[var(--md-sys-color-primary)]/20 text-[var(--md-sys-color-on-primary-container)]')">
                         <span class="material-symbols-rounded !text-[20px]"
-                              :class="!online ? 'text-red-500' : (lan ? 'text-amber-500' : 'animate-pulse text-[var(--md-sys-color-primary)]')"
+                              :class="!online ? 'text-[var(--md-sys-color-error)]' : (lan ? 'text-[var(--md-sys-color-on-warning-container)]' : 'animate-pulse text-[var(--md-sys-color-primary)]')"
                               x-text="connection.icon"></span>
                         <span x-text="connection.label"></span>
 

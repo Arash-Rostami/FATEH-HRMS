@@ -65,7 +65,7 @@
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
                          :class="currentStatus === '{{ $status->value }}'
-                            ? 'bg-{{ $status->color() }}-500 text-white dark:bg-{{ $status->color() }}-400 dark:text-{{ $status->color() }}-950 shadow-lg shadow-{{ $status->color() }}-500/25'
+                            ? 'bg-{{ $status->color() }}-700 text-white dark:bg-{{ $status->color() }}-400 dark:text-{{ $status->color() }}-950 shadow-lg shadow-{{ $status->color() }}-500/25'
                             : 'bg-{{ $status->color() }}-500/10 text-{{ $status->color() }}-400 group-hover/item:bg-{{ $status->color() }}-500 group-hover/item:text-white'">
                         <span class="material-symbols-rounded text-[20px]">{{ $status->icon() }}</span>
                     </div>

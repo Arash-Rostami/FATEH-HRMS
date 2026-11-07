@@ -35,6 +35,7 @@ class BadgeLegendCatalog
                 'tracking' => ['label' => 'پیگیری', 'icon' => 'fact_check'],
                 'reports' => ['label' => 'گزارش', 'icon' => 'show_chart'],
                 'tasksheet' => ['label' => 'تسک‌شیت', 'icon' => 'assignment_turned_in'],
+                'ai-report' => ['label' => 'گزارش ساز هوشمند', 'icon' => 'article'],
             ],
             'tasks' => [
                 'list' => ['label' => 'فهرست', 'icon' => 'checklist'],
@@ -237,6 +238,12 @@ class BadgeLegendCatalog
                 'label' => 'گزارش تسک‌شیت به اشتراک گذاشته شد',
                 'lights' => 'وقتی مدیرتان یا خودتان یک گزارش تسک‌شیت را برای کسی ارسال کنید. این مورد دات ندارد، فقط زنگوله.',
                 'clears' => 'با بستن زنگوله؛ دکمهٔ «مشاهده» همان گزارش را در تب جدید باز می‌کند — لینک تا ۷ روز معتبر است.',
+            ],
+            'ai-report-controller' => [
+                'group' => 'compliance', 'subgroup' => 'ai-report', 'tone' => 'sage', 'icon' => 'article',
+                'label' => 'گزارشی در گزارش ساز هوشمند با شما به اشتراک گذاشته شد',
+                'lights' => 'وقتی همکارتان یک گزارش را با شما به اشتراک بگذارد، هم اعلان زنگوله‌ای می‌آید و هم کنار «گزارش ساز هوشمند» در منو دات روشن می‌شود.',
+                'clears' => 'دات خودکار خاموش می‌شود به‌محض اینکه گزارش را باز کنید (یا اگر اشتراک لغو شود). اعلان زنگوله را خودتان می‌بندید؛ دکمهٔ «مشاهده» گزارش را باز می‌کند و تا ' . convertToPersian(config('ai_report.share_link_days')) . ' روز کار می‌کند. بعد از آن هم می‌توانید گزارش را از لیست «دریافتی» در صفحهٔ گزارش ساز هوشمند ببینید.',
             ],
             'reminders-controller' => [
                 'group' => 'tasks', 'subgroup' => 'reminders-badge', 'tone' => 'gold', 'icon' => 'notifications_active',

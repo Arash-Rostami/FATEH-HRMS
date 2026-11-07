@@ -24,7 +24,12 @@ Cross-model duplicates live as traits in `app/Models/Concerns/`. Composition is 
 | `HasExtraPreferences` | User | `getExtraValue`/`getPreference`/`setExtraValue` + `extra()` attribute + decode/merge privates |
 | `HasBookingRows` | User | `bookingRows`/`bookingMax` + `booking()` attribute |
 | `HasTodaysDesk` | User | today's-desk static cache + label/summary helpers |
-| `HasUser` | 22 models (see the pin test) | plain `user(): BelongsTo` — default `user_id` FK, byte-identical across consumers |
+| `HasActive` | AiReport (plus its other consumers, see the pin test) | `active` fillable/cast init plus `scopeActive`/`scopeInactive` |
+| `HasSharedRecipients` | AiReport | recipients list, replace-share, `isRecipient`, shared-visibility scope, `seen_by` tracking (`scopeUnseenBy`, `markSeenBy`) behind the menu badge |
+| `HasVersionHistory` | AiReport | `versions` JSON: `pushVersion` (trim keeps last N and flags `versions[0]['trimmed']`), `lastVersion`, `lastSpecVersion` |
+| `HasDailyQuota` | AiReport | per-user per-day cache counter: `consumeQuota`, `refundQuota` (floored at 0), `quotaUsed`, `quotaCap` |
+| `HasGenerationLifecycle` | AiReport | `isStale`, `scopeFreshGenerating($userId)` (owner + `generating` + `updated_at` within `stale_minutes`; the one "is a run in progress" query shared by `GenerateReportAction::assertIdle` and `Main`), `markFailed` (conditional update, the only refund path; refunds the day in the last version's `quota_day`, re-reading `versions` from the DB when the instance came from a column-limited list select), `tempDirectory` |
+| `HasUser` | 23 models (see the pin test) | plain `user(): BelongsTo` — default `user_id` FK, byte-identical across consumers |
 | `HasDepartment` | 7 models (see the pin test) | `department(): BelongsTo` on `department_id` → owner key `code` |
 
 Rules for adding to this registry:
@@ -82,7 +87,7 @@ Caching lives at the **model layer**. Livewire `#[Computed]` is per-request memo
 
 **Use when:** high-churn append stream (version flips on nearly every request) or cheap indexed queries where caching costs more than it saves. Plain `#[Computed]` (per-request memo), never `cache: true`, never `Cache::remember`.
 
-`NotifyLog`, `Read`, `Reaction`, `Comment`, `Reply`, `Message`, `ChannelMessage`, `ChannelMember`, `SkillUser`, `EventShare`, `TaskDetail`, DMS thread mutation, `Task` board, `Reservation` calendar, `Ticket` (list + reply counts live), `Poll` (live relation query), `Channel` list, the `FAQ`/`Feed` **lists** (only their categories are Tier V), `Reminder` (zero cache code by design; one per-request static memo `openForUser()` cleared on write — see `reminderPattern.md`).
+`NotifyLog`, `Read`, `Reaction`, `Comment`, `Reply`, `Message`, `ChannelMessage`, `ChannelMember`, `SkillUser`, `EventShare`, `TaskDetail`, DMS thread mutation, `Task` board, `Reservation` calendar, `AiReport` (generation status is live and polled), `Ticket` (list + reply counts live), `Poll` (live relation query), `Channel` list, the `FAQ`/`Feed` **lists** (only their categories are Tier V), `Reminder` (zero cache code by design; one per-request static memo `openForUser()` cleared on write — see `reminderPattern.md`).
 
 ## The rules
 

@@ -11,9 +11,16 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ListReports extends ListRecords
 {
-    use FilamentHeaderActions;
+    use FilamentHeaderActions {
+        getHeaderActions as private baseHeaderActions;
+    }
 
     protected static string $resource = ReportResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [...ReportResource::switchActions(static::$resource), ...$this->baseHeaderActions()];
+    }
 
     public function getTabs(): array
     {

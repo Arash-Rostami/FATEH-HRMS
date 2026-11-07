@@ -73,6 +73,14 @@ return [
     |
     */
 
+    'tmp_prune' => [
+        'hours' => 24,
+        'max' => 10000,
+        'roots' => [
+            ['local', 'ai-report/tmp'],
+        ],
+    ],
+
     'links' => [
         public_path('storage') => storage_path('app/public'),
     ],

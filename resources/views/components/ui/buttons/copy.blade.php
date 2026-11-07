@@ -17,6 +17,6 @@
         <span class="material-symbols-rounded text-[20px]">content_copy</span>
     </template>
     <template x-if="copied">
-        <span class="material-symbols-rounded text-[20px] text-green-500">check</span>
+        <span class="material-symbols-rounded text-[20px] text-green-700 dark:text-green-400">check</span>
     </template>
 </button>

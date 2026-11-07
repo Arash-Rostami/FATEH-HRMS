@@ -201,7 +201,7 @@
                 <span>{{ $isRequester ? 'ارزیابی شما' : 'ارزیابی درخواست‌کننده' }}</span>
                 <span class="inline-flex gap-0.5" dir="ltr" aria-label="امتیاز {{ convertToPersian($score) }} از ۵">
                     @for($i = 1; $i <= 5; $i++)
-                        <span class="material-symbols-rounded text-[16px] {{ $score >= $i ? 'text-[#FFB300] font-variation-fill' : 'text-[var(--md-sys-color-outline-variant)]/60' }}">star</span>
+                        <span class="material-symbols-rounded text-[16px] {{ $score >= $i ? 'text-[var(--md-sys-color-warning)] font-variation-fill' : 'text-[var(--md-sys-color-outline-variant)]/60' }}">star</span>
                     @endfor
                 </span>
             </div>

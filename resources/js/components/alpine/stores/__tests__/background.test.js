@@ -30,6 +30,76 @@ describe('background store — localStorage round-trips (resolved at call time, 
     })
 })
 
+describe('background.setTone — four page-colour tones, dark derived in CSS', () => {
+    afterEach(() => {
+        delete document.documentElement.dataset.bgTone
+    })
+
+    test('defaults to no tone, restores a valid stored tone and ignores an unknown stored value', () => {
+        expect(fresh().tone).toBe('')
+        localStorage.setItem('bgTone', 'mist')
+        expect(fresh().tone).toBe('mist')
+        localStorage.setItem('bgTone', 'neon')
+        expect(fresh().tone).toBe('')
+    })
+
+    test('setTone persists, sets html[data-bg-tone], toggles off on the same id, and ignores unknown ids', () => {
+        const s = fresh()
+
+        s.setTone('pearl')
+        expect(s.tone).toBe('pearl')
+        expect(localStorage.getItem('bgTone')).toBe('pearl')
+        expect(document.documentElement.dataset.bgTone).toBe('pearl')
+
+        s.setTone('pearl')
+        expect(s.tone).toBe('')
+        expect(document.documentElement.dataset.bgTone).toBeUndefined()
+
+        s.setTone('neon')
+        expect(s.tone).toBe('')
+        expect(s.tones.map((t) => t.id)).toEqual(['snow', 'pearl', 'mist', 'ash'])
+        expect(s.tones.every((t) => /^#[0-9A-F]{6}$/.test(t.light) && t.k.endsWith('%') && Number(t.dl) > 0 && Number(t.dl) < 0.4)).toBe(true)
+    })
+
+    test('setHue clamps to 0-359, persists "hue:N", sets data-bg-tone=hue + --tone-h, and restores from storage', () => {
+        const s = fresh()
+
+        s.setHue(210)
+        expect(s.tone).toBe('hue:210')
+        expect(s.hue).toBe(210)
+        expect(localStorage.getItem('bgTone')).toBe('hue:210')
+        expect(document.documentElement.dataset.bgTone).toBe('hue')
+        expect(document.documentElement.style.getPropertyValue('--tone-h')).toBe('210')
+
+        s.setHue(999)
+        expect(s.hue).toBe(359)
+
+        s.setHue('abc')
+        expect(s.hue).toBe(359)
+
+        localStorage.setItem('bgTone', 'hue:120')
+        const r = fresh()
+        expect(r.tone).toBe('hue:120')
+        expect(r.hue).toBe(120)
+
+        localStorage.setItem('bgTone', 'hue:999')
+        expect(fresh().tone).toBe('')
+    })
+
+    test('toggleTone turns the first neutral tone (snow) on by default, and off again (clearing the html hooks)', () => {
+        const s = fresh()
+
+        s.toggleTone()
+        expect(s.tone).toBe('snow')
+        expect(document.documentElement.dataset.bgTone).toBe('snow')
+
+        s.toggleTone()
+        expect(s.tone).toBe('')
+        expect(document.documentElement.dataset.bgTone).toBeUndefined()
+        expect(document.documentElement.style.getPropertyValue('--tone-h')).toBe('')
+    })
+})
+
 describe('background.toggleBackground', () => {
     test('enabling turns the background on, forces patternEnabled off, and persists both flags', () => {
         const s = fresh()

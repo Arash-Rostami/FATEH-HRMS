@@ -33,7 +33,7 @@
                         </template>
                     </div>
                     <span x-show="!(playing && volume > 0)" class="h-2.5 w-2.5 rounded-full shadow-inner"
-                          :style="playing ? 'background:#1a7f5a' : (status==='خطا'||status==='آفلاین' ? 'background:var(--md-sys-color-error)' : 'background:var(--md-sys-color-outline)')"></span>
+                          :style="playing ? 'background:var(--presence-onsite)' : (status==='خطا'||status==='آفلاین' ? 'background:var(--md-sys-color-error)' : 'background:var(--md-sys-color-outline)')"></span>
                 </div>
 
                 <div class="flex min-w-0 flex-1 flex-col">

@@ -38,7 +38,7 @@ describe('thsModal factory', () => {
         c.closeModal()
         expect(c.isClosing).toBe(true)
         expect(document.getElementById('content-shell').hasAttribute('inert')).toBe(true)
-        vi.advanceTimersByTime(300)
+        vi.advanceTimersByTime(600)
         expect(document.getElementById('content-shell').hasAttribute('inert')).toBe(false)
         expect(c.$wire.set).toHaveBeenCalledWith('selectedTicket', null)
     })
@@ -49,7 +49,7 @@ describe('thsModal factory', () => {
         c.$wire.selectedTicket = { id: 1 }
         c.closeModal()
         c.$wire.selectedTicket = { id: 2 }
-        vi.advanceTimersByTime(300)
+        vi.advanceTimersByTime(600)
         expect(c.$wire.set).not.toHaveBeenCalled()
         expect(document.getElementById('content-shell').hasAttribute('inert')).toBe(true)
         expect(c.isClosing).toBe(false)

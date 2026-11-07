@@ -112,6 +112,63 @@ describe('menu._filteredItems / allVisibleItems / activePages', () => {
         expect(m.allVisibleItems.map((i) => i.id)).toEqual(['alpha'])
     })
 
+    test('a home-tab query that the launcher does not list names the rail instead of a tile', () => {
+        const m = menu()
+        m.$watch = vi.fn()
+        m.initFancybox = vi.fn()
+        vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+        m.init()
+        m.$store = { pinned: withPins([]) }
+
+        m.search = 'link'
+        expect(m.allVisibleItems.map((i) => i.id)).not.toContain('links')
+        expect(m.tabHints.map((t) => t.label)).toEqual(['لینک‌ها'])
+        expect(m.tabHintText).toContain('نوار سمت راست')
+        expect(m.tabHintText).toContain('نوار پایین')
+
+        m.search = 'لینکها'
+        expect(m.tabHints.map((t) => t.id)).toEqual(['links'])
+
+        m.destroy()
+        vi.unstubAllGlobals()
+    })
+
+    test('a turned-off home tab is not hinted', () => {
+        const m = menu({ off: ['links'] })
+        m.$watch = vi.fn()
+        m.initFancybox = vi.fn()
+        vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+        m.init()
+
+        m.search = 'link'
+        expect(m.tabHints).toEqual([])
+
+        m.destroy()
+        vi.unstubAllGlobals()
+    })
+
+    test('an item with a requires gate is dropped unless the option is exactly true (2026-11-07 — ai-assistant menu entry)', () => {
+        const boot = (opts) => {
+            const m = menu(opts)
+            m.$watch = vi.fn()
+            m.initFancybox = vi.fn()
+            vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+            m.init()
+            return m
+        }
+        const ids = (m) => m.items.map((i) => i.id)
+
+        expect(ids(boot({ aiAssistant: true }))).toContain('ai-assistant')
+        expect(ids(boot({ aiAssistant: false }))).not.toContain('ai-assistant')
+        expect(ids(boot({ aiAssistant: 'https://ai.example.com' }))).not.toContain('ai-assistant')
+        expect(ids(boot({}))).not.toContain('ai-assistant')
+        expect(ids(boot({ aiAssistant: true, off: ['ai-assistant'] }))).not.toContain('ai-assistant')
+        expect(ids(boot({ aiAssistant: true }))).toContain('ai-report-controller')
+
+        boot({}).destroy()
+        vi.unstubAllGlobals()
+    })
+
     test('no search and not recent-only falls back to the full sortedItems/paginatedData', () => {
         const m = menu()
         m.$store = { pinned: withPins([]) }
@@ -248,6 +305,58 @@ describe('menu.togglePin', () => {
         expect(evt.preventDefault).toHaveBeenCalled()
         expect(evt.stopPropagation).toHaveBeenCalled()
         expect(() => m.togglePin(null)).not.toThrow()
+    })
+})
+
+function withBootedMenu(options, run) {
+    const m = menu(options)
+    m.$watch = vi.fn()
+    m.initFancybox = vi.fn()
+    vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+    m.init()
+    try {
+        run(m)
+    } finally {
+        m.destroy()
+        vi.unstubAllGlobals()
+    }
+}
+
+describe('menu AI assistant entry — tenancy gate, accent flag and click action', () => {
+    test('is listed only when the server passes aiAssistant: true', () => {
+        withBootedMenu({}, (m) => expect(m.items.map((i) => i.id)).not.toContain('ai-assistant'))
+        withBootedMenu({ aiAssistant: false }, (m) => expect(m.items.map((i) => i.id)).not.toContain('ai-assistant'))
+        withBootedMenu({ aiAssistant: true }, (m) => expect(m.items.map((i) => i.id)).toContain('ai-assistant'))
+    })
+
+    test('a tenant that switches the module off hides it even when the option is on', () => {
+        withBootedMenu({ aiAssistant: true, off: ['ai-assistant'] }, (m) => expect(m.items.map((i) => i.id)).not.toContain('ai-assistant'))
+    })
+
+    test('both AI entries carry the ai accent flag, and the assistant is an action item', () => {
+        withBootedMenu({ aiAssistant: true }, (m) => {
+            const assistant = m.items.find((i) => i.id === 'ai-assistant')
+            expect(assistant).toMatchObject({ ai: true, href: '-', action: 'ai-assistant' })
+            expect(m.items.find((i) => i.id === 'ai-report-controller').ai).toBe(true)
+            expect(m.items.filter((i) => i.ai).length).toBe(2)
+        })
+    })
+
+    test('the AI report entry follows its own tenant key', () => {
+        withBootedMenu({ off: ['ai-report'] }, (m) => expect(m.items.map((i) => i.id)).not.toContain('ai-report-controller'))
+    })
+
+    test('clicking the assistant dispatches ai-assistant and closes the menu', () => {
+        withBootedMenu({ aiAssistant: true }, (m) => {
+            m._saveState = vi.fn()
+            m.closeMenu = vi.fn()
+            m.$dispatch = vi.fn()
+            const evt = { preventDefault: vi.fn() }
+            m.handleItemClick(m.items.find((i) => i.id === 'ai-assistant'), evt)
+            expect(evt.preventDefault).toHaveBeenCalled()
+            expect(m.$dispatch).toHaveBeenCalledWith('ai-assistant')
+            expect(m.closeMenu).toHaveBeenCalled()
+        })
     })
 })
 

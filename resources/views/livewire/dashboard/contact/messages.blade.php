@@ -96,13 +96,13 @@
 
                     <div x-show="editingMsg?.id === {{ $msg['id'] }}" style="display: none;"
                         class="rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
-                        <textarea wire:model="edit.editingBody"
+                        <textarea dir="auto" wire:ignore.self wire:model="edit.editingBody"
                                   x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();saveEdit({{ $msg['id'] }})}"
                                   x-on:keydown.escape="cancelEdit"
                                   x-effect="if (editingMsg?.id === {{ $msg['id'] }}) $nextTick(() => { $el.focus(); $el.selectionStart = $el.selectionEnd = $el.value.length })"
-                                  x-on:input="$el.style.height='auto'; $el.style.height = Math.min($el.scrollHeight, 120) + 'px'"
+                                  x-on:input="if ($el.scrollHeight > $el.clientHeight) $el.style.height = Math.min($el.scrollHeight, 320) + 'px'"
                                   rows="1"
-                                  class="w-full bg-transparent px-4 py-3 text-sm resize-none focus:outline-none leading-relaxed min-h-[40px] max-h-[120px] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]"></textarea>
+                                  class="w-full bg-transparent px-4 py-3 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[320px] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]"></textarea>
                         @error('edit.editingBody')
                         <p class="px-4 pb-1 text-[10px] text-[var(--md-sys-color-error)] flex items-center gap-1">
                             <span class="material-symbols-rounded text-[10px]">error</span>{{ $message }}
@@ -111,7 +111,7 @@
                         <div
                             class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
                             <span
-                                class="hidden md:inline text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-40">Enter ذخیره · Esc انصراف</span>
+                                class="hidden md:inline text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-70">Enter ذخیره · Esc انصراف</span>
                             <div class="flex items-center gap-1.5">
                                 <button x-on:click.prevent="cancelEdit"
                                         class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
@@ -159,7 +159,7 @@
 
                                 @include('livewire.dashboard.messaging.reply-quote', ['msg' => $msg])
                                 @if($msg['body'] !== '')
-                                    <span>{!! $msg['body_html'] !!}</span>
+                                    <span dir="auto" class="block break-words [unicode-bidi:plaintext]">{!! $msg['body_html'] !!}</span>
                                 @endif
                                 @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])
                             </div>
@@ -183,7 +183,7 @@
                                         <span @class([
                                                     'material-symbols-rounded text-[13px] transition-colors duration-300',
                                                     'text-[var(--md-sys-color-primary)]' => $msg['is_read'],
-                                                    'text-[var(--md-sys-color-on-surface-variant)] opacity-50' => !$msg['is_read']
+                                                    'text-[var(--md-sys-color-on-surface-variant)] opacity-70' => !$msg['is_read']
                                                 ])
                                               title="{{ $msg['is_read'] ? 'خوانده شد: ' . $msg['read_at_label'] : 'ارسال شد' }}">{{ $msg['is_read'] ? 'done_all' : 'done' }}
                                             </span>
@@ -233,5 +233,5 @@
      x-transition:leave-start="opacity-100 translate-y-0"
      x-transition:leave-end="opacity-0 translate-y-4"
      class="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-5 py-3 rounded-lg shadow-2xl text-sm bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-    <button x-on:click="undoDelete()" class="font-bold transition-colors text-[#facc15]">↻ بازگشت</button>
+    <button x-on:click="undoDelete()" class="font-bold transition-colors text-[var(--md-sys-color-on-primary)]">↻ بازگشت</button>
 </div>

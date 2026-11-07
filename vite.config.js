@@ -59,6 +59,7 @@ export default defineConfig({
                 'resources/js/components/alpine/modules/analytics.js',
                 'resources/js/components/alpine/modules/energy.js',
                 'resources/js/components/alpine/modules/tasksheet.js',
+                'resources/js/components/alpine/modules/ai-report.js',
             ],
             refresh: true,
         }),

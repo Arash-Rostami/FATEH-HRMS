@@ -4,34 +4,20 @@
         <div
             x-data="occasion"
             x-show="show"
-            x-transition:enter="transition ease-out duration-400"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-250"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0"
+            x-transition:enter="animate-slide-down"
+            x-transition:leave="animate-slide-down-out"
+            x-on:click.self="close()"
+            class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0 bg-[var(--md-sys-color-primary)]/60"
             style="display: none;"
         >
-            {{-- Backdrop --}}
-            <div class="absolute inset-0 bg-[var(--md-sys-color-primary)]/60" @click="close()"></div>
-
-            {{-- Confetti canvas --}}
             <canvas id="confetti-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-[101]"></canvas>
 
-            {{-- Modal card --}}
             <div
-                x-transition:enter="transition ease-out duration-400"
-                x-transition:enter-start="opacity-0 translate-y-6 scale-95"
-                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-95"
+                x-on:click.stop
                 class="relative w-full max-w-sm
                bg-[var(--md-sys-color-surface)]
                rounded-3xl overflow-hidden
-               border border-[var(--md-sys-color-outline-variant)]
-               shadow-[0_24px_64px_rgba(0,0,0,0.25)]
+               modal-lift
                z-[102]"
                 dir="rtl"
             >

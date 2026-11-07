@@ -12,6 +12,7 @@ class ModuleChunkComposer
         'reservation' => 'reservation', 'profile' => 'profile',
         'analytics' => 'analytics', 'energy' => 'energy',
         'tasksheet' => 'tasksheet', 'tasksheet.shared' => 'tasksheet',
+        'ai-report' => 'ai-report', 'ai-report.shared' => 'ai-report',
     ];
 
     public function compose(View $view): void

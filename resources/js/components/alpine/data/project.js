@@ -449,7 +449,7 @@ export default function project() {
 
             try {
                 await wire.sendChatMessage();
-                this.$nextTick(() => this.scrollToBottom(true));
+                this.$nextTick(() => { this.scrollToBottom(true); if (ta) ta.style.height = ''; });
             } catch {
                 this.toast?.('خطا در ارتباط با سرور.', 'error');
             } finally {

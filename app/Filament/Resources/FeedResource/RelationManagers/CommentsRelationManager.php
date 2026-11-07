@@ -32,7 +32,7 @@ class CommentsRelationManager extends RelationManager
                     ->maxLength(5000)
                     ->columnSpanFull()
                     ->textColors([
-                        'primary' => TextColor::make('Primary', '#3b82f6', darkColor: '#60a5fa'),
+                        'primary' => TextColor::make('Primary', '#1D4ED8', darkColor: '#60a5fa'),
                         ...TextColor::getDefaults(),
                     ])
                     ->customTextColors()

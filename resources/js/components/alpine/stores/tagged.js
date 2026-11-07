@@ -1,4 +1,4 @@
-const SCOPES = ['contact', 'channel', 'project', 'task', 'ths', 'reservation'];
+const SCOPES = ['contact', 'channel', 'project', 'task', 'ths', 'reservation', 'ai-report'];
 
 const KEYS = {
     contact: 'tagged-contacts',
@@ -6,7 +6,8 @@ const KEYS = {
     project: 'tagged-projects',
     task: 'tagged-tasks',
     ths: 'tagged-ths',
-    reservation: 'tagged-reservations'
+    reservation: 'tagged-reservations',
+    'ai-report': 'tagged-ai-reports'
 };
 
 const INK = [
@@ -27,11 +28,11 @@ const INK_LEN = 4;
 
 export default function tagged(Alpine) {
     Alpine.store('tagged', {
-        maps: { contact: null, channel: null, project: null, task: null, ths: null, reservation: null },
+        maps: { contact: null, channel: null, project: null, task: null, ths: null, reservation: null, 'ai-report': null },
         palette: INK,
 
         init() {
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < SCOPES.length; i++) {
                 const scope = SCOPES[i];
                 this.maps[scope] = this._load(KEYS[scope]);
             }

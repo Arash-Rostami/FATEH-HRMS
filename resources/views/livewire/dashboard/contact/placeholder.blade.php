@@ -2,7 +2,7 @@
     dir="rtl"
     role="region"
     aria-label="در حال بارگذاری مخاطبین"
-    class="w-full h-[calc(100dvh-60px)] md:h-[calc(100dvh-80px)] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade">
+    class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade">
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col gap-4">
         <x-ui.loaders.skeleton.bar width="w-40" height="h-7"/>

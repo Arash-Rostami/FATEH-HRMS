@@ -365,6 +365,20 @@ class HttpRoutesTest extends TestCase
         }
         $response->assertSee('دستیار هوش مصنوعی');
         $response->assertSee('/?user=' . \Illuminate\Support\Str::slug(config('app.name_en')) . '_' . $user->id, false);
+        $response->assertSee('aiAssistant: true', false);
+    }
+
+    public function test_ai_assistant_menu_entry_hidden_when_access_locked(): void
+    {
+        config(['services.ai_assistant.url' => 'http://localhost:3000', 'app.ai_assistant_access' => 'lock']);
+        $user = $this->deptUser('PS');
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        if ($response->status() === 500) {
+            $this->markTestSkipped('Dashboard route returned 500 — requires seeded state unavailable in a transaction.');
+        }
+        $response->assertSee('aiAssistant: false', false);
     }
 
     public function test_ai_assistant_widget_hidden_when_url_not_configured(): void

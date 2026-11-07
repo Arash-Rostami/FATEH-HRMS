@@ -1,3 +1,5 @@
+@props(['compact' => false])
+
 <div>
     <x-dashboard.settings.toggle-row
         icon="wallpaper"
@@ -5,6 +7,7 @@
         color="teal"
         active="$store.background.enabled"
         action="toggleBackground()"
+        :compact="$compact"
     />
 
     <div class="mb-1">
@@ -14,6 +17,7 @@
             color="amber"
             active="$store.background.patternEnabled"
             action="togglePattern()"
+            :compact="$compact"
         />
 
         <div x-show="$store.background.patternEnabled"
@@ -41,6 +45,42 @@
                         </div>
                     </div>
                 </template>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-1">
+        <x-dashboard.settings.toggle-row
+            icon="format_color_fill"
+            label="رنگ پس‌زمینه"
+            color="violet"
+            active="$store.background.tone !== ''"
+            action="$store.background.toggleTone()"
+            :compact="$compact"
+        />
+
+        <div x-show="$store.background.tone !== ''"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="mt-2 border-r-2 border-violet-500/30 mr-4 pr-3 space-y-3">
+            <div class="flex items-center gap-2 pl-1">
+                <template x-for="t in $store.background.tones" :key="t.id">
+                    <button type="button" @click="$store.background.setTone(t.id)"
+                            :title="t.name" :aria-label="t.name" :aria-pressed="$store.background.tone === t.id"
+                            :style="'--tone:' + t.light + ';--tone-k:' + t.k + ';--tone-dl:' + t.dl"
+                            class="tone-swatch {{ $compact ? 'w-6 h-6' : 'w-7 h-7' }} rounded-lg border transition-all duration-200 active:scale-95"
+                            :class="$store.background.tone === t.id
+                                ? 'ring-2 ring-[var(--md-sys-color-primary)] ring-offset-2 ring-offset-[var(--md-sys-color-surface)] border-transparent'
+                                : 'border-[var(--md-sys-color-outline-variant)]'"></button>
+                </template>
+            </div>
+            <div class="pl-1 pb-1">
+                <input type="range" min="0" max="359" step="1" dir="ltr"
+                       aria-label="طیف رنگ پس‌زمینه"
+                       :value="$store.background.hue"
+                       @input="$store.background.setHue($event.target.value)"
+                       class="hue-slider w-full cursor-pointer">
             </div>
         </div>
     </div>

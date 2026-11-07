@@ -7,30 +7,18 @@
 
             <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6"
                  x-show="!isClosing"
+                 x-transition:enter="animate-slide-down"
+                 x-transition:leave="animate-slide-down-out"
+                 x-on:click.self="if (!max) closeModal()"
+                 :class="max ? '' : 'bg-[var(--md-sys-color-primary)]/60'"
                  dir="rtl">
-
-                <div class="absolute inset-0 z-0 bg-[var(--md-sys-color-primary)]/60"
-                     x-show="!isClosing && !max"
-                     x-transition:enter="motion-safe:transition motion-safe:ease-out motion-safe:duration-300"
-                     x-transition:enter-start="opacity-0"
-                     x-transition:enter-end="opacity-100"
-                     x-transition:leave="motion-safe:transition motion-safe:ease-in motion-safe:duration-200"
-                     x-transition:leave-start="opacity-100"
-                     x-transition:leave-end="opacity-0"
-                     x-on:click="closeModal()"></div>
 
                 <x-ui.modals.max-backdrop/>
 
-                <div class="relative z-10 isolate w-full max-w-4xl max-h-[90vh] rounded-2xl bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-2xl dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col max-sm:absolute max-sm:inset-x-0 max-sm:bottom-0 max-sm:h-[94dvh] max-sm:max-h-none max-sm:max-w-none max-sm:rounded-t-3xl max-sm:rounded-b-none sm:min-h-[60vh]"
+                <div class="relative z-10 isolate w-full max-w-4xl max-h-[90vh] rounded-2xl bg-[var(--md-sys-color-surface)] modal-lift overflow-hidden flex flex-col max-sm:absolute max-sm:inset-x-0 max-sm:bottom-0 max-sm:h-[94dvh] max-sm:max-h-none max-sm:max-w-none max-sm:rounded-t-3xl max-sm:rounded-b-none sm:min-h-[60vh]"
                      :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }"
                      :style="dragY ? { transform: 'translateY(' + dragY + 'px)', transition: 'none' } : null"
-                     x-show="!isClosing"
-                     x-transition:enter="motion-safe:transition motion-safe:ease-out motion-safe:duration-300"
-                     x-transition:enter-start="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
-                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                     x-transition:leave="motion-safe:transition motion-safe:ease-in motion-safe:duration-200"
-                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-on:click.stop
                      role="dialog"
                      aria-modal="true"
                      aria-labelledby="ths-modal-title">

@@ -30,10 +30,18 @@
         default => 'w-3 h-3',
     };
     $badge = match ($size) {
-        'xs' => 'w-3 h-3 text-[8px]',
-        'lg' => 'w-5 h-5 text-[12px]',
-        'xl' => 'w-6 h-6 text-[14px]',
-        default => 'w-4 h-4 text-[10px]',
+        'xs' => 'w-[11px] h-[11px]',
+        'sm' => 'w-[13px] h-[13px]',
+        'lg' => 'w-[19px] h-[19px]',
+        'xl' => 'w-6 h-6',
+        default => 'w-[15px] h-[15px]',
+    };
+    $badgeIcon = match ($size) {
+        'xs' => '!text-[7px]',
+        'sm' => '!text-[8px]',
+        'lg' => '!text-[11px]',
+        'xl' => '!text-[14px]',
+        default => '!text-[9px]',
     };
 @endphp
 
@@ -68,8 +76,8 @@
 <x-ui.presence-dot :online="$online" :size="$dot" :label="$onlineLabel"/>
 @endif
 @if ($enum && !$inactive)
-<span title="{{ $enum->tip() }}{{ filled($focus) ? ' · ' . $focus : '' }}" class="absolute -bottom-1 -right-1 flex items-center justify-center rounded-md border-2 border-[var(--md-sys-color-surface)] {{ $badge }} {{ $enum->badgeBgClass() }} {{ $enum->badgeClasses() }}">
-<span class="material-symbols-rounded leading-none">{{ filled($focus) ? 'self_improvement' : $enum->icon() }}</span>
+<span title="{{ $enum->tip() }}{{ filled($focus) ? ' · ' . $focus : '' }}" data-presence="{{ $enum->value }}" style="--pb: {{ $enum->cssVar() }}" class="presence-badge absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-[30%] {{ $badge }} {{ $enum->badgeClasses() }}">
+<span class="material-symbols-rounded leading-none font-fill {{ $badgeIcon }}">{{ filled($focus) ? 'self_improvement' : $enum->icon() }}</span>
 </span>
 @endif
 </span>

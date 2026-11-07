@@ -18,6 +18,7 @@ use Filament\Notifications\DatabaseNotification as FilamentDatabaseNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
@@ -607,7 +608,7 @@ class ConsoleCommandsTest extends TestCase
         Queue::assertNotPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $overdue->id);
     }
 
-    public function test_with_notify_off_the_three_in_app_reminder_channels_and_the_existing_email_keep_working_but_nothing_is_texted(): void
+    public function test_with_notify_off_the_three_in_app_reminder_channels_keep_working_but_nothing_is_mailed_or_texted(): void
     {
         config(['app.off' => ['notify']]);
         $user = User::factory()->create(['status' => 'active']);
@@ -620,8 +621,8 @@ class ConsoleCommandsTest extends TestCase
 
         Queue::assertPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $reminder->id);
         Queue::assertNotPushed(\App\Jobs\SendReminderSms::class);
-        Notification::assertSentTo($user, \App\Notifications\ReminderDueNotification::class);
-        $this->assertNotNull($reminder->fresh()->notified_at);
+        Notification::assertNothingSentTo($user);
+        $this->assertNull($reminder->fresh()->notified_at);
         $this->assertSame(['inapp:edge,badge,nudge', 'email', 'sms'], $reminder->fresh()->channels);
         $this->assertTrue(\App\Models\Reminder::channelEnabled($reminder->fresh()->channels, 'badge'));
         $this->assertTrue(\App\Models\Reminder::channelEnabled($reminder->fresh()->channels, 'nudge'));
@@ -930,6 +931,254 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->assertSame(1, Artisan::call('tenant:hidden', ['--tenant' => 'bogus-tenant']));
         $this->assertStringContainsString('Unknown tenant: bogus-tenant', Artisan::output());
+    }
+
+    private function pruneSetup(): void
+    {
+        Storage::fake('local');
+        config([
+            'filesystems.tmp_prune' => ['hours' => 24, 'max' => 10000, 'roots' => [['local', 'ai-report/tmp']]],
+            'livewire.temporary_file_upload.disk' => 'local',
+            'livewire.temporary_file_upload.directory' => null,
+        ]);
+    }
+
+    private function agedFile(string $path, int $hours): string
+    {
+        Storage::disk('local')->put($path, 'x');
+        $abs = Storage::disk('local')->path($path);
+        touch($abs, Carbon::now()->subHours($hours)->getTimestamp());
+
+        return $abs;
+    }
+
+    private function skipWithoutSymlinks(): void
+    {
+        $probe = sys_get_temp_dir() . '/fateh-symlink-probe-' . uniqid('', true);
+        $ok = function_exists('symlink') && @symlink('x', $probe);
+        if (is_link($probe)) {
+            @unlink($probe);
+        }
+        if (!$ok) {
+            $this->markTestSkipped('symlink privilege');
+        }
+    }
+
+    private function agedDir(string $path, int $hours): void
+    {
+        touch(Storage::disk('local')->path($path), Carbon::now()->subHours($hours)->getTimestamp());
+    }
+
+    public function test_prune_tmp_removes_a_report_folder_whose_newest_file_is_old(): void
+    {
+        $this->pruneSetup();
+        $this->agedFile('ai-report/tmp/900001/a.txt', 25);
+        $this->agedFile('ai-report/tmp/900001/b.txt', 30);
+        $this->agedDir('ai-report/tmp/900001', 25);
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        $this->assertFalse(is_dir(Storage::disk('local')->path('ai-report/tmp/900001')));
+        Storage::disk('local')->assertMissing('ai-report/tmp/900001/a.txt');
+        $this->assertStringContainsString('Pruned 1 temp items', Artisan::output());
+    }
+
+    public function test_prune_tmp_keeps_a_report_folder_when_any_file_is_fresh(): void
+    {
+        $this->pruneSetup();
+        $this->agedFile('ai-report/tmp/900003/a.txt', 25);
+        $this->agedFile('ai-report/tmp/900003/b.txt', 1);
+        $this->agedDir('ai-report/tmp/900003', 25);
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        Storage::disk('local')->assertExists('ai-report/tmp/900003/a.txt');
+        Storage::disk('local')->assertExists('ai-report/tmp/900003/b.txt');
+        $this->assertStringContainsString('Pruned 0 temp items', Artisan::output());
+    }
+
+    public function test_prune_tmp_removes_an_old_empty_folder_but_keeps_a_fresh_empty_one(): void
+    {
+        $this->pruneSetup();
+        $disk = Storage::disk('local');
+        $disk->makeDirectory('ai-report/tmp/900004');
+        $disk->makeDirectory('ai-report/tmp/900005');
+        $this->agedDir('ai-report/tmp/900004', 25);
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        $this->assertFalse(is_dir($disk->path('ai-report/tmp/900004')));
+        $this->assertTrue(is_dir($disk->path('ai-report/tmp/900005')));
+    }
+
+    public function test_prune_tmp_removes_old_livewire_tmp_files_and_keeps_fresh_ones(): void
+    {
+        $this->pruneSetup();
+        $this->agedFile('livewire-tmp/old', 25);
+        $this->agedFile('livewire-tmp/fresh', 1);
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        Storage::disk('local')->assertMissing('livewire-tmp/old');
+        Storage::disk('local')->assertExists('livewire-tmp/fresh');
+    }
+
+    public function test_prune_tmp_never_touches_files_outside_the_allowlist(): void
+    {
+        $this->pruneSetup();
+        $this->agedFile('ai-report/tmp/900002/a.txt', 2000);
+        $this->agedDir('ai-report/tmp/900002', 2000);
+        $this->agedFile('attachments/doc.txt', 2000);
+        $this->agedFile('ai-report/keep.txt', 2000);
+        Storage::fake('public');
+        Storage::disk('public')->put('avatars/x.png', 'x');
+        touch(Storage::disk('public')->path('avatars/x.png'), Carbon::now()->subHours(2000)->getTimestamp());
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        $this->assertFalse(is_dir(Storage::disk('local')->path('ai-report/tmp/900002')));
+        Storage::disk('local')->assertMissing('ai-report/tmp/900002/a.txt');
+        Storage::disk('local')->assertExists('attachments/doc.txt');
+        Storage::disk('local')->assertExists('ai-report/keep.txt');
+        Storage::disk('public')->assertExists('avatars/x.png');
+        $this->assertStringContainsString('Pruned 1 temp items', Artisan::output());
+    }
+
+    public function test_prune_tmp_keeps_files_with_future_mtimes(): void
+    {
+        $this->pruneSetup();
+        Storage::disk('local')->put('ai-report/tmp/900006/a.txt', 'x');
+        touch(Storage::disk('local')->path('ai-report/tmp/900006/a.txt'), Carbon::now()->addHours(48)->getTimestamp());
+        $this->agedDir('ai-report/tmp/900006', 25);
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        Storage::disk('local')->assertExists('ai-report/tmp/900006/a.txt');
+    }
+
+    public function test_prune_tmp_never_follows_or_deletes_symlinks(): void
+    {
+        $this->pruneSetup();
+        $this->skipWithoutSymlinks();
+        $disk = Storage::disk('local');
+        $disk->put('attachments/target.txt', 'x');
+        $this->agedFile('attachments/target.txt', 2000);
+        $tmpRoot = $disk->path('ai-report/tmp');
+        @mkdir($tmpRoot, 0777, true);
+        @symlink($disk->path('attachments'), $tmpRoot . '/900007');
+        @symlink($disk->path('attachments/target.txt'), $tmpRoot . '/link2');
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        $this->assertTrue(is_file($disk->path('attachments/target.txt')));
+        $this->assertTrue(is_link($tmpRoot . '/900007'));
+        $this->assertTrue(is_link($tmpRoot . '/link2'));
+        $this->assertStringContainsString('2 kept', Artisan::output());
+        $this->assertStringContainsString('Pruned 0 temp items', Artisan::output());
+    }
+
+    public function test_prune_tmp_keeps_a_folder_that_contains_a_symlink(): void
+    {
+        $this->pruneSetup();
+        $this->skipWithoutSymlinks();
+        $disk = Storage::disk('local');
+        $disk->put('attachments/target.txt', 'x');
+        $this->agedFile('attachments/target.txt', 2000);
+        $this->agedFile('ai-report/tmp/900013/a.txt', 2000);
+        $this->agedDir('ai-report/tmp/900013', 2000);
+        symlink($disk->path('attachments/target.txt'), $disk->path('ai-report/tmp/900013/link'));
+        symlink($disk->path('attachments/target.txt'), $disk->path('ai-report/tmp/link3'));
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        $this->assertTrue(is_file($disk->path('attachments/target.txt')));
+        $this->assertTrue(is_link($disk->path('ai-report/tmp/900013/link')));
+        $this->assertTrue(is_file($disk->path('ai-report/tmp/900013/a.txt')));
+        $this->assertTrue(is_link($disk->path('ai-report/tmp/link3')));
+        $this->assertStringContainsString('2 kept', Artisan::output());
+    }
+
+    public function test_prune_tmp_refuses_guard_tripping_roots_and_leaves_the_disk_intact(): void
+    {
+        $this->pruneSetup();
+        $this->agedFile('ai-report/tmp/900008/a.txt', 25);
+        $this->agedFile('attachments/doc.txt', 25);
+        $this->agedFile('livewire-tmp/old', 25);
+        config(['filesystems.tmp_prune' => ['hours' => 24, 'max' => 10000, 'roots' => [
+            ['local', ''], ['local', '/'], ['local', '.'], ['local', '../x'], ['local', 'attachments'], ['s3', 'ai-report/tmp'], ['nope', 'ai-report/tmp'],
+        ]]]);
+
+        $this->assertSame(1, Artisan::call('storage:prune-tmp'));
+
+        Storage::disk('local')->assertMissing('livewire-tmp/old');
+        Storage::disk('local')->assertExists('ai-report/tmp/900008/a.txt');
+        Storage::disk('local')->assertExists('attachments/doc.txt');
+        $this->assertStringContainsString('7 invalid roots', Artisan::output());
+    }
+
+    public function test_prune_tmp_refuses_a_symlinked_root(): void
+    {
+        $this->pruneSetup();
+        $this->skipWithoutSymlinks();
+        $disk = Storage::disk('local');
+        $this->agedFile('attachments/old.txt', 25);
+        $disk->makeDirectory('ai-report');
+        symlink($disk->path('attachments'), $disk->path('ai-report/tmp'));
+
+        $this->assertSame(1, Artisan::call('storage:prune-tmp'));
+
+        $this->assertTrue(is_file($disk->path('attachments/old.txt')));
+    }
+
+    public function test_prune_tmp_is_a_no_op_when_the_root_is_missing(): void
+    {
+        $this->pruneSetup();
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        $this->assertStringContainsString('Pruned 0 temp items', Artisan::output());
+    }
+
+    public function test_prune_tmp_dry_run_reports_but_deletes_nothing(): void
+    {
+        $this->pruneSetup();
+        $this->agedFile('ai-report/tmp/900009/a.txt', 25);
+        $this->agedFile('livewire-tmp/oldfile', 25);
+        $this->agedDir('ai-report/tmp/900009', 25);
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp', ['--dry' => true]));
+
+        Storage::disk('local')->assertExists('ai-report/tmp/900009/a.txt');
+        Storage::disk('local')->assertExists('livewire-tmp/oldfile');
+        $this->assertStringContainsString('Would prune 2', Artisan::output());
+    }
+
+    public function test_prune_tmp_honours_the_per_run_cap(): void
+    {
+        $this->pruneSetup();
+        config(['filesystems.tmp_prune.max' => 1]);
+        $this->agedFile('ai-report/tmp/900010/a.txt', 25);
+        $this->agedFile('ai-report/tmp/900011/a.txt', 25);
+        $this->agedDir('ai-report/tmp/900010', 25);
+        $this->agedDir('ai-report/tmp/900011', 25);
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        $remaining = count(array_filter(glob(Storage::disk('local')->path('ai-report/tmp') . '/*') ?: [], 'is_dir'));
+        $this->assertSame(1, $remaining);
+        $this->assertStringContainsString('Pruned 1 temp items', Artisan::output());
+    }
+
+    public function test_prune_tmp_is_idempotent(): void
+    {
+        $this->pruneSetup();
+        $this->agedFile('ai-report/tmp/900012/a.txt', 25);
+        $this->agedDir('ai-report/tmp/900012', 25);
+
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+        $this->assertSame(0, Artisan::call('storage:prune-tmp'));
+
+        $this->assertStringContainsString('Pruned 0 temp items', Artisan::output());
     }
 
     public function test_tenant_hidden_prints_the_active_tenant_and_its_expanded_hidden_modules(): void

@@ -13,10 +13,10 @@
     padding: 0 0.15em;
 }
 
-.rich-colors span.color[data-color="primary"] { --color: #3b82f6 !important; --dark-color: #60a5fa !important; }
-.rich-colors span.color[data-color="success"] { --color: #22c55e !important; --dark-color: #4ade80 !important; }
-.rich-colors span.color[data-color="warning"] { --color: #f59e0b !important; --dark-color: #fbbf24 !important; }
-.rich-colors span.color[data-color="danger"] { --color: #ef4444 !important; --dark-color: #f87171 !important; }
+.rich-colors span.color[data-color="primary"] { --color: #1d4ed8 !important; --dark-color: #60a5fa !important; }
+.rich-colors span.color[data-color="success"] { --color: #15803d !important; --dark-color: #4ade80 !important; }
+.rich-colors span.color[data-color="warning"] { --color: #b45309 !important; --dark-color: #fbbf24 !important; }
+.rich-colors span.color[data-color="danger"] { --color: #b91c1c !important; --dark-color: #f87171 !important; }
 .rich-colors span.color[data-color="slate"] { --color: oklch(0.446 0.043 257.281) !important; --dark-color: oklch(0.704 0.04 256.788) !important; }
 .rich-colors span.color[data-color="gray"] { --color: oklch(0.446 0.03 256.802) !important; --dark-color: oklch(0.707 0.022 261.325) !important; }
 .rich-colors span.color[data-color="zinc"] { --color: oklch(0.442 0.017 285.786) !important; --dark-color: oklch(0.705 0.015 286.067) !important; }
@@ -27,15 +27,15 @@
 .rich-colors span.color[data-color="mist"] { --color: oklch(0.45 0.017 213.2) !important; --dark-color: oklch(0.723 0.014 214.4) !important; }
 .rich-colors span.color[data-color="taupe"] { --color: oklch(0.438 0.017 39.3) !important; --dark-color: oklch(0.714 0.014 41.2) !important; }
 .rich-colors span.color[data-color="red"] { --color: oklch(0.577 0.245 27.325) !important; --dark-color: oklch(0.704 0.191 22.216) !important; }
-.rich-colors span.color[data-color="orange"] { --color: oklch(0.646 0.222 41.116) !important; --dark-color: oklch(0.75 0.183 55.934) !important; }
-.rich-colors span.color[data-color="amber"] { --color: oklch(0.666 0.179 58.318) !important; --dark-color: oklch(0.828 0.189 84.429) !important; }
-.rich-colors span.color[data-color="yellow"] { --color: oklch(0.681 0.162 75.834) !important; --dark-color: oklch(0.852 0.199 91.936) !important; }
-.rich-colors span.color[data-color="lime"] { --color: oklch(0.648 0.2 131.684) !important; --dark-color: oklch(0.841 0.238 128.85) !important; }
-.rich-colors span.color[data-color="green"] { --color: oklch(0.627 0.194 149.214) !important; --dark-color: oklch(0.792 0.209 151.711) !important; }
-.rich-colors span.color[data-color="emerald"] { --color: oklch(0.596 0.145 163.225) !important; --dark-color: oklch(0.765 0.177 163.223) !important; }
-.rich-colors span.color[data-color="teal"] { --color: oklch(0.6 0.118 184.704) !important; --dark-color: oklch(0.777 0.152 181.912) !important; }
-.rich-colors span.color[data-color="cyan"] { --color: oklch(0.609 0.126 221.723) !important; --dark-color: oklch(0.789 0.154 211.53) !important; }
-.rich-colors span.color[data-color="sky"] { --color: oklch(0.588 0.158 241.966) !important; --dark-color: oklch(0.746 0.16 232.661) !important; }
+.rich-colors span.color[data-color="orange"] { --color: oklch(0.553 0.195 38.402) !important; --dark-color: oklch(0.75 0.183 55.934) !important; }
+.rich-colors span.color[data-color="amber"] { --color: oklch(0.555 0.163 48.4) !important; --dark-color: oklch(0.828 0.189 84.429) !important; }
+.rich-colors span.color[data-color="yellow"] { --color: oklch(0.554 0.135 66.442) !important; --dark-color: oklch(0.852 0.199 91.936) !important; }
+.rich-colors span.color[data-color="lime"] { --color: oklch(0.532 0.157 131.589) !important; --dark-color: oklch(0.841 0.238 128.85) !important; }
+.rich-colors span.color[data-color="green"] { --color: oklch(0.527 0.154 150.069) !important; --dark-color: oklch(0.792 0.209 151.711) !important; }
+.rich-colors span.color[data-color="emerald"] { --color: oklch(0.508 0.118 165.612) !important; --dark-color: oklch(0.765 0.177 163.223) !important; }
+.rich-colors span.color[data-color="teal"] { --color: oklch(0.511 0.096 186.391) !important; --dark-color: oklch(0.777 0.152 181.912) !important; }
+.rich-colors span.color[data-color="cyan"] { --color: oklch(0.52 0.105 223.128) !important; --dark-color: oklch(0.789 0.154 211.53) !important; }
+.rich-colors span.color[data-color="sky"] { --color: oklch(0.5 0.134 242.749) !important; --dark-color: oklch(0.746 0.16 232.661) !important; }
 .rich-colors span.color[data-color="blue"] { --color: oklch(0.546 0.245 262.881) !important; --dark-color: oklch(0.707 0.165 254.624) !important; }
 .rich-colors span.color[data-color="indigo"] { --color: oklch(0.511 0.262 276.966) !important; --dark-color: oklch(0.673 0.182 276.935) !important; }
 .rich-colors span.color[data-color="violet"] { --color: oklch(0.541 0.281 293.009) !important; --dark-color: oklch(0.702 0.183 293.541) !important; }

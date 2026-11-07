@@ -21,12 +21,16 @@ const POLL_JITTER_HIDDEN = 0.5;
 
 const EVENT_TOAST = 'toast';
 const ID_VIEWPORT = 'msg-viewport';
+const GHOST_TICK_MS = 1000;
+const GHOST_BUBBLE_CLASS = 'px-4 py-2.5 text-sm leading-relaxed break-words whitespace-pre-wrap rounded-2xl bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)] [unicode-bidi:plaintext]';
+const GHOST_HTML = `<div class="flex-shrink-0 w-7"></div><div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%]"><div dir="auto" class="${GHOST_BUBBLE_CLASS}"></div><div class="flex items-center gap-1.5 mt-1.5 justify-start pl-1"><span class="material-symbols-rounded text-[13px] opacity-50">schedule</span><time dir="ltr" class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60"></time></div></div>`;
 const DAYS_CLIENT_TTL_MS = 300000;
 let fmt;
 const formats = () => fmt ??= {
     day: new Intl.DateTimeFormat('fa-IR-u-ca-persian', { day: 'numeric', month: 'long' }),
     month: new Intl.DateTimeFormat('fa-IR-u-ca-persian', { month: 'long', year: 'numeric' }),
     weekday: new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }),
+    seconds: new Intl.NumberFormat('fa-IR'),
 };
 const ID_TA = 'msg-ta';
 const ID_CHIP_TRACK = 'sender-chip-track';
@@ -153,6 +157,7 @@ export default function chatBase(scope) {
         _pollInFlight: false,
         _repollQueued: false,
         _destroyed: false,
+        _ghost: null,
 
         pingTyping() {
             const now = Date.now();
@@ -721,6 +726,34 @@ export default function chatBase(scope) {
             } catch {
                 this.toast('خطا در حذف پیام.', 'error');
             }
+        },
+
+        _ghostShow(body) {
+            const viewport = byId(ID_VIEWPORT);
+            if (!viewport) return null;
+
+            const el = document.createElement('div');
+            el.className = 'flex items-end gap-2 opacity-60 justify-start';
+            el.setAttribute('aria-hidden', 'true');
+            el.setAttribute('data-ghost', '');
+            el.innerHTML = GHOST_HTML;
+            el.querySelector('[dir="auto"]').textContent = body;
+            const time = el.querySelector('time');
+            const started = Date.now();
+            el._timer = setInterval(() => {
+                time.textContent = `${formats().seconds.format(Math.floor((Date.now() - started) / 1000))} ث`;
+            }, GHOST_TICK_MS);
+            viewport.appendChild(el);
+            this._ghost = el;
+            this.scrollToBottom();
+            return el;
+        },
+
+        _ghostHide(el = this._ghost) {
+            if (!el) return;
+            clearInterval(el._timer);
+            el.remove();
+            if (this._ghost === el) this._ghost = null;
         },
 
         destroy() {

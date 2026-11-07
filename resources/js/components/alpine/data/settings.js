@@ -34,15 +34,16 @@ const TABLE_MODULES = [
     { id: 'dms', label: 'مدیریت اسناد', cols: true },
     { id: 'ths', label: 'تیکت‌های پشتیبانی', cols: true },
     { id: 'reservation', label: 'رزرو امکانات', cols: true },
-    { id: 'taskboard', label: 'تسک‌بورد', cols: true, colsLabel: 'بخش کارت' }
+    { id: 'taskboard', label: 'تسک‌بورد', cols: true, colsLabel: 'بخش کارت' },
+    { id: 'ai-report', label: 'گزارش ساز هوشمند', cols: true }
 ];
 
 const EXPORT_KEYS = [
     'user-theme', 'user-mode', 'app-density',
-    'backgroundEnabled', 'patternEnabled', 'activePattern',
+    'backgroundEnabled', 'patternEnabled', 'activePattern', 'bgTone',
     'fontSizeLevel', 'readingRuler', 'doubleClickCopy',
-    'dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden',
-    'table-tools:dms', 'table-tools:ths', 'table-tools:reservation', 'table-tools:taskboard',
+    'dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden', 'ai-report-col-hidden',
+    'table-tools:dms', 'table-tools:ths', 'table-tools:reservation', 'table-tools:taskboard', 'table-tools:ai-report',
     'menu_declutter',
     'chat-muted-channels', 'chat-muted-contacts', 'chat-muted-projects', 'notification-sound-muted',
     'chat-push-channel', 'chat-push-contact', 'chat-push-project'
@@ -200,6 +201,7 @@ export default function settings() {
             if (this.$store.density?.compact) this.$store.density.toggle();
             this.$store.background?.toggleBackground(false);
             this.$store.background?.togglePattern(false);
+            this.$store.background?.setTone?.('');
             this.resetFontSize();
             if (this.readingRuler) this.toggleReadingRuler();
             if (this.doubleClickCopy) this.toggleDoubleClickCopy();

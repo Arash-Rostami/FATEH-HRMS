@@ -4,6 +4,7 @@
     'color' => 'violet',
     'active',
     'action',
+    'compact' => false,
 ])
 
 @php
@@ -24,22 +25,22 @@
     };
 
     $toneText = match ($color) {
-        'emerald' => 'text-white dark:text-emerald-950',
-        'indigo' => 'text-white dark:text-indigo-950',
-        'teal' => 'text-white dark:text-teal-950',
-        'amber' => 'text-white dark:text-amber-950',
-        default => 'text-white dark:text-violet-950',
+        'emerald' => 'text-emerald-950',
+        'indigo' => 'text-indigo-950',
+        'teal' => 'text-teal-950',
+        'amber' => 'text-amber-950',
+        default => 'text-violet-950',
     };
 @endphp
 
 <button type="button" @click="{{ $action }}"
-        class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-high)]/50 group">
-    <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
+        class="w-full flex items-center justify-between {{ $compact ? 'px-2.5 py-1.5' : 'px-3 py-2.5' }} rounded-xl transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-high)]/50 group">
+    <div class="flex items-center {{ $compact ? 'gap-2.5' : 'gap-3' }}">
+        <div class="{{ $compact ? 'w-7 h-7' : 'w-8 h-8' }} rounded-lg flex items-center justify-center transition-colors duration-200"
              :class="({{ $active }}) ? '{{ $toneClass }} {{ $toneText }}' : 'bg-[var(--md-sys-color-surface-container)] opacity-50'">
-            <span class="material-symbols-rounded text-[20px]">{{ $icon }}</span>
+            <span class="material-symbols-rounded {{ $compact ? '!text-[17px]' : 'text-[20px]' }}">{{ $icon }}</span>
         </div>
-        <span class="text-sm font-medium {{ $textToneClass }}">{{ $label }}</span>
+        <span class="{{ $compact ? 'text-[13px]' : 'text-sm' }} font-medium {{ $textToneClass }}">{{ $label }}</span>
     </div>
     <div class="relative w-9 h-5 rounded-full transition-colors duration-200"
          :class="({{ $active }}) ? '{{ $toneClass }}' : 'bg-[var(--md-sys-color-outline-variant)]/30'">

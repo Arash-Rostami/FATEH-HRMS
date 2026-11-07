@@ -771,4 +771,27 @@ class HelpersTest extends TestCase
 
         $this->assertFalse(tenantOff('taskboard'));
     }
+
+    public function test_ai_assistant_on_needs_login_access_true_a_url_and_the_module_not_switched_off(): void
+    {
+        config(['app.ai_assistant_access' => true, 'services.ai_assistant.url' => 'https://ai.example.test', 'app.off' => []]);
+
+        $this->assertFalse(aiAssistantOn());
+
+        Auth::login(User::factory()->create());
+
+        $this->assertTrue(aiAssistantOn());
+
+        config(['app.ai_assistant_access' => 'lock']);
+        $this->assertFalse(aiAssistantOn());
+
+        config(['app.ai_assistant_access' => false]);
+        $this->assertFalse(aiAssistantOn());
+
+        config(['app.ai_assistant_access' => true, 'services.ai_assistant.url' => null]);
+        $this->assertFalse(aiAssistantOn());
+
+        config(['services.ai_assistant.url' => 'https://ai.example.test', 'app.off' => ['ai-assistant']]);
+        $this->assertFalse(aiAssistantOn());
+    }
 }

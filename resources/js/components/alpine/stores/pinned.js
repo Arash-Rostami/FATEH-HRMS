@@ -1,4 +1,4 @@
-const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation'];
+const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation', 'ai-report'];
 
 const KEYS = {
     contact: 'pinned-contacts',
@@ -7,16 +7,17 @@ const KEYS = {
     project: 'pinned-projects',
     activity: 'pinned-activity',
     menu: 'pinned-menu-items',
-    reservation: 'pinned-reservations'
+    reservation: 'pinned-reservations',
+    'ai-report': 'pinned-ai-reports'
 };
 
 export default function pinned(Alpine) {
     Alpine.store('pinned', {
-        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null },
-        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [] },
+        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null, 'ai-report': null },
+        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [], 'ai-report': [] },
 
         init() {
-            for (let i = 0; i < 7; i++) {
+            for (let i = 0; i < SCOPES.length; i++) {
                 const scope = SCOPES[i];
                 const set = this._load(scope);
                 this.sets[scope] = set;

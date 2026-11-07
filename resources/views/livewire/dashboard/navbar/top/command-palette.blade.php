@@ -7,23 +7,15 @@
      class="relative z-[200]">
 
     <template x-teleport="body">
-
-    {{-- Backdrop --}}
     <div x-cloak
          x-show="open"
-         class="fixed inset-0 z-[200] bg-[var(--md-sys-color-primary)]/60 animate-backdrop-in"
-         @click="open = false">
-    </div>
-    </template>
-
-    {{-- Modal Container --}}
-    <template x-teleport="body">
-    <div x-cloak
-         x-show="open"
+         x-transition:enter="animate-slide-down"
+         x-transition:leave="animate-slide-down-out"
+         @click.self="open = false"
          dir="rtl"
-         class="fixed inset-0 z-[201] flex items-start justify-center pt-[8vh] px-4 pb-4 pointer-events-none animate-slide-down">
+         class="fixed inset-0 z-[201] flex items-start justify-center pt-[8vh] px-4 pb-4 bg-[var(--md-sys-color-primary)]/60">
 
-        <div class="pointer-events-auto w-full max-w-3xl flex flex-col h-[75vh] rounded-[28px] shadow-2xl overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/20 ring-1 ring-white/5 text-[var(--md-sys-color-on-surface)]">
+        <div @click.stop class="w-full max-w-3xl flex flex-col h-[75vh] rounded-[28px] modal-lift overflow-hidden bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)]">
 
             {{-- Header / Search Bar --}}
             <div class="flex items-center gap-2 md:gap-4 px-4 md:px-6 py-5 border-b border-[var(--md-sys-color-outline-variant)]/15 bg-[var(--md-sys-color-surface-container)]/40">

@@ -84,6 +84,7 @@
            }"
            @scroll.window.passive="kick()"
            @resize.window.passive="kick()"
+           @declutter.window="kick()"
            @load.window="upd()"
            :class="{'w-[84px]': isExpanded, 'w-[8px] md:w-[12px] lg:w-[58px]': !isExpanded, 'focus-dim': $store.focus.active}"
            class="fixed left-0 z-50 flex flex-col shrink-0 gap-0.5 pt-8 md:gap-1 md:pt-10 lg:pt-0 top-[128px] lg:top-[148px] will-change-transform transition-[width,opacity] duration-700 {{ $ease }}">

@@ -4,10 +4,10 @@
         <button @click="resetFontSize()"
                 x-show="fontSizeLevel !== 0"
                 x-transition
-                class="text-[9px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer">
+                class="text-[9px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/20 transition-colors cursor-pointer">
             بازنشانی
         </button>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-medium"
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 font-medium"
               x-show="fontSizeLevel === 0"
               x-text="getScaleLabel()"></span>
     </div>

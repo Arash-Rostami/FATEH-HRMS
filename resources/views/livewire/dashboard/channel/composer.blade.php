@@ -88,7 +88,7 @@
                          ? 'border-[var(--md-sys-color-primary)]'
                          : 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]'
                  ]">
-                <textarea id="msg-ta" dir="rtl"
+                <textarea id="msg-ta" dir="rtl" wire:ignore.self
                           wire:model.defer="composer.body"
                           wire:loading.attr="disabled" wire:target="send"
                           x-on:keydown="onComposerKeydown($event)"
@@ -96,41 +96,59 @@
                           x-on:input="len = $el.value.length; autoGrow($el, 160); autoDirection($el); detectMention($event)"
                           x-on:paste="pasteImage($event, 'composer-cattachments')"
                           rows="1" placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
-                          class="w-full bg-transparent px-3 py-2.5 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[280px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]"></textarea>
+                          class="w-full bg-transparent px-3 py-2.5 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[280px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)] [unicode-bidi:plaintext]"></textarea>
+                <span x-show="len === 0" dir="rtl"
+                      class="hidden lg:flex absolute inset-0 items-center justify-center gap-1.5 text-[10px] pointer-events-none text-[var(--md-sys-color-on-surface-variant)] opacity-50"
+                      aria-hidden="true">
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1 py-px rounded bg-[var(--md-sys-color-surface)] font-sans text-[9px] font-bold">Enter</kbd>ارسال</span>
+                    <span class="opacity-50">·</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1 py-px rounded bg-[var(--md-sys-color-surface)] font-sans text-[9px] font-bold">Shift+Enter</kbd>خط جدید</span>
+                </span>
                 <span x-show="len > 3600"
                       x-text="len + ' / 4000'"
-                      class="absolute bottom-1.5 end-3 text-[10px] font-medium pointer-events-none"
+                      class="md:hidden absolute bottom-1.5 end-3 text-[10px] font-medium pointer-events-none"
                       :class="len > 3900 ? 'text-[var(--md-sys-color-error)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]'"
                       aria-live="polite"></span>
             </div>
 
+            <div class="contents md:flex md:flex-col md:justify-between md:items-center md:h-[42px] md:order-2 md:flex-shrink-0">
+            <div class="contents md:flex md:items-center md:gap-1.5">
             <x-ui.buttons.form x-on:click.prevent="sendMessage"
                     wire:loading.attr="disabled" wire:target="send"
                     loading="send"
-                    class="flex-shrink-0 w-9 h-9 p-0 order-3 md:order-4 rounded-xl hover:brightness-110 hover:-translate-y-0.5 disabled:hover:translate-y-0"
+                    class="flex-shrink-0 w-9 h-9 md:w-8 md:h-7 p-0 order-3 md:order-4 rounded-xl md:rounded-lg hover:brightness-110 hover:-translate-y-0.5 disabled:hover:translate-y-0"
                     x-bind:class="($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0
                         ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
-                        : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
+                        : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] md:bg-transparent'"
                     aria-label="ارسال پیام">
-                <span wire:loading.remove wire:target="send" class="material-symbols-rounded text-[18px] font-fill rotate-180">send</span>
+                <span wire:loading.remove wire:target="send" class="material-symbols-rounded text-[18px] md:text-[14px] font-fill rotate-180">send</span>
             </x-ui.buttons.form>
 
             <button x-on:click.prevent="openMentionPicker()" type="button" aria-label="اشاره به کاربر"
-                    class="flex-shrink-0 w-8 h-8 order-4 md:order-2 rounded-lg hidden md:flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
-                <span class="material-symbols-rounded text-[18px]" :class="mentionOpen ? 'text-[var(--md-sys-color-primary)]' : ''">alternate_email</span>
+                    class="flex-shrink-0 w-8 h-8 md:w-8 md:h-7 order-4 md:order-2 rounded-lg hidden md:flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] md:bg-transparent md:hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] md:hover:text-[var(--md-sys-color-primary)]">
+                <span class="material-symbols-rounded text-[18px] md:text-[14px]" :class="mentionOpen ? 'text-[var(--md-sys-color-primary)]' : ''">alternate_email</span>
             </button>
 
             <button x-on:click="emojiOpen=!emojiOpen" type="button" aria-label="ایموجی"
-                    class="flex-shrink-0 w-8 h-8 order-4 md:order-2 ms-auto md:ms-0 rounded-lg hidden md:flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
-                <span class="material-symbols-rounded text-[18px]"
+                    class="flex-shrink-0 w-8 h-8 md:w-8 md:h-7 order-4 md:order-2 ms-auto md:ms-0 rounded-lg hidden md:flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] md:bg-transparent md:hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] md:hover:text-[var(--md-sys-color-primary)]">
+                <span class="material-symbols-rounded text-[18px] md:text-[14px]"
                       :class="emojiOpen ? 'text-[var(--md-sys-color-primary)]' : ''"
                       x-text="emojiOpen ? 'sentiment_satisfied_alt' : 'sentiment_satisfied'"></span>
             </button>
 
             <label for="composer-cattachments" aria-label="افزودن فایل ضمیمه"
-                   class="flex-shrink-0 w-8 h-8 order-5 md:order-3 rounded-lg hidden md:flex items-center justify-center transition-all hover:brightness-95 active:scale-90 cursor-pointer bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
-                <span class="material-symbols-rounded text-[18px]">attach_file</span>
+                   class="flex-shrink-0 w-8 h-8 md:w-8 md:h-7 order-5 md:order-3 rounded-lg hidden md:flex items-center justify-center transition-all hover:brightness-95 active:scale-90 cursor-pointer bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] md:bg-transparent md:hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] md:hover:text-[var(--md-sys-color-primary)]">
+                <span class="material-symbols-rounded text-[18px] md:text-[14px]">attach_file</span>
             </label>
+            </div>
+            <div class="hidden md:flex items-center justify-center w-full h-[14px]" title="کاراکتر باقی‌مانده" aria-hidden="true">
+                <span class="text-[10px] leading-[11px] font-medium tabular-nums whitespace-nowrap"
+                      :class="(4000 - (($wire.composer.body || '').length)) < 100 ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-60'"
+                      x-text="(4000 - (($wire.composer.body || '').length)).toLocaleString('fa-IR') + ' باقی‌مانده'"></span>
+            </div>
+            <span class="sr-only" aria-live="polite"
+                  x-text="(4000 - (($wire.composer.body || '').length)) < 100 ? (4000 - (($wire.composer.body || '').length)) + ' کاراکتر باقی‌مانده' : ''"></span>
+            </div>
             <input id="composer-cattachments" type="file" multiple wire:model="composer.attachments" class="hidden"
                    accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.mp4,.webm,.mov"/>
 
@@ -172,19 +190,5 @@
                 </template>
             </div>
         </div>
-
-        <p class="hidden md:grid grid-cols-3 items-center pb-2.5 px-4 text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" aria-hidden="true">
-            <span class="justify-self-start" x-text="(4000 - (($wire.composer.body || '').length)) + ' کاراکتر باقی‌مانده'"></span>
-            <span class="justify-self-center inline-flex items-center gap-2">
-                <span class="inline-flex items-center gap-1">
-                    <kbd class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface-variant)] font-sans text-[9px] font-bold">Enter</kbd> ارسال
-                </span>
-                <span class="opacity-40">•</span>
-                <span class="inline-flex items-center gap-1">
-                    <kbd class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface-variant)] font-sans text-[9px] font-bold">Shift+Enter</kbd> خط جدید
-                </span>
-            </span>
-            <span></span>
-        </p>
     </div>
 </footer>

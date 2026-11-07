@@ -4,7 +4,7 @@
     $aiAccess = config('app.ai_assistant_access');
 @endphp
 
-@if(auth()->check() && $aiAccess === true && config('services.ai_assistant.url'))
+@if(aiAssistantOn())
     <button @click="$dispatch('ai-assistant')"
             class="group relative w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-on-primary)]/10 active:bg-[var(--md-sys-color-on-primary)]/20 active:scale-95 transition-all duration-200 flex items-center justify-center animate-flash"
             {{ $attributes->merge(['class' => '']) }}>

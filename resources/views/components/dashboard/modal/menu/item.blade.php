@@ -15,8 +15,11 @@
            : ''
    ]">
     <div class="relative w-9 h-9 shrink-0 rounded-lg flex items-center justify-center bg-[color-mix(in_srgb,var(--md-sys-color-primary)_8%,var(--md-sys-color-surface))] border border-[color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]"
-         :class="pinEditMode ? 'animate-shiver' : ''">
-        <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]" x-text="item.icon"></span>
+         :class="[item.ai ? '!bg-[color-mix(in_srgb,var(--tool-amethyst-bg)_70%,var(--md-sys-color-surface))] !border-[color-mix(in_srgb,var(--tool-amethyst-color)_35%,transparent)]' : '', pinEditMode ? 'animate-shiver' : '']">
+        <template x-if="item.ai">
+            <span aria-hidden="true" class="absolute inset-0 rounded-lg animate-alert-soft bg-[color-mix(in_srgb,var(--tool-amethyst-color)_25%,transparent)]"></span>
+        </template>
+        <span class="relative material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]" :class="item.ai ? '!text-[var(--tool-amethyst-color)]' : ''" x-text="item.icon"></span>
         <template x-if="$store.menuBadges.on(item.id, @js($menuState)[item.id])">
             <x-ui.notification-badge />
         </template>

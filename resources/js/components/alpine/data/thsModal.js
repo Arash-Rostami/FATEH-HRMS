@@ -2,7 +2,7 @@ import maximizeMixin from "../mixins/maximize.js";
 
 const TYPING = /^(INPUT|TEXTAREA|SELECT)$/;
 const INFO_LEAVE_MS = 380;
-const CLOSE_MS = 300;
+const CLOSE_MS = 600;
 const SWIPE_CLOSE_PX = 80;
 
 export default function thsModal() {

@@ -1206,3 +1206,139 @@ describe('channel() scroll behaviour — programmatic guard, upward-only auto-lo
         });
     });
 });
+
+describe('channel send ghost', () => {
+    function holdSend(c) {
+        let resolveSend;
+        let rejectSend;
+        const pending = new Promise((resolve, reject) => { resolveSend = resolve; rejectSend = reject; });
+        const send = vi.fn(() => pending);
+        c.$wire = createWireMock();
+        c.$wire.$island = vi.fn(() => ({ send }));
+        c._syncSidebarAfterOwnAction = vi.fn();
+        c.$nextTick = (cb) => cb();
+        return { resolveSend, rejectSend, send };
+    }
+
+    function withGhostViewport() {
+        const vp = document.createElement('div');
+        vp.id = 'msg-viewport';
+        vp.scrollTo = vi.fn();
+        document.body.appendChild(vp);
+        return vp;
+    }
+
+    test('the ghost exists before send() resolves and is gone after a resolve with no message-sent', async () => {
+        const c = channel();
+        const { resolveSend, send } = holdSend(c);
+        c.$wire.composer.body = 'server-draft';
+        const ta = withTextarea('hello');
+        const vp = withGhostViewport();
+
+        const pending = c.sendMessage();
+        expect(vp.querySelector('[data-ghost] [dir="auto"]').textContent).toBe('hello');
+        expect(send).toHaveBeenCalledWith();
+        expect(ta.value).toBe('hello');
+        expect(c.$wire.composer.body).toBe('server-draft');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+
+        resolveSend();
+        await pending;
+
+        expect(vp.querySelector('[data-ghost]')).toBeNull();
+        expect(ta.value).toBe('hello');
+        expect(c.$wire.composer.body).toBe('server-draft');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('the ghost is removed after a rejected send', async () => {
+        const c = channel();
+        const { rejectSend } = holdSend(c);
+        c.toast = vi.fn();
+        withTextarea('hello');
+        const vp = withGhostViewport();
+
+        const pending = c.sendMessage();
+        expect(vp.querySelector('[data-ghost]')).not.toBeNull();
+        rejectSend(new Error('boom'));
+        await pending;
+
+        expect(vp.querySelector('[data-ghost]')).toBeNull();
+        expect(c.toast).toHaveBeenCalledWith('خطا در ارتباط با سرور.', 'error');
+    });
+
+    test('no ghost when attachments are staged or a reply is open', async () => {
+        const attached = channel();
+        const heldAttached = holdSend(attached);
+        attached.$wire.composer = { attachments: [{ name: 'a.png' }] };
+        withTextarea('hello');
+        const vp = withGhostViewport();
+        const attachedPending = attached.sendMessage();
+        expect(vp.querySelector('[data-ghost]')).toBeNull();
+        heldAttached.resolveSend();
+        await attachedPending;
+
+        document.body.innerHTML = '';
+        const replying = channel();
+        const held = holdSend(replying);
+        replying.replyingTo = { id: 4, body: 'old' };
+        withTextarea('hello');
+        withGhostViewport();
+        const replyPending = replying.sendMessage();
+        expect(document.querySelector('[data-ghost]')).toBeNull();
+        held.resolveSend();
+        await replyPending;
+    });
+
+    test('no ghost for an empty body or a body over the limit', async () => {
+        const empty = channel();
+        empty.$wire = createWireMock();
+        empty.toast = vi.fn();
+        withTextarea('');
+        withGhostViewport();
+        await empty.sendMessage();
+        expect(document.querySelector('[data-ghost]')).toBeNull();
+
+        document.body.innerHTML = '';
+        const over = channel();
+        over.$wire = createWireMock();
+        over.toast = vi.fn();
+        withTextarea('x'.repeat(4001));
+        withGhostViewport();
+        await over.sendMessage();
+        expect(document.querySelector('[data-ghost]')).toBeNull();
+    });
+
+    test('no ghost when the reader is not on the newest window, and the box still is not cleared', async () => {
+        const c = channel();
+        const { resolveSend, send } = holdSend(c);
+        c.$wire.hasNewer = true;
+        const ta = withTextarea('hello');
+        withGhostViewport();
+
+        const pending = c.sendMessage();
+        expect(document.querySelector('[data-ghost]')).toBeNull();
+        expect(send).toHaveBeenCalledWith();
+        expect(ta.value).toBe('hello');
+
+        resolveSend();
+        await pending;
+        expect(ta.value).toBe('hello');
+    });
+
+    test('destroy() removes a ghost that is still on screen', async () => {
+        const c = channel();
+        const { resolveSend } = holdSend(c);
+        withTextarea('hello');
+        const vp = withGhostViewport();
+
+        const pending = c.sendMessage();
+        expect(vp.querySelector('[data-ghost]')).not.toBeNull();
+        c.destroy();
+        expect(vp.querySelector('[data-ghost]')).toBeNull();
+        expect(c._ghost).toBeNull();
+
+        resolveSend();
+        await pending;
+    });
+});
