@@ -263,6 +263,7 @@ class TaskTablePresenter
     public static function linkedProject(): TextColumn
     {
         return TextColumn::make('project.name')
+            ->visible(fn () => !tenantOff('projects'))
             ->label(__('resources/task/strings.fields.project_id'))
             ->placeholder('—')
             ->searchable()
@@ -272,6 +273,7 @@ class TaskTablePresenter
     public static function linkedProjectFilter(): SelectFilter
     {
         return SelectFilter::make('project_id')
+            ->visible(fn () => !tenantOff('projects'))
             ->label(__('resources/task/strings.fields.project_id'))
             ->relationship('project', 'name')
             ->searchable()

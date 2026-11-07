@@ -350,6 +350,10 @@ trait ManagesTaskModal
 
     public function createProjectFromTask(): void
     {
+        if (tenantOff('projects')) {
+            return;
+        }
+
         $this->levelUpForm->validate();
 
         $this->form->pendingProjectName = $this->levelUpForm->name;
@@ -398,6 +402,10 @@ trait ManagesTaskModal
     #[Computed]
     public function projectOptions(): array
     {
+        if (tenantOff('projects')) {
+            return [];
+        }
+
         return Project::visibleTo(auth()->user())
             ->orderBy('name')
             ->pluck('name', 'id')

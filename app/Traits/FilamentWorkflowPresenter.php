@@ -19,6 +19,11 @@ use Illuminate\Validation\ValidationException;
 
 trait FilamentWorkflowPresenter
 {
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        return !tenantOff('projects') && parent::canViewForRecord($ownerRecord, $pageClass);
+    }
+
     public static function getModelLabel(): string
     {
         return __('resources/project/strings.workflow.label');

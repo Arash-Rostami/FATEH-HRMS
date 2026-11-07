@@ -115,6 +115,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @unless(tenantOff('projects'))
                 <x-ui.forms.select label="پروژه (اختیاری)" name="form.projectId" wire:model.live="form.projectId"
                                    icon="folder" :disabled="$isReadOnly">
                     <option value="">بدون پروژه</option>
@@ -122,6 +123,7 @@
                         <option value="{{ $id }}">{{ $name }}</option>
                     @endforeach
                 </x-ui.forms.select>
+                @endunless
 
                 <x-ui.forms.select label="اولویت" name="form.priority" wire:model="form.priority" icon="flag"
                                    :disabled="$isReadOnly">
@@ -133,7 +135,7 @@
                 </x-ui.forms.select>
             </div>
 
-            @if(!$isReadOnly && !$form->projectId)
+            @if(!$isReadOnly && !$form->projectId && !tenantOff('projects'))
                 <div wire:key="taskboard-levelup" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] p-3.5">
                     @if($form->pendingProjectName)
                         <div wire:key="taskboard-levelup-pending" class="flex items-center gap-2 text-xs">

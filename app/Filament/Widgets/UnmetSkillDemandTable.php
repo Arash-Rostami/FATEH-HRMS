@@ -27,7 +27,7 @@ class UnmetSkillDemandTable extends TableWidget
 
     public static function canView(): bool
     {
-        return SkillResource::canViewAny();
+        return !tenantOff('skills') && SkillResource::canViewAny();
     }
 
     public function table(Table $table): Table

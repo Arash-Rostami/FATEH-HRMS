@@ -1,8 +1,8 @@
 <x-dashboard.modal.badge-legend
     name="messaging-badge-legend"
     :groups="[
-        ['id' => 'contacts', 'icon' => 'chat', 'label' => 'پیام‌رسان', 'items' => [\App\Services\Menu\BadgeLegendCatalog::get('contacts-controller')]],
-        ['id' => 'channels', 'icon' => 'campaign', 'label' => 'گروه‌ها', 'items' => [\App\Services\Menu\BadgeLegendCatalog::get('channels-controller'), \App\Services\Menu\BadgeLegendCatalog::get('channels-controller:edge')]],
+        ['id' => 'contacts', 'icon' => 'chat', 'label' => 'پیام‌رسان', 'items' => array_filter([\App\Services\Menu\BadgeLegendCatalog::get('contacts-controller')])],
+        ['id' => 'channels', 'icon' => 'campaign', 'label' => 'گروه‌ها', 'items' => array_filter([\App\Services\Menu\BadgeLegendCatalog::get('channels-controller'), \App\Services\Menu\BadgeLegendCatalog::get('channels-controller:edge')])],
     ]"
     title="راهنمای اعلان پیام‌رسان و گروه"
 />

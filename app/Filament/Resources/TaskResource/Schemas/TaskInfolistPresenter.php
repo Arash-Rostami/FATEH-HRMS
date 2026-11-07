@@ -227,6 +227,7 @@ class TaskInfolistPresenter
     public static function linkedProject(): TextEntry
     {
         return TextEntry::make('project.name')
+            ->visible(fn () => !tenantOff('projects'))
             ->label(__('resources/task/strings.fields.project_id'))
             ->placeholder('—')
             ->icon('heroicon-o-rectangle-stack');

@@ -16,7 +16,7 @@ class AccountOnboardingComposer
     public function compose(View $view): void
     {
         $user = auth()->user();
-        $onboarding = $user ? $this->exclusiveOnboarding($user) : null;
+        $onboarding = $user && !tenantOff('onboarding') ? $this->exclusiveOnboarding($user) : null;
 
         $view->with([
             'exclusiveOnboarding' => $onboarding,

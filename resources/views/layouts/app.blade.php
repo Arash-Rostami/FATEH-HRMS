@@ -37,8 +37,8 @@
 
 @unless(request()->boolean('embed') || View::hasSection('minimal_layout'))
     <x-dashboard.header/>
-    @livewire(\App\Livewire\Dashboard\Countdown::class)
     @unless(tenantOff('calendar'))
+        @livewire(\App\Livewire\Dashboard\Countdown::class)
         @livewire(\App\Livewire\Dashboard\EventReminder::class)
     @endunless
     @livewire(\App\Livewire\Dashboard\Edge::class)

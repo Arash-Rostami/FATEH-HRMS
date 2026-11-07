@@ -78,7 +78,7 @@ class UnreadNotifications extends DatabaseNotifications
         $items = parent::getNotifications();
 
         if (Filament::getCurrentPanel()?->getId() === 'admin') {
-            return $items;
+            return $items->setCollection($items->getCollection()->reject(fn (DatabaseNotification $n) => tenantOffName((string) ($n->data['menu_key'] ?? ''))));
         }
 
         $items = $items->reject(fn (DatabaseNotification $n) => tenantOffName((string) ($n->data['menu_key'] ?? '')));
@@ -142,7 +142,15 @@ class UnreadNotifications extends DatabaseNotifications
         $total = parent::getUnreadNotificationsCount();
 
         if (Filament::getCurrentPanel()?->getId() === 'admin') {
-            return $total;
+            return $total && config('app.off')
+                ? max(0, $total - $this->getUnreadNotificationsQuery()
+                    ->reorder()
+                    ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(data, '$.menu_key')) as menu_key, COUNT(*) as cnt")
+                    ->groupBy('menu_key')
+                    ->get()
+                    ->filter(fn ($g) => $g->menu_key !== null && tenantOffName((string) $g->menu_key))
+                    ->sum('cnt'))
+                : $total;
         }
 
         if ($total === 0) {

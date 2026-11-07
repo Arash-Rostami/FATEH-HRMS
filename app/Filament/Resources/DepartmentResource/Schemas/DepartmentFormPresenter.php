@@ -100,6 +100,7 @@ class DepartmentFormPresenter
     public static function ticketOptions(): Repeater
     {
         return Repeater::make('ticket_options')
+            ->visible(fn () => !tenantOff('ths'))
             ->label(__('resources/department/strings.fields.ticket_options'))
             ->schema([
                 TextInput::make('request_type')

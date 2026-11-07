@@ -46,6 +46,7 @@
                 {{ auth()->user()->name ?? 'مهمان' }}
             </div>
 
+            @unless(tenantOff('onboarding'))
             <a href="{{ url('/profile?tab=onboarding') }}"
                target="_blank"
                rel="noopener noreferrer"
@@ -56,6 +57,7 @@
                 آنبوردینگ
                 <x-ui.pulse-dot :show="$onboardingHighlighted"/>
             </a>
+            @endunless
 
             <a href="{{ url('/profile?tab=info') }}"
                target="_blank"

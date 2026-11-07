@@ -230,6 +230,16 @@ class MenuServiceTest extends TestCase
         $this->assertNull(BadgeLegendCatalog::get('does-not-exist'));
     }
 
+    public function test_badge_legend_catalog_drops_entries_of_tenant_off_modules(): void
+    {
+        config(['app.off' => ['feed', 'calendar', 'ads']]);
+
+        $this->assertNull(BadgeLegendCatalog::get('feeds'));
+        $this->assertNull(BadgeLegendCatalog::get('shared-events'));
+        $this->assertNull(BadgeLegendCatalog::get('ads-controller'));
+        $this->assertNotNull(BadgeLegendCatalog::get('posts-controller'));
+    }
+
     public function test_badge_legend_catalog_grouped_folds_all_entries_into_five_groups(): void
     {
         $grouped = BadgeLegendCatalog::grouped();

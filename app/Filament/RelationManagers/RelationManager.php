@@ -28,7 +28,14 @@ class RelationManager extends BaseRelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        if ($resource = static::relatedModelResource($ownerRecord)) {
+        $resource = static::relatedModelResource($ownerRecord);
+        $related = $resource ?? static::getRelatedResource();
+
+        if ($related && tenantOffName($related::getSlug())) {
+            return false;
+        }
+
+        if ($resource) {
             return $resource::canAccess();
         }
 

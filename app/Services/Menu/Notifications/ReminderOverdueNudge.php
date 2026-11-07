@@ -57,6 +57,6 @@ class ReminderOverdueNudge implements MenuNudge
 
     public function url($subject): ?string
     {
-        return Reminder::urlFor($subject->remindable_type, $subject->remindable_id);
+        return $subject->hostUrlIfAvailable();
     }
 }

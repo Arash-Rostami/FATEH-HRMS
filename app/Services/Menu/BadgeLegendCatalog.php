@@ -82,7 +82,7 @@ class BadgeLegendCatalog
 
     protected static function all(): array
     {
-        return [
+        return array_filter([
             'posts-controller' => [
                 'group' => 'notifications', 'subgroup' => 'direct', 'tone' => 'sapphire', 'icon' => 'campaign',
                 'label' => 'اطلاعیهٔ خوانده‌نشده',
@@ -264,6 +264,6 @@ class BadgeLegendCatalog
                 'lights' => 'وقتی ساعت سررسید یادآوری فعال شما در همان روز فرا برسد، کارت اعلانی پایین صفحه ظاهر می‌شود. این مورد دات ندارد، فقط کارت.',
                 'clears' => 'با بستن کارت (×) پنهان می‌شود و همان یادآوری «انجام‌شده» ثبت می‌شود؛ خودکار هم وقتی یادآوری تکمیل/حذف شود یا رکورد متصل به آن حذف موقت شود؛ روی همهٔ صفحات نمایش می‌یابد.',
             ],
-        ];
+        ], fn (string $key) => !tenantOffName($key), ARRAY_FILTER_USE_KEY);
     }
 }

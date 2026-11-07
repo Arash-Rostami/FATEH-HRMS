@@ -83,6 +83,7 @@
                         </x-ui.forms.select>
                     </div>
 
+                    @unless(tenantOff('projects'))
                     <div class="min-w-0">
                         <x-ui.forms.select
                             label="پروژه"
@@ -99,6 +100,7 @@
                             @endforeach
                         </x-ui.forms.select>
                     </div>
+                    @endunless
 
                     <div class="min-w-0">
                         <x-ui.forms.select

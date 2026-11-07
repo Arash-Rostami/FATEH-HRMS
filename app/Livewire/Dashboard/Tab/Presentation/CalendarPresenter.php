@@ -94,6 +94,7 @@ class CalendarPresenter
         $authId = $this->authId();
 
         $events = Event::query()
+            ->withoutOffModuleSyncs()
             ->with(['shares' => fn($q) => $q->select('id', 'user_id', 'event_id', 'shared_by')->with('sharer:id,name')])
             ->whereBetween('date', [$range->start, $range->end])
             ->where(function ($q) use ($authId) {
@@ -429,6 +430,7 @@ class CalendarPresenter
             ]);
 
         $events = Event::query()
+            ->withoutOffModuleSyncs()
             ->with(['shares' => fn($q) => $q->select('id', 'user_id', 'event_id', 'shared_by')->with('sharer:id,name')])
             ->whereDate('date', $gregorianDate)
             ->where(function ($q) use ($authId) {
@@ -625,6 +627,10 @@ class CalendarPresenter
 
     private function userReservationsByDay(Carbon $start, Carbon $end): array
     {
+        if (tenantOff('reservation')) {
+            return [];
+        }
+
         $start = $start->copy()->startOfDay();
         $end = $end->copy()->endOfDay();
 
@@ -674,6 +680,10 @@ class CalendarPresenter
 
     private function remindersInRange(Carbon $start, Carbon $end): Collection
     {
+        if (tenantOff('reminder')) {
+            return collect();
+        }
+
         $start = $start->copy()->startOfDay();
         $end = $end->copy()->endOfDay();
 
@@ -698,7 +708,7 @@ class CalendarPresenter
         $this->userReservationsByDay($start, $end);
 
         $spanning = [];
-        foreach ($this->userReservationsCache as $reservation) {
+        foreach ($this->userReservationsCache ?? [] as $reservation) {
             if (!$reservation->start_time || !$reservation->end_time || $reservation->start_time->isSameDay($reservation->end_time)) {
                 continue;
             }
@@ -880,6 +890,7 @@ class CalendarPresenter
         $authId = $this->authId();
 
         $monthEvents = Event::query()
+            ->withoutOffModuleSyncs()
             ->with('shares:user_id,event_id')
             ->whereBetween('date', [$startDate, $endDate])
             ->where(function ($q) use ($authId) {

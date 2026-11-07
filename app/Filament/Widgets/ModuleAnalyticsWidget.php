@@ -53,7 +53,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             Stat::make('آگهی‌های فعال', $stats->active)
                 ->icon('heroicon-o-check')
                 ->color('success'),
-            Stat::make('آقایان / خانم‌ها', "{$stats->males} ┆ {$stats->females}")
+            Stat::make('آقایان / خانم‌ها', (int) $stats->males . ' ┆ ' . (int) $stats->females)
                 ->icon('heroicon-o-user')
                 ->color('info'),
             Stat::make('بدون محدودیت جنسیت', $stats->both_gender)
@@ -154,7 +154,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             Stat::make(__('resources/channel/strings.plural_label'), $stats->total)
                 ->icon('heroicon-o-chat-bubble-left-right')
                 ->color('primary'),
-            Stat::make(__('resources/channel/strings.fields.type'), $stats->open . ' ┆ ' . $stats->private)
+            Stat::make(__('resources/channel/strings.fields.type'), (int) $stats->open . ' ┆ ' . (int) $stats->private)
                 ->icon('heroicon-o-globe-alt')
                 ->color('info'),
             Stat::make(__('resources/channel/strings.fields.messages_count'), $messagesCount)
@@ -215,7 +215,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
         $ranked = Department::withCount(['users' => fn($query) => $query->where('type', '!=', UserType::Guest->value)])
             ->orderByDesc('users_count')->orderBy('code')->get();
         $withUsers = $ranked->where('users_count', '>', 0)->count();
-        $mostDense = $ranked->first()?->displayLabel() ?? __('resources/dashboard/strings.analytics.departments.unknown');
+        $mostDense = $ranked->first(fn ($department) => $department->users_count > 0)?->displayLabel() ?? __('resources/dashboard/strings.analytics.departments.unknown');
 
         return [
             Stat::make(__('resources/dashboard/strings.analytics.departments.total'), $total)
@@ -638,7 +638,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             Stat::make(__('resources/profile/strings.table.employment_status'), $stats->active_employees)
                 ->icon('heroicon-o-check-badge')
                 ->color('success'),
-            Stat::make(__('resources/ad/strings.gender.any'), $stats->males . ' ┆ ' . $stats->females)
+            Stat::make(__('resources/ad/strings.gender.any'), (int) $stats->males . ' ┆ ' . (int) $stats->females)
                 ->icon('heroicon-o-users')
                 ->color('info'),
         ];
@@ -729,7 +729,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             ->selectRaw('COUNT(*) as total, SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active')
             ->first();
 
-        $mostDense = Department::withCount('reports')->orderByDesc('reports_count')->first()?->displayLabel() ?? __('resources/dashboard/strings.analytics.departments.unknown');
+        $mostDense = Department::withCount('reports')->having('reports_count', '>', 0)->orderByDesc('reports_count')->first()?->displayLabel() ?? __('resources/dashboard/strings.analytics.departments.unknown');
 
         return [
             Stat::make(__('resources/dashboard/strings.analytics.reports.top_department'), $mostDense)
@@ -901,7 +901,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
 
         return $schema->components([
             Grid::make()
-                ->schema($stats)
+                ->schema(array_map(fn (Stat $stat) => $stat->getValue() === null ? $stat->value(0) : $stat, $stats))
                 ->columns([
                     'default' => 1,
                     'sm' => 2,

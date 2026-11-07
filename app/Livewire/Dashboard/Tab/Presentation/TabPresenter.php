@@ -3,10 +3,10 @@
 namespace App\Livewire\Dashboard\Tab\Presentation;
 
 use App\Enums\PresenceStatus;
+use App\Livewire\Dashboard\Messaging\Actions\FetchMessagingUnreadAction;
 use App\Models\ChannelMessage;
 use App\Models\DMS;
 use App\Models\Event;
-use App\Models\Message;
 use App\Models\Reminder;
 use App\Models\Task;
 use App\Models\Ticket;
@@ -95,8 +95,8 @@ class TabPresenter
                 'key' => 'messages',
                 'icon' => 'chat_bubble',
                 'label' => 'پیام‌های خوانده‌نشده',
-                'value' => Message::totalUnreadFor($uid) + ChannelMessage::totalUnreadFor($uid),
-                'nav' => ['type' => 'route', 'name' => 'contact'],
+                'value' => array_sum(app(FetchMessagingUnreadAction::class)->execute($uid)),
+                'nav' => ['type' => 'route', 'name' => tenantOff('contact') ? 'channels' : 'contact'],
             ],
             [
                 'key' => 'reminders',

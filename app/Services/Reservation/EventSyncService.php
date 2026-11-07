@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class EventSyncService
 {
-    private const DESCRIPTION_PREFIX = 'جلسه برنامه‌ریزی شده از طریق سیستم رزرواسیون #';
+    public const DESCRIPTION_PREFIX = 'جلسه برنامه‌ریزی شده از طریق سیستم رزرواسیون #';
 
     public static function isReservationEvent(?string $description): bool
     {

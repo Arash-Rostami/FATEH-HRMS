@@ -187,6 +187,7 @@ class TaskFormPresenter
     {
         return Select::make('project_id')
             ->label(__('resources/task/strings.fields.project_id'))
+            ->visible(fn () => !tenantOff('projects'))
             ->relationship('project', 'name')
             ->searchable()
             ->preload()

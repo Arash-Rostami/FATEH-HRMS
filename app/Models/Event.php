@@ -6,6 +6,8 @@ use App\Models\Concerns\HasUser;
 use App\Models\Concerns\HasCountdown;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\Hooks\HasEventHooks;
+use App\Services\ProjectTask\EventSyncService as TaskEventSyncService;
+use App\Services\Reservation\EventSyncService;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
@@ -75,6 +77,17 @@ class Event extends Model
             ->whereHas('shares')
             ->whereBetween('date', [now(), now()->addDay()])
             ->exists();
+    }
+
+    public function scopeWithoutOffModuleSyncs(Builder $query): Builder
+    {
+        foreach (['reservation' => EventSyncService::DESCRIPTION_PREFIX, 'taskboard' => TaskEventSyncService::descriptionPrefix()] as $module => $prefix) {
+            $query->when(tenantOff($module), fn (Builder $q) => $q->where(fn (Builder $w) => $w
+                ->whereNull('description')
+                ->orWhere('description', 'not like', $prefix . '%')));
+        }
+
+        return $query;
     }
 
     public function scopePrivate($query)

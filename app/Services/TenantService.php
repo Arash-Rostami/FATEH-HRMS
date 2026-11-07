@@ -23,7 +23,7 @@ final class TenantService
 
         $lookup = $this->lookup();
 
-        return isset($lookup[$key]) || isset($lookup[strtok($key, ':')]) || isset($lookup[$this->word($key)]);
+        return isset($lookup[$key]) || isset($lookup[strtok($key, ':')]) || isset($lookup[$this->word($key)]) || isset($lookup[$this->word(strtok($key, ':'))]);
     }
 
     public function offKeys(): array
@@ -59,6 +59,12 @@ final class TenantService
         return $this->lookups[config('app.tenant') . '|' . implode(',', config('app.off')) . '|' . count(config('modules'))] ??= (function (): array {
             $off = array_flip(config('app.off'));
             $modules = config('modules');
+
+            foreach ($modules as $module) {
+                if (!empty($module['views'])) {
+                    unset($off[$module['id'] . ':' . $module['views'][0]]);
+                }
+            }
 
             for ($pass = count($modules), $added = true; $added && $pass-- > 0;) {
                 $added = false;

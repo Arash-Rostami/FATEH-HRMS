@@ -1,7 +1,7 @@
 <div
     x-data="faq"
     wire:ignore.self
-    @record-focus.window="if ($event.detail.type === 'faqs') { active = $event.detail.id; view = 'card' }"
+    @record-focus.window="if ($event.detail.type === 'faqs') { active = $event.detail.id; view = '{{ tenantOff('faq:card') ? 'list' : 'card' }}' }"
 
     class="animate-fade relative w-full max-w-[88rem] mx-auto flex flex-col"
     dir="rtl"

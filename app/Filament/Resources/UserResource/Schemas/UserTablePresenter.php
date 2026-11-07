@@ -222,6 +222,7 @@ class UserTablePresenter
     {
         return Action::make('shareTasksheet')
             ->label('اشتراک‌گذاری تسک‌شیت')
+            ->visible(fn () => !tenantOff('tasksheet'))
             ->icon('heroicon-o-share')
             ->iconButton()
             ->modalWidth(Width::Small)

@@ -92,6 +92,36 @@ class TenantServiceTest extends TestCase
         $this->assertFalse($service->off('calendar:month'));
     }
 
+    public function test_off_matches_stored_nudge_keys_whose_prefix_is_a_plural_or_alias_word(): void
+    {
+        $service = $this->off(['feed', 'calendar']);
+
+        $this->assertTrue($service->off('feeds:nudge'));
+        $this->assertTrue($service->off('shared-events:nudge'));
+        $this->assertFalse($service->off('posts-controller:nudge'));
+    }
+
+    public function test_profile_off_takes_its_tab_modules_with_it_and_nothing_else(): void
+    {
+        $service = $this->off(['profile']);
+
+        foreach (['skills', 'onboarding', 'documents', 'credentials'] as $module) {
+            $this->assertTrue($service->off($module));
+        }
+
+        $this->assertFalse($service->off('status'));
+        $this->assertFalse($service->off('taskboard'));
+    }
+
+    public function test_a_modules_default_view_can_never_be_switched_off_even_through_the_env_list(): void
+    {
+        $service = $this->off(['announce:card', 'faq:list', 'faq:card']);
+
+        $this->assertFalse($service->off('announce:card'));
+        $this->assertFalse($service->off('faq:list'));
+        $this->assertTrue($service->off('faq:card'));
+    }
+
     public function test_off_view_key_hides_only_that_view(): void
     {
         $service = $this->off(['status:chart']);

@@ -485,6 +485,7 @@ class ProfileFormPresenter
     public static function skills(): Repeater
     {
         return Repeater::make('skills')
+            ->visible(fn () => !tenantOff('skills'))
             ->label(__('resources/profile/strings.form.skills'))
             ->schema([
                 Hidden::make('id'),

@@ -95,6 +95,7 @@ return [
         'id' => 'profile',
         'icon' => 'badge',
         'nav' => ['type' => 'url', 'target' => 'profile', 'title' => 'پروفایل من', 'icon' => 'person'],
+        'with' => ['skills', 'onboarding', 'documents', 'credentials'],
         'title' => 'وضعیت کاربر (پروفایل)',
         'nav_category' => 'منابع انسانی',
         'cms_hint' => 'فیلدهای پروفایل، اطلاعات شغلی و توضیحات نمایش‌داده‌شده را همسو با سیاست منابع انسانی نگه دارید.',

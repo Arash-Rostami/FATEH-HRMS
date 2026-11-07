@@ -42,9 +42,9 @@
 
             </div>
 
-            <div class="order-1 lg:order-2 h-full w-full">
+            <div class="order-1 lg:order-2 h-full w-full flex flex-col gap-5 lg:gap-6">
 
-                <div data-widget="score" :class="{ 'max-widget': maximizedWidget === 'score' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 p-5 lg:p-8 overflow-hidden shadow-sm flex flex-col items-center text-center relative justify-center bg-[var(--md-sys-color-surface)]">
+                <div data-widget="score" :class="{ 'max-widget': maximizedWidget === 'score' }" class="w-full flex-1 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 p-5 lg:p-8 overflow-hidden shadow-sm flex flex-col items-center text-center relative justify-center bg-[var(--md-sys-color-surface)]">
                     <x-ui.modals.maximize-button toggle="toggleMaximize('score')" state="maximizedWidget === 'score'" size="widget"/>
 
                     <div
@@ -98,8 +98,8 @@
                 </div>
 
                 @if($isManager && count($teamMembersData))
-                    <div wire:key="energy-team-panel" class="w-full flex flex-col flex-1">
-                        <div data-widget="team" :class="{ 'max-widget': maximizedWidget === 'team' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden flex flex-col">
+                    <div wire:key="energy-team-panel" class="w-full flex flex-col">
+                        <div data-widget="team" :class="{ 'max-widget': maximizedWidget === 'team' }" class="w-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden flex flex-col">
                             <header
                                 class="px-5 py-3 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between bg-[var(--md-sys-color-primary)]/60 top-0 z-10 rounded-t-2xl">
                                 <div class="flex items-center gap-2">
