@@ -6,7 +6,7 @@ use App\Models\Project;
 use App\Models\Reply;
 use App\Models\Task;
 use App\Models\User;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
+use App\Enums\TaskState;
 use App\Services\ProjectTask\ReportingService;
 use App\Services\ProjectTask\TaskMetrics;
 use Illuminate\Support\Facades\Cache;

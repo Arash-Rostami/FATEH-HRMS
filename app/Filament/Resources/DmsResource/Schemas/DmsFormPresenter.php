@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\DmsResource\Schemas;
 
-use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
+use App\Enums\DocumentStatus;
 use App\Filament\Resources\DmsResource\Schemas\Action\GenerateOwnerPreview;
 use App\Models\Department;
 use App\Models\User;
 use App\Rules\UniqueLiveDocument;
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;

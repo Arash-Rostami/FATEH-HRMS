@@ -2,13 +2,23 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\AuthorityResource;
 use App\Filament\Resources\AuthorityResource\Pages\CreateAuthority;
 use App\Filament\Resources\AuthorityResource\Pages\EditAuthority;
 use App\Filament\Resources\AuthorityResource\Pages\ListAuthorities;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Authority;
+use App\Models\Department;
 use App\Models\Permission;
 use App\Models\User;
+use Filament\Actions\DeleteAction;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -60,7 +70,7 @@ class AuthorityResourceTest extends TestCase
         $admin->setExtraValue('preferences.row_click_edit', true);
         $admin->save();
 
-        $this->assertSame(\App\Filament\Resources\AuthorityResource::getUrl('edit', ['record' => $authority]), $table()->getRecordUrl($authority));
+        $this->assertSame(AuthorityResource::getUrl('edit', ['record' => $authority]), $table()->getRecordUrl($authority));
     }
 
     private function developer(): User
@@ -140,7 +150,7 @@ class AuthorityResourceTest extends TestCase
         $authority = Authority::factory()->create();
 
         Livewire::actingAs($admin)->test(ListAuthorities::class)
-            ->callTableAction(\Filament\Actions\DeleteAction::class, $authority);
+            ->callTableAction(DeleteAction::class, $authority);
 
         $this->assertDatabaseMissing('authorities', ['id' => $authority->id]);
     }
@@ -213,8 +223,8 @@ class AuthorityResourceTest extends TestCase
     public function test_department_filter_scopes_list_to_matching_records()
     {
         $admin = $this->developer();
-        $departmentA = \App\Models\Department::factory()->create();
-        $departmentB = \App\Models\Department::factory()->create();
+        $departmentA = Department::factory()->create();
+        $departmentB = Department::factory()->create();
 
         $inA = Authority::factory()->create(['department_id' => $departmentA->code]);
         $inB = Authority::factory()->create(['department_id' => $departmentB->code]);
@@ -285,8 +295,8 @@ class AuthorityResourceTest extends TestCase
     public function test_sorting_by_department_name_produces_correct_order()
     {
         $admin = $this->developer();
-        $deptA = \App\Models\Department::factory()->create(['code' => strtoupper(\Illuminate\Support\Str::random(8)), 'name' => 'AAA-sort-dept']);
-        $deptZ = \App\Models\Department::factory()->create(['code' => strtoupper(\Illuminate\Support\Str::random(8)), 'name' => 'ZZZ-sort-dept']);
+        $deptA = Department::factory()->create(['code' => strtoupper(Str::random(8)), 'name' => 'AAA-sort-dept']);
+        $deptZ = Department::factory()->create(['code' => strtoupper(Str::random(8)), 'name' => 'ZZZ-sort-dept']);
         $first = Authority::factory()->create(['department_id' => $deptA->code]);
         $second = Authority::factory()->create(['department_id' => $deptZ->code]);
 
@@ -327,21 +337,21 @@ class AuthorityResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\AuthorityResource\Pages\CreateAuthority::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\AuthorityResource\Pages\EditAuthority::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\AuthorityResource\Pages\ListAuthorities::class => \App\Filament\Pages\ListRecords::class,
+            CreateAuthority::class => CreateRecord::class,
+            EditAuthority::class => EditRecord::class,
+            ListAuthorities::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\AuthorityResource\Pages\CreateAuthority::class, \App\Filament\Resources\AuthorityResource\Pages\EditAuthority::class];
+        $writers = [CreateAuthority::class, EditAuthority::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 

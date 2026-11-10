@@ -48,7 +48,7 @@
             wire:key="reminder-modal"
             title="یادآوری‌ها"
             action="{{ $editingId ? 'update' : 'create' }}"
-            confirm-text="{{ $editingId ? 'بروزرسانی' : 'ثبت یادآوری' }}"
+            confirm-text="{{ $editingId ? 'به‌روزرسانی' : 'ثبت یادآوری' }}"
             cancel-text="انصراف"
             :readonly="$activeTab !== 'form'"
             class="!max-w-3xl !w-full"
@@ -60,7 +60,7 @@
                     <a href="{{ $this->hostUrl() }}" wire:navigate
                        class="inline-flex items-center gap-1.5 text-[11px] font-bold text-[var(--md-sys-color-primary)] hover:opacity-80 transition-opacity -mb-2">
                         <span class="material-symbols-rounded text-[14px]">{{ $this->hostIcon() }}</span>
-                        مشاهده و ویرایش رکورد
+                        مشاهده و ویرایش مورد مرتبط
                     </a>
                 @endif
 

@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\ChannelResource\RelationManagers;
 
-use App\Traits\FilamentActions;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentFilters;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;

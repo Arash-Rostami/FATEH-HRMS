@@ -2,8 +2,8 @@
 
 namespace App\Services\ProjectTask;
 
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Workflow;

@@ -18,7 +18,7 @@
         [
             'icon' => 'sell',
             'label' => 'فیلتر با کلیک روی تگ/دسته',
-            'hint' => 'در هر ردیف، کلیک روی تگِ دسته (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra.category</code>) جستجو را روی آن مقدار می‌گذارد، و کلیک روی هر تگِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">tags</code> فیلتر <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">key|value</code> را فعال می‌کند. جستجوی متنی در عنوان، کد، نسخه، توضیحات و محتوای JSONِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra</code>/<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">tags</code> می‌گردد.',
+            'hint' => 'با انتخاب دسته یا برچسب یک سند، فهرست بر اساس همان مورد فیلتر می‌شود. جست‌وجو عنوان، کد، نسخه، توضیحات و اطلاعات تکمیلی و برچسب‌ها را بررسی می‌کند.',
         ],
         [
             'icon' => 'history',

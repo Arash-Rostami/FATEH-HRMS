@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Tab\Actions;
 
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Event;
 use App\Models\EventShare;
 use App\Models\User;
@@ -56,7 +56,7 @@ class ShareEventAction
         }
 
         StateService::flush();
-        dispatch(new ReconcileNudge('shared-events:nudge', Event::class, $event->id))->afterCommit();
+        dispatch(new ReconcileNudgeJob('shared-events:nudge', Event::class, $event->id))->afterCommit();
 
         $added = is_numeric($inserted) ? (int) $inserted : count($toAdd);
         $removed = count($toRemove);

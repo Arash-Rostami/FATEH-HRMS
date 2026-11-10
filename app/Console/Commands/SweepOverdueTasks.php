@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ReconcileEdge;
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileEdgeJob;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Task;
 use App\Services\Menu\Notifications\TaskNudge;
 use App\Services\Menu\StateService;
@@ -25,7 +25,7 @@ class SweepOverdueTasks extends Command
             ->select('id')
             ->chunkById(200, function ($tasks) use ($overdueKey) {
                 foreach ($tasks as $task) {
-                    ReconcileNudge::dispatch($overdueKey, Task::class, $task->id);
+                    ReconcileNudgeJob::dispatch($overdueKey, Task::class, $task->id);
                 }
             });
 
@@ -39,7 +39,7 @@ class SweepOverdueTasks extends Command
             ->select('id')
             ->chunkById(200, function ($tasks) use ($dueSoonKey) {
                 foreach ($tasks as $task) {
-                    ReconcileEdge::dispatch($dueSoonKey, Task::class, $task->id);
+                    ReconcileEdgeJob::dispatch($dueSoonKey, Task::class, $task->id);
                 }
             });
 
@@ -53,7 +53,7 @@ class SweepOverdueTasks extends Command
             ->select('id')
             ->chunkById(200, function ($tasks) use ($approvalKey) {
                 foreach ($tasks as $task) {
-                    ReconcileNudge::dispatch($approvalKey, Task::class, $task->id);
+                    ReconcileNudgeJob::dispatch($approvalKey, Task::class, $task->id);
                 }
             });
 

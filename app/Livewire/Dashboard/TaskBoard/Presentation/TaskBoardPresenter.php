@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Dashboard\TaskBoard\Presentation;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
 use App\Models\Reply;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\ViewErrorBag;

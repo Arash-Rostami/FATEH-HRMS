@@ -62,7 +62,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">رسانه (تصویر و ویدیو)</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">تا {{ convertToPersian('8') }} تصویر و {{ convertToPersian('1') }} ویدیو. مسیرها در یک فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">media_paths</code> (آرایه) ذخیره می‌شوند و مدل بر اساس پسوند، تصویر و ویدیو را جدا می‌کند.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">می‌توانید تا {{ convertToPersian('8') }} تصویر و {{ convertToPersian('1') }} ویدیو به فید اضافه کنید.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -73,7 +73,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">نظرسنجی (فقط دستهٔ نظرسنجی)</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">گزینه‌ها و تنظیمات در <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">poll_options</code> به‌صورت <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">[mode, comments, reactions, ...choices]</code> بسته‌بندی می‌شوند. برای دسته‌های دیگر این فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">null</code> می‌شود.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">در دستهٔ نظرسنجی، گزینه‌ها و تنظیمات رأی‌گیری، نظر و واکنش را مشخص کنید.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">

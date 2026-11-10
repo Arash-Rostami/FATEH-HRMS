@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\AuthorityResource\Schemas;
 
-use App\Filament\Resources\AuthorityResource\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
-use App\Traits\FilamentFormDivider;
+use App\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\{IconEntry, TextEntry};
 use Filament\Support\Enums\IconPosition;
 use Illuminate\Database\Eloquent\Model;

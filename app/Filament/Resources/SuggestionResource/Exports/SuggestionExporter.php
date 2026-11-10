@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\SuggestionResource\Exports;
 
-use App\Filament\Resources\SuggestionResource\Enums\SuggestionStage;
+use App\Enums\SuggestionStage;
 use App\Models\Department;
 use App\Models\Suggestion;
 use Filament\Actions\Exports\ExportColumn;

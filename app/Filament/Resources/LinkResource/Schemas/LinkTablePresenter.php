@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\LinkResource\Schemas;
 
-use App\Filament\Resources\LinkResource\Enums\LinkType;
+use App\Enums\LinkType;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;

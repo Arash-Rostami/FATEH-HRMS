@@ -2,12 +2,12 @@
 
 namespace App\Livewire\Dashboard\Project\Presentation;
 
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskStatus;
 use App\Models\Project;
 use App\Models\Workflow;
 use App\Services\ProjectTask\TaskMetrics;
-use App\Traits\BuildsMessageGroups;
-use App\Traits\RiskEscalationChip;
+use App\Traits\Livewire\BuildsMessageGroups;
+use App\Traits\Livewire\RiskEscalationChip;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ViewErrorBag;
@@ -189,6 +189,24 @@ class ProjectPresenter
         }
 
         return convertToPersian(intdiv($hours, 24)) . ' روز';
+    }
+
+    public function headerState(Project $project, array $summary): array
+    {
+        $riskChips = $this->headerRiskChips($project, $summary);
+        $settingsSummary = $project->settingsSummary();
+        $otherSettings = $project->otherSettingChips();
+        $hasSpecs = $settingsSummary !== '—' || ! empty($otherSettings);
+
+        return [
+            'riskChips' => $riskChips,
+            'settingsSummary' => $settingsSummary,
+            'otherSettings' => $otherSettings,
+            'badge' => $this->badgeColors($project->id),
+            'isOwner' => $project->owner_id !== null && (int) $project->owner_id === (int) auth()->id(),
+            'hasSpecs' => $hasSpecs,
+            'hasMobilePopoverData' => $hasSpecs || ! empty($riskChips),
+        ];
     }
 
     public function headerRiskChips(Project $project, array $summary): array

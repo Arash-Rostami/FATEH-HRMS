@@ -8,7 +8,7 @@ use App\Models\Concerns\HasPrunableStatus;
 use App\Models\Concerns\HasProjectFollowUps;
 use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasReplies;
-use App\Support\ProjectCharter;
+use App\Services\ProjectTask\ProjectCharter;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

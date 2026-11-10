@@ -29,7 +29,7 @@ trait HasGenerationLifecycle
             ->update(['status' => self::STATUS_FAILED, 'fail_reason' => $reason]) === 1;
 
         if ($failed) {
-            if (!in_array($reason, config('ai_report.no_refund'), true)) {
+            if (!in_array($reason, (array) config('ai.' . static::quotaFeature() . '.no_refund'), true)) {
                 $last = array_key_exists('versions', $this->getAttributes())
                     ? $this->lastVersion()
                     : static::whereKey($this->id)->first(['versions'])?->lastVersion();
@@ -43,11 +43,11 @@ trait HasGenerationLifecycle
 
     public function tempDirectory(): string
     {
-        return "ai-report/tmp/{$this->id}";
+        return 'ai-' . static::quotaFeature() . "/tmp/{$this->id}";
     }
 
     public static function staleMinutes(): int
     {
-        return (int) config('ai_report.stale_minutes');
+        return (int) config('ai.' . static::quotaFeature() . '.stale_minutes');
     }
 }

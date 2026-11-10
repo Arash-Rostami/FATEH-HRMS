@@ -4,9 +4,9 @@ namespace App\Filament\Resources\UserResource\Schemas;
 
 use App\Enums\PresenceStatus;
 use App\Filament\Resources\UserResource;
-use App\Filament\Resources\UserResource\Enums\UserRole;
-use App\Filament\Resources\UserResource\Enums\UserStatus;
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
+use App\Enums\UserType;
 use App\Models\User;
 use App\Services\ProjectTask\TasksheetShareService;
 use Filament\Actions\Action;

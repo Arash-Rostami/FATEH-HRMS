@@ -1,10 +1,3 @@
-@php
-    $user = auth()->user();
-    $preferences = $user?->extra['preferences'] ?? [];
-    $isScreenSaverEnabled = $user && ($preferences['screen_saver'] ?? true);
-    $timeout = isset($preferences['screen_saver_timeout']) ? (int)$preferences['screen_saver_timeout'] : 60;
-@endphp
-
 @if($isScreenSaverEnabled)
 
     <script>

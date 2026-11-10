@@ -22,10 +22,10 @@ use App\Filament\Resources\UserResource\Schemas\UserInfolistPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserTablePresenter;
 use App\Models\User;
 use App\Services\User\UserKeyGrouper;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentFilters;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -84,6 +84,16 @@ class UserResource extends Resource
                 ->schema([
                     UserFormPresenter::extra(),
                 ])->columnSpanFull(),
+
+            Section::make(__('resources/correspondence/strings.admin.user.section'))
+                ->schema([
+                    UserFormPresenter::signature(),
+                    UserFormPresenter::signCode(),
+                    UserFormPresenter::signCodePassword(),
+                    UserFormPresenter::registryPermission(),
+                ])->columns(2)
+                ->visible(fn (string $operation): bool => $operation === 'edit' && ! tenantOffName('correspondence'))
+                ->columnSpanFull(),
         ])->columns(5);
     }
 

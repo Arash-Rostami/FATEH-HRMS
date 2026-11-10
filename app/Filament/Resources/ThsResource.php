@@ -3,14 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ThsResource\Exports\ThsExporter;
-use App\Traits\AuthorizesByPermission;
+use App\Traits\Filament\AuthorizesByPermission;
 use App\Filament\Resources\ThsResource\Pages\{CreateTicket, EditTicket, ListTickets};
 use App\Filament\Resources\ThsResource\Schemas\{TicketFormPresenter, TicketInfolistPresenter, TicketTablePresenter};
 use App\Livewire\Dashboard\Ths\Workspace;
 use App\Models\Ticket;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentFilters;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
@@ -289,6 +289,8 @@ class ThsResource extends Resource
             ])
             ->filtersFormColumns(2)
             ->recordActions([
+                TicketTablePresenter::takeAction(),
+                TicketTablePresenter::closeAction(),
                 self::viewAction(),
                 self::editAction(),
                 self::deleteAction(),

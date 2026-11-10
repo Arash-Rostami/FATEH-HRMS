@@ -360,6 +360,50 @@ describe('menu AI assistant entry — tenancy gate, accent flag and click action
     })
 })
 
+describe('menu ticketing AI pulse — follows the ths:ai tenant key and the provider flag', () => {
+    const ths = (m) => m.items.find((i) => i.id === 'ths-controller')
+
+    test('pulses when the provider is configured and ths:ai is not switched off', () => {
+        withBootedMenu({ aiOn: true }, (m) => expect(ths(m).ai).toBe(true))
+    })
+
+    test('does not pulse when ths:ai is switched off', () => {
+        withBootedMenu({ aiOn: true, off: ['ths:ai'] }, (m) => expect(ths(m).ai).toBe(false))
+    })
+
+    test('does not pulse when the provider is not configured', () => {
+        withBootedMenu({}, (m) => expect(ths(m).ai).toBe(false))
+        withBootedMenu({ aiOn: false }, (m) => expect(ths(m).ai).toBe(false))
+    })
+
+    test('items with a static ai flag are untouched by aiOn', () => {
+        withBootedMenu({ aiAssistant: true }, (m) => {
+            expect(m.items.find((i) => i.id === 'ai-report-controller').ai).toBe(true)
+            expect(m.items.find((i) => i.id === 'ai-assistant').ai).toBe(true)
+            expect(m.items.find((i) => i.id === 'dms-controller').ai).toBeUndefined()
+        })
+    })
+})
+
+describe('menu correspondence entry', () => {
+    test('uses the correspondence route, services group and separate AI tenant key', () => {
+        withBootedMenu({ aiOn: true }, (m) => {
+            const entry = m.items.find((i) => i.id === 'correspondence-controller')
+            expect(entry).toMatchObject({ module: 'correspondence', href: '/correspondence', icon: 'mail', group: 'خدمات', aiView: 'correspondence:ai', ai: true })
+        })
+
+        withBootedMenu({ aiOn: true, off: ['correspondence:ai'] }, (m) => {
+            const entry = m.items.find((i) => i.id === 'correspondence-controller')
+            expect(entry).toBeDefined()
+            expect(entry.ai).toBe(false)
+        })
+
+        withBootedMenu({ off: ['correspondence'] }, (m) => {
+            expect(m.items.map((i) => i.id)).not.toContain('correspondence-controller')
+        })
+    })
+})
+
 describe('menu.handleItemClick', () => {
     test('a disabled item prevents default and records nothing', () => {
         const m = menu()

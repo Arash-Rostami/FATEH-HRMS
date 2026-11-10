@@ -28,7 +28,7 @@ class ReminderDueNotification extends Notification implements ShouldQueue
         $message = new Message(
             MessageBuilder::isolate('یادآوری: '.$this->reminder->title),
             array_values(array_filter([
-                'یادآوری «'.$this->reminder->title.'» سررسید شده است.',
+                'موعد یادآوری «'.$this->reminder->title.'» رسیده است.',
                 $this->reminder->notes,
             ])),
             'reminder',

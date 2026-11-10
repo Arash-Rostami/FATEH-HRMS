@@ -2,7 +2,7 @@
 
 namespace App\Services\ProjectTask;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
+use App\Enums\TaskPriority;
 use App\Models\Task;
 use Illuminate\Support\Facades\DB;
 

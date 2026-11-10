@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Resources\UserResource\Enums\UserRole;
+use App\Enums\UserRole;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
 use Morilog\Jalali\Jalalian;

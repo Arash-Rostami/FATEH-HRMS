@@ -3,8 +3,8 @@
 namespace App\Services\Menu\Notifications;
 
 use App\Enums\TaskActivityType;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
 use App\Models\Reply;
 use App\Models\Task;
 use App\Models\User;

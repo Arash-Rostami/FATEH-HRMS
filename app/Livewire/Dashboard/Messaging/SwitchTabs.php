@@ -29,7 +29,19 @@ class SwitchTabs extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.messaging.switch-tabs');
+        return view('livewire.dashboard.messaging.switch-tabs', ['tabs' => $this->tabs()]);
+    }
+
+    protected function tabs(): array
+    {
+        return collect([
+            ['id' => 'contacts', 'label' => 'پیام‌رسان', 'icon' => 'perm_contact_calendar', 'route' => route('contact'), 'unread' => $this->contactsUnread],
+            ['id' => 'channels', 'label' => 'گروه‌ها', 'icon' => 'campaign', 'route' => route('channels'), 'unread' => $this->channelsUnread],
+        ])
+            ->reject(fn ($tab) => tenantOff($tab['id']))
+            ->sortBy(fn ($tab) => $tab['id'] === $this->active ? 0 : 1)
+            ->values()
+            ->all();
     }
 
     protected function loadCounts(): void

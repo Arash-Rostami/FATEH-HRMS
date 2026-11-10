@@ -670,7 +670,7 @@ class FeedsTest extends TestCase
         $may = Feed::factory()->create(['user_id' => $user->id, 'created_at' => '2026-05-10 10:00:00']);
 
         $feeds = collect([$march, $march2, $may]);
-        $months = (new \App\Livewire\Dashboard\Tab\Presentation\FeedPresenter())->months($feeds, 'created_at');
+        $months = (new FeedPresenter())->months($feeds, 'created_at');
 
         $this->assertCount(2, $months);
         $this->assertSame(2, $months->pluck('key')->unique()->count());

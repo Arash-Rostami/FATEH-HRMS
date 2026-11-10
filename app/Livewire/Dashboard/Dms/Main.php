@@ -7,8 +7,8 @@ use App\Livewire\Dashboard\Dms\Presentation\DmsPresenter;
 use App\Models\DMS;
 use App\Models\Read;
 use App\Services\Cache\ModelCacheVersion;
-use App\Traits\FocusOnRecord;
-use App\Traits\HasDateSpan;
+use App\Traits\Livewire\FocusOnRecord;
+use App\Traits\Livewire\HasDateSpan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -142,18 +142,23 @@ class Main extends Component
 
     public function getAuthorizedFile(string $filename): Response
     {
-        $doc = DMS::visibleToUser()->where('file', $filename)->first();
+        $doc = $this->servableDocs()->where('file', $filename)->first();
 
         if (!$doc) {
-            return $this->notFound();
+            return $this->getAuthorizedExtraFile($filename);
         }
 
         return $this->serveFile(Storage::disk('public')->path($doc->file), $doc->downloadNameFor($doc->file));
     }
 
+    private function servableDocs(): Builder
+    {
+        return auth()->user()?->hasElevatedRole() ? DMS::query() : DMS::visibleToUser();
+    }
+
     public function getAuthorizedExtraFile(string $filename): Response
     {
-        $doc = DMS::visibleToUser()->whereJsonContains('extra_files', $filename)->first();
+        $doc = $this->servableDocs()->whereJsonContains('extra_files', $filename)->first();
 
         if (!$doc) {
             return $this->notFound();
@@ -524,8 +529,13 @@ class Main extends Component
             return $this->notFound();
         }
 
-        return strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) === 'pdf'
-            ? response()->file($filePath)->setContentDisposition('inline', $name)
-            : response()->download($filePath, $name);
+        $response = response()->file($filePath)->setContentDisposition(
+            strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) === 'pdf' ? 'inline' : 'attachment',
+            $name,
+        );
+        $response->headers->set('Cache-Control', 'private, no-store');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        return $response;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin;
 
-use App\Traits\FilamentPreferences;
+use App\Traits\Filament\FilamentPreferences;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Pages\Page;

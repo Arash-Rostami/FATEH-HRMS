@@ -3,16 +3,18 @@ import tableToolsMixin from "../mixins/tableTools.js";
 import chartBuilderMixin from "../mixins/chartBuilder.js";
 
 const DOC_SELECTOR = '.ai-report-doc';
-const SKIP_CLASSES = ['print:hidden', 'ai-report-disclaimer'];
+const SKIP_HIDDEN = 'print:hidden';
+const SKIP_DISCLAIMER = 'ai-report-disclaimer';
 const HEADINGS = new Set(['H1', 'H2', 'H3']);
 const GRID_CLASS = 'grid';
 const BULLET = '• ';
 const ON = '1';
+const PRINT = ['beforeprint', 'afterprint'];
 const PALETTE = ['primary', 'secondary', 'tertiary', 'error', 'on-surface-variant', 'outline'].map((n) => `var(--md-sys-color-${n})`);
 
 const toNumber = (v) => {
-    if (v === null || v === undefined || v === '') return null;
-    const n = typeof v === 'number' ? v : Number(v);
+    if (v == null || v === '') return null;
+    const n = Number(v);
     return Number.isFinite(n) ? n : null;
 };
 
@@ -33,32 +35,46 @@ const draftWrite = (value) => {
     }
 };
 
+const formatters = {};
 const formatNumber = (n, fa) => {
     try {
-        return Number(n).toLocaleString(fa ? 'fa-IR' : 'en-US');
+        const locale = fa ? 'fa-IR' : 'en-US';
+        return (formatters[locale] ??= new Intl.NumberFormat(locale)).format(Number(n));
     } catch {
         return String(n);
     }
 };
 
+let faPlain;
+const faDigits = (n) => (faPlain ??= new Intl.NumberFormat('fa-IR', { useGrouping: false })).format(n);
+
 const parseChart = (json) => {
     const raw = JSON.parse(json || 'null');
     const kind = raw?.kind === 'pie' || raw?.kind === 'bar' ? raw.kind : null;
-    const labels = Array.isArray(raw?.labels) ? raw.labels.map((l) => (l === null || l === undefined ? '' : String(l))) : [];
-    const series = (Array.isArray(raw?.series) ? raw.series : [])
-        .filter((s) => s && typeof s === 'object')
-        .map((s) => ({ name: String(s.name ?? ''), values: labels.map((_, i) => toNumber(Array.isArray(s.values) ? s.values[i] : null)) }));
-    const used = kind === 'pie' ? series.slice(0, 1) : series;
-    const drawable = used.some((s) => s.values.some((v) => v !== null && (kind !== 'pie' || v > 0)));
-    return kind && labels.length && drawable ? { kind, labels, series: used } : null;
+    if (!kind || !Array.isArray(raw.labels) || !raw.labels.length) return null;
+
+    const pie = kind === 'pie';
+    const labels = raw.labels.map((l) => (l == null ? '' : String(l)));
+    const series = [];
+    for (const s of Array.isArray(raw.series) ? raw.series : []) {
+        if (!s || typeof s !== 'object') continue;
+        const vals = Array.isArray(s.values) ? s.values : [];
+        series.push({ name: String(s.name ?? ''), values: labels.map((_, i) => toNumber(vals[i])) });
+        if (pie) break;
+    }
+    const drawable = series.some((s) => s.values.some((v) => v !== null && (!pie || v > 0)));
+    return drawable ? { kind, labels, series } : null;
 };
 
 const textOf = (el) => el.textContent.trim();
 
-const isSkipped = (el) =>
-    (el.tagName === 'SPAN' && !el.querySelector('bdi'))
-    || el.getAttribute('aria-hidden') === 'true'
-    || SKIP_CLASSES.some((c) => el.classList.contains(c));
+const isSkipped = (el) => {
+    const { tagName, classList } = el;
+    return (tagName === 'SPAN' && !el.querySelector('bdi'))
+        || el.getAttribute('aria-hidden') === 'true'
+        || classList.contains(SKIP_HIDDEN)
+        || classList.contains(SKIP_DISCLAIMER);
+};
 
 const pushText = (out, el) => {
     const t = textOf(el);
@@ -78,19 +94,28 @@ const pushList = (out, el) => {
 
 const pushTiles = (out, el) => {
     for (const tile of el.children) {
-        const ps = Array.from(tile.children).filter((c) => c.tagName === 'P');
-        if (ps.length > 1) out.push(textOf(ps[0]) + ': ' + ps.slice(1).map(textOf).filter(Boolean).join(' — '));
+        let head = '';
+        let count = 0;
+        const rest = [];
+        for (const c of tile.children) {
+            if (c.tagName !== 'P') continue;
+            const t = textOf(c);
+            if (count++ === 0) head = t;
+            else if (t) rest.push(t);
+        }
+        if (count > 1) out.push(`${head}: ${rest.join(' — ')}`);
     }
 };
 
 const walk = (out, parent) => {
     for (const el of parent.children) {
         if (isSkipped(el)) continue;
-        if (el.tagName === 'TABLE') pushTable(out, el);
-        else if (HEADINGS.has(el.tagName)) pushText(out, el);
-        else if (el.tagName === 'UL') pushList(out, el);
+        const tag = el.tagName;
+        if (tag === 'TABLE') pushTable(out, el);
+        else if (HEADINGS.has(tag)) pushText(out, el);
+        else if (tag === 'UL') pushList(out, el);
         else if (el.classList.contains(GRID_CLASS)) pushTiles(out, el);
-        else if (el.tagName === 'P' || el.tagName === 'SPAN') pushText(out, el);
+        else if (tag === 'P' || tag === 'SPAN') pushText(out, el);
         else walk(out, el);
     }
 };
@@ -139,12 +164,13 @@ export function aiReportComposer() {
         },
 
         count(e) {
-            this.n = e.target.value.length;
-            draftWrite(e.target.value);
+            const { value } = e.target;
+            this.n = value.length;
+            draftWrite(value);
         },
 
         faCount() {
-            return this.n.toLocaleString('fa-IR', { useGrouping: false });
+            return faDigits(this.n);
         },
 
         submit() {
@@ -231,8 +257,7 @@ export function aiReportChart() {
                     this.failed = false;
                     this.redraw();
                 };
-                window.addEventListener('beforeprint', this.onPrint);
-                window.addEventListener('afterprint', this.onPrint);
+                PRINT.forEach((e) => window.addEventListener(e, this.onPrint));
                 if (typeof MutationObserver === 'function') {
                     this.themeWatch = new MutationObserver(() => {
                         if (this.chart && document.documentElement.classList.contains('dark') !== this.dark) this.redraw();
@@ -253,10 +278,7 @@ export function aiReportChart() {
 
         destroy() {
             this.gone = true;
-            if (this.onPrint) {
-                window.removeEventListener('beforeprint', this.onPrint);
-                window.removeEventListener('afterprint', this.onPrint);
-            }
+            if (this.onPrint) PRINT.forEach((e) => window.removeEventListener(e, this.onPrint));
             this.sizeWatch?.disconnect();
             this.themeWatch?.disconnect();
             this.release();

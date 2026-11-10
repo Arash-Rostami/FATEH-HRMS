@@ -5,7 +5,7 @@ namespace App\Filament\Resources\DepartmentResource\RelationManagers;
 use App\Filament\Resources\AuthorityResource\Schemas\AuthorityFormPresenter;
 use App\Filament\Resources\AuthorityResource\Schemas\AuthorityInfolistPresenter;
 use App\Filament\Resources\AuthorityResource\Schemas\AuthorityTablePresenter;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

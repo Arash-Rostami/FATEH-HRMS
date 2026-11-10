@@ -41,7 +41,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">چه کسی می‌تواند رزرو کند؟</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        ساختن منبع کافی نیست؛ کاربر هم باید اجازهٔ رزرو داشته باشد. این اجازه با یک پرچم به‌نام <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">booking</code> روی رکورد کاربر داده می‌شود — در منوی «کاربران» و در صفحهٔ ویرایش کاربر. بدون این پرچم، صفحهٔ رزرو برای کاربر خالی است.
+        ساختن منبع کافی نیست؛ کاربر هم باید اجازهٔ رزرو داشته باشد. مجوزهای رزرو را در صفحهٔ ویرایش کاربر، در منوی «کاربران» تنظیم کنید. بدون این مجوز، صفحهٔ رزرو برای کاربر خالی است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

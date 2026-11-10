@@ -14,19 +14,23 @@
         </div>
     @endif
 
-    <input
-        type="{{ $type }}"
-        name="{{ $name }}"
-        id="{{ $name }}"
-        {{ $disabled ? 'disabled' : '' }}
-        {!! $attributes->merge(['class' => 'md3-input peer ' . ($icon ? 'pr-10' : '') . ($maximizable ? ' pl-10' : '')]) !!}
-        placeholder=" "
-    />
-    <label for="{{ $name }}"
-           @if($columnHint) title="نام فیلد در پایگاه‌داده: {{ $columnHint }}" @endif
-           class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">
-        {{ $label }}
-    </label>
+    <div class="{{ isset($actions) ? 'relative' : 'contents' }}">
+        <input
+            type="{{ $type }}"
+            name="{{ $name }}"
+            id="{{ $name }}"
+            {{ $disabled ? 'disabled' : '' }}
+            {!! $attributes->merge(['class' => 'md3-input peer ' . ($icon ? 'pr-10' : '') . ($maximizable || isset($actions) ? ' pl-10' : '')]) !!}
+            placeholder=" "
+        />
+        <label for="{{ $name }}"
+               @if($columnHint) title="نام فیلد در پایگاه‌داده: {{ $columnHint }}" @endif
+               class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">
+            {{ $label }}
+        </label>
+
+        {{ $actions ?? '' }}
+    </div>
 
     @if($maximizable)
         <x-ui.forms.maximize-trigger/>

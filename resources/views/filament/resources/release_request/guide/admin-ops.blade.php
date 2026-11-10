@@ -28,7 +28,7 @@
         [
             'icon' => 'download',
             'label' => 'خروجی اکسل',
-            'hint' => 'با عملیات گروهی «خروجی Excel» می‌توانید درخواست‌های انتخاب‌شده را صادر کنید — شامل ID، نوع، عنوان، متن، وضعیت، پاسخ، نام ثبت‌کننده و تاریخ شمسی. خروجی کوئری را با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">user</code> eager-load می‌کند.',
+            'hint' => 'با «خروجی Excel» درخواست‌های انتخاب‌شده را دریافت کنید. فایل شامل شناسه، نوع، عنوان، متن، وضعیت، پاسخ، ثبت‌کننده و تاریخ شمسی است.',
         ],
     ];
 @endphp
@@ -40,7 +40,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کارهایی که می‌توانید روی درخواست‌ها انجام دهید</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        شما می‌توانید درخواست‌ها را مشاهده و ویرایش کنید، وضعیت را به «در حال بررسی» یا «حل‌شده» تغییر دهید، پاسخ بنویسید، درخواست‌های خارج از ضوابط را رد کنید و خروجی اکسل بگیرید. کوئری پایهٔ جدول، رابطهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">user</code> را eager-load می‌کند تا ستون «ثبت‌کننده» بدون کوئری اضافیِ هر ردیف پر شود.
+        درخواست‌ها را مشاهده و ویرایش کنید، وضعیت آن‌ها را تغییر دهید، پاسخ بنویسید یا درخواست‌های خارج از ضوابط را رد کنید. همچنین می‌توانید خروجی اکسل بگیرید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

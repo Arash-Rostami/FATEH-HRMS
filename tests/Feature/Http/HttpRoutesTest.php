@@ -2,14 +2,31 @@
 
 namespace Tests\Feature\Http;
 
+use App\Livewire\Dashboard\Ads\Main as AdsMain;
+use App\Livewire\Dashboard\Authority\Main as AuthorityMain;
+use App\Livewire\Dashboard\Channel\Main as ChannelMain;
+use App\Livewire\Dashboard\Contact\Main as ContactMain;
+use App\Livewire\Dashboard\Dms\Main as DmsMain;
+use App\Livewire\Dashboard\Energy\Main as EnergyMain;
+use App\Livewire\Dashboard\Profile\Main as ProfileMain;
+use App\Livewire\Dashboard\Reservation\Main as ReservationMain;
+use App\Livewire\Dashboard\Suggestion\Main as SuggestionMain;
+use App\Livewire\Dashboard\Tabs;
+use App\Livewire\Dashboard\TaskBoard\Main as TaskBoardMain;
+use App\Livewire\Dashboard\Ths\Main as ThsMain;
 use App\Models\DMS;
 use App\Models\Department;
 use App\Models\Permission;
 use App\Models\Profile;
 use App\Models\User;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Session\Middleware\StartSession;
 use Tests\TestCase;
 
 class HttpRoutesTest extends TestCase
@@ -123,23 +140,23 @@ class HttpRoutesTest extends TestCase
     public function test_dashboard_livewire_routes_are_registered_behind_auth_middleware(): void
     {
         $expected = [
-            '/dashboard' => \App\Livewire\Dashboard\Tabs::class,
-            '/profile' => \App\Livewire\Dashboard\Profile\Main::class,
-            '/tasks' => \App\Livewire\Dashboard\TaskBoard\Main::class,
-            '/dms' => \App\Livewire\Dashboard\Dms\Main::class,
-            '/ths' => \App\Livewire\Dashboard\Ths\Main::class,
-            '/ads' => \App\Livewire\Dashboard\Ads\Main::class,
-            '/suggestion' => \App\Livewire\Dashboard\Suggestion\Main::class,
-            '/authority' => \App\Livewire\Dashboard\Authority\Main::class,
-            '/contacts' => \App\Livewire\Dashboard\Contact\Main::class,
-            '/channels' => \App\Livewire\Dashboard\Channel\Main::class,
-            '/energy' => \App\Livewire\Dashboard\Energy\Main::class,
-            '/reservation' => \App\Livewire\Dashboard\Reservation\Main::class,
+            '/dashboard' => Tabs::class,
+            '/profile' => ProfileMain::class,
+            '/tasks' => TaskBoardMain::class,
+            '/dms' => DmsMain::class,
+            '/ths' => ThsMain::class,
+            '/ads' => AdsMain::class,
+            '/suggestion' => SuggestionMain::class,
+            '/authority' => AuthorityMain::class,
+            '/contacts' => ContactMain::class,
+            '/channels' => ChannelMain::class,
+            '/energy' => EnergyMain::class,
+            '/reservation' => ReservationMain::class,
         ];
 
         foreach ($expected as $uri => $componentClass) {
-            $route = collect(\Illuminate\Support\Facades\Route::getRoutes()->getRoutes())
-                ->first(fn (\Illuminate\Routing\Route $r) => $r->uri() === ltrim($uri, '/'));
+            $route = collect(Route::getRoutes()->getRoutes())
+                ->first(fn (RoutingRoute $r) => $r->uri() === ltrim($uri, '/'));
 
             $this->assertNotNull($route, "Route {$uri} is not registered.");
             $this->assertContains('auth', $route->gatherMiddleware(), "Route {$uri} is missing the auth middleware.");
@@ -269,10 +286,9 @@ class HttpRoutesTest extends TestCase
         $this->actingAs($owner)->get('/authorized/dms/missing-doc.pdf')->assertNotFound();
     }
 
-    public function test_authorized_file_has_no_super_admin_bypass(): void
+    public function test_authorized_file_is_served_to_a_developer_outside_the_owners(): void
     {
-        $path = $this->stageDiskFile('dms/admin-leak-doc.pdf');
-        $developer = $this->developer();
+        $path = $this->stageDiskFile('dms/developer-doc.pdf');
         DMS::factory()->create([
             'status' => 'live',
             'type' => true,
@@ -283,7 +299,82 @@ class HttpRoutesTest extends TestCase
             'tags' => [],
         ]);
 
-        $this->actingAs($developer)->get('/authorized/' . $path)->assertNotFound();
+        $this->actingAs($this->developer())->get('/authorized/' . $path)->assertSuccessful();
+    }
+
+    public function test_authorized_file_is_served_to_an_admin_outside_the_owners(): void
+    {
+        $path = $this->stageDiskFile('dms/admin-doc.pdf');
+        DMS::factory()->create([
+            'status' => 'live',
+            'type' => true,
+            'file' => $path,
+            'owners' => ['PS'],
+            'users' => [],
+            'extra' => [],
+            'tags' => [],
+        ]);
+
+        $this->actingAs($this->deptUser('OTHER', 'expert', 'admin'))->get('/authorized/' . $path)->assertSuccessful();
+    }
+
+    public function test_an_extra_file_reached_through_the_main_route_is_served_to_a_visible_user(): void
+    {
+        $path = $this->stageDiskFile('dms/extra-via-main.pdf');
+        DMS::factory()->create([
+            'status' => 'live',
+            'type' => true,
+            'file' => 'dms/primary-doc.pdf',
+            'owners' => ['PS'],
+            'users' => [],
+            'extra' => [],
+            'extra_files' => [$path],
+            'tags' => [],
+        ]);
+
+        $this->actingAs($this->deptUser('PS'))->get('/authorized/' . $path)->assertSuccessful();
+    }
+
+    public function test_served_dms_files_carry_private_headers_and_inline_for_pdf_attachment_otherwise(): void
+    {
+        $pdf = $this->stageDiskFile('dms/headers-main.pdf');
+        $docx = 'dms/headers-main.docx';
+        $extraPdf = 'dms/headers-extra.pdf';
+        $extraDocx = 'dms/headers-extra.docx';
+        foreach ([$docx, $extraPdf, $extraDocx] as $file) {
+            Storage::disk('public')->put($file, 'fake-body');
+        }
+        $user = $this->deptUser('PS');
+        $base = ['status' => 'live', 'type' => true, 'owners' => ['PS'], 'users' => [], 'extra' => [], 'tags' => []];
+        DMS::factory()->create($base + ['file' => $pdf]);
+        DMS::factory()->create($base + ['file' => $docx]);
+        DMS::factory()->create($base + ['file' => 'dms/headers-primary.pdf', 'extra_files' => [$extraPdf, $extraDocx]]);
+
+        foreach ([$pdf => 'inline', $docx => 'attachment', $extraPdf => 'inline', $extraDocx => 'attachment'] as $file => $disposition) {
+            $response = $this->actingAs($user)->get('/authorized/' . $file)->assertSuccessful();
+
+            $this->assertStringStartsWith($disposition, (string) $response->headers->get('Content-Disposition'), $file);
+            $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'), $file);
+            $this->assertStringContainsString('private', (string) $response->headers->get('Cache-Control'), $file);
+            $this->assertSame('nosniff', $response->headers->get('X-Content-Type-Options'), $file);
+        }
+    }
+
+    public function test_an_extra_file_reached_through_the_main_route_is_404_for_a_stranger(): void
+    {
+        $path = $this->stageDiskFile('dms/extra-via-main-restricted.pdf');
+        DMS::factory()->create([
+            'status' => 'live',
+            'type' => true,
+            'file' => 'dms/primary-doc.pdf',
+            'owners' => ['PS'],
+            'users' => [],
+            'extra' => [],
+            'extra_files' => [$path],
+            'tags' => [],
+        ]);
+
+        $this->actingAs($this->deptUser('OTHER'))->get('/authorized/' . $path)->assertNotFound();
     }
 
     public function test_authorized_extra_file_returns_200_for_visible_user(): void
@@ -364,7 +455,7 @@ class HttpRoutesTest extends TestCase
             $this->markTestSkipped('Dashboard route returned 500 — requires seeded state unavailable in a transaction.');
         }
         $response->assertSee('دستیار هوش مصنوعی');
-        $response->assertSee('/?user=' . \Illuminate\Support\Str::slug(config('app.name_en')) . '_' . $user->id, false);
+        $response->assertSee('/?user=' . Str::slug(config('app.name_en')) . '_' . $user->id, false);
         $response->assertSee('aiAssistant: true', false);
     }
 
@@ -393,7 +484,7 @@ class HttpRoutesTest extends TestCase
         }
         // Not assertDontSee('دستیار هوش مصنوعی') — that title also appears in the always-rendered
         // module guide catalog (Tab\Home::modules(), config('modules')), unrelated to widget access.
-        $response->assertDontSee('/?user=' . \Illuminate\Support\Str::slug(config('app.name_en')) . '_' . $user->id, false);
+        $response->assertDontSee('/?user=' . Str::slug(config('app.name_en')) . '_' . $user->id, false);
     }
 
     public function test_ai_assistant_widget_hidden_when_access_not_granted(): void
@@ -406,7 +497,7 @@ class HttpRoutesTest extends TestCase
         if ($response->status() === 500) {
             $this->markTestSkipped('Dashboard route returned 500 — requires seeded state unavailable in a transaction.');
         }
-        $response->assertDontSee('/?user=' . \Illuminate\Support\Str::slug(config('app.name_en')) . '_' . $user->id, false);
+        $response->assertDontSee('/?user=' . Str::slug(config('app.name_en')) . '_' . $user->id, false);
     }
 
     public function test_ai_assistant_widget_shows_locked_upgrade_button_without_panel(): void
@@ -420,7 +511,7 @@ class HttpRoutesTest extends TestCase
             $this->markTestSkipped('Dashboard route returned 500 — requires seeded state unavailable in a transaction.');
         }
         $response->assertSee('ارتقا طرح برای دسترسی');
-        $response->assertDontSee('/?user=' . \Illuminate\Support\Str::slug(config('app.name_en')) . '_' . $user->id, false);
+        $response->assertDontSee('/?user=' . Str::slug(config('app.name_en')) . '_' . $user->id, false);
     }
 
     public function test_module_features_api_serves_public_catalog_without_auth(): void
@@ -466,13 +557,13 @@ class HttpRoutesTest extends TestCase
 
     private function adminIndexUrls(): array
     {
-        return collect(\Illuminate\Support\Facades\Route::getRoutes()->getRoutes())
-            ->filter(fn (\Illuminate\Routing\Route $r) => $r->getName()
+        return collect(Route::getRoutes()->getRoutes())
+            ->filter(fn (RoutingRoute $r) => $r->getName()
                 && str_starts_with($r->getName(), 'filament.admin.resources.')
                 && str_ends_with($r->getName(), '.index')
                 && in_array('GET', $r->methods())
                 && !str_contains($r->uri(), '{'))
-            ->mapWithKeys(fn (\Illuminate\Routing\Route $r) => [$r->getName() => '/' . $r->uri()])
+            ->mapWithKeys(fn (RoutingRoute $r) => [$r->getName() => '/' . $r->uri()])
             ->all();
     }
 
@@ -679,5 +770,45 @@ class HttpRoutesTest extends TestCase
 
         config(['app.off' => []]);
         $this->get('/forgot-password')->assertOk();
+    }
+
+    public function test_correspondence_routes_are_registered_with_public_link_guards_and_authenticated_pdf(): void
+    {
+        $routes = app('router')->getRoutes();
+        $link = $routes->getByName('correspondence.link');
+        $linkPdf = $routes->getByName('correspondence.link.pdf');
+        $main = $routes->getByName('correspondence');
+        $pdf = $routes->getByName('correspondence.pdf');
+
+        $this->assertNotNull($link);
+        $this->assertNotNull($linkPdf);
+        $this->assertNotNull($main);
+        $this->assertNotNull($pdf);
+        $this->assertSame('c/{id}-{token}', $link->uri());
+        $this->assertSame('c/{id}-{token}/pdf', $linkPdf->uri());
+        $this->assertSame('correspondence', $main->uri());
+        $this->assertSame('correspondence/{id}/pdf', $pdf->uri());
+
+        foreach ([$link, $linkPdf] as $publicRoute) {
+            $middleware = $publicRoute->getAction('middleware');
+            $this->assertContains('letter.link', $middleware);
+            $this->assertContains('throttle:letter-link', $middleware);
+            $excluded = $publicRoute->getAction('excluded_middleware');
+            $this->assertContains(StartSession::class, $excluded);
+            $this->assertContains(EncryptCookies::class, $excluded);
+        }
+
+        $this->assertContains('auth', $main->getAction('middleware'));
+        $this->assertContains('auth', $pdf->getAction('middleware'));
+    }
+
+    public function test_the_correspondence_attachment_route_is_authenticated_and_numeric(): void
+    {
+        $attachment = app('router')->getRoutes()->getByName('correspondence.attachment');
+
+        $this->assertNotNull($attachment);
+        $this->assertSame('correspondence/{id}/attachment/{index}', $attachment->uri());
+        $this->assertContains('auth', $attachment->getAction('middleware'));
+        $this->assertSame(['id' => '[0-9]+', 'index' => '[0-9]+'], $attachment->wheres);
     }
 }

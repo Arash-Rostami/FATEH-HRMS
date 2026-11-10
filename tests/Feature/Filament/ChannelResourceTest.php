@@ -3,6 +3,11 @@
 namespace Tests\Feature\Filament;
 
 use App\Enums\ChannelType;
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\ChannelResource;
 use App\Filament\Resources\ChannelResource\Pages\CreateChannel;
 use App\Filament\Resources\ChannelResource\Pages\EditChannel;
 use App\Filament\Resources\ChannelResource\Pages\ListChannels;
@@ -10,6 +15,9 @@ use App\Models\Channel;
 use App\Models\Permission;
 use App\Models\User;
 use App\Filament\Resources\ChannelResource\RelationManagers\ChannelMembersRelationManager;
+use App\Filament\Resources\ChannelResource\RelationManagers\ChannelMessagesRelationManager;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DetachAction;
@@ -345,28 +353,28 @@ class ChannelResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ChannelResource\Pages\CreateChannel::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\ChannelResource\Pages\EditChannel::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ChannelResource\Pages\ListChannels::class => \App\Filament\Pages\ListRecords::class,
+            CreateChannel::class => CreateRecord::class,
+            EditChannel::class => EditRecord::class,
+            ListChannels::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ChannelResource\Pages\CreateChannel::class, \App\Filament\Resources\ChannelResource\Pages\EditChannel::class];
+        $writers = [CreateChannel::class, EditChannel::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\ChannelResource\RelationManagers\ChannelMembersRelationManager::class, \App\Filament\Resources\ChannelResource\RelationManagers\ChannelMessagesRelationManager::class];
+        $managers = [ChannelMembersRelationManager::class, ChannelMessagesRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 

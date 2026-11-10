@@ -4,7 +4,7 @@ namespace App\Filament\Resources\OnboardingResource\Schemas;
 
 use App\Filament\Resources\OnboardingResource\Schemas\Helper\ExtrasTemplate;
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;

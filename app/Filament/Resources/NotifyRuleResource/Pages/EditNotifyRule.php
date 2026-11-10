@@ -6,10 +6,10 @@ use App\Filament\Pages\EditRecord;
 use App\Filament\Resources\NotifyRuleResource;
 use App\Filament\Resources\NotifyRuleResource\Schemas\Action\SendTestAction;
 use App\Filament\Resources\NotifyRuleResource\Schemas\NotifyRuleFormPresenter;
-use App\Traits\FilamentDateHandler;
-use App\Traits\FilamentEditHeading;
-use App\Traits\FilamentHeaderActions;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentDateHandler;
+use App\Traits\Filament\FilamentEditHeading;
+use App\Traits\Filament\FilamentHeaderActions;
+use App\Traits\Filament\FilamentPageBehavior;
 
 class EditNotifyRule extends EditRecord
 {

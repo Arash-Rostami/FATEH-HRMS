@@ -46,7 +46,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما در این صفحه: نظارت، اصلاح عنوان و سررسید، حذف</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        این بخش برای نظارت طراحی شده، نه جایگزین پنل کاربر. سه دکمهٔ عملیات روی هر ردیف (پس از سلول‌ها) مشاهده، ویرایش و حذف هستند و دکمهٔ ساخت در هدر صفحه قرار دارد. تکمیل و به‌تعویق‌انداختن عمداً در پنل ادمین نیست، چون هرکدام آثار جانبی دارند (ساخت یادآوری بعدی در تکرار، بازنشانی ارسال).
+        این بخش برای نظارت است و جای پنل کاربر را نمی‌گیرد. برای هر یادآوری دکمه‌های مشاهده، ویرایش و حذف وجود دارد. دکمهٔ ساخت بالای صفحه است. تکمیل و تعویق فقط از پنل کاربر انجام می‌شوند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

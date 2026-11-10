@@ -7,6 +7,7 @@ const make = () => {
     const c = ths()
     c.$wire = createWireMock()
     c.$nextTick = (cb) => cb()
+    c.$watch = vi.fn()
     return c
 }
 

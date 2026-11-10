@@ -3,7 +3,7 @@
 namespace App\Services\ProjectTask;
 
 use App\Enums\TaskActivityType;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskStatus;
 use App\Models\Project;
 use App\Models\Reply;
 use App\Models\Task;

@@ -1,16 +1,8 @@
 @php
-    $sm = $presenter->statusMeta($selectedTicket['status']);
-    $pm = $presenter->priorityMeta($selectedTicket['priority']);
-    $deptCode = $selectedTicket['target_department_code'] ?? null;
-    $deadlineChip = $presenter->deadlineChip($selectedTicket['completion_deadline'] ?? null, $selectedTicket['completion_date'] ?? null, $selectedTicket['status']);
-    $ring = $presenter->deadlineRing($selectedTicket);
-    $timeline = $selectedTicket['timeline'] ?? [];
-    $isRequester = ($selectedTicket['requester_id'] ?? null) === auth()->id();
-    $files = [
-        ...array_map(fn ($f) => [...$f, 'by' => 'درخواست‌کننده', 'group' => 'requester'], $selectedTicket['requester_files'] ?? []),
-        ...array_map(fn ($f) => [...$f, 'by' => 'مسئول رسیدگی', 'group' => 'assignee'], $selectedTicket['assignee_files'] ?? []),
-    ];
-    $score = (int) ($selectedTicket['satisfaction_score'] ?? 0);
+    [
+        'sm' => $sm, 'pm' => $pm, 'deptCode' => $deptCode, 'deadlineChip' => $deadlineChip, 'ring' => $ring,
+        'timeline' => $timeline, 'isRequester' => $isRequester, 'files' => $files, 'score' => $score,
+    ] = $presenter->infoState($selectedTicket);
     $rowClass = 'flex items-center gap-3 min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] bg-[var(--md-sys-color-surface-container-low)] px-3 py-2.5';
     $iconClass = 'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]';
     $labelClass = 'text-[10px] text-[var(--md-sys-color-on-surface-variant)]';

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Concerns\HasDepartmentLabel;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\Menu\StateService;
@@ -46,7 +46,7 @@ class Department extends Model
 
         Ticket::query()->targetedAt($code)->where('status', '!=', 'closed')
             ->pluck('id')
-            ->each(fn ($id) => ReconcileNudge::dispatch('ths-controller:nudge', Ticket::class, $id));
+            ->each(fn ($id) => ReconcileNudgeJob::dispatch('ths-controller:nudge', Ticket::class, $id));
     }
 
     public static function freeAssignment(?string $code): bool

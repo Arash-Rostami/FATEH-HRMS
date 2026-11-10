@@ -3,7 +3,10 @@
 namespace App\Filament\Resources\ThsResource\Pages;
 
 use App\Filament\Resources\ThsResource;
-use App\Traits\{FilamentDateHandler, FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior};
+use App\Enums\TicketStatus;
+use App\Support\TicketAccessPolicy;
+use Filament\Actions\Action;
+use App\Traits\Filament\{FilamentDateHandler, FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior};
 use App\Filament\Pages\EditRecord;
 use Illuminate\Support\Arr;
 use Livewire\Attributes\Locked;
@@ -66,6 +69,29 @@ class EditTicket extends EditRecord
             Arr::only($this->record->getAttributes(), self::WORKSPACE_FIELDS),
             fn ($value) => $value === null ? null : (string) $value,
         );
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->closeAndSaveAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
+    public function closeAndSaveAction(): Action
+    {
+        return Action::make('closeAndSave')
+            ->label(__('resources/ths/strings.actions.close_and_save'))
+            ->icon('heroicon-o-check-circle')
+            ->color('success')
+            ->visible(fn (): bool => $this->record && TicketAccessPolicy::canClose($this->record, auth()->user()))
+            ->action(function (): void {
+                $this->data['status'] = TicketStatus::Closed->value;
+                $this->data['completion_date'] = now()->format('Y-m-d H:i:s');
+                $this->save();
+            });
     }
 
     protected function mutateFormDataBeforeSave(array $data): array

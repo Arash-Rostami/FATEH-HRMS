@@ -2,11 +2,19 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\SkillRequestResource;
+use App\Filament\Resources\SkillRequestResource\Pages\ListSkillRequests;
 use App\Filament\Resources\SkillResource;
 use App\Filament\Resources\SkillResource\Pages\CreateSkill;
 use App\Filament\Resources\SkillResource\Pages\EditSkill;
 use App\Filament\Resources\SkillResource\Pages\ListSkills;
 use App\Filament\Resources\SkillResource\RelationManagers\MembersRelationManager;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Filament\Widgets\ModuleAnalyticsWidget;
 use App\Filament\Widgets\UnmetSkillDemandTable;
 use App\Models\Permission;
@@ -99,16 +107,16 @@ class SkillResourceTest extends TestCase
         $admin = $this->developer();
         $this->actingAs($admin);
 
-        $this->assertTrue(\App\Filament\Resources\SkillResource::shouldRegisterNavigation());
-        $this->assertFalse(\App\Filament\Resources\SkillRequestResource::shouldRegisterNavigation());
+        $this->assertTrue(SkillResource::shouldRegisterNavigation());
+        $this->assertFalse(SkillRequestResource::shouldRegisterNavigation());
 
         Livewire::actingAs($admin)->test(ListSkills::class)
-            ->assertActionHasUrl('switch_skill_resource', \App\Filament\Resources\SkillResource::getUrl())
-            ->assertActionHasUrl('switch_skill_request_resource', \App\Filament\Resources\SkillRequestResource::getUrl())
+            ->assertActionHasUrl('switch_skill_resource', SkillResource::getUrl())
+            ->assertActionHasUrl('switch_skill_request_resource', SkillRequestResource::getUrl())
             ->assertActionHasColor('switch_skill_resource', 'primary')
             ->assertActionHasColor('switch_skill_request_resource', 'gray');
 
-        Livewire::actingAs($admin)->test(\App\Filament\Resources\SkillRequestResource\Pages\ListSkillRequests::class)
+        Livewire::actingAs($admin)->test(ListSkillRequests::class)
             ->assertActionHasColor('switch_skill_resource', 'gray')
             ->assertActionHasColor('switch_skill_request_resource', 'primary');
     }
@@ -654,28 +662,28 @@ class SkillResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\SkillResource\Pages\CreateSkill::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\SkillResource\Pages\EditSkill::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\SkillResource\Pages\ListSkills::class => \App\Filament\Pages\ListRecords::class,
+            CreateSkill::class => CreateRecord::class,
+            EditSkill::class => EditRecord::class,
+            ListSkills::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\SkillResource\Pages\CreateSkill::class, \App\Filament\Resources\SkillResource\Pages\EditSkill::class];
+        $writers = [CreateSkill::class, EditSkill::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\SkillResource\RelationManagers\MembersRelationManager::class];
+        $managers = [MembersRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 }

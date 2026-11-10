@@ -4,10 +4,22 @@ namespace Tests\Feature\Filament;
 
 use App\Enums\SkillRequestStatus;
 use App\Enums\SkillTier;
+use App\Enums\FavoriteColor;
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\ProfileResource;
 use App\Filament\Resources\ProfileResource\Pages\CreateProfile;
 use App\Filament\Resources\ProfileResource\Pages\EditProfile;
 use App\Filament\Resources\ProfileResource\Pages\ListProfiles;
+use App\Filament\Resources\ProfileResource\RelationManagers\UserRelationManager;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileInfolistPresenter;
+use App\Filament\Resources\UserResource\RelationManagers\ProfileRelationManager;
+use Filament\Schemas\Schema as FilamentSchema;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Department;
 use App\Models\Permission;
 use App\Models\Profile;
@@ -17,6 +29,8 @@ use App\Models\SkillUser;
 use App\Models\User;
 use Filament\Infolists\Components\RepeatableEntry;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Filament\Actions\DeleteAction;
 use Livewire\Livewire;
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\Storage;
@@ -138,8 +152,8 @@ class ProfileResourceTest extends TestCase
         $admin = $this->developer();
         $data = $this->validCreateData();
         $data['favorite_colors'] = [
-            ['color' => \App\Enums\FavoriteColor::DarkRed->value],
-            ['color' => \App\Enums\FavoriteColor::TailwindBlue->value],
+            ['color' => FavoriteColor::DarkRed->value],
+            ['color' => FavoriteColor::TailwindBlue->value],
         ];
 
         Livewire::actingAs($admin)->test(CreateProfile::class)
@@ -149,7 +163,7 @@ class ProfileResourceTest extends TestCase
 
         $profile = Profile::where('user_id', $data['user_id'])->first();
         $this->assertSame(
-            [\App\Enums\FavoriteColor::DarkRed->value, \App\Enums\FavoriteColor::TailwindBlue->value],
+            [FavoriteColor::DarkRed->value, FavoriteColor::TailwindBlue->value],
             $profile->favorite_colors
         );
     }
@@ -209,7 +223,7 @@ class ProfileResourceTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)->test(ListProfiles::class)
-            ->callTableAction(\Filament\Actions\DeleteAction::class, $profile);
+            ->callTableAction(DeleteAction::class, $profile);
 
         $this->assertDatabaseMissing('profiles', ['id' => $profile->id]);
     }
@@ -374,12 +388,12 @@ class ProfileResourceTest extends TestCase
 
     public function test_profile_infolist_schemas_compose_without_type_errors()
     {
-        $resourceSchema = \App\Filament\Resources\ProfileResource::infolist(\Filament\Schemas\Schema::make());
-        $this->assertInstanceOf(\Filament\Schemas\Schema::class, $resourceSchema);
+        $resourceSchema = ProfileResource::infolist(FilamentSchema::make());
+        $this->assertInstanceOf(FilamentSchema::class, $resourceSchema);
 
-        $relationSchema = (new \App\Filament\Resources\UserResource\RelationManagers\ProfileRelationManager())
-            ->infolist(\Filament\Schemas\Schema::make());
-        $this->assertInstanceOf(\Filament\Schemas\Schema::class, $relationSchema);
+        $relationSchema = (new ProfileRelationManager())
+            ->infolist(FilamentSchema::make());
+        $this->assertInstanceOf(FilamentSchema::class, $relationSchema);
     }
 
     public function test_profile_infolist_attachments_state_splits_standard_from_custom()
@@ -641,8 +655,8 @@ class ProfileResourceTest extends TestCase
     public function test_sorting_by_department_description_produces_correct_order()
     {
         $admin = $this->developer();
-        $deptA = Department::factory()->create(['code' => strtoupper(\Illuminate\Support\Str::random(8)), 'description' => 'AAA-sort-dept-desc']);
-        $deptZ = Department::factory()->create(['code' => strtoupper(\Illuminate\Support\Str::random(8)), 'description' => 'ZZZ-sort-dept-desc']);
+        $deptA = Department::factory()->create(['code' => strtoupper(Str::random(8)), 'description' => 'AAA-sort-dept-desc']);
+        $deptZ = Department::factory()->create(['code' => strtoupper(Str::random(8)), 'description' => 'ZZZ-sort-dept-desc']);
         $first = Profile::factory()->create(['position' => 'employee', 'image' => null, 'department_id' => $deptA->code]);
         $second = Profile::factory()->create(['position' => 'employee', 'image' => null, 'department_id' => $deptZ->code]);
 
@@ -711,40 +725,40 @@ class ProfileResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ProfileResource\Pages\CreateProfile::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\ProfileResource\Pages\EditProfile::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ProfileResource\Pages\ListProfiles::class => \App\Filament\Pages\ListRecords::class,
+            CreateProfile::class => CreateRecord::class,
+            EditProfile::class => EditRecord::class,
+            ListProfiles::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ProfileResource\Pages\CreateProfile::class, \App\Filament\Resources\ProfileResource\Pages\EditProfile::class];
+        $writers = [CreateProfile::class, EditProfile::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\ProfileResource\RelationManagers\UserRelationManager::class];
+        $managers = [UserRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 
     public function test_edit_tracked_file_columns_delete_only_the_dropped_image_and_documents(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
-        $tracked = (fn () => $this->trackedFileColumns())->call(new \App\Filament\Resources\ProfileResource\Pages\EditProfile());
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $tracked = (fn () => $this->trackedFileColumns())->call(new EditProfile());
         Storage::fake('public');
         foreach (['profiles/images/old.jpg', 'profiles/images/new.jpg', 'profiles/docs/t/old.pdf', 'profiles/docs/t/kept.pdf'] as $path) {
             Storage::disk('public')->put($path, 'x');
         }
-        $record = \App\Models\Profile::factory()->create([
+        $record = Profile::factory()->create([
             'image' => 'profiles/images/old.jpg',
             'attachments' => [['path' => 'profiles/docs/t/old.pdf'], ['path' => 'profiles/docs/t/kept.pdf']],
         ]);
@@ -758,6 +772,19 @@ class ProfileResourceTest extends TestCase
         Storage::disk('public')->assertMissing('profiles/docs/t/old.pdf');
         Storage::disk('public')->assertExists('profiles/docs/t/kept.pdf');
         Storage::disk('public')->assertExists('profiles/images/new.jpg');
+    }
+
+    public function test_unique_id_validation_messages_resolve_to_text_not_their_keys(): void
+    {
+        app()->setLocale('fa');
+
+        foreach (['id_card_number', 'id_booklet_number'] as $field) {
+            $key = "resources/profile/strings.validation.{$field}.unique";
+            $text = __($key);
+
+            $this->assertNotSame($key, $text);
+            $this->assertNotSame('', trim($text));
+        }
     }
 
     public function test_group_and_query_closures_use_correct_param_names(): void

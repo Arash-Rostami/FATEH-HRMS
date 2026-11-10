@@ -12,7 +12,7 @@ use App\Services\ProjectTask\MentionResolver;
 use App\Services\ProjectTask\SaveEditReplyAction;
 use App\Services\ProjectTask\ToggleReplyReactionAction;
 use App\Support\ProjectAccessPolicy;
-use App\Traits\HasProjectMembers;
+use App\Traits\Livewire\HasProjectMembers;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\View\View;

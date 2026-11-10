@@ -3,7 +3,7 @@
     $tierTexts = [
         \App\Enums\SkillTier::Endorsed->value => 'حداقل ' . \App\Models\SkillUser::ENDORSEMENT_SATURATION_CAP . ' همکار این مهارت را در این فرد تأیید کرده‌اند.',
         \App\Enums\SkillTier::Active->value => 'این همکار اخیراً (در بازهٔ زمانی فعال) از این مهارت استفاده کرده است.',
-        \App\Enums\SkillTier::Unused->value => 'این مهارت با موفقیت ثبت شده و پتانسیل به‌کارگیری در فعالیت‌های آتی و دریافت تأییدیه را دارد.',
+        \App\Enums\SkillTier::Unused->value => 'مهارت ثبت شده است، اما هنوز به سطح تأییدشده نرسیده و استفادهٔ اخیر برای آن ثبت نشده است.',
     ];
 
     $tabs = [
@@ -96,7 +96,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">مناسبت‌های امروز</p>
-                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">نوار بالای فهرست فقط وقتی نمایش داده می‌شود که تاریخ تولد یا استخدامِ ثبت‌شده در پروفایل یک همکار دقیقاُ امروز باشد — نه یک روز نزدیک. کارمندان با وضعیت «پایان‌یافته» و کاربران نوع «مهمان» هرگز نمایش داده نمی‌شوند.</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">نوار بالای فهرست فقط وقتی نمایش داده می‌شود که امروز، روز تولد یا سالگرد شروع همکاری یکی از همکاران باشد. کارمندان با وضعیت «پایان‌یافته» و کاربران نوع «مهمان» هرگز نمایش داده نمی‌شوند.</p>
             </div>
         </div>
 

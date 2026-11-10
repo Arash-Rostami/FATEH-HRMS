@@ -5,8 +5,8 @@ namespace App\Filament\Resources\ReservationPolicyResource\Pages;
 use App\Filament\Resources\ReservationPolicyResource;
 use App\Models\ReservationPolicy;
 use App\Services\Reservation\ValidationService;
-use App\Traits\FilamentEditHeading;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentEditHeading;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 

@@ -20,7 +20,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«پشتیبانی» راه ارتباطی کاربر با تیم پشتیبانی است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        کاربر از پنل خود از طریق دکمهٔ پشتیبانی یک درخواست (پشتیبانی، پیشنهاد ماژول یا گزارش باگ) ثبت می‌کند و آن در جدول این صفحه با وضعیت <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">open</code> ظاهر می‌شود. شما (ادمین) درخواست‌ها را بازبینی می‌کنید، وضعیت را تغییر می‌دهید، پاسخ می‌نویسید و در صورت لزوم رد می‌کنید. عنوان و متن درخواست هنگام ذخیره از کدهای ظاهری (HTML) پاک می‌شوند و فایل‌های پیوست روی دیسک <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">public</code> نگهداری می‌شوند.
+        کاربر از دکمهٔ پشتیبانی درخواست پشتیبانی، پیشنهاد ماژول یا گزارش باگ ثبت می‌کند. درخواست با وضعیت «باز» در این جدول دیده می‌شود. شما می‌توانید آن را بررسی کنید، وضعیتش را تغییر دهید، پاسخ بنویسید یا رد کنید. هنگام ذخیره، کدهای ظاهری از عنوان و متن پاک می‌شوند و پیوست‌ها نگهداری می‌شوند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

@@ -3,39 +3,41 @@
 namespace App\Providers;
 
 use App\View\Composers\AccountOnboardingComposer;
+use App\View\Composers\AiAssistantComposer;
+use App\View\Composers\AuthShellComposer;
 use App\View\Composers\ErrorTraceComposer;
+use App\View\Composers\LeftNavComposer;
 use App\View\Composers\MenuStateComposer;
 use App\View\Composers\ModuleAssetChunksComposer;
 use App\View\Composers\ModuleChunkComposer;
 use App\View\Composers\NavUnreadComposer;
 use App\View\Composers\OccasionComposer;
+use App\View\Composers\ReleaseModulesComposer;
+use App\View\Composers\ScreenSaverComposer;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class ViewServiceProvider extends ServiceProvider
 {
+    private const COMPOSERS = [
+        ModuleChunkComposer::class => ['layouts.app', 'layouts::app'],
+        MenuStateComposer::class => ['components.dashboard.modal.menu', 'components.dashboard.navbars.right', 'components.dashboard.navbars.bottom', 'components.dashboard.navbars.top',],
+        ErrorTraceComposer::class => 'errors.layout',
+        AccountOnboardingComposer::class => 'components.dashboard.navbars.top.account',
+        OccasionComposer::class => 'components.dashboard.modal.occasion',
+        ModuleAssetChunksComposer::class => 'components.dashboard.module-chunks',
+        ScreenSaverComposer::class => 'components.ui.loaders.screen-saver',
+        AiAssistantComposer::class => ['components.dashboard.ai-assistant', 'components.dashboard.navbars.top.ai-assistant',],
+        LeftNavComposer::class => 'components.dashboard.navbars.left',
+        ReleaseModulesComposer::class => 'components.dashboard.modal.release',
+        AuthShellComposer::class => ['layouts.auth', 'layouts::auth', 'components.auth.card-no-signup'],
+        NavUnreadComposer::class => ['components.dashboard.navbars.top', 'components.dashboard.navbars.top.notification',],
+    ];
+
     public function boot(): void
     {
-        View::composer(['layouts.app', 'layouts::app'], ModuleChunkComposer::class);
-
-        View::composer([
-            'components.dashboard.modal.menu',
-            'components.dashboard.navbars.right',
-            'components.dashboard.navbars.bottom',
-            'components.dashboard.navbars.top',
-        ], MenuStateComposer::class);
-
-        View::composer('errors.layout', ErrorTraceComposer::class);
-
-        View::composer('components.dashboard.navbars.top.account', AccountOnboardingComposer::class);
-
-        View::composer('components.dashboard.modal.occasion', OccasionComposer::class);
-
-        View::composer('components.dashboard.module-chunks', ModuleAssetChunksComposer::class);
-
-        View::composer([
-            'components.dashboard.navbars.top',
-            'components.dashboard.navbars.top.notification',
-        ], NavUnreadComposer::class);
+        foreach (self::COMPOSERS as $composer => $views) {
+            View::composer($views, $composer);
+        }
     }
 }

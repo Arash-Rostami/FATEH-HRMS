@@ -89,7 +89,7 @@ class Ad extends Model
 
     public static function notifyFields(): array
     {
-        return ['gender' => \App\Filament\Resources\AdResource\Enums\AdGender::class];
+        return ['gender' => \App\Enums\AdGender::class];
     }
 
     protected function casts(): array

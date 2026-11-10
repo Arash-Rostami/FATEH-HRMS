@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\ThsResource\Exports;
 
-use App\Filament\Resources\ThsResource\Enums\{TicketPriority, TicketStatus};
+use App\Enums\{TicketPriority, TicketStatus};
 use App\Filament\Resources\ThsResource\Schemas\TicketTablePresenter;
 use App\Models\Department;
 use App\Models\Ticket;

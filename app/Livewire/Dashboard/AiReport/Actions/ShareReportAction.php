@@ -2,14 +2,12 @@
 
 namespace App\Livewire\Dashboard\AiReport\Actions;
 
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\AiReport;
 use App\Models\User;
-use App\Support\AiReportAccessPolicy;
-use Filament\Actions\Action;
 use App\Services\Menu\StateService;
-use Filament\Notifications\Notification;
+use App\Support\AiReportAccessPolicy;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\URL;
 
 class ShareReportAction
 {
@@ -54,24 +52,9 @@ class ShareReportAction
                 throw new \RuntimeException('این عملیات مجاز نیست.');
             }
 
-            $added = array_values(array_diff($merged, $existing));
-            if ($added !== []) {
-                $url = URL::temporarySignedRoute('ai-report.shared', now()->addDays((int) config('ai_report.share_link_days')), ['report' => $report->id]);
-                $body = e($user->name) . ' گزارش «' . e($report->title ?? '') . '» را با شما به اشتراک گذاشت.';
-                foreach ($added as $id) {
-                    Notification::make()
-                        ->title('گزارشی در گزارش ساز هوشمند با شما به اشتراک گذاشته شد')
-                        ->body($body)
-                        ->actions([
-                            Action::make('view')->label('مشاهده')->url($url)->openUrlInNewTab(),
-                        ])
-                        ->sendToDatabase($board->get($id));
-                }
-            }
-
             return [
                 $merged,
-                $added,
+                array_values(array_diff($merged, $existing)),
                 array_values(array_diff($existing, $merged)),
                 $stamp,
                 $truncated,
@@ -82,6 +65,7 @@ class ShareReportAction
 
         if ($added !== [] || $removed !== []) {
             StateService::flush();
+            dispatch(new ReconcileNudgeJob('ai-report-controller:nudge', AiReport::class, $report->id));
         }
 
         return [

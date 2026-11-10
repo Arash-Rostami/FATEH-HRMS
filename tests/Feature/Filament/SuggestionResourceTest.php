@@ -2,11 +2,27 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Pages\ViewRecord;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\SuggestionResource;
+use App\Filament\Resources\SuggestionResource\Exports\SuggestionExporter;
 use App\Filament\Resources\SuggestionResource\Pages\CreateSuggestion;
 use App\Filament\Resources\SuggestionResource\Pages\EditSuggestion;
 use App\Filament\Resources\SuggestionResource\Pages\ListSuggestions;
+use App\Filament\Resources\SuggestionResource\Pages\ViewSuggestion;
+use App\Filament\Resources\SuggestionResource\RelationManagers\ReviewsRelationManager;
 use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Resources\UserResource\RelationManagers\SuggestionsRelationManager;
+use App\Livewire\Dashboard\Suggestion\Actions\SubmitDecisionAction;
+use App\Livewire\Dashboard\Suggestion\Actions\SubmitFeedbackAction;
+use App\Livewire\Dashboard\Suggestion\Forms\DecisionForm;
+use App\Livewire\Dashboard\Suggestion\Forms\FeedbackForm;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Department;
 use App\Models\Permission;
 use App\Models\Profile;
@@ -17,6 +33,7 @@ use Filament\Actions\DeleteAction;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class SuggestionResourceTest extends TestCase
@@ -399,7 +416,7 @@ class SuggestionResourceTest extends TestCase
         Review::factory()->create(['suggestion_id' => $suggestion->id, 'department_id' => 'IT', 'feedback' => 'disagree', 'user_id' => $admin->id]);
         Review::factory()->create(['suggestion_id' => $suggestion->id, 'department_id' => 'HR', 'feedback' => 'neutral', 'user_id' => $admin->id]);
 
-        $exported = \App\Filament\Resources\SuggestionResource\Exports\SuggestionExporter::modifyQuery(Suggestion::query())
+        $exported = SuggestionExporter::modifyQuery(Suggestion::query())
             ->find($suggestion->id);
 
         $this->assertSame(1, (int) $exported->agree_count);
@@ -606,43 +623,121 @@ class SuggestionResourceTest extends TestCase
         }
     }
 
+    private function adminWithProfile(string $dept, string $position): User
+    {
+        Department::firstOrCreate(['code' => $dept], ['name' => $dept, 'description' => $dept]);
+        $admin = $this->developer();
+        Profile::factory()->create(['user_id' => $admin->id, 'department_id' => $dept, 'position' => $position]);
+
+        return $admin->refresh();
+    }
+
+    public function test_view_page_decision_action_saves_the_ma_review_and_notifies(): void
+    {
+        app()->setLocale('fa');
+        Department::firstOrCreate(['code' => 'TST'], ['name' => 'TST', 'description' => 'TST']);
+        $ceo = $this->adminWithProfile('MA', 'ceo');
+        $suggestion = Suggestion::factory()->create(['user_id' => $ceo->id, 'stage' => 'awaiting_decision', 'departments' => ['TST']]);
+        Review::factory()->create(['suggestion_id' => $suggestion->id, 'department_id' => 'TST', 'feedback' => 'agree', 'complete' => false, 'user_id' => $ceo->id]);
+
+        Livewire::actingAs($ceo)->test(ViewSuggestion::class, ['record' => $suggestion->id])
+            ->callAction('decision', ['decision' => 'rejected', 'decisionComment' => 'Not now.'])
+            ->assertHasNoActionErrors()
+            ->assertNotified(__('resources/suggestion/strings.notifications.decision_saved'));
+
+        $ma = Review::where('suggestion_id', $suggestion->id)->where('department_id', 'MA')->first();
+        $this->assertNotNull($ma);
+        $this->assertSame('disagree', $ma->feedback);
+        $this->assertSame('rejected', $suggestion->refresh()->stage);
+    }
+
+    public function test_view_page_feedback_action_saves_the_department_review_and_notifies(): void
+    {
+        app()->setLocale('fa');
+        $head = $this->adminWithProfile('TST', 'expert');
+        $suggestion = Suggestion::factory()->create(['user_id' => $head->id, 'stage' => 'dept_remarks', 'departments' => ['TST']]);
+
+        Livewire::actingAs($head)->test(ViewSuggestion::class, ['record' => $suggestion->id])
+            ->callAction('feedback', ['feedback' => 'agree', 'comment' => 'Fine.'])
+            ->assertHasNoActionErrors()
+            ->assertNotified(__('resources/suggestion/strings.notifications.feedback_saved'));
+
+        $review = Review::where('suggestion_id', $suggestion->id)->where('department_id', 'TST')->first();
+        $this->assertNotNull($review);
+        $this->assertSame('agree', $review->feedback);
+    }
+
+    public function test_decision_and_feedback_actions_reject_an_invalid_value_through_the_form_rules(): void
+    {
+        Department::firstOrCreate(['code' => 'TST'], ['name' => 'TST', 'description' => 'TST']);
+        $ceo = $this->adminWithProfile('MA', 'ceo');
+        $suggestion = Suggestion::factory()->create(['user_id' => $ceo->id, 'stage' => 'awaiting_decision', 'departments' => ['TST']]);
+        $page = Livewire::actingAs($ceo)->test(ViewSuggestion::class, ['record' => $suggestion->id])->instance();
+
+        $decision = new DecisionForm($page, 'form');
+        $decision->decision = 'bogus';
+
+        try {
+            app(SubmitDecisionAction::class)->execute($decision, $suggestion);
+            $this->fail('An unknown decision must not pass validation.');
+        } catch (ValidationException $e) {
+            $this->assertNotEmpty(array_filter(array_keys($e->errors()), fn (string $key): bool => str_ends_with($key, 'decision')));
+        }
+
+        $this->assertSame(0, Review::where('suggestion_id', $suggestion->id)->where('department_id', 'MA')->count());
+
+        $head = $this->adminWithProfile('TST', 'expert');
+        $open = Suggestion::factory()->create(['user_id' => $head->id, 'stage' => 'dept_remarks', 'departments' => ['TST']]);
+        $feedbackPage = Livewire::actingAs($head)->test(ViewSuggestion::class, ['record' => $open->id])->instance();
+
+        $feedback = new FeedbackForm($feedbackPage, 'form');
+        $feedback->feedback = 'maybe';
+
+        try {
+            app(SubmitFeedbackAction::class)->execute($feedback, $open);
+            $this->fail('An unknown feedback must not pass validation.');
+        } catch (ValidationException $e) {
+            $this->assertNotEmpty(array_filter(array_keys($e->errors()), fn (string $key): bool => str_ends_with($key, 'feedback')));
+        }
+    }
+
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\SuggestionResource\Pages\CreateSuggestion::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\SuggestionResource\Pages\EditSuggestion::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\SuggestionResource\Pages\ListSuggestions::class => \App\Filament\Pages\ListRecords::class,
-            \App\Filament\Resources\SuggestionResource\Pages\ViewSuggestion::class => \App\Filament\Pages\ViewRecord::class,
+            CreateSuggestion::class => CreateRecord::class,
+            EditSuggestion::class => EditRecord::class,
+            ListSuggestions::class => ListRecords::class,
+            ViewSuggestion::class => ViewRecord::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\SuggestionResource\Pages\CreateSuggestion::class, \App\Filament\Resources\SuggestionResource\Pages\EditSuggestion::class];
+        $writers = [CreateSuggestion::class, EditSuggestion::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\SuggestionResource\RelationManagers\ReviewsRelationManager::class];
+        $managers = [ReviewsRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 
     public function test_edit_tracked_file_columns_delete_only_the_replaced_attachment(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
-        $tracked = (fn () => $this->trackedFileColumns())->call(new \App\Filament\Resources\SuggestionResource\Pages\EditSuggestion());
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $tracked = (fn () => $this->trackedFileColumns())->call(new EditSuggestion());
         Storage::fake('public');
         Storage::disk('public')->put('suggestions/old.pdf', 'x');
         Storage::disk('public')->put('suggestions/new.pdf', 'x');
-        $record = \App\Models\Suggestion::factory()->create(['attachment' => 'suggestions/old.pdf']);
+        $record = Suggestion::factory()->create(['attachment' => 'suggestions/old.pdf']);
         $before = $probe->trackedFilePaths($record, $tracked);
         $this->assertSame(['suggestions/old.pdf'], $before);
 

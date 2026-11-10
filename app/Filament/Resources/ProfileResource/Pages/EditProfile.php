@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\ProfileResource\Pages;
 
 use App\Filament\Resources\ProfileResource;
-use App\Traits\FilamentEditHeading;
-use App\Traits\FilamentHeaderActions;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentEditHeading;
+use App\Traits\Filament\FilamentHeaderActions;
+use App\Traits\Filament\FilamentPageBehavior;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use App\Filament\Pages\EditRecord;

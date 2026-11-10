@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Services;
 
+use App\Enums\UserType;
 use App\Models\Department;
+use App\Models\Link;
 use App\Models\NotifyRule;
 use App\Models\Profile;
 use App\Models\User;
@@ -58,7 +60,7 @@ class RecipientResolverTest extends TestCase
     {
         return NotifyRule::create(array_merge([
             'name' => 'resolver test rule',
-            'model' => \App\Models\Link::class,
+            'model' => Link::class,
             'events' => ['created'],
             'channels' => ['mail', 'sms'],
             'subject' => 's',
@@ -98,7 +100,7 @@ class RecipientResolverTest extends TestCase
         $b = $this->user('09123000002');
         $inactive = $this->user('09123000003', 'inactive');
         $guest = $this->user('09123000004');
-        $guest->update(['type' => \App\Filament\Resources\UserResource\Enums\UserType::Guest->value]);
+        $guest->update(['type' => UserType::Guest->value]);
         $rule = $this->rule(['user_ids' => [$a->id], 'extra' => ['audience' => 'all']]);
 
         [$resolved, $skipped] = (new RecipientResolver)->resolveWithSkips($rule);

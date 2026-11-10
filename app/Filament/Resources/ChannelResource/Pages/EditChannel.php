@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\ChannelResource\Pages;
 
 use App\Filament\Resources\ChannelResource;
-use App\Traits\FilamentEditHeading;
-use App\Traits\FilamentHeaderActions;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentEditHeading;
+use App\Traits\Filament\FilamentHeaderActions;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\EditRecord;
 
 class EditChannel extends EditRecord

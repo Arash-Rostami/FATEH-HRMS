@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\DmsResource\RelationManagers;
 
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use Filament\Infolists\Components\TextEntry;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;

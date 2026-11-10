@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Enums\ReminderRecurrence;
-use App\Jobs\ReconcileEdge;
-use App\Jobs\ReconcileNudge;
-use App\Jobs\ReconcileReminderDue;
-use App\Jobs\SendReminderSms;
+use App\Jobs\ReconcileEdgeJob;
+use App\Jobs\ReconcileNudgeJob;
+use App\Jobs\ReconcileReminderDueJob;
+use App\Jobs\SendReminderSmsJob;
 use App\Models\Concerns\HasNotifyEvents;
 use App\Models\Concerns\HasUser;
 use App\Models\Concerns\Hooks\HasReminderHooks;
@@ -67,7 +67,7 @@ class Reminder extends Model
         $deliverable = $at->isFuture() || ($at->gte(now()->subDay()) && array_intersect(['email', 'sms'], (array) $this->channels) !== []);
 
         if ($at->lte(now()->addDay()) && $deliverable && Cache::add("reminder-due-queued:{$this->getKey()}:{$at->timestamp}", true, $at->isFuture() ? $at : now()->addMinute())) {
-            dispatch(new ReconcileReminderDue($this->getKey()))->delay($at)->afterCommit();
+            dispatch(new ReconcileReminderDueJob($this->getKey()))->delay($at)->afterCommit();
         }
     }
 
@@ -102,7 +102,7 @@ class Reminder extends Model
         }
 
         if ($sms) {
-            SendReminderSms::dispatch($this->getKey());
+            SendReminderSmsJob::dispatch($this->getKey());
         }
     }
 
@@ -269,8 +269,8 @@ class Reminder extends Model
 
             $this->completed_at = $now;
 
-            dispatch(new ReconcileNudge('reminders-controller:due-nudge', static::class, $this->getKey()))->afterCommit();
-            dispatch(new ReconcileEdge('reminders-controller:due-today-edge', static::class, $this->getKey()))->afterCommit();
+            dispatch(new ReconcileNudgeJob('reminders-controller:due-nudge', static::class, $this->getKey()))->afterCommit();
+            dispatch(new ReconcileEdgeJob('reminders-controller:due-today-edge', static::class, $this->getKey()))->afterCommit();
 
             if ($this->recurs !== ReminderRecurrence::None) {
                 static::create([

@@ -15,10 +15,10 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">account_tree</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">مرحلهٔ پیشنهاد را <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">syncStage</code> خودکار محاسبه می‌کند — ادمین آن را دستی عوض نمی‌کند</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">مرحلهٔ پیشنهاد خودکار تعیین می‌شود؛ مدیر آن را دستی تغییر نمی‌دهد</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر بار که بازخورد جدیدی ثبت شود، <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">syncStage</code> بازخوردهای همهٔ واحدها را بررسی می‌کند و مرحلهٔ پیشنهاد را بر اساس قواعد زیر تعیین می‌کند. هشت مرحله وجود دارد:
+        با هر بازخورد جدید، سیستم پاسخ همهٔ واحدها را بررسی و مرحلهٔ پیشنهاد را تعیین می‌کند. پیشنهاد هشت مرحله دارد:
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

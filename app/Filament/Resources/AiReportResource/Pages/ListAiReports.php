@@ -6,7 +6,7 @@ use App\Filament\Pages\ListRecords;
 use App\Filament\Resources\AiReportResource;
 use App\Filament\Resources\ReportResource;
 use App\Models\AiReport;
-use App\Traits\FilamentHeaderActions;
+use App\Traits\Filament\FilamentHeaderActions;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

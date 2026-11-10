@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use App\Enums\DocumentStatus;
 use App\Livewire\Dashboard\Dms\Actions\ConfirmReadAction;
 use App\Models\DMS;
 use App\Models\Read;
@@ -100,7 +101,7 @@ class DmsModelTest extends TestCase
 
     public function test_get_status_icon_matches_document_status_material_icon_for_every_case(): void
     {
-        foreach (\App\Filament\Resources\DmsResource\Enums\DocumentStatus::cases() as $status) {
+        foreach (DocumentStatus::cases() as $status) {
             $dms = new DMS(['status' => $status->value]);
 
             $this->assertStringContainsString($status->getMaterialIcon(), $dms->getStatusIcon());

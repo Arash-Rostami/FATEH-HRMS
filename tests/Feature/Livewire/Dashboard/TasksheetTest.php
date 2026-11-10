@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Morilog\Jalali\Jalalian;
 use OpenSpout\Reader\XLSX\Reader;
@@ -315,7 +316,7 @@ class TasksheetTest extends TestCase
         $recipient = User::factory()->create(['status' => 'active']);
         $subject = User::factory()->create(['status' => 'active']);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($recipient)->test(Main::class, ['subject' => $subject->id])
             ->set('preset', 'custom');
@@ -326,7 +327,7 @@ class TasksheetTest extends TestCase
         $recipient = User::factory()->create(['status' => 'active']);
         $subject = User::factory()->create(['status' => 'active']);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($recipient)->test(Main::class, ['subject' => $subject->id])
             ->set('scopeProjectId', 1);

@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Ths\Actions;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
+use App\Enums\TaskPriority;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Models\Task;
 use App\Models\Ticket;
@@ -44,8 +44,9 @@ class AssignTicketAction
         DB::transaction(function () use ($ticket, $actor) {
             $locked = Ticket::lockForUpdate()->find($ticket->id);
 
-            abort_if($locked?->status === 'closed', 422, 'این تیکت قبلاً بسته شده است.');
-            abort_unless($locked && TicketAccessPolicy::canClose($locked, $actor), 403);
+            abort_if($locked === null, 404, 'این تیکت دیگر وجود ندارد.');
+            abort_if($locked->status === 'closed', 422, 'این تیکت قبلاً بسته شده است.');
+            abort_unless(TicketAccessPolicy::canClose($locked, $actor), 403);
 
             $locked->update(['status' => 'closed']);
         });

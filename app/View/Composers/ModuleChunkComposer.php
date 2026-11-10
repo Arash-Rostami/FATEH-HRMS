@@ -13,16 +13,40 @@ class ModuleChunkComposer
         'analytics' => 'analytics', 'energy' => 'energy',
         'tasksheet' => 'tasksheet', 'tasksheet.shared' => 'tasksheet',
         'ai-report' => 'ai-report', 'ai-report.shared' => 'ai-report',
+        'correspondence' => 'correspondence',
     ];
 
     public function compose(View $view): void
     {
         $moduleChunk = $this->moduleChunk();
+        $embed = request()->boolean('embed');
 
         $view->with([
             'moduleChunk' => $moduleChunk,
             'maxScope' => $this->maxScope($moduleChunk),
+            'embed' => $embed,
+            'chrome' => ! $embed && ! $view->getFactory()->hasSection('minimal_layout'),
+            'backdrop' => $this->backdrop(),
+            'viteEntries' => $this->viteEntries($moduleChunk),
         ]);
+    }
+
+    private function backdrop(): array
+    {
+        return array_merge(config('app.backdrop'), [
+            'images' => array_map('asset', config('app.backdrop.images')),
+        ]);
+    }
+
+    private function viteEntries(?string $moduleChunk): array
+    {
+        $entries = ['resources/css/app.css', 'resources/js/app.js'];
+
+        if ($moduleChunk) {
+            $entries[] = "resources/js/components/alpine/modules/{$moduleChunk}.js";
+        }
+
+        return $entries;
     }
 
     private function moduleChunk(): ?string

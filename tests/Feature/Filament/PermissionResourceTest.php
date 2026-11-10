@@ -7,6 +7,11 @@ use App\Filament\Resources\PermissionResource\Pages\EditPermission;
 use App\Filament\Resources\PermissionResource\Pages\ListPermissions;
 use App\Filament\Resources\PermissionResource;
 use App\Filament\Resources\PermissionResource\Schemas\PermissionFormPresenter;
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Permission;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
@@ -201,7 +206,7 @@ class PermissionResourceTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)->test(ListPermissions::class)
-            ->callTableAction(\Filament\Actions\DeleteAction::class, $permission);
+            ->callTableAction(DeleteAction::class, $permission);
 
         $this->assertDatabaseMissing('permissions', ['id' => $permission->id]);
     }
@@ -414,21 +419,21 @@ class PermissionResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\PermissionResource\Pages\CreatePermission::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\PermissionResource\Pages\EditPermission::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\PermissionResource\Pages\ListPermissions::class => \App\Filament\Pages\ListRecords::class,
+            CreatePermission::class => CreateRecord::class,
+            EditPermission::class => EditRecord::class,
+            ListPermissions::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\PermissionResource\Pages\CreatePermission::class, \App\Filament\Resources\PermissionResource\Pages\EditPermission::class];
+        $writers = [CreatePermission::class, EditPermission::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 

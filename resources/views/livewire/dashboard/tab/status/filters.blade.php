@@ -90,7 +90,7 @@
         @if($this->skillCandidates->isNotEmpty())
             <div wire:key="status-skill-suggestions" class="flex flex-col gap-1.5">
                 <span class="flex items-center gap-1 text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]/80">
-                    <span class="material-symbols-rounded text-[13px]">auto_awesome</span>
+                    <span class="material-symbols-rounded text-[13px] text-[var(--ai-color)]">auto_awesome</span>
                     پیشنهادها
                 </span>
                 <div class="flex flex-wrap items-center gap-1.5">

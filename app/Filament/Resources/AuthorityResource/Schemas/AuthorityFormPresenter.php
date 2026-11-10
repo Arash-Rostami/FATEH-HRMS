@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\AuthorityResource\Schemas;
 
-use App\Filament\Resources\AuthorityResource\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
+use App\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
 use App\Models\Department;
 use App\Services\ContentSanitizerService;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\{RichEditor,
     RichEditor\TextColor,
     RichEditor\ToolbarButtonGroup,

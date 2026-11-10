@@ -13,6 +13,7 @@ final readonly class Message
         public string $template = 'plain',
         public ?string $url = null,
         public ?string $action = null,
+        public array $attachments = [],
     ) {}
 
     public function text(): string

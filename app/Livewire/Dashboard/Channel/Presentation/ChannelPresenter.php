@@ -3,12 +3,34 @@
 namespace App\Livewire\Dashboard\Channel\Presentation;
 
 use App\Models\Channel;
-use App\Traits\BuildsMessageGroups;
+use App\Traits\Livewire\BuildsMessageGroups;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 
 class ChannelPresenter
 {
     use BuildsMessageGroups;
+
+    public function headerState(?Channel $channel, array $header, ?array $typingMembers, array $members, array $channels): array
+    {
+        $typing = $typingMembers ?? [];
+        $lastMsgAt = collect($channels)->firstWhere('id', $header['id'])['last_message']['created_at'] ?? null;
+
+        return [
+            'isOwner' => $channel
+                && $channel->owner_id !== null
+                && auth()->check()
+                && (int) $channel->owner_id === (int) auth()->id(),
+            'typingMembers' => $typing,
+            'typingCount' => count($typing),
+            'channelIdJs' => Js::from($header['id']),
+            'onlineCount' => collect($members)->reject(fn (array $m) => $m['inactive'])->where('is_online', true)->count(),
+            'lastActivity' => $lastMsgAt && Carbon::parse($lastMsgAt)->diffInMinutes(now()) >= 5
+                ? toJalaliRelative($lastMsgAt, dateAfterDays: 0)
+                : null,
+        ];
+    }
 
     public function sidebar(array $channels, int $authId): array
     {

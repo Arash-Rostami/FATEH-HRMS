@@ -2,11 +2,19 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\ProjectResource\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\ProjectResource;
 use App\Filament\Resources\ProjectResource\Pages\CreateProject;
 use App\Filament\Resources\ProjectResource\Pages\EditProject;
 use App\Filament\Resources\ProjectResource\Pages\ListProjects;
 use App\Filament\Resources\ProjectResource\RelationManagers\WorkflowsRelationManager;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
+use App\Models\Task;
 use App\Models\Permission;
 use App\Models\Project;
 use App\Models\User;
@@ -236,11 +244,11 @@ class ProjectResourceTest extends TestCase
         $owner = User::factory()->create();
         $projectA = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
         $projectB = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
-        $taskInA = \App\Models\Task::factory()->create(['project_id' => $projectA->id, 'user_id' => $owner->id]);
-        $taskInB = \App\Models\Task::factory()->create(['project_id' => $projectB->id, 'user_id' => $owner->id]);
+        $taskInA = Task::factory()->create(['project_id' => $projectA->id, 'user_id' => $owner->id]);
+        $taskInB = Task::factory()->create(['project_id' => $projectB->id, 'user_id' => $owner->id]);
 
         Livewire::actingAs($admin)
-            ->test(\App\Filament\Resources\ProjectResource\RelationManagers\TasksRelationManager::class, [
+            ->test(TasksRelationManager::class, [
                 'ownerRecord' => $projectA,
                 'pageClass' => EditProject::class,
             ])
@@ -255,7 +263,7 @@ class ProjectResourceTest extends TestCase
         $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
 
         Livewire::actingAs($admin)
-            ->test(\App\Filament\Resources\ProjectResource\RelationManagers\TasksRelationManager::class, [
+            ->test(TasksRelationManager::class, [
                 'ownerRecord' => $project,
                 'pageClass' => EditProject::class,
             ])
@@ -268,7 +276,7 @@ class ProjectResourceTest extends TestCase
             ->callMountedTableAction()
             ->assertHasNoTableActionErrors();
 
-        $task = \App\Models\Task::where('title', 'RM created task')->firstOrFail();
+        $task = Task::where('title', 'RM created task')->firstOrFail();
         $this->assertSame($project->id, $task->project_id);
         $this->assertSame($owner->id, $task->user_id);
     }
@@ -278,10 +286,10 @@ class ProjectResourceTest extends TestCase
         $admin = $this->developer();
         $owner = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
-        $task = \App\Models\Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'title' => 'original title']);
+        $task = Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'title' => 'original title']);
 
         Livewire::actingAs($admin)
-            ->test(\App\Filament\Resources\ProjectResource\RelationManagers\TasksRelationManager::class, [
+            ->test(TasksRelationManager::class, [
                 'ownerRecord' => $project,
                 'pageClass' => EditProject::class,
             ])
@@ -300,17 +308,17 @@ class ProjectResourceTest extends TestCase
         $admin = $this->developer();
         $owner = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
-        $task = \App\Models\Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id]);
+        $task = Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id]);
 
         Livewire::actingAs($admin)
-            ->test(\App\Filament\Resources\ProjectResource\RelationManagers\TasksRelationManager::class, [
+            ->test(TasksRelationManager::class, [
                 'ownerRecord' => $project,
                 'pageClass' => EditProject::class,
             ])
             ->callTableAction(DeleteAction::class, $task);
 
-        $this->assertNull(\App\Models\Task::find($task->id));
-        $this->assertNotNull(\App\Models\Task::withTrashed()->find($task->id));
+        $this->assertNull(Task::find($task->id));
+        $this->assertNotNull(Task::withTrashed()->find($task->id));
     }
 
     public function test_tasksheet_action_url_targets_project_owner(): void
@@ -531,10 +539,10 @@ class ProjectResourceTest extends TestCase
         $owner = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $owner->id, 'name' => '0-test-overdue-count', 'member_ids' => [], 'departments' => []]);
 
-        \App\Models\Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'todo', 'deadline' => now()->subDay()]);
-        \App\Models\Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'in-progress', 'deadline' => now()->subDays(3)]);
-        \App\Models\Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'done', 'deadline' => now()->subDay()]);
-        \App\Models\Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'todo', 'deadline' => now()->addDays(3)]);
+        Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'todo', 'deadline' => now()->subDay()]);
+        Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'in-progress', 'deadline' => now()->subDays(3)]);
+        Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'done', 'deadline' => now()->subDay()]);
+        Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'todo', 'deadline' => now()->addDays(3)]);
 
         Livewire::actingAs($admin)->test(ListProjects::class)->assertSuccessful();
 
@@ -547,8 +555,8 @@ class ProjectResourceTest extends TestCase
         $owner = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $owner->id, 'name' => '0-test-progress-75', 'member_ids' => [], 'departments' => []]);
 
-        \App\Models\Task::factory()->count(3)->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'done']);
-        \App\Models\Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'todo']);
+        Task::factory()->count(3)->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'done']);
+        Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'status' => 'todo']);
 
         Livewire::actingAs($admin)->test(ListProjects::class)
             ->assertSuccessful()
@@ -572,11 +580,11 @@ class ProjectResourceTest extends TestCase
         $owner = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
 
-        $archived = \App\Models\Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'archived_at' => now()]);
-        $active = \App\Models\Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id]);
+        $archived = Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id, 'archived_at' => now()]);
+        $active = Task::factory()->create(['project_id' => $project->id, 'user_id' => $owner->id]);
 
         $component = Livewire::actingAs($admin)
-            ->test(\App\Filament\Resources\ProjectResource\RelationManagers\TasksRelationManager::class, [
+            ->test(TasksRelationManager::class, [
                 'ownerRecord' => $project,
                 'pageClass' => EditProject::class,
             ]);
@@ -678,8 +686,8 @@ class ProjectResourceTest extends TestCase
         $owner = User::factory()->create();
         $few = Project::factory()->create(['owner_id' => $owner->id, 'name' => '0-sort-tasks-few', 'member_ids' => [], 'departments' => []]);
         $many = Project::factory()->create(['owner_id' => $owner->id, 'name' => '0-sort-tasks-many', 'member_ids' => [], 'departments' => []]);
-        \App\Models\Task::factory()->create(['project_id' => $many->id, 'user_id' => $owner->id, 'status' => 'todo', 'deadline' => now()->subDay()]);
-        \App\Models\Task::factory()->count(2)->create(['project_id' => $many->id, 'user_id' => $owner->id, 'status' => 'done']);
+        Task::factory()->create(['project_id' => $many->id, 'user_id' => $owner->id, 'status' => 'todo', 'deadline' => now()->subDay()]);
+        Task::factory()->count(2)->create(['project_id' => $many->id, 'user_id' => $owner->id, 'status' => 'done']);
 
         $component = Livewire::actingAs($admin)->test(ListProjects::class)
             ->searchTable('0-sort-tasks-')
@@ -704,28 +712,28 @@ class ProjectResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ProjectResource\Pages\CreateProject::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\ProjectResource\Pages\EditProject::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ProjectResource\Pages\ListProjects::class => \App\Filament\Pages\ListRecords::class,
+            CreateProject::class => CreateRecord::class,
+            EditProject::class => EditRecord::class,
+            ListProjects::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ProjectResource\Pages\CreateProject::class, \App\Filament\Resources\ProjectResource\Pages\EditProject::class];
+        $writers = [CreateProject::class, EditProject::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\ProjectResource\RelationManagers\TasksRelationManager::class, \App\Filament\Resources\ProjectResource\RelationManagers\WorkflowsRelationManager::class];
+        $managers = [TasksRelationManager::class, WorkflowsRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 

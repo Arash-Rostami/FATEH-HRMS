@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\DmsResource\Schemas;
 
-use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
+use App\Enums\DocumentStatus;
 use App\Models\Department;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\IconColumn;

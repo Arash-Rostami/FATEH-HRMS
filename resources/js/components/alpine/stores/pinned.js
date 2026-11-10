@@ -1,4 +1,4 @@
-const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation', 'ai-report'];
+const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation', 'ai-report', 'correspondence'];
 
 const KEYS = {
     contact: 'pinned-contacts',
@@ -8,13 +8,14 @@ const KEYS = {
     activity: 'pinned-activity',
     menu: 'pinned-menu-items',
     reservation: 'pinned-reservations',
-    'ai-report': 'pinned-ai-reports'
+    'ai-report': 'pinned-ai-reports',
+    correspondence: 'pinned-correspondence'
 };
 
 export default function pinned(Alpine) {
     Alpine.store('pinned', {
-        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null, 'ai-report': null },
-        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [], 'ai-report': [] },
+        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null, 'ai-report': null, correspondence: null },
+        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [], 'ai-report': [], correspondence: [] },
 
         init() {
             for (let i = 0; i < SCOPES.length; i++) {

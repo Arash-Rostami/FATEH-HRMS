@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ChannelResource\Pages;
 
 use App\Filament\Resources\ChannelResource;
-use App\Traits\FilamentHeaderActions;
+use App\Traits\Filament\FilamentHeaderActions;
 use App\Filament\Pages\ListRecords;
 
 class ListChannels extends ListRecords

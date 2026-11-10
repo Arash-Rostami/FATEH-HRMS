@@ -4,7 +4,7 @@ namespace App\Filament\Resources\UserResource\RelationManagers;
 
 use App\Filament\Resources\ReservationResource;
 use App\Filament\Resources\ReservationResource\Schemas\ReservationTablePresenter;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;

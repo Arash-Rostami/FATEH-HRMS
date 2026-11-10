@@ -13,20 +13,24 @@
         </div>
     @endif
 
-    <textarea
-        name="{{ $name }}"
-        id="{{ $name }}"
-        rows="{{ $rows }}"
-        {{ $disabled ? 'disabled' : '' }}
-        {!! $attributes->merge([
-            'class' => 'md3-input peer ' . ($icon ? 'pr-10' : '') . ($maximizable ? ' pl-10' : '')
-        ]) !!}
-        placeholder=" "
-    >{{ $slot }}</textarea>
-    <label for="{{ $name }}"
-           class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">
-        {{ $label }}
-    </label>
+    <div class="{{ isset($actions) ? 'relative' : 'contents' }}">
+        <textarea
+            name="{{ $name }}"
+            id="{{ $name }}"
+            rows="{{ $rows }}"
+            {{ $disabled ? 'disabled' : '' }}
+            {!! $attributes->merge([
+                'class' => 'md3-input peer ' . ($icon ? 'pr-10' : '') . ($maximizable ? ' pl-10' : '') . (isset($actions) ? ' pb-10 resize-none' : '')
+            ]) !!}
+            placeholder=" "
+        >{{ $slot }}</textarea>
+        <label for="{{ $name }}"
+               class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">
+            {{ $label }}
+        </label>
+
+        {{ $actions ?? '' }}
+    </div>
 
     @if($maximizable)
         <x-ui.forms.maximize-trigger class="top-3 left-0"/>

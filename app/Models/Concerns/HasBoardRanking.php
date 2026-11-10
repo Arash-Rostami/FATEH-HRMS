@@ -2,7 +2,7 @@
 
 namespace App\Models\Concerns;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
+use App\Enums\TaskPriority;
 use App\Services\ProjectTask\RankGenerator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;

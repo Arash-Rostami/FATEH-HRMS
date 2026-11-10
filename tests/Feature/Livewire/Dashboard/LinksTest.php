@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
+use App\Enums\LinkIcon;
 use App\Livewire\Dashboard\Tab\Links;
 use App\Livewire\Dashboard\Tab\Presentation\LinkPresenter;
 use App\Models\Link;
@@ -408,14 +409,14 @@ class LinksTest extends TestCase
             'sequence' => 1,
             'image' => null,
             'icon' => null,
-            'icon_description' => \App\Enums\LinkIcon::Hub->value,
+            'icon_description' => LinkIcon::Hub->value,
         ]);
 
         Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Links::class)
-            ->assertSee('>' . \App\Enums\LinkIcon::Hub->value . '<', false)
-            ->assertSee('title="' . \App\Enums\LinkIcon::Hub->getLabel() . '"', false);
+            ->assertSee('>' . LinkIcon::Hub->value . '<', false)
+            ->assertSee('title="' . LinkIcon::Hub->getLabel() . '"', false);
     }
 
     public function test_card_falls_back_to_generic_glyph_when_icon_description_is_not_a_valid_picked_icon()

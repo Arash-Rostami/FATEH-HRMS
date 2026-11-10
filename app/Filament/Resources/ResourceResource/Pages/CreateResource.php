@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ResourceResource\Pages;
 
 use App\Filament\Resources\ResourceResource;
 use App\Filament\Resources\ResourceResource\Schemas\ResourceFormPresenter;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\CreateRecord;
 
 class CreateResource extends CreateRecord

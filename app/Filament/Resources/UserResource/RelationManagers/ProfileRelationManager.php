@@ -5,7 +5,7 @@ namespace App\Filament\Resources\UserResource\RelationManagers;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileFormPresenter;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileInfolistPresenter;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileTablePresenter;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use Filament\Actions\CreateAction;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;

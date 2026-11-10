@@ -2,9 +2,18 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Enums\LinkIcon;
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\LinkResource;
 use App\Filament\Resources\LinkResource\Pages\CreateLink;
 use App\Filament\Resources\LinkResource\Pages\EditLink;
 use App\Filament\Resources\LinkResource\Pages\ListLinks;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Link;
 use App\Models\Permission;
 use App\Models\User;
@@ -91,7 +100,7 @@ class LinkResourceTest extends TestCase
         $html = $this->actingAs($admin)->get('/admin/links')->getContent();
 
         $this->assertStringContainsString('data-popover="quick-create"', $html);
-        $this->assertStringContainsString(\App\Filament\Resources\LinkResource::getUrl('create'), $html);
+        $this->assertStringContainsString(LinkResource::getUrl('create'), $html);
         $this->assertStringContainsString('window.__adminRecents', $html);
         $this->assertStringContainsString('"links"', $html);
         $this->assertStringContainsString('data-popover="recents"', $html);
@@ -121,7 +130,7 @@ class LinkResourceTest extends TestCase
         $admin->setExtraValue('preferences.row_click_edit', true);
         $admin->save();
 
-        $this->assertSame(\App\Filament\Resources\LinkResource::getUrl('edit', ['record' => $link]), $table()->getRecordUrl($link));
+        $this->assertSame(LinkResource::getUrl('edit', ['record' => $link]), $table()->getRecordUrl($link));
     }
 
     public function test_persist_table_state_preference_turns_on_filter_search_and_sort_memory()
@@ -317,7 +326,7 @@ class LinkResourceTest extends TestCase
                 'link' => 'external',
                 'url' => 'https://example.com/fateh',
                 'url_title' => 'Fateh Portal',
-                'icon_description' => \App\Enums\LinkIcon::Hub->value,
+                'icon_description' => LinkIcon::Hub->value,
                 'icon' => UploadedFile::fake()->image('icon.jpg'),
                 'image' => UploadedFile::fake()->image('image.jpg'),
             ])
@@ -326,7 +335,7 @@ class LinkResourceTest extends TestCase
 
         $this->assertDatabaseHas('links', [
             'url_title' => 'Fateh Portal',
-            'icon_description' => \App\Enums\LinkIcon::Hub->value,
+            'icon_description' => LinkIcon::Hub->value,
         ]);
     }
 
@@ -403,33 +412,33 @@ class LinkResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\LinkResource\Pages\CreateLink::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\LinkResource\Pages\EditLink::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\LinkResource\Pages\ListLinks::class => \App\Filament\Pages\ListRecords::class,
+            CreateLink::class => CreateRecord::class,
+            EditLink::class => EditRecord::class,
+            ListLinks::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\LinkResource\Pages\CreateLink::class, \App\Filament\Resources\LinkResource\Pages\EditLink::class];
+        $writers = [CreateLink::class, EditLink::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 
     public function test_edit_tracked_file_columns_delete_only_the_replaced_files(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
-        $tracked = (fn () => $this->trackedFileColumns())->call(new \App\Filament\Resources\LinkResource\Pages\EditLink());
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $tracked = (fn () => $this->trackedFileColumns())->call(new EditLink());
         Storage::fake('public');
         foreach (['link/icon/old.png', 'link/icon/new.png', 'link/image/kept.jpg'] as $path) {
             Storage::disk('public')->put($path, 'x');
         }
-        $record = \App\Models\Link::factory()->create(['icon' => 'link/icon/old.png', 'image' => 'link/image/kept.jpg']);
+        $record = Link::factory()->create(['icon' => 'link/icon/old.png', 'image' => 'link/image/kept.jpg']);
         $before = $probe->trackedFilePaths($record, $tracked);
         $this->assertEqualsCanonicalizing(['link/icon/old.png', 'link/image/kept.jpg'], $before);
 

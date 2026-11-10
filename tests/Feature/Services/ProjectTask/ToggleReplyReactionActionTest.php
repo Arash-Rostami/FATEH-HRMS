@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Services\ProjectTask;
 
+use App\Models\Reply;
+use App\Services\ProjectTask\ProjectHeartbeat;
 use App\Services\ProjectTask\ToggleReplyReactionAction;
 use App\Models\Project;
 use App\Models\Task;
@@ -131,7 +133,7 @@ class ToggleReplyReactionActionTest extends TestCase
             $this->assertSame(422, $e->getStatusCode());
         }
 
-        $this->assertEmpty(\App\Models\Reply::find($replyId)->reactions, 'a rejected emoji must never reach persistence');
+        $this->assertEmpty(Reply::find($replyId)->reactions, 'a rejected emoji must never reach persistence');
     }
 
     public function test_a_stranger_with_no_visibility_into_the_project_cannot_react(): void
@@ -147,11 +149,11 @@ class ToggleReplyReactionActionTest extends TestCase
     public function test_reaction_toggle_bumps_the_project_heartbeat(): void
     {
         [$project, $replyId, $user] = $this->projectWithReply();
-        $before = \App\Services\ProjectTask\ProjectHeartbeat::version($project->id);
+        $before = ProjectHeartbeat::version($project->id);
 
         app(ToggleReplyReactionAction::class)->execute($replyId, '👍', $user->id);
 
-        $this->assertNotSame($before, \App\Services\ProjectTask\ProjectHeartbeat::version($project->id));
+        $this->assertNotSame($before, ProjectHeartbeat::version($project->id));
     }
 
     public function test_toggle_adds_a_reaction_to_a_task_level_reply(): void

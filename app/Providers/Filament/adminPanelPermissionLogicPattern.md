@@ -140,7 +140,7 @@ visibility and row/header/bulk actions follow the **related** model's resource p
 related module loses that child tab (User page tabs each need that module's `view`; Channel
 Members needs `user` view). Overrides of `canViewForRecord()` must call `parent::`. Edit/View pages automatically show a callout naming tabs hidden by these permission checks (`RelationManager::deniedByPermission()` + `ExplainsHiddenRelationTabs`; see filamentPattern.md).
 
-**Cost:** one request = 2 Redis GETs, not 2 per check — `User::permits()` memoizes
+**Cost:** one request = 2 cache-store GETs (Redis in production, `database` in dev; see `cachePattern.md`), not 2 per check — `User::permits()` memoizes
 the Permission row on the instance (`$this->permissionRow ??= Permission::forUser(...)`;
 the guard-cached `Auth::user()` is one object for the whole request, so nav ×
 ~30 `canViewAny` + per-row action checks all hit the memo). The trait's
@@ -170,22 +170,13 @@ the rotated version key and sees the change.
   `User` saved/deleted alongside the other user caches.
 - Developers never hit `forUser` (bypass short-circuits first), so no cache entry
   is needed for them.
-- **Never wrap `Cache::remember(...)` in `once(...)`** for any cache a `booted()`
-  `saved`/`deleted` hook reactively forgets. `once()` memoizes in a PHP `static`
-  that lives for the whole php-fpm worker (up to `pm.max_requests=500`) with no API
-  to clear it — `Cache::forget` flushes Redis but the worker's `once()` memo keeps
-  serving the pre-forget value (repro: after promoting a user to admin,
-  `Cache::get('user_admin_options')` returns `null` post-forget, yet the next
-  `once()`-wrapped read in the same process still returns the stale pre-promotion
-  list; the invalidation logic is correct, `once()` hides it). All four
-  `User::getCached*` option-list methods use bare `Cache::remember` for this.
-- `Permission::availableModules()` is the deliberate `once()`-wrapped exception:
-  nothing calls `Cache::forget('permission_modules')` — the module list is a
-  filesystem glob of `Resource.php` files, only changing at deploy time (opcache/
-  autoloader reload = worker restart anyway). `once()` collapses the 4-5 calls
-  within a single Permission form/table/infolist render (`PermissionFormPresenter`,
-  `PermissionTablePresenter`, `PermissionInfolistPresenter`, `ModuleGroup`) into
-  one Redis round trip. Because the key is never forgotten in code, a **new resource**
+- `once()` around a reactively invalidated cache: never — see `cachePattern.md`
+  "The `once()` gotcha still applies…". All four `User::getCached*` option-list
+  methods use bare `Cache::remember` for this.
+- `Permission::availableModules()` is the deliberate `once()`-wrapped exception
+  (also named in that section): it collapses the 4-5 calls within one Permission
+  form/table/infolist render (`PermissionFormPresenter`, `PermissionTablePresenter`,
+  `PermissionInfolistPresenter`, `ModuleGroup`) into one cache read. Because the key is never forgotten in code, a **new resource**
   (e.g. `NotifyRuleResource` → module `notify_rule`, 2026-10-27) only appears in the
   permission form's module list after the cache is cleared: the deploy runs
   `php artisan optimize:clear` (which also drops `notify:trackables`), or

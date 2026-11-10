@@ -5,7 +5,7 @@ namespace App\Filament\Resources\UserResource\RelationManagers;
 use App\Filament\Resources\ThsResource\Schemas\TicketFormPresenter;
 use App\Filament\Resources\ThsResource\Schemas\TicketInfolistPresenter;
 use App\Filament\Resources\ThsResource\Schemas\TicketTablePresenter;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;

@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ReservationPolicyResource\Schemas;
 
 use App\Enums\ReservationError;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Closure;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;

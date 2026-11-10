@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserType;
 use App\Services\Cache\ModelCacheVersion;
 use Carbon\Carbon;
 use Filament\Actions\Action;

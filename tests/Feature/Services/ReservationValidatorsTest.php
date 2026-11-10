@@ -14,6 +14,7 @@ use App\Services\Reservation\Validators\AllowedDays;
 use App\Services\Reservation\Validators\AllowedHours;
 use App\Services\Reservation\Validators\BookingPermission;
 use App\Services\Reservation\Validators\CancellationLimit;
+use App\Services\Reservation\ValidationService;
 use App\Services\Reservation\Validators\Duration;
 use App\Services\Reservation\Validators\FullDay;
 use App\Services\Reservation\Validators\RangeDuration;
@@ -642,7 +643,7 @@ class ReservationValidatorsTest extends TestCase
         $this->activeLimitReserve($user, $resource, ReservationStatus::Active, Carbon::parse('2026-09-22 23:00:00'));
         $this->activeLimitReserve($user, $resource, ReservationStatus::Active, Carbon::parse('2026-09-23 00:30:00'));
 
-        $count = app(\App\Services\Reservation\ValidationService::class)->activeLimitCount($user->id, 'seat', Carbon::parse('2026-09-15'));
+        $count = app(ValidationService::class)->activeLimitCount($user->id, 'seat', Carbon::parse('2026-09-15'));
         $this->assertSame(2, $count);
         [$start, $end] = jalaliMonthBounds(Carbon::parse('2026-09-15'));
         $this->assertSame('2026-08-23', $start->toDateString());
@@ -1293,8 +1294,8 @@ class ReservationValidatorsTest extends TestCase
         // 40 days ago: outside the default 30, inside a 60-day window.
         app(CancellationLimit::class)->validate($this->cancellationContext($user, $resource, ['max_cancel_count' => 1]));
         $this->assertThrowsReservationErrorStartsWith(ReservationError::CancelLimitBooking, fn() => app(CancellationLimit::class)->validate($this->cancellationContext($user, $resource, ['max_cancel_count' => 1, 'cancel_window_days' => 60])));
-        $this->assertSame(30, \App\Services\Reservation\ValidationService::cancelWindowDays([]));
-        $this->assertSame(365, \App\Services\Reservation\ValidationService::cancelWindowDays(['cancel_window_days' => 9999]));
+        $this->assertSame(30, ValidationService::cancelWindowDays([]));
+        $this->assertSame(365, ValidationService::cancelWindowDays(['cancel_window_days' => 9999]));
     }
 
     public function test_cancellation_limit_of_zero_disables_cancelling_but_never_blocks_booking(): void

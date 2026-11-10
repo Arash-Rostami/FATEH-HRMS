@@ -1,4 +1,4 @@
-<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+<div @class(['grid grid-cols-1 gap-3 sm:grid-cols-2', 'xl:grid-cols-3' => $scope !== 'ticket', 'xl:grid-cols-4' => $scope === 'ticket'])>
     @foreach ($cards as $card)
         <div wire:key="ths-insight-{{ $scope }}-{{ $card['key'] }}"
              class="space-y-2 rounded-xl bg-gray-50/30 p-4 ring-1 ring-gray-950/5 dark:bg-white/5 dark:ring-white/10">

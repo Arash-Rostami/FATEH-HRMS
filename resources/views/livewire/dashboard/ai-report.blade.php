@@ -1,3 +1,4 @@
+@use('App\Services\Menu\BadgeLegendCatalog')
 @php
     $report = $this->report;
     $owner = $report !== null && $report->isOwnedBy(auth()->user());
@@ -9,7 +10,7 @@
     <div class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-4 print:gap-3">
 
         <div class="print:hidden">
-        <x-ui.title icon="article" title="گزارش ساز هوشمند">
+        <x-ui.title icon="auto_awesome" :ai="true" title="گزارش ساز هوشمند">
             <x-slot:actions>
                 <div class="flex flex-wrap items-center gap-2">
                     <x-ui.buttons.view-toggle
@@ -75,7 +76,7 @@
 
         <x-dashboard.modal.badge-legend
             name="ai-report-badge-legend"
-            :items="[\App\Services\Menu\BadgeLegendCatalog::get('ai-report-controller')]"
+            :items="array_values(array_filter([BadgeLegendCatalog::get('ai-report-controller'), BadgeLegendCatalog::get('ai-report-controller:nudge')]))"
         />
 
         <x-ui.modals.dialog name="ai-report-legend" title="راهنمای گزارش ساز هوشمند">
@@ -138,7 +139,7 @@
                 @endif
 
                 @if($this->hasGenerating && ($activeTab === 'table' || $report === null || $report->status !== \App\Models\AiReport::STATUS_GENERATING))
-                    <div wire:key="ai-report-table-poll-anchor" wire:poll.visible.{{ config('ai_report.poll_seconds') }}s="pollList"></div>
+                    <div wire:key="ai-report-table-poll-anchor" wire:poll.visible.{{ config('ai.report.poll_seconds') }}s="pollList"></div>
                 @endif
             </div>
         @else
@@ -153,7 +154,7 @@
 
                 @unless($readOnly)
                     @if($this->hasGenerating && ($report === null || $report->status !== \App\Models\AiReport::STATUS_GENERATING))
-                        <aside wire:key="ai-report-list-polling" wire:poll.visible.{{ config('ai_report.poll_seconds') }}s="pollList"
+                        <aside wire:key="ai-report-list-polling" wire:poll.visible.{{ config('ai.report.poll_seconds') }}s="pollList"
                                class="flex flex-col gap-2 lg:sticky lg:top-4 p-3 rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border border-[var(--md-sys-color-outline-variant)]/40 print:hidden">
                             @include('livewire.dashboard.ai-report.list')
                         </aside>

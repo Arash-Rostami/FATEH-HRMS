@@ -13,7 +13,7 @@ use App\Livewire\Dashboard\Tab\Presentation\FeedPresenter;
 use App\Models\Comment;
 use App\Models\Feed;
 use App\Services\Cache\ModelCacheVersion;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\TenantService;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Foundation\AliasLoader;
 use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -42,5 +43,9 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(TenantService::class);
+
+        foreach (['ReconcileEdge', 'ReconcileNudge', 'ReconcileReminderDue', 'SendNotifyChunk', 'SendNotifyRule', 'SendReminderSms'] as $name) {
+            AliasLoader::getInstance()->alias("App\\Jobs\\{$name}", "App\\Jobs\\{$name}Job");
+        }
     }
 }

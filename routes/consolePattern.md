@@ -19,7 +19,7 @@ Every scheduled task in this app lives in `routes/console.php` (no Kernel, no pr
 | 01:10 daily | `model:prune` | DB prune (prunable models, per-row) | yes |
 | 01:40 daily | `queue:prune-failed --hours=720` | DB prune (failed jobs table) | yes |
 | :45 hourly | `suggestions:auto-resolve-stale` | workflow reconcile | — |
-| 02:05 daily | `notifications:prune-stale` | DB prune (nudges/notifications) | yes |
+| 02:05 daily | `notifications:prune-stale` | DB prune (nudges older than N days + nudge rows of deactivated users) | yes |
 | :15 hourly, 06:00–22:16 | `tasks:sweep-overdue` | task overdue nudges (`when` tenant) | — |
 | :00 hourly | `reminders:sweep-due` | due reminders — email/SMS send | — |
 | 02:35 daily | `tasks:archive-stale-done` | workflow | — |

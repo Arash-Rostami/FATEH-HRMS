@@ -2,7 +2,7 @@
 
 namespace App\Rules;
 
-use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
+use App\Enums\DocumentStatus;
 use App\Models\DMS;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;

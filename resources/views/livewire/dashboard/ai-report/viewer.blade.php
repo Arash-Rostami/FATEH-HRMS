@@ -35,11 +35,11 @@
             </x-ui.empty>
         </div>
     @elseif($report->status === \App\Models\AiReport::STATUS_GENERATING)
-        <div wire:key="ai-report-viewer-generating" wire:poll.visible.{{ config('ai_report.poll_seconds') }}s="pollStatus" role="status" aria-live="polite" aria-busy="true"
+        <div wire:key="ai-report-viewer-generating" wire:poll.visible.{{ config('ai.report.poll_seconds') }}s="pollStatus" role="status" aria-live="polite" aria-busy="true"
              class="flex flex-col items-center justify-center gap-3 py-16 text-center print:hidden">
             <x-ui.loaders.skeleton.report wire:key="ai-report-generating-skeleton"/>
-            <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">در حال تولید گزارش…</p>
-            <div wire:key="ai-report-generating-eta" x-data="{ slow: false }" x-init="setTimeout(() => slow = true, {{ (int) config('ai_report.slow_seconds') * 1000 }})">
+            <p class="text-sm font-bold text-[var(--ai-color)]">در حال تولید گزارش…</p>
+            <div wire:key="ai-report-generating-eta" x-data="{ slow: false }" x-init="setTimeout(() => slow = true, {{ (int) config('ai.report.slow_seconds') * 1000 }})">
                 <p x-show="!slow" class="text-xs text-[var(--md-sys-color-on-surface-variant)]">معمولاً {{ $limits['eta'] }} ثانیه طول می‌کشد؛ این صفحه خودکار به‌روز می‌شود و می‌توانید آن را ببندید؛ نتیجه در فهرست گزارش‌هایتان می‌ماند.</p>
                 <p x-show="slow" x-cloak class="text-xs text-[var(--md-sys-color-on-surface-variant)]">کمی طول کشیده؛ می‌توانید صفحه را ترک کنید، گزارش در فهرست می‌ماند.</p>
             </div>
@@ -61,7 +61,7 @@
                 <p class="text-xs leading-6 mt-1 text-[var(--md-sys-color-on-surface-variant)]">{{ $presenter->failReason($report->fail_reason) }}</p>
                 <p class="text-xs leading-6 mt-0.5 text-[var(--md-sys-color-on-surface-variant)]">{{ $presenter->failHint($report->fail_reason) }}</p>
                 @if($owner && filled($lastPrompt))
-                    @php($noRefund = in_array($report->fail_reason, config('ai_report.no_refund'), true))
+                    @php($noRefund = in_array($report->fail_reason, config('ai.report.no_refund'), true))
                     @if($noRefund)
                         <p wire:key="ai-report-retry-no-refund" class="mt-2 text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">لطفاً درخواست را کوتاه‌تر یا دوباره بنویسید و از دکمهٔ «اصلاح گزارش» استفاده کنید؛ «تلاش دوباره» برای این خطا جوابی ندارد.</p>
                     @else
@@ -140,7 +140,7 @@
                     @if($presenter->canRename($report))
                         <div wire:key="ai-report-rename" class="flex items-end gap-2">
                             <div class="flex-1 min-w-0">
-                                <x-ui.forms.input label="عنوان گزارش" name="titleDraft" wire:model="titleDraft" wire:keydown.enter="rename" icon="edit" :maxlength="(int) config('ai_report.spec.short')"/>
+                                <x-ui.forms.input label="عنوان گزارش" name="titleDraft" wire:model="titleDraft" wire:keydown.enter="rename" icon="edit" :maxlength="(int) config('ai.report.spec.short')"/>
                             </div>
                             <x-ui.buttons.form variant="secondary" wire:click="rename" loading="rename" class="whitespace-nowrap rounded-xl">ذخیرهٔ عنوان</x-ui.buttons.form>
                         </div>

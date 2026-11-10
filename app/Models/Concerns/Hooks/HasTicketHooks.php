@@ -105,6 +105,10 @@ trait HasTicketHooks
             }
         }
 
+        if ($ticket->isDirty('status') && $ticket->status === 'in-progress' && blank($ticket->extra['in_progress_at'] ?? null)) {
+            $ticket->extra = [...($ticket->extra ?? []), 'in_progress_at' => now()->toDateTimeString()];
+        }
+
         if (!$ticket->isDirty('status') || !static::isClosingStatus($ticket->status)) {
             return;
         }

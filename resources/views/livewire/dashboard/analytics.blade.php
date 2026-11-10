@@ -53,9 +53,9 @@
                         </div>
                         <h2 class="text-sm font-semibold text-[var(--md-sys-color-on-surface)]">{{ $cat['label'] }}</h2>
                         <span class="text-[10.5px] font-medium text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1 ms-auto opacity-80"
-                              title="داده‌ها در اسنپ‌شات ۵ دقیقه‌ای کش می‌شوند؛ این برچسب قدمت اسنپ‌شات جاری است.">
+                              title="آمار ممکن است تا ۵ دقیقه با اطلاعات فعلی فاصله داشته باشد.">
                             <span class="material-symbols-rounded text-[13px]" aria-hidden="true">update</span>
-                            بروزرسانی: {{ $snapshotAge === 0 ? 'لحظاتی پیش' : convertToPersian((string) $snapshotAge).' دقیقه پیش' }}
+                            به‌روزرسانی: {{ $snapshotAge === 0 ? 'لحظاتی پیش' : convertToPersian((string) $snapshotAge).' دقیقه پیش' }}
                         </span>
                     </header>
 

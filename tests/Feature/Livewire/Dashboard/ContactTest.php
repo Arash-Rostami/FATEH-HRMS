@@ -2,12 +2,15 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
-use App\Jobs\ReconcileNudge;
+use App\Enums\PresenceStatus;
+use App\Jobs\ReconcileNudgeJob;
+use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
 use App\Livewire\Dashboard\Contact\Actions\ForceDeleteMessageAction;
 use App\Livewire\Dashboard\Contact\Actions\MarkMessagesAsReadAction;
 use App\Livewire\Dashboard\Contact\Actions\SearchMessagesAction;
 use App\Livewire\Dashboard\Contact\Actions\SendMessageAction;
 use App\Livewire\Dashboard\Contact\Main;
+use App\Livewire\Dashboard\Contact\Presentation\ContactPresenter;
 use App\Models\Message;
 use App\Models\Profile;
 use App\Models\ProfileDetail;
@@ -18,6 +21,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -174,7 +178,7 @@ class ContactTest extends TestCase
 
         $this->assertStringStartsWith('متمرکز تا', $rows->firstWhere('id', $focused->id)['focus']);
         $this->assertNull($rows->firstWhere('id', $plain->id)['focus']);
-        $this->assertSame(\App\Enums\PresenceStatus::Remote, $rows->firstWhere('id', $plain->id)['presence']);
+        $this->assertSame(PresenceStatus::Remote, $rows->firstWhere('id', $plain->id)['presence']);
     }
 
     public function test_contact_sidebar_carries_display_title_over_raw_position()
@@ -194,7 +198,7 @@ class ContactTest extends TestCase
 
     public function test_contact_presenter_shows_display_position_over_raw_profile_position()
     {
-        $presenter = new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter();
+        $presenter = new ContactPresenter();
 
         $row = $presenter->contact([
             'id' => 1,
@@ -209,7 +213,7 @@ class ContactTest extends TestCase
 
     public function test_contact_presenter_attachment_only_last_message_falls_back_to_attachment_label()
     {
-        $presenter = new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter();
+        $presenter = new ContactPresenter();
 
         $row = $presenter->contact([
             'id' => 1,
@@ -230,10 +234,10 @@ class ContactTest extends TestCase
         $unreadOne = Message::create(['sender_id' => $contact->id, 'recipient_id' => $me->id, 'body' => 'unread one']);
         $m4 = Message::create(['sender_id' => $contact->id, 'recipient_id' => $me->id, 'body' => 'unread two']);
 
-        $presenter = new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter();
+        $presenter = new ContactPresenter();
         $allIds = [$m1->id, $m2->id, $unreadOne->id, $m4->id];
         $rows = $presenter->messages(
-            \App\Models\Message::query()->whereIn('id', $allIds)->orderBy('id')->get()->toArray(),
+            Message::query()->whereIn('id', $allIds)->orderBy('id')->get()->toArray(),
             $me->id,
             600,
             $unreadOne->id
@@ -253,7 +257,7 @@ class ContactTest extends TestCase
         $y2 = Message::create(['sender_id' => $contact->id, 'recipient_id' => $me->id, 'body' => 'yesterday unread too']);
         $t1 = Message::create(['sender_id' => $contact->id, 'recipient_id' => $me->id, 'body' => 'today unread']);
 
-        $presenter = new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter();
+        $presenter = new ContactPresenter();
         $rows = $presenter->messages(
             collect([$y1->toArray(), $y2->toArray(), $t1->toArray()])->all(),
             $me->id,
@@ -293,7 +297,7 @@ class ContactTest extends TestCase
             ->test(Main::class)
             ->call('selectContact', $contact->id);
 
-        Queue::assertPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->ruleKey === 'contacts-controller:nudge'
+        Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->ruleKey === 'contacts-controller:nudge'
             && $job->subjectClass === User::class
             && $job->subjectId === $contact->id);
     }
@@ -307,7 +311,7 @@ class ContactTest extends TestCase
             ->test(Main::class)
             ->call('selectContact', $contact->id);
 
-        Queue::assertNotPushed(ReconcileNudge::class);
+        Queue::assertNotPushed(ReconcileNudgeJob::class);
     }
 
     public function test_mark_messages_as_read_action_runs_without_error_when_messages_become_read(): void
@@ -1468,6 +1472,7 @@ class ContactTest extends TestCase
         $row = collect($shaped)->firstWhere('id', $contact->id);
         $this->assertSame('birthday', $row['occasion']);
         $this->assertStringContainsString('auto_awesome', $component->html());
+        $this->assertStringContainsString('text-[var(--ai-color)]', $component->html());
     }
 
     public function test_total_occasions_counts_only_contacts_with_an_occasion_today(): void
@@ -1501,7 +1506,7 @@ class ContactTest extends TestCase
 
     public function test_contact_row_bakes_occasion_tone_and_org_title_into_the_shaped_array(): void
     {
-        $presenter = new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter();
+        $presenter = new ContactPresenter();
 
         $withOccasionAndOrg = $presenter->contact([
             'id' => 1,
@@ -1609,7 +1614,7 @@ class ContactTest extends TestCase
 
     public function test_contact_presenter_reply_preview_includes_message_id_for_click_to_scroll(): void
     {
-        $presenter = new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter();
+        $presenter = new ContactPresenter();
 
         $messages = [[
             'id' => 5,
@@ -1626,8 +1631,8 @@ class ContactTest extends TestCase
 
     public function test_contact_presenter_shared_bubble_helpers_match_channel_presenter_output(): void
     {
-        $contact = new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter();
-        $channel = new \App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter();
+        $contact = new ContactPresenter();
+        $channel = new ChannelPresenter();
 
         $this->assertSame($channel->bubbleRadius(true, false, true), $contact->bubbleRadius(true, false, true));
         $this->assertSame($channel->linkify('see https://example.com now'), $contact->linkify('see https://example.com now'));
@@ -1641,7 +1646,7 @@ class ContactTest extends TestCase
 
     public function test_contact_presenter_type_flags_classify_text_image_and_pdf_rows(): void
     {
-        $presenter = new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter();
+        $presenter = new ContactPresenter();
 
         $shaped = $presenter->messages([
             ['id' => 1, 'sender_id' => 1, 'body' => 'plain text', 'created_at' => now()->toDateTimeString()],
@@ -1661,7 +1666,7 @@ class ContactTest extends TestCase
         $me = User::factory()->create(['status' => 'active']);
         $contact = User::factory()->create(['status' => 'active']);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($me)->test(Main::class)
             ->set('activeUserId', $contact->id);
@@ -1908,7 +1913,7 @@ class ContactTest extends TestCase
         $archived = Livewire::actingAs($me)->test(Main::class)->call('setFilter', 'archived')->instance()->contacts;
         $this->assertTrue(collect($archived)->firstWhere('id', $gone->id)['inactive']);
 
-        $presenter = new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter();
+        $presenter = new ContactPresenter();
         $row = fn(bool $inactive) => [[
             'id' => 1, 'sender_id' => 2, 'body' => 'x', 'created_at' => now()->toISOString(),
             'sender' => ['name' => 'S', 'avatar' => null, 'online' => false, 'inactive' => $inactive],
@@ -1925,7 +1930,7 @@ class ContactTest extends TestCase
             'sender' => ['name' => 'S', 'avatar' => null, 'online' => false],
         ], range(1, 15));
 
-        $delays = array_column((new \App\Livewire\Dashboard\Contact\Presentation\ContactPresenter())->messages($rows, 1, 600), 'animation_delay');
+        $delays = array_column((new ContactPresenter())->messages($rows, 1, 600), 'animation_delay');
 
         $this->assertEquals(0, end($delays));
         $this->assertEquals(0.4, $delays[0]);

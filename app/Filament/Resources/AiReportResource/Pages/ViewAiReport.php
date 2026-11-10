@@ -4,7 +4,7 @@ namespace App\Filament\Resources\AiReportResource\Pages;
 
 use App\Filament\Pages\ViewRecord;
 use App\Filament\Resources\AiReportResource;
-use App\Traits\FilamentHeaderActions;
+use App\Traits\Filament\FilamentHeaderActions;
 
 class ViewAiReport extends ViewRecord
 {

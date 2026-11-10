@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Dashboard\Channel\Actions;
 
-use App\Jobs\ReconcileEdge;
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileEdgeJob;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Channel;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -54,8 +54,8 @@ class SyncChannelMembersAction
         $changed = (is_numeric($inserted) ? (int) $inserted : 0) > 0 || $deleted > 0;
 
         if ($changed) {
-            dispatch(new ReconcileNudge('channels-controller:nudge', Channel::class, $channelId))->afterCommit();
-            dispatch(new ReconcileEdge('channels-controller:edge', Channel::class, $channelId))->afterCommit();
+            dispatch(new ReconcileNudgeJob('channels-controller:nudge', Channel::class, $channelId))->afterCommit();
+            dispatch(new ReconcileEdgeJob('channels-controller:edge', Channel::class, $channelId))->afterCommit();
         }
 
         return [

@@ -1,14 +1,7 @@
 @php
-    $filters = [
-        'all' => 'همه',
-        'mine' => 'گزارش‌های من',
-        'shared' => 'دریافتی',
-        'draft' => 'پیش‌نویس‌ها',
-        'saved' => 'ذخیره‌شده‌ها',
-        'inactive' => 'غیرفعال‌ها',
-    ];
-    $filtered = $filter !== 'all' || $search !== '';
-    $showLoadMore = count($this->reports) === $this->listLimit && $this->listLimit < (int) config('ai_report.list_max');
+    $filters = $presenter->filterLabels();
+    $filtered = $presenter->isFiltered($filter, $search);
+    $showLoadMore = $presenter->showLoadMore(count($this->reports), $this->listLimit);
     $viewerId = (int) auth()->id();
 @endphp
 

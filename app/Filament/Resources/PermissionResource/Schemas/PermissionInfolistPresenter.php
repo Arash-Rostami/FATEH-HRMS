@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\PermissionResource\Schemas;
 
 use App\Models\Permission;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;

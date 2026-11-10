@@ -4,7 +4,7 @@ namespace App\Filament\Resources\FAQResource\Schemas;
 
 use App\Models\Department;
 use App\Models\FAQ;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;
 use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;

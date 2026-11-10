@@ -13,6 +13,8 @@ use App\Livewire\Dashboard\Profile\Onboarding;
 use App\Livewire\Dashboard\Profile\Settings;
 use App\Livewire\Dashboard\Profile\Skills;
 use App\Livewire\Dashboard\Profile\Tickets;
+use App\Livewire\Dashboard\Profile\Actions\ResetDocumentStateAction;
+use App\Livewire\Dashboard\Profile\Presentation\DocumentPresenter;
 use App\Enums\PresenceStatus;
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
@@ -25,6 +27,7 @@ use App\Models\ReleaseRequest;
 use App\Models\Skill;
 use App\Models\SkillUser;
 use App\Models\Ticket;
+use App\Enums\SkillIcon;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\ProfileDetailCatalog;
@@ -39,8 +42,10 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Computed;
 use Livewire\Livewire;
 use Morilog\Jalali\Jalalian;
 use Tests\TestCase;
@@ -248,7 +253,7 @@ class ProfileTest extends TestCase
     public function test_onboarding_computed_is_not_persisted_across_requests()
     {
         $attribute = (new \ReflectionMethod(Onboarding::class, 'onboarding'))
-            ->getAttributes(\Livewire\Attributes\Computed::class)[0];
+            ->getAttributes(Computed::class)[0];
 
         $this->assertFalse($attribute->newInstance()->persist);
     }
@@ -1478,7 +1483,7 @@ class ProfileTest extends TestCase
             ->call('togglePrivacy', $missingId)
             ->assertDispatched('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
 
-        Exceptions::assertReported(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        Exceptions::assertReported(ModelNotFoundException::class);
 
         Exceptions::fake();
 
@@ -1909,7 +1914,7 @@ class ProfileTest extends TestCase
         $presenter = new SkillPresenter();
         $skill = new Skill(['icon' => null]);
 
-        $this->assertSame(\App\Enums\SkillIcon::default()->value, $presenter->icon($skill));
+        $this->assertSame(SkillIcon::default()->value, $presenter->icon($skill));
     }
 
     public function test_skill_presenter_display_label_prefers_english_name_only_in_english_locale(): void
@@ -1963,8 +1968,8 @@ class ProfileTest extends TestCase
         Profile::factory()->create(['user_id' => $user->id]);
 
         $component = Livewire::actingAs($user)->test(Documents::class);
-        $presenter = new \App\Livewire\Dashboard\Profile\Presentation\DocumentPresenter();
-        $resetAction = app(\App\Livewire\Dashboard\Profile\Actions\ResetDocumentStateAction::class);
+        $presenter = new DocumentPresenter();
+        $resetAction = app(ResetDocumentStateAction::class);
         $form = $component->instance()->form;
 
         $parsed = $presenter->parseAttachments([
@@ -1988,7 +1993,7 @@ class ProfileTest extends TestCase
 
     public function test_custom_docs_filters_parsed_attachments_to_the_custom_category_only(): void
     {
-        $presenter = new \App\Livewire\Dashboard\Profile\Presentation\DocumentPresenter();
+        $presenter = new DocumentPresenter();
 
         $customDocs = $presenter->customDocs($presenter->parseAttachments([
             ['category' => 'standard', 'key' => 'shenasnameh', 'path' => 'docs/shenasnameh_1700000000.jpg'],
@@ -2454,5 +2459,184 @@ class ProfileTest extends TestCase
 
         $component->call('switchTab', 'bogus-section')
             ->assertSet('activeSection', 'focus');
+    }
+
+    public function test_sign_code_card_saves_and_clears_only_the_protected_hash(): void
+    {
+        config(['app.off' => []]);
+        $user = User::factory()->create([
+            'role' => 'user',
+            'status' => 'active',
+            'password' => Hash::make('account-password'),
+            'extra' => ['admin' => ['custom' => 'keep-me']],
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(Credentials::class)
+            ->assertSee('profile-sign-code')
+            ->assertSee(__('resources/correspondence/strings.profile.sign_code_unset'))
+            ->set('signCodeForm.current_password', 'account-password')
+            ->set('signCodeForm.code', 'private-code-123')
+            ->call('saveSignCode')
+            ->assertHasNoErrors()
+            ->assertSet('signCodeForm.code', '');
+
+        $fresh = $user->fresh();
+        $hash = $fresh->getExtraValue('admin.sign_code_hash');
+        $this->assertNotEmpty($hash);
+        $this->assertNotSame('private-code-123', $hash);
+        $this->assertSame('keep-me', $fresh->getExtraValue('admin.custom'));
+        Livewire::actingAs($fresh)
+            ->test(Credentials::class)
+            ->assertSee(__('resources/correspondence/strings.profile.sign_code_set'))
+            ->assertDontSee($hash)
+            ->set('signCodeForm.current_password', 'account-password')
+            ->call('clearSignCode')
+            ->assertHasNoErrors();
+
+        $this->assertNull($fresh->fresh()->getExtraValue('admin.sign_code_hash'));
+        $this->assertSame('keep-me', $fresh->fresh()->getExtraValue('admin.custom'));
+    }
+
+    public function test_sign_code_form_rejects_short_codes_and_bcrypt_unsafe_utf8_byte_lengths(): void
+    {
+        config(['app.off' => []]);
+        $user = User::factory()->create(['role' => 'user', 'status' => 'active', 'password' => Hash::make('account-password')]);
+
+        Livewire::actingAs($user)->test(Credentials::class)
+            ->set('signCodeForm.current_password', 'account-password')
+            ->set('signCodeForm.code', '12345')
+            ->call('saveSignCode')
+            ->assertHasErrors(['signCodeForm.code' => 'min']);
+
+        Livewire::actingAs($user)->test(Credentials::class)
+            ->set('signCodeForm.current_password', 'account-password')
+            ->set('signCodeForm.code', str_repeat('ش', 40))
+            ->call('saveSignCode')
+            ->assertHasErrors(['signCodeForm.code']);
+    }
+
+    public function test_sign_code_card_requires_the_current_password_to_save_or_clear(): void
+    {
+        config(['app.off' => []]);
+        $user = User::factory()->create([
+            'role' => 'user',
+            'status' => 'active',
+            'password' => Hash::make('account-password'),
+        ]);
+        RateLimiter::clear("sign-code:profile:{$user->id}");
+
+        Livewire::actingAs($user)->test(Credentials::class)
+            ->set('signCodeForm.code', 'private-code-123')
+            ->call('saveSignCode')
+            ->assertHasErrors(['signCodeForm.current_password' => 'required']);
+
+        $this->assertNull($user->fresh()->getExtraValue('admin.sign_code_hash'));
+
+        Livewire::actingAs($user)->test(Credentials::class)
+            ->set('signCodeForm.current_password', 'account-password')
+            ->set('signCodeForm.code', 'private-code-123')
+            ->call('saveSignCode')
+            ->assertHasNoErrors();
+
+        Livewire::actingAs($user->fresh())->test(Credentials::class)
+            ->call('clearSignCode')
+            ->assertHasErrors(['signCodeForm.current_password' => 'required']);
+
+        $this->assertNotEmpty($user->fresh()->getExtraValue('admin.sign_code_hash'));
+        RateLimiter::clear("sign-code:profile:{$user->id}");
+    }
+
+    public function test_sign_code_card_rejects_a_code_equal_to_the_account_password(): void
+    {
+        config(['app.off' => []]);
+        $user = User::factory()->create([
+            'role' => 'user',
+            'status' => 'active',
+            'password' => Hash::make('account-password'),
+        ]);
+        RateLimiter::clear("sign-code:profile:{$user->id}");
+
+        Livewire::actingAs($user)->test(Credentials::class)
+            ->set('signCodeForm.current_password', 'account-password')
+            ->set('signCodeForm.code', 'account-password')
+            ->call('saveSignCode')
+            ->assertHasErrors(['signCodeForm.code'])
+            ->assertSet('signCodeForm.code', '')
+            ->assertSet('signCodeForm.current_password', '');
+
+        $this->assertNull($user->fresh()->getExtraValue('admin.sign_code_hash'));
+        RateLimiter::clear("sign-code:profile:{$user->id}");
+    }
+
+    public function test_sign_code_card_throttle_answers_with_the_same_message_as_a_wrong_password(): void
+    {
+        config(['app.off' => [], 'ai.correspondence.sign_code_attempts' => 2]);
+        $user = User::factory()->create([
+            'role' => 'user',
+            'status' => 'active',
+            'password' => Hash::make('account-password'),
+        ]);
+        RateLimiter::clear("sign-code:profile:{$user->id}");
+        $expected = __('resources/correspondence/strings.profile.sign_code_password_wrong');
+
+        $component = Livewire::actingAs($user)->test(Credentials::class);
+
+        foreach (range(1, 2) as $attempt) {
+            $component->set('signCodeForm.current_password', 'wrong-password')
+                ->set('signCodeForm.code', 'private-code-123')
+                ->call('saveSignCode');
+            $this->assertSame($expected, $component->errors()->first('signCodeForm.current_password'));
+        }
+
+        $component->set('signCodeForm.current_password', 'account-password')
+            ->set('signCodeForm.code', 'private-code-123')
+            ->call('saveSignCode');
+
+        $this->assertSame($expected, $component->errors()->first('signCodeForm.current_password'));
+        $this->assertNull($user->fresh()->getExtraValue('admin.sign_code_hash'));
+        RateLimiter::clear("sign-code:profile:{$user->id}");
+    }
+
+    public function test_sign_code_card_clear_button_asks_for_confirmation_and_shows_only_with_a_code(): void
+    {
+        config(['app.off' => []]);
+        $user = User::factory()->create([
+            'role' => 'user',
+            'status' => 'active',
+            'password' => Hash::make('account-password'),
+            'extra' => ['admin' => ['sign_code_hash' => Hash::make('private-code-123')]],
+        ]);
+
+        Livewire::actingAs($user)->test(Credentials::class)
+            ->assertSeeHtml('wire:key="profile-sign-code-clear"')
+            ->assertSeeHtml('wire:confirm="'.e(__('resources/correspondence/strings.profile.sign_code_clear_confirm')).'"');
+
+        $plain = User::factory()->create(['role' => 'user', 'status' => 'active']);
+
+        Livewire::actingAs($plain)->test(Credentials::class)
+            ->assertSeeHtml('wire:key="profile-sign-code"')
+            ->assertDontSeeHtml('wire:key="profile-sign-code-clear"');
+    }
+
+    public function test_sign_code_card_is_hidden_and_inert_when_the_correspondence_module_is_off(): void
+    {
+        config(['app.off' => ['correspondence']]);
+        $user = User::factory()->create([
+            'role' => 'user',
+            'status' => 'active',
+            'password' => Hash::make('account-password'),
+        ]);
+        RateLimiter::clear("sign-code:profile:{$user->id}");
+
+        Livewire::actingAs($user)->test(Credentials::class)
+            ->assertDontSeeHtml('wire:key="profile-sign-code"')
+            ->set('signCodeForm.current_password', 'account-password')
+            ->set('signCodeForm.code', 'private-code-123')
+            ->call('saveSignCode')
+            ->assertHasErrors(['signCodeForm.current_password']);
+
+        $this->assertNull($user->fresh()->getExtraValue('admin.sign_code_hash'));
+        config(['app.off' => []]);
     }
 }

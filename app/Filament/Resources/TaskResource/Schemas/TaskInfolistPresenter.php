@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\TaskResource\Schemas;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
-use App\Traits\FilamentFormDivider;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;

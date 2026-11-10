@@ -2,10 +2,19 @@
 
 namespace App\Filament\Resources\ThsResource\Schemas;
 
+use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
+use App\Support\TicketAccessPolicy;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Models\Department;
-use App\Filament\Resources\ThsResource\Enums\{RequestType, TicketPriority, TicketStatus};
+use App\Enums\{RequestType, TicketPriority, TicketStatus};
+use App\Filament\Resources\ThsResource;
 use App\Models\Ticket;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Columns\TextColumn;
@@ -17,6 +26,55 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TicketTablePresenter
 {
+    public static function closeAction(): Action
+    {
+        return Action::make('closeTicket')
+            ->tooltip(__('resources/ths/strings.actions.close'))
+            ->icon('heroicon-o-check-circle')
+            ->color('success')
+            ->iconButton()
+            ->visible(fn (Ticket $record): bool => $record->status === 'in-progress' && ThsResource::canEdit($record) && TicketAccessPolicy::canClose($record, auth()->user()))
+            ->action(fn (Ticket $record) => self::guarded(
+                fn () => app(AssignTicketAction::class)->close($record, auth()->user()),
+                __('resources/ths/strings.actions.closed_notice'),
+            ));
+    }
+
+    public static function takeAction(): Action
+    {
+        return Action::make('takeTicket')
+            ->tooltip(__('resources/ths/strings.actions.take'))
+            ->icon('heroicon-o-user-plus')
+            ->color('info')
+            ->iconButton()
+            ->visible(fn (Ticket $record): bool => $record->status === 'open' && ThsResource::canEdit($record) && TicketAccessPolicy::canAssign($record, auth()->user()) && ($dept = $record->effectiveTargetDepartment()) && User::getCachedDepartmentOptions($dept)->has(auth()->id()))
+            ->action(fn (Ticket $record) => self::guarded(
+                fn () => app(AssignTicketAction::class)->execute($record, (int) auth()->id(), auth()->user(), 'open'),
+                __('resources/ths/strings.actions.taken_notice'),
+            ));
+    }
+
+    private static function guarded(callable $run, string $success): void
+    {
+        try {
+            $run();
+        } catch (HttpException $e) {
+            Notification::make()->title($e->getMessage() ?: 'دسترسی لازم برای این عملیات وجود ندارد.')->danger()->send();
+
+            return;
+        } catch (ValidationException $e) {
+            Notification::make()->title(collect($e->errors())->flatten()->first())->danger()->send();
+
+            return;
+        } catch (ModelNotFoundException) {
+            Notification::make()->title('این تیکت دیگر وجود ندارد.')->danger()->send();
+
+            return;
+        }
+
+        Notification::make()->title($success)->success()->send();
+    }
+
     public static function assignee(): TextColumn
     {
         return TextColumn::make('assignee.name')

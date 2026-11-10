@@ -4,7 +4,7 @@ namespace App\Filament\Resources\EnergyResource\Schemas;
 
 use App\Models\EnergyTest;
 use App\Services\EnergyQuestionService;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Support\Enums\FontWeight;

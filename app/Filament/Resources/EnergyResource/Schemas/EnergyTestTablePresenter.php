@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\EnergyResource\Schemas;
 
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\FilamentFilters;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\IconPosition;

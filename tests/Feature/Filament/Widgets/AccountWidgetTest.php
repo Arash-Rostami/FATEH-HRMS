@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Filament\Widgets;
 
-use App\Filament\Resources\UserResource\Enums\UserRole;
+use App\Enums\UserRole;
 use App\Filament\Widgets\AccountWidget;
 use App\Models\Department;
 use App\Models\Profile;

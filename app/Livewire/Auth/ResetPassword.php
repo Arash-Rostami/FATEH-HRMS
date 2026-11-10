@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Auth;
 
-use App\Traits\AuthValidationRules;
+use App\Traits\Livewire\AuthValidationRules;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;

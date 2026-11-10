@@ -68,7 +68,7 @@
             </div>
         @endif
 
-        @if($this->canClose && $this->ticket->status !== 'closed')
+        @if(! $embedded && $this->canClose && $this->ticket->status !== 'closed')
             <x-ui.buttons.form wire:key="ths-close-ticket" type="button" loading="closeTicket" icon="task_alt"
                     wire:click="closeTicket" wire:confirm="این تیکت بسته شود؟"
                     class="shrink-0 max-[359px]:w-full !h-auto min-h-[36px] max-sm:min-h-[44px] !px-3 !py-1.5 rounded-xl text-xs font-bold bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] hover:brightness-110">

@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\FeedResource\RelationManagers;
 
 use App\Models\Comment;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use Filament\Actions\Action;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;

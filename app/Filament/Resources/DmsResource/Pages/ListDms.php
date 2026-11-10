@@ -4,7 +4,7 @@ namespace App\Filament\Resources\DmsResource\Pages;
 
 use App\Filament\Resources\DmsResource;
 use App\Models\DMS;
-use App\Traits\FilamentHeaderActions;
+use App\Traits\Filament\FilamentHeaderActions;
 use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;

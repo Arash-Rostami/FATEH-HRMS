@@ -2,11 +2,11 @@
 namespace App\Filament\Resources\UserResource\Schemas;
 
 use App\Enums\PresenceStatus;
-use App\Filament\Resources\UserResource\Enums\UserRole;
-use App\Filament\Resources\UserResource\Enums\UserStatus;
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
+use App\Enums\UserType;
 use App\Models\User;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -146,6 +146,7 @@ class UserInfolistPresenter
             ->columns(2)
             ->getStateUsing(fn ($record): array =>
             collect($record->extra['admin'] ?? [])
+                ->except(User::PROTECTED_ADMIN_KEYS)
                 ->map(fn ($v, $k) => ['key' => $k, 'value' => (string) $v])
                 ->values()
                 ->toArray()

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ContactResource\RelationManagers;
 
 use App\Filament\Resources\ContactResource\Schemas\ContactInfolistPresenter;
 use App\Filament\Resources\ContactResource\Schemas\ContactTablePresenter;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

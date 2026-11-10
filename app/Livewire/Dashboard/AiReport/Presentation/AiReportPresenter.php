@@ -5,7 +5,6 @@ namespace App\Livewire\Dashboard\AiReport\Presentation;
 use App\Models\AiReport;
 use App\Services\AiReport\BlockCatalog;
 use App\Support\AiReportAccessPolicy;
-use App\Support\AiReportUploadLimits;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
@@ -49,7 +48,7 @@ final class AiReportPresenter
         $labels = [
             'figure' => $lang === 'en' ? 'Key figure' : 'رقم کلیدی',
             'decision' => $lang === 'en' ? 'Decision' : 'تصمیم',
-            'assumption' => (string)config("ai_report.assumptions.heading.{$lang}"),
+            'assumption' => (string)config("ai.report.assumptions.heading.{$lang}"),
         ];
 
         $title = $blocks->firstWhere('type', 'title')['heading'] ?? $spec['title'] ?? null;
@@ -147,9 +146,9 @@ final class AiReportPresenter
     public function presets(AiReport $r): array
     {
         return [
-            'type' => config('ai_report.types.' . (string)($r->getAttribute('preset_type') ?? '') . '.label', '—'),
-            'length' => config('ai_report.lengths.' . (string)($r->getAttribute('preset_length') ?? '') . '.label', '—'),
-            'audience' => config('ai_report.audiences.' . (string)($r->getAttribute('preset_audience') ?? '') . '.label', '—'),
+            'type' => config('ai.report.types.' . (string)($r->getAttribute('preset_type') ?? '') . '.label', '—'),
+            'length' => config('ai.report.lengths.' . (string)($r->getAttribute('preset_length') ?? '') . '.label', '—'),
+            'audience' => config('ai.report.audiences.' . (string)($r->getAttribute('preset_audience') ?? '') . '.label', '—'),
         ];
     }
 
@@ -162,22 +161,118 @@ final class AiReportPresenter
 
     private function buildLimits(): array
     {
-        [$etaMin, $etaMax] = config('ai_report.eta_seconds');
+        [$etaMin, $etaMax] = config('ai.report.eta_seconds');
 
         return [
-            'files' => convertToPersian(config('ai_report.upload.max_files')),
-            'per_file_mb' => convertToPersian((int)(AiReportUploadLimits::perFileKb() / 1024)),
+            'files' => convertToPersian(config('ai.report.upload.max_files')),
+            'per_file_mb' => convertToPersian((int)((int) config('ai.report.upload.per_file_kb') / 1024)),
             'recipients' => convertToPersian(AiReport::maxRecipients()),
-            'inline_mb' => convertToPersian((int)(AiReportUploadLimits::inlineKb() / 1024)),
-            'inline_total_mb' => convertToPersian((int)(AiReportUploadLimits::inlineTotalKb() / 1024)),
-            'total_mb' => convertToPersian((int)(AiReportUploadLimits::totalKb() / 1024)),
-            'prompt_min' => convertToPersian(config('ai_report.prompt.min')),
-            'prompt_max' => convertToPersian(config('ai_report.prompt.max')),
-            'versions' => convertToPersian(config('ai_report.max_versions')),
-            'link_days' => convertToPersian(config('ai_report.share_link_days')),
-            'stale_minutes' => convertToPersian(config('ai_report.stale_minutes')),
-            'stale_draft_days' => convertToPersian(config('ai_report.stale_draft_days')),
+            'inline_mb' => convertToPersian((int)((int) config('ai.report.upload.inline_kb') / 1024)),
+            'inline_total_mb' => convertToPersian((int)((int) config('ai.report.upload.inline_total_kb') / 1024)),
+            'total_mb' => convertToPersian((int)((int) config('ai.report.upload.total_kb') / 1024)),
+            'prompt_min' => convertToPersian(config('ai.report.prompt.min')),
+            'prompt_max' => convertToPersian(config('ai.report.prompt.max')),
+            'versions' => convertToPersian(config('ai.report.max_versions')),
+            'link_days' => convertToPersian(config('ai.report.share_link_days')),
+            'stale_minutes' => convertToPersian(config('ai.report.stale_minutes')),
+            'stale_draft_days' => convertToPersian(config('ai.report.stale_draft_days')),
             'eta' => convertToPersian($etaMin) . ' تا ' . convertToPersian($etaMax),
+        ];
+    }
+
+    private const BLOCK_LABELS = ['heading' => 'عنوان', 'subtitle' => 'زیرعنوان', 'highlight' => 'نکتهٔ برجسته', 'footnote' => 'پانویس', 'risk' => 'ریسک', 'bullets' => 'نکته', 'paragraphs' => 'بند', 'items' => 'مورد', 'options' => 'گزینه', 'columns' => 'ستون', 'label' => 'برچسب', 'value' => 'مقدار', 'hint' => 'توضیح', 'text' => 'متن', 'rows' => 'ردیف', 'total' => 'جمع', 'series' => 'سری', 'name' => 'نام', 'labels' => 'دسته'];
+
+    private const BLOCK_SKIP = ['type', 'check', 'percent_column', 'status_column', 'tone', 'variant', 'pct', 'kind', 'unit'];
+
+    private const BLOCK_LONG = ['paragraphs', 'bullets', 'highlight', 'footnote', 'risk', 'text'];
+
+    public function blockEditor(array $blockDraft, ?AiReport $report): array
+    {
+        return [
+            'labels' => self::BLOCK_LABELS,
+            'fields' => collect(Arr::dot($blockDraft))->filter(fn ($v, $k) => is_string($v)
+                && ! in_array(explode('.', $k)[0], [...self::BLOCK_SKIP, 'rows', 'total'], true)
+                && ! in_array(Str::afterLast($k, '.'), self::BLOCK_SKIP, true)),
+            'width' => count($blockDraft['columns'] ?? []),
+            'long' => self::BLOCK_LONG,
+            'isAssumptions' => ($blockDraft['type'] ?? null) === 'section'
+                && BlockCatalog::isAssumptionsHeading((string) ($blockDraft['heading'] ?? ''), (($report?->spec['lang'] ?? 'fa') === 'en') ? 'en' : 'fa'),
+        ];
+    }
+
+    public function blockFieldLabel(string $dot): string
+    {
+        return collect(explode('.', $dot))
+            ->map(fn ($seg) => is_numeric($seg) ? convertToPersian((int) $seg + 1) : (self::BLOCK_LABELS[$seg] ?? $seg))
+            ->implode(' ');
+    }
+
+    private const FILTER_LABELS = [
+        'all' => 'همه',
+        'mine' => 'گزارش‌های من',
+        'shared' => 'دریافتی',
+        'draft' => 'پیش‌نویس‌ها',
+        'saved' => 'ذخیره‌شده‌ها',
+        'inactive' => 'غیرفعال‌ها',
+    ];
+
+    public function filterLabels(): array
+    {
+        return self::FILTER_LABELS;
+    }
+
+    public function isFiltered(string $filter, string $search): bool
+    {
+        return $filter !== 'all' || $search !== '';
+    }
+
+    public function showLoadMore(int $shown, int $limit): bool
+    {
+        return $shown === $limit && $limit < (int) config('ai.report.list_max');
+    }
+
+    public function composerState(?AiReport $report, bool $owner, array $quota, bool $generatingElsewhere, ?string $block, array $limits): array
+    {
+        $exhausted = $quota['used'] >= $quota['cap'];
+        $refining = $owner && $report !== null && $this->canRefine($report);
+        $blockLabel = $refining && $block !== null ? $this->blockLabel($report, $block) : null;
+        $busy = $report !== null && $report->status === AiReport::STATUS_GENERATING;
+        $quotaPct = min(100, max(0, (int) round($quota['used'] * 100 / max(1, $quota['cap']))));
+
+        return [
+            'exhausted' => $exhausted,
+            'inactive' => $owner && $report !== null && ! $report->active,
+            'refining' => $refining,
+            'blockLabel' => $blockLabel,
+            'sectionRefine' => $blockLabel !== null,
+            'busy' => $busy,
+            'canSubmit' => $refining ? ! ($exhausted || $generatingElsewhere) : ! ($exhausted || $busy || $generatingElsewhere),
+            'quotaPct' => $quotaPct,
+            'quotaLeft' => max(0, $quota['cap'] - $quota['used']),
+            'quotaTone' => $this->quotaTone($exhausted, $quotaPct),
+            'rules' => $this->composerRules($quota, $limits),
+        ];
+    }
+
+    private function quotaTone(bool $exhausted, int $quotaPct): array
+    {
+        if ($exhausted) {
+            return ['text' => 'text-[var(--md-sys-color-error)]', 'fill' => 'bg-[var(--md-sys-color-error)]'];
+        }
+
+        return $quotaPct >= 80
+            ? ['text' => 'text-[var(--tool-gold-color)]', 'fill' => 'bg-[var(--tool-gold-color)]']
+            : ['text' => 'text-[var(--md-sys-color-on-surface-variant)]', 'fill' => 'bg-[var(--md-sys-color-primary)]'];
+    }
+
+    private function composerRules(array $quota, array $limits): array
+    {
+        return [
+            'سهمیه' => 'روزانه ' . convertToPersian((string) $quota['cap']) . ' بار می‌توانید گزارش بسازید یا اصلاح کنید. ویرایش دستی، برگشت به نسخهٔ قبل، اشتراک‌گذاری و چاپ سهمیه مصرف نمی‌کنند؛ ساخت ناموفق برگردانده می‌شود، مگر درخواست بیش‌ازحد بزرگ یا محتوای مسدودشده.',
+            'فایل‌ها' => 'حداکثر ' . convertToPersian((string) $limits['files']) . ' فایل؛ PDF و تصویر هرکدام تا ' . convertToPersian((string) $limits['inline_mb']) . ' و روی‌هم تا ' . convertToPersian((string) $limits['inline_total_mb']) . ' مگابایت. فایل‌ها پس از ساخت نگه داشته نمی‌شوند؛ برای اصلاح بعدی دوباره پیوست کنید.',
+            'همزمانی' => 'در هر زمان فقط یک گزارش در حال ساخت است؛ تا آماده‌شدن آن، گزارش تازه‌ای ساخته نمی‌شود.',
+            'اشتراک' => 'گزارش اشتراک‌گذاری‌شده قفل می‌شود؛ اصلاح آن یک نسخهٔ خصوصی تازه برای شما می‌سازد و عنوان یا ویرایش دستی تا برداشتن اشتراک ممکن نیست.',
+            'بازبینی' => 'هوش مصنوعی ممکن است اشتباه کند؛ ارقام را پیش از استفاده یا ارسال با منبع اصلی تطبیق دهید.',
         ];
     }
 
@@ -249,7 +344,7 @@ final class AiReportPresenter
                 'stamp' => ($v['at'] ?? null) ? toJalali($v['at'], 'j F Y') : '—',
                 'is_current' => $i === $current,
                 'has_spec' => isset($v['spec']),
-                'type' => config('ai_report.types.' . (string)($v['type'] ?? '') . '.label'),
+                'type' => config('ai.report.types.' . (string)($v['type'] ?? '') . '.label'),
             ])
             ->all();
     }

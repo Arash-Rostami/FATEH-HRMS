@@ -2,8 +2,13 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\ListRecords;
+use App\Filament\Pages\ViewRecord;
 use App\Filament\Resources\EnergyResource\Pages\ListEnergyTests;
 use App\Filament\Resources\EnergyResource\Pages\ViewEnergyTest;
+use App\Filament\Resources\EnergyTestResource;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\EnergyTest;
 use App\Models\Permission;
 use App\Models\User;
@@ -51,7 +56,7 @@ class EnergyTestResourceTest extends TestCase
     {
         $admin = $this->developer();
         $test = EnergyTest::factory()->create(['overall_score' => 10]);
-        $viewUrl = \App\Filament\Resources\EnergyTestResource::getUrl('view', ['record' => $test]);
+        $viewUrl = EnergyTestResource::getUrl('view', ['record' => $test]);
 
         foreach ([false, true] as $editOnClick) {
             $admin->setExtraValue('preferences.row_click_edit', $editOnClick);
@@ -296,8 +301,8 @@ class EnergyTestResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\EnergyResource\Pages\ListEnergyTests::class => \App\Filament\Pages\ListRecords::class,
-            \App\Filament\Resources\EnergyResource\Pages\ViewEnergyTest::class => \App\Filament\Pages\ViewRecord::class,
+            ListEnergyTests::class => ListRecords::class,
+            ViewEnergyTest::class => ViewRecord::class,
         ];
 
         foreach ($bases as $page => $base) {
@@ -308,8 +313,8 @@ class EnergyTestResourceTest extends TestCase
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 

@@ -4,7 +4,7 @@ namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Department;
 use App\Models\Report;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;

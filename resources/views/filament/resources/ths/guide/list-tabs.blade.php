@@ -31,7 +31,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">شش زبانهٔ بالای فهرست، تیکت‌ها را بر اساس وضعیت دسته می‌کنند</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        شمارشِ چهار زبانهٔ وضعیت‌دار با یک کوئریِ آماریِ واحد و مکانیزمِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">once()</code> کش می‌شود — یعنی شش زبانه فقط یک بار کوئریِ آماری می‌زنند. زبانه‌ها را می‌توان از تنظیمات کاربری (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">show_list_tabs</code>) خاموش کرد.
+        با زبانه‌ها تیکت‌ها را بر اساس وضعیت ببینید. می‌توانید نمایش زبانه‌ها را در تنظیمات خود خاموش کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

@@ -2,7 +2,7 @@
 
 namespace App\Services\ProjectTask\Renderers;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
+use App\Enums\TaskPriority;
 use App\Models\Reply;
 use App\Services\ProjectTask\Contracts\ActivityLogRenderer;
 

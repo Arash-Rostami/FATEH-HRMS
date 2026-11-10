@@ -3,10 +3,11 @@
 namespace Tests\Feature\Livewire\Dashboard;
 
 use App\Enums\TaskActivityType;
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
-use App\Jobs\ReconcileNudge;
+use Filament\Facades\Filament;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
+use App\Jobs\ReconcileNudgeJob;
 use App\Livewire\Dashboard\Project\Actions\AdvanceWorkflowStepAction;
 use App\Livewire\Dashboard\Project\Actions\ApplyTemplateAction;
 use App\Livewire\Dashboard\Project\Actions\CancelWorkflowAction;
@@ -18,6 +19,7 @@ use App\Livewire\Dashboard\Project\Activity;
 use App\Livewire\Dashboard\Project\Analytics;
 use App\Livewire\Dashboard\Project\Calendar;
 use App\Livewire\Dashboard\Project\Kanban;
+use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
 use App\Livewire\Dashboard\Project\Main;
 use App\Livewire\Dashboard\Project\Presentation\ProjectAnalyticsPresenter;
 use App\Livewire\Dashboard\Project\Presentation\ProjectPresenter;
@@ -27,6 +29,7 @@ use App\Livewire\Dashboard\Project\TeamChat;
 use App\Livewire\Dashboard\Project\Workflow as WorkflowTab;
 use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Livewire\Dashboard\TaskBoard\Main as TaskBoardMain;
+use App\Models\ChannelMember;
 use App\Models\ChannelMessage;
 use App\Models\Department;
 use App\Models\Project;
@@ -36,6 +39,7 @@ use App\Models\TaskDetail;
 use App\Models\User;
 use App\Models\Workflow;
 use App\Services\Cache\ModelCacheVersion;
+use App\Services\Menu\NudgeService;
 use App\Services\Menu\Notifications\ProjectNudge;
 use App\Services\ProjectTask\ActivityLogger;
 use App\Services\ProjectTask\ApproveTaskAction;
@@ -48,8 +52,12 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Renderless;
+use Livewire\Attributes\Url;
+use Livewire\Features\SupportLazyLoading\SupportLazyLoading;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Mockery;
 use Morilog\Jalali\Jalalian;
@@ -319,7 +327,7 @@ class ProjectTest extends TestCase
             ->call('selectProject', $project->id)
             ->set('activeTab', 'activity');
 
-        $this->assertSame(\App\Services\ProjectTask\ProjectHeartbeat::version($project->id), $component->instance()->heartbeat());
+        $this->assertSame(ProjectHeartbeat::version($project->id), $component->instance()->heartbeat());
     }
 
     public function test_refresh_sidebar_is_a_safe_island_refresh_target(): void
@@ -631,7 +639,7 @@ class ProjectTest extends TestCase
         $this->assertSame(['details', 'settings'], collect($tabs)->pluck('key')->all());
         $this->assertContains('projectForm.departments', collect($tabs)->firstWhere('key', 'details')['errors']);
 
-        $errors = new \Illuminate\Support\ViewErrorBag();
+        $errors = new ViewErrorBag;
         $this->assertSame('details', $presenter->defaultProjectFormTab($tabs, $errors));
     }
 
@@ -736,7 +744,7 @@ class ProjectTest extends TestCase
     public function test_active_tab_property_is_bound_to_tab_query_string_parameter(): void
     {
         $property = new \ReflectionProperty(Main::class, 'activeTab');
-        $attributes = $property->getAttributes(\Livewire\Attributes\Url::class);
+        $attributes = $property->getAttributes(Url::class);
 
         $this->assertNotEmpty($attributes, 'activeTab must carry #[Url] per this project\'s page-level tab-selector convention');
         $this->assertSame('tab', $attributes[0]->newInstance()->as);
@@ -1210,6 +1218,49 @@ class ProjectTest extends TestCase
         return $project;
     }
 
+    public function test_header_state_derives_owner_spec_and_popover_flags(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $other = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $presenter = new ProjectPresenter();
+        $summary = ['overdue' => 0, 'at_risk' => 0];
+        $make = function (array $settings) use ($owner) {
+            $project = new Project();
+            $project->id = 77;
+            $project->owner_id = $owner->id;
+            $project->settings = $settings;
+
+            return $project;
+        };
+
+        $this->actingAs($owner);
+        $plain = $presenter->headerState($make([]), $summary);
+        $this->assertTrue($plain['isOwner']);
+        $this->assertSame('—', $plain['settingsSummary']);
+        $this->assertFalse($plain['hasSpecs']);
+        $this->assertFalse($plain['hasMobilePopoverData']);
+        $this->assertSame($presenter->badgeColors(77), $plain['badge']);
+
+        $approval = $presenter->headerState($make(['requires_approval' => true]), $summary);
+        $this->assertTrue($approval['hasSpecs']);
+        $this->assertTrue($approval['hasMobilePopoverData']);
+
+        $other_ = $presenter->headerState($make(['mystery' => 'x']), $summary);
+        $this->assertTrue($other_['hasSpecs']);
+        $this->assertArrayHasKey('mystery', $other_['otherSettings']);
+
+        $risky = $presenter->headerState($make(['deadline' => now()->addDays(10)->toDateString()]), ['overdue' => 3, 'at_risk' => 0]);
+        $this->assertNotEmpty($risky['riskChips']);
+        $this->assertTrue($risky['hasMobilePopoverData']);
+
+        $this->actingAs($other);
+        $this->assertFalse($presenter->headerState($make([]), $summary)['isOwner']);
+
+        $ownerless = $make([]);
+        $ownerless->owner_id = null;
+        $this->assertFalse($presenter->headerState($ownerless, $summary)['isOwner']);
+    }
+
     private function chipsFor(?string $deadline, array $summary = ['overdue' => 0, 'at_risk' => 0]): array
     {
         return $this->presenter()->headerRiskChips($this->projectWithDeadline($deadline), $summary);
@@ -1398,7 +1449,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
         $task = Task::factory()->ownedBy($owner)->create(['project_id' => $project->id]);
-        app(ActivityLogger::class)->system($task, $owner, \App\Enums\TaskActivityType::StatusChange);
+        app(ActivityLogger::class)->system($task, $owner, TaskActivityType::StatusChange);
 
         $rows = Livewire::actingAs($owner)->test(Activity::class, ['activeProjectId' => $project->id])
             ->instance()->activityFeed()['rows'];
@@ -1550,7 +1601,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
         $task = Task::factory()->ownedBy($owner)->create(['project_id' => $project->id]);
-        $entry = app(ActivityLogger::class)->system($task, $owner, \App\Enums\TaskActivityType::StatusChange);
+        $entry = app(ActivityLogger::class)->system($task, $owner, TaskActivityType::StatusChange);
 
         Livewire::actingAs($owner)->test(Activity::class, ['activeProjectId' => $project->id])
             ->call('deleteComment', $entry->id);
@@ -1748,7 +1799,7 @@ class ProjectTest extends TestCase
         $otherOwner = User::factory()->create(['status' => 'active']);
         $otherProject = Project::factory()->create(['owner_id' => $otherOwner->id, 'member_ids' => [], 'departments' => []]);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(Activity::class, ['activeProjectId' => $project->id])
@@ -1759,7 +1810,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(Activity::class, ['activeProjectId' => $project->id])
@@ -1770,7 +1821,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Activity::class, ['activeProjectId' => $project->id])
@@ -1788,7 +1839,7 @@ class ProjectTest extends TestCase
         Livewire::actingAs($owner)->test(Activity::class, ['activeProjectId' => $project->id])
             ->assertSeeHtml('x-on:project-activity-refresh.window="$wire.refreshActivity()"');
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Activity::class, ['activeProjectId' => $project->id])
@@ -1984,7 +2035,7 @@ class ProjectTest extends TestCase
         $otherProject = Project::factory()->create(['owner_id' => $otherOwner->id, 'member_ids' => [], 'departments' => []]);
         Task::factory()->ownedBy($otherOwner)->create(['project_id' => $otherProject->id]);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(Analytics::class, ['activeProjectId' => $project->id])
@@ -1995,7 +2046,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Analytics::class, ['activeProjectId' => $project->id])
@@ -2505,7 +2556,7 @@ class ProjectTest extends TestCase
         $otherProject = Project::factory()->create(['owner_id' => $otherOwner->id, 'member_ids' => [], 'departments' => []]);
         Task::factory()->ownedBy($otherOwner)->create(['project_id' => $otherProject->id, 'deadline' => now()]);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(Calendar::class, ['activeProjectId' => $project->id])
@@ -2516,7 +2567,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(Calendar::class, ['activeProjectId' => $project->id])
@@ -2527,7 +2578,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(Calendar::class, ['activeProjectId' => $project->id])
@@ -2538,7 +2589,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Calendar::class, ['activeProjectId' => $project->id])
@@ -2556,7 +2607,7 @@ class ProjectTest extends TestCase
         Livewire::actingAs($owner)->test(Calendar::class, ['activeProjectId' => $project->id])
             ->assertSeeHtml('x-data="{ calView: \'grid\' }"');
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Calendar::class, ['activeProjectId' => $project->id])
@@ -2573,7 +2624,7 @@ class ProjectTest extends TestCase
         Livewire::actingAs($owner)->test(Calendar::class, ['activeProjectId' => $project->id])
             ->assertSeeHtml('@project-calendar-refresh.window="$wire.refreshCalendar()"');
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Calendar::class, ['activeProjectId' => $project->id])
@@ -2842,7 +2893,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
         $task = Task::factory()->ownedBy($owner)->withStatus('todo')->create(['project_id' => $project->id]);
-        \App\Models\TaskDetail::factory()->create([
+        TaskDetail::factory()->create([
             'task_id' => $task->id,
             'action_source' => 'ایمیل مدیر',
             'action_source_domain' => 'ایمیل',
@@ -3280,7 +3331,7 @@ class ProjectTest extends TestCase
         $otherProject = Project::factory()->create(['owner_id' => $otherOwner->id, 'member_ids' => [], 'departments' => []]);
         Task::factory()->ownedBy($otherOwner)->create(['project_id' => $otherProject->id]);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(Kanban::class, ['activeProjectId' => $project->id])
@@ -3291,7 +3342,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Kanban::class, ['activeProjectId' => $project->id])
@@ -3309,7 +3360,7 @@ class ProjectTest extends TestCase
         Livewire::actingAs($owner)->test(Kanban::class, ['activeProjectId' => $project->id])
             ->assertSeeHtml('x-data="{ moreOpen: false }"');
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Kanban::class, ['activeProjectId' => $project->id])
@@ -3326,7 +3377,7 @@ class ProjectTest extends TestCase
         Livewire::actingAs($owner)->test(Kanban::class, ['activeProjectId' => $project->id])
             ->assertSeeHtml('@project-kanban-refresh.window="$wire.loadKanbanBoard()"');
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Kanban::class, ['activeProjectId' => $project->id])
@@ -3357,7 +3408,7 @@ class ProjectTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertNull($task->fresh()->approved_at);
-        $this->assertFalse(app(\App\Services\ProjectTask\ApproveTaskAction::class)->execute($task->fresh(), $member));
+        $this->assertFalse(app(ApproveTaskAction::class)->execute($task->fresh(), $member));
         $this->assertNull($task->fresh()->approved_at);
     }
 
@@ -3584,7 +3635,7 @@ class ProjectTest extends TestCase
         $otherProject = Project::factory()->create(['owner_id' => $otherOwner->id, 'member_ids' => [], 'departments' => []]);
         Task::factory()->ownedBy($otherOwner)->create(['project_id' => $otherProject->id, 'deadline' => null]);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(Report::class, ['activeProjectId' => $project->id])
@@ -3595,7 +3646,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Report::class, ['activeProjectId' => $project->id])
@@ -3613,7 +3664,7 @@ class ProjectTest extends TestCase
         Livewire::actingAs($owner)->test(Report::class, ['activeProjectId' => $project->id])
             ->assertSeeHtml('@project-report-refresh.window="$wire.refreshReport()"');
 
-        \Livewire\Features\SupportLazyLoading\SupportLazyLoading::$disableWhileTesting = false;
+        SupportLazyLoading::$disableWhileTesting = false;
 
         try {
             Livewire::actingAs($owner)->test(Report::class, ['activeProjectId' => $project->id])
@@ -4004,7 +4055,7 @@ class ProjectTest extends TestCase
         $presenter = $component->instance()->chatPresenter();
 
         $this->assertInstanceOf(ProjectPresenter::class, $presenter);
-        $this->assertNotInstanceOf(\App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter::class, $presenter);
+        $this->assertNotInstanceOf(ChannelPresenter::class, $presenter);
     }
 
     public function test_team_chat_active_project_id_is_locked_against_client_tampering(): void
@@ -4013,7 +4064,7 @@ class ProjectTest extends TestCase
         $otherOwner = User::factory()->create(['status' => 'active']);
         $otherProject = Project::factory()->create(['owner_id' => $otherOwner->id, 'member_ids' => [], 'departments' => []]);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(TeamChat::class, ['activeProjectId' => $project->id])
@@ -4024,7 +4075,7 @@ class ProjectTest extends TestCase
     {
         [$owner, $project] = $this->ownerWithProject();
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(TeamChat::class, ['activeProjectId' => $project->id])
@@ -4741,7 +4792,7 @@ class ProjectTest extends TestCase
         $project->update(['member_ids' => [$assignee->id]]);
         $template = Workflow::factory()->asTemplate()->create(['owner_id' => $templateAuthor->id, 'steps' => [$this->workflowStep(['assignee_user_ids' => [$assignee->id]])]]);
         $this->actingAs($owner);
-        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
 
         $applied = app(ApplyTemplateAction::class)->execute($template, $project);
 
@@ -4904,7 +4955,7 @@ class ProjectTest extends TestCase
         $workflow = Workflow::factory()->active()->create(['owner_id' => $owner->id, 'project_id' => $project->id, 'steps' => [$this->workflowStep(['assignee_user_ids' => [$current->id]])]]);
 
         app(ReassignWorkflowStepAction::class)->execute($workflow, $owner->id, [$newPerson->id]);
-        \App\Services\Menu\NudgeService::reconcile('workflow:nudge', Workflow::class, $workflow->id);
+        NudgeService::reconcile('workflow:nudge', Workflow::class, $workflow->id);
 
         $this->assertSame(1, DB::table('notifications')->where('notifiable_id', $newPerson->id)->count());
     }
@@ -4954,7 +5005,7 @@ class ProjectTest extends TestCase
 
         $this->assertSame(Workflow::STATUS_CANCELLED, $active->fresh()->status);
         $this->assertSame(Workflow::STATUS_CANCELLED, $draft->fresh()->status, 'archiving a project cancels its live and draft instances alike');
-        \App\Services\Menu\NudgeService::reconcile('workflow:nudge', Workflow::class, $active->id);
+        NudgeService::reconcile('workflow:nudge', Workflow::class, $active->id);
         $this->assertSame(0, DB::table('notifications')->where('notifiable_id', $assignee->id)->count(), 'a project_deleted cancellation never notifies the step assignees');
     }
 
@@ -5063,7 +5114,7 @@ class ProjectTest extends TestCase
         $otherOwner = User::factory()->create(['status' => 'active']);
         $otherProject = Project::factory()->create(['owner_id' => $otherOwner->id, 'member_ids' => [], 'departments' => []]);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($owner)
             ->test(WorkflowTab::class, ['activeProjectId' => $project->id])
@@ -5323,7 +5374,7 @@ class ProjectTest extends TestCase
 
         $this->assertSame($countBefore + 1, Task::count(), 'a forced advance stops the open task, so the rejected step gets a fresh occurrence');
         $this->assertNotSame($firstTaskId, $workflow->fresh()->steps[0]['task_id']);
-        $this->assertSame(\App\Filament\Resources\TaskResource\Enums\TaskState::Suspension->value, Task::find($firstTaskId)->detail->state);
+        $this->assertSame(TaskState::Suspension->value, Task::find($firstTaskId)->detail->state);
     }
 
     public function test_reject_back_after_the_prior_task_is_genuinely_done_creates_a_fresh_occurrence(): void
@@ -5586,7 +5637,7 @@ class ProjectTest extends TestCase
         $channel = app(ChannelProvisioner::class)->resolve($project->fresh());
         ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'one']);
         $last = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'two']);
-        $pivot = fn() => \App\Models\ChannelMember::where(['channel_id' => $channel->id, 'user_id' => $member->id])->first();
+        $pivot = fn() => ChannelMember::where(['channel_id' => $channel->id, 'user_id' => $member->id])->first();
         $this->assertNull($pivot()->last_read_message_id);
 
         Livewire::actingAs($member)->test(TeamChat::class, ['activeProjectId' => $project->id])->call('activate');

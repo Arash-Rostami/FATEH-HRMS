@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\PostResource\Schemas;
 
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;

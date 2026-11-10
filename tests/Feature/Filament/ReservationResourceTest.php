@@ -2,15 +2,28 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\ReservationPolicyResource;
+use App\Filament\Resources\ReservationPolicyResource\Pages\ListPolicies;
+use App\Filament\Resources\ReservationResource;
 use App\Filament\Resources\ReservationResource\Pages\CreateReservation;
 use App\Filament\Resources\ReservationResource\Pages\EditReservation;
 use App\Filament\Resources\ReservationResource\Pages\ListReservations;
+use App\Filament\Resources\ReservationResource\RelationManagers\OccurrencesRelationManager;
 use App\Filament\Resources\ReservationResource\Schemas\ReservationFormPresenter;
+use App\Filament\Resources\ResourceResource;
+use App\Filament\Resources\ResourceResource\Pages\ListResources;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Permission;
 use App\Models\Reservation;
 use App\Models\Resource;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Actions\DeleteAction;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Morilog\Jalali\Jalalian;
@@ -57,14 +70,14 @@ class ReservationResourceTest extends TestCase
         $admin = $this->developer();
         $this->actingAs($admin);
 
-        $this->assertTrue(\App\Filament\Resources\ReservationResource::shouldRegisterNavigation());
-        $this->assertFalse(\App\Filament\Resources\ReservationPolicyResource::shouldRegisterNavigation());
-        $this->assertFalse(\App\Filament\Resources\ResourceResource::shouldRegisterNavigation());
+        $this->assertTrue(ReservationResource::shouldRegisterNavigation());
+        $this->assertFalse(ReservationPolicyResource::shouldRegisterNavigation());
+        $this->assertFalse(ResourceResource::shouldRegisterNavigation());
 
         $pages = [
             ListReservations::class => 'switch_reservation_resource',
-            \App\Filament\Resources\ReservationPolicyResource\Pages\ListPolicies::class => 'switch_reservation_policy_resource',
-            \App\Filament\Resources\ResourceResource\Pages\ListResources::class => 'switch_resource_resource',
+            ListPolicies::class => 'switch_reservation_policy_resource',
+            ListResources::class => 'switch_resource_resource',
         ];
 
         foreach ($pages as $page => $active) {
@@ -76,8 +89,8 @@ class ReservationResourceTest extends TestCase
         }
 
         Livewire::actingAs($admin)->test(ListReservations::class)
-            ->assertActionHasUrl('switch_reservation_policy_resource', \App\Filament\Resources\ReservationPolicyResource::getUrl())
-            ->assertActionHasUrl('switch_resource_resource', \App\Filament\Resources\ResourceResource::getUrl());
+            ->assertActionHasUrl('switch_reservation_policy_resource', ReservationPolicyResource::getUrl())
+            ->assertActionHasUrl('switch_resource_resource', ResourceResource::getUrl());
     }
 
     public function test_the_header_switch_only_offers_resources_the_user_may_view()
@@ -277,7 +290,7 @@ class ReservationResourceTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)->test(ListReservations::class)
-            ->callTableAction(\Filament\Actions\DeleteAction::class, $reservation);
+            ->callTableAction(DeleteAction::class, $reservation);
 
         $this->assertDatabaseMissing('reservations', ['id' => $reservation->id]);
     }
@@ -763,28 +776,28 @@ class ReservationResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ReservationResource\Pages\CreateReservation::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\ReservationResource\Pages\EditReservation::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ReservationResource\Pages\ListReservations::class => \App\Filament\Pages\ListRecords::class,
+            CreateReservation::class => CreateRecord::class,
+            EditReservation::class => EditRecord::class,
+            ListReservations::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ReservationResource\Pages\CreateReservation::class, \App\Filament\Resources\ReservationResource\Pages\EditReservation::class];
+        $writers = [CreateReservation::class, EditReservation::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\ReservationResource\RelationManagers\OccurrencesRelationManager::class];
+        $managers = [OccurrencesRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 

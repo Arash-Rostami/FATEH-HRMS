@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\AdResource\Schemas;
 
-use App\Filament\Resources\AdResource\Enums\AdGender;
-use App\Traits\FilamentFormDivider;
+use App\Enums\AdGender;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;

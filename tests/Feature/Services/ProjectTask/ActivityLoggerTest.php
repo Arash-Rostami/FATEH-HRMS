@@ -3,10 +3,10 @@
 namespace Tests\Feature\Services\ProjectTask;
 
 use App\Enums\TaskActivityType;
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
-use App\Jobs\ReconcileNudge;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
+use App\Jobs\ReconcileNudgeJob;
 use App\Jobs\SyncTaskCalendarEventJob;
 use App\Models\Department;
 use App\Models\Project;
@@ -17,9 +17,11 @@ use App\Models\User;
 use App\Services\Menu\NudgeService;
 use App\Services\ProjectTask\ActivityLogger;
 use Carbon\Carbon;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ActivityLoggerTest extends TestCase
@@ -75,10 +77,10 @@ class ActivityLoggerTest extends TestCase
 
     public function test_comment_with_only_files_is_typed_as_attachment(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
         $user = User::factory()->create(['status' => 'active']);
         $task = Task::factory()->ownedBy($user)->create(['project_id' => null]);
-        $file = \Illuminate\Http\UploadedFile::fake()->create('note.pdf', 10);
+        $file = UploadedFile::fake()->create('note.pdf', 10);
 
         $reply = app(ActivityLogger::class)->comment($task, $user, '', [$file]);
 
@@ -179,7 +181,7 @@ class ActivityLoggerTest extends TestCase
 
         Task::find($task->id)->update(['status' => 'in-progress']);
 
-        Queue::assertPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectClass === Task::class && $job->subjectId === $task->id);
+        Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectClass === Task::class && $job->subjectId === $task->id);
     }
 
     public function test_log_mapped_changes_dispatches_reconcile_nudge_when_task_detail_changes(): void
@@ -193,7 +195,7 @@ class ActivityLoggerTest extends TestCase
 
         TaskDetail::find($detail->id)->update(['collaborators' => [$collaborator->id]]);
 
-        Queue::assertPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectClass === Task::class && $job->subjectId === $task->id);
+        Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectClass === Task::class && $job->subjectId === $task->id);
     }
 
     public function test_log_mapped_changes_does_not_dispatch_reconcile_nudge_when_nothing_mapped_changed(): void
@@ -205,7 +207,7 @@ class ActivityLoggerTest extends TestCase
 
         Task::find($task->id)->update(['rank' => 'z']);
 
-        Queue::assertNotPushed(ReconcileNudge::class);
+        Queue::assertNotPushed(ReconcileNudgeJob::class);
     }
 
     public function test_meta_change_logs_a_meta_change_activity_row(): void

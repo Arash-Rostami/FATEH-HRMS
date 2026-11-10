@@ -2,9 +2,18 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\EventResource;
 use App\Filament\Resources\EventResource\Pages\CreateEvent;
 use App\Filament\Resources\EventResource\Pages\EditEvent;
 use App\Filament\Resources\EventResource\Pages\ListEvents;
+use App\Filament\Resources\EventResource\RelationManagers\EventSharesRelationManager;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
+use Filament\Actions\DeleteAction;
 use App\Models\Event;
 use App\Models\Permission;
 use App\Models\User;
@@ -146,6 +155,132 @@ class EventResourceTest extends TestCase
         $this->assertNull($event->fresh()->remind_hours);
     }
 
+    public function test_disabling_countdown_preserves_stored_settings()
+    {
+        $admin = $this->developer();
+        $event = Event::factory()->create([
+            'user_id' => $admin->id,
+            'private' => false,
+            'countdown' => [
+                'enabled' => true,
+                'mood' => 'mourning',
+                'confetti' => false,
+                'messages' => ['First message', 'Second message'],
+            ],
+        ]);
+
+        Livewire::actingAs($admin)->test(EditEvent::class, ['record' => $event->getRouteKey()])
+            ->assertSuccessful()
+            ->fillForm(['enabled' => false])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        // MySQL's binary JSON storage reorders keys; compare orderlessly.
+        $this->assertSame(
+            ['mood' => 'mourning', 'confetti' => false, 'messages' => ['First message', 'Second message']],
+            collect($event->fresh()->countdown)->except('enabled')->all(),
+        );
+        $this->assertFalse($event->fresh()->countdown['enabled']);
+    }
+
+    public function test_reenabling_countdown_shows_the_stored_settings_in_the_form()
+    {
+        $admin = $this->developer();
+        $event = Event::factory()->create([
+            'user_id' => $admin->id,
+            'private' => false,
+            'countdown' => [
+                'enabled' => false,
+                'mood' => 'mourning',
+                'confetti' => false,
+                'messages' => ['First message', 'Second message'],
+            ],
+        ]);
+
+        // Filament keys repeater items by UUID; assert the message texts, not keys.
+        $assertMessages = function (array $raw): array {
+            $this->assertSame(
+                ['First message', 'Second message'],
+                array_values(array_map(
+                    fn (array $item): string => (string) $item['message'],
+                    array_values($raw['messages']),
+                )),
+            );
+
+            return ['mood' => 'mourning', 'confetti' => false];
+        };
+
+        Livewire::actingAs($admin)->test(EditEvent::class, ['record' => $event->getRouteKey()])
+            ->assertSuccessful()
+            ->assertFormSet($assertMessages)
+            ->fillForm(['enabled' => true])
+            ->assertFormSet(fn (array $raw) => ['enabled' => true] + $assertMessages($raw));
+    }
+
+    public function test_enabling_countdown_saves_new_settings()
+    {
+        $admin = $this->developer();
+        $event = Event::factory()->create([
+            'user_id' => $admin->id,
+            'private' => false,
+            'countdown' => [
+                'enabled' => false,
+                'mood' => 'happy',
+                'confetti' => true,
+                'messages' => [],
+            ],
+        ]);
+
+        Livewire::actingAs($admin)->test(EditEvent::class, ['record' => $event->getRouteKey()])
+            ->assertSuccessful()
+            ->fillForm([
+                'enabled' => true,
+                'mood' => 'mourning',
+                'confetti' => false,
+                'messages' => [
+                    ['message' => 'New first message'],
+                    ['message' => 'New second message'],
+                ],
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        // MySQL's binary JSON storage reorders keys; compare orderlessly.
+        $this->assertSame(
+            ['mood' => 'mourning', 'confetti' => false, 'messages' => ['New first message', 'New second message']],
+            collect($event->fresh()->countdown)->except('enabled')->all(),
+        );
+        $this->assertTrue($event->fresh()->countdown['enabled']);
+    }
+
+    public function test_new_event_without_countdown_settings_gets_countdown_defaults()
+    {
+        $admin = $this->developer();
+        $targetGregorian = '2026-08-15';
+        $jalali = Jalalian::fromCarbon(Carbon::parse($targetGregorian));
+
+        Livewire::actingAs($admin)->test(CreateEvent::class)
+            ->fillForm([
+                'title' => 'Default Countdown Probe',
+                'date_jalali' => $targetGregorian,
+                'date_jalali_year' => (string) $jalali->getYear(),
+                'date_jalali_month' => (string) $jalali->getMonth(),
+                'date_jalali_day' => (string) $jalali->getDay(),
+                'date_time_part' => '10:30',
+                'private' => false,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $event = Event::where('title', 'Default Countdown Probe')->firstOrFail();
+        // MySQL's binary JSON storage reorders keys; compare orderlessly.
+        $this->assertSame(
+            ['mood' => 'happy', 'confetti' => true, 'messages' => []],
+            collect($event->countdown)->except('enabled')->all(),
+        );
+        $this->assertFalse($event->countdown['enabled']);
+    }
+
     public function test_create_event_requires_title()
     {
         $admin = $this->developer();
@@ -186,7 +321,7 @@ class EventResourceTest extends TestCase
         $event = Event::factory()->create(['user_id' => $admin->id, 'title' => 'Delete Probe']);
 
         Livewire::actingAs($admin)->test(ListEvents::class)
-            ->callTableAction(\Filament\Actions\DeleteAction::class, $event);
+            ->callTableAction(DeleteAction::class, $event);
 
         $this->assertDatabaseMissing('events', ['id' => $event->id]);
     }
@@ -316,28 +451,28 @@ class EventResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\EventResource\Pages\CreateEvent::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\EventResource\Pages\EditEvent::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\EventResource\Pages\ListEvents::class => \App\Filament\Pages\ListRecords::class,
+            CreateEvent::class => CreateRecord::class,
+            EditEvent::class => EditRecord::class,
+            ListEvents::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\EventResource\Pages\CreateEvent::class, \App\Filament\Resources\EventResource\Pages\EditEvent::class];
+        $writers = [CreateEvent::class, EditEvent::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\EventResource\RelationManagers\EventSharesRelationManager::class];
+        $managers = [EventSharesRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 

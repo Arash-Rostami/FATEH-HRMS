@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\FeedResource\Pages;
 
 use App\Filament\Resources\FeedResource;
-use App\Filament\Resources\FeedResource\Enums\FeedCategory;
+use App\Enums\FeedCategory;
 use App\Models\Feed;
-use App\Traits\FilamentHeaderActions;
-use App\Traits\FilamentVisibility;
+use App\Traits\Filament\FilamentHeaderActions;
+use App\Traits\Filament\FilamentVisibility;
 use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;

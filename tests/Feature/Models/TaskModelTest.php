@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Models;
 
-use App\Filament\Resources\TaskResource\Enums\TaskState;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
 use Illuminate\Validation\ValidationException;
+use App\Models\Reply;
 use App\Models\Ticket;
 use App\Enums\TaskActivityType;
 use App\Jobs\SyncTaskCalendarEventJob;
@@ -612,7 +614,7 @@ class TaskModelTest extends TestCase
     {
         $task = Task::factory()->create(['priority' => 'urgent']);
 
-        $this->assertSame(\App\Filament\Resources\TaskResource\Enums\TaskPriority::Urgent, $task->fresh()->priority);
+        $this->assertSame(TaskPriority::Urgent, $task->fresh()->priority);
     }
 
     public function test_force_deleting_cleans_up_replies_and_their_stored_files(): void
@@ -628,7 +630,7 @@ class TaskModelTest extends TestCase
 
         $task->forceDelete();
 
-        $this->assertSame(0, \App\Models\Reply::where('repliable_id', $task->id)->where('repliable_type', Task::class)->count());
+        $this->assertSame(0, Reply::where('repliable_id', $task->id)->where('repliable_type', Task::class)->count());
         Storage::disk('public')->assertMissing('task/replies/1/x.pdf');
     }
 

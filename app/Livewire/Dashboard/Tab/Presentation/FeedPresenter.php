@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Dashboard\Tab\Presentation;
 
-use App\Filament\Resources\FeedResource\Enums\FeedCategory;
+use App\Enums\FeedCategory;
 use App\Models\Comment;
 use App\Models\Feed;
-use App\Traits\HasTimelineMonths;
+use App\Traits\Livewire\HasTimelineMonths;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 

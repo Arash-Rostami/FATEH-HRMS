@@ -3,8 +3,14 @@
 namespace Tests\Feature\Filament;
 
 use App\Enums\SkillRequestStatus;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\SkillRequestResource;
 use App\Filament\Resources\SkillRequestResource\Pages\ListSkillRequests;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
+use App\Models\Department;
 use App\Models\Permission;
+use App\Models\Profile;
 use App\Models\Skill;
 use App\Models\SkillUser;
 use App\Models\User;
@@ -307,16 +313,16 @@ class SkillRequestResourceTest extends TestCase
     public function test_department_filter_scopes_list_to_users_in_matching_department()
     {
         $admin = $this->developer();
-        $departmentA = \App\Models\Department::factory()->create();
-        $departmentB = \App\Models\Department::factory()->create();
+        $departmentA = Department::factory()->create();
+        $departmentB = Department::factory()->create();
         $skill = Skill::create(['name' => 'Department Filter Skill ' . uniqid()]);
 
         $userA = User::factory()->create(['status' => 'active']);
-        \App\Models\Profile::factory()->create(['user_id' => $userA->id, 'department_id' => $departmentA->code]);
+        Profile::factory()->create(['user_id' => $userA->id, 'department_id' => $departmentA->code]);
         $inA = SkillUser::create(['user_id' => $userA->id, 'skill_id' => $skill->id, 'status' => 'pending']);
 
         $userB = User::factory()->create(['status' => 'active']);
-        \App\Models\Profile::factory()->create(['user_id' => $userB->id, 'department_id' => $departmentB->code]);
+        Profile::factory()->create(['user_id' => $userB->id, 'department_id' => $departmentB->code]);
         $inB = SkillUser::create(['user_id' => $userB->id, 'skill_id' => $skill->id, 'status' => 'pending']);
 
         Livewire::actingAs($admin)->test(ListSkillRequests::class)
@@ -441,7 +447,7 @@ class SkillRequestResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\SkillRequestResource\Pages\ListSkillRequests::class => \App\Filament\Pages\ListRecords::class,
+            ListSkillRequests::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
@@ -452,8 +458,8 @@ class SkillRequestResourceTest extends TestCase
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 

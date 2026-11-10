@@ -14,7 +14,7 @@
         <div class="flex-1 flex flex-col gap-2">
             <h3 class="text-[15px] font-black text-[var(--md-sys-color-on-surface)]">قانون رزرو چیست؟</h3>
             <p class="text-[13px] leading-relaxed font-semibold text-[var(--md-sys-color-on-surface-variant)]">
-                هر قانون رزرو یک تنظیم است که روی یک نوع منبع اعمال می‌شود. شما اینجا تنظیم‌ها را ویرایش می‌کنید و کاربران هنگام رزرو دقیقاً از همین تنظیم‌ها پیروی می‌کنند. هیچ کاربری نمی‌تواند قانون را دور بزند؛ ادمین هم هنگام ثبت رزرو باید از همین قوانین پیروی کند (به‌جز قوانینی که ادمین از آن‌ها معاف است).
+                برای هر نوع منبع، قوانین رزرو را در این بخش تنظیم کنید. سامانه هنگام ثبت رزرو این قوانین را بررسی می‌کند. مدیران سامانه نیز باید قوانین را رعایت کنند، مگر در مواردی که برای آن‌ها معافیت در نظر گرفته شده است.
             </p>
         </div>
     </div>
@@ -24,7 +24,7 @@
         <div class="flex-1 flex flex-col gap-2">
             <h3 class="text-[15px] font-black text-[var(--md-sys-color-on-surface)]">نحوهٔ ذخیره‌سازی</h3>
             <p class="text-[13px] leading-relaxed font-semibold text-[var(--md-sys-color-on-surface-variant)]">
-                هر نوع منبع مجموعهٔ قانون مخصوص خود را دارد و همهٔ تنظیم‌ها یک‌جا در فرم ویرایش ذخیره می‌شوند. مقدار هر کلید به‌صورت آرایه (JSON) نگهداری می‌شود؛ بنابراین فیلدهای ساعت شروع/پایان با هم در یک کلید <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">allowed_hours</code> قرار می‌گیرند و فیلد روزهای مجاز به‌صورت فهرست در <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">allowed_days</code> ذخیره می‌شود.
+                هر نوع منبع قوانین مخصوص خود را دارد. همهٔ تنظیم‌ها، از جمله ساعت شروع و پایان و روزهای مجاز، در فرم ویرایش ذخیره می‌شوند.
             </p>
         </div>
     </div>

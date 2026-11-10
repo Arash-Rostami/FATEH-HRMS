@@ -5,8 +5,8 @@ namespace App\Filament\Resources\ProjectResource\Pages;
 use App\Filament\Resources\ProjectResource;
 use App\Models\Project;
 use App\Services\ProjectTask\ProjectSettings;
-use App\Traits\FilamentHeaderActions;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentHeaderActions;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\CreateRecord;
 use Illuminate\Support\Arr;
 

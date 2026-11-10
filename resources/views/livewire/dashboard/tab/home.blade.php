@@ -46,8 +46,9 @@
                             <x-dashboard.modal.release>
                                 <x-slot:trigger>
                                     <span title="انجام شده در {{ toJalali($updatedAt, 'j F H:i') }}"
-                                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] text-[10px] font-bold hover:opacity-80 transition-opacity">
-                                        <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+                                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[var(--md-sys-color-on-surface)] text-[10px] font-bold hover:opacity-80 transition-opacity"
+                                          style="background:color-mix(in srgb,var(--header-border-color) 22%,var(--md-sys-color-surface));">
+                                        <span class="w-2 h-2 rounded-full animate-pulse" style="background:var(--header-border-color);"></span>
                                         بروزرسانی جدید
                                     </span>
                                 </x-slot:trigger>
@@ -436,9 +437,9 @@
                             <h2 class="text-sm sm:text-base font-bold text-[var(--md-sys-color-on-surface)]">دسترسی سریع
                                 سازمانی</h2>
                             <span x-show="!manual && shortcuts.length"
-                                  class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[var(--md-sys-color-primary-container)]/70 text-[var(--md-sys-color-on-primary-container)]">
+                                  class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[var(--ai-bg)] text-[var(--ai-text)]">
                                     <span
-                                        class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">auto_awesome</span>
+                                        class="material-symbols-rounded text-[13px] text-[var(--ai-color)]">auto_awesome</span>
                                     <span>چینش خودکار هوشمند</span>
                                 </span>
                         </div>
@@ -596,7 +597,7 @@
                             پایگاه ماژول‌های در دسترس
                         </p>
                         <button type="button" x-show="manual" @click="resetToSmart()"
-                                class="text-[11px] font-bold text-[var(--md-sys-color-primary)] hover:underline flex items-center gap-1">
+                                class="text-[11px] font-bold text-[var(--ai-color)] hover:underline flex items-center gap-1">
                             <span class="material-symbols-rounded text-[14px]">auto_awesome</span>
                             <span>بازگشت به چیدمان خودکار</span>
                         </button>

@@ -24,7 +24,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">دو نوع گروه — عمومی و خصوصی — تفاوت در نحوهٔ عضویت</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        نوع گروه (<code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">type</code>) فقط نحوهٔ عضویت را تعیین می‌کند؛ روی محتوایپیام‌ها یا دسترسی اعضای فعلی اثری ندارد. ستون «نوع» در جدول برای عمومی و خصوصی رنگ و آیکون متفاوت دارد. این فیلد در زمان ویرایش توسط ادمین قابل تغییر است.
+        نوع گروه فقط نحوهٔ عضویت را تعیین می‌کند و بر محتوای پیام‌ها یا دسترسی اعضای فعلی اثر ندارد. ستون «نوع» برای گروه عمومی و خصوصی رنگ و آیکون متفاوتی دارد. مدیر می‌تواند نوع گروه را ویرایش کند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

@@ -22,7 +22,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">پنج زبانهٔ بالای فهرست، درخواست‌ها را بر اساس وضعیت جدا می‌کنند</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        شمارشِ نشانِ هر زبانه با یک کوئریِ آماریِ واحد و مکانیزم <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">once()</code> کش می‌شود — یعنی پنج زبانه فقط یک‌بار شمارش می‌شوند. زبانه‌ها را می‌توان از تنظیمات کاربری (<code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">show_list_tabs</code>) خاموش کرد.
+        برای دیدن درخواست‌ها بر اساس وضعیت از زبانه‌ها استفاده کنید. می‌توانید نمایش آن‌ها را در تنظیمات خود خاموش کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

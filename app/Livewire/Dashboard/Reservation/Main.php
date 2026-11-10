@@ -17,7 +17,7 @@ use App\Models\Reservation;
 use App\Models\Resource;
 use App\Services\Notify\Channels\SmsChannel;
 use App\Services\Reservation\ValidationService;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;

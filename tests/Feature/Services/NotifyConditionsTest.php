@@ -3,8 +3,9 @@
 namespace Tests\Feature\Services;
 
 use App\Casts\IntegerList;
+use App\Models\Concerns\HasNotifyEvents;
 use App\Enums\NotifyEvent;
-use App\Jobs\SendNotifyRule;
+use App\Jobs\SendNotifyRuleJob;
 use App\Models\Authority;
 use App\Models\Department;
 use App\Models\EnergyTest;
@@ -86,7 +87,7 @@ class NotifyConditionsTest extends TestCase
     private function record(array $attributes = []): Model
     {
         $model = new class extends Model {
-            use \App\Models\Concerns\HasNotifyEvents;
+            use HasNotifyEvents;
 
             protected $fillable = ['title', 'amount', 'score', 'ratio', 'due', 'born', 'active', 'tags', 'ids', 'kind', 'secret', 'pass', 'meta'];
 
@@ -592,7 +593,7 @@ class NotifyConditionsTest extends TestCase
 
     private function dispatchedRuleIds(): array
     {
-        return Bus::dispatched(SendNotifyRule::class)->map(fn (SendNotifyRule $job) => $job->ruleId)->sort()->values()->all();
+        return Bus::dispatched(SendNotifyRuleJob::class)->map(fn (SendNotifyRuleJob $job) => $job->ruleId)->sort()->values()->all();
     }
 
     public function test_a_non_matching_rule_dispatches_nothing_with_zero_queries_while_a_matching_one_dispatches(): void
@@ -619,7 +620,7 @@ class NotifyConditionsTest extends TestCase
         $this->prime($this->linkRule(974, $this->r('url_title', 'eq', 'Gone'), ['events' => ['deleted']]));
 
         NotifyService::handle(Link::factory()->make(['url_title' => 'Other']), NotifyEvent::Deleted);
-        Bus::assertNotDispatched(SendNotifyRule::class);
+        Bus::assertNotDispatched(SendNotifyRuleJob::class);
 
         NotifyService::handle(Link::factory()->make(['url_title' => 'Gone']), NotifyEvent::Deleted);
         $this->assertSame([974], $this->dispatchedRuleIds());

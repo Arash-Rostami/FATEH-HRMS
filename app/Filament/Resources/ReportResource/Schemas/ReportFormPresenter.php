@@ -5,7 +5,7 @@ namespace App\Filament\Resources\ReportResource\Schemas;
 use App\Models\Department;
 use App\Services\PersianDateFieldService;
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;

@@ -115,7 +115,7 @@ class AnalyticsTest extends TestCase
         Livewire::actingAs($user)
             ->test(Main::class)
             ->assertSuccessful()
-            ->assertSee('بروزرسانی:');
+            ->assertSee('به‌روزرسانی:');
     }
 
     public function test_chart_type_is_doughnut_only_for_hr_d_and_bar_otherwise(): void

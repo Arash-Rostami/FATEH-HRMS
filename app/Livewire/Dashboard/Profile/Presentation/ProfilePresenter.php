@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Profile\Presentation;
 
-use App\Filament\Resources\ProfileResource\Enums\Position;
+use App\Enums\Position;
 use App\Models\SkillUser;
 use App\Models\User;
 use Illuminate\Support\Str;

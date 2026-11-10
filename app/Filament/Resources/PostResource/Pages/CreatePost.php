@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\PostResource\Pages;
 
 use App\Filament\Resources\PostResource;
-use App\Traits\FilamentHeaderActions;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentHeaderActions;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\CreateRecord;
 
 class CreatePost extends CreateRecord

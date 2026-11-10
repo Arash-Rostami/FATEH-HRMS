@@ -9,6 +9,7 @@ use App\Models\Channel;
 use App\Models\ChannelMember;
 use App\Models\ChannelMessage;
 use App\Models\Credential;
+use App\Models\Correspondence;
 use App\Models\Department;
 use App\Models\DMS;
 use App\Models\Event;
@@ -36,6 +37,7 @@ use App\Services\Search\Resources\AdResource;
 use App\Services\Search\Resources\AiReportResource;
 use App\Services\Search\Resources\AuthorityResource;
 use App\Services\Search\Resources\ChannelMessageResource;
+use App\Services\Search\Resources\CorrespondenceResource;
 use App\Services\Search\Resources\ChannelResource;
 use App\Services\Search\Resources\CredentialResource;
 use App\Services\Search\Resources\DmsResource;
@@ -59,6 +61,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use ReflectionMethod;
 use Tests\TestCase;
 
 class SearchServiceTest extends TestCase
@@ -1031,5 +1034,100 @@ class SearchServiceTest extends TestCase
 
         $ids = collect($this->runResource(AiReportResource::class, $token, true)['items'] ?? [])->pluck('id')->all();
         $this->assertContains($old->id, $ids);
+    }
+
+    public function test_search_select_list_hook_defaults_to_every_column_so_existing_resources_are_unchanged(): void
+    {
+        $hook = new ReflectionMethod(PostResource::class, 'selectList');
+        $hook->setAccessible(true);
+
+        $this->assertSame('*', $hook->invoke(new PostResource()));
+    }
+
+    public function test_correspondence_search_scopes_visible_letters_and_masks_confidential_subjects(): void
+    {
+        $owner = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $viewer = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $this->actingAs($viewer);
+        $token = $this->token('corrsearch');
+        $normal = Correspondence::forceCreate([
+            'user_id' => $owner->id,
+            'direction' => Correspondence::DIRECTION_OUT,
+            'type' => 'letter',
+            'status' => Correspondence::STATUS_APPROVED,
+            'classification' => Correspondence::CLASSIFICATION_NORMAL,
+            'number' => 'L/1405/77',
+            'subject' => 'موضوع عادی',
+            'spec' => ['blocks' => [['type' => 'text', 'text' => "بدنه {$token}"]]],
+            'recipients' => [$viewer->id],
+            'parties' => [],
+        ]);
+        $secret = Correspondence::forceCreate([
+            'user_id' => $owner->id,
+            'direction' => Correspondence::DIRECTION_OUT,
+            'type' => 'letter',
+            'status' => Correspondence::STATUS_APPROVED,
+            'classification' => Correspondence::CLASSIFICATION_SECRET,
+            'number' => 'S/1405/78',
+            'subject' => "موضوع محرمانه {$token}",
+            'search_text' => null,
+            'recipients' => [$viewer->id],
+            'parties' => [],
+        ]);
+
+        $bodyHits = $this->runResource(CorrespondenceResource::class, $token);
+        $this->assertContains($normal->id, collect($bodyHits['items'])->pluck('id')->all());
+
+        $secretHits = $this->runResource(CorrespondenceResource::class, 'محرمانه');
+        $this->assertNotContains($secret->id, collect($secretHits['items'] ?? [])->pluck('id')->all());
+        $numberHits = $this->runResource(CorrespondenceResource::class, 'S/1405/78');
+        $this->assertContains($secret->id, collect($numberHits['items'] ?? [])->pluck('id')->all());
+    }
+
+    public function test_correspondence_search_hides_drafts_of_others_and_extends_to_registry_statuses_only_for_a_clerk(): void
+    {
+        $author = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $stranger = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $clerk = User::factory()->create(['role' => 'user', 'status' => 'active', 'extra' => ['admin' => ['correspondence_registry' => true]]]);
+        $token = $this->token('corrscope');
+        $make = fn (string $status, string $number) => Correspondence::forceCreate([
+            'user_id' => $author->id,
+            'direction' => Correspondence::DIRECTION_OUT,
+            'type' => 'letter',
+            'status' => $status,
+            'classification' => Correspondence::CLASSIFICATION_NORMAL,
+            'number' => $number,
+            'subject' => "موضوع {$token}",
+            'recipients' => [],
+            'parties' => [],
+        ]);
+        $draft = $make(Correspondence::STATUS_DRAFT, "D-{$token}");
+        $approved = $make(Correspondence::STATUS_APPROVED, "A-{$token}");
+        $ids = fn () => collect($this->runResource(CorrespondenceResource::class, $token)['items'] ?? [])->pluck('id')->all();
+
+        $this->actingAs($author);
+        $this->assertEqualsCanonicalizing([$draft->id, $approved->id], $ids());
+
+        $this->actingAs($stranger);
+        $this->assertSame([], $ids());
+
+        $this->actingAs($clerk);
+        $found = $ids();
+        $this->assertContains($approved->id, $found);
+        $this->assertNotContains($draft->id, $found);
+    }
+
+    public function test_correspondence_navigation_entry_routes_to_the_module_and_obeys_its_tenant_switch(): void
+    {
+        $service = app(NavigationService::class);
+        $ids = fn (string $query) => array_column($service->search($query), 'id');
+        $entry = collect($service->search('مکاتبات'))->firstWhere('id', 'correspondence');
+
+        $this->assertSame('route:correspondence', $entry['action'] ?? null);
+        $this->assertSame('mail', $entry['icon'] ?? null);
+        $this->assertContains('correspondence', $ids('نامه'));
+
+        config(['app.off' => ['correspondence']]);
+        $this->assertNotContains('correspondence', $ids('نامه'));
     }
 }

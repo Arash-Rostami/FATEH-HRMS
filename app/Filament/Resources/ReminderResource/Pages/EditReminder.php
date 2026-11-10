@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ReminderResource\Pages;
 
 use App\Filament\Resources\ReminderResource;
-use App\Traits\{FilamentDateHandler, FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior};
+use App\Traits\Filament\{FilamentDateHandler, FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior};
 use App\Filament\Pages\EditRecord;
 
 class EditReminder extends EditRecord

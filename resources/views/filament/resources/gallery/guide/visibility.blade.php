@@ -31,7 +31,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">سه حالتِ دید: عمومی، تک‌واحدی، چندواحدی</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        دیدِ یک گالری با دو فیلد مجزا تعیین می‌شود: <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">department_id</code> (تک‌واحدی) و <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">departments</code> (آرایهٔ JSON چندواحدی). در فرم، به‌محض پر کردن یکی، دیگری خودکار غیرفعال و خالی می‌شود (afterStateUpdated)؛ پس فقط یکی از سه حالتِ زیر ذخیره می‌شود.
+        برای تعیین مخاطبان گالری، یک واحد یا چند واحد انتخاب کنید. با پر کردن هرکدام، گزینهٔ دیگر خودکار غیرفعال و خالی می‌شود. اگر هیچ‌کدام را انتخاب نکنید، گالری عمومی است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -60,7 +60,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                ستون «واحد سازمانی» جدول، مقادیر را از Accessor یکپارچهٔ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">all_departments</code> می‌خواند: اگر <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">department_id</code> پر باشد، آن را به اولِ آرایهٔ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> اضافه می‌کند و یونیک‌سازی می‌نماید — پس حتی اگر هر دو فیلد پر باشند، نمایش جدول همهٔ واحدها را با هم می‌بیند. اگر کدهای ذخیره‌شده با هیچ واحد فعالی مطابقت نداشته باشند (مثلاً واحد حذف‌شده)، ستون به‌جای «عمومی» عبارت «واحد نامشخص» را نشان می‌دهد — چون رکورد همچنان خصوصی است، فقط واحدش دیگر قابل شناسایی نیست.
+                ستون «واحد سازمانی» همهٔ واحدهای ثبت‌شده را بدون تکرار نشان می‌دهد، حتی اگر هر دو بخش واحد پر باشند. اگر هیچ واحد فعالی با اطلاعات ثبت‌شده مطابقت نداشته باشد، «واحد نامشخص» دیده می‌شود؛ گالری همچنان خصوصی است.
             </p>
         </div>
     </div>
@@ -79,7 +79,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">فیلتر دسترسی</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">سه‌حالته: «عمومی» فقط رکوردهایی که هم <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">department_id</code> و هم <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> خالی‌اند؛ «خصوصی» فقط رکوردهای دارای حداقل یکی از این دو.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">«عمومی» گالری‌های بدون واحد مخاطب را نشان می‌دهد؛ «خصوصی» گالری‌هایی را که حداقل یک واحد مخاطب دارند.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -90,7 +90,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">فیلتر نوع اشتراک</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">«چند واحدی» فقط رکوردهایی که <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> غیرخالی است (با <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">JSON_LENGTH &gt; 0</code>)؛ «تک‌واحدی» فقط رکوردهایی که <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">department_id</code> دارند و <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> خالی است.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">«چند واحدی» گالری‌هایی را نشان می‌دهد که فهرست واحدهای چندگانه دارند. «تک‌واحدی» گالری‌هایی را نشان می‌دهد که بخش تک‌واحدی آن‌ها پر و فهرست واحدهای چندگانه‌شان خالی است.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -101,14 +101,14 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">فیلتر واحد سازمانی</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">یک واحد انتخاب می‌کنید و رکوردهایی که یا <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">department_id</code> آن‌ها برابر آن است یا در آرایهٔ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> آن را دارند (<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">orWhereJsonContains</code>) فهرست می‌شوند.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">با انتخاب یک واحد، گالری‌هایی نمایش داده می‌شوند که آن واحد در بخش تک‌واحدی یا در فهرست واحدهای چندگانهٔ آن‌ها ثبت شده باشد.</p>
                 </div>
             </div>
         </div>
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                کاربری که گالری را نمی‌بیند: در پنل کاربری، کوئریِ پایه فقط رکوردهای عمومی یا آن‌هایی که واحد کاربر در <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">department_id</code>/<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> دارند می‌آورد — هیچ گالری خصوصیِ واحدِ دیگری برایش قابل دیدن نیست.
+                اگر کاربر گالری را نمی‌بیند، واحد مخاطب را بررسی کنید. کاربران گالری‌های عمومی و گالری‌های مجاز برای واحد خود را می‌بینند.
             </p>
         </div>
     </div>

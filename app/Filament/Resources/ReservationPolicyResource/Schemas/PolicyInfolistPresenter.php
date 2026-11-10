@@ -5,7 +5,7 @@ namespace App\Filament\Resources\ReservationPolicyResource\Schemas;
 use App\Enums\ResourceType;
 use App\Models\ReservationPolicy;
 use App\Services\Reservation\ValidationService;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 

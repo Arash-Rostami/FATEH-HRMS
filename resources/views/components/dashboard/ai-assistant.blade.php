@@ -1,7 +1,4 @@
 @if(aiAssistantOn())
-    @php
-        $aiAssistantBaseSrc = rtrim(config('services.ai_assistant.url'), '/') . '/?user=' . \Illuminate\Support\Str::slug(config('app.name_en')) . '_' . auth()->id() . '&lang=' . config('app.ai_assistant_lang') . '&role=' . (auth()->user()->hasElevatedRole() ? 'admin' : 'user');
-    @endphp
     <div x-data="aiAssistant(@js($aiAssistantBaseSrc))" dir="rtl" x-cloak @keydown.escape.window="handleEscape()">
 
         <div x-show="open"
@@ -20,7 +17,20 @@
              aria-label="دستیار هوش مصنوعی"
              x-cloak>
 
-            <div class="relative overflow-hidden px-3 py-2 shrink-0"
+            <div x-show="!headerShown"
+                 @pointerenter="showHeader()"
+                 @click="toggleHeader()"
+                 aria-hidden="true"
+                 class="absolute inset-x-0 top-0 z-30 flex h-4 cursor-pointer items-start justify-center">
+                <span class="mt-1 h-1 w-10 rounded-full opacity-60" style="background:var(--ai-color);"></span>
+            </div>
+
+            <div @pointerenter="showHeader()"
+                 @pointerleave="leaveHeader($event)"
+                 @focusin="showHeader()"
+                 @focusout="leaveHeader($event)"
+                 :class="headerShown ? 'translate-y-0' : '-translate-y-full'"
+                 class="absolute inset-x-0 top-0 z-20 overflow-hidden px-3 py-2 motion-safe:transition-transform motion-safe:duration-200"
                  style="background:linear-gradient(135deg,var(--md-sys-color-primary),color-mix(in srgb,var(--md-sys-color-primary) 78%,#000 22%));border-bottom:1px solid rgba(255,255,255,.08);">
                 <div class="absolute inset-0 pointer-events-none opacity-25"
                      style="background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shimmer 6s linear infinite;"></div>
@@ -28,8 +38,8 @@
                 <div class="relative flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 ring-white/15"
-                             style="background:rgba(255,255,255,.12);">
-                            <span class="material-symbols-rounded" style="color:var(--md-sys-color-on-primary);font-size:24px;">auto_awesome</span>
+                             style="background:color-mix(in srgb,var(--ai-bg) 92%,transparent);">
+                            <span class="material-symbols-rounded" style="color:var(--ai-text);font-size:24px;">auto_awesome</span>
                         </div>
                         <p class="text-sm font-semibold truncate" style="color:var(--md-sys-color-on-primary);">دستیار هوش مصنوعی</p>
                     </div>

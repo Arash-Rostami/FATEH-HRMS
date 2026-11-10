@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\GalleryResource\Schemas;
 
 use App\Models\Department;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\FilamentFilters;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;

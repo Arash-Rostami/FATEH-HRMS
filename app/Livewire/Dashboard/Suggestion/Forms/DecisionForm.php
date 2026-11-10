@@ -2,16 +2,19 @@
 
 namespace App\Livewire\Dashboard\Suggestion\Forms;
 
-use Livewire\Attributes\Validate;
 use Livewire\Form;
 
 class DecisionForm extends Form
 {
-    #[Validate('required|in:accepted,rejected,under_review')]
     public string $decision = '';
     public string $decisionComment = '';
     public string $referralActions = '';
     public array $referralDepts = [];
+
+    public function rules(): array
+    {
+        return ['decision' => 'required|in:accepted,rejected,under_review'];
+    }
 
     public function messages(): array
     {

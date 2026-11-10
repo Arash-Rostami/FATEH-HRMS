@@ -1092,6 +1092,98 @@ describe('chatBase.loadOlderKeepingPlace — anchor-row restore (added 2026-11-0
     })
 })
 
+describe('chatBase refactor guards — edge cases that must stay identical', () => {
+    test('_conv prefers a valid channel id over a valid user id, and treats non-integers as absent', () => {
+        const c = chatBase('channel')
+
+        c.$wire = { activeChannelId: 3, activeUserId: 8 }
+        expect(c._conv()).toBe(3)
+
+        c.$wire = { activeChannelId: 0, activeUserId: 8 }
+        expect(c._conv()).toBe(0)
+
+        for (const bad of ['4', 1.5, NaN, null, undefined, () => {}]) {
+            c.$wire = { activeChannelId: bad, activeUserId: 8 }
+            expect(c._conv()).toBe(8)
+            c.$wire = { activeChannelId: bad, activeUserId: bad }
+            expect(c._conv()).toBeNull()
+        }
+    })
+
+    test('_conv reads $wire exactly once', () => {
+        const c = chatBase('channel')
+        let reads = 0
+        Object.defineProperty(c, '$wire', { configurable: true, get() { reads++; return { activeChannelId: 2 } } })
+
+        c._conv()
+
+        expect(reads).toBe(1)
+    })
+
+    test('_rowsNewerThan returns 0 without a viewport, ignores rows without a numeric tail, and treats a missing marker as 0', () => {
+        const c = chatBase('contact')
+        expect(c._rowsNewerThan('message-1')).toBe(0)
+
+        const vp = document.createElement('div')
+        vp.innerHTML = '<div data-rf="message-4"></div><div data-rf="message-x"></div><div data-rf="channel-message-9"></div><div data-rf="message-2"></div>'
+        document.body.appendChild(vp)
+        c._msgViewportEl = vp
+
+        expect(c._rowsNewerThan('message-3')).toBe(2)
+        expect(c._rowsNewerThan(null)).toBe(3)
+        expect(c._rowsNewerThan('zzz')).toBe(3)
+    })
+
+    test('_riseOnlyMuted: first call is never "muted", an unchanged total reuses the previous verdict, a muted-only rise is muted, any unmuted rise is not', () => {
+        const c = chatBase('contact')
+        const muted = new Set([1])
+        c.$store = { sound: { isMuted: (id) => muted.has(id) } }
+        let total = 0
+        c._readUnread = () => total
+        const rows = (map) => {
+            document.body.innerHTML = ''
+            for (const [id, n] of Object.entries(map)) {
+                const el = document.createElement('div')
+                el.dataset.unreadId = id
+                el.dataset.unread = n
+                document.body.appendChild(el)
+            }
+        }
+
+        rows({ 1: 1, 2: 1 }); total = 2
+        expect(c._riseOnlyMuted()).toBe(false)
+
+        rows({ 1: 2, 2: 1 }); total = 3
+        expect(c._riseOnlyMuted()).toBe(true)
+
+        rows({ 1: 2, 2: 1 })
+        expect(c._riseOnlyMuted()).toBe(true)
+
+        rows({ 1: 2, 2: 2 }); total = 4
+        expect(c._riseOnlyMuted()).toBe(false)
+    })
+
+    test('_settlePin stops on wheel/touchstart/pointerdown/keydown only', () => {
+        vi.useFakeTimers()
+        try {
+            for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown', 'click', 'scroll']) {
+                const c = chatBase('contact')
+                const vp = document.createElement('div')
+                document.body.appendChild(vp)
+                const pin = vi.fn(() => true)
+                c._settlePin(vp, pin)
+                vi.advanceTimersByTime(5)
+                vp.dispatchEvent(new Event(type))
+                const before = pin.mock.calls.length
+                vi.advanceTimersByTime(60)
+                expect(pin.mock.calls.length === before).toBe(['wheel', 'touchstart', 'pointerdown', 'keydown'].includes(type))
+            }
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+})
+
 describe('chatBase _conv — the open conversation id survives Livewire\'s function fallback for foreign properties (added 2026-11-02)', () => {
     const livewireWire = (state) => new Proxy(state, { get: (t, p) => (p in t ? t[p] : () => {}) })
 

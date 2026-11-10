@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
+use App\Enums\DocumentStatus;
 use App\Models\Concerns\HasDepartmentHelpers;
 use App\Models\Concerns\HasDmsCountHelpers;
 use App\Models\Concerns\HasMenuState;
@@ -291,7 +291,7 @@ class DMS extends Model
     public static function notifyFields(): array
     {
         return [
-            'status' => \App\Filament\Resources\DmsResource\Enums\DocumentStatus::class,
+            'status' => \App\Enums\DocumentStatus::class,
             'combined_read_count' => 'number',
         ];
     }

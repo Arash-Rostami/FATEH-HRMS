@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\TaskResource\Schemas;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
 use App\Services\ProjectTask\TaskMetrics;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;

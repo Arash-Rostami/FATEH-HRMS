@@ -34,7 +34,7 @@
 
         <x-dashboard.modal.badge-legend
             name="ths-badge-legend"
-            :items="[\App\Services\Menu\BadgeLegendCatalog::get('ths-controller')]"
+            :items="array_values(array_filter([\App\Services\Menu\BadgeLegendCatalog::get('ths-controller'), \App\Services\Menu\BadgeLegendCatalog::get('ths-controller:nudge')]))"
         />
 
         <x-ui.modals.dialog name="ths-legend" title="راهنمای گردش‌کار تیکتینگ">

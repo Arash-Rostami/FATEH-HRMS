@@ -7,6 +7,37 @@ use Illuminate\Support\Arr;
 
 trait HasExtraPreferences
 {
+    public static function adminBucketOf(?array $extra): array
+    {
+        $extra ??= [];
+        $bucket = $extra['admin'] ?? [];
+
+        if (! array_key_exists('admin', $extra)) {
+            foreach ($extra as $key => $value) {
+                if ($key !== 'preferences' && ! is_array($value)) {
+                    $bucket[$key] = $value;
+                }
+            }
+        }
+
+        return is_array($bucket) ? $bucket : [];
+    }
+
+    public static function editableExtraOf(?array $extra): array
+    {
+        return collect(self::adminBucketOf($extra))->except(static::PROTECTED_ADMIN_KEYS)->all();
+    }
+
+    public function adminExtra(): array
+    {
+        return static::adminBucketOf($this->extra);
+    }
+
+    public function editableExtra(): array
+    {
+        return static::editableExtraOf($this->extra);
+    }
+
     public function getExtraValue(string $key, mixed $default = null): mixed
     {
         return Arr::get($this->extra ?? [], $key, $default);

@@ -1,4 +1,22 @@
-<form wire:submit.prevent="submitTicket" class="space-y-6">
+@php
+    $aiOn = thsAiOn();
+    $aiTip = fn () => 'نوشتن هوشمند · ' . convertToPersian($this->aiLeft) . ' بار دیگر امروز';
+    $aiNeedArea = 'ابتدا حوزه درخواست را انتخاب کنید';
+    $aiLong = 'متن شما برای دستیار طولانی است؛ آن را کوتاه‌تر کنید.';
+    $aiShort = 'برای استفاده از دستیار، متن را کوتاه‌تر کنید';
+    $aiLimitSubject = min((int) config('ai.ticket.input_max'), (int) config('ai.ticket.subject_max'));
+    $aiLimitDescription = min((int) config('ai.ticket.input_max'), (int) config('ai.ticket.description_max'));
+@endphp
+
+<form wire:submit.prevent="submitTicket" class="space-y-6"
+      @if($aiOn) data-ai-blank-text="جاهای خالی «____» را پر یا حذف کنید."
+         x-on:submit.capture="aiGuardSubmit($event, $el.dataset.aiBlankText)"
+         x-on:keydown.escape="aiSuggested && !$event.isComposing && $event.keyCode !== 229 && $event.target.closest('[data-ai-blank], [data-ai-chips]') && (aiUndo(), $event.stopPropagation())" @endif>
+
+    @if($aiOn)
+        <span class="sr-only" role="status" aria-live="polite" data-ai-working="در حال نوشتن…"
+              x-text="aiLoading ? $el.dataset.aiWorking : ''"></span>
+    @endif
 
     {{-- ── Section 1: Classification ── --}}
     <div class="space-y-4">
@@ -56,9 +74,9 @@
                     </label>
                     <div class="grid grid-cols-3 gap-1.5 h-11">
                         @foreach([
-                            'low'    => [\App\Filament\Resources\ThsResource\Enums\TicketPriority::Low->getLabel(),    'low_priority', '--md-sys-color-secondary', '--md-sys-color-secondary-container', '--md-sys-color-on-secondary-container', '100%'],
-                            'medium' => [\App\Filament\Resources\ThsResource\Enums\TicketPriority::Medium->getLabel(), 'drag_handle',  '--md-sys-color-tertiary',  '--md-sys-color-tertiary-container',  '--md-sys-color-on-tertiary-container',  '100%'],
-                            'high'   => [\App\Filament\Resources\ThsResource\Enums\TicketPriority::High->getLabel(),   'priority_high','--md-sys-color-error',     '--md-sys-color-error',              '--md-sys-color-on-error',               '15%'],
+                            'low'    => [\App\Enums\TicketPriority::Low->getLabel(),    'low_priority', '--md-sys-color-secondary', '--md-sys-color-secondary-container', '--md-sys-color-on-secondary-container', '100%'],
+                            'medium' => [\App\Enums\TicketPriority::Medium->getLabel(), 'drag_handle',  '--md-sys-color-tertiary',  '--md-sys-color-tertiary-container',  '--md-sys-color-on-tertiary-container',  '100%'],
+                            'high'   => [\App\Enums\TicketPriority::High->getLabel(),   'priority_high','--md-sys-color-error',     '--md-sys-color-error',              '--md-sys-color-on-error',               '15%'],
                         ] as $val => [$label, $icon, $border, $bg, $text, $bgOpacity])
                             <label class="cursor-pointer" x-data>
                                 <input type="radio" wire:model.live="ticket.priority" value="{{ $val }}"
@@ -93,10 +111,106 @@
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
                 <div class="lg:col-span-3 space-y-5">
-                    <x-ui.forms.input label=" موضوع تیکت *" name="ticket.subject"
-                                      wire:model="ticket.subject" icon="label"/>
-                    <x-ui.forms.textarea label="توضیحات تکمیلی *" name="ticket.description"
-                                         wire:model="ticket.description" icon="description" rows="5" :maximizable="true"/>
+                    <div @if($aiOn) class="relative" data-ai-blank="«____»" data-ai-next="ticket.description" x-bind:inert="aiLoading"
+                         x-bind:class="{ 'ai-suggested': aiSuggested }" x-bind:aria-busy="aiLoading"
+                         x-on:keydown.tab="!$event.shiftKey && aiBlanks > 0 && aiNextBlank($event.target) && $event.preventDefault()" @endif>
+                        <x-ui.forms.input label=" موضوع تیکت *" name="ticket.subject"
+                                          wire:model="ticket.subject" icon="label">
+                            @if($aiOn)
+                                <x-slot:actions>
+                                    <x-ui.forms.ai-trigger class="inset-y-0 left-0 -ml-3.5"
+                                                           :tip="$aiTip()"
+                                                           :need="$aiNeedArea"
+                                                           :long="$aiLong"
+                                                           :short="$aiShort"
+                                                           :limit-subject="$aiLimitSubject"
+                                                           :limit-description="$aiLimitDescription"/>
+                                </x-slot:actions>
+                            @endif
+                        </x-ui.forms.input>
+                        @if($aiOn)
+                            <x-ui.loaders.ai-shimmer x-show="aiLoading" style="display: none;" class="rounded-t-lg"/>
+                        @endif
+                    </div>
+
+                    <div>
+                        <div @if($aiOn) class="relative" data-ai-blank="«____»" x-bind:inert="aiLoading"
+                             x-bind:class="{ 'ai-suggested': aiSuggested }" x-bind:aria-busy="aiLoading"
+                             x-on:keydown.tab="!$event.shiftKey && aiBlanks > 0 && aiNextBlank($event.target) && $event.preventDefault()" @endif>
+                            <x-ui.forms.textarea label="توضیحات تکمیلی *" name="ticket.description"
+                                                 wire:model="ticket.description" icon="description" rows="5" :maximizable="true">
+                                @if($aiOn)
+                                    <x-slot:actions>
+                                        <x-ui.forms.ai-trigger class="bottom-3 left-0 -mb-3.5 -ml-3.5"
+                                                               :tip="$aiTip()"
+                                                               :need="$aiNeedArea"
+                                                               :long="$aiLong"
+                                                               :short="$aiShort"
+                                                               :limit-subject="$aiLimitSubject"
+                                                               :limit-description="$aiLimitDescription"/>
+                                    </x-slot:actions>
+                                @endif
+                            </x-ui.forms.textarea>
+                            @if($aiOn)
+                                <x-ui.loaders.ai-shimmer x-show="aiLoading" style="display: none;" class="rounded-t-lg"/>
+                            @endif
+                        </div>
+
+                        @if($aiOn)
+                            <div wire:key="ths-create-ai-chips" data-ai-chips aria-live="polite" aria-atomic="true" x-bind:inert="aiLoading" x-show="aiSuggested || aiQuestion || aiBlankLeft() > 0 || aiReady()" style="display: none;"
+                                 class="mt-2 flex flex-wrap items-center gap-2">
+                                <x-ui.badge x-show="aiSuggested && aiSource === 'ai'" style="display: none;"
+                                            class="!bg-[var(--ai-bg)] !text-[var(--ai-text)] animate-slide-up-fade motion-reduce:!animate-none animate-delay-0">
+                                    پیش‌نویس هوش مصنوعی
+                                </x-ui.badge>
+                                <x-ui.badge x-show="aiSuggested && aiSource === 'skeleton'" style="display: none;"
+                                            class="animate-slide-up-fade motion-reduce:!animate-none animate-delay-0">
+                                    الگوی آماده
+                                </x-ui.badge>
+                                <button type="button" x-ref="aiAccept" x-show="aiSuggested" style="display: none;"
+                                        x-on:click="aiAccept()"
+                                        class="rounded-md animate-slide-up-fade motion-reduce:!animate-none animate-delay-100 transition-transform active:scale-95">
+                                    <x-ui.badge variant="info">پذیرش ↵</x-ui.badge>
+                                </button>
+                                <button type="button" x-show="aiSuggested" style="display: none;"
+                                        x-on:click="aiUndo(); aiFocus()"
+                                        class="rounded-md animate-slide-up-fade motion-reduce:!animate-none animate-delay-150 transition-transform active:scale-95">
+                                    <x-ui.badge>برگردان Esc</x-ui.badge>
+                                </button>
+                                <button type="button" aria-label="تولید نسخهٔ دیگر" x-show="aiSuggested && !aiLoading" style="display: none;"
+                                        x-on:click="aiAgain()"
+                                        class="rounded-md animate-slide-up-fade motion-reduce:!animate-none animate-delay-200 transition-transform active:scale-95">
+                                    <x-ui.badge class="gap-1">
+                                        <span class="material-symbols-rounded text-[14px]">refresh</span>
+                                        نسخهٔ دیگر
+                                    </x-ui.badge>
+                                </button>
+                                <x-ui.badge x-show="aiReady()" style="display: none;"
+                                            class="gap-1 !bg-[var(--tool-sage-bg)] !text-[var(--tool-sage-text)] animate-slide-up-fade motion-reduce:!animate-none animate-delay-300">
+                                    <span class="material-symbols-rounded text-[14px]">check_circle</span>
+                                    آماده ارسال
+                                </x-ui.badge>
+                                <button type="button" aria-label="پرکردن جای خالی بعدی" x-show="aiBlankLeft() > 0" style="display: none;"
+                                        x-on:click="aiJumpBlank()"
+                                        class="rounded-md animate-slide-up-fade motion-reduce:!animate-none animate-delay-300 transition-transform active:scale-95">
+                                    <x-ui.badge class="!bg-[var(--tool-gold-bg)] !text-[var(--tool-gold-text)]">
+                                        جاهای خالی را پر کنید (<span x-text="aiBlankLeft().toLocaleString('fa-IR')"></span>)
+                                    </x-ui.badge>
+                                </button>
+                                <button type="button" wire:key="ths-create-ai-question" x-show="aiQuestion" style="display: none;"
+                                        x-on:click="aiAsk()"
+                                        class="max-w-full rounded-md animate-slide-up-fade motion-reduce:!animate-none animate-delay-400 transition-transform active:scale-95">
+                                    <x-ui.badge class="!bg-[var(--ai-bg)] !text-[var(--ai-text)] animate-alert-soft gap-1 whitespace-normal text-start">
+                                        <span class="material-symbols-rounded text-[14px]">help</span>
+                                        <span x-text="aiQuestion"></span>
+                                    </x-ui.badge>
+                                </button>
+                                <span x-show="aiRemaining !== null" style="display: none;" class="mr-auto text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
+                                    <span x-text="(aiRemaining ?? 0).toLocaleString('fa-IR')"></span> بار دیگر امروز
+                                </span>
+                            </div>
+                        @endif
+                    </div>
                 </div>
 
                 <div

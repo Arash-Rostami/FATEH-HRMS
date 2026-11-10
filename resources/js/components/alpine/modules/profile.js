@@ -1,4 +1,12 @@
 import profile from '../data/profile.js'
 import registerModuleData from '../module-runtime.js'
 
-registerModuleData({ profile })
+const signCodeCard = () => ({
+    open: false,
+
+    toggle() {
+        this.open = !this.open
+    },
+})
+
+registerModuleData({ profile, signCodeCard })

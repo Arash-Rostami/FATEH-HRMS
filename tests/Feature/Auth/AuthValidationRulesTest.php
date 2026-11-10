@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Traits\AuthValidationRules;
+use App\Traits\Livewire\AuthValidationRules;
 use ReflectionMethod;
 use Tests\TestCase;
 

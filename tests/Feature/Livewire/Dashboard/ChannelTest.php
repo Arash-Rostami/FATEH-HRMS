@@ -3,16 +3,25 @@
 namespace Tests\Feature\Livewire\Dashboard;
 
 use App\Enums\ChannelType;
-use App\Jobs\ReconcileEdge;
-use App\Jobs\ReconcileNudge;
+use App\Enums\PresenceStatus;
+use App\Jobs\ReconcileEdgeJob;
+use App\Jobs\ReconcileNudgeJob;
+use App\Livewire\Dashboard\Channel\Actions\DeleteChannelAction;
+use App\Livewire\Dashboard\Channel\Actions\DeleteChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\DownloadChannelAttachmentAction;
+use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelMessageAction;
+use App\Livewire\Dashboard\Channel\Actions\JoinChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\MarkChannelReadAction;
 use App\Livewire\Dashboard\Channel\Actions\SearchChannelMessagesAction;
+use App\Livewire\Dashboard\Channel\Actions\SaveEditChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
 use App\Livewire\Dashboard\Tab\Actions\SendSmsAction;
 use App\Livewire\Dashboard\Tab\Presentation\TabPresenter;
+use App\Models\Project;
+use App\Services\ProjectTask\ChannelProvisioner;
+use Illuminate\Http\Testing\File;
 use Illuminate\Http\UploadedFile;
 use App\Livewire\Dashboard\Channel\Main;
 use App\Models\Channel;
@@ -30,6 +39,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Js;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Mockery;
 use Tests\TestCase;
@@ -414,7 +425,7 @@ class ChannelTest extends TestCase
         $channel = Channel::create(['name' => 'RollbackSend', 'slug' => 'rollback-send-slug', 'type' => 'open', 'owner_id' => $owner->id]);
 
         $fakeImage = UploadedFile::fake()->image('x.jpg');
-        $failingFile = new class('x.jpg', fopen($fakeImage->getPathname(), 'r')) extends \Illuminate\Http\Testing\File {
+        $failingFile = new class('x.jpg', fopen($fakeImage->getPathname(), 'r')) extends File {
             public function storeAs($path, $name = null, $options = []): string
             {
                 throw new \RuntimeException('simulated disk failure');
@@ -445,7 +456,7 @@ class ChannelTest extends TestCase
         $goodFile = UploadedFile::fake()->image('good.jpg');
 
         $fakeImage = UploadedFile::fake()->image('bad.jpg');
-        $failingFile = new class('bad.jpg', fopen($fakeImage->getPathname(), 'r')) extends \Illuminate\Http\Testing\File {
+        $failingFile = new class('bad.jpg', fopen($fakeImage->getPathname(), 'r')) extends File {
             public function storeAs($path, $name = null, $options = []): string
             {
                 throw new \RuntimeException('simulated disk failure');
@@ -1067,7 +1078,7 @@ class ChannelTest extends TestCase
         $members = collect($component->instance()->channelMembers())->keyBy('id');
         $mentions = $component->instance()->mentionMemberPresence();
 
-        $this->assertSame(\App\Enums\PresenceStatus::Busy, $members[$focused->id]['presence']);
+        $this->assertSame(PresenceStatus::Busy, $members[$focused->id]['presence']);
         $this->assertStringStartsWith('متمرکز تا', $members[$focused->id]['focus']);
         $this->assertNull($members[$leaver->id]['focus']);
         $this->assertTrue($mentions['Focus Person']['reachable']);
@@ -1362,7 +1373,7 @@ class ChannelTest extends TestCase
             ->call('markRead', $channel->id)
             ->assertHasNoErrors();
 
-        Queue::assertPushed(ReconcileNudge::class);
+        Queue::assertPushed(ReconcileNudgeJob::class);
 
         Queue::fake();
 
@@ -1371,8 +1382,8 @@ class ChannelTest extends TestCase
             ->call('markRead', $channel->id)
             ->assertHasNoErrors();
 
-        Queue::assertNotPushed(ReconcileNudge::class);
-        Queue::assertNotPushed(ReconcileEdge::class);
+        Queue::assertNotPushed(ReconcileNudgeJob::class);
+        Queue::assertNotPushed(ReconcileEdgeJob::class);
     }
 
     public function test_mark_channel_read_flips_only_the_readers_home_stat_stamp()
@@ -1422,8 +1433,8 @@ class ChannelTest extends TestCase
             ->call('leaveChannel', $channel->id)
             ->assertHasNoErrors();
 
-        Queue::assertPushed(ReconcileNudge::class);
-        Queue::assertPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $channel->id);
+        Queue::assertPushed(ReconcileNudgeJob::class);
+        Queue::assertPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $channel->id);
     }
 
     public function test_save_manage_members_dispatches_reconcile_nudge_when_roster_changes()
@@ -1440,8 +1451,8 @@ class ChannelTest extends TestCase
             ->call('saveManageMembers')
             ->assertHasNoErrors();
 
-        Queue::assertPushed(ReconcileNudge::class, 1);
-        Queue::assertPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $channel->id);
+        Queue::assertPushed(ReconcileNudgeJob::class, 1);
+        Queue::assertPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $channel->id);
     }
 
     public function test_focus_message_within_window_clears_focus_anchor_and_dispatches_record_focus()
@@ -1759,7 +1770,7 @@ class ChannelTest extends TestCase
 
     public function test_reader_summary_lists_all_names_caps_shown_at_three_and_counts_extra(): void
     {
-        $presenter = new \App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter();
+        $presenter = new ChannelPresenter();
 
         $msg = [
             'readers' => [
@@ -1788,7 +1799,7 @@ class ChannelTest extends TestCase
     private function joinedChannel(User $viewer, string $name): Channel
     {
         $owner = User::factory()->create(['status' => 'active']);
-        $channel = Channel::create(['name' => $name, 'slug' => \Illuminate\Support\Str::slug($name) . '-' . uniqid(), 'type' => 'open', 'owner_id' => $owner->id]);
+        $channel = Channel::create(['name' => $name, 'slug' => Str::slug($name) . '-' . uniqid(), 'type' => 'open', 'owner_id' => $owner->id]);
         $channel->memberUsers()->attach($viewer->id, [
             'joined_at' => now(), 'entered_at' => now(), 'last_read_message_id' => null,
             'created_at' => now(), 'updated_at' => now(),
@@ -1873,6 +1884,44 @@ class ChannelTest extends TestCase
             ->assertSet('channelsLimit', 60)
             ->call('setFilter', 'unread')
             ->assertSet('channelsLimit', 30);
+    }
+
+    public function test_header_state_resolves_owner_typing_online_count_and_last_activity(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $stranger = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelWithMembers($owner, [$stranger]);
+        $presenter = new ChannelPresenter();
+        $header = $presenter->channelHeader($channel);
+        $members = [
+            ['inactive' => false, 'is_online' => true],
+            ['inactive' => false, 'is_online' => false],
+            ['inactive' => true, 'is_online' => true],
+        ];
+        $old = now()->subMinutes(30)->toDateTimeString();
+        $recent = now()->subMinute()->toDateTimeString();
+
+        $this->actingAs($owner);
+        $state = $presenter->headerState($channel, $header, ['Ali', 'Sara'], $members, [['id' => $header['id'], 'last_message' => ['created_at' => $old]]]);
+
+        $this->assertTrue($state['isOwner']);
+        $this->assertSame(['Ali', 'Sara'], $state['typingMembers']);
+        $this->assertSame(2, $state['typingCount']);
+        $this->assertSame(1, $state['onlineCount']);
+        $this->assertSame((string) Js::from($header['id']), (string) $state['channelIdJs']);
+        $this->assertSame(toJalaliRelative($old, dateAfterDays: 0), $state['lastActivity']);
+
+        $fresh = $presenter->headerState($channel, $header, null, $members, [['id' => $header['id'], 'last_message' => ['created_at' => $recent]]]);
+        $this->assertNull($fresh['lastActivity']);
+        $this->assertSame([], $fresh['typingMembers']);
+        $this->assertSame(0, $fresh['typingCount']);
+
+        $none = $presenter->headerState($channel, $header, [], [], []);
+        $this->assertNull($none['lastActivity']);
+        $this->assertSame(0, $none['onlineCount']);
+
+        $this->actingAs($stranger);
+        $this->assertFalse($presenter->headerState($channel, $header, [], [], [])['isOwner']);
     }
 
     private function channelViaLivewire(User $owner, string $name): Channel
@@ -2115,7 +2164,7 @@ class ChannelTest extends TestCase
         Livewire::actingAs($owner)->test(Main::class)
             ->call('selectChannel', $channel->id)
             ->assertHasNoErrors();
-        Queue::assertPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $channel->id);
+        Queue::assertPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $channel->id);
 
         EdgeService::reconcile($key, Channel::class, $channel->id);
         $this->assertCount(
@@ -2524,7 +2573,7 @@ class ChannelTest extends TestCase
         $ghost = User::factory()->create(['status' => 'inactive', 'presence' => 'onsite']);
         $this->actingAs($ghost);
 
-        $this->assertFalse(app(\App\Livewire\Dashboard\Channel\Actions\JoinChannelAction::class)->execute($open->id, $ghost->id));
+        $this->assertFalse(app(JoinChannelAction::class)->execute($open->id, $ghost->id));
         $this->assertFalse(ChannelMember::where(['user_id' => $ghost->id, 'channel_id' => $open->id])->exists());
 
         $form = Livewire::test(Main::class)->instance()->composer;
@@ -2541,12 +2590,12 @@ class ChannelTest extends TestCase
     public function test_a_project_chat_can_not_be_deleted_from_the_channel_module_nor_made_open(): void
     {
         $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
-        $project = \App\Models\Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
-        $channel = app(\App\Services\ProjectTask\ChannelProvisioner::class)->resolve($project->fresh());
+        $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
+        $channel = app(ChannelProvisioner::class)->resolve($project->fresh());
         $this->assertTrue($channel->isProjectLinked());
 
-        $this->assertFalse(app(\App\Livewire\Dashboard\Channel\Actions\DeleteChannelAction::class)->execute($channel->id, $owner->id));
-        $this->assertFalse(app(\App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction::class)->execute($channel));
+        $this->assertFalse(app(DeleteChannelAction::class)->execute($channel->id, $owner->id));
+        $this->assertFalse(app(ForceDeleteChannelAction::class)->execute($channel));
         $this->assertNotNull(Channel::find($channel->id));
 
         Channel::find($channel->id)->update(['type' => ChannelType::Open]);
@@ -2582,8 +2631,8 @@ class ChannelTest extends TestCase
 
         $form = Livewire::test(Main::class)->instance()->edit;
         $form->editingBody = 'late edit';
-        $this->assertFalse(app(\App\Livewire\Dashboard\Channel\Actions\SaveEditChannelMessageAction::class)->execute($form, $older->id));
-        $this->assertFalse(app(\App\Livewire\Dashboard\Channel\Actions\DeleteChannelMessageAction::class)->execute($older->id, 600));
+        $this->assertFalse(app(SaveEditChannelMessageAction::class)->execute($form, $older->id));
+        $this->assertFalse(app(DeleteChannelMessageAction::class)->execute($older->id, 600));
         $this->assertSame('older own', ChannelMessage::find($older->id)->body);
     }
 }

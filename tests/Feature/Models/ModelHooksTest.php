@@ -3,6 +3,8 @@
 namespace Tests\Feature\Models;
 
 use Tests\TestCase;
+use App\Models\Correspondence;
+use App\Models\Letterhead;
 
 class ModelHooksTest extends TestCase
 {
@@ -44,16 +46,18 @@ class ModelHooksTest extends TestCase
 
         $expectations = [
             'App\\Models\\Task' => ['HasUrgencyState', 'HasBoardRanking', 'HasCycleStep', 'HasTaskApproval'],
-            'App\\Models\\Ticket' => ['HasUrgencyState'],
+            'App\\Models\\Ticket' => ['HasUrgencyState', 'HasDailyQuota'],
             'App\\Models\\Message' => ['HasThreadMessages'],
             'App\\Models\\ChannelMessage' => ['HasThreadMessages'],
             'App\\Models\\User' => ['HasBookingRows', 'HasExtraPreferences', 'HasPresence', 'HasTodaysDesk'],
             'App\\Models\\Project' => ['HasProjectFollowUps'],
             'App\\Models\\AiReport' => ['HasActive', 'HasSharedRecipients', 'HasVersionHistory', 'HasDailyQuota', 'HasGenerationLifecycle'],
+            'App\\Models\\Correspondence' => ['HasDailyQuota', 'HasGenerationLifecycle', 'HasSharedRecipients', 'HasVersionHistory'],
+            'App\\Models\\Letterhead' => ['HasActive', 'HasLetterheadNumbering'],
         ];
 
         $relationTraits = [
-            'HasUser' => ['AiReport', 'Authority', 'ChannelMember', 'Comment', 'Credential', 'EnergyTest', 'Event', 'FAQ', 'Feed', 'Onboarding', 'Permission', 'Poll', 'Post', 'Profile', 'Reaction', 'ReleaseRequest', 'Reminder', 'Reply', 'Report', 'Reservation', 'Review', 'SkillUser', 'Suggestion'],
+            'HasUser' => ['AiReport', 'Authority', 'ChannelMember', 'Comment', 'Correspondence', 'Credential', 'EnergyTest', 'Event', 'FAQ', 'Feed', 'Onboarding', 'Permission', 'Poll', 'Post', 'Profile', 'Reaction', 'ReleaseRequest', 'Reminder', 'Reply', 'Report', 'Reservation', 'Review', 'SkillUser', 'Suggestion'],
             'HasDepartment' => ['Authority', 'FAQ', 'Photo', 'Profile', 'Report', 'Review', 'TaskDetail'],
         ];
 
@@ -68,5 +72,19 @@ class ModelHooksTest extends TestCase
                 $this->assertContains($concerns . $trait, class_uses($model), "{$model} must compose {$trait}");
             }
         }
+    }
+
+    public function test_correspondence_and_letterhead_keep_their_hook_traits_as_the_last_model_concerns(): void
+    {
+        $this->assertSame(
+            'App\\Models\\Concerns\\Hooks\\HasCorrespondenceHooks',
+            array_key_last(class_uses(Correspondence::class)),
+        );
+        $this->assertSame(
+            'App\\Models\\Concerns\\Hooks\\HasLetterheadHooks',
+            array_key_last(class_uses(Letterhead::class)),
+        );
+        $this->assertTrue(method_exists(Correspondence::class, 'bootHasCorrespondenceHooks'));
+        $this->assertTrue(method_exists(Letterhead::class, 'bootHasLetterheadHooks'));
     }
 }

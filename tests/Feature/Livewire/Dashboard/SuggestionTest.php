@@ -564,14 +564,23 @@ class SuggestionTest extends TestCase
 
     public function test_top_contributors_refresh_as_soon_as_a_suggestion_is_saved()
     {
+        $ceiling = (int) Suggestion::query()
+            ->whereIn('stage', ['accepted', 'closed'])
+            ->selectRaw('count(*) as c')
+            ->groupBy('user_id')
+            ->orderByDesc('c')
+            ->value('c');
+
         $first = User::factory()->create(['status' => 'active']);
-        $this->makeSuggestion(['user_id' => $first->id, 'stage' => 'accepted']);
+        foreach (range(0, $ceiling) as $i) {
+            $this->makeSuggestion(['user_id' => $first->id, 'stage' => 'accepted']);
+        }
         $viewer = User::factory()->create(['status' => 'active']);
 
         $this->assertSame($first->id, Livewire::actingAs($viewer)->test(Main::class)->instance()->topContributors->first()->user_id);
 
         $second = User::factory()->create(['status' => 'active']);
-        foreach (range(1, 3) as $i) {
+        foreach (range(0, $ceiling + 1) as $i) {
             $this->makeSuggestion(['user_id' => $second->id, 'stage' => 'accepted']);
         }
 

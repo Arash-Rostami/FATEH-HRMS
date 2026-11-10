@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ReleaseRequestResource\Schemas;
 
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;

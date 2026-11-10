@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\TaskResource\Pages;
 
 use App\Filament\Resources\TaskResource;
-use App\Traits\{FilamentDateHandler, FilamentPageBehavior, PreparesAdminTaskCreate};
+use App\Traits\Filament\{FilamentDateHandler, FilamentPageBehavior, PreparesAdminTaskCreate};
 use App\Filament\Pages\CreateRecord;
 
 class CreateTask extends CreateRecord

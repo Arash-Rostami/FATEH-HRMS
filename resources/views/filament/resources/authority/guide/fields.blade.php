@@ -31,7 +31,7 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">tune</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">چهار فیلدِ انتخابیِ داخلِ JSON، مقادیرِ ثابتِ پیش‌فرض دارند</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">گزینه‌های روش اجرا، تکرار، اثر و تفویض</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
         چهار گزینهٔ «روش اجرایی»، «فراوانی تکرار»، «شاخص اثر» و دو گزینهٔ «تفویض» همگی انتخابی‌اند و مقدارهایشان از فهرستی ثابت می‌آید. این مقادیر در جدول به‌صورت نشان رنگی و در خروجی اکسل به‌صورت برچسبِ فارسی نمایش داده می‌شوند. اگر اختیاری مقداری نداشته باشد، «ثبت نشده» جای آن می‌نشیند.

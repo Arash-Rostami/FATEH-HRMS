@@ -51,6 +51,7 @@ import countdown from "./data/countdown.js";
 import { calendarDrag, calendarNow, calendarResize, calendarView } from "./data/calendar.js";
 import status from "./data/status.js";
 import tabSelector from "./data/tabSelector.js";
+import tagInput from "./data/tagInput.js";
 
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
@@ -110,5 +111,6 @@ export default function initAlpine() {
         Alpine.data('calendarView', calendarView)
         Alpine.data('status', status)
         Alpine.data('tabSelector', tabSelector)
+        Alpine.data('tagInput', tagInput)
     })
 }

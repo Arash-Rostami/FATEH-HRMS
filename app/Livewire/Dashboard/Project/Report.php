@@ -7,7 +7,7 @@ use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Livewire\Dashboard\Project\Presentation\ProjectPresenter;
 use App\Models\Workflow;
 use App\Services\ProjectTask\ReportingService;
-use App\Traits\HasReportSummary;
+use App\Traits\Livewire\HasReportSummary;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Defer;

@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Navbar;
 
-use App\Traits\HasFocusMode;
+use App\Traits\Livewire\HasFocusMode;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 

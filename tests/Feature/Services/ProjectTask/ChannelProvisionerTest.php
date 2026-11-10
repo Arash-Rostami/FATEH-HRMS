@@ -4,6 +4,8 @@ namespace Tests\Feature\Services\ProjectTask;
 
 use App\Enums\ChannelType;
 use App\Models\Channel;
+use App\Models\Department;
+use App\Models\Profile;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectTask\ChannelProvisioner;
@@ -114,9 +116,9 @@ class ChannelProvisionerTest extends TestCase
         $owner = User::factory()->create(['status' => 'active']);
         $listed = User::factory()->create(['status' => 'active']);
         $inactive = User::factory()->create(['status' => 'inactive']);
-        $dept = \App\Models\Department::factory()->create();
+        $dept = Department::factory()->create();
         $deptMember = User::factory()->create(['status' => 'active']);
-        \App\Models\Profile::factory()->create(['user_id' => $deptMember->id, 'department_id' => $dept->code]);
+        Profile::factory()->create(['user_id' => $deptMember->id, 'department_id' => $dept->code]);
         $project = Project::factory()->create([
             'owner_id' => $owner->id,
             'member_ids' => [$listed->id, $inactive->id],

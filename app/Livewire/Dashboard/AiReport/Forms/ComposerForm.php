@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Dashboard\AiReport\Forms;
 
-use App\Support\AiReportUploadLimits;
 use Illuminate\Http\UploadedFile;
 use Livewire\Form;
 
@@ -22,16 +21,16 @@ class ComposerForm extends Form
 
     public function rules(): array
     {
-        $min = (int) config('ai_report.prompt.min');
-        $max = (int) config('ai_report.prompt.max');
-        $files = (int) config('ai_report.upload.max_files');
-        $kb = AiReportUploadLimits::perFileKb();
+        $min = (int) config('ai.report.prompt.min');
+        $max = (int) config('ai.report.prompt.max');
+        $files = (int) config('ai.report.upload.max_files');
+        $kb = (int) config('ai.report.upload.per_file_kb');
 
         return [
             'prompt' => "required|string|min:{$min}|max:{$max}",
-            'type' => 'required|in:' . implode(',', array_keys((array) config('ai_report.types'))),
-            'length' => 'required|in:' . implode(',', array_keys((array) config('ai_report.lengths'))),
-            'audience' => 'required|in:' . implode(',', array_keys((array) config('ai_report.audiences'))),
+            'type' => 'required|in:' . implode(',', array_keys((array) config('ai.report.types'))),
+            'length' => 'required|in:' . implode(',', array_keys((array) config('ai.report.lengths'))),
+            'audience' => 'required|in:' . implode(',', array_keys((array) config('ai.report.audiences'))),
             'block' => 'nullable|string|regex:/^\d{1,2}:\d{1,2}$/',
             'files' =>"nullable|array|max:{$files}",
             'files.*' => [
@@ -41,17 +40,17 @@ class ComposerForm extends Form
                 fn (string $attribute, mixed $value, \Closure $fail) => $value instanceof UploadedFile
                     && self::isEncryptedOffice((new \finfo(FILEINFO_MIME_TYPE))->file($value->getRealPath() ?: $value->getPathname()) ?: '', (string) $value->getClientOriginalName())
                     && $fail(self::encryptedFileMessage()),
-                'mimes:' . config('ai_report.upload.mimes'),
+                'mimes:' . config('ai.report.upload.mimes'),
             ],
         ];
     }
 
     protected function messages(): array
     {
-        $min = (int) config('ai_report.prompt.min');
-        $max = (int) config('ai_report.prompt.max');
-        $files = (int) config('ai_report.upload.max_files');
-        $mb = intdiv(AiReportUploadLimits::perFileKb(), 1024);
+        $min = (int) config('ai.report.prompt.min');
+        $max = (int) config('ai.report.prompt.max');
+        $files = (int) config('ai.report.upload.max_files');
+        $mb = intdiv((int) config('ai.report.upload.per_file_kb'), 1024);
 
         return [
             'prompt.required' => 'متن درخواست را وارد کنید.',
@@ -88,7 +87,7 @@ class ComposerForm extends Form
 
     public static function unsupportedFileMessage(): string
     {
-        $exts = str_replace(',', ', ', (string) config('ai_report.upload.mimes'));
+        $exts = str_replace(',', ', ', (string) config('ai.report.upload.mimes'));
 
         return 'قالب فایل پشتیبانی نمی‌شود. مجاز: ' . $exts . '. به‌جای .xls و .doc از .xlsx و .docx استفاده کنید؛ .ppt و .pptx پذیرفته نمی‌شود.';
     }

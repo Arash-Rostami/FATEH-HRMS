@@ -12,15 +12,18 @@ Each test file owns **one target class** and folds **all** of that target's rele
 
 | Directory | Target | File name | Reference |
 |---|---|---|---|
-| `tests/Feature/Jobs/` | a queued Job | `<Job>Test.php` | `ReconcileNudgeTest.php`, `ReconcileReminderDueTest.php` (the delayed due-time reminder reconcile) |
-| `tests/Feature/Support/` | a Support policy / helper | `<Policy>Test.php` | `TicketAccessPolicyTest.php`, `SuggestionAccessPolicyTest.php`, `FilamentPanelCustomizerTest.php` (pure, no DB — private statics via reflection + an in-memory `User` for the auth branch) |
+| `tests/Feature/Jobs/` | a queued Job | `<Job>Test.php` | `ReconcileNudgeJobTest.php`, `ReconcileReminderDueJobTest.php` (the delayed due-time reminder reconcile) |
+| `tests/Feature/Support/` | a Support policy / helper | `<Policy>Test.php` | `TicketAccessPolicyTest.php`, `SuggestionAccessPolicyTest.php`, `FileNamerTest.php` |
+| `tests/Feature/Traits/{Filament,Livewire}/` + root | a trait; the folder mirrors its home in `app/Traits` (`Traits/Filament`, `Traits/Livewire`, shared root traits stay in `tests/Feature/Traits/`; namespaces `Tests\Feature\Traits\Filament` / `Tests\Feature\Traits\Livewire`) | `<Trait>Test.php` | `Filament/FilamentFiltersTest.php`, `Filament/HandlesDroppedFilesTest.php`, `Livewire/HasTimelineMonthsTest.php`, root `CleansAttachedFilesTest.php`, `StoresAttachedFilesTest.php`, `DepartmentAxisTest.php` |
+| `tests/Feature/Providers/Filament/` | a Filament panel helper in `app/Providers/Filament` | `<Class>Test.php` | `FilamentPanelCustomizerTest.php` (pure, no DB — private statics via reflection + an in-memory `User` for the auth branch) |
+| `tests/Feature/Services/{Correspondence,Search,ProjectTask}/` | a service moved out of `app/Support` | `<Class>Test.php` | `CorrespondencePdfTest.php` (also covers `CorrespondenceFonts`), `FaultTolerantGlobalSearchProviderTest.php`, `ProjectCharterTest.php` |
 
 1a-b. **Pin `role => 'user'` on every non-elevated factory user a policy depends on** (2026-08-30): `UserFactory` assigns `role` RANDOMLY (`fake()->randomElement(['user','admin'])`). Before the `TicketAccessPolicy` elevated-bypass this was load-bearing nowhere, so old fixtures were written without a role. Any policy/authorization code that branches on `hasElevatedRole()` turns that randomness into a 50% test flake — a "stranger"/"requester" fixture can be a random admin and wrongly pass a deny-assertion. Pin `'role' => 'user'` explicitly on every non-elevated test user (see `TicketAccessPolicyTest`, `ThsResourceTest`, `ThsTest` after the 2026-08-30 fix); only explicitly-elevated fixtures set `role => 'admin'/'developer'`. (See filamentPattern.md Rule 56.)
 | `tests/Feature/Rules/` | a validation Rule | `<Rule>Test.php` | `SuperAdminExclusionTest.php` |
 | `tests/Feature/Services/` | a Service class | `<Service>Test.php` | `NudgeServiceTest.php`, `ValidationServiceTest.php` |
 | `tests/Feature/Models/` | an Eloquent Model | `<Model>ModelTest.php` | `UserModelTest.php`, `TicketModelTest.php` |
 | `tests/Feature/Config/` | one bespoke `config/*.php` file | `<Name>ConfigTest.php` | `AppConfigTest.php`, `TenantsConfigTest.php` |
-| `tests/Feature/Enums/` | an Enum | `<Enum>EnumTest.php` | `PresenceStatusEnumTest.php`, `ReservationErrorEnumTest.php`, `SkillTierEnumTest.php`, `SkillIconEnumTest.php` — all 20 `app/Enums/*` now covered (`TicketError` + `TicketErrorEnumTest` deleted 2026-11-03 as zero-reference dead code once effectiveness became optional) (`NotifyEventEnumTest` completed the set 2026-10-28; `Country` + `CountryEnumTest` deleted 2026-10-30 as zero-reference dead code — `Nationality` is the wired-in sibling) |
+| `tests/Feature/Enums/` | an Enum | `<Enum>EnumTest.php` | `PresenceStatusEnumTest.php`, `ReservationErrorEnumTest.php`, `SkillTierEnumTest.php`, `SkillIconEnumTest.php` — the 20 enums that carried tests before the 2026-11-10 flatten are covered; the 28 enums moved in from the Filament resources (presentation-only label/color/icon maps) have no dedicated file unless they carry logic (`TicketError` + `TicketErrorEnumTest` deleted 2026-11-03 as zero-reference dead code once effectiveness became optional) (`NotifyEventEnumTest` completed the set 2026-10-28; `Country` + `CountryEnumTest` deleted 2026-10-30 as zero-reference dead code — `Nationality` is the wired-in sibling) |
 | `tests/Feature/Helpers/` | a global helper in `app/Helpers/index.php` | `HelpersTest.php` | `HelpersTest.php` — one module file folding every helper function (one-file-folds-all shape; see the Exception paragraph below) |
 
 The `ModelTest` suffix on the Models files is deliberate — it disambiguates `TicketModelTest` (the Eloquent model) from `ThsTest` (the Livewire component) and `ThsResourceTest` (the Filament resource).
@@ -65,7 +68,7 @@ Cache and static state are **not** transactional, so a warmed value leaks across
 
 - **Targeted `Cache::forget('exact-key')`** when you know the key — preferred. `ValidationServiceTest` forgets `reservation_policies_{$type}` per `ResourceType` + `reservation_disabled_types`.
 - **Blanket `Cache::flush()`** when several keys are touched — `StateServiceTest`, `NudgeServiceTest`, `UserModelTest`, `TicketModelTest`.
-- **Static arrays on the target class** — `NudgeService::reset()` in `ReconcileNudgeTest` and `NudgeServiceTest` (the booted `NudgeServiceProvider` pre-registers real nudges; `reset()` clears `$rules`/`$registered`/`$wired` so a test's fake rule is the only one live).
+- **Static arrays on the target class** — `NudgeService::reset()` in `ReconcileNudgeJobTest` and `NudgeServiceTest` (the booted `NudgeServiceProvider` pre-registers real nudges; `reset()` clears `$rules`/`$registered`/`$wired` so a test's fake rule is the only one live).
 - **Laravel `once()` memoization** — `Once::flush()` + `Cache::forget('permission_modules')` in `SuperAdminExclusionTest`, because `Permission::availableModules()` memoizes via `once(Cache::remember(...))` and the call-site hash survives between tests.
 - **First-class callable `Cache::forget(...)` inside model events is unreliable** — a `booted()` closure written as `fn() => collect($keys)->each(Cache::forget(...))` does NOT reliably forget keys that were primed via `Cache::remember($key, <DateTime TTL>, ...)`. `Collection::each` passes `(value, key)`, so the call becomes `Cache::forget('user_all_options', 1)` (2-arg), and that path silently fails to evict `Cache::remember`-stored entries while still evicting `Cache::put`-stored ones. Use an explicit `foreach ($keys as $k) { Cache::forget($k); }` (or `each(fn($k) => Cache::forget($k))`) — direct 1-arg `Cache::forget($k)` works inside `created`/`saved`/`deleted` listeners. `UserModelTest::test_creating_user_invalidates_cached_all_option_list` guards this: prime `user_all_options` via `getCachedAllOptions()`, create a user, assert `Cache::has('user_all_options')` is false and the refreshed map includes the new user.
 - **Private static caches on a class** — reset via reflection in tearDown: `ContentSanitizerServiceTest` resets `ContentSanitizerService::$dbIsUtf8mb4` to `null`; `UserModelTest` calls `User::resetTodaysDeskCache()` (and the `resetTodaysDeskCache` test reflects into `$todaysDeskCache` to prove it clears).
@@ -76,6 +79,10 @@ If you grep the target for `Cache::`, `->shouldCache()`, `once(`, `static $`, or
 ---
 
 ## 4. Direct-invocation patterns (not everything goes through a component)
+
+**Import classes at the top; no inline FQNs in method bodies (2026-11-10 hygiene sweep).** Every major class a test touches — app classes, `Livewire\`, `Filament\`, `Illuminate\` — gets a top-of-file `use` import; method-body `\App\Foo::class`, `\Illuminate\...\Exception::class`, `\Filament\Facades\Filament::` spellings are not allowed in new or moved code. Alias when names clash (`Illuminate\Http\Client\Factory as HttpClientFactory`, `Filament\Schemas\Schema as FilamentSchema`). Exception: assertion *string literals* that intentionally contain a class name (e.g. `assertSee('App\\Filament\\Widgets\\AccountWidget', false)`) are not FQNs and stay as strings.
+
+These tests exercise the class directly, not through Livewire/Filament. Resolve DI with `app()`:
 
 These tests exercise the class directly, not through Livewire/Filament. Resolve DI with `app()`:
 
@@ -90,7 +97,7 @@ app(SmsChannel::class)->text($recipient, $message);
 - `Http::fake()` for real HTTP services; assert with `Http::assertSent(fn ($r) => ...)`.
 - `Log::shouldReceive(...)` when the service logs instead of calling HTTP — `SmsChannelTest` uses `Log::shouldReceive('info')->andThrow(...)` + `Log::shouldReceive('error')` to prove `text()` catches a log failure and returns `false` without propagating.
 
-**Static methods** (policies, `NudgeService::reconcile`, `HolidayService::getAll`, `Ticket::isClosingStatus`) are called directly; do not mock them. To test a static method that defers to registered state, register a stub (`NudgeServiceTest` builds an anonymous `MenuNudge` implementation; `ReconcileNudgeTest` does the same to drive `handle()`).
+**Static methods** (policies, `NudgeService::reconcile`, `HolidayService::getAll`, `Ticket::isClosingStatus`) are called directly; do not mock them. To test a static method that defers to registered state, register a stub (`NudgeServiceTest` builds an anonymous `MenuNudge` implementation; `ReconcileNudgeJobTest` does the same to drive `handle()`).
 
 ---
 
@@ -132,6 +139,8 @@ private function fails(SuperAdminExclusion $rule, mixed $value): bool
 
 ---
 
+- **Correspondence fixtures (2026-11-10):** `Correspondence::forceCreate()` still runs the model's `saving` hooks, which REBUILD `search_text` from `spec.blocks` (and scrub the body), so a hand-forced `search_text` is silently replaced (null when `spec` is empty). Put the searchable text in `spec => ['blocks' => [['type' => 'text', 'text' => ...]]]`. Also, the hook traits `HasCorrespondenceHooks` / `HasLetterheadHooks` live in `Concerns\Hooks\`, not `Concerns\`: pin them in the dedicated last-trait test, not in the `Concerns\` list.
+
 ## 7. Config-test conventions (`tests/Feature/Config/`)
 
 Only test config files that carry **bespoke logic or hand-authored content data** — precedence rules, computed values, cross-file consumer contracts. Skip stock Laravel skeleton files (`auth.php`, `cache.php`, `database.php`, `fortify.php`, `livewire.php`, `mail.php`, `queue.php`, `services.php`, `session.php`, `logging.php`) and pure pass-through data (`colors.php` — a flat map to Filament's own `Color` enum, nothing to assert). Current coverage: `AppConfigTest`, `FilesystemsConfigTest`, `TenantsConfigTest`, `ModulesConfigTest`, `ReleasesConfigTest`, `FileUploadLimitsConfigTest`.
@@ -159,7 +168,7 @@ Never `markTestSkipped` to dodge a fragile mock or an unfinished test — fix th
 
 ## 9. Comment policy
 
-Match the rest of the suite: **no code comments.** A 1-2 line class-level docblock describing what the file covers is acceptable (see `ReconcileNudgeTest`, `DmsKeyGrouperTest`); a few essential inline words on a non-obvious regression guard are acceptable. No narration, no per-method comments. (Project-wide preference: `feedback_no_comments`.)
+Match the rest of the suite: **no code comments.** A 1-2 line class-level docblock describing what the file covers is acceptable (see `ReconcileNudgeJobTest`, `DmsKeyGrouperTest`); a few essential inline words on a non-obvious regression guard are acceptable. No narration, no per-method comments. (Project-wide rule: no code comments anywhere, see the code-reviewer skill, Execution Guidelines 4.)
 
 ---
 
@@ -170,6 +179,8 @@ A test written purely to investigate/verify a hypothesis mid-debugging (a repro 
 ---
 
 ## 10. Running
+
+Runs need the owner's go-ahead: ask once at stage end, background only (they slow the owner's machine).
 
 ```bash
 php artisan test tests/Feature/Jobs
@@ -188,7 +199,7 @@ The combined command runs all core layers at once — the cross-file cache/stati
 
 Run the single class while iterating (`--filter="NudgeServiceTest"`), then the whole category, then the combined command before finishing — the combined run catches cross-file cache/queue/static leaks that a single-class run hides.
 
-**Status as of 2026-08-14:** the combined core + Enums suite is green at the committed state with 9 categorized skips. Enum coverage is now complete: all 17 `app/Enums/*` have a dedicated `*EnumTest.php` (`SkillIconEnumTest`/`SkillRequestStatusEnumTest`/`SkillTierEnumTest` filled the last gaps; `SkillIcon` is a pure-cases enum — cases-count/order/uniqueness/`default()`/`tryFrom`/`from` only, no method map). Run: `php artisan test tests/Feature/Jobs tests/Feature/Support tests/Feature/Rules tests/Feature/Services tests/Feature/Models tests/Feature/Config tests/Feature/Enums tests/Feature/Helpers`. Test/assertion totals drift while the working tree is mid-edit, so they are intentionally not pinned here; the stable figure is the §8 skip count (4 categories, 9 skips as of 2026-08-14) — if a run shows a different skip count, re-verify each extra/missing skip against §8 and update §8's list rather than trusting the raw number, and never record a skip count in this status line that §8 does not account for.
+**Status as of 2026-08-14:** the combined core + Enums suite is green at the committed state with 9 categorized skips. Enum coverage of the original set is complete: the first 17 `app/Enums/*` have a dedicated `*EnumTest.php` (`SkillIconEnumTest`/`SkillRequestStatusEnumTest`/`SkillTierEnumTest` filled the last gaps; `SkillIcon` is a pure-cases enum — cases-count/order/uniqueness/`default()`/`tryFrom`/`from` only, no method map). Run: `php artisan test tests/Feature/Jobs tests/Feature/Support tests/Feature/Rules tests/Feature/Services tests/Feature/Models tests/Feature/Config tests/Feature/Enums tests/Feature/Helpers`. Test/assertion totals drift while the working tree is mid-edit, so they are intentionally not pinned here; the stable figure is the §8 skip count (4 categories, 9 skips as of 2026-08-14) — if a run shows a different skip count, re-verify each extra/missing skip against §8 and update §8's list rather than trusting the raw number, and never record a skip count in this status line that §8 does not account for.
 
 ---
 
@@ -277,3 +288,7 @@ Other `markTestSkipped` calls exist but are conditional and do not fire on the c
 ## Jalali-boundary rule (2026-10-19)
 
 Any rule or screen that buckets by month needs at least one test that straddles a Jalali month boundary (31 Mordad / 1 Shahrivar, 30 Mehr / 1 Aban); a Gregorian regression must fail loudly. See `resources/views/viewPattern.md` §8.36–8.37.
+
+## Rendered-HTML assertion rule (2026-11-10)
+
+Assert on what the DOM actually contains, never on what the blade source says. Component props get compiled away or re-embedded in other forms: a `<x-ui.modals.dialog :name="$name">` renders its name inside `x-data="{ show: false, name: '...' }"` (single-quoted JS) — a needle of the source's `name="..."` attribute form will never match, while `strpos` on a JS-form needle silently returns `false` and an `assertLessThan(strpos(), strpos())` comparison then fails on `false`-vs-number, not on order. Grep the needle in a probe dump of the real `->html()` once when writing the assertion, and prefer `assertNotFalse`/`assertMatchesRegularExpression` over raw `strpos()` comparisons so a vanished needle fails loudly instead of comparing `false`. (AiReportTest header-buttons test, 2026-11-10.)

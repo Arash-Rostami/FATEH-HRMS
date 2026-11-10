@@ -29,8 +29,8 @@
                             <div wire:key="ai-report-block-tools-{{ $p }}-{{ $b }}" class="print:hidden absolute top-0 end-0 z-10 flex items-center gap-0.5 max-sm:static max-sm:justify-end max-sm:mb-1 opacity-60 hover:opacity-100 focus-within:opacity-100 transition-opacity">
                                 @if($editable)
                                     <button wire:key="ai-report-block-refine-{{ $p }}-{{ $b }}" type="button" wire:click="editBlock('{{ $p }}:{{ $b }}')" title="اصلاح این بخش با هوش مصنوعی" aria-label="اصلاح این بخش با هوش مصنوعی"
-                                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
-                                        <span class="material-symbols-rounded text-lg">autorenew</span>
+                                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--ai-color)] hover:bg-[var(--ai-bg)] hover:text-[var(--ai-text)] transition-colors">
+                                        <span class="material-symbols-rounded text-lg">auto_awesome</span>
                                     </button>
                                 @endif
                                 @if($manual)

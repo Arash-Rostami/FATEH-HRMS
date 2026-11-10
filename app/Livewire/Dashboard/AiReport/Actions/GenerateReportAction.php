@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Services\AiReport\BlockCatalog;
 use App\Services\AiReport\FileExtractor;
 use App\Support\AiReportAccessPolicy;
-use App\Support\AiReportUploadLimits;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -37,7 +36,7 @@ class GenerateReportAction
 
         $names = array_column($staged, 'name');
         try {
-            $report = Cache::lock('ai-report:generate:' . $user->id, (int) config('ai_report.lock.ttl'))->block((int) config('ai_report.lock.wait'), function () use ($user, $parent, $form, $names) {
+            $report = Cache::lock('ai-report:generate:' . $user->id, (int) config('ai.report.lock.ttl'))->block((int) config('ai.report.lock.wait'), function () use ($user, $parent, $form, $names) {
                 if (AiReport::quotaUsed($user->id) >= AiReport::quotaCap()) {
                     throw ValidationException::withMessages(['form.prompt' => self::QUOTA]);
                 }
@@ -140,10 +139,10 @@ class GenerateReportAction
         $staged = [];
         $total = 0;
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $cap = AiReportUploadLimits::totalKb() * 1024;
-        $inlineCap = AiReportUploadLimits::inlineKb() * 1024;
+        $cap = (int) config('ai.report.upload.total_kb') * 1024;
+        $inlineCap = (int) config('ai.report.upload.inline_kb') * 1024;
         $inlineTotal = 0;
-        $inlineTotalCap = AiReportUploadLimits::inlineTotalKb() * 1024;
+        $inlineTotalCap = (int) config('ai.report.upload.inline_total_kb') * 1024;
         foreach ($form->files as $file) {
             if (!$file instanceof UploadedFile) {
                 throw ValidationException::withMessages(['form.files' => 'فایل پیوست معتبر نیست.']);

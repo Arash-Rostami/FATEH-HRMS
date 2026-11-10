@@ -6,7 +6,7 @@ use App\Models\Department;
 use App\Models\Suggestion;
 use App\Rules\SuggestionSubmitterNotFromMaOrMg;
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;

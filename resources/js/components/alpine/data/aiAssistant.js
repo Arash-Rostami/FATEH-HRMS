@@ -11,13 +11,18 @@ export default function aiAssistant(baseSrc) {
         return PAGE_RE.test(page) ? page.toLowerCase() : '';
     };
 
+    const HEADER_PEEK_MS = 2500;
+    const HEADER_LEAVE_MS = 600;
+
     let origin = '';
+    let hideTimer;
 
     return {
         open: false,
         maximized: false,
         loaded: false,
         frameReady: false,
+        headerShown: true,
         src: '',
 
         init() {
@@ -41,11 +46,32 @@ export default function aiAssistant(baseSrc) {
 
             this.open = true;
             this.loaded = true;
+            this.showHeader();
+            this.hideHeaderSoon(HEADER_PEEK_MS);
         },
 
         close() {
+            clearTimeout(hideTimer);
             this.open = false;
             this.maximized = false;
+            this.headerShown = true;
+        },
+        showHeader() {
+            clearTimeout(hideTimer);
+            this.headerShown = true;
+        },
+        hideHeaderSoon(ms = HEADER_LEAVE_MS) {
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => {
+                this.headerShown = false;
+            }, ms);
+        },
+        toggleHeader() {
+            if (this.headerShown) this.hideHeaderSoon(0);
+            else this.showHeader();
+        },
+        leaveHeader(event) {
+            if (!event?.currentTarget?.contains(event.relatedTarget)) this.hideHeaderSoon();
         },
         toggleMaximized() {
             this.maximized = !this.maximized;

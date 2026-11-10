@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\AuthorityResource\Exports;
 
-use App\Filament\Resources\AuthorityResource\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
+use App\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
 use App\Models\Authority;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;

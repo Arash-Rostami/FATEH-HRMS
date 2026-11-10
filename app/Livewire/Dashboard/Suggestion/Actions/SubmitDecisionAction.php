@@ -11,6 +11,7 @@ use App\Services\Menu\StateService;
 use App\Support\SuggestionAccessPolicy;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class SubmitDecisionAction
 {
@@ -22,7 +23,7 @@ class SubmitDecisionAction
 
         $validDepts = Department::getCachedModels()->keys()->all();
         if (array_diff($form->referralDepts, $validDepts)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'decisionForm.referralDepts' => 'یک یا چند واحد انتخابی معتبر نیست.',
             ]);
         }

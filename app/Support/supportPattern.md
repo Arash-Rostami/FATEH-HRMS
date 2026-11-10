@@ -1,8 +1,10 @@
-# `app/Support` — the access policies and the project charter
+# `app/Support` — the access policies and upload helpers
 
 Static, framework-light rule classes. Every screen, action, bulk path, report, calendar, badge and the admin panel asks THESE, never a hand-rolled check. Authorization lives here; lifecycle lives in model hooks (`Task::booted`, `TaskDetail`, `Project::booted`); metrics live in `App\Services\ProjectTask\TaskMetrics`.
 
-Files: `TaskAccessPolicy`, `ProjectAccessPolicy`, `TicketAccessPolicy`, `SuggestionAccessPolicy` (unchanged, review-stage gate), `AiReportAccessPolicy` (§3b), `AiReportUploadLimits` (§3c), `ProjectCharter`, plus the Filament helpers `FaultTolerantGlobalSearchProvider` / `FilamentPanelCustomizer` (see `app/Filament/filamentPattern.md`).
+Files: `TaskAccessPolicy`, `ProjectAccessPolicy`, `TicketAccessPolicy`, `SuggestionAccessPolicy` (unchanged, review-stage gate), `AiReportAccessPolicy` (§3b), `CorrespondenceAccessPolicy` (§3d), `FileNamer` (§5).
+
+Moved out (2026-11-10): `CorrespondencePdf` + `CorrespondenceFonts` -> `app/Services/Correspondence/` (`servicePattern.md` §4d); `ProjectCharter` -> `app/Services/ProjectTask/` (`servicePattern.md` §4e); `FaultTolerantGlobalSearchProvider` -> `app/Services/Search/` (`filamentPattern.md` rule 65); `FilamentPanelCustomizer` -> `app/Providers/Filament/` (`providersPattern.md`).
 
 ## 1. `TaskAccessPolicy` (final, all static, user nullable -> false)
 
@@ -34,25 +36,13 @@ Cycle lock (`Task::isCycleLocked()`): the CURRENT step task of an ACTIVE cycle c
 
 `canView` (the owner always, even when inactive; otherwise the report must be `active` AND the viewer an elevated role or an active recipient of a SAVED + ready report), `canGenerate` (active non-Guest user AND `ReportAiService::isConfigured()`), `canRefine` (owner, `active`, ready or failed), `canSave` (owner, ready), `canShare` (`canSave` AND `active`), `canRename` / `canRevert` (`canSave` AND `active` AND no recipients - a shared or inactive report is frozen), `canDelete` (owner, not generating), `canToggleActive` (= `canDelete`). The presenter's permission helpers only delegate here. See `app/Livewire/Dashboard/AiReport/reportPattern.md`.
 
-## 3c. `AiReportUploadLimits` (final, all static, KB integers)
+## 3d. `CorrespondenceAccessPolicy` (final, all static, user nullable -> false)
 
-The one resolver for the AI Report upload sizes: `perFileKb()`, `inlineKb()` (each PDF/image sent inline), `inlineTotalKb()` (all inline files together) and `totalKb()` (every attachment together). Each reads the nested `config('file_upload_limits.ai.{report,inline,inline_total,total}')` first; a value of 0 or missing falls back to `ai_report.upload.inline_kb` / `inline_total_kb` / `total_kb`, and for `report` to the flat tier named by `ai_report.upload.tier` (`file_upload_limits.document`). Consumers: `ComposerForm` (per-file `max:` rule), `GenerateReportAction::stage()` (inline, inline-total and grand-total caps) and `AiReportPresenter::limits()` (the megabyte figures in the composer hint and the legend) - never read the config keys directly, so form, action and copy cannot drift.
-
-## 4. `ProjectCharter` (final; `Project::charter()` memoizes one instance per Project, reset on save)
-
-The project governs people, dates and labels for its tasks. Zero migrations: everything reads `projects.settings` JSON through the instance.
-
-- Roster: `rosterQuery()` = `User::visibleOnBoard()` where owner OR `member_ids` OR profile department in `departments`; `rosterIds()` (memoized, one query), `rosterOptions()` ([id => name] for pickers), `isMember()`. Used for assignment validation, task/cycle pickers, @mention list, header member count, project chat audience (`SyncProjectChannelMembershipJob`), owner succession (`Project::ensureActiveOwner`).
-- Dates: `cap()` (settings.deadline end of day), `slaHours()`, `defaultDeadline($from)` (SLA default clamped to the cap; only when the user gave no deadline), `clamp()` (cycle population only), `assertDeadline($deadline, $current, $key)` — the cap is checked ONLY when the deadline actually changed or the project changed, so legacy over-cap tasks stay editable.
-- Labels: `labels()` is the project vocabulary (`settings.labels`); `assertLabels($new, $old, $key)` is STRICT when the vocabulary is non-empty and validates only labels ADDED since the task's current ones (legacy labels survive); empty vocabulary = free text. `normalizeLabels()` (static) folds Arabic ي/ك to Persian and dedupes.
-- Other knobs: `requiresApproval()`, `customSchema()`, `autoArchiveDays()` (default 45; `ArchiveStaleDoneTasks` reads it), `escalationDays()` (default 3, 0 = off; overdue escalation to the accountable), `dueSoonHours()` (default 24), `defaultDepartment()` (the single department when the project has exactly one; applied on create only).
-- `Project::KNOWN_SETTING_KEYS` = requires_approval, sla, deadline, custom_schema, labels, auto_archive_days; `Project::SETTING_LABELS` names the extra keys (`escalation_days`, `due_soon_hours`) for the settings chips; `Project::pruneSettings` drops empty values on save.
-- Null project (personal task) means the caller skips the charter entirely.
+`canView` (live user + letter not trashed; the author always; anyone else only when the status is not draft-like/saved AND they are in `recipients` or hold a `parties` entry), `canEdit` (author while draft-like/saved/rejected; an `approver` party while `shared`), `isAuthor`, `partyOf`, `isRegistry` (active user with `extra.admin.correspondence_registry` truthy — the admin toggle «مسئول ثبت نامه‌های دریافتی»), `canRegistry` (a clerk may open, metadata-only, a letter in `CorrespondencePresenter::REGISTRY_STATUSES` she cannot otherwise view), `canSteward` (author, or a clerk on a normal-classification letter / one she can view: wet-sign steps and manual delivery). The presenter, the `*LetterAction` classes and `Letter*` support classes, `GenerateAction`, Search and the PDF controller all ask here; `LetterFlow::run` re-asks on the locked row. See `app/Livewire/Dashboard/Correspondence/correspondencePattern.md` §4.
 
 ## 5. `FileNamer` (2026-10-14) — the one upload-naming standard
 
 `FileNamer::prefix()` = `strtoupper(config('app.tenant'))` (the `config/tenants.php` array key, never a hardcoded brand). `FileNamer::stored($module, $file)` returns `{PREFIX}-{MODULE}-{Ymd}-{random12}-{time}.{ext}` with the ext mime-guessed (`extension()`, client ext only as fallback) — the variables are defined first, the return composes them, and callers pass it as the `$fileName` closure of `storeAttachment()`/`storeAttachments()` (resolved BEFORE `storeAs()`, per livewirePattern.md's metadata-before-store rule) or from a Filament `getUploadedFileNameForStorageUsing`. `FileNamer::download($ext, ...$parts)` builds the ASCII-safe name a user receives (`PERSOL-CODE-v2-excel-2.xlsx`), derived at serve time so old files get it too. Adopted by DMS (prefix only — `DmsFormPresenter::forgeFileName` keeps its own variable block plus slug), THS, release request, report, suggestion, task, resource, feed, gallery, post, link, onboarding. Deliberately NOT applied to private uploads (profile docs/images, chat attachments). Never rename or rewrite stored paths: old records keep their old names.
-
 ## 6. Rules
 
 - A new "who may do X" question becomes a policy verb here first, then every caller (Livewire action, Kanban, bulk action, Filament page/action, search) uses it. Filament actions additionally require the panel's `update` permission (`filamentPattern.md`).

@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\FeedResource\RelationManagers;
 
 use App\Models\Poll;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use Filament\Actions\BulkAction;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Select;

@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\UserResource\RelationManagers;
 
-use App\Traits\FilamentActions;
-use App\Traits\FilamentWorkflowPresenter;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentWorkflowPresenter;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;

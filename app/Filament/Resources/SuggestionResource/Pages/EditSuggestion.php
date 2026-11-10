@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\SuggestionResource\Pages;
 
 use App\Filament\Resources\SuggestionResource;
-use App\Traits\FilamentEditHeading;
-use App\Traits\FilamentHeaderActions;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentEditHeading;
+use App\Traits\Filament\FilamentHeaderActions;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\EditRecord;
 
 class EditSuggestion extends EditRecord

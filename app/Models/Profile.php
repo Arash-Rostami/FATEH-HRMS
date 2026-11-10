@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ProfileDetailGroup;
-use App\Filament\Resources\ProfileResource\Enums\Position;
+use App\Enums\Position;
 use App\Models\Concerns\HasAvatar as HasImage;
 use App\Models\Concerns\HasDateHelpers;
 use App\Models\Concerns\HasMenuState;
@@ -82,9 +82,9 @@ class Profile extends Model
     {
         return [
             'department_id' => 'department',
-            'employment_type' => \App\Filament\Resources\ProfileResource\Enums\EmploymentType::class,
-            'employment_status' => \App\Filament\Resources\ProfileResource\Enums\EmploymentStatus::class,
-            'degree' => \App\Filament\Resources\ProfileResource\Enums\Degree::class,
+            'employment_type' => \App\Enums\EmploymentType::class,
+            'employment_status' => \App\Enums\EmploymentStatus::class,
+            'degree' => \App\Enums\Degree::class,
         ];
     }
 

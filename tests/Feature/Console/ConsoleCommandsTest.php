@@ -2,9 +2,10 @@
 
 namespace Tests\Feature\Console;
 
-use App\Jobs\ReconcileEdge;
-use App\Jobs\ReconcileNudge;
-use App\Jobs\ReconcileReminderDue;
+use App\Jobs\ReconcileEdgeJob;
+use App\Jobs\ReconcileNudgeJob;
+use App\Jobs\ReconcileReminderDueJob;
+use App\Jobs\SendReminderSmsJob;
 use App\Models\Channel;
 use App\Models\Edge;
 use App\Models\Project;
@@ -14,6 +15,7 @@ use App\Models\Suggestion;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\ReminderDueNotification;
+use Filament\Actions\Exports\Models\Export;
 use Filament\Notifications\DatabaseNotification as FilamentDatabaseNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -356,6 +358,21 @@ class ConsoleCommandsTest extends TestCase
         $this->assertTrue(DB::table('notifications')->where('id', $staleReplyBadge)->exists());
     }
 
+    public function test_prune_stale_nudges_sweeps_fresh_nudge_rows_of_deactivated_users_only(): void
+    {
+        $active = User::factory()->create(['status' => 'active']);
+        $inactive = User::factory()->create(['status' => 'inactive']);
+        $activeNudge = $this->makeNotification('dms:tickets:nudge', $active, 1);
+        $inactiveNudge = $this->makeNotification('dms:tickets:nudge', $inactive, 1);
+        $inactiveBadge = $this->makeNotification('dms:tickets', $inactive, 1);
+
+        Artisan::call('notifications:prune-stale');
+
+        $this->assertTrue(DB::table('notifications')->where('id', $activeNudge)->exists());
+        $this->assertFalse(DB::table('notifications')->where('id', $inactiveNudge)->exists());
+        $this->assertTrue(DB::table('notifications')->where('id', $inactiveBadge)->exists());
+    }
+
     public function test_prune_stale_nudges_rejects_non_positive_days(): void
     {
         $exit = Artisan::call('notifications:prune-stale', ['--days' => 0]);
@@ -419,7 +436,7 @@ class ConsoleCommandsTest extends TestCase
         $exit = Artisan::call('edges:prune-stale');
 
         $this->assertSame(0, $exit);
-        $this->assertCount(1, Queue::pushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === '101' && $job->subjectClass === Channel::class));
+        $this->assertCount(1, Queue::pushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === '101' && $job->subjectClass === Channel::class));
         $this->assertSame(4, Edge::query()->whereIn('user_id', [$a->id, $b->id, $c->id, $d->id])->count());
     }
 
@@ -537,10 +554,10 @@ class ConsoleCommandsTest extends TestCase
         $exit = Artisan::call('tasks:sweep-overdue');
 
         $this->assertSame(0, $exit);
-        Queue::assertPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectId === $overdue->id);
-        Queue::assertNotPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectId === $future->id);
-        Queue::assertNotPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectId === $doneOverdue->id);
-        Queue::assertNotPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectId === $pendingOverdue->id);
+        Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectId === $overdue->id);
+        Queue::assertNotPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectId === $future->id);
+        Queue::assertNotPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectId === $doneOverdue->id);
+        Queue::assertNotPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectId === $pendingOverdue->id);
     }
 
     public function test_nudge_overdue_tasks_also_sweeps_the_due_soon_edge_toast_for_tasks_entering_the_window_without_a_save(): void
@@ -556,10 +573,10 @@ class ConsoleCommandsTest extends TestCase
         $exit = Artisan::call('tasks:sweep-overdue');
 
         $this->assertSame(0, $exit);
-        Queue::assertPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $dueSoon->id);
-        Queue::assertNotPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $farOut->id);
-        Queue::assertNotPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $alreadyOverdue->id);
-        Queue::assertNotPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $doneDueSoon->id);
+        Queue::assertPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $dueSoon->id);
+        Queue::assertNotPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $farOut->id);
+        Queue::assertNotPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $alreadyOverdue->id);
+        Queue::assertNotPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $doneDueSoon->id);
     }
 
     private function makeReminder(User $user, array $overrides = []): Reminder
@@ -587,11 +604,11 @@ class ConsoleCommandsTest extends TestCase
         $exit = Artisan::call('reminders:sweep-due');
 
         $this->assertSame(0, $exit);
-        Queue::assertPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectId === $overdue->id);
-        Queue::assertPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectId === $dueToday->id);
-        Queue::assertNotPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectId === $future->id);
-        Queue::assertNotPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectId === $completed->id);
-        Queue::assertNotPushed(ReconcileNudge::class, fn(ReconcileNudge $job) => $job->subjectId === $snoozed->id);
+        Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectId === $overdue->id);
+        Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectId === $dueToday->id);
+        Queue::assertNotPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectId === $future->id);
+        Queue::assertNotPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectId === $completed->id);
+        Queue::assertNotPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $job) => $job->subjectId === $snoozed->id);
     }
 
     public function test_nudge_due_reminders_dispatches_reconcile_edge_only_for_strictly_due_today_reminders(): void
@@ -604,8 +621,8 @@ class ConsoleCommandsTest extends TestCase
 
         Artisan::call('reminders:sweep-due');
 
-        Queue::assertPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $dueToday->id);
-        Queue::assertNotPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $overdue->id);
+        Queue::assertPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $dueToday->id);
+        Queue::assertNotPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $overdue->id);
     }
 
     public function test_with_notify_off_the_three_in_app_reminder_channels_keep_working_but_nothing_is_mailed_or_texted(): void
@@ -619,14 +636,14 @@ class ConsoleCommandsTest extends TestCase
 
         Artisan::call('reminders:sweep-due');
 
-        Queue::assertPushed(ReconcileEdge::class, fn(ReconcileEdge $job) => $job->subjectId === $reminder->id);
-        Queue::assertNotPushed(\App\Jobs\SendReminderSms::class);
+        Queue::assertPushed(ReconcileEdgeJob::class, fn(ReconcileEdgeJob $job) => $job->subjectId === $reminder->id);
+        Queue::assertNotPushed(SendReminderSmsJob::class);
         Notification::assertNothingSentTo($user);
         $this->assertNull($reminder->fresh()->notified_at);
         $this->assertSame(['inapp:edge,badge,nudge', 'email', 'sms'], $reminder->fresh()->channels);
-        $this->assertTrue(\App\Models\Reminder::channelEnabled($reminder->fresh()->channels, 'badge'));
-        $this->assertTrue(\App\Models\Reminder::channelEnabled($reminder->fresh()->channels, 'nudge'));
-        $this->assertTrue(\App\Models\Reminder::channelEnabled($reminder->fresh()->channels, 'edge'));
+        $this->assertTrue(Reminder::channelEnabled($reminder->fresh()->channels, 'badge'));
+        $this->assertTrue(Reminder::channelEnabled($reminder->fresh()->channels, 'nudge'));
+        $this->assertTrue(Reminder::channelEnabled($reminder->fresh()->channels, 'edge'));
     }
 
     public function test_sweep_queues_the_reminder_sms_once_and_skips_it_when_the_tenant_switched_sms_off(): void
@@ -640,8 +657,8 @@ class ConsoleCommandsTest extends TestCase
         Artisan::call('reminders:sweep-due');
         Artisan::call('reminders:sweep-due');
 
-        Queue::assertPushed(\App\Jobs\SendReminderSms::class, 1);
-        Queue::assertPushed(\App\Jobs\SendReminderSms::class, fn ($job) => $job->reminderId === $reminder->id);
+        Queue::assertPushed(SendReminderSmsJob::class, 1);
+        Queue::assertPushed(SendReminderSmsJob::class, fn ($job) => $job->reminderId === $reminder->id);
         Notification::assertNothingSent();
 
         $off = $this->makeReminder($user, ['due_at' => now(), 'channels' => ['sms']]);
@@ -650,7 +667,7 @@ class ConsoleCommandsTest extends TestCase
 
         Artisan::call('reminders:sweep-due');
 
-        Queue::assertNotPushed(\App\Jobs\SendReminderSms::class);
+        Queue::assertNotPushed(SendReminderSmsJob::class);
         $this->assertNull($off->fresh()->notified_at);
     }
 
@@ -723,10 +740,10 @@ class ConsoleCommandsTest extends TestCase
 
         Artisan::call('reminders:sweep-due');
 
-        Queue::assertPushed(ReconcileReminderDue::class, fn (ReconcileReminderDue $job) => $job->reminderId === $soon->id);
-        Queue::assertPushed(ReconcileReminderDue::class, fn (ReconcileReminderDue $job) => $job->reminderId === $snoozed->id);
-        Queue::assertNotPushed(ReconcileReminderDue::class, fn (ReconcileReminderDue $job) => $job->reminderId === $later->id);
-        Queue::assertNotPushed(ReconcileReminderDue::class, fn (ReconcileReminderDue $job) => $job->reminderId === $done->id);
+        Queue::assertPushed(ReconcileReminderDueJob::class, fn (ReconcileReminderDueJob $job) => $job->reminderId === $soon->id);
+        Queue::assertPushed(ReconcileReminderDueJob::class, fn (ReconcileReminderDueJob $job) => $job->reminderId === $snoozed->id);
+        Queue::assertNotPushed(ReconcileReminderDueJob::class, fn (ReconcileReminderDueJob $job) => $job->reminderId === $later->id);
+        Queue::assertNotPushed(ReconcileReminderDueJob::class, fn (ReconcileReminderDueJob $job) => $job->reminderId === $done->id);
     }
 
     public function test_sweep_due_never_queues_the_same_due_moment_twice(): void
@@ -740,7 +757,7 @@ class ConsoleCommandsTest extends TestCase
         Artisan::call('reminders:sweep-due');
         Artisan::call('reminders:sweep-due');
 
-        $this->assertCount(1, Queue::pushed(ReconcileReminderDue::class, fn (ReconcileReminderDue $job) => $job->reminderId === $soon->id));
+        $this->assertCount(1, Queue::pushed(ReconcileReminderDueJob::class, fn (ReconcileReminderDueJob $job) => $job->reminderId === $soon->id));
     }
 
     public function test_sweep_due_toast_and_email_wait_for_the_reminder_time_of_day(): void
@@ -756,16 +773,16 @@ class ConsoleCommandsTest extends TestCase
 
             Artisan::call('reminders:sweep-due');
 
-            Queue::assertNotPushed(ReconcileEdge::class, fn (ReconcileEdge $job) => $job->subjectId === $reminder->id);
-            Queue::assertNotPushed(ReconcileNudge::class, fn (ReconcileNudge $job) => $job->subjectId === $reminder->id);
+            Queue::assertNotPushed(ReconcileEdgeJob::class, fn (ReconcileEdgeJob $job) => $job->subjectId === $reminder->id);
+            Queue::assertNotPushed(ReconcileNudgeJob::class, fn (ReconcileNudgeJob $job) => $job->subjectId === $reminder->id);
             Notification::assertNothingSent();
 
             Carbon::setTestNow('2026-03-10 15:05:00');
 
             Artisan::call('reminders:sweep-due');
 
-            Queue::assertPushed(ReconcileEdge::class, fn (ReconcileEdge $job) => $job->subjectId === $reminder->id);
-            Queue::assertPushed(ReconcileNudge::class, fn (ReconcileNudge $job) => $job->subjectId === $reminder->id);
+            Queue::assertPushed(ReconcileEdgeJob::class, fn (ReconcileEdgeJob $job) => $job->subjectId === $reminder->id);
+            Queue::assertPushed(ReconcileNudgeJob::class, fn (ReconcileNudgeJob $job) => $job->subjectId === $reminder->id);
             Notification::assertSentToTimes($user, ReminderDueNotification::class, 1);
         } finally {
             Carbon::setTestNow();
@@ -893,7 +910,7 @@ class ConsoleCommandsTest extends TestCase
 
     public function test_normalize_collaborators_command_rewrites_project_member_ids_as_numbers(): void
     {
-        $project = \App\Models\Project::factory()->create();
+        $project = Project::factory()->create();
         DB::table('projects')->where('id', $project->id)->update(['member_ids' => '["4","6","4"]']);
 
         Artisan::call('tasks:normalize-collaborators');
@@ -903,13 +920,13 @@ class ConsoleCommandsTest extends TestCase
 
     public function test_exports_prune_old_deletes_only_rows_and_directories_older_than_the_cutoff(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('local');
+        Storage::fake('local');
         $user = User::factory()->create(['status' => 'active']);
-        $make = fn (string $createdAt) => tap(\Filament\Actions\Exports\Models\Export::create([
+        $make = fn (string $createdAt) => tap(Export::create([
             'file_disk' => 'local', 'file_name' => 'x', 'exporter' => 'x', 'total_rows' => 1, 'user_id' => $user->id,
         ]), function ($export) use ($createdAt) {
             DB::table('exports')->where('id', $export->id)->update(['created_at' => $createdAt]);
-            \Illuminate\Support\Facades\Storage::disk('local')->put($export->getFileDirectory() . '/export.csv', 'a,b');
+            Storage::disk('local')->put($export->getFileDirectory() . '/export.csv', 'a,b');
         });
         $old = $make(now()->subDays(40)->toDateTimeString());
         $recent = $make(now()->subDays(5)->toDateTimeString());
@@ -917,9 +934,9 @@ class ConsoleCommandsTest extends TestCase
         $this->assertSame(0, Artisan::call('exports:prune-old', ['--days' => 30]));
 
         $this->assertDatabaseMissing('exports', ['id' => $old->id]);
-        \Illuminate\Support\Facades\Storage::disk('local')->assertMissing($old->getFileDirectory() . '/export.csv');
+        Storage::disk('local')->assertMissing($old->getFileDirectory() . '/export.csv');
         $this->assertDatabaseHas('exports', ['id' => $recent->id]);
-        \Illuminate\Support\Facades\Storage::disk('local')->assertExists($recent->getFileDirectory() . '/export.csv');
+        Storage::disk('local')->assertExists($recent->getFileDirectory() . '/export.csv');
     }
 
     public function test_exports_prune_old_rejects_a_non_positive_days_option(): void

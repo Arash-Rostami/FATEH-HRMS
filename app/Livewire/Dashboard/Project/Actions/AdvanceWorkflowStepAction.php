@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Project\Actions;
 
-use App\Filament\Resources\TaskResource\Enums\TaskState;
+use App\Enums\TaskState;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Workflow;

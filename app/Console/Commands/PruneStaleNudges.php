@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use Filament\Notifications\DatabaseNotification as FilamentDatabaseNotification;
 use Illuminate\Console\Command;
 use Illuminate\Notifications\DatabaseNotification;
@@ -35,7 +36,20 @@ class PruneStaleNudges extends Command
             $count += $deleted;
         } while ($deleted > 0);
 
-        $this->info("Pruned {$count} stale nudge rows older than {$days} days (cutoff {$cutoff->toDateTimeString()}).");
+        $inactive = 0;
+
+        do {
+            $deleted = DatabaseNotification::query()
+                ->where('type', FilamentDatabaseNotification::class)
+                ->where('data->menu_key', 'like', '%nudge')
+                ->where('notifiable_type', (new User)->getMorphClass())
+                ->whereIn('notifiable_id', User::query()->where('status', '!=', 'active')->select('id'))
+                ->limit(1000)
+                ->delete();
+            $inactive += $deleted;
+        } while ($deleted > 0);
+
+        $this->info("Pruned {$count} stale nudge rows older than {$days} days (cutoff {$cutoff->toDateTimeString()}) and {$inactive} nudge rows of deactivated users.");
 
         return self::SUCCESS;
     }

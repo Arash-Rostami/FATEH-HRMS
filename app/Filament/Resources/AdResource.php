@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AdResource\Enums\AdGender;
-use App\Filament\Resources\AdResource\Enums\AdStatus;
+use App\Enums\AdGender;
+use App\Enums\AdStatus;
 use App\Filament\Resources\AdResource\Exports\AdExporter;
 use App\Filament\Resources\AdResource\Pages\CreateAd;
 use App\Filament\Resources\AdResource\Pages\EditAd;
@@ -12,10 +12,10 @@ use App\Filament\Resources\AdResource\Schemas\AdFormPresenter;
 use App\Filament\Resources\AdResource\Schemas\AdInfolistPresenter;
 use App\Filament\Resources\AdResource\Schemas\AdTablePresenter;
 use App\Models\Ad;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;

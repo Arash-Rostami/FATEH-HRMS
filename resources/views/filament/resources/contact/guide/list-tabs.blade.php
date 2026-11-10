@@ -15,7 +15,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">پنج زبانهٔ بالای فهرست، پیام‌ها را دسته‌بندی می‌کنند</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        زبانه‌ها با کوئریِ پایه ترکیب می‌شوند و شمارش نشان‌ها یک‌بار در هر بارگذاری صفحه و با مکانیزم <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">once()</code> کش می‌شود — یعنی پنج زبانه فقط یک کوئریِ آماری می‌زنند. زبانه‌ها را می‌توان از تنظیمات کاربری (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">show_list_tabs</code>) خاموش کرد.
+        برای دیدن دسته‌های مختلف پیام از زبانه‌ها استفاده کنید. می‌توانید نمایش زبانه‌ها را در تنظیمات خود خاموش کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

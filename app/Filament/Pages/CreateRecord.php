@@ -2,8 +2,8 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Traits\HandlesActionExceptions;
-use App\Filament\Traits\HandlesSaveExceptions;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use Filament\Resources\Pages\CreateRecord as BaseCreateRecord;
 use Filament\Support\Exceptions\Cancel;
 use Filament\Support\Exceptions\Halt;

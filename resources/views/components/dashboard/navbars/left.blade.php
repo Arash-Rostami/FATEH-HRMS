@@ -1,39 +1,4 @@
 @php
-    $navItems = [
-        [
-            'href' => url('/tasks'),
-            'module' => 'taskboard',
-            'id' => 'tasks',
-            'icon' => 'dashboard',
-            'label' => 'برد وظایف',
-            'delay' => 'animate-delay-150',
-        ],
-        [
-            'href' => url('/projects'),
-            'module' => 'project',
-            'id' => 'projects',
-            'icon' => 'workspaces',
-            'label' => 'پروژه‌ها',
-            'delay' => 'animate-delay-200',
-        ],
-        [
-            'href' => url('/dms'),
-            'module' => 'dms',
-            'id' => 'dms',
-            'icon' => 'folder_open',
-            'label' => 'مدیریت اسناد',
-            'delay' => 'animate-delay-300',
-        ],
-        [
-            'href' => url('/ths'),
-            'module' => 'ths',
-            'id' => 'ths',
-            'icon' => 'support_agent',
-            'label' => 'تیکتینگ',
-            'delay' => 'animate-delay-500',
-        ],
-    ];
-
     $ease = 'ease-[cubic-bezier(0.22,1,0.36,1)]';
 @endphp
 

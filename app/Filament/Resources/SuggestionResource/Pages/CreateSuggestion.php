@@ -7,7 +7,7 @@ use App\Models\Review;
 use App\Models\Suggestion;
 use App\Models\User;
 use App\Support\SuggestionAccessPolicy;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;

@@ -8,7 +8,7 @@
         [
             'icon' => 'support',
             'label' => 'دکمهٔ پشتیبانی',
-            'hint' => 'در پنل کاربر یک دکمهٔ گرد با آیکون <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">support</code> بازشده را با یک کلیک باز می‌کند. همچنین رویداد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">open-release-request.window</code> می‌تواند مودال را با یک نوع پیش‌انتخاب‌شده باز کند — مثلاً وقتی کاربر از جایی «گزارش باگ» را انتخاب می‌کند.',
+            'hint' => 'کاربر با دکمهٔ پشتیبانی پنجرهٔ درخواست را باز می‌کند. اگر از بخش دیگری «گزارش باگ» را انتخاب کند، پنجره با همان نوع درخواست باز می‌شود.',
         ],
         [
             'icon' => 'edit_note',

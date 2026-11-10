@@ -2,9 +2,15 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\ReminderResource;
 use App\Filament\Resources\ReminderResource\Pages\CreateReminder;
 use App\Filament\Resources\ReminderResource\Pages\EditReminder;
 use App\Filament\Resources\ReminderResource\Pages\ListReminders;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Permission;
 use App\Models\Reminder;
 use App\Models\User;
@@ -309,21 +315,21 @@ class ReminderResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ReminderResource\Pages\CreateReminder::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\ReminderResource\Pages\EditReminder::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ReminderResource\Pages\ListReminders::class => \App\Filament\Pages\ListRecords::class,
+            CreateReminder::class => CreateRecord::class,
+            EditReminder::class => EditRecord::class,
+            ListReminders::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ReminderResource\Pages\CreateReminder::class, \App\Filament\Resources\ReminderResource\Pages\EditReminder::class];
+        $writers = [CreateReminder::class, EditReminder::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\AdResource\Schemas;
 
-use App\Filament\Resources\AdResource\Enums\AdGender;
+use App\Enums\AdGender;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;

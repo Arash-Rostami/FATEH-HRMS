@@ -6,7 +6,7 @@ use App\Filament\Pages\ListRecords;
 use App\Filament\Resources\NotifyRuleResource;
 use App\Filament\Resources\NotifyRuleResource\Schemas\Action\SendMessageAction;
 use App\Filament\Resources\NotifyRuleResource\Schemas\Action\ViewSwitchActions;
-use App\Traits\FilamentHeaderActions;
+use App\Traits\Filament\FilamentHeaderActions;
 
 class ListNotifyRules extends ListRecords
 {

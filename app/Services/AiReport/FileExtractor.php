@@ -2,7 +2,6 @@
 
 namespace App\Services\AiReport;
 
-use App\Support\AiReportUploadLimits;
 use Illuminate\Support\Facades\Storage;
 use OpenSpout\Reader\XLSX\Reader;
 
@@ -97,8 +96,8 @@ final class FileExtractor
 
     private function inline(string $path, string $name, string $mime, int $size, array &$out, int &$inlineBytes): void
     {
-        $perFile = AiReportUploadLimits::inlineKb() * 1024;
-        $total = AiReportUploadLimits::inlineTotalKb() * 1024;
+        $perFile = (int) config('ai.report.upload.inline_kb') * 1024;
+        $total = (int) config('ai.report.upload.inline_total_kb') * 1024;
         if ($size > $perFile || $inlineBytes + $size > $total) {
             $this->skip($out, $name, 'too_large');
 
@@ -138,7 +137,7 @@ final class FileExtractor
 
             return;
         }
-        $cap = (int) config('ai_report.extract.docx_xml_kb') * 1024;
+        $cap = (int) config('ai.report.extract.docx_xml_kb') * 1024;
         $xml = $zip->getFromName('word/document.xml', $cap);
         $zip->close();
         if (!is_string($xml) || $xml === '') {
@@ -178,10 +177,10 @@ final class FileExtractor
         $chunks = [];
         $sheets = 0;
         $capped = false;
-        $maxSheets = (int) config('ai_report.extract.xlsx_sheets');
-        $maxRows = (int) config('ai_report.extract.xlsx_rows');
-        $maxRaw = (int) config('ai_report.extract.xlsx_raw_rows');
-        $maxCols = (int) config('ai_report.extract.xlsx_cols');
+        $maxSheets = (int) config('ai.report.extract.xlsx_sheets');
+        $maxRows = (int) config('ai.report.extract.xlsx_rows');
+        $maxRaw = (int) config('ai.report.extract.xlsx_raw_rows');
+        $maxCols = (int) config('ai.report.extract.xlsx_cols');
         try {
             foreach ($reader->getSheetIterator() as $sheet) {
                 if (!$sheet->isVisible()) {
@@ -225,8 +224,8 @@ final class FileExtractor
 
     private function text(string $path, string $name, int $size, array &$out, int &$used): void
     {
-        $perFile = (int) config('ai_report.extract.text_per_file');
-        $raw = file_get_contents($path, false, null, 0, $perFile * (int) config('ai_report.extract.text_read_factor'));
+        $perFile = (int) config('ai.report.extract.text_per_file');
+        $raw = file_get_contents($path, false, null, 0, $perFile * (int) config('ai.report.extract.text_read_factor'));
         if ($raw === false) {
             $this->skip($out, $name, 'corrupt');
 
@@ -247,7 +246,7 @@ final class FileExtractor
 
     private function pushText(array &$out, string $name, string $text, bool $capped, int &$used): void
     {
-        $perFile = (int) config('ai_report.extract.text_per_file');
+        $perFile = (int) config('ai.report.extract.text_per_file');
         $text = trim($text);
         if ($text === '') {
             $this->skip($out, $name, 'empty');
@@ -258,7 +257,7 @@ final class FileExtractor
             $text = mb_substr($text, 0, $perFile);
             $capped = true;
         }
-        $room = (int) config('ai_report.extract.text_total') - $used;
+        $room = (int) config('ai.report.extract.text_total') - $used;
         if ($room <= 0) {
             $this->skip($out, $name, 'too_large');
 
@@ -293,15 +292,15 @@ final class FileExtractor
             return '';
         }
 
-        return mb_substr(trim($value), 0, (int) config('ai_report.spec.cell'));
+        return mb_substr(trim($value), 0, (int) config('ai.report.spec.cell'));
     }
 
     private function zipOversized(\ZipArchive $zip, string $capKey): bool
     {
-        if ($zip->numFiles > (int) config('ai_report.extract.zip_entries')) {
+        if ($zip->numFiles > (int) config('ai.report.extract.zip_entries')) {
             return true;
         }
-        $cap = (int) config("ai_report.extract.{$capKey}") * 1024;
+        $cap = (int) config("ai.report.extract.{$capKey}") * 1024;
         $sum = 0;
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $sum += (int) ($zip->statIndex($i)['size'] ?? 0);

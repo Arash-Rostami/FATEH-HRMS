@@ -608,6 +608,27 @@ if (!function_exists('aiAssistantOn')) {
     }
 }
 
+if (!function_exists('thsAiOn')) {
+    function thsAiOn(): bool
+    {
+        return !tenantOff('ths:ai') && \App\Services\Ai\AiClient::isConfigured();
+    }
+}
+
+if (!function_exists('correspondenceAiOn')) {
+    function correspondenceAiOn(): bool
+    {
+        return !tenantOff('correspondence:ai') && \App\Services\Ai\AiClient::isConfigured();
+    }
+}
+
+if (!function_exists('correspondenceMailOn')) {
+    function correspondenceMailOn(): bool
+    {
+        return !tenantOff('notify') && !tenantOff('notify:mail');
+    }
+}
+
 if (!function_exists('tenantOffName')) {
     function tenantOffName(string $name): bool
     {

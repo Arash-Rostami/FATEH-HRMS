@@ -9,15 +9,19 @@ const EMOJI_CACHE_MAX = 1000;
 const HTML_TAG_RE = /<[^>]*>/g;
 const WS_ONLY_RE = /^\s+$/;
 const DIR_RE = /([A-Za-z])|[؀-ۿ]/;
+const ID_TAIL_RE = /(\d+)$/;
+const MSG_ROW_RE = /message-\d+$/;
 
 const SCROLL_TO_BOTTOM_PX = 999999;
 const LOAD_OLDER_PEEK_PX = 96;
 const SETTLE_PIN_MS = 300;
-const SCROLL_SETTLE_MS = 150;const POLL_BASE_MS = 10000;
+const SCROLL_SETTLE_MS = 150;
+const POLL_BASE_MS = 10000;
 const INCOMING_DEDUPE_MS = 1500;
 const RETURN_RING_GRACE_MS = 8000;
 const POLL_JITTER = 0.2;
 const POLL_JITTER_HIDDEN = 0.5;
+const TYPING_PING_MS = 3000;
 
 const EVENT_TOAST = 'toast';
 const ID_VIEWPORT = 'msg-viewport';
@@ -25,6 +29,10 @@ const GHOST_TICK_MS = 1000;
 const GHOST_BUBBLE_CLASS = 'px-4 py-2.5 text-sm leading-relaxed break-words whitespace-pre-wrap rounded-2xl bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)] [unicode-bidi:plaintext]';
 const GHOST_HTML = `<div class="flex-shrink-0 w-7"></div><div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%]"><div dir="auto" class="${GHOST_BUBBLE_CLASS}"></div><div class="flex items-center gap-1.5 mt-1.5 justify-start pl-1"><span class="material-symbols-rounded text-[13px] opacity-50">schedule</span><time dir="ltr" class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60"></time></div></div>`;
 const DAYS_CLIENT_TTL_MS = 300000;
+const SETTLE_STOP_EVENTS = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+const MSG_ROW_SEL = '[data-rf*="message-"]';
+const UNREAD_ID_SEL = '[data-unread-id]';
+const DAY_SEL = '[data-day]';
 let fmt;
 const formats = () => fmt ??= {
     day: new Intl.DateTimeFormat('fa-IR-u-ca-persian', { day: 'numeric', month: 'long' }),
@@ -39,6 +47,9 @@ const ID_SEARCH_INPUT = 'msg-search-input';
 const ATTR_MANUAL_RESIZE = 'data-manual-resize';
 
 const byId = (id) => document.getElementById(id);
+const idOf = (rf) => parseInt(rf?.match(ID_TAIL_RE)?.[1], 10) || 0;
+const byNewest = (a, b) => b.id - a.id;
+const byNewestDay = (a, b) => (a.day < b.day ? 1 : -1);
 
 function computeEmojiOnly(text) {
     const stripped = text.replace(HTML_TAG_RE, '').trim();
@@ -70,7 +81,7 @@ export default function chatBase(scope) {
             let mutedRise = 0;
             let otherRise = 0;
 
-            document.querySelectorAll('[data-unread-id]').forEach((el) => {
+            document.querySelectorAll(UNREAD_ID_SEL).forEach((el) => {
                 const id = Number(el.dataset.unreadId);
                 const count = Number(el.dataset.unread) || 0;
                 snap.set(id, count);
@@ -161,7 +172,7 @@ export default function chatBase(scope) {
 
         pingTyping() {
             const now = Date.now();
-            if (now - this._lastTypingPing < 3000) return;
+            if (now - this._lastTypingPing < TYPING_PING_MS) return;
             this._lastTypingPing = now;
             this._sendTypingPing().catch(() => {});
         },
@@ -312,10 +323,9 @@ export default function chatBase(scope) {
         },
 
         _rowsNewerThan(marker) {
-            const idOf = (rf) => parseInt(rf?.match(/(\d+)$/)?.[1], 10) || 0;
             const floor = idOf(marker);
             let n = 0;
-            this._msgViewportEl?.querySelectorAll('[data-rf*="message-"]').forEach(r => { if (idOf(r.dataset.rf) > floor) n++; });
+            this._msgViewportEl?.querySelectorAll(MSG_ROW_SEL).forEach(r => { if (idOf(r.dataset.rf) > floor) n++; });
             return n;
         },
 
@@ -336,7 +346,7 @@ export default function chatBase(scope) {
             const stop = () => ac.abort();
             const end = Date.now() + SETTLE_PIN_MS;
 
-            for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) {
+            for (const type of SETTLE_STOP_EVENTS) {
                 vp.addEventListener(type, stop, { once: true, passive: true, signal: ac.signal });
             }
 
@@ -354,7 +364,7 @@ export default function chatBase(scope) {
             if (!vp || this._loadingOlder) return;
 
             this._loadingOlder = true;
-            const rf = vp.querySelector('[data-rf*="message-"]')?.dataset.rf ?? null;
+            const rf = vp.querySelector(MSG_ROW_SEL)?.dataset.rf ?? null;
             const before = this._rowOffset(vp, rf);
             const beforeHeight = vp.scrollHeight;
             const startTop = vp.scrollTop;
@@ -483,7 +493,6 @@ export default function chatBase(scope) {
             this.searchMessages = false;
             this.typeFilterOpen = false;
             this.daysOpen = false;
-            const byNewest = (a, b) => b.id - a.id;
             const found = [];
             const missing = [];
             for (const id of this.$store.pinned.getPinned('message')) {
@@ -547,14 +556,13 @@ export default function chatBase(scope) {
             this.daysLoading = false;
 
             const loaded = [];
-            byId(ID_VIEWPORT)?.querySelectorAll('[data-day]').forEach(el => {
+            byId(ID_VIEWPORT)?.querySelectorAll(DAY_SEL).forEach(el => {
                 let row = el.nextElementSibling;
-                while (row && !/message-\d+$/.test(row.dataset.rf || '')) row = row.nextElementSibling;
-                const id = parseInt(row?.dataset.rf.match(/(\d+)$/)[1], 10);
+                while (row && !MSG_ROW_RE.test(row.dataset.rf || '')) row = row.nextElementSibling;
+                const id = parseInt(row?.dataset.rf.match(ID_TAIL_RE)[1], 10);
                 if (id) loaded.push({ day: el.dataset.day, id });
             });
 
-            const byNewestDay = (a, b) => (a.day < b.day ? 1 : -1);
             const token = this._daysToken = (this._daysToken || 0) + 1;
             const merge = (server) => {
                 const firstIds = new Map(server.map(d => [d.day, d.id]));

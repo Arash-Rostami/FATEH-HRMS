@@ -3,6 +3,7 @@
 namespace Tests\Feature\Models;
 
 use Illuminate\Validation\ValidationException;
+use App\Jobs\SyncProjectChannelMembershipJob;
 use App\Models\Workflow;
 use App\Models\TaskDetail;
 use App\Models\Department;
@@ -115,7 +116,7 @@ class ProjectModelTest extends TestCase
 
         Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
 
-        Queue::assertPushed(\App\Jobs\SyncProjectChannelMembershipJob::class);
+        Queue::assertPushed(SyncProjectChannelMembershipJob::class);
     }
 
     public function test_member_ids_change_on_update_writes_an_audit_reply(): void
@@ -144,7 +145,7 @@ class ProjectModelTest extends TestCase
         $project = $project->fresh();
         $project->update(['name' => 'renamed project']);
 
-        Queue::assertNotPushed(\App\Jobs\SyncProjectChannelMembershipJob::class);
+        Queue::assertNotPushed(SyncProjectChannelMembershipJob::class);
     }
 
     public function test_shrinking_the_project_deadline_setting_never_mutates_existing_task_deadlines(): void

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\EventResource\Schemas;
 
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Support\Enums\IconPosition;
 use Filament\Infolists\Components\{IconEntry, TextEntry};
 use Filament\Support\Enums\FontWeight;

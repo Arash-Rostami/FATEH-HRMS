@@ -2,8 +2,8 @@
 
 namespace App\Filament\RelationManagers;
 
-use App\Filament\Traits\HandlesActionExceptions;
-use App\Filament\Traits\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
 use Filament\Actions\Action;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\AttachAction;

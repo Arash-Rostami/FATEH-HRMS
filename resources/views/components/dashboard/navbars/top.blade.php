@@ -5,7 +5,7 @@
 
 @php($navbarIsHome = request()->routeIs('dashboard') && request('tab', 'home') === 'home')
 
-<div x-data='menu({ canAdmin: @json(canAdmin()), disabledReservationTypes: @json(disabledReservationTypes()), menuState: @json($menuState), aiAssistant: @json(aiAssistantOn())@if(config('app.off')), off: @json(tenantOffKeys())@endif })'
+<div x-data='menu({ canAdmin: @json(canAdmin()), disabledReservationTypes: @json(disabledReservationTypes()), menuState: @json($menuState), aiAssistant: @json(aiAssistantOn()), aiOn: @json(\App\Services\Ai\AiClient::isConfigured())@if(config('app.off')), off: @json(tenantOffKeys())@endif })'
      id="navbar"
      @resize.window="updatePerPage"
      :class="isVisible ? 'translate-y-0' : '-translate-y-[60px] lg:-translate-y-[80px]'"

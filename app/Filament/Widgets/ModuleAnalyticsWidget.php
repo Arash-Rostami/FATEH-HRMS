@@ -7,7 +7,7 @@ use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
 use App\Enums\ReservationStatus;
 use App\Enums\SkillRequestStatus;
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserType;
 use App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter;
 use App\Models\Department;
 use App\Models\NotifyRule;

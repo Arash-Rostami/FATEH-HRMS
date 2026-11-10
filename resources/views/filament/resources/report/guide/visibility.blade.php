@@ -4,7 +4,7 @@
             'chip' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
             'icon' => 'public',
             'label' => 'عمومی',
-            'hint' => 'وقتی «دسترسی واحدها» (departments) خالی باشد، گزارش برای همهٔ کاربران در زبانهٔ «گزارش‌ها» قابل دید است. در جدول با آیکون کره و رنگ سبز نشان داده می‌شود.',
+            'hint' => 'وقتی «دسترسی واحدها» خالی باشد، گزارش برای همهٔ کاربران در زبانهٔ «گزارش‌ها» قابل دید است. در جدول با آیکون کره و رنگ سبز نشان داده می‌شود.',
             'rule' => 'دسترسی واحدها = خالی',
         ],
         [
@@ -32,7 +32,7 @@
         [
             'icon' => 'calendar_month',
             'label' => 'تاریخ گزارش',
-            'hint' => 'تاریخ یا دورهٔ زمانی که گزارش به آن مربوط است؛ با تاریخ بارگذاری فرق دارد. یک گزارشِ ماهانه که دیر بارگذاری شده، همچنان با تاریخِ همان ماه نشان داده می‌شود. در جدول sortable و دارای فیلترِ بازه‌ای است.',
+            'hint' => 'تاریخ یا دوره‌ای که گزارش به آن مربوط است، با تاریخ بارگذاری فرق دارد. مثلاً گزارش ماهانه‌ای که دیر بارگذاری شده، با تاریخ همان ماه نشان داده می‌شود. می‌توانید جدول را بر اساس این تاریخ مرتب یا فیلتر کنید.',
         ],
         [
             'icon' => 'event_busy',
@@ -49,7 +49,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">دسترسیِ گزارش: عمومی یا محدود به واحدها</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        دیدِ یک گزارش با فیلدِ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">departments</code> تعیین می‌شود. توجه: فیلدِ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">department_id</code> «موضوع» گزارش است (این گزارش دربارهٔ کدام واحد است)، نه مخاطبِ آن؛ پس یک گزارش دربارهٔ واحدِ الف می‌تواند فقط برای واحدهای ب و ج قابل‌مشاهده باشد.
+        مخاطبان گزارش را در بخش «دسترسی واحدها» انتخاب کنید. واحدِ موضوع گزارش با مخاطبان آن فرق دارد؛ برای مثال، گزارشی دربارهٔ واحد الف می‌تواند فقط برای واحدهای ب و ج قابل مشاهده باشد.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -78,7 +78,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                ستون «مخاطبان» در جدول و صفحهٔ جزئیات، نام واحدهای مجاز را نشان می‌دهد؛ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">audience_departments</code> می‌خواند که از کشِ واحدها (Department::getCachedModels) ساخته می‌شود — بدون کوئری اضافه per-row.
+                ستون «مخاطبان» در جدول و صفحهٔ جزئیات، نام واحدهای مجاز را نشان می‌دهد.
             </p>
         </div>
     </div>
@@ -119,7 +119,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">فیلتر دسترسی</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">«محدود» فقط گزارش‌هایی را نشان می‌دهد که واحد مخاطب دارند؛ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> غیرخالی است (<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">JSON_LENGTH &gt; 0</code>)؛ «عمومی» فقط رکوردهای بدون مخاطب.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">فیلتر «محدود» گزارش‌های دارای واحد مخاطب را نشان می‌دهد؛ فیلتر «عمومی» گزارش‌های بدون واحد مخاطب را.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -137,7 +137,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                کاربری که گزارش را نمی‌بیند: در زبانهٔ «گزارش‌ها» کاربر، کوئری فقط رکوردهای عمومی یا آن‌هایی که واحدِ کاربر در <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">departments</code> دارند می‌آورد (<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">orWhereJsonContains</code>)؛ گزارش‌های محدودِ واحدِ دیگر هرگز برایش قابل‌مشاهده یا دانلود نیست (دانلود هم مسدود است).
+                اگر کاربر گزارشی را نمی‌بیند، واحدهای مخاطب آن را بررسی کنید. او فقط گزارش‌های عمومی و گزارش‌های مربوط به واحد خودش را می‌بیند؛ گزارش محدود واحد دیگر را نمی‌تواند مشاهده یا دانلود کند.
             </p>
         </div>
     </div>

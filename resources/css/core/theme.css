@@ -26,6 +26,9 @@
     --theme-transition-duration: 500ms;
     --theme-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
     --online: var(--tool-sapphire-color);
+    --ai-color: var(--tool-amethyst-color);
+    --ai-bg: var(--tool-amethyst-bg);
+    --ai-text: var(--tool-amethyst-text);
     --online-container: color-mix(in srgb, var(--md-sys-color-tertiary) 12%, transparent);
     --ripple-x: 50%;
     --ripple-y: 50%;

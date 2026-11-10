@@ -4,7 +4,7 @@ namespace App\Filament\Resources\EventResource\Schemas;
 
 use App\Models\Event;
 use App\Services\PersianDateFieldService;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\{Repeater, Select, Textarea, TextInput, TimePicker, Toggle};
 use Filament\Schemas\Components\FusedGroup;
 

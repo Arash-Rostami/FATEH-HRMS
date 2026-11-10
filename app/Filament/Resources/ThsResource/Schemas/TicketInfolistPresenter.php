@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\ThsResource\Schemas;
 
-use App\Filament\Resources\ThsResource\Enums\{RequestType, TicketPriority, TicketStatus};
+use App\Enums\{RequestType, TicketPriority, TicketStatus};
 use App\Models\Ticket;
 use App\Services\Ticket\TicketInsightsService;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;

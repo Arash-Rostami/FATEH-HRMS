@@ -2,7 +2,7 @@
     wire:model="isCreateModalOpen"
     :title="$this->form->editingId ? 'ویرایش رویداد' : 'رویداد جدید'"
     action="saveEvent"
-    :confirm-text="$this->form->editingId ? 'بروزرسانی تغییرات' : 'ثبت نهایی رویداد'"
+    :confirm-text="$this->form->editingId ? 'ذخیره تغییرات' : 'ثبت نهایی رویداد'"
     cancel-text="انصراف"
 >
     <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6" dir="rtl"

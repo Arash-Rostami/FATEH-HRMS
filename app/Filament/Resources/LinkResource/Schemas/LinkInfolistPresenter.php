@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\LinkResource\Schemas;
 
-use App\Filament\Resources\LinkResource\Enums\LinkType;
-use App\Traits\FilamentFormDivider;
+use App\Enums\LinkType;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;

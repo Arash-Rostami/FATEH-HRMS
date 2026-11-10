@@ -35,7 +35,7 @@
                     <div class="flex flex-col items-start leading-tight">
                         <span class="flex items-center gap-1 text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">
                             {{ $user->name }}
-                            <span class="material-symbols-rounded {{ $tone['text'] }} text-[13px] animate-pulse-slow">auto_awesome</span>
+                            <span class="material-symbols-rounded text-[var(--ai-color)] text-[13px] animate-pulse-slow">auto_awesome</span>
                         </span>
                         <span class="text-[10px] {{ $tone['text'] }} font-medium">{{ $tone['label'] }}</span>
                     </div>

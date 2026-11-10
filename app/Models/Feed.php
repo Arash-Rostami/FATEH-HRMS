@@ -129,7 +129,7 @@ class Feed extends Model
     public static function notifyFields(): array
     {
         return [
-            'category' => \App\Filament\Resources\FeedResource\Enums\FeedCategory::class,
+            'category' => \App\Enums\FeedCategory::class,
             'user_id' => 'user',
         ];
     }

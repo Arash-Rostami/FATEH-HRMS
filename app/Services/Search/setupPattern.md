@@ -39,7 +39,7 @@ app/Services/Search/
 - `Contracts/Searchable.php` — interface every content resource fulfils.
 - `Contracts/SearchContext.php` — immutable value object: normalized query + tokens.
 - `Contracts/SearchResource.php` — abstract base; ALL the shared search machinery.
-- `Resources/` — one tiny class per searchable module (23 in total; `AiReportResource.php` sits after `ReportResource.php` — the same order as `ContentService::$resources`).
+- `Resources/` — one tiny class per searchable module (24 in total; `AiReportResource.php` sits after `ReportResource.php` — the same order as `ContentService::$resources`; `CorrespondenceResource.php` is registered in the same list).
 - `ContentService.php` — orchestrator: registry + ranking of resources.
 - `NavigationService.php` — the module-shortcut engine (static list).
 
@@ -123,6 +123,7 @@ The base calls `$this->scope()`, `$this->action()`, etc., so polymorphism runs e
 | `action($row)` | method | **required** — builds the deep-link (see §5) | — |
 | `scope(Builder $q)` | method | optional — restrict visible rows (no-op by default) | no-op |
 | `titleFor($row)` | method | optional — computed title (e.g. Feed, Message) | reads `$titleField` |
+| `selectList()` | method | optional — raw column list of the search select (return a narrow list to avoid heavy JSON/text columns; every column `titleFor`/`subtitleFor`/`action` reads must be in it) | `'*'` |
 
 > **Permissions ⚠️** `scope()` MUST replicate the owning module's own listing query so the palette never surfaces a row the user couldn't otherwise see. A `null`/no-op scope means the resource is org-wide.
 >
@@ -138,6 +139,8 @@ The base calls `$this->scope()`, `$this->action()`, etc., so polymorphism runs e
 > All three follow the same shape: read the owning module's own visibility query first, then make `scope()` call the identical scopes/conditions — never invent new department/visibility logic in a `Resources/*.php` class. `AuthorityResource` was also found fully implemented and tested (`SearchServiceTest`) but never registered in `ContentService::$resources` — a real "search returns nothing for this module" bug, deliberately left unfixed pending a product decision on whether Authority content should be globally searchable at all.
 >
 > **`AiReportResource::scope()` = `AiReport::visibleTo($user)`** (own + received ready-saved, `active` only; `whereRaw('1 = 0')` when unauthenticated), the same scope `AiReport\Main::listQuery()` uses; action is `url:/ai-report?r={id}` and `Main::mount` re-checks `canView`.
+>
+> **`CorrespondenceResource` (letters, `recencyMonths = 12`) does NOT use `visibleTo` alone — it builds the visibility predicate once and reuses it as SQL in both the filter and the relevance score.** `scope()` = own letters OR `sharedWith` (non-draft/saved/withdrawn rows listing the user in `recipients`/`parties`) OR, for a registry clerk (`CorrespondenceAccessPolicy::isRegistry`), any row in `CorrespondencePresenter::REGISTRY_STATUSES`. Inside that scope the `number` always matches; `subject` matches only for the viewer's own letters or `normal`-classification letters she may see; `search_text` (null for confidential letters) only for own/shared rows. `titleFor`/`subtitleFor` collapse a confidential letter that is not the viewer's to its number or «نامه محرمانه». Action = `route('correspondence', id)`, and `Main::open` re-checks `canView`/`canRegistry`. Contract: `app/Livewire/Dashboard/Correspondence/correspondencePattern.md` §13.
 >
 > **Front-end race, not a `scope()` issue:** `command-palette.blade.php`'s Enter-key handler read `$wire.results[selectedIndex]` with no guard against the in-flight debounce window (`wire:model.live.debounce.{150|300}ms`) — pressing Enter right after typing could act on the previous query's stale results and navigate to an unrelated hit. Fixed by tracking freshness in `search.js` (`resultsFresh`, set `false` on `$wire.query` change, `true` on `$wire.results` change) and gating the Enter handler on it.
 
@@ -239,7 +242,7 @@ The content engine's coarse filter is a leading-wildcard `LIKE` per token — no
 
 The fix is the standard ERP pattern — **bound by default, expand explicitly**:
 
-- **`$recencyMonths`** on the resource (default `0` = unbounded, for small/static tables). The 8 high-volume resources set `6`: `TicketResource`, `DmsResource`, `ChannelMessageResource`, `MessageResource`, `FeedResource`, `PostResource`, `ReservationResource`, `AiReportResource`. `applyRecencyWindow()` in the base adds `WHERE created_at >= now() - N months` **before** the LIKE filter, so the sargable date range prunes the scan set.
+- **`$recencyMonths`** on the resource (default `0` = unbounded, for small/static tables). The 8 high-volume resources set `6`: `TicketResource`, `DmsResource`, `ChannelMessageResource`, `MessageResource`, `FeedResource`, `PostResource`, `ReservationResource`, `AiReportResource` (`CorrespondenceResource` sets 12 months: letters are referenced long after they are written). `applyRecencyWindow()` in the base adds `WHERE created_at >= now() - N months` **before** the LIKE filter, so the sargable date range prunes the scan set.
 - **`SearchContext::$allHistory`** — a per-request escape hatch. `ContentService::search($query, $allHistory = false)` threads it through, and a resource with `$recencyMonths > 0` skips its window when it's true.
 - **UI** (`CommandPalette`) — the bound is ambient, not one-shot: the content-mode placeholder names «۶ ماه اخیر»; the footer scope badge (replacing the old "Heuristic" chip) always shows the live scope — `history` + «۶ ماه اخیر» ⇄ `all_inclusive` + «کل تاریخ»; a "جستجو در کل تاریخ" chip appears when results are thin (≤ 5) letting the user re-run whole-history (`searchAllHistory()`); an active-mode chip confirms the expansion; and the no-results empty state in content mode explicitly says the window was the reason («در ۶ ماه اخیر نتیجه‌ای نبود؛ دکمهٔ «جستجو در کل تاریخ» را بزنید») instead of a generic "try another term". `toggleMode()` and `resetPalette()` both clear `allHistory`, so it's always an explicit per-query act.
 

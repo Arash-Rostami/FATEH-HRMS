@@ -8,10 +8,10 @@ use App\Filament\Resources\TaskResource\Schemas\{TaskFormPresenter, TaskInfolist
 use App\Models\Task;
 use App\Services\ProjectTask\ApproveTaskAction;
 use App\Support\TaskAccessPolicy;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;

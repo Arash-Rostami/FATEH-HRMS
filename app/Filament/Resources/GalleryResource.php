@@ -8,10 +8,10 @@ use App\Filament\Resources\GalleryResource\Schemas\{GalleryFormPresenter,
     GalleryInfolistPresenter,
     GalleryTablePresenter};
 use App\Models\Photo;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentVisibility;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentVisibility;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;

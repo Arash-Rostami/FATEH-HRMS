@@ -15,7 +15,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کاربر در پنل خود چه می‌بیند؟</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        کاربر یک زنگ سراسری (<span class="material-symbols-rounded text-[14px] align-middle">alarm</span>) در نوار بالای هر صفحه دارد که همهٔ یادآوری‌های خودش را نشان می‌دهد — چه به مورد خاصی وصل باشند چه یک یادداشت آزاد. علاوه بر آن، کنار پنج بخش برنامه، دکمهٔ یادآوری مخصوص همان مورد هم وجود دارد.
+        زنگ یادآوری (<span class="material-symbols-rounded text-[14px] align-middle">alarm</span>) در بالای صفحه، همهٔ یادآوری‌های کاربر را نشان می‌دهد؛ چه به موردی وصل باشند و چه یادداشت آزاد باشند. در پنج بخش برنامه نیز دکمهٔ یادآوری برای همان مورد وجود دارد.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

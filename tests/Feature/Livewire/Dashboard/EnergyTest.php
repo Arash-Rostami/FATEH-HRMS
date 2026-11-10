@@ -9,6 +9,7 @@ use App\Models\EnergyTest as EnergyModel;
 use App\Models\Profile;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
+use App\Services\EnergyQuestionService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -544,7 +545,7 @@ class EnergyTest extends TestCase
             ],
         ]);
 
-        $bank = app(\App\Services\EnergyQuestionService::class)->getQuestionsForMonth(0)['questions'];
+        $bank = app(EnergyQuestionService::class)->getQuestionsForMonth(0)['questions'];
         $entry = Livewire::actingAs($user)
             ->test(Chart::class)
             ->instance()

@@ -267,12 +267,12 @@
                                                             </button>
 
                                                             <div class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-[color-mix(in_srgb,var(--md-sys-color-primary)_8%,var(--md-sys-color-surface))] border border-[color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)] shadow-sm transition-all duration-200"
-                                                                 :class="[item.ai ? '!bg-[color-mix(in_srgb,var(--tool-amethyst-bg)_70%,var(--md-sys-color-surface))] !border-[color-mix(in_srgb,var(--tool-amethyst-color)_35%,transparent)]' : '', item.disabled ? '' : 'group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary)] group-hover:shadow-[0_4px_14px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)]', pinEditMode ? 'animate-shiver' : '']">
+                                                                 :class="[item.ai ? '!bg-[color-mix(in_srgb,var(--ai-bg)_70%,var(--md-sys-color-surface))] !border-[color-mix(in_srgb,var(--ai-color)_35%,transparent)]' : '', item.disabled ? '' : 'group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary)] group-hover:shadow-[0_4px_14px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)]', pinEditMode ? 'animate-shiver' : '']">
                                                                 <template x-if="item.ai">
-                                                                    <span aria-hidden="true" class="absolute inset-0 rounded-xl animate-alert-soft bg-[color-mix(in_srgb,var(--tool-amethyst-color)_25%,transparent)]"></span>
+                                                                    <span aria-hidden="true" class="absolute inset-0 rounded-xl animate-alert-soft bg-[color-mix(in_srgb,var(--ai-color)_25%,transparent)]"></span>
                                                                 </template>
                                                                 <span class="relative material-symbols-rounded text-[20px] sm:text-[22px] text-[var(--md-sys-color-primary)] transition-colors duration-200"
-                                                                      :class="[item.disabled ? '' : 'group-hover:text-[var(--md-sys-color-on-primary)]', item.ai ? '!text-[var(--tool-amethyst-color)]' : '']"
+                                                                      :class="[item.disabled ? '' : 'group-hover:text-[var(--md-sys-color-on-primary)]', item.ai ? '!text-[var(--ai-color)]' : '']"
                                                                       x-text="item.icon"></span>
                                                                 <template x-if="$store.menuBadges.on(item.id, @js($menuState)[item.id])">
                                                                     <x-ui.notification-badge />

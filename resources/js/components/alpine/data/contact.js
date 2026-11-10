@@ -30,6 +30,10 @@ const TOO_LONG_MSG = 'متن پیام نباید بیشتر از ۲۰۰۰ کار
 
 const RF_ID_OFFSET = DATA_RF_MESSAGE_PREFIX.length + 1;
 const ROW_SEL = `[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`;
+const UNREAD_SEL = `[${TOTAL_UNREAD_ATTR}]`;
+const TYPING_SEL = '[data-typing]';
+const EDITABLE_SEL = 'textarea, input, [contenteditable="true"], [contenteditable=""]';
+const INTERACTIVE_SEL = 'a,button,[role="button"],[contenteditable],input,textarea';
 
 const ta = () => document.getElementById(MSG_TEXTAREA_ID);
 
@@ -77,6 +81,7 @@ export default function contact() {
 
             document.addEventListener('selectionchange', () => {
                 if (selRaf) return;
+                if (!this.quoteChip.visible && getSelection()?.isCollapsed) return;
                 selRaf = requestAnimationFrame(() => {
                     selRaf = null;
                     this._updateQuoteChip();
@@ -250,11 +255,11 @@ export default function contact() {
         _sendTypingPing() { return this._isl().pingTyping(); },
 
         _readUnread() {
-            return parseInt(document.querySelector(`[${TOTAL_UNREAD_ATTR}]`)?.getAttribute(TOTAL_UNREAD_ATTR), 10) || 0;
+            return parseInt(document.querySelector(UNREAD_SEL)?.getAttribute(TOTAL_UNREAD_ATTR), 10) || 0;
         },
 
         _readTypingMarker() {
-            return document.querySelector('[data-typing]')?.getAttribute('data-typing') ?? null;
+            return document.querySelector(TYPING_SEL)?.getAttribute('data-typing') ?? null;
         },
 
         _readLastMessageMarker() {
@@ -265,11 +270,14 @@ export default function contact() {
         syncPushNotify() {
             this._riseOnlyMuted();
             const now = this._readUnread();
-            if (this._lastUnread !== undefined && now > this._lastUnread) {
-                this.$store.push.notify('پیام جدید', 'یک گفتگو پیام جدید دارد', SCOPE);
-                if (!this.$wire.activeUserId) this._ringIncoming(null);
+            const last = this._lastUnread;
+            if (last !== undefined) {
+                if (now > last) {
+                    this.$store.push.notify('پیام جدید', 'یک گفتگو پیام جدید دارد', SCOPE);
+                    if (!this.$wire.activeUserId) this._ringIncoming(null);
+                }
+                this.$store.menuBadges?.set('contacts-controller', now > 0);
             }
-            if (this._lastUnread !== undefined) this.$store.menuBadges?.set('contacts-controller', now > 0);
             this._lastUnread = now;
         },
 
@@ -309,7 +317,7 @@ export default function contact() {
         toggleActions(id, e) {
             const sel = getSelection();
             if (sel && sel.toString().trim() !== '') return;
-            if (e.target.closest('a,button,[role="button"],[contenteditable],input,textarea')) return;
+            if (e.target.closest(INTERACTIVE_SEL)) return;
             this.openActionsId = this.openActionsId === id ? null : id;
         },
 
@@ -403,7 +411,7 @@ export default function contact() {
             if (!anchor || !this._msgViewportEl?.contains(anchor)) return;
 
             const node = anchor.nodeType === 3 ? anchor.parentElement : anchor;
-            if (node?.closest('textarea, input, [contenteditable="true"], [contenteditable=""]')) return;
+            if (node?.closest(EDITABLE_SEL)) return;
 
             const row = node?.closest(ROW_SEL);
             if (!row) return;

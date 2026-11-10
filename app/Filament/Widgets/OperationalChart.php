@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserType;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\ProjectTask\TaskMetrics;
 use Filament\Actions\Action;

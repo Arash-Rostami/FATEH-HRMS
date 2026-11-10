@@ -2,7 +2,8 @@
 
 namespace App\Services\Ticket;
 
-use App\Filament\Resources\ThsResource\Enums\TicketStatus;
+use App\Enums\TicketStatus;
+use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Models\Department;
 use App\Models\Reply;
@@ -116,7 +117,9 @@ class TicketInsightsService
             ->where('repliable_type', $ticket->getMorphClass())
             ->where('repliable_id', $ticket->id)
             ->orderBy('created_at')->orderBy('id')
-            ->get(['user_id', 'created_at']);
+            ->select(['user_id', 'created_at'])
+            ->selectRaw('LEFT(body, ?) AS body', [mb_strlen(AssignTicketAction::REPLY_PREFIX)])
+            ->get();
 
         $similar = $this->scope($dept)
             ->where('request_type', $ticket->request_type)
@@ -136,6 +139,7 @@ class TicketInsightsService
             'cards' => [
                 $this->ageCard($ticket),
                 $this->durationCard($ticket, $dept),
+                ...$this->waitWorkCards($ticket, $replies),
                 $this->deadlineCard($ticket),
                 $this->firstResponseCard($ticket, $replies),
                 $this->ownerCard($ticket, $replies->count()),
@@ -289,6 +293,39 @@ class TicketInsightsService
         }
 
         return $this->card('first-response', 'heroicon-o-chat-bubble-left-right', 'first_response', $this->span(max(0, (int)$ticket->created_at->diffInSeconds($first->created_at))), 'info');
+    }
+
+    private function inProgressAt(Ticket $ticket, Collection $replies): ?Carbon
+    {
+        $stamp = $ticket->extra['in_progress_at'] ?? null;
+
+        if (filled($stamp)) {
+            return Carbon::parse($stamp);
+        }
+
+        return $replies->first(fn(Reply $r) => str_starts_with((string)$r->body, AssignTicketAction::REPLY_PREFIX))?->created_at;
+    }
+
+    private function waitWorkCards(Ticket $ticket, Collection $replies): array
+    {
+        $at = $this->inProgressAt($ticket, $replies);
+        $closed = $ticket->status === 'closed';
+        $end = $closed ? $ticket->completion_date : now();
+
+        [$waitLabel, $waitValue, $waitColor] = match (true) {
+            $ticket->created_at && $at => ['wait_done', $this->span(max(0, (int)$ticket->created_at->diffInSeconds($at))), 'info'],
+            $ticket->created_at && $ticket->status === 'open' => ['wait_running', $this->span(max(0, (int)$ticket->created_at->diffInSeconds(now()))), 'warning'],
+            default => ['wait_done', '—', 'gray'],
+        };
+
+        [$workValue, $workColor] = $at && $end
+            ? [$this->span(max(0, (int)$at->diffInSeconds($end))), 'info']
+            : ['—', 'gray'];
+
+        return [
+            $this->card('wait', 'heroicon-o-pause-circle', $waitLabel, $waitValue, $waitColor),
+            $this->card('work', 'heroicon-o-wrench-screwdriver', $closed ? 'work_done' : 'work_running', $workValue, $workColor),
+        ];
     }
 
     private function groupLabel(object $row, string $dept): string

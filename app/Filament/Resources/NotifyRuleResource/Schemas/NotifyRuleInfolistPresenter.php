@@ -8,7 +8,7 @@ use App\Models\NotifyRule;
 use App\Models\User;
 use App\Services\Notify\NotifyConditions;
 use App\Services\Notify\NotifyRegistry;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;

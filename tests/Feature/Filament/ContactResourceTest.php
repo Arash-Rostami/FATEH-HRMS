@@ -2,9 +2,15 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\ContactResource;
 use App\Filament\Resources\ContactResource\Pages\EditContact;
 use App\Filament\Resources\ContactResource\Pages\ListContacts;
 use App\Filament\Resources\ContactResource\RelationManagers\RepliesRelationManager;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Message;
 use App\Models\Permission;
 use App\Models\User;
@@ -402,27 +408,27 @@ class ContactResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ContactResource\Pages\EditContact::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ContactResource\Pages\ListContacts::class => \App\Filament\Pages\ListRecords::class,
+            EditContact::class => EditRecord::class,
+            ListContacts::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ContactResource\Pages\EditContact::class];
+        $writers = [EditContact::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\ContactResource\RelationManagers\RepliesRelationManager::class];
+        $managers = [RepliesRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 

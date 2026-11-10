@@ -2,13 +2,10 @@
     $project = $this->activeProject;
     $summary = $this->reportSummary;
     $memberCount = $this->projectMemberUsers->count();
-    $riskChips = $this->presenter->headerRiskChips($project, $summary);
-    $settingsSummary = $project->settingsSummary();
-    $otherSettings = $project->otherSettingChips();
-    $badge = $this->presenter->badgeColors($project->id);
-    $isOwner = $project->owner_id !== null && (int) $project->owner_id === (int) auth()->id();
-    $hasSpecs = $settingsSummary !== '—' || !empty($otherSettings);
-    $hasMobilePopoverData = $hasSpecs || !empty($riskChips);
+    [
+        'riskChips' => $riskChips, 'settingsSummary' => $settingsSummary, 'otherSettings' => $otherSettings,
+        'badge' => $badge, 'isOwner' => $isOwner, 'hasSpecs' => $hasSpecs, 'hasMobilePopoverData' => $hasMobilePopoverData,
+    ] = $this->presenter->headerState($project, $summary);
 @endphp
 
 <div class="chat-scale flex flex-shrink-0 items-center justify-between gap-2.5 md:gap-4">

@@ -3,7 +3,7 @@
 namespace App\Livewire\Dashboard\Tab\Presentation;
 
 use App\Models\Photo;
-use App\Traits\HasTimelineMonths;
+use App\Traits\Livewire\HasTimelineMonths;
 
 class GalleryPresenter
 {

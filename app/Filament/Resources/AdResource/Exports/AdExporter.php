@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\AdResource\Exports;
 
-use App\Filament\Resources\AdResource\Enums\AdGender;
-use App\Filament\Resources\AdResource\Enums\AdStatus;
+use App\Enums\AdGender;
+use App\Enums\AdStatus;
 use App\Models\Ad;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;

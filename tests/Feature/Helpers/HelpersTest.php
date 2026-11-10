@@ -794,4 +794,48 @@ class HelpersTest extends TestCase
         config(['services.ai_assistant.url' => 'https://ai.example.test', 'app.off' => ['ai-assistant']]);
         $this->assertFalse(aiAssistantOn());
     }
+
+    public function test_ths_ai_on_needs_a_configured_gateway_and_neither_the_view_nor_the_module_switched_off(): void
+    {
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'app.off' => []]);
+        $this->assertTrue(thsAiOn());
+
+        config(['ai.gateway.key' => '']);
+        $this->assertFalse(thsAiOn());
+
+        config(['ai.gateway.key' => 'test-key', 'app.off' => ['ths:ai']]);
+        $this->assertFalse(thsAiOn());
+
+        config(['app.off' => ['ths']]);
+        $this->assertFalse(thsAiOn());
+    }
+
+    public function test_correspondence_ai_on_needs_the_gateway_and_its_ai_view_to_be_on(): void
+    {
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'app.off' => []]);
+        $this->assertTrue(correspondenceAiOn());
+
+        config(['app.off' => ['correspondence:ai']]);
+        $this->assertFalse(correspondenceAiOn());
+
+        config(['app.off' => ['correspondence']]);
+        $this->assertFalse(correspondenceAiOn());
+    }
+
+    public function test_correspondence_mail_on_needs_both_the_notify_module_and_its_mail_view_on(): void
+    {
+        config(['app.off' => []]);
+        $this->assertTrue(correspondenceMailOn());
+
+        config(['app.off' => ['notify:mail']]);
+        $this->assertFalse(correspondenceMailOn());
+
+        config(['app.off' => ['notify']]);
+        $this->assertFalse(correspondenceMailOn());
+
+        config(['app.off' => ['notify:sms']]);
+        $this->assertTrue(correspondenceMailOn());
+
+        config(['app.off' => []]);
+    }
 }

@@ -41,7 +41,10 @@ class UserKeyGrouper
                 SQL,
             );
 
-            return self::mergeRows(DB::select($sql));
+            return self::mergeRows(array_filter(
+                DB::select($sql),
+                fn (object $row): bool => ! in_array(mb_strtolower(trim((string) $row->k), 'UTF-8'), User::PROTECTED_ADMIN_KEYS, true),
+            ));
         });
     }
 

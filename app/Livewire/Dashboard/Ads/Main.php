@@ -3,7 +3,7 @@
 namespace App\Livewire\Dashboard\Ads;
 
 use App\Models\Ad;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;

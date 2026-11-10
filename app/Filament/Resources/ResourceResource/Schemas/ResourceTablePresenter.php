@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ResourceResource\Schemas;
 
 use App\Enums\ResourceType;
-use App\Filament\Resources\ResourceResource\Enums\ResourceStatus;
+use App\Enums\ResourceStatus;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;

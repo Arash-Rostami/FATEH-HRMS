@@ -2,9 +2,15 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\AdResource;
 use App\Filament\Resources\AdResource\Pages\CreateAd;
 use App\Filament\Resources\AdResource\Pages\EditAd;
 use App\Filament\Resources\AdResource\Pages\ListAds;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Ad;
 use App\Models\Permission;
 use App\Models\User;
@@ -326,21 +332,21 @@ class AdResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\AdResource\Pages\CreateAd::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\AdResource\Pages\EditAd::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\AdResource\Pages\ListAds::class => \App\Filament\Pages\ListRecords::class,
+            CreateAd::class => CreateRecord::class,
+            EditAd::class => EditRecord::class,
+            ListAds::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\AdResource\Pages\CreateAd::class, \App\Filament\Resources\AdResource\Pages\EditAd::class];
+        $writers = [CreateAd::class, EditAd::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 

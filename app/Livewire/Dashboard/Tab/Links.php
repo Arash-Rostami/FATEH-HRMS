@@ -4,7 +4,7 @@ namespace App\Livewire\Dashboard\Tab;
 
 use App\Livewire\Dashboard\Tab\Presentation\LinkPresenter;
 use App\Models\Link;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;

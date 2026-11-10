@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-pdo": "*",
         "filament/filament": "~5.0",
         "laravel/fortify": "^1.34",
         "laravel/framework": "^12.0",
@@ -18,6 +19,8 @@
         "livewire/livewire": "^4.1",
         "mokhosh/filament-jalali": "^6.0",
         "morilog/jalali": "^3.5",
+        "mpdf/mpdf": "^8.3",
+        "symfony/html-sanitizer": "^7.4",
         "xplodman/filament-count-up": "^1.0"
     },
     "require-dev": {

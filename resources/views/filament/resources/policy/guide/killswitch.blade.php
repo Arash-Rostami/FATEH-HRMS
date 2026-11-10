@@ -9,7 +9,7 @@
         <div class="flex-1 flex flex-col gap-2">
             <h3 class="text-[15px] font-black text-[var(--md-sys-color-on-surface)]">روشن و خاموش کردن یک نوع منبع</h3>
             <p class="text-[13px] leading-relaxed font-semibold text-[var(--md-sys-color-on-surface-variant)]">
-                هر نوع منبع با یک شرط ساده روشن یا خاموش می‌شود: اگر <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_days</code> و <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_hours</code> هر دو صفر باشند، آن نوع کاملاً غیرفعال می‌شود. کافی است یکی از این دو بزرگ‌تر از صفر باشد تا نوع فعال بماند.
+                اگر «بازه مجاز پیش‌رزرو (روز)» و «حداقل زمان قبل از رزرو (ساعت)» هر دو صفر باشند، آن نوع منبع غیرفعال می‌شود. اگر یکی از آن‌ها بزرگ‌تر از صفر باشد، نوع فعال می‌ماند.
             </p>
         </div>
     </div>
@@ -25,7 +25,7 @@
             <div class="flex items-start gap-4 p-5">
                 <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-primary)] mt-0.5">check_circle</span>
                 <p class="flex-1 text-[12.5px] leading-relaxed font-semibold text-[var(--md-sys-color-on-surface-variant)]">
-                    مقدار <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_days</code> را بزرگ‌تر از صفر بگذارید (مثلاً ۲۱). نوع بلافاصله در پنل کاربر فعال می‌شود و کاربر می‌تواند رزرو ثبت کند.
+                    «بازه مجاز پیش‌رزرو (روز)» را بزرگ‌تر از صفر بگذارید؛ مثلاً ۲۱. نوع در پنل کاربر فعال می‌شود و کاربر می‌تواند رزرو ثبت کند.
                 </p>
             </div>
             <div class="flex items-start gap-4 p-5">

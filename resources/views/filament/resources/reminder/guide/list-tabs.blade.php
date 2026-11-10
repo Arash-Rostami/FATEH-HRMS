@@ -28,7 +28,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">ستون‌ها، فیلترها و آمار فهرست</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        فهرست یادآوری‌ها زبانهٔ جداگانه ندارد؛ همهٔ یادآوری‌های همهٔ کاربران در یک جدول دیده می‌شوند و برای محدودکردن آن‌ها چهار فیلتر در دسترس است. گروه‌بندی و خروجی اکسل برای این بخش تعریف نشده است.
+        همهٔ یادآوری‌های کاربران در یک جدول و بدون زبانهٔ جداگانه نمایش داده می‌شوند. برای پیدا کردن موارد دلخواه از چهار فیلتر استفاده کنید. این بخش گروه‌بندی و خروجی اکسل ندارد.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

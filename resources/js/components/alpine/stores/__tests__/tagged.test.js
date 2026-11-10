@@ -125,3 +125,19 @@ describe('tagged.solid / tagBg', () => {
         expect(s.tagBg(1, 'bogus')).toBeNull()
     })
 })
+
+describe('tagged correspondence scope', () => {
+    test('restores and persists correspondence tags under its dedicated key', async () => {
+        localStorage.setItem('tagged-correspondence', JSON.stringify({ 21: 2 }))
+        const s = freshStore()
+        s.init()
+        expect(s.getTag(21, 'correspondence')).toBe(2)
+
+        s.setTag(34, 1, 'correspondence')
+        await Promise.resolve()
+
+        expect(JSON.parse(localStorage.getItem('tagged-correspondence'))).toEqual({ 21: 2, 34: 1 })
+        expect(s.isTagged(34, 'ai-report')).toBe(false)
+        expect(localStorage.getItem('tagged-ai-reports')).toBeNull()
+    })
+})

@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
+use App\Enums\DocumentStatus;
 use App\Filament\Resources\DmsResource\Exports\DmsExporter;
 use App\Filament\Resources\DmsResource\Pages\{CreateDms, EditDms, ListDms};
 use App\Filament\Resources\DmsResource\RelationManagers\ReadsRelationManager;
 use App\Filament\Resources\DmsResource\Schemas\{DmsFormPresenter, DmsInfolistPresenter, DmsTablePresenter};
 use App\Models\DMS;
 use App\Services\Dms\DmsKeyGrouper;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentFilters;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;

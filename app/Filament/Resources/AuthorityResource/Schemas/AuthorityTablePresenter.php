@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\AuthorityResource\Schemas;
 
-use App\Filament\Resources\AuthorityResource\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
+use App\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
 use App\Filament\Resources\AuthorityResource\Schemas\Grouping\JsonEnumGroup;
 use App\Models\Department;
 use Filament\Tables\Columns\{TextColumn, ToggleColumn};

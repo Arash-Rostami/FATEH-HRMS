@@ -69,6 +69,10 @@
         </div>
     </div>
 
+    @unless(tenantOff('correspondence'))
+        @include('livewire.dashboard.profile.credentials.sign-code')
+    @endunless
+
     @include('components.dashboard.header.focus-chip')
 
     @if($this->hasAnyCredentials)

@@ -1,53 +1,26 @@
 @php
     $quota = $this->quota;
-    $exhausted = $quota['used'] >= $quota['cap'];
-    $inactive = $owner && $report !== null && !$report->active;
-    $refining = $owner && $report !== null && $presenter->canRefine($report);
-    $blockLabel = $refining && $this->form->block !== null ? $presenter->blockLabel($report, $this->form->block) : null;
-    $sectionRefine = $blockLabel !== null;
-    $busy = $report !== null && $report->status === \App\Models\AiReport::STATUS_GENERATING;
     $generatingElsewhere = $this->hasGenerating;
-    $accept = config('ai_report.upload.accept');
-    $canSubmit = $refining ? ! ($exhausted || $generatingElsewhere) : ! ($exhausted || $busy || $generatingElsewhere);
-    $quotaPct = min(100, max(0, (int) round($quota['used'] * 100 / max(1, $quota['cap']))));
-    $rules = [
-        'سهمیه' => 'روزانه ' . convertToPersian((string) $quota['cap']) . ' بار می‌توانید گزارش بسازید یا اصلاح کنید. ویرایش دستی، برگشت به نسخهٔ قبل، اشتراک‌گذاری و چاپ سهمیه مصرف نمی‌کنند؛ ساخت ناموفق برگردانده می‌شود، مگر درخواست بیش‌ازحد بزرگ یا محتوای مسدودشده.',
-        'فایل‌ها' => 'حداکثر ' . convertToPersian((string) $limits['files']) . ' فایل؛ PDF و تصویر هرکدام تا ' . convertToPersian((string) $limits['inline_mb']) . ' و روی‌هم تا ' . convertToPersian((string) $limits['inline_total_mb']) . ' مگابایت. فایل‌ها پس از ساخت نگه داشته نمی‌شوند؛ برای اصلاح بعدی دوباره پیوست کنید.',
-        'همزمانی' => 'در هر زمان فقط یک گزارش در حال ساخت است؛ تا آماده‌شدن آن، گزارش تازه‌ای ساخته نمی‌شود.',
-        'اشتراک' => 'گزارش اشتراک‌گذاری‌شده قفل می‌شود؛ اصلاح آن یک نسخهٔ خصوصی تازه برای شما می‌سازد و عنوان یا ویرایش دستی تا برداشتن اشتراک ممکن نیست.',
-        'بازبینی' => 'هوش مصنوعی ممکن است اشتباه کند؛ ارقام را پیش از استفاده یا ارسال با منبع اصلی تطبیق دهید.',
-    ];
-    $quotaLeft = max(0, $quota['cap'] - $quota['used']);
-    $quotaTone = $exhausted
-        ? ['text' => 'text-[var(--md-sys-color-error)]', 'fill' => 'bg-[var(--md-sys-color-error)]']
-        : ($quotaPct >= 80
-            ? ['text' => 'text-[var(--tool-gold-color)]', 'fill' => 'bg-[var(--tool-gold-color)]']
-            : ['text' => 'text-[var(--md-sys-color-on-surface-variant)]', 'fill' => 'bg-[var(--md-sys-color-primary)]']);
+    $accept = config('ai.report.upload.accept');
+    [
+        'exhausted' => $exhausted, 'inactive' => $inactive, 'refining' => $refining,
+        'blockLabel' => $blockLabel, 'sectionRefine' => $sectionRefine, 'busy' => $busy,
+        'canSubmit' => $canSubmit, 'quotaPct' => $quotaPct, 'quotaLeft' => $quotaLeft,
+        'quotaTone' => $quotaTone, 'rules' => $rules,
+    ] = $presenter->composerState($report, $owner, $quota, $generatingElsewhere, $this->form->block, $limits);
 @endphp
 
 <div wire:key="ai-report-composer" id="ai-report-composer" x-data="aiReportComposer" x-cloak
      data-open="{{ $report === null ? '1' : '0' }}" data-can-submit="{{ $canSubmit ? '1' : '0' }}"
-     data-action="{{ $refining ? 'refine' : 'generate' }}" data-max="{{ (int) config('ai_report.prompt.max') }}"
+     data-action="{{ $refining ? 'refine' : 'generate' }}" data-max="{{ (int) config('ai.report.prompt.max') }}"
      x-on:ai-report-open.window="open = true; $nextTick(() => $el.querySelector('textarea')?.focus())"
      x-on:livewire-upload-start="uploading = true" x-on:livewire-upload-finish="uploading = false"
      x-on:livewire-upload-error="uploading = false" x-on:livewire-upload-cancel="uploading = false"
      class="flex flex-col gap-3 p-4 rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border border-[var(--md-sys-color-outline-variant)]/40 print:hidden">
-    <div wire:key="ai-report-quota-usage" class="print:hidden">
-        <div class="flex items-center gap-2 mb-1.5">
-            <span class="material-symbols-rounded text-[16px] {{ $quotaTone['text'] }}">stacks</span>
-            <span class="text-[11px] font-semibold {{ $quotaTone['text'] }}">
-                سهمیهٔ امروز: {{ convertToPersian((string) $quota['used']) }} / {{ convertToPersian((string) $quota['cap']) }}
-            </span>
-        </div>
-        <div wire:key="ai-report-quota-bar" role="progressbar" aria-label="سهمیهٔ امروز"
-             aria-valuenow="{{ $quota['used'] }}" aria-valuemin="0" aria-valuemax="{{ $quota['cap'] }}"
-             class="h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-500 {{ $quotaTone['fill'] }}" style="width: {{ $quotaPct }}%"></div>
-        </div>
-        @if(! $exhausted && $quotaPct >= 80)
-            <p wire:key="ai-report-quota-left" class="mt-1.5 text-[11px] font-semibold {{ $quotaTone['text'] }}">فقط {{ convertToPersian((string) $quotaLeft) }} بار دیگر امروز می‌توانید گزارش بسازید یا اصلاح کنید.</p>
-        @endif
-    </div>
+    <x-ui.quota-meter wire:key="ai-report-quota-usage" class="print:hidden"
+        label="سهمیهٔ امروز" aria="سهمیهٔ امروز" bar-key="ai-report-quota-bar" warn-key="ai-report-quota-left"
+        :used="$quota['used']" :cap="$quota['cap']" :pct="$quotaPct" :tone="$quotaTone"
+        :warn="! $exhausted && $quotaPct >= 80 ? 'فقط '.convertToPersian((string) $quotaLeft).' بار دیگر امروز می‌توانید گزارش بسازید یا اصلاح کنید.' : null" />
     <div wire:key="ai-report-rules" x-data="{ open: false }" class="print:hidden">
         <x-ui.buttons.form variant="ghost" icon="rule" x-on:click="open = !open" x-bind:aria-expanded="open" class="!h-8 !px-2 text-[11px] font-bold">
             قوانین
@@ -84,17 +57,17 @@
     <div wire:key="ai-report-composer-form" class="contents">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <x-ui.forms.select label="نوع گزارش" name="form.type" wire:model="form.type" icon="category" :disabled="$sectionRefine">
-            @foreach(config('ai_report.types') as $key => $type)
+            @foreach(config('ai.report.types') as $key => $type)
                 <option value="{{ $key }}">{{ $type['label'] }}</option>
             @endforeach
         </x-ui.forms.select>
         <x-ui.forms.select label="حجم گزارش" name="form.length" wire:model="form.length" icon="straighten" :disabled="$sectionRefine">
-            @foreach(config('ai_report.lengths') as $key => $length)
+            @foreach(config('ai.report.lengths') as $key => $length)
                 <option value="{{ $key }}">{{ $length['label'] }}</option>
             @endforeach
         </x-ui.forms.select>
         <x-ui.forms.select label="مخاطب" name="form.audience" wire:model="form.audience" icon="groups">
-            @foreach(config('ai_report.audiences') as $key => $audience)
+            @foreach(config('ai.report.audiences') as $key => $audience)
                 <option value="{{ $key }}">{{ $audience['label'] }}</option>
             @endforeach
         </x-ui.forms.select>
@@ -107,7 +80,7 @@
         <p wire:key="ai-report-original-prompt" class="text-[10.5px] leading-5 text-[var(--md-sys-color-on-surface-variant)]" dir="auto">{{ $originalPrompt['trimmed'] ? 'قدیمی‌ترین درخواست نگه‌داشته‌شده' : 'درخواست اولیه' }}: {{ $originalPrompt['text'] }}</p>
     @endif
     <x-ui.forms.textarea :label="$refining ? 'توضیح تغییر مورد نظر' : 'درخواست گزارش'" name="form.prompt" wire:model="form.prompt" dir="auto"
-                         :rows="4" :maximizable="true" icon="edit" :maxlength="(int) config('ai_report.prompt.max')"
+                         :rows="4" :maximizable="true" icon="edit" :maxlength="(int) config('ai.report.prompt.max')"
                          x-on:input="count($event)"
                          x-on:keydown.ctrl.enter.prevent="submit()"
                          x-on:keydown.meta.enter.prevent="submit()"/>
@@ -173,12 +146,12 @@
     <div class="flex flex-wrap items-center justify-end gap-2">
         @if($refining)
             <div wire:key="ai-report-composer-refine" class="contents">
-                <x-ui.buttons.form wire:click="refine" loading="generate,refine" loadingText="در حال اصلاح…" variant="primary" icon="autorenew"
+                <x-ui.buttons.form wire:click="refine" loading="generate,refine" loadingText="در حال اصلاح…" variant="ai"
                     x-bind:disabled="uploading || {{ $exhausted || $generatingElsewhere ? 'true' : 'false' }}"><span x-text="uploading ? 'در حال بارگذاری فایل…' : 'اصلاح گزارش'">اصلاح گزارش</span></x-ui.buttons.form>
             </div>
         @else
             <div wire:key="ai-report-composer-generate" class="contents">
-                <x-ui.buttons.form wire:click="generate" loading="generate,refine" loadingText="در حال ساخت…" variant="primary" icon="auto_awesome"
+                <x-ui.buttons.form wire:click="generate" loading="generate,refine" loadingText="در حال ساخت…" variant="ai"
                     x-bind:disabled="uploading || {{ $exhausted || $busy || $generatingElsewhere ? 'true' : 'false' }}"><span x-text="uploading ? 'در حال بارگذاری فایل…' : 'ساخت گزارش'">ساخت گزارش</span></x-ui.buttons.form>
             </div>
         @endif

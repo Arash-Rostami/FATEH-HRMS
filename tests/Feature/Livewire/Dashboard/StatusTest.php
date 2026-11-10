@@ -16,8 +16,10 @@ use App\Models\Skill;
 use App\Models\SkillUser;
 use App\Models\User;
 use App\Services\User\UserKeyGrouper;
+use Illuminate\Http\Client\Factory as HttpClientFactory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -35,7 +37,7 @@ class StatusTest extends TestCase
         Cache::forget(UserKeyGrouper::CACHE_KEY);
         Livewire::withoutLazyLoading();
         config(['services.kavenegar.key' => 'TESTKEY']);
-        \Illuminate\Support\Facades\Http::fake(['api.kavenegar.com/*' => \Illuminate\Support\Facades\Http::response(['return' => ['status' => 200]])]);
+        Http::fake(['api.kavenegar.com/*' => Http::response(['return' => ['status' => 200]])]);
     }
 
     protected function tearDown(): void
@@ -120,7 +122,7 @@ class StatusTest extends TestCase
     public function test_status_sms_modal_validates_then_sends_the_typed_text_prefixed_with_the_sender_name()
     {
         config(['services.kavenegar.key' => 'SECRETKEY']);
-        \Illuminate\Support\Facades\Http::fake(['api.kavenegar.com/*' => \Illuminate\Support\Facades\Http::response(['return' => ['status' => 200]])]);
+        Http::fake(['api.kavenegar.com/*' => Http::response(['return' => ['status' => 200]])]);
         $actor = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'name' => 'آرش رستمی']);
         $target = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
         Profile::factory()->create(['user_id' => $target->id, 'cellphone' => '09120000000']);
@@ -135,7 +137,7 @@ class StatusTest extends TestCase
             ->call('submitSms')
             ->assertHasErrors(['smsText' => 'max']);
 
-        \Illuminate\Support\Facades\Http::assertNothingSent();
+        Http::assertNothingSent();
 
         $component->set('smsText', 'جلسه ساعت ۱۰')
             ->call('submitSms')
@@ -144,7 +146,7 @@ class StatusTest extends TestCase
             ->assertSet('smsText', '')
             ->assertDispatched('toast', message: 'پیامک با موفقیت ارسال شد', type: 'success');
 
-        \Illuminate\Support\Facades\Http::assertSent(fn ($request) => $request['receptor'] === '09120000000'
+        Http::assertSent(fn ($request) => $request['receptor'] === '09120000000'
             && $request['message'] === 'آرش رستمی: جلسه ساعت ۱۰');
         $this->assertDatabaseHas('notify_logs', ['source' => 'status', 'sender_id' => $actor->id, 'user_id' => $target->id, 'status' => 'sent', 'recipient' => '*******0000', 'notify_rule_id' => null]);
     }
@@ -152,7 +154,7 @@ class StatusTest extends TestCase
     public function test_status_sms_tells_the_user_when_the_sms_service_is_not_configured()
     {
         config(['services.kavenegar.key' => null]);
-        \Illuminate\Support\Facades\Http::fake();
+        Http::fake();
         $actor = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
         $target = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
         Profile::factory()->create(['user_id' => $target->id, 'cellphone' => '09120000000']);
@@ -161,14 +163,14 @@ class StatusTest extends TestCase
             ->call('sendSms', (string) $target->id)
             ->assertDispatched('toast', message: 'سرویس پیامک هنوز پیکربندی نشده است؛ با مدیر سیستم تماس بگیرید.', type: 'error');
 
-        \Illuminate\Support\Facades\Http::assertNothingSent();
+        Http::assertNothingSent();
     }
 
     public function test_status_sms_reports_a_gateway_failure_and_refuses_do_not_disturb_colleagues()
     {
         config(['services.kavenegar.key' => 'SECRETKEY']);
-        \Illuminate\Support\Facades\Http::swap(new \Illuminate\Http\Client\Factory);
-        \Illuminate\Support\Facades\Http::fake(['api.kavenegar.com/*' => \Illuminate\Support\Facades\Http::response(['return' => ['status' => 418, 'message' => 'اعتبار کافی نیست']])]);
+        Http::swap(new HttpClientFactory);
+        Http::fake(['api.kavenegar.com/*' => Http::response(['return' => ['status' => 418, 'message' => 'اعتبار کافی نیست']])]);
         $actor = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
         $target = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
         $busy = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Grumpy->value]);
@@ -182,7 +184,7 @@ class StatusTest extends TestCase
             ->call('submitSms')
             ->assertDispatched('toast', message: 'ارسال پیامک ناموفق بود؛ کمی بعد دوباره تلاش کنید.', type: 'error');
 
-        \Illuminate\Support\Facades\Http::assertSentCount(1);
+        Http::assertSentCount(1);
         $this->assertDatabaseHas('notify_logs', ['source' => 'status', 'sender_id' => $actor->id, 'user_id' => $target->id, 'status' => 'failed']);
         $this->assertDatabaseMissing('notify_logs', ['source' => 'status', 'user_id' => $busy->id]);
 

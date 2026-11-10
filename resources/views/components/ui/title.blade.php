@@ -1,8 +1,8 @@
-@props(['icon', 'title', 'count' => null, 'countLabel' => 'مورد'])
+@props(['icon', 'title', 'count' => null, 'countLabel' => 'مورد', 'ai' => false])
 
 <div class="flex flex-wrap items-center gap-3 mb-8">
     <div
-        class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)] flex items-center justify-center">
+        class="w-8 h-8 rounded-lg {{ $ai ? 'bg-[var(--ai-bg)] text-[var(--ai-color)]' : 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)]' }} flex items-center justify-center">
         <span class="material-symbols-rounded text-base font-fill">{{ $icon }}</span>
     </div>
     <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">{{ $title }}</h2>

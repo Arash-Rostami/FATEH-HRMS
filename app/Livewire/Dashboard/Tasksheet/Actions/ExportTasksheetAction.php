@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Dashboard\Tasksheet\Actions;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Livewire\Dashboard\Tasksheet\Presentation\TasksheetPresenter;
 use App\Models\User;
 use App\Services\ProjectTask\TasksheetService;

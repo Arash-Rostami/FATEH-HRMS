@@ -1,10 +1,3 @@
-@php
-    $videos = collect(config('app.videos', []))
-        ->map(fn ($path) => asset($path))
-        ->values()
-        ->all();
-@endphp
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl" class="h-full antialiased" x-data="authBackground(@js($videos))">
 <head>

@@ -1207,6 +1207,79 @@ describe('channel() scroll behaviour — programmatic guard, upward-only auto-lo
     });
 });
 
+describe('channel() selectionchange → quote chip (skip-idle-frame guard)', () => {
+    let c, selection;
+
+    const fire = () => document.dispatchEvent(new Event('selectionchange'));
+
+    beforeEach(() => {
+        vi.useFakeTimers();
+        selection = { isCollapsed: true, rangeCount: 0 };
+        vi.spyOn(globalThis, 'getSelection').mockImplementation(() => selection);
+        c = channel();
+        c.$wire = createWireMock({ activeChannelId: null });
+        c.$watch = vi.fn();
+        c.initFancybox = vi.fn();
+        c.initMaximize = vi.fn();
+        c.init();
+        c._selectionChip = vi.fn(() => undefined);
+    });
+
+    afterEach(() => {
+        c.destroy();
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+    });
+
+    test('a collapsed selection while the chip is hidden schedules nothing', () => {
+        fire();
+        vi.advanceTimersByTime(50);
+
+        expect(c._selectionChip).not.toHaveBeenCalled();
+    });
+
+    test('a non-collapsed selection schedules exactly one update however many events fire before the frame', () => {
+        selection = { isCollapsed: false, rangeCount: 1 };
+
+        fire();
+        fire();
+        fire();
+        vi.advanceTimersByTime(50);
+
+        expect(c._selectionChip).toHaveBeenCalledOnce();
+    });
+
+    test('a collapsed selection while the chip is VISIBLE still schedules the update that hides it', () => {
+        c.quoteChip.visible = true;
+
+        fire();
+        vi.advanceTimersByTime(50);
+
+        expect(c._selectionChip).toHaveBeenCalledOnce();
+        expect(c.quoteChip.visible).toBe(false);
+    });
+
+    test('with no Selection object at all the update is still scheduled (legacy path)', () => {
+        selection = null;
+
+        fire();
+        vi.advanceTimersByTime(50);
+
+        expect(c._selectionChip).toHaveBeenCalledOnce();
+    });
+
+    test('a selection appearing after a skipped collapsed event is picked up by its own event', () => {
+        fire();
+        vi.advanceTimersByTime(50);
+        expect(c._selectionChip).not.toHaveBeenCalled();
+
+        selection = { isCollapsed: false, rangeCount: 1 };
+        fire();
+        vi.advanceTimersByTime(50);
+        expect(c._selectionChip).toHaveBeenCalledOnce();
+    });
+});
+
 describe('channel send ghost', () => {
     function holdSend(c) {
         let resolveSend;

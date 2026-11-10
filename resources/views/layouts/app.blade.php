@@ -1,3 +1,10 @@
+@php
+    use App\Livewire\Dashboard\Countdown;
+    use App\Livewire\Dashboard\EventReminder;
+    use App\Livewire\Dashboard\Edge;
+    use App\Livewire\Dashboard\Pulse;
+    use App\Livewire\Dashboard\UnreadNotifications;
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
       x-data
@@ -10,39 +17,27 @@
     <script src="{{ asset('js/prefs-manager.js') }}"></script>
     <x-dashboard.meta-tags/>
     <x-dashboard.module-chunks/>
-    @php
-        $backdrop = array_merge(config('app.backdrop'), [
-            'images' => array_map('asset', config('app.backdrop.images')),
-        ]);
-    @endphp
     <script>window.__tenantBackdrop = @json($backdrop);</script>
     @if(config('app.off'))<style>{!! tenantOffCss() !!}</style>@endif
     @if($themeCss = tenantThemeCss())<style>{!! $themeCss !!}</style>@endif
-
-    @php
-        $viteEntries = ['resources/css/app.css', 'resources/js/app.js'];
-        if ($moduleChunk) {
-            $viteEntries[] = "resources/js/components/alpine/modules/{$moduleChunk}.js";
-        }
-    @endphp
     @vite($viteEntries)
     @filamentStyles
     @livewireStyles
 </head>
 <body
     class="antialiased container-scrollbar custom-scrollbar min-h-screen flex flex-col bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
-@unless(request()->boolean('embed'))
+@unless($embed)
     <div class="loading-line"></div>
 @endunless
 
-@unless(request()->boolean('embed') || View::hasSection('minimal_layout'))
+@if($chrome)
     <x-dashboard.header/>
     @unless(tenantOff('calendar'))
-        @livewire(\App\Livewire\Dashboard\Countdown::class)
-        @livewire(\App\Livewire\Dashboard\EventReminder::class)
+        @livewire(Countdown::class)
+        @livewire(EventReminder::class)
     @endunless
-    @livewire(\App\Livewire\Dashboard\Edge::class)
-@endunless
+    @livewire(Edge::class)
+@endif
 
 <div id="content-shell">
     @isset($slot)
@@ -52,18 +47,16 @@
     @endisset
 </div>
 
-
-@unless(request()->boolean('embed') || View::hasSection('minimal_layout'))
+@if($chrome)
     <x-dashboard.global/>
     <x-dashboard.footer/>
-@endunless
-
+@endif
 
 @filamentScripts
 @livewireScripts
-@unless(request()->boolean('embed'))
-    @livewire(\App\Livewire\Dashboard\Pulse::class)
-    @livewire(\App\Livewire\Dashboard\UnreadNotifications::class)
+@unless($embed)
+    @livewire(Pulse::class)
+    @livewire(UnreadNotifications::class)
 @endunless
 </body>
 </html>

@@ -3,15 +3,19 @@
 namespace Tests\Feature\Models;
 
 use App\Enums\PresenceStatus;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Department;
 use App\Models\Permission;
 use App\Models\Profile;
 use App\Models\Reservation;
 use App\Models\Resource;
+use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
+use Filament\Panel;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class UserModelTest extends TestCase
@@ -238,6 +242,43 @@ class UserModelTest extends TestCase
         $user->extra = null;
 
         $this->assertSame(['admin' => []], $user->extra);
+    }
+
+    public function test_extra_preferences_only_write_keeps_the_admin_bucket_and_protected_keys(): void
+    {
+        $user = new User();
+        $user->extra = ['preferences' => ['theme' => 'dark'], 'admin' => ['Company' => 'Tehran', 'sign_code_hash' => 'h', 'signature' => 'p', 'correspondence_registry' => true]];
+
+        $user->extra = ['preferences' => ['theme' => 'light', 'lang' => 'fa']];
+
+        $this->assertSame(['theme' => 'light', 'lang' => 'fa'], $user->extra['preferences']);
+        $this->assertSame(['Company' => 'Tehran', 'sign_code_hash' => 'h', 'signature' => 'p', 'correspondence_registry' => true], $user->extra['admin']);
+    }
+
+    public function test_editable_extra_flattens_every_stored_shape_and_never_returns_protected_or_preference_keys(): void
+    {
+        $nested = [
+            'preferences' => ['theme' => 'dark'],
+            'admin' => ['Company' => 'Tehran', 'sign_code_hash' => 'h', 'signature' => 'p', 'correspondence_registry' => true],
+        ];
+
+        $this->assertSame(['Company' => 'Tehran'], User::editableExtraOf($nested));
+        $this->assertSame(['Company' => 'Tehran'], User::editableExtraOf(['Company' => 'Tehran', 'sign_code_hash' => 'h']));
+        $this->assertSame(['Company' => 'T'], User::editableExtraOf(['preferences' => ['a' => 1], 'Company' => 'T']));
+        $this->assertSame([], User::editableExtraOf(null));
+        $this->assertSame([], User::editableExtraOf(['admin' => 'not-an-array']));
+        $this->assertSame(
+            User::editableExtraOf($nested),
+            User::editableExtraOf(User::editableExtraOf($nested)),
+            'flattening twice must not change the result',
+        );
+        $this->assertSame('p', User::adminBucketOf($nested)['signature'], 'the bucket keeps protected keys for the page logic');
+
+        $user = new User();
+        $user->extra = $nested;
+        $this->assertSame(['Company' => 'Tehran'], $user->editableExtra());
+        $this->assertSame('p', $user->adminExtra()['signature']);
+        $this->assertSame('dark', $user->getPreference('theme'));
     }
 
     public function test_booking_get_normalizes_key_value_pair_array_to_flat_map(): void
@@ -590,14 +631,14 @@ class UserModelTest extends TestCase
     {
         $developer = User::factory()->create(['role' => 'developer', 'status' => 'active']);
 
-        $this->assertTrue($developer->canAccessPanel(app(\Filament\Panel::class)));
+        $this->assertTrue($developer->canAccessPanel(app(Panel::class)));
     }
 
     public function test_can_access_panel_returns_false_for_plain_user(): void
     {
         $user = User::factory()->create(['role' => 'user', 'status' => 'active']);
 
-        $this->assertFalse($user->canAccessPanel(app(\Filament\Panel::class)));
+        $this->assertFalse($user->canAccessPanel(app(Panel::class)));
     }
 
     public function test_can_access_panel_returns_true_for_admin_with_super_admin_permission(): void
@@ -605,7 +646,7 @@ class UserModelTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
         Permission::factory()->create(['user_id' => $admin->id, 'is_super_admin' => true]);
 
-        $this->assertTrue($admin->canAccessPanel(app(\Filament\Panel::class)));
+        $this->assertTrue($admin->canAccessPanel(app(Panel::class)));
     }
 
     public function test_can_access_panel_returns_false_for_admin_without_abilities_or_super_admin(): void
@@ -613,7 +654,7 @@ class UserModelTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
         Permission::factory()->create(['user_id' => $admin->id, 'is_super_admin' => false, 'abilities' => []]);
 
-        $this->assertFalse($admin->canAccessPanel(app(\Filament\Panel::class)));
+        $this->assertFalse($admin->canAccessPanel(app(Panel::class)));
     }
 
     public function test_permits_returns_true_for_developer_regardless_of_module(): void
@@ -770,13 +811,13 @@ class UserModelTest extends TestCase
 
     public function test_head_change_reconcile_also_covers_open_tickets_routed_to_the_default_department(): void
     {
-        \Illuminate\Support\Facades\Queue::fake();
+        Queue::fake();
         $head = $this->userWithProfile('PS', 'manager');
-        $legacy = \App\Models\Ticket::factory()->create(['status' => 'open']);
+        $legacy = Ticket::factory()->create(['status' => 'open']);
         DB::table('tickets')->where('id', $legacy->id)->update(['extra' => json_encode(['department' => 'ZZ1'])]);
 
         $head->profile->update(['position' => 'employee']);
 
-        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\ReconcileNudge::class, fn($job) => $job->subjectId === $legacy->id);
+        Queue::assertPushed(ReconcileNudgeJob::class, fn($job) => $job->subjectId === $legacy->id);
     }
 }

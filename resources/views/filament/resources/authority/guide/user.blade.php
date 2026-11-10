@@ -25,13 +25,13 @@
         [
             'icon' => 'person',
             'chip' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
-            'label' => 'وظیفهٔ اصلی (sub_duty خاموش)',
+            'label' => 'وظیفهٔ اصلی',
             'hint' => 'آیکونِ شخص و نامِ مسئولِ مستقیم در ردیف نمایش داده می‌شود. این وظیفه فقط برای همان واحد اعمال می‌شود.',
         ],
         [
             'icon' => 'groups',
             'chip' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]',
-            'label' => 'وظیفهٔ زیرمجموعه (sub_duty روشن)',
+            'label' => 'وظیفهٔ زیرمجموعه',
             'hint' => 'آیکونِ گروه و برچسبِ «وظایف زیرمجموعه» جایگزینِ نامِ مسئول می‌شود — این وظیفه برای تمامی زیرمجموعه‌های سازمانی نیز اعمال می‌گردد.',
         ],
     ];

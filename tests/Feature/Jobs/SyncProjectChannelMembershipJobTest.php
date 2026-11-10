@@ -3,6 +3,8 @@
 namespace Tests\Feature\Jobs;
 
 use App\Jobs\SyncProjectChannelMembershipJob;
+use App\Models\Department;
+use App\Models\Profile;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectTask\ChannelProvisioner;
@@ -97,14 +99,14 @@ class SyncProjectChannelMembershipJobTest extends TestCase
 
     public function test_handle_syncs_the_roster_including_department_members_and_never_detaches_the_owner(): void
     {
-        $dept = \App\Models\Department::factory()->create();
+        $dept = Department::factory()->create();
         $owner = User::factory()->create(['status' => 'active', 'role' => 'user']);
         $member = User::factory()->create(['status' => 'active', 'role' => 'user']);
         $deptUser = User::factory()->create(['status' => 'active', 'role' => 'user']);
         $deptGone = User::factory()->create(['status' => 'active', 'role' => 'user']);
         $stranger = User::factory()->create(['status' => 'active', 'role' => 'user']);
-        \App\Models\Profile::factory()->create(['user_id' => $deptUser->id, 'department_id' => $dept->code]);
-        \App\Models\Profile::factory()->create(['user_id' => $deptGone->id, 'department_id' => $dept->code]);
+        Profile::factory()->create(['user_id' => $deptUser->id, 'department_id' => $dept->code]);
+        Profile::factory()->create(['user_id' => $deptGone->id, 'department_id' => $dept->code]);
         $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [$member->id], 'departments' => [$dept->code], 'channel_id' => null]);
         $channel = app(ChannelProvisioner::class)->resolve($project->fresh());
         $channel->memberUsers()->attach($stranger->id, ['joined_at' => now(), 'entered_at' => now()]);

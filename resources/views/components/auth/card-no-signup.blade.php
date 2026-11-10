@@ -1,11 +1,5 @@
 @props(['title' => '', 'description' => '', 'imageContent' => null, 'icon' => null, 'siblings' => false])
 
-@php
-    $lightLogo = asset(tenantLogo(false, 'user', true));
-    $darkLogo  = asset(tenantLogo(true, 'user', true));
-    $appName   = config('app.name_en', 'WinterrA');
-@endphp
-
 <div
     x-data="{ minimized: false, flipped: false, seen: false }"
     data-auth-card

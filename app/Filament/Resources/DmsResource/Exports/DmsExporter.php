@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\DmsResource\Exports;
 
-use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
+use App\Enums\DocumentStatus;
 use App\Models\DMS;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;

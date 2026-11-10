@@ -2,8 +2,9 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
+use App\Enums\TaskActivityType;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
 use App\Services\ProjectTask\ApproveTaskAction;
 use App\Services\ProjectTask\BoardCollaboratorResolver;
 use App\Services\ProjectTask\CreateTaskAction;
@@ -17,11 +18,13 @@ use App\Services\ProjectTask\DuplicateTaskAction;
 use App\Services\ProjectTask\ReorderTaskAction;
 use App\Services\ProjectTask\UpdateTaskAction;
 use App\Services\ProjectTask\UpdateTaskStatusAction;
+use App\Livewire\Dashboard\TaskBoard\Actions\ExportTasksAction;
 use App\Livewire\Dashboard\TaskBoard\Main;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Models\Department;
 use App\Models\Profile;
 use App\Models\Project;
+use App\Models\Reply;
 use App\Models\Task;
 use App\Models\TaskDetail;
 use App\Models\Ticket;
@@ -29,9 +32,12 @@ use App\Models\User;
 use App\Services\Menu\NudgeService;
 use App\Services\ProjectTask\ActivityLogger;
 use App\Services\ProjectTask\RankGenerator;
+use Illuminate\Http\Testing\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Url;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use OpenSpout\Reader\XLSX\Reader;
 use Tests\TestCase;
@@ -632,7 +638,7 @@ class TaskBoardTest extends TestCase
         $task = Task::factory()->ownedBy($creator)->withStatus('todo')->create();
 
         $fakeImage = UploadedFile::fake()->image('x.jpg');
-        $failingFile = new class('x.jpg', fopen($fakeImage->getPathname(), 'r')) extends \Illuminate\Http\Testing\File {
+        $failingFile = new class('x.jpg', fopen($fakeImage->getPathname(), 'r')) extends File {
             public function storeAs($path, $name = null, $options = []): string
             {
                 throw new \RuntimeException('simulated disk failure');
@@ -658,7 +664,7 @@ class TaskBoardTest extends TestCase
         $goodFile = UploadedFile::fake()->image('good.jpg');
 
         $fakeImage = UploadedFile::fake()->image('bad.jpg');
-        $failingFile = new class('bad.jpg', fopen($fakeImage->getPathname(), 'r')) extends \Illuminate\Http\Testing\File {
+        $failingFile = new class('bad.jpg', fopen($fakeImage->getPathname(), 'r')) extends File {
             public function storeAs($path, $name = null, $options = []): string
             {
                 throw new \RuntimeException('simulated disk failure');
@@ -974,7 +980,7 @@ class TaskBoardTest extends TestCase
         $this->actingAs($user);
 
         $fakeImage = UploadedFile::fake()->image('x.jpg');
-        $failingFile = new class('x.jpg', fopen($fakeImage->getPathname(), 'r')) extends \Illuminate\Http\Testing\File {
+        $failingFile = new class('x.jpg', fopen($fakeImage->getPathname(), 'r')) extends File {
             public function store($path = '', $options = []): string|false
             {
                 throw new \RuntimeException('simulated disk failure');
@@ -1009,7 +1015,7 @@ class TaskBoardTest extends TestCase
         $goodFile = UploadedFile::fake()->image('good.jpg');
 
         $fakeImage = UploadedFile::fake()->image('bad.jpg');
-        $failingFile = new class('bad.jpg', fopen($fakeImage->getPathname(), 'r')) extends \Illuminate\Http\Testing\File {
+        $failingFile = new class('bad.jpg', fopen($fakeImage->getPathname(), 'r')) extends File {
             public function store($path = '', $options = []): string|false
             {
                 throw new \RuntimeException('simulated disk failure');
@@ -1043,7 +1049,7 @@ class TaskBoardTest extends TestCase
         $task = Task::factory()->ownedBy($user)->withStatus('todo')->create(['title' => 'Original title']);
 
         $fakeImage = UploadedFile::fake()->image('x.jpg');
-        $failingFile = new class('x.jpg', fopen($fakeImage->getPathname(), 'r')) extends \Illuminate\Http\Testing\File {
+        $failingFile = new class('x.jpg', fopen($fakeImage->getPathname(), 'r')) extends File {
             public function store($path = '', $options = []): string|false
             {
                 throw new \RuntimeException('simulated disk failure');
@@ -1080,7 +1086,7 @@ class TaskBoardTest extends TestCase
         $goodFile = UploadedFile::fake()->image('good.jpg');
 
         $fakeImage = UploadedFile::fake()->image('bad.jpg');
-        $failingFile = new class('bad.jpg', fopen($fakeImage->getPathname(), 'r')) extends \Illuminate\Http\Testing\File {
+        $failingFile = new class('bad.jpg', fopen($fakeImage->getPathname(), 'r')) extends File {
             public function store($path = '', $options = []): string|false
             {
                 throw new \RuntimeException('simulated disk failure');
@@ -1814,7 +1820,7 @@ class TaskBoardTest extends TestCase
 
     public function test_empty_state_flags_derive_window_archive_and_older_exist(): void
     {
-        $presenter = new \App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter();
+        $presenter = new TaskBoardPresenter();
 
         $window = $presenter->emptyStateFlags('done', false, false, '', ['done' => 5]);
         $this->assertTrue($window['windowActive'], 'done column with no archive/all-done flags and no search is the active 45-day window');
@@ -1858,7 +1864,7 @@ class TaskBoardTest extends TestCase
 
         $this->assertSame(2, $task1->replies()->count(), 'a mass update bypasses model events; the fix routes through per-task saves so each task gets its own status-change activity entry');
         $this->assertSame(2, $task2->replies()->count());
-        $this->assertSame(\App\Enums\TaskActivityType::StatusChange, $task1->replies()->reorder()->latest('id')->first()->type);
+        $this->assertSame(TaskActivityType::StatusChange, $task1->replies()->reorder()->latest('id')->first()->type);
     }
 
     public function test_bulk_assign_writes_assignment_activity_log(): void
@@ -1875,7 +1881,7 @@ class TaskBoardTest extends TestCase
 
         $reply = $task->replies()->reorder()->latest('id')->first();
         $this->assertNotNull($reply, 'bulk assign must trigger the same saved-hook activity log a single assign would');
-        $this->assertSame(\App\Enums\TaskActivityType::Assignment, $reply->type);
+        $this->assertSame(TaskActivityType::Assignment, $reply->type);
     }
 
     public function test_deadline_change_writes_deadline_change_activity_log(): void
@@ -1887,7 +1893,7 @@ class TaskBoardTest extends TestCase
         Task::find($task->id)->update(['deadline' => now()->addWeek()]);
 
         $reply = $task->replies()->reorder()->latest('id')->first();
-        $this->assertSame(\App\Enums\TaskActivityType::DeadlineChange, $reply->type);
+        $this->assertSame(TaskActivityType::DeadlineChange, $reply->type);
         $this->assertNotNull($reply->payload['from']);
         $this->assertNotNull($reply->payload['to']);
     }
@@ -1901,7 +1907,7 @@ class TaskBoardTest extends TestCase
         Task::find($task->id)->update(['priority' => 'urgent']);
 
         $reply = $task->replies()->reorder()->latest('id')->first();
-        $this->assertSame(\App\Enums\TaskActivityType::PriorityChange, $reply->type);
+        $this->assertSame(TaskActivityType::PriorityChange, $reply->type);
         $this->assertSame('low', $reply->payload['from']);
         $this->assertSame('urgent', $reply->payload['to']);
     }
@@ -1915,7 +1921,7 @@ class TaskBoardTest extends TestCase
         Task::find($task->id)->update(['labels' => ['b', 'c']]);
 
         $reply = $task->replies()->reorder()->latest('id')->first();
-        $this->assertSame(\App\Enums\TaskActivityType::LabelChange, $reply->type);
+        $this->assertSame(TaskActivityType::LabelChange, $reply->type);
         $this->assertSame(['c'], $reply->payload['added']);
         $this->assertSame(['a'], $reply->payload['removed']);
     }
@@ -1923,14 +1929,14 @@ class TaskBoardTest extends TestCase
     public function test_project_change_writes_project_change_activity_log(): void
     {
         $user = User::factory()->create(['status' => 'active']);
-        $project = \App\Models\Project::factory()->create(['owner_id' => $user->id]);
+        $project = Project::factory()->create(['owner_id' => $user->id]);
         $task = Task::factory()->ownedBy($user)->withStatus('todo')->create(['project_id' => null]);
 
         $this->actingAs($user);
         Task::find($task->id)->update(['project_id' => $project->id]);
 
         $reply = $task->replies()->reorder()->latest('id')->first();
-        $this->assertSame(\App\Enums\TaskActivityType::ProjectChange, $reply->type);
+        $this->assertSame(TaskActivityType::ProjectChange, $reply->type);
         $this->assertNull($reply->payload['from']);
         $this->assertSame($project->id, $reply->payload['to']);
     }
@@ -1949,7 +1955,7 @@ class TaskBoardTest extends TestCase
         $history = $component->instance()->taskHistory;
 
         $this->assertCount(1, $comments);
-        $this->assertSame(\App\Enums\TaskActivityType::Comment, $comments->first()->type);
+        $this->assertSame(TaskActivityType::Comment, $comments->first()->type);
 
         $this->assertCount(2, $history);
         $this->assertContains('تغییر اولویت', collect($history)->pluck('label')->all());
@@ -1959,7 +1965,7 @@ class TaskBoardTest extends TestCase
     public function test_history_tab_is_hidden_in_the_modal_for_a_task_that_belongs_to_a_project(): void
     {
         $user = User::factory()->create(['status' => 'active']);
-        $project = \App\Models\Project::factory()->create(['owner_id' => $user->id]);
+        $project = Project::factory()->create(['owner_id' => $user->id]);
         $task = Task::factory()->ownedBy($user)->withStatus('todo')->create(['project_id' => $project->id]);
 
         Livewire::actingAs($user)
@@ -2006,7 +2012,7 @@ class TaskBoardTest extends TestCase
     public function test_cross_project_move_places_task_by_priority_tier_in_new_column(): void
     {
         $creator = User::factory()->create(['status' => 'active']);
-        $project = \App\Models\Project::factory()->create(['owner_id' => $creator->id, 'member_ids' => [], 'departments' => []]);
+        $project = Project::factory()->create(['owner_id' => $creator->id, 'member_ids' => [], 'departments' => []]);
         Task::factory()->create(['project_id' => $project->id, 'status' => 'todo', 'priority' => 'urgent', 'rank' => 'b', 'assigned_to' => $creator->id, 'user_id' => $creator->id]);
         Task::factory()->create(['project_id' => $project->id, 'status' => 'todo', 'priority' => 'high', 'rank' => 'd', 'assigned_to' => $creator->id, 'user_id' => $creator->id]);
         Task::factory()->create(['project_id' => $project->id, 'status' => 'todo', 'priority' => 'low', 'rank' => 'f', 'assigned_to' => $creator->id, 'user_id' => $creator->id]);
@@ -2028,7 +2034,7 @@ class TaskBoardTest extends TestCase
     public function test_duplicate_task_clones_labels_priority_and_resets_status_and_checklist(): void
     {
         $creator = User::factory()->create(['status' => 'active']);
-        $project = \App\Models\Project::factory()->create(['owner_id' => $creator->id, 'member_ids' => [], 'departments' => []]);
+        $project = Project::factory()->create(['owner_id' => $creator->id, 'member_ids' => [], 'departments' => []]);
         $task = Task::factory()->ownedBy($creator)->withStatus('done')->create([
             'project_id' => $project->id,
             'labels' => ['urgent-fix'],
@@ -2102,7 +2108,7 @@ class TaskBoardTest extends TestCase
     public function test_duplicate_task_is_refused_for_ticket_linked_task(): void
     {
         $creator = User::factory()->create(['status' => 'active']);
-        $task = Task::factory()->ownedBy($creator)->withStatus('todo')->create(['ticket_id' => \App\Models\Ticket::factory()->create()->id]);
+        $task = Task::factory()->ownedBy($creator)->withStatus('todo')->create(['ticket_id' => Ticket::factory()->create()->id]);
         $before = Task::count();
 
         Livewire::actingAs($creator)
@@ -2170,7 +2176,7 @@ class TaskBoardTest extends TestCase
     public function test_project_filter_scopes_board_to_selected_project(): void
     {
         $user = User::factory()->create(['status' => 'active']);
-        $project = \App\Models\Project::factory()->create(['owner_id' => $user->id, 'member_ids' => [], 'departments' => []]);
+        $project = Project::factory()->create(['owner_id' => $user->id, 'member_ids' => [], 'departments' => []]);
         $inProject = Task::factory()->ownedBy($user)->withStatus('todo')->create(['project_id' => $project->id]);
         Task::factory()->ownedBy($user)->withStatus('todo')->create(['project_id' => null]);
 
@@ -3022,7 +3028,7 @@ class TaskBoardTest extends TestCase
 
         $this->assertFalse($component->instance()->dateSpanActive());
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
         $component->set('appliedBasis', 'created');
     }
 
@@ -3103,7 +3109,7 @@ class TaskBoardTest extends TestCase
         $assigned = Task::factory()->delegatedBy($colleague, $user)->withStatus('in-progress')->create(['title' => 'Export probe assigned']);
         Task::factory()->ownedBy($stranger)->withStatus('todo')->create(['title' => 'Export probe stranger only']);
 
-        $response = app(\App\Livewire\Dashboard\TaskBoard\Actions\ExportTasksAction::class)->execute((int) $user->id);
+        $response = app(ExportTasksAction::class)->execute((int) $user->id);
 
         $this->assertSame('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', $response->headers->get('Content-Type'));
         $this->assertStringContainsString('tasks-', $response->headers->get('Content-Disposition'));
@@ -3205,7 +3211,7 @@ class TaskBoardTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'active']);
         $task = Task::factory()->ownedBy($user)->withStatus('todo')->create(['title' => 'Ship the launch page']);
-        $countBefore = \App\Models\Project::count();
+        $countBefore = Project::count();
 
         Livewire::actingAs($user)
             ->test(Main::class)
@@ -3217,14 +3223,14 @@ class TaskBoardTest extends TestCase
             ->assertSet('showLevelUpForm', false)
             ->assertSet('form.pendingProjectName', 'Launch Page Project');
 
-        $this->assertSame($countBefore, \App\Models\Project::count(), 'stashing the pending project name must not create a Project row until the task is actually saved');
+        $this->assertSame($countBefore, Project::count(), 'stashing the pending project name must not create a Project row until the task is actually saved');
     }
 
     public function test_closing_the_modal_after_stashing_a_pending_project_leaves_no_orphan_project(): void
     {
         $user = User::factory()->create(['status' => 'active']);
         $task = Task::factory()->ownedBy($user)->withStatus('todo')->create();
-        $countBefore = \App\Models\Project::count();
+        $countBefore = Project::count();
 
         Livewire::actingAs($user)
             ->test(Main::class)
@@ -3234,7 +3240,7 @@ class TaskBoardTest extends TestCase
             ->call('createProjectFromTask')
             ->call('openCreateModal');
 
-        $this->assertSame($countBefore, \App\Models\Project::count(), 'abandoning the modal without saving the task must never leave an orphan Project row');
+        $this->assertSame($countBefore, Project::count(), 'abandoning the modal without saving the task must never leave an orphan Project row');
     }
 
     public function test_cancel_pending_project_clears_the_stash(): void
@@ -3267,7 +3273,7 @@ class TaskBoardTest extends TestCase
             ->call('updateTask')
             ->assertHasNoErrors();
 
-        $project = \App\Models\Project::where('name', 'Launch Page Project')->firstOrFail();
+        $project = Project::where('name', 'Launch Page Project')->firstOrFail();
         $this->assertSame($user->id, $project->owner_id);
         $this->assertSame($project->id, $task->fresh()->project_id);
     }
@@ -3306,7 +3312,7 @@ class TaskBoardTest extends TestCase
 
         foreach ($expected as $property => $param) {
             $reflection = new \ReflectionProperty(Main::class, $property);
-            $attributes = $reflection->getAttributes(\Livewire\Attributes\Url::class);
+            $attributes = $reflection->getAttributes(Url::class);
 
             $this->assertNotEmpty($attributes, "{$property} must carry #[Url] so filters survive refresh/share");
             $this->assertSame($param, $attributes[0]->newInstance()->as, "{$property}'s #[Url] query param name is wrong");
@@ -3316,7 +3322,7 @@ class TaskBoardTest extends TestCase
     public function test_meta_tab_renders_schema_mode_inputs_for_a_project_with_custom_schema(): void
     {
         $owner = User::factory()->create(['status' => 'active']);
-        $project = \App\Models\Project::factory()->create([
+        $project = Project::factory()->create([
             'owner_id' => $owner->id,
             'member_ids' => [],
             'departments' => [],
@@ -3379,7 +3385,7 @@ class TaskBoardTest extends TestCase
     {
         $owner = User::factory()->create(['status' => 'active']);
         $editor = User::factory()->create(['status' => 'active', 'name' => 'سارا ویرایشگر']);
-        $project = \App\Models\Project::factory()->create([
+        $project = Project::factory()->create([
             'owner_id' => $owner->id,
             'member_ids' => [],
             'departments' => [],
@@ -3398,14 +3404,14 @@ class TaskBoardTest extends TestCase
     public function test_pending_approval_card_without_replies_hides_the_last_touched_caption(): void
     {
         $owner = User::factory()->create(['status' => 'active']);
-        $project = \App\Models\Project::factory()->create([
+        $project = Project::factory()->create([
             'owner_id' => $owner->id,
             'member_ids' => [],
             'departments' => [],
             'settings' => ['requires_approval' => true],
         ]);
         $task = Task::factory()->forProject($project)->ownedBy($owner)->withStatus('done')->create(['approved_at' => null]);
-        \App\Models\Reply::where('repliable_type', Task::class)->where('repliable_id', $task->id)->delete();
+        Reply::where('repliable_type', Task::class)->where('repliable_id', $task->id)->delete();
 
         Livewire::actingAs($owner)
             ->test(Main::class)
@@ -3417,7 +3423,7 @@ class TaskBoardTest extends TestCase
     {
         $owner = User::factory()->create(['status' => 'active']);
         $member = User::factory()->create(['status' => 'active']);
-        $project = \App\Models\Project::factory()->create([
+        $project = Project::factory()->create([
             'owner_id' => $owner->id,
             'member_ids' => [$member->id],
             'departments' => [],
@@ -3434,7 +3440,7 @@ class TaskBoardTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertNull($task->fresh()->approved_at);
-        $this->assertFalse(app(\App\Services\ProjectTask\ApproveTaskAction::class)->execute($task->fresh(), $member));
+        $this->assertFalse(app(ApproveTaskAction::class)->execute($task->fresh(), $member));
         $this->assertNull($task->fresh()->approved_at);
     }
 
@@ -3444,7 +3450,7 @@ class TaskBoardTest extends TestCase
         $task = Task::factory()->ownedBy($user)->withStatus('todo')->create();
         $otherTask = Task::factory()->ownedBy($user)->withStatus('todo')->create();
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($user)->test(Main::class)
             ->call('editTask', $task->id)

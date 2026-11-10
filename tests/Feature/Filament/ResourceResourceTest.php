@@ -2,12 +2,21 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
 use App\Filament\Resources\ReservationResource;
+use App\Filament\Resources\ResourceResource;
 use App\Filament\Resources\ResourceResource\Pages\CreateResource;
 use App\Filament\Resources\ResourceResource\Pages\EditResource;
 use App\Filament\Resources\ResourceResource\Pages\ListResources;
+use App\Filament\Resources\ResourceResource\RelationManagers\ReservationsRelationManager;
 use App\Filament\Resources\ResourceResource\Schemas\Helper\TypeProvisioner;
 use App\Filament\Resources\ResourceResource\Schemas\ResourceFormPresenter;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Enums\ResourceType;
 use App\Models\Permission;
 use App\Models\Reservation;
@@ -262,7 +271,7 @@ class ResourceResourceTest extends TestCase
             'status' => 'active',
             'metadata' => [],
         ]);
-        \App\Models\Reservation::factory()->create(['resource_id' => $with->id]);
+        Reservation::factory()->create(['resource_id' => $with->id]);
 
         Livewire::actingAs($admin)->test(ListResources::class)
             ->assertSuccessful()
@@ -522,7 +531,7 @@ class ResourceResourceTest extends TestCase
         $reservation = Reservation::factory()->create(['resource_id' => $resource->id]);
 
         Livewire::actingAs($admin)
-            ->test(\App\Filament\Resources\ResourceResource\RelationManagers\ReservationsRelationManager::class, [
+            ->test(ReservationsRelationManager::class, [
                 'ownerRecord' => $resource,
                 'pageClass' => EditResource::class,
             ])
@@ -536,7 +545,7 @@ class ResourceResourceTest extends TestCase
         $resource = Resource::factory()->create();
 
         $page = Livewire::actingAs($admin)
-            ->test(\App\Filament\Resources\ResourceResource\RelationManagers\ReservationsRelationManager::class, [
+            ->test(ReservationsRelationManager::class, [
                 'ownerRecord' => $resource,
                 'pageClass' => EditResource::class,
             ])
@@ -674,39 +683,39 @@ class ResourceResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ResourceResource\Pages\CreateResource::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\ResourceResource\Pages\EditResource::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ResourceResource\Pages\ListResources::class => \App\Filament\Pages\ListRecords::class,
+            CreateResource::class => CreateRecord::class,
+            EditResource::class => EditRecord::class,
+            ListResources::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ResourceResource\Pages\CreateResource::class, \App\Filament\Resources\ResourceResource\Pages\EditResource::class];
+        $writers = [CreateResource::class, EditResource::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\ResourceResource\RelationManagers\ReservationsRelationManager::class];
+        $managers = [ReservationsRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 
     public function test_edit_tracked_file_columns_delete_only_the_replaced_files(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
-        $tracked = (fn () => $this->trackedFileColumns())->call(new \App\Filament\Resources\ResourceResource\Pages\EditResource());
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $tracked = (fn () => $this->trackedFileColumns())->call(new EditResource());
         Storage::fake('public');
         Storage::disk('public')->put('resources/old.jpg', 'x');
         Storage::disk('public')->put('resources/new.jpg', 'x');
-        $record = \App\Models\Resource::factory()->create(['image' => 'resources/old.jpg']);
+        $record = Resource::factory()->create(['image' => 'resources/old.jpg']);
         $before = $probe->trackedFilePaths($record, $tracked);
         $this->assertSame(['resources/old.jpg'], $before);
 

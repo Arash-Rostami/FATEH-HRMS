@@ -4,22 +4,32 @@ namespace App\Filament\Resources\UserResource\Schemas;
 
 use App\Enums\PresenceStatus;
 use App\Enums\ResourceType;
-use App\Filament\Resources\UserResource\Enums\UserRole;
-use App\Filament\Resources\UserResource\Enums\UserStatus;
-use App\Filament\Resources\UserResource\Enums\UserType;
-use App\Traits\FilamentFormDivider;
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
+use App\Enums\UserType;
+use App\Models\User;
+use App\Support\FileNamer;
+use App\Traits\Filament\FilamentFormDivider;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class UserFormPresenter
 {
     use FilamentFormDivider;
+
+    public const SIGNATURE_DIRECTORY = 'users/signatures';
 
     public static function booking(): Repeater
     {
@@ -121,8 +131,80 @@ class UserFormPresenter
             ->valueLabel(__('resources/user/strings.form.extra_value'))
             ->columns(2)
             ->addActionLabel('افزودن ردیف')
+            ->afterStateHydrated(function (KeyValue $component, ?array $state): void {
+                $component->state(User::editableExtraOf($state));
+            })
+            ->dehydrateStateUsing(function (?array $state, ?User $record): array {
+                $stored = collect($record?->adminExtra() ?? [])->only(User::PROTECTED_ADMIN_KEYS);
+
+                return self::flatRows($state)->merge($stored)->all();
+            })
             ->columnSpanFull()
             ->helperText(__('resources/user/strings.hints.extra'));
+    }
+
+    public static function registryPermission(): Toggle
+    {
+        return Toggle::make('registry_permission')
+            ->label(__('resources/correspondence/strings.admin.fields.registry_permission'))
+            ->helperText(__('resources/correspondence/strings.admin.fields.registry_permission_hint'))
+            ->default(false);
+    }
+
+    public static function signature(): FileUpload
+    {
+        return FileUpload::make('signature_image')
+            ->label(__('resources/correspondence/strings.admin.fields.signature'))
+            ->image()
+            ->disk('local')
+            ->visibility('private')
+            ->directory(self::SIGNATURE_DIRECTORY)
+            ->maxSize(config('ai.correspondence.upload.image_kb'))
+            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+            ->rule(Rule::dimensions()->maxWidth(config('ai.correspondence.upload.image_max_width')))
+            ->getUploadedFileNameForStorageUsing(
+                fn (TemporaryUploadedFile $file): string => FileNamer::stored('signature', $file)
+            )
+            ->nullable()
+            ->helperText(__('resources/correspondence/strings.admin.fields.signature_hint'));
+    }
+
+    public static function signCode(): Group
+    {
+        $minLength = (int) config('ai.correspondence.sign_code_min_length');
+
+        return Group::make([
+            TextInput::make('sign_code')
+                ->label(__('resources/correspondence/strings.admin.fields.sign_code'))
+                ->password()
+                ->revealable()
+                ->autocomplete('new-password')
+                ->minLength($minLength)
+                ->maxLength(72)
+                ->hidden(fn (Get $get): bool => (bool) $get('clear_sign_code'))
+                ->dehydrateStateUsing(fn ($state): ?string => filled($state) ? Hash::make($state) : null)
+                ->dehydrated(fn ($state): bool => filled($state))
+                ->helperText(__('resources/correspondence/strings.admin.fields.sign_code_hint', ['min' => convertToPersian($minLength)])),
+            Toggle::make('clear_sign_code')
+                ->label(__('resources/correspondence/strings.admin.fields.clear_sign_code'))
+                ->helperText(__('resources/correspondence/strings.admin.fields.clear_sign_code_hint'))
+                ->live()
+                ->default(false)
+                ->visible(fn (?User $record): bool => filled($record?->getExtraValue('admin.sign_code_hash'))),
+        ])->columnSpan(1);
+    }
+
+    public static function signCodePassword(): TextInput
+    {
+        return TextInput::make('sign_code_password')
+            ->label(__('resources/correspondence/strings.admin.fields.sign_code_password'))
+            ->password()
+            ->revealable()
+            ->autocomplete('current-password')
+            ->rule('current_password:web')
+            ->required(fn (Get $get): bool => filled($get('sign_code')) || (bool) $get('clear_sign_code'))
+            ->dehydrated(false)
+            ->helperText(__('resources/correspondence/strings.admin.fields.sign_code_password_hint'));
     }
 
     public static function name(): TextInput
@@ -212,5 +294,12 @@ class UserFormPresenter
             ->required()
             ->native(false)
             ->helperText(__('resources/user/strings.hints.type'));
+    }
+
+    private static function flatRows(?array $state): Collection
+    {
+        return collect($state)
+            ->except([...User::PROTECTED_ADMIN_KEYS, 'admin', 'preferences'])
+            ->filter(fn ($value): bool => is_scalar($value) || $value === null);
     }
 }

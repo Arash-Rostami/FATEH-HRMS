@@ -35,7 +35,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">شمارش معکوس یک بنر سراسری است که از نزدیک‌ترین رویداد عمومی آینده می‌سازد</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        فیلد `countdown` یک ستون JSON است که چهار زیرکلید دارد: <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">enabled</code>، <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">mood</code>، <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">confetti</code> و <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">messages</code>. در فرم، این زیرکلیدها به‌صورت فیلدهای مجزا نمایش داده می‌شوند و هنگام ذخیره به‌صورت یک JSON در همان ستون `countdown` بسته‌بندی می‌شوند. کلیدها بدون پیشوند هستند (نه `countdown_enabled`) چون خود ستون نامِ ویژگی را نشان می‌دهد.
+        در فرم رویداد می‌توانید شمارش معکوس را فعال کنید و حال‌وهوا، جلوهٔ شادی و پیام‌های آن را تنظیم کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

@@ -5,7 +5,7 @@ namespace App\Filament\Resources\SkillResource\Schemas;
 use App\Enums\SkillIcon;
 use App\Models\Skill;
 use App\Rules\UniqueActiveSkillName;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Closure;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;

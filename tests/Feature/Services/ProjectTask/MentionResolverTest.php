@@ -3,11 +3,12 @@
 namespace Tests\Feature\Services\ProjectTask;
 
 use App\Services\ProjectTask\MentionResolver;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class MentionResolverTest extends TestCase
 {
-    private function participants(array $pairs): \Illuminate\Support\Collection
+    private function participants(array $pairs): Collection
     {
         return collect($pairs)->map(fn($p) => (object) ['id' => $p[0], 'name' => $p[1]]);
     }

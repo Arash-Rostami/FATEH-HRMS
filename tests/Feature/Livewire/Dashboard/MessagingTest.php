@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserType;
 use App\Livewire\Dashboard\Messaging\SwitchTabs;
 use App\Models\Channel;
 use App\Models\ChannelMessage;

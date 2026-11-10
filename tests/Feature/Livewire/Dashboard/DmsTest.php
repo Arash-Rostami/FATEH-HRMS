@@ -1373,10 +1373,10 @@ class DmsTest extends TestCase
         Livewire::actingAs($reader)->test(Main::class)
             ->set('search', 'VER-001')
             ->assertSee('VER-001 - 2.0')
-            ->assertSee('title="تاریخ ایجاد و بروزرسانی"', false)
+            ->assertSee('title="تاریخ ایجاد و به‌روزرسانی"', false)
             ->assertSee('expand_more')
             ->assertSee('ایجاد:')
-            ->assertSee('بروزرسانی:');
+            ->assertSee('به‌روزرسانی:');
     }
 
     public function test_version_cell_renders_plain_chip_without_popover_when_both_dates_null(): void
@@ -1391,9 +1391,9 @@ class DmsTest extends TestCase
         Livewire::actingAs($reader)->test(Main::class)
             ->set('search', 'VER-002')
             ->assertSee('VER-002 - 3.0')
-            ->assertDontSee('title="تاریخ ایجاد و بروزرسانی"', false)
+            ->assertDontSee('title="تاریخ ایجاد و به‌روزرسانی"', false)
             ->assertDontSee('ایجاد:')
-            ->assertDontSee('بروزرسانی:');
+            ->assertDontSee('به‌روزرسانی:');
     }
 
     public function test_details_cell_renders_popover_when_multiple_extra_details(): void

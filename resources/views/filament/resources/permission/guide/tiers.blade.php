@@ -55,7 +55,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                هنگام toggling کردن is_super_admin، سمتِ غیرفعال به‌صورت خودکار پاک می‌شود (بعد از تغییر وضعیت) و یک قلبهٔ saving در مدل همین invariant را تضمین می‌کند — حتی اگر ردیف از مسیری غیر از فرم نوشته شود.
+                با تغییر سطح مدیریت، تنظیمات مربوط به سطح دیگر خودکار پاک می‌شوند.
             </p>
         </div>
     </div>

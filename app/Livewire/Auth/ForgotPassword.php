@@ -4,7 +4,7 @@ namespace App\Livewire\Auth;
 use Livewire\Component;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
-use App\Traits\AuthValidationRules;
+use App\Traits\Livewire\AuthValidationRules;
 
 class ForgotPassword extends Component
 {

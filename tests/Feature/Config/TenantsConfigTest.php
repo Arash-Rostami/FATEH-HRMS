@@ -209,4 +209,11 @@ class TenantsConfigTest extends TestCase
         $this->assertFalse($tenants['fateh']['modules']['password-reset']);
         $this->assertArrayNotHasKey('password-reset', $tenants['persol']['modules']);
     }
+
+    public function test_fateh_turns_the_correspondence_module_off(): void
+    {
+        $modules = config('tenants.fateh.modules');
+
+        $this->assertFalse($modules['correspondence'] ?? true);
+    }
 }

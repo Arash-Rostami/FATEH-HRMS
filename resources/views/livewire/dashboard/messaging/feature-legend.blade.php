@@ -69,7 +69,7 @@
             ['icon' => 'settings', 'tone' => 'tertiary', 'scope' => 'shared', 'label' => 'نکات عمومی ویندوز', 'html' => 'ویندوز را به‌روز کنید و یک‌بار رایانه را راه‌اندازی مجدد کنید؛ این کار بیشتر مشکلات گیرکردن اعلان‌ها را برطرف می‌کند. «' . $l('Battery saver') . '» و «' . $l('Focus assist') . '» (به‌همراه قوانین خودکارش مثل زمان ارائه یا بازی) می‌توانند بنر را پنهان کنند. مدت نمایش بنر را می‌توانید در ' . $l('Settings → Ease of Access → Display → Show notifications for') . ' بیشتر کنید (ویندوز ۱۱: ' . $l('Accessibility → Visual effects') . '). اگر رایانه سازمانی است، ممکن است سیاست‌های ' . $l('IT') . ' نمایش اعلان را غیرفعال کرده باشد و فقط واحد ' . $l('IT') . ' بتواند آن را تغییر دهد.'],
             ['icon' => 'keyboard', 'tone' => 'secondary', 'scope' => 'shared', 'label' => 'نشان «در حال نوشتن»', 'text' => 'وقتی طرف مقابل (یا در گروه، یک یا چند عضو) در حال تایپ باشد، به‌جای «آخرین بازدید»/نام مالک، عبارت «در حال نوشتن...» نمایش داده می‌شود؛ در گروه با چند نفر همزمان، نگه‌داشتن اشاره‌گر روی این عبارت نام همه را نشان می‌دهد. این نشان چند ثانیه پس از توقف تایپ خودکار محو می‌شود.'],
             ['icon' => 'alternate_email', 'tone' => 'tertiary', 'scope' => 'channels', 'label' => 'اعلان اشاره به شما', 'text' => 'وقتی در گروهی که باز نیست با @ به شما اشاره شود، یک اعلان پایین صفحه ظاهر می‌شود؛ با «رفتن به پیام» به همان پیام می‌روید. باز کردن گروه، اعلان را خودکار پاک می‌کند.'],
-            ['icon' => 'auto_awesome', 'tone' => 'primary', 'scope' => 'contacts', 'label' => 'نشان تولد و سالگرد کاری', 'text' => 'اگر امروز تاریخ تولد یا سالگرد استخدام یکی از همکاران باشد، کنار نام او در فهرست مخاطبین یک نشان کوچک تپنده «تولد» یا «سالگرد کاری» ظاهر می‌شود.'],
+            ['icon' => 'auto_awesome', 'tone' => 'ai', 'scope' => 'contacts', 'label' => 'نشان تولد و سالگرد کاری', 'text' => 'اگر امروز تاریخ تولد یا سالگرد استخدام یکی از همکاران باشد، کنار نام او در فهرست مخاطبین یک نشان کوچک تپنده «تولد» یا «سالگرد کاری» ظاهر می‌شود.'],
         ],
     ];
 @endphp
@@ -99,6 +99,7 @@
                         'primary' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
                         'tertiary' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]',
                         'secondary' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
+                        'ai' => 'bg-[var(--ai-bg)] text-[var(--ai-color)]',
                     };
                 @endphp
                 <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">

@@ -80,11 +80,11 @@
 
                             <div class="absolute right-0 top-0 z-20 cursor-help pr-1 transition-transform duration-200 group-hover:scale-105">
                                 @if (!$isConfirmed)
-                                    <div wire:key="dms-icon-unconfirmed" class="flex h-10 w-10 animate-pulse items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]" title="نیازمند تایید دریافت">
+                                    <div wire:key="dms-icon-unconfirmed" class="flex h-10 w-10 animate-pulse items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]" title="نیازمند تأیید دریافت">
                                         <span class="material-symbols-rounded text-[20px]">edit_document</span>
                                     </div>
                                 @elseif ($isConfirmed && !$isRead)
-                                    <div wire:key="dms-icon-unread" class="flex h-10 w-10 animate-pulse items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]" title="نیازمند تایید مطالعه">
+                                    <div wire:key="dms-icon-unread" class="flex h-10 w-10 animate-pulse items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]" title="نیازمند تأیید مطالعه">
                                         <span class="material-symbols-rounded text-[20px]">menu_book</span>
                                     </div>
                                 @else
@@ -95,7 +95,7 @@
                             </div>
 
                             <div class="relative z-10 flex flex-col items-start gap-1.5 pr-12">
-                                    <span title="{{ 'ایجاده شده در: ' . toJalali($doc->created_at, 'j F Y') . ' 📆 بروزرسانی شده در: ' . toJalali($doc->updated_at, 'j F Y') }}"
+                                    <span title="{{ 'ایجاد شده در: ' . toJalali($doc->created_at, 'j F Y') . ' 📆 به‌روزرسانی شده در: ' . toJalali($doc->updated_at, 'j F Y') }}"
                                           class="block cursor-help text-base font-bold leading-relaxed text-[var(--md-sys-color-on-surface)] transition-colors hover:text-[var(--md-sys-color-primary)]">
                                         {{ $cleanTitle }}
                                     </span>
@@ -134,7 +134,7 @@
                                 <div wire:key="dms-version-popover" x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-center">
                                     <button type="button" @click="open = !open"
                                             class="inline-flex items-center gap-1 rounded-md border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container)] px-2 py-1 whitespace-nowrap transition-colors hover:bg-[var(--md-sys-color-surface-container-highest)]"
-                                            title="تاریخ ایجاد و بروزرسانی">
+                                            title="تاریخ ایجاد و به‌روزرسانی">
                                         <span>{{ $doc->code ?? '' }} - {{ $doc->version ?? 'N/A' }}</span>
                                         <span class="material-symbols-rounded text-[12px] opacity-60 transition-transform duration-200" :class="{ 'rotate-180': open }">expand_more</span>
                                     </button>
@@ -151,7 +151,7 @@
                                             @if($doc->updated_at)
                                                 <div class="flex items-center gap-1.5">
                                                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-tertiary)]">update</span>
-                                                    <span>بروزرسانی: {{ toJalali($doc->updated_at, 'j F Y') }}</span>
+                                                    <span>به‌روزرسانی: {{ toJalali($doc->updated_at, 'j F Y') }}</span>
                                                 </div>
                                             @endif
                                         </div>
@@ -315,7 +315,7 @@
                                                     wire:click="confirmRead({{ $doc->id }})"
                                                     class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-error)]/15 bg-[var(--md-sys-color-error)]/5 px-3 py-2.5 text-[var(--md-sys-color-error)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-error)] hover:text-white hover:shadow-md">
                                                 <span class="material-symbols-rounded text-[22px]">edit_document</span>
-                                                <span class="text-[11px] font-bold">تایید دریافت</span>
+                                                <span class="text-[11px] font-bold">تأیید دریافت</span>
                                             </button>
                                         @elseif ($isConfirmed && !$isRead)
                                             @if(str_ends_with(strtolower($doc->file), '.pdf'))
@@ -324,7 +324,7 @@
                                                         x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.dataset.url }); confirmAndSend({{ $doc->id }}, @js($doc->file))"
                                                         class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-on-tertiary-container)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
                                                     <span class="material-symbols-rounded text-[22px]">menu_book</span>
-                                                    <span class="text-[11px] font-bold">مشاهده و تایید</span>
+                                                    <span class="text-[11px] font-bold">مشاهده و تأیید</span>
                                                 </button>
                                             @else
                                                 <a wire:key="dms-row-open" href="{{ route('dms.file',$doc->file) }}"
@@ -334,7 +334,7 @@
                                                    x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
                                                    class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-on-tertiary-container)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
                                                     <span class="material-symbols-rounded text-[22px]">menu_book</span>
-                                                    <span class="text-[11px] font-bold">مشاهده و تایید</span>
+                                                    <span class="text-[11px] font-bold">مشاهده و تأیید</span>
                                                 </a>
                                             @endif
                                         @else

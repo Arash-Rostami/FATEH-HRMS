@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Dashboard\Ths\Presentation;
 
-use App\Filament\Resources\ThsResource\Enums\TicketPriority;
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\TicketPriority;
+use App\Enums\UserType;
 use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Livewire\Dashboard\Ths\Actions\ReleaseTicketAction;
 use App\Livewire\Dashboard\Ths\Actions\RerouteTicketAction;
@@ -12,7 +12,7 @@ use App\Models\Reply;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Ticket\TicketInsightsService;
-use App\Traits\RiskEscalationChip;
+use App\Traits\Livewire\RiskEscalationChip;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 
@@ -200,6 +200,24 @@ class TicketPresenter
         return isset(self::SYSTEM_ENTRIES[$kind])
             ? ['icon' => self::SYSTEM_ENTRIES[$kind][0], 'classes' => self::SYSTEM_ENTRIES[$kind][1]]
             : null;
+    }
+
+    public function infoState(array $ticket): array
+    {
+        return [
+            'sm' => $this->statusMeta($ticket['status']),
+            'pm' => $this->priorityMeta($ticket['priority']),
+            'deptCode' => $ticket['target_department_code'] ?? null,
+            'deadlineChip' => $this->deadlineChip($ticket['completion_deadline'] ?? null, $ticket['completion_date'] ?? null, $ticket['status']),
+            'ring' => $this->deadlineRing($ticket),
+            'timeline' => $ticket['timeline'] ?? [],
+            'isRequester' => ($ticket['requester_id'] ?? null) === auth()->id(),
+            'files' => [
+                ...array_map(fn ($f) => [...$f, 'by' => 'درخواست‌کننده', 'group' => 'requester'], $ticket['requester_files'] ?? []),
+                ...array_map(fn ($f) => [...$f, 'by' => 'مسئول رسیدگی', 'group' => 'assignee'], $ticket['assignee_files'] ?? []),
+            ],
+            'score' => (int) ($ticket['satisfaction_score'] ?? 0),
+        ];
     }
 
     public function deadlineRing(array $ticket): ?array

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use App\Models\AiReport;
 use App\Models\Task;
 use App\Models\Department;
 use App\Models\Profile;
@@ -11,6 +12,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 enum TicketTestStatus: string
@@ -59,6 +62,30 @@ class TicketModelTest extends TestCase
         }
         DB::purge('mysql');
         config(['database.default' => 'mysql']);
+    }
+
+    public function test_ticket_daily_quota_is_feature_scoped_and_isolated_from_ai_report(): void
+    {
+        $this->travelTo(now()->setTime(12, 0));
+
+        $this->assertSame('ai-ticket:quota:7:2026-01-02', Ticket::quotaKey(7, '2026-01-02'));
+        $this->assertSame('ai-report:quota:7:2026-01-02', AiReport::quotaKey(7, '2026-01-02'));
+        $this->assertSame(20, Ticket::quotaCap());
+
+        Ticket::refundQuota(7);
+        $this->assertSame(0, Ticket::quotaUsed(7));
+
+        $this->assertSame(1, Ticket::consumeQuota(7));
+        $this->assertSame(2, Ticket::consumeQuota(7));
+        $this->assertSame(2, Ticket::quotaUsed(7));
+        $this->assertSame(0, AiReport::quotaUsed(7));
+
+        Ticket::refundQuota(7);
+        $this->assertSame(1, Ticket::quotaUsed(7));
+
+        Ticket::refundQuota(7);
+        Ticket::refundQuota(7);
+        $this->assertSame(0, Ticket::quotaUsed(7));
     }
 
     public function test_get_custom_admin_area_label_html_renders_label_and_icon_svg(): void
@@ -590,7 +617,7 @@ class TicketModelTest extends TestCase
 
     private function mirrorFixture(array $ticket = []): array
     {
-        $code = 'M' . strtoupper(\Illuminate\Support\Str::random(3));
+        $code = 'M' . strtoupper(Str::random(3));
         Department::create(['code' => $code, 'name' => $code, 'description' => $code]);
         $staff = User::factory()->create(['status' => 'active', 'role' => 'user']);
         $other = User::factory()->create(['status' => 'active', 'role' => 'user']);
@@ -665,7 +692,7 @@ class TicketModelTest extends TestCase
         $task = Task::where('ticket_id', $ticket->id)->first();
         Task::syncingFromTicket(fn() => $task->delete());
 
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
 
         Task::withTrashed()->find($task->id)->restore();
     }
@@ -682,7 +709,7 @@ class TicketModelTest extends TestCase
             try {
                 Ticket::find($ticket->id)->update(['status' => $status]);
                 $this->fail('closed ticket must not reopen');
-            } catch (\Illuminate\Validation\ValidationException $e) {
+            } catch (ValidationException $e) {
                 $this->assertArrayHasKey('status', $e->errors());
             }
         }
@@ -704,6 +731,55 @@ class TicketModelTest extends TestCase
         $this->assertNotNull(Ticket::find($withdrawn->id)->completion_date);
         $this->assertSame('done', Task::where('ticket_id', $closed->id)->value('status'));
         $this->assertSame('done', Task::where('ticket_id', $withdrawn->id)->value('status'));
+    }
+
+    public function test_in_progress_moment_is_stamped_once_on_status_change_assignment_and_creation(): void
+    {
+        [$byStatus] = $this->mirrorFixture();
+        $this->assertNull($byStatus->fresh()->extra['in_progress_at'] ?? null);
+        $byStatus->update(['status' => 'in-progress']);
+        $this->assertNotEmpty($byStatus->fresh()->extra['in_progress_at']);
+        $this->assertNotNull($byStatus->fresh()->extra['target_department']);
+
+        [$byAssign, $staff] = $this->mirrorFixture();
+        $byAssign->update(['assigned_to' => $staff->id]);
+        $this->assertSame('in-progress', $byAssign->fresh()->status);
+        $this->assertNotEmpty($byAssign->fresh()->extra['in_progress_at']);
+
+        [$created] = $this->mirrorFixture(['status' => 'in-progress']);
+        $this->assertNotEmpty($created->fresh()->extra['in_progress_at']);
+    }
+
+    public function test_in_progress_moment_keeps_the_first_value_after_release_and_reassign(): void
+    {
+        [$ticket, $staff] = $this->mirrorFixture();
+        $this->travelTo(now()->subDays(2));
+        $ticket->update(['assigned_to' => $staff->id]);
+        $first = $ticket->fresh()->extra['in_progress_at'];
+        $this->travelBack();
+
+        $ticket->fresh()->update(['assigned_to' => null]);
+        $this->assertSame('open', $ticket->fresh()->status);
+        $this->assertSame($first, $ticket->fresh()->extra['in_progress_at']);
+
+        $ticket->fresh()->update(['assigned_to' => $staff->id]);
+        $this->assertSame('in-progress', $ticket->fresh()->status);
+        $this->assertSame($first, $ticket->fresh()->extra['in_progress_at']);
+
+        $fresh = $ticket->fresh();
+        $fresh->extra = ['note' => 'x'];
+        $fresh->save();
+        $this->assertSame($first, $ticket->fresh()->extra['in_progress_at']);
+        $this->assertSame('x', $ticket->fresh()->extra['note']);
+    }
+
+    public function test_ticket_closed_straight_from_open_gets_no_in_progress_moment(): void
+    {
+        [$ticket] = $this->mirrorFixture();
+        $ticket->update(['status' => 'closed']);
+
+        $this->assertSame('closed', $ticket->fresh()->status);
+        $this->assertNull($ticket->fresh()->extra['in_progress_at'] ?? null);
     }
 
     public function test_classification_helpers_fall_back_to_defaults_and_never_drop_unknown_keys()

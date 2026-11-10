@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureTenantModuleOn;
 use App\Http\Middleware\EnsureUserModulePermission;
+use App\Http\Middleware\SecureLetterLink;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Services\ExceptionPresenter;
 use Filament\Support\Exceptions\Cancel;
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'module' => EnsureUserModulePermission::class,
             'tenant.on' => EnsureTenantModuleOn::class,
+            'letter.link' => SecureLetterLink::class,
         ]);
         $middleware->appendToGroup('web', [UpdateLastSeen::class]);
 
@@ -47,6 +49,16 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return null;
+        });
+
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if (! $request->is('c/*')) {
+                return null;
+            }
+
+            $status = $e instanceof ModelNotFoundException ? 404 : ($e instanceof HttpExceptionInterface ? $e->getStatusCode() : null);
+
+            return in_array($status, [404, 429], true) ? response('', $status, SecureLetterLink::HEADERS) : null;
         });
 
         $exceptions->render(function (Throwable $e, Request $request) {

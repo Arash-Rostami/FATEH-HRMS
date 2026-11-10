@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use App\Filament\Resources\ThsResource\Enums\TicketPriority;
-use App\Filament\Resources\ThsResource\Enums\TicketStatus;
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\TicketPriority;
+use App\Enums\TicketStatus;
+use App\Enums\UserType;
+use App\Models\Concerns\HasDailyQuota;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasPublicAssetUrl;
 use App\Models\Concerns\HasReminders;
@@ -36,6 +37,7 @@ class Ticket extends Model
         HasReminders,
         HasNotifyEvents,
         HasUrgencyState,
+        HasDailyQuota,
         HasTicketHooks;
 
     public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted'];
@@ -134,6 +136,11 @@ class Ticket extends Model
     {
         return once(fn() => collect(['PS', 'BS'])
             ->first(fn($dept) => User::headsOfDepartment($dept)->isNotEmpty()));
+    }
+
+    protected static function quotaFeature(): string
+    {
+        return 'ticket';
     }
 
     public static function notifyExcept(): array

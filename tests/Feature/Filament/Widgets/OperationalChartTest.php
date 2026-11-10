@@ -9,6 +9,7 @@ use App\Models\Profile;
 use App\Models\Resource;
 use App\Models\Suggestion;
 use App\Models\Task;
+use App\Models\TaskDetail;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -352,7 +353,7 @@ class OperationalChartTest extends TestCase
         $mk($user);
         $mk($user, ['archived_at' => now()]);
         $suspended = $mk($user);
-        \App\Models\TaskDetail::factory()->create(['task_id' => $suspended->id, 'state' => 'suspension', 'responsible_user_id' => null]);
+        TaskDetail::factory()->create(['task_id' => $suspended->id, 'state' => 'suspension', 'responsible_user_id' => null]);
         $mk($user)->delete();
         $mk($gone);
         User::whereKey($gone->id)->toBase()->update(['status' => 'inactive']);

@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Support;
 
+use App\Livewire\Dashboard\Project\Actions\UpdateProjectAction;
+use App\Livewire\Dashboard\Project\Main;
 use App\Models\Project;
 use App\Models\User;
 use App\Support\ProjectAccessPolicy;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ProjectAccessPolicyTest extends TestCase
@@ -102,14 +105,14 @@ class ProjectAccessPolicyTest extends TestCase
         $member = User::factory()->create(['status' => 'active']);
         $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [$member->id], 'departments' => []]);
 
-        $component = \Livewire\Livewire::actingAs($member)->test(\App\Livewire\Dashboard\Project\Main::class);
+        $component = Livewire::actingAs($member)->test(Main::class);
         $form = $component->instance()->projectForm;
         $form->name = 'Renamed';
         $form->memberIds = [];
         $form->departments = [];
 
         try {
-            app(\App\Livewire\Dashboard\Project\Actions\UpdateProjectAction::class)->execute($project, $form);
+            app(UpdateProjectAction::class)->execute($project, $form);
             $this->fail('Expected HttpException was not thrown');
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
             $this->assertSame(403, $e->getStatusCode());

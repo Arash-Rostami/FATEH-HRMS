@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Tasksheet\Presentation;
 
-use App\Traits\RiskEscalationChip;
+use App\Traits\Livewire\RiskEscalationChip;
 use Carbon\Carbon;
 
 class TasksheetPresenter

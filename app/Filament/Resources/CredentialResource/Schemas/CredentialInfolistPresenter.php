@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\CredentialResource\Schemas;
 
 use App\Models\Credential;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\IconPosition;

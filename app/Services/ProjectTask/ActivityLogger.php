@@ -3,7 +3,7 @@
 namespace App\Services\ProjectTask;
 
 use App\Enums\TaskActivityType;
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Project;
 use App\Models\Reply;
 use App\Models\Task;
@@ -120,7 +120,7 @@ class ActivityLogger
         $this->bumpHeartbeat($repliable, affectsTaskDomain: true);
 
         if ($repliable instanceof Task) {
-            dispatch(new ReconcileNudge((new TaskNudge())->getKey(), Task::class, $repliable->id))->afterCommit();
+            dispatch(new ReconcileNudgeJob((new TaskNudge())->getKey(), Task::class, $repliable->id))->afterCommit();
         }
     }
 

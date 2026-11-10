@@ -60,7 +60,7 @@ abstract class SearchResource implements Searchable
         [$relevanceSql, $bindings] = $this->relevanceExpression($context);
 
         $rows = $builder
-            ->selectRaw('*, (' . $relevanceSql . ') as search_relevance', $bindings)
+            ->selectRaw($this->selectList() . ', (' . $relevanceSql . ') as search_relevance', $bindings)
             ->orderByDesc('search_relevance')
             ->orderByDesc($this->orderBy)
             ->limit($this->groupLimit)
@@ -83,6 +83,12 @@ abstract class SearchResource implements Searchable
 
     protected function rowsFetched($rows): void
     {
+    }
+
+    /** Column list of the search select (raw SQL); defaults to every column, override to avoid heavy columns. */
+    protected function selectList(): string
+    {
+        return '*';
     }
 
     /**

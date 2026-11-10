@@ -3,12 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EnergyResource\Exports\EnergyTestExporter;
-use App\Traits\AuthorizesByPermission;
+use App\Traits\Filament\AuthorizesByPermission;
 use App\Filament\Resources\EnergyResource\Pages\{ListEnergyTests, ViewEnergyTest};
 use App\Filament\Resources\EnergyResource\Schemas\{EnergyTestInfolistPresenter, EnergyTestTablePresenter};
 use App\Models\EnergyTest;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

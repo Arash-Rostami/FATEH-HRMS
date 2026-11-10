@@ -34,7 +34,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">چک‌لیست پیش از اولین رزرو</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        قبل از اینکه اولین کاربر رزرو کند، این شش مورد را مرور کنید. اگر همه تیک خورده باشند، سامانه آماده است و کاربردی برای عیب‌یابی باقی نمی‌ماند.
+        پیش از اولین رزرو، این شش مورد را برای آماده‌سازی و بررسی تنظیمات مرور کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

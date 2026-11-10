@@ -7,7 +7,7 @@ use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Models\Resource;
 use App\Models\User;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use App\Services\PersianDateFieldService;
 use BackedEnum;
 use Filament\Forms\Components\Select;

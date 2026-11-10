@@ -2,7 +2,7 @@
 
 namespace App\Services\Menu;
 
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\Menu\Contracts\MenuNudge;
@@ -184,7 +184,7 @@ class NudgeService
                         return;
                     }
 
-                    dispatch(new ReconcileNudge($key, get_class($subject), $subject->getKey()))
+                    dispatch(new ReconcileNudgeJob($key, get_class($subject), $subject->getKey()))
                         ->afterCommit();
                 });
             }

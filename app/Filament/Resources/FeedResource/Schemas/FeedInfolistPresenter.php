@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\FeedResource\Schemas;
 
-use App\Filament\Resources\FeedResource\Enums\FeedCategory;
-use App\Traits\FilamentFormDivider;
+use App\Enums\FeedCategory;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;

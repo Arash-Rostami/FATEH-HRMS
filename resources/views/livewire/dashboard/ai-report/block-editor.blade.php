@@ -1,12 +1,6 @@
 @php
-    $labels = ['heading' => 'عنوان', 'subtitle' => 'زیرعنوان', 'highlight' => 'نکتهٔ برجسته', 'footnote' => 'پانویس', 'risk' => 'ریسک', 'bullets' => 'نکته', 'paragraphs' => 'بند', 'items' => 'مورد', 'options' => 'گزینه', 'columns' => 'ستون', 'label' => 'برچسب', 'value' => 'مقدار', 'hint' => 'توضیح', 'text' => 'متن', 'rows' => 'ردیف', 'total' => 'جمع', 'series' => 'سری', 'name' => 'نام', 'labels' => 'دسته'];
-    $skip = ['type', 'check', 'percent_column', 'status_column', 'tone', 'variant', 'pct', 'kind', 'unit'];
-    $fieldLabel = fn (string $dot): string => collect(explode('.', $dot))->map(fn ($seg) => is_numeric($seg) ? convertToPersian((int) $seg + 1) : ($labels[$seg] ?? $seg))->implode(' ');
-    $fields = collect(\Illuminate\Support\Arr::dot($blockDraft))->filter(fn ($v, $k) => is_string($v) && !in_array(explode('.', $k)[0], [...$skip, 'rows', 'total'], true) && !in_array(\Illuminate\Support\Str::afterLast($k, '.'), $skip, true));
-    $width = count($blockDraft['columns'] ?? []);
-    $long = ['paragraphs', 'bullets', 'highlight', 'footnote', 'risk', 'text'];
-    $isAssumptions = ($blockDraft['type'] ?? null) === 'section'
-        && \App\Services\AiReport\BlockCatalog::isAssumptionsHeading((string) ($blockDraft['heading'] ?? ''), (($report->spec['lang'] ?? 'fa') === 'en') ? 'en' : 'fa');
+    ['labels' => $labels, 'fields' => $fields, 'width' => $width, 'long' => $long, 'isAssumptions' => $isAssumptions] = $presenter->blockEditor($blockDraft, $report);
+    $fieldLabel = fn (string $dot): string => $presenter->blockFieldLabel($dot);
 @endphp
 
 @if($blockRef !== null)
@@ -16,9 +10,9 @@
             @php($head = explode('.', $dot)[0])
             <div wire:key="ai-report-block-field-{{ str_replace('.', '-', $dot) }}">
                 @if(in_array($head, $long, true) || in_array(\Illuminate\Support\Str::afterLast($dot, '.'), $long, true))
-                    <x-ui.forms.textarea :label="$fieldLabel($dot)" name="blockDraft.{{ $dot }}" wire:model="blockDraft.{{ $dot }}" :rows="2" :maxlength="(int) config('ai_report.spec.paragraph')"/>
+                    <x-ui.forms.textarea :label="$fieldLabel($dot)" name="blockDraft.{{ $dot }}" wire:model="blockDraft.{{ $dot }}" :rows="2" :maxlength="(int) config('ai.report.spec.paragraph')"/>
                 @else
-                    <x-ui.forms.input :label="$fieldLabel($dot)" name="blockDraft.{{ $dot }}" wire:model="blockDraft.{{ $dot }}" :maxlength="(int) config('ai_report.spec.short')" :disabled="$dot === 'heading' && $isAssumptions"/>
+                    <x-ui.forms.input :label="$fieldLabel($dot)" name="blockDraft.{{ $dot }}" wire:model="blockDraft.{{ $dot }}" :maxlength="(int) config('ai.report.spec.short')" :disabled="$dot === 'heading' && $isAssumptions"/>
                 @endif
             </div>
         @endforeach
@@ -31,14 +25,14 @@
                     @foreach($blockDraft['rows'] as $i => $row)
                         @foreach($row as $j => $cell)
                             <div wire:key="ai-report-block-cell-{{ $i }}-{{ $j }}" class="contents">
-                                <x-ui.forms.input :label="$fieldLabel('rows.' . $i) . ' · ' . ($blockDraft['columns'][$j] ?? '')" name="blockDraft.rows.{{ $i }}.{{ $j }}" wire:model="blockDraft.rows.{{ $i }}.{{ $j }}" :maxlength="(int) config('ai_report.spec.cell')"/>
+                                <x-ui.forms.input :label="$fieldLabel('rows.' . $i) . ' · ' . ($blockDraft['columns'][$j] ?? '')" name="blockDraft.rows.{{ $i }}.{{ $j }}" wire:model="blockDraft.rows.{{ $i }}.{{ $j }}" :maxlength="(int) config('ai.report.spec.cell')"/>
                             </div>
                         @endforeach
                     @endforeach
                     @if(!empty($blockDraft['total']))
                         @foreach($blockDraft['total'] as $j => $cell)
                             <div wire:key="ai-report-block-total-{{ $j }}" class="contents">
-                                <x-ui.forms.input :label="$labels['total'] . ' · ' . ($blockDraft['columns'][$j] ?? '')" name="blockDraft.total.{{ $j }}" wire:model="blockDraft.total.{{ $j }}" :maxlength="(int) config('ai_report.spec.cell')"/>
+                                <x-ui.forms.input :label="$labels['total'] . ' · ' . ($blockDraft['columns'][$j] ?? '')" name="blockDraft.total.{{ $j }}" wire:model="blockDraft.total.{{ $j }}" :maxlength="(int) config('ai.report.spec.cell')"/>
                             </div>
                         @endforeach
                     @endif

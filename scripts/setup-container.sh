@@ -13,7 +13,8 @@ setkv /etc/redis/redis.conf requirepass "$RP"
 setkv /etc/redis/redis.conf maxmemory 2500mb
 setkv /etc/redis/redis.conf maxmemory-policy volatile-lru
 
-POOL=$(ls /etc/php/$PHPV/fpm/pool.d/*.conf | head -1)
+POOL=/etc/php/$PHPV/fpm/pool.d/www.conf
+[ -f "$POOL" ] || POOL=$(ls /etc/php/$PHPV/fpm/pool.d/*.conf | head -1)
 cat > "$POOL" << 'EOF'
 [www]
 user = office-bms
@@ -93,13 +94,14 @@ a2enconf -q servername perf >/dev/null
 
 sed -i 's/^APP_DEBUG=.*/APP_DEBUG=false/; s/^LOG_LEVEL=.*/LOG_LEVEL=warning/' .env
 
-mkdir -p storage/app/public storage/app/livewire-tmp storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
+mkdir -p storage/app/public storage/app/livewire-tmp storage/app/mpdf-tmp storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
 [ -f public/build/manifest.json ] || { npm ci && npm run build; }
 chown -R $U:$U storage bootstrap/cache public/build public/audio 2>/dev/null
 find storage bootstrap/cache -type d -exec chmod 775 {} + -o -type f -exec chmod 664 {} +
 find storage bootstrap/cache -type d -exec chmod g+s {} +
 [ -d public/audio ] && find public/audio -type d -exec chmod 755 {} + -o -type f -exec chmod 644 {} +
 [ -L public/storage ] || as 'php artisan storage:link'
+[ -f public/.htaccess ] && { grep -qF 'RewriteRule ^storage/dms/' public/.htaccess || sed -i '/RewriteEngine On/a\    RewriteRule ^storage/dms/(.*)$ https://%{HTTP_HOST}/authorized/dms/$1 [R=302,L,NE]' public/.htaccess; }
 
 service redis-server restart
 for i in $(seq 1 10); do redis-cli -a "$(grep ^REDIS_PASSWORD .env | cut -d= -f2)" ping 2>/dev/null | grep -q PONG && break; sleep 1; done
@@ -108,6 +110,7 @@ as 'php artisan optimize:clear && php artisan optimize'
 
 pgrep -x supervisord >/dev/null || service supervisor start
 pgrep -x cron >/dev/null || service cron start
+[ -f $APP/scripts/fix-workers.sh ] && bash $APP/scripts/fix-workers.sh
 php-fpm$PHPV -t && service php$PHPV-fpm restart
 apache2ctl configtest && service apache2 reload
 supervisorctl reread >/dev/null; supervisorctl update >/dev/null; supervisorctl restart all
@@ -117,4 +120,5 @@ redis-cli -a "$(grep ^REDIS_PASSWORD .env | cut -d= -f2)" config get maxmemory-p
 supervisorctl status
 crontab -u $U -l | grep schedule:run
 as 'touch storage/logs/t && rm storage/logs/t' && echo WRITE_OK
+as 'touch storage/app/mpdf-tmp/t && rm storage/app/mpdf-tmp/t' && echo MPDF_TMP_OK || echo "MPDF_TMP_FAIL: storage/app/mpdf-tmp must be writable by $U (web and queue workers)"
 curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost

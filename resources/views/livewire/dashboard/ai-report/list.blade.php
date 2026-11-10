@@ -1,5 +1,5 @@
 @php
-    $showLoadMore = count($this->reports) === $this->listLimit && $this->listLimit < (int) config('ai_report.list_max');
+    $showLoadMore = count($this->reports) === $this->listLimit && $this->listLimit < (int) config('ai.report.list_max');
 @endphp
 
 <div class="flex items-center gap-3 mb-2">

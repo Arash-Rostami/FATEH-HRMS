@@ -2,6 +2,10 @@
 
 namespace Tests\Feature\Services;
 
+use App\Mail\NotifyMail;
+use App\Services\Notify\Channels\MailChannel;
+use App\Services\Notify\Channels\Sms\Providers\KavenegarProvider;
+use App\Services\Notify\Channels\Sms\SmsProviderRegistry;
 use App\Services\Notify\Channels\SmsChannel;
 use App\Services\Notify\Message;
 use App\Services\Notify\NotifyRegistry;
@@ -48,7 +52,7 @@ class SmsChannelTest extends TestCase
 
     public function test_an_unconfigured_or_unknown_provider_falls_back_to_the_log_provider_and_reports_not_configured(): void
     {
-        $registry = \App\Services\Notify\Channels\Sms\SmsProviderRegistry::class;
+        $registry = SmsProviderRegistry::class;
         Http::fake();
 
         config(['services.sms.provider' => 'kavenegar', 'services.kavenegar.key' => 'KEY']);
@@ -170,7 +174,7 @@ class SmsChannelTest extends TestCase
         Http::fake(['api.kavenegar.com/*' => Http::response(['return' => ['status' => 418, 'message' => 'اعتبار کافی نیست']])]);
         $numbers = ['09121111111', '09122222222'];
 
-        $results = (new \App\Services\Notify\Channels\Sms\Providers\KavenegarProvider)->sendMany($numbers, 'hello');
+        $results = (new KavenegarProvider)->sendMany($numbers, 'hello');
 
         $this->assertSame(array_fill_keys($numbers, 'کاوه‌نگار 418: اعتبار کافی نیست'), $results);
     }
@@ -182,7 +186,7 @@ class SmsChannelTest extends TestCase
         Log::shouldReceive('warning')->once()->withArgs(fn ($message, $context) => ! str_contains(json_encode($context), 'SECRETKEY'));
         $numbers = ['09121111111', '09122222222'];
 
-        $results = (new \App\Services\Notify\Channels\Sms\Providers\KavenegarProvider)->sendMany($numbers, 'hello');
+        $results = (new KavenegarProvider)->sendMany($numbers, 'hello');
 
         $this->assertSame(array_fill_keys($numbers, 'اتصال به سرویس پیامک برقرار نشد.'), $results);
     }
@@ -203,17 +207,17 @@ class SmsChannelTest extends TestCase
         Mail::fake();
         $message = new Message('s', ['b'], 'rule', 'Model', 'created');
 
-        $results = (new \App\Services\Notify\Channels\MailChannel)->sendMany($message, ['a@example.com', 'b@example.com']);
+        $results = (new MailChannel)->sendMany($message, ['a@example.com', 'b@example.com']);
 
         $this->assertSame(['a@example.com' => null, 'b@example.com' => null], $results);
-        Mail::assertSent(\App\Mail\NotifyMail::class, 2);
+        Mail::assertSent(NotifyMail::class, 2);
 
         $mailer = Mockery::mock();
         $mailer->shouldReceive('send')->once();
         Mail::shouldReceive('to')->with('bad@example.com')->once()->andThrow(new \RuntimeException(str_repeat('é', 600)));
         Mail::shouldReceive('to')->with('good@example.com')->once()->andReturn($mailer);
 
-        $results = (new \App\Services\Notify\Channels\MailChannel)->sendMany($message, ['bad@example.com', 'good@example.com']);
+        $results = (new MailChannel)->sendMany($message, ['bad@example.com', 'good@example.com']);
 
         $this->assertSame(__('resources/notify_rule/strings.batch.mail_failed'), $results['bad@example.com']);
         $this->assertNull($results['good@example.com']);
@@ -239,7 +243,7 @@ class SmsChannelTest extends TestCase
 
         config(['services.kavenegar.key' => 'KEY']);
         $this->assertTrue((new SmsChannel)->isConfigured());
-        $this->assertTrue((new \App\Services\Notify\Channels\MailChannel)->isConfigured());
+        $this->assertTrue((new MailChannel)->isConfigured());
     }
 
     public function test_registry_exposes_the_channel_under_the_sms_key(): void

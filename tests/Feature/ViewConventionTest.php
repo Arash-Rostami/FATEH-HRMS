@@ -32,7 +32,10 @@ class ViewConventionTest extends TestCase
 
     private const ALLOWED_ANIMATE_PULSE = [
         'layouts/auth.blade.php',
+        'livewire/dashboard/ai-report/block-editor.blade.php',
+        'livewire/dashboard/ai-report/composer.blade.php',
         'livewire/dashboard/contact/sidebar.blade.php',
+        'livewire/dashboard/correspondence/composer.blade.php',
         'livewire/dashboard/dms/pdf-viewer.blade.php',
         'livewire/dashboard/dms/table.blade.php',
         'livewire/dashboard/energy/chart.blade.php',
@@ -66,6 +69,26 @@ class ViewConventionTest extends TestCase
     private const ALLOWED_MAXIMIZE_TOGGLE = [
         'livewire/dashboard/messaging/header-actions.blade.php',
         'livewire/dashboard/project/header.blade.php',
+    ];
+
+    private const ALLOWED_AI_SPARKLE = [
+        'livewire/dashboard/ai-report/legend.blade.php',
+        'livewire/dashboard/correspondence/composer.blade.php',
+        'components/dashboard/ai-assistant.blade.php',
+        'components/dashboard/navbars/top/ai-assistant.blade.php',
+        'components/dashboard/ai-report.blade.php',
+        'components/ui/buttons/form.blade.php',
+        'components/ui/forms/ai-trigger.blade.php',
+        'livewire/dashboard/ai-report.blade.php',
+    ];
+
+    private const ALLOWED_SMART_SPARKLE = [
+        'components/dashboard/navbars/bottom.blade.php',
+        'livewire/dashboard/contact/sidebar.blade.php',
+        'livewire/dashboard/messaging/feature-legend.blade.php',
+        'livewire/dashboard/tab/home.blade.php',
+        'livewire/dashboard/tab/status/filters.blade.php',
+        'livewire/dashboard/tab/status/occasions.blade.php',
     ];
 
     public static function smellProvider(): array
@@ -122,9 +145,105 @@ class ViewConventionTest extends TestCase
         );
     }
 
-    private function viewFiles(): \Generator
+    public function test_ai_sparkle_icon_is_limited_to_ai_and_the_listed_smart_features(): void
     {
-        foreach (['resources/views/livewire', 'resources/views/layouts'] as $root) {
+        $allowed = [...self::ALLOWED_AI_SPARKLE, ...self::ALLOWED_SMART_SPARKLE];
+        $offenders = [];
+        foreach ($this->viewFiles(['resources/views/livewire', 'resources/views/layouts', 'resources/views/components']) as $relativePath => $contents) {
+            if (str_contains($contents, 'auto_awesome') && ! in_array($relativePath, $allowed, true)) {
+                $offenders[] = $relativePath;
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $offenders,
+            "The auto_awesome sparkle is the app-wide AI signature, with 'smart feature' chips as the only second use (viewPattern §8.38); add the file to ALLOWED_AI_SPARKLE or ALLOWED_SMART_SPARKLE with a reason, or use another icon:\n" . implode("\n", $offenders),
+        );
+    }
+
+    public function test_every_sparkle_use_carries_the_ai_colour_not_just_the_icon(): void
+    {
+        $files = iterator_to_array($this->viewFiles(['resources/views/livewire', 'resources/views/layouts', 'resources/views/components']));
+        $missing = [];
+        foreach ([...self::ALLOWED_AI_SPARKLE, ...self::ALLOWED_SMART_SPARKLE] as $path) {
+            $contents = $files[$path] ?? null;
+            if ($contents === null || str_contains($path, 'legend.blade.php')) {
+                continue;
+            }
+            if (! str_contains($contents, '--ai-') && ! str_contains($contents, ':ai="true"') && ! str_contains($contents, 'variant="ai"')) {
+                $missing[] = $path;
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $missing,
+            "The AI sparkle and the AI colour travel together (viewPattern §8.38): use the --ai-* tokens (or variant=\"ai\" / :ai=\"true\") in:\n" . implode("\n", $missing),
+        );
+    }
+
+    public function test_ai_variant_button_uses_the_ai_tokens_and_defaults_to_the_sparkle_icon(): void
+    {
+        $ai = Blade::render('<x-ui.buttons.form variant="ai">Go</x-ui.buttons.form>');
+        $this->assertStringContainsString('bg-[var(--ai-bg)]', $ai);
+        $this->assertStringContainsString('text-[var(--ai-text)]', $ai);
+        $this->assertStringContainsString('border-[color-mix(in_srgb,var(--ai-color)_40%,transparent)]', $ai);
+        $this->assertStringContainsString('auto_awesome', $ai);
+        $this->assertStringContainsString('rounded-xl h-10 px-4 text-sm font-bold', $ai);
+        $this->assertStringNotContainsString('md3-btn', $ai);
+
+        $custom = Blade::render('<x-ui.buttons.form variant="ai" icon="send">Go</x-ui.buttons.form>');
+        $this->assertStringContainsString('send', $custom);
+        $this->assertStringNotContainsString('auto_awesome', $custom);
+
+        $plain = Blade::render('<x-ui.buttons.form>Go</x-ui.buttons.form>');
+        $this->assertStringNotContainsString('auto_awesome', $plain);
+        $this->assertStringNotContainsString('--ai-', $plain);
+    }
+
+    public function test_ai_tokens_alias_the_amethyst_family_once_and_no_theme_redefines_them(): void
+    {
+        $css = (string) file_get_contents(base_path('resources/css/core/theme.css'));
+
+        $this->assertSame(1, substr_count($css, '--ai-color: var(--tool-amethyst-color);'));
+        $this->assertSame(1, substr_count($css, '--ai-bg: var(--tool-amethyst-bg);'));
+        $this->assertSame(1, substr_count($css, '--ai-text: var(--tool-amethyst-text);'));
+        $this->assertSame(3, preg_match_all('/^\s*--ai-(color|bg|text)\s*:/m', $css));
+    }
+
+    public function test_quota_meter_renders_its_progress_contract_and_optional_warning(): void
+    {
+        $html = Blade::render('<x-ui.quota-meter label="سهمیه" :used="2" :cap="6" :pct="33" :tone="$tone" aria="سهمیه روزانه" warn="نزدیک سقف" bar-key="quota-bar" warn-key="quota-warning">توضیح</x-ui.quota-meter>', [
+            'tone' => ['text' => 'text-test', 'fill' => 'bg-test'],
+        ]);
+
+        $this->assertStringContainsString('role="progressbar"', $html);
+        $this->assertStringContainsString('aria-valuenow="2"', $html);
+        $this->assertStringContainsString('aria-valuemax="6"', $html);
+        $this->assertStringContainsString('wire:key="quota-bar"', $html);
+        $this->assertStringContainsString('wire:key="quota-warning"', $html);
+        $this->assertStringContainsString('width: 33%', $html);
+        $this->assertStringContainsString('نزدیک سقف', $html);
+        $this->assertStringContainsString('توضیح', $html);
+    }
+
+    public function test_form_button_with_href_renders_an_anchor_and_maps_disabled_to_aria(): void
+    {
+        $html = Blade::render('<x-ui.buttons.form href="/correspondence/12/pdf" variant="secondary" disabled>دریافت PDF</x-ui.buttons.form>');
+
+        $this->assertMatchesRegularExpression('/^\s*<a[\s>]/', $html);
+        $this->assertStringContainsString('href="/correspondence/12/pdf"', $html);
+        $this->assertStringContainsString('aria-disabled="true"', $html);
+        $this->assertStringContainsString('tabindex="-1"', $html);
+        $this->assertDoesNotMatchRegularExpression('/\sdisabled(?==|\s|>)/', $html); // no bare disabled attribute (Tailwind's disabled:* classes are fine)
+        $this->assertStringNotContainsString('type="button"', $html);
+        $this->assertStringContainsString('دریافت PDF', $html);
+    }
+
+    private function viewFiles(array $roots = ['resources/views/livewire', 'resources/views/layouts']): \Generator
+    {
+        foreach ($roots as $root) {
             $iterator = new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator(base_path($root)),
                 RecursiveIteratorIterator::LEAVES_ONLY,

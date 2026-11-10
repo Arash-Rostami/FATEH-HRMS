@@ -9,9 +9,9 @@ use App\Filament\Resources\ReservationPolicyResource\Schemas\PolicyFormPresenter
 use App\Filament\Resources\ReservationPolicyResource\Schemas\PolicyInfolistPresenter;
 use App\Filament\Resources\ReservationPolicyResource\Schemas\PolicyTablePresenter;
 use App\Models\ReservationPolicy;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentActions;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;

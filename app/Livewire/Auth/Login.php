@@ -5,7 +5,7 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
-use App\Traits\AuthValidationRules;
+use App\Traits\Livewire\AuthValidationRules;
 
 class Login extends Component
 {

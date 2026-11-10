@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\FeedResource\Exports;
 
-use App\Filament\Resources\FeedResource\Enums\FeedCategory;
+use App\Enums\FeedCategory;
 use App\Models\Feed;
-use App\Traits\FilamentVisibility;
+use App\Traits\Filament\FilamentVisibility;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;

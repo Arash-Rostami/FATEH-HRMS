@@ -2,11 +2,10 @@
 
 namespace App\Services\ProjectTask;
 
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskStatus;
 use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Models\Project;
 use App\Models\Task;
-use App\Support\ProjectCharter;
 use App\Support\TaskAccessPolicy;
 use App\Support\FileNamer;
 use App\Traits\CleansAttachedFiles;

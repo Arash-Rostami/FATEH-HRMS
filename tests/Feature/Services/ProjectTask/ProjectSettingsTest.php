@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Services\ProjectTask;
 
+use App\Livewire\Dashboard\Project\Actions\UpdateProjectAction;
+use App\Livewire\Dashboard\Project\Forms\ProjectForm;
 use App\Livewire\Dashboard\Project\Main;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectTask\ProjectSettings;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Morilog\Jalali\CalendarUtils;
 use Tests\TestCase;
@@ -146,7 +149,7 @@ class ProjectSettingsTest extends TestCase
         $form->requiresApproval = false;
         $form->slaHours = null;
 
-        app(\App\Livewire\Dashboard\Project\Actions\UpdateProjectAction::class)->execute($project, $form);
+        app(UpdateProjectAction::class)->execute($project, $form);
 
         $this->assertNull($project->fresh()->setting('requires_approval'));
         $this->assertNull($project->fresh()->setting('sla'));
@@ -238,7 +241,7 @@ class ProjectSettingsTest extends TestCase
         $form->departments = $project->departments;
         $form->extraSettings = [['key' => 'webhook_url', 'value' => 'https://example.test/hook']];
 
-        app(\App\Livewire\Dashboard\Project\Actions\UpdateProjectAction::class)->execute($project, $form);
+        app(UpdateProjectAction::class)->execute($project, $form);
 
         $this->assertSame('https://example.test/hook', $project->fresh()->setting('webhook_url'));
     }
@@ -254,7 +257,7 @@ class ProjectSettingsTest extends TestCase
             ->assertHasErrors(['projectForm.extraSettings.0.key' => 'not_in']);
     }
 
-    private function deadlineForm(?string $year, ?string $month, ?string $day): \App\Livewire\Dashboard\Project\Forms\ProjectForm
+    private function deadlineForm(?string $year, ?string $month, ?string $day): ProjectForm
     {
         $owner = User::factory()->create(['status' => 'active', 'role' => 'user']);
         $form = Livewire::actingAs($owner)->test(Main::class)->instance()->projectForm;
@@ -265,12 +268,12 @@ class ProjectSettingsTest extends TestCase
         return $form;
     }
 
-    private function assertDeadlineRejected(\App\Livewire\Dashboard\Project\Forms\ProjectForm $form, ?string $current = null): void
+    private function assertDeadlineRejected(ProjectForm $form, ?string $current = null): void
     {
         try {
             app(ProjectSettings::class)->bag($form, $current);
             $this->fail('deadline must be rejected');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $this->assertArrayHasKey('projectForm.deadlineDay', $e->errors());
         }
     }

@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Enums\PresenceStatus;
-use App\Filament\Resources\UserResource\Enums\UserType;
-use App\Jobs\ReconcileNudge;
+use App\Enums\UserType;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Concerns\HasAvatar as HasImage;
 use App\Models\Concerns\HasBookingRows;
 use App\Models\Concerns\HasExtraPreferences;
@@ -47,6 +47,8 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
     public const TOUCH_MINUTES = 3;
 
     public const INDEFINITE_FOCUS_MINUTES = 525600;
+
+    public const PROTECTED_ADMIN_KEYS = ['signature', 'sign_code_hash', 'correspondence_registry'];
 
     protected $fillable = [
         'name',
@@ -416,7 +418,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         Ticket::where('status', 'open')
             ->targetedAt($code)
             ->pluck('id')
-            ->each(fn($id) => ReconcileNudge::dispatch('ths-controller:nudge', Ticket::class, $id));
+            ->each(fn($id) => ReconcileNudgeJob::dispatch('ths-controller:nudge', Ticket::class, $id));
     }
 
     protected static function bumpCacheVersion(): void

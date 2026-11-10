@@ -13,7 +13,7 @@ use App\Models\Event;
 use App\Models\User;
 use App\Services\Menu\StateService;
 use App\Services\Reservation\EventSyncService;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;

@@ -205,7 +205,7 @@ Regression tests: `ReservationTest::test_focus_record_ignores_locked_type`, `::t
 
 **Six more minor polish fixes (2026-09-15), same sweep:** `updatedGridPinned()` now resets `$this->gridLimit = self::GRID_PER_PAGE` (a pin toggle re-sorts the grid, so staying on a stale load-more position could strand a row); `booking-panel.blade.php`'s type-selector renders `<x-ui.empty icon="lock" .../>` instead of a blank dropdown when `$tabs` is empty (zero booking permission); `book()`/`cancel()` each gained a `catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e)` before the generic `\Exception` catch, dispatching a fixed Persian toast instead of leaking the model's English message; `dossier.blade.php` gained a `sr-only focus:not-sr-only` skip link to `#dossier-card-{id}` (shown only when a resource is open and more than one resource is listed); `command-grid.blade.php`'s action-icon cluster got a `.reservation-action-cluster` class with a `.app-density-compact` override in `dashboard.css` (mirrors the file's existing `.reservation-command-table tbody td` compact rule); a pin-count hint appears above the grid when `gridPinned` exceeds the 50-row cap `historyGroups()` already enforces. The cross-tab `$store.pinned`/`$store.tagged` localStorage race (two open tabs can clobber each other's pin/color choices) was left unfixed — it needs a `storage`-event listener in `resources/js/**`, out of scope while those files are being hand-edited elsewhere.
 
-**Cancel-quota bar surfaced (2026-09-15).** `cancelLimitUsage` (`count`/`max`/`blocked`) was already computed every render to power `bookingBlockReason()`'s block message, but was never shown to the user otherwise — `reservation.blade.php` gained a second progress bar ("لغوهای N روز اخیر: X / M" (rolling window N = policy `cancel_window_days`, default 30, via `ValidationService::cancelWindowDays()`; used by the bar, `CancellationLimit` ERR-011 and `validateCancellation` ERR-017), `wire:key="reservation-cancel-usage"`) directly below the pre-existing active-quota bar, same markup/style, error-colored when `blocked`. Zero new query — pure reuse of an already-computed value. Shared by both view modes, same as the active bar.
+**Cancel-quota bar surfaced (2026-09-15).** `cancelLimitUsage` (`count`/`max`/`blocked`) was already computed every render to power `bookingBlockReason()`'s block message, but was never shown to the user otherwise — `reservation.blade.php` gained a second progress bar ("لغوهای N روز اخیر: X / M" (rolling window N = policy `cancel_window_days`, default 30, via `ValidationService::cancelWindowDays()`; used by the bar, `CancellationLimit` ERR-011 and `validateCancellation` ERR-017), `wire:key="reservation-cancel-usage"`) directly below the pre-existing active-quota bar, same markup/style, error-colored when `blocked`. Zero new query — pure reuse of an already-computed value. Shared by both view modes, same as the active bar. Both bars (active quota + cancel limit) are now rendered by `<x-ui.quota-meter>` (`reservation/limits` partial, no ARIA, extra lines in the slot; viewPattern §8.40).
 
 ## Dynamic metadata facet filtering — zero-maintenance, model-owned discovery (2026-09-15)
 
@@ -399,3 +399,64 @@ All month-based user rules use the JALALI month, never the Gregorian one (DB sta
 The Book button in BOTH views (`image.blade.php` Classic, `dossier.blade.php` Avantgarde) no longer calls `book()` directly: it fires the app-wide `<x-ui.modals.confirmation>` via `confirmDialog('book', 'تأیید رزرو', 'منبع: ' . $resource->name . chr(10) . ReservationSummaryPresenter::summary($this, $resource), $resource->id)` — the same pipeline cancel already uses; `reservation.blade.php`'s existing `@confirmation-confirmed.window` listener then calls `book($id)`. There is NO `bookingSummary` computed any more: `Presentation/ReservationSummaryPresenter::summary(Main $c, Resource $resource)` builds each CARD's text from the live picks: «تاریخ: …» (Jalali), «ساعت: HH:MM تا HH:MM» (or «مدت: تمام روز»), and, only when recurring and `allowsRepeat`, «تکرار: روزانه|هفتگی، تا N بار (تکرارهای مغایر با قوانین یا تداخل‌دار ثبت نمی‌شوند)»; when N <= 1 the line is «تکرار: فقط همین یک‌بار (بقیهٔ تکرارها خارج از قوانین رزرو است)». N comes from `ReservationSummaryPresenter::occurrences(date, pattern, count, windowDays, allowedDays, elevated)` — the same implementation `Main::recurPreview` uses for the chips (items carry only `date`/`ok`) — with allowed days = the type policy INTERSECTED with the resource's own `metadata['available_days']` (admins/developers skip the weekday rule, the horizon is `window_days` end of day), and occurrences inside the SELECTED Jalali month are capped by the remaining monthly quota from `activeLimitUsage` (the master counts as one; a last-minute-relaxed occurrence is counted and still consumes quota; later months are not capped). N is still an UPPER BOUND: UserConflict/ResourceAvailability are not modelled, so `book()`'s result toast reports the skipped count. For the meeting type the LAST line «اطلاع‌رسانی: دعوتنامه در تقویم همکار ثبت می‌شود» is added only when the resource's `relatedUser` is already loaded (the meeting list eager-loads it, no lazy load) and differs from the booker — mirroring the `EventSyncService` conditions. The confirmation component renders two or more message lines as label/value rows inside its inner card, so EVERY summary line must be `label: value` (a line without «: » renders as a value-only row). The server `book()` is unchanged and still the only gate — the dialog is a UX guard against accidental clicks, not a rule. Tests in `ReservationTest.php`: `test_booking_buttons_in_both_views_ask_for_confirmation_with_a_summary_before_booking`, the `test_booking_summary_*` group (read through a `summaryOf()` helper that calls the presenter), plus the picker/notice/roll tests listed in `tests/Feature/Livewire/Dashboard/livewireTestPattern.md` (179 tests in the file).
 
 **Gotcha (caught live 2026-10-28): never put a double quote inside a `{{ }}` echo that sits in a component-tag attribute.** The first version joined the lines with `"\n"` inside `x-on:click="{{ confirmDialog(...) }}"` on `<x-ui.buttons.submit>`; Blade's component-tag compiler cannot parse a `"` inside a double-quoted attribute value, so it silently left the raw `<x-ui.buttons.submit …>` text in the page and the Book button vanished (no exception, and `assertSeeHtml` on words inside the raw tag still passed). Use `chr(10)` / single quotes there; the test now also asserts the raw `<x-ui.buttons.submit` string is absent from the rendered HTML.
+
+## Edge-case test-condition checklist (merged from the former `edgeCaseChecklistPattern.md`)
+
+Use it for a virtual dry-run review of the reservation flow or as a test-writing list. Track virtual state (Users, Resources, Reservations, ReservationPolicies, request payloads), walk every query boundary, branch, loop and early return, and give each item a verdict: `[PASSED]`, or `[FAILED / GAP FOUND]` with the exact flow that breaks and a minimal comment-free fix.
+
+#### 1. User and resource state integrity
+- [ ] Inactive users must be blocked from initiating or completing a booking sequence.
+- [ ] Users lacking explicit booking permissions for a specific resource type must fail immediately.
+- [ ] Input format flexibility: the validator safely interprets both flat JSON and array-of-objects booking payloads without casting exceptions.
+- [ ] Empty permission safeguard: an empty or missing resource-type permission column defaults to denying all actions.
+- [ ] Inactive resources are blocked from receiving bookings across all actions (admin and user).
+
+#### 2. Chronological and date integrity
+- [ ] Bookings whose execution time falls in the past are blocked.
+- [ ] Inverted timelines: an end_time before or equal to a start_time is caught before any resource processing or allocation.
+- [ ] Full-day reservations bypass hour-based duration limits and operational-window validations without leaving scheduling gaps.
+- [ ] Timezone / midnight shifts: calculations crossing day boundaries or running at 00:00:00 do not leak availability or corrupt durations.
+
+#### 3. Policy and window boundary rules
+- [ ] Ceiling breach: bookings beyond `window_days` fail.
+- [ ] Feature flags: null `window_days` is an unrestricted future; exactly 0 means "today only" (the horizon is the end of today; with `window_hours` also 0 the type is locked).
+- [ ] Minimum notice: `window_hours` is preserved across multi-day transitions (12 hours notice for a tomorrow-morning slot).
+- [ ] Policy value sanitation: falsey values (boolean false, integer 0) are evaluated strictly, never stripped or auto-cast to null.
+
+#### 4. Operational calendar and hours
+- [ ] A booking partially or entirely outside allowed operational blocks fails.
+- [ ] Edge alignment: a slot finishing on the closing minute passes; one minute late is rejected.
+- [ ] Overnight continuity: cross-midnight schedules (22:00 to 06:00) work, and non-contiguous daytime frames (10:00 to 23:00) cannot cheat the window via chronological shifts.
+
+#### 5. Durations and measurements
+- [ ] Reservations shorter than `min_duration_minutes` or longer than `max_duration_minutes` are blocked.
+- [ ] Chronological primacy: the start >= end check runs before any duration difference, preventing negative overlaps.
+
+#### 6. Data availability and matrices
+- [ ] Double-booking: no two users or processes allocate the same resource for overlapping brackets.
+- [ ] Multi-day spread: conflicts flag across all intersecting dates, not just the start and end anchors.
+- [ ] Null suppression: full-day setups with NULL timestamps are still trapped by structural date alternatives (created_at matching or boolean locks).
+- [ ] Released records: with `allow_overlap_release` false, a canceled/released reservation keeps blocking its time block; UI and backend validation agree.
+- [ ] Self-exclusion: on edit, the record's own ID is passed to the exclusion matrix.
+
+#### 7. Quotas and user conflicts
+- [ ] User concurrency: overlapping reservations of different resources are blocked when policy forbids concurrent activity.
+- [ ] Active quotas (e.g. maximum concurrent active reservations) are scoped by resource type, not globally.
+- [ ] Released quotas: whether early-released reservations still count against the user's quota matches the business rule.
+
+#### 8. Cancellation and series lifecycle
+- [ ] Recurring series creation fails outright when `allow_repeat` is off.
+- [ ] Atomic block isolation: each occurrence in a series loop is validated individually; conflicting segments are skipped without crashing the transaction or creating overlaps.
+- [ ] Cancelling an already inactive/canceled record returns a clean domain validation exception.
+- [ ] Ownership: non-admins cannot alter or cancel reservations owned by others.
+- [ ] Cascading: dropping a master series cancels all active children; already canceled children are preserved without repeated updates.
+
+#### 9. Component and architectural vulnerabilities
+- [ ] Self-referential rows (a row setting its own ID as parent_id) are blocked at both the model saving hooks and runtime actions.
+- [ ] External sync: linked calendar events and user alerts are updated or purged symmetrically when reservations change.
+- [ ] Livewire state drift: `#[Computed]` values flush and re-render when date, start time or floor change.
+- [ ] Filament lifecycles: `$this->form->getState()` is transformed before the validation layers in both Create and Edit.
+- [ ] Pipeline context separation: the pipeline forces the full 14-rule suite when `$enforceAllRules` is true (fresh bookings) and evaluates role-based `skip_admin` exemptions only when it is false (admin edits).
+- [ ] Jalali month boundaries (2026-10-19): the monthly quota, its bar and its reset date agree across a Jalali boundary (31 Mordad vs 1 Shahrivar, 30 Mehr vs 1 Aban), never the Gregorian month; see "Jalali months everywhere".
+- [ ] Cancel cap edge values: `max_cancel_count` 0 (cancelling disabled, booking untouched), empty (no limit), 1; `cancel_window_days` empty/invalid falls back to 30 and clamps to 1-365; a cancel exactly N days old no longer counts.
+- [ ] Last-minute (`last_minute_hours`): bypasses the monthly cap only when `start <= now + hours`, must exceed `window_hours`, empty = off.

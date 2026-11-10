@@ -4,7 +4,7 @@ namespace App\Filament\Resources\SkillResource\Pages;
 
 use App\Filament\Resources\SkillResource;
 use App\Models\Skill;
-use App\Traits\FilamentHeaderActions;
+use App\Traits\Filament\FilamentHeaderActions;
 use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;

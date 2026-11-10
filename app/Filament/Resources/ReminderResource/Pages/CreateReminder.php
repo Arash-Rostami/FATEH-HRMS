@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ReminderResource\Pages;
 
 use App\Filament\Resources\ReminderResource;
-use App\Traits\{FilamentDateHandler, FilamentPageBehavior};
+use App\Traits\Filament\{FilamentDateHandler, FilamentPageBehavior};
 use App\Filament\Pages\CreateRecord;
 
 class CreateReminder extends CreateRecord

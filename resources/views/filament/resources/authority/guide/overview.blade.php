@@ -21,7 +21,7 @@
         [
             'icon' => 'subject',
             'label' => 'شرح وظیفه',
-            'tag' => 'JSON · RichEditor',
+            'tag' => 'متن قالب‌بندی‌شده',
             'hint' => 'متنِ غنیِ شرح وظیفه — حداکثر ' . convertToPersian('2000') . ' نویسه. قالب‌بندی، جدول، لینک و رنگِ متن پشتیبانی می‌شود. قبل از ذخیره، محتوای خطرناک به‌طور خودکار پاک می‌شود.',
         ],
         [
@@ -40,7 +40,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">هر ردیف یک «اختیار سازمانی» است: یک واحد + یک مسئول + شرح وظیفه</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        ماژول «اختیارات» فهرستِ اختیارات و وظایفِ محول‌شده به پرسنل را در سطحِ واحد‌های سازمانی نگه می‌دارد. این بخش سه اطلاعات اصلی (واحد، مسئول، وظایف زیرمجموعه) و هفت اطلاعات تکمیلی را برای هر اختیار نگه می‌دارد؛ هفت فیلدِ توضیحیِ دیگر (شرح وظیفه، روش اجرایی، فراوانی تکرار، شاخص اثر، تفویض پیشنهادی و تفویض مصوب و تفویض مشترک) همگی داخل یک ستونِ JSON به نام <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">details</code> قرار دارند. فیلترها، گروه‌بندی‌ها و جستجوی جدول مستقیماً روی همین کلیدهای JSON با <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">JSON_EXTRACT</code> کار می‌کنند — نه روی ستون‌های مجزا.
+        در بخش «اختیارات»، وظایف و اختیارات کارکنان هر واحد را ثبت کنید. برای هر مورد، واحد، مسئول و شمول زیرمجموعه‌ها را مشخص کنید. اطلاعات تکمیلی شامل شرح وظیفه، روش اجرایی، فراوانی تکرار، شاخص اثر و تفویض پیشنهادی، مصوب و مشترک است. برای یافتن موارد مورد نظر، از جست‌وجو، فیلترها و گروه‌بندی جدول استفاده کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -71,7 +71,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                کوئریِ پایهٔ جدول خودکار <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">user</code> و <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">department</code>
+                در جدول می‌توانید واحد سازمانی و مسئول هر اختیار را ببینید.
             </p>
         </div>
     </div>
@@ -90,7 +90,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">واحدهای سازمانی</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">واحد از طریق انتخاب از فهرست <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">department_id</code> به کدِ واحد وصل می‌شود. اختیارهایی که واحد ندارند در نوار واحدهای پنل کاربر دیده نمی‌شوند — فقط واحدهایی که حداقل یک اختیار دارند در نوارِ کاربر می‌آیند.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">واحد مربوط به هر اختیار را از فهرست انتخاب کنید. در نوار واحدهای پنل کاربر، فقط واحدهایی دیده می‌شوند که حداقل یک اختیار دارند.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -101,7 +101,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">کاربران</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">مسئول از طریق <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">user_id</code> به جدول کاربران وصل می‌شود. یک کاربر می‌تواند چند اختیار در چند واحدِ مختلف داشته باشد.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">مسئول هر اختیار را از میان کاربران انتخاب کنید. یک کاربر می‌تواند در چند واحد، اختیارهای مختلف داشته باشد.</p>
                 </div>
             </div>
         </div>

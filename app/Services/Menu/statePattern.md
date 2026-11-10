@@ -8,10 +8,10 @@ adding an indicator, wiring a new nudge trigger, or adding a toast.
 - **Signal 1 — Badge / dot** (`StateService` + `BadgeSyncService` + `Indicators\*`): the permanent,
   aggregate status dot on a menu item. One row **per indicator**. **Pull** — reconciled on menu
   render. Not dismissable. Stays lit the whole time the condition is true.
-- **Signal 2 — Record nudge / bell** (`NudgeService` + `ReconcileNudge` + `NudgeServiceProvider`):
+- **Signal 2 — Record nudge / bell** (`NudgeService` + `ReconcileNudgeJob` + `NudgeServiceProvider`):
   a one-time, dismissable bell entry. One row **per qualifying record**. **Push** — reconciled on
   the record's Eloquent event. Never resurfaces once dismissed.
-- **Signal 3 — Edge / toast** (`EdgeService` + `ReconcileEdge` + `EdgeServiceProvider` + `Toasts\*`):
+- **Signal 3 — Edge / toast** (`EdgeService` + `ReconcileEdgeJob` + `EdgeServiceProvider` + `Toasts\*`):
   a persistent, dismissible floating card. One row **per (toast × user × subject)**. **Push** to
   materialize (reconciled on the Eloquent event into the `edges` table), **pull** to render (read on
   page load). Dismissible with a **developer-defined duration per toast** (default forever). See
@@ -37,7 +37,7 @@ App\Services\Menu\
 │   ├── SharedEvents.php            key=shared-events         isActive = !StateService::viewedToday('calendar') && (EventShare::hasImminentFor($u) || Event::hasImminentSharedFor($u))
 │   ├── UnreadPosts.php             key=posts-controller      isActive = Post::hasUnreadFor($u)
 │   ├── UnreadFeeds.php             key=feeds                 isActive = auth()->user() !== null && Feed::hasUnreadFor($user->id)   (per-user, via HasNudgeTracking)
-│   ├── UnseenAiReports.php         key=ai-report-controller  isActive = AiReport::unseenBy($u)->exists()   (saved + ready + active report shared with the user and not in `seen_by`; cleared by `markSeenBy` when a recipient opens it; `StateService::flush()` on open and on share/unshare)
+│   ├── UnseenAiReports.php         key=ai-report-controller  isActive = AiReport::unseenBy($u)->exists()   (saved + ready + active report shared with the user and not in `seen_by`; cleared by `markSeenBy` when a recipient opens it; `StateService::flush()` on open and on share/unshare; the paired per-report bell is `AiReportNudge`)
 │   ├── UnreadMessages.php          key=contacts-controller   isActive = auth()->user() !== null && Message::hasUnreadFor($user->id)   (hasUnreadFor/totalUnreadFor scoped to senders passing User::visibleOnBoard() as of 2026-09-04 — an unread message from a deactivated/guest sender, invisible in the Contact sidebar and thus unreachable to mark read, no longer lights this dot or the messaging-tab pill forever; see contactPattern.md §2)
 │   ├── SpecialDays.php             key=special-days          isActive = !StateService::viewedToday('calendar') && Profile (non-terminated) whereMonth/whereDay(birthdate|start_date) = today
 │   ├── TasksTodo.php               key=tasks-controller      isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0   (per-user)
@@ -46,6 +46,7 @@ App\Services\Menu\
 │   ├── DmsBadge.php                key=dms-controller        isActive = auth()->user() !== null && DMS::hasPendingFor($user->id)
 │   ├── TasksImminent.php           key=tasks-deadline        isActive = one of the user's non-done/pending tasks has deadline ≤3 days out or overdue (Task::urgency_state kind ∈ {overdue,due}); no dot surface, bell-only
 │   ├── TasksPendingApproval.php    key=tasks-pending-approval isActive = user owns a requires_approval project holding a done task with approved_at IS NULL; bell-only (taskboardPattern.md §19.2)
+│   ├── CorrespondenceBadge.php     key=correspondence-controller  isActive = a `shared` letter awaits me (`awaiting_user_id`), OR (≤2 pages of 40 recent `shared` letters, created ≤12 months ago) one where I am an unsigned approver of a PARALLEL letter shared ≤6 months ago, OR one shared with me ≤30 days ago that I have neither opened (`parties[].opened_at`, stamped on first view) nor signed; cleared by signing/opening, flushed by the `Correspondence` model hooks (not on draft↔draft saves)
 │   └── ReminderBadge.php           key=reminders-controller  isActive = auth()->user() !== null && a forUser().active() reminder due_at <= now (the due time has passed) exists whose channels pass Reminder::channelEnabled(..., 'badge') and whose host record (if any) is not soft-deleted (Reminder::hostTrashed())
 ├── Notifications\
 │   ├── AdNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
@@ -63,7 +64,9 @@ App\Services\Menu\
 │   ├── ThsReplyNudge.php           key=ths-controller:reply-nudge  subject=the Reply itself (item_id = reply id; repliable_type-guarded to Ticket), so every reply gets its OWN bell row and a dismissed row never silences the next reply; its own key keeps reply ids out of the ticket-id namespace of `ths-controller:nudge`  triggers=Reply created/deleted + Ticket updated (the Ticket trigger's subject resolver PRUNES instead of reconciling: when status/assigned_to/satisfaction_score/action_result/extra changed it deletes this ticket's reply rows for users who are no longer recipients, or all of them once closed+rated or withdrawn, and returns null — a plain per-reply reconcile fan-out would hand every NEW recipient a row for every old reply)  show=false when closed+rated; the reply's author only keeps a row while an action recipient  for=currentActionRecipients() + requester/assignee minus the reply's author (none once closed)  title/body delegate to `ThsNudge` (wording identical), url=route('ths', ['open'=>ticketId])  refresh=false  badgeSuppressesCreate=false (and the key has no `:nudge` suffix, so the default badge lookup would be a no-op anyway)
 │   ├── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=true  for=DMS::pendingRecipients() (visible live + pending users)  badgeSuppressesCreate=false
 │   ├── ChannelNudge.php            key=channels-controller:nudge  dual-state row migrates on entered_at (invited=entered_at IS NULL via Channel::invitedUserIds; unread=entered + count>0 via Channel::unreadCountsFor, whereNotNull(entered_at) + whereNull(msg.deleted_at)) like ThsNudge  triggers=Channel deleted/forceDeleted (cleanup) + ChannelMessage created/deleted (subject=$msg->channel)  show=true  for=invited∪unread (two indexed queries, for()-primes-body idiom)  reuses the three existing dispatch sites (SyncChannelMembers/MarkChannelRead/LeaveChannel); send path covered by ChannelMessage::created → no new dispatch
-│   ├── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false  — mark-as-read is a mass Builder::update() (bypasses the `updated` Eloquent event), so `MarkMessagesAsReadAction` dispatches `ReconcileNudge('contacts-controller:nudge', User::class, $contactId)` explicitly after commit (Channel/ShareEventAction precedent below); fixed 2026-09-04 — previously the bell's per-sender row never cleared on read
+│   ├── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false  — mark-as-read is a mass Builder::update() (bypasses the `updated` Eloquent event), so `MarkMessagesAsReadAction` dispatches `ReconcileNudgeJob('contacts-controller:nudge', User::class, $contactId)` explicitly after commit (Channel/ShareEventAction precedent below); fixed 2026-09-04 — previously the bell's per-sender row never cleared on read
+│   ├── CorrespondenceNudge.php     key=correspondence-controller:nudge  triggers=Correspondence created/updated/deleted/restored/forceDeleted (subject=self, only when status/awaiting/parties/user/subject/classification/urgency/deleted_at changed)  show=user is in the per-letter plan  for=plan keys (one bell per person per letter)  refresh=true  badgeSuppressesCreate=false  plan by status: `shared` → the awaiting approver (+ every unsigned approver of a parallel letter), never the author; `approved` → the author, plus FYI parties only when urgency is urgent/immediate; `rejected` → the author; anything else (withdrawn, void, draft…) → empty plan, so the bells are removed. Confidential letters use the «نامه محرمانه» label.  url=route('correspondence',['open'=>id])  The trigger columns also include `route_mode` (the parallel-approver plan depends on it).
+│   ├── AiReportNudge.php           key=ai-report-controller:nudge  triggers=AiReport updated (only when status/recipients/seen_by/active/saved_at changed) + deleted  subject=self  show=report is active + ready + saved + shared AND the user is not in `seen_by` (the same notion as `UnseenAiReports`)  for=active recipients minus the owner (empty once unshared/deactivated/failed/deleted, so reconcile removes every bell)  refresh=false  badgeSuppressesCreate=false (the `ai-report-controller` dot row is lit by ANY unseen report and would otherwise suppress the bell of the next one)  one bell per person per report, no «finished generating» bell (user decision 2026-11-10)  url=`URL::temporarySignedRoute('ai-report.shared', share_link_days)` (the same signed link the old direct Filament bell used; `Main::mount` re-checks `AiReportAccessPolicy::canView`, so a link held by someone who lost access shows «unavailable», and reconcile has already removed the bell)  QUIET WRITES: `ShareReportAction` (query-builder update) and `HasSharedRecipients::markSeenBy` (`toBase()->update`) bypass model events, so both dispatch `ReconcileNudgeJob('ai-report-controller:nudge', AiReport::class, id)` explicitly (share: after the flush; markSeenBy: inside the same `DB::afterCommit` as `StateService::flush()`); `markFailed` is also quiet but only fails `generating` reports, which are never shared (refine of a shared report forks), so nothing to reconcile
 │   └── ReminderOverdueNudge.php    key=reminders-controller:due-nudge  triggers=Reminder created/updated/deleted  subject=self  show=not completed, not future-snoozed, due_at <= now (the due time has passed), channelEnabled(..., 'nudge'), and not hostTrashed()  for=[owner]  badgeSuppressesCreate=false (the badge is a superset window — due-time-passed (2026-10-26; was due-today-or-overdue) vs the nudge's own identical window here, but the badge's `badge` channel and this nudge's `nudge` channel can be toggled independently, so a badge-lit user must still get their own nudge if they enabled it)  also swept by `reminders:sweep-due` (hourly console command), like `TaskNudge('overdue')`  url=route('tasks'|'ths'|'projects'|'dms'|'reservation', ['open'=>id]) keyed on remindable_type (Task/Ticket/Project/DMS/Reservation), else null
 ├── Toasts\
 │   ├── ChannelToast.php            key=channels-controller:edge   triggers=ChannelMessage created/deleted + ChannelMember/Channel events  for=invited (Channel::invitedUserIds) ∪ mentioned (mentionedSenders regex)  icon=mail (invited) / alternate_email (mentioned)  url=route('channels',['open'=>id])
@@ -75,8 +78,8 @@ App\Services\Menu\
 ├── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
 └── EdgeService.php           registry + reconcile engine (edge side); register(MenuEdge) adapts a toast, reconcile() lock-diff upserts/prunes the edges table, forUser() reads it (payload carries localRoute), dismiss() snoozes by dismissRule(), keys() lists registered rule keys (used by edges:prune-stale)
 
-App\Jobs\ReconcileNudge.php            queued unit of work for a per-record reconcile (nudge side)
-App\Jobs\ReconcileEdge.php             queued unit of work for a per-(toast×user×subject) reconcile (edge side); $tries=3, $backoff=[10,30], afterCommit(), carries only primitives
+App\Jobs\ReconcileNudgeJob.php            queued unit of work for a per-record reconcile (nudge side)
+App\Jobs\ReconcileEdgeJob.php             queued unit of work for a per-(toast×user×subject) reconcile (edge side); $tries=3, $backoff=[10,30], afterCommit(), carries only primitives
 App\Providers\NudgeServiceProvider.php registers the nudge classes in boot(): NudgeService::register(new ...Nudge())
 App\Providers\EdgeServiceProvider.php  registers the toast classes in boot(): EdgeService::register(new ...Toast())
 bootstrap/providers.php                        one line appended to register each provider above
@@ -120,6 +123,7 @@ all structurally identical (no per-user method, no sub-interface).
 | `ThsBadge` | `ths-controller` | `auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)` |
 | `DmsBadge` | `dms-controller` | `auth()->user() !== null && DMS::hasPendingFor($user->id)` |
 | `TasksImminent` | `tasks-deadline` | `auth()->user() !== null` and one of the user's non-done/pending tasks (`forUser`) has a deadline that is overdue or ≤3 days out (`Task::urgency_state['kind']` ∈ `{overdue, due}`) |
+| `CorrespondenceBadge` | `correspondence-controller` | `auth()->user() !== null` and the user has a `shared` letter awaiting them, or a recent (30-day) shared letter they have not opened or signed, or an unsigned parallel approval (see the tree above); legend rows `correspondence-controller` and `correspondence-controller:nudge` in `BadgeLegendCatalog` (`compliance` group, `correspondence` subgroup). Contract: `app/Livewire/Dashboard/Correspondence/correspondencePattern.md` §13 |
 | `ReminderBadge` | `reminders-controller` | `auth()->user() !== null` and a `forUser().active()` reminder with `due_at <=` now (the due time has passed) exists whose `channels` pass `Reminder::channelEnabled(..., 'badge')` and whose host record (if any) is not soft-deleted (`Reminder::hostTrashed()`) — the `badge` channel is scoped-only (2026-10-01: `Reminder\Main` strips it from unscoped reminders, so in practice only record-attached reminders light this; see `reminderPattern.md` §6) |
 
 `SharedEvents`, `TasksTodo`, `TasksImminent`, `UnreadPosts`, `UnreadFeeds`, `UnreadMessages`,
@@ -364,7 +368,7 @@ contract method. No new UI: `NudgeService::buildData()` prepends a
 array; Filament's database-notifications modal already renders any action with a `url` as a real
 link. Every `url($subject)` reuses the existing deep-link convention
 `route($name, ['open' => $subject->getKey()])` (or `route('dashboard', ['tab' => $tab, 'open' => $id])`
-for tab-hosted modules) — the same `?open={id}` param `App\Traits\FocusOnRecord` consumes and
+for tab-hosted modules) — the same `?open={id}` param `App\Traits\Livewire\FocusOnRecord` consumes and
 `SearchResource::route()`/`tab()`/`url()` use. `refresh` governs the URL the same way it governs
 title/body: set `refresh() => true` and an edit re-fires reconcile to rewrite `url` on a still-
 **unread** row; a **read** row's `url` is never rewritten.
@@ -378,7 +382,7 @@ All 18 nudges implement `url()`: `AdNudge`→`route('ads', …)`,
 `ThsNudge`/`ThsReplyNudge`→`route('ths', …)` (the reply nudge opens the reply's ticket), `DmsNudge`→`route('dms', …)`,
 `ChannelNudge`→`route('channels', …)`, `ContactNudge`→`route('contact', …)` (subject is the message
 sender `User`, so this links to the conversation, not a specific message), `ReminderOverdueNudge`→`route('tasks', …)`
-when `remindable_type=Task`, else `null`.
+when `remindable_type=Task`, else `null`; `CorrespondenceNudge`→`route('correspondence', …)`; `AiReportNudge`→ the signed `ai-report.shared` link.
 
 ### Engine — `register()`
 
@@ -388,7 +392,7 @@ when `remindable_type=Task`, else `null`.
 2. Store the rule under `menu_key`.
 3. For each event in `on`, bind `TriggerModel::{event}` to a closure that resolves the **subject**;
    if `null` (foreign trigger whose parent is gone), returns; otherwise
-   `dispatch(new ReconcileNudge($key, get_class($subject), $subject->getKey()))->afterCommit()`.
+   `dispatch(new ReconcileNudgeJob($key, get_class($subject), $subject->getKey()))->afterCommit()`.
 
 The dispatch carries only **primitives** (rule key, subject class string, subject id) — never a
 model instance — so no model-serialization problem when the job runs later.
@@ -535,6 +539,7 @@ declare several triggers sharing the same key.
 | `ChannelMessage` | created, deleted | `$msg->channel` | `true` | invited∪unread |
 | `Message` | created, updated, deleted, forceDeleted, restored | sender `User` | `true` | active recipients with unread (`unreadCountsFrom`) |
 | `Reminder` | created, updated, deleted | self | not completed, not future-snoozed, `due_at <=` now (the due time has passed), `Reminder::channelEnabled($subject->channels, 'nudge')`, and not `Reminder::hostTrashed()` | `[owner]` (`user_id`) — also swept hourly by `reminders:sweep-due`, same shape as `Task` (overdue) |
+| `AiReport` (`AiReportNudge`) | updated (watched columns only), deleted | self | active + ready + saved + shared, and the user not in `seen_by` | active `recipients` minus the owner |
 
 - Suggestion + Review share `suggestion-controller:nudge`, `item_id = suggestion id`.
 - EventShare + Event share `shared-events:nudge`, `item_id = event id` (EventShare sets
@@ -547,7 +552,7 @@ declare several triggers sharing the same key.
   deactivated recipient is dropped on next reconcile via `whereNotIn`. `refresh = true`.
 - **EventShare firing (panel vs admin)** — the user-panel `ShareEventAction` writes shares with bulk
   `insertOrIgnore` + query `delete()`, which **bypass Eloquent model events**, so it dispatches
-  `ReconcileNudge('shared-events:nudge', Event::class, $event->id)->afterCommit()` explicitly after
+  `ReconcileNudgeJob('shared-events:nudge', Event::class, $event->id)->afterCommit()` explicitly after
   the diff-sync. The model-event path (`EventShare::deleted`) covers the admin
   `EventSharesRelationManager` revoke. `Event::updated` reconciles on a date/title edit;
   `Event::deleted` re-fetches null → blanket delete (DB cascade removes shares but fires no model
@@ -565,7 +570,7 @@ declare several triggers sharing the same key.
   cross its deadline with **no accompanying save at all** — nothing fires. `App\Console\Commands\SweepOverdueTasks`
   (`tasks:sweep-overdue`, scheduled `->hourly()->between('06:00','22:00')` in `routes/console.php`) closes
   that gap: it sweeps `Task::whereNull('archived_at')->where('status','!=','done')->whereNotNull('deadline')->where('deadline','<',now())`
-  in `chunkById(200)` and dispatches the same `ReconcileNudge` job per row — an artificial "re-check"
+  in `chunkById(200)` and dispatches the same `ReconcileNudgeJob` job per row — an artificial "re-check"
   rather than a new trigger class, so `NudgeService`'s engine is untouched. `show()` still re-derives
   `urgency_state` fresh inside the job, so a task the sweep queues but that turns out `pending` (the
   query does not exclude it, only `done`) simply reconciles to no-op/delete, not a false nudge.
@@ -604,7 +609,7 @@ badge's `attentionRequired` scope already uses — single source of truth, no dr
 |---|---|---|---|
 | what | permanent status signal (menu dot) | one-time nudge (bell entry) | persistent floating card |
 | granularity | one row **per indicator** | one row **per qualifying record** | one row **per (toast × user × subject)** |
-| trigger | pull — reconciled on menu render (`StateService::get()`) | push — reconciled on the record's Eloquent event (one exception: `TaskNudge('overdue')` is additionally swept hourly by `tasks:sweep-overdue`, a console command re-checking for silent deadline crossings — it still calls the same per-record `ReconcileNudge`, not a bespoke mechanism) | push to materialize (reconciled on the Eloquent event into `edges`) + pull to render (read on page load) |
+| trigger | pull — reconciled on menu render (`StateService::get()`) | push — reconciled on the record's Eloquent event (one exception: `TaskNudge('overdue')` is additionally swept hourly by `tasks:sweep-overdue`, a console command re-checking for silent deadline crossings — it still calls the same per-record `ReconcileNudgeJob`, not a bespoke mechanism) | push to materialize (reconciled on the Eloquent event into `edges`) + pull to render (read on page load) |
 | key shape | bare `ads-controller` / `suggestion-controller` / `shared-events` | suffixed `ads-controller:nudge` / … | suffixed `channels-controller:edge` / … (own `edges` table — the suffix is convention, not partitioning) |
 | dismissal | not dismissable (lit while true) | dismissable (`markAsRead`); never resurfaces | dismissible (× → `snooze()` by `dismissRule()`; default forever → `dismissed_at`, never resurfaces; a duration → `snoozed_until`, resurfaces after expiry) |
 | no-resurface mechanism | `syncBatch()` `existingByKey` leaves `read_at` alone | `reconcile()` `exists()` branch leaves `read_at` alone | `reconcile()` existing-row branch leaves `dismissed_at`/`snoozed_until` alone; `scopeVisible` re-includes after snooze expiry |
@@ -764,7 +769,7 @@ membership) and `ChannelNudge`.
 The shared shape: each indicator is a stateless `MenuBadge` whose `isActive()` delegates to a model
 method; its badge row is reconciled by `BadgeSyncService::syncBatch()` on a cache miss; invalidation
 flows from model events via `HasMenuState` → `StateService::flush()` (global version bump); the
-matching nudge (if any) is a `MenuNudge` reconciled on its triggers via `ReconcileNudge`. The facts
+matching nudge (if any) is a `MenuNudge` reconciled on its triggers via `ReconcileNudgeJob`. The facts
 below are the per-indicator specifics that do not fit the table.
 
 ### `SharedEvents` — 24h proximity, both parties; decoupled from the nudge window
@@ -1053,7 +1058,7 @@ Both are **Signal-2 only** (no `MenuBadge`, no menu dot) — the bell row is the
   — the nullsafe `?->` short-circuits `?? 'سازمان'` for a department-less report; the same helper
   backs `Department` dropdown labels elsewhere, so this can't drift from that copy.
 - **Department move re-audience** — `Profile::saved` on a `department_id` change (not a position-only change) dispatches
-  `ReconcileNudge` for every Post/Feed/Report whose `departments` JSON contains the old or new code, and every Photo whose
+  `ReconcileNudgeJob` for every Post/Feed/Report whose `departments` JSON contains the old or new code, and every Photo whose
   `department_id` or `departments` does (beside the existing open-Ticket reconcile), so a moved user's bell rows follow the
   audience instead of lingering until the next subject save.
 - **Keys** — `gallery-controller` / `reports-controller` bare keys do **not** exist as menu items or
@@ -1131,6 +1136,7 @@ provably-safe closer, scheduled `->daily()->withoutOverlapping()` in `routes/con
   `nudge` (`ads-controller`, `dms-controller`, `shared-events`, `special-days`, …). `LIKE '%nudge'`
   catches the whole nudge family in one predicate; the earlier `LIKE '%:nudge'` was too narrow and would
   have left the legacy `:reply-nudge` rows behind.
+- **Second pass (2026-11-10): deactivated users.** The same command also deletes EVERY nudge-family row (any age) whose `notifiable` is a `User` with `status != 'active'`, so a deactivated user's bells do not wait for another subject event. Bare badge rows are untouched.
   (`data->menu_key` compiles to `json_unquote(json_extract(...))` on MySQL — `MySqlGrammar` line 572 —
   so the unquoted value is what `LIKE` compares. **Practically verified on live data** (MySQL 5.7.24,
   `DB_CONNECTION=mysql`): `LIKE '%nudge'` matched exactly the `:nudge` + `:reply-nudge` keys (all ending
@@ -1202,7 +1208,7 @@ stale claim — see below):
 ## Audit #16–#25 (unanimous A+B+me)
 
 **Code (behavior-preserving):**
-- **#16** `ReconcileNudge` now declares `$tries = 3` / `$backoff = [10, 30]`; the
+- **#16** `ReconcileNudgeJob` now declares `$tries = 3` / `$backoff = [10, 30]`; the
   `LockTimeoutException` swallow in `NudgeService::reconcile` is KEPT (de-dup, not a leak — two jobs
   reconcile the same `(ruleKey, itemId)`, the loser's lock-timeout is expected; the winner does the
   full reconcile). `$tries` closes the real gap: a crashed lock-holder re-runs instead of leaving
@@ -1250,7 +1256,7 @@ stale claim — see below):
   the old head until the next `Ticket {created,updated,deleted}` event re-reconciles (`whereNotIn`
   prunes the old head, creates for the new). The THS BADGE `hasUnclosedActionFor()` is pull/live →
   reflects the new head immediately (correct authoritative signal); the one-time nudge lags and
-  self-heals. A User/Profile listener re-dispatching `ReconcileNudge` was rejected — it must detect
+  self-heals. A User/Profile listener re-dispatching `ReconcileNudgeJob` was rejected — it must detect
   the head-change condition and couples the THS nudge to non-Ticket events, breaking the per-subject
   trigger model. Badge-covers-it is acceptable.
 
@@ -1295,7 +1301,7 @@ documentation at all, and several counts were stale:
   `beforeLast` returns the subject unchanged when the search string isn't found. Not a live bug (every
   such nudge so far opts out explicitly), but a real trap for the next one that doesn't.
 - **"Push" framing in "The two systems side by side"** given one exception without generalizing it —
-  `TaskNudge('overdue')` is still reconciled by the same per-record `ReconcileNudge` job on the same
+  `TaskNudge('overdue')` is still reconciled by the same per-record `ReconcileNudgeJob` job on the same
   `Task {updated}` Eloquent trigger every other nudge uses; the console-command sweep is an additional
   *source* of that same dispatch for records that had no accompanying save, not a second reconciliation
   mechanism.
@@ -1304,8 +1310,8 @@ documentation at all, and several counts were stale:
   before writing the above — no test expectation contradicted anything corrected here.
 
 **Stale count found while making the change below — since corrected (docs pass 2026-10-25):** the
-catalog holds 27 entries (`MenuServiceTest::test_badge_legend_catalog_grouped_folds_all_entries_into_five_groups`
-pins 27), not the 17 this doc's own "Counts corrected" bullet above states; the newer `tasksheet`
+catalog holds 32 entries (`MenuServiceTest::test_badge_legend_catalog_grouped_folds_all_entries_into_five_groups`
+pins 32; the 27 of that docs pass grew with `correspondence-controller` + `:nudge`, `ai-report-controller` + `:nudge` and others), not the 17 this doc's own "Counts corrected" bullet above states; the newer `tasksheet`
 subgroup in `compliance` (and its `tasksheet-controller` entry) postdates that bullet too.
 
 ## Notification legend — sub-pill grouping, max 2 items per subgroup (2026-08-30)
@@ -1330,10 +1336,10 @@ stays flat with no `subgroups()` entry since it already satisfies max-2 as a pla
 | `tasks` (13 rows → 8 subgroups) | `list` (`tasks-controller`, `tasks-deadline`) · `deadline` (`tasks-controller:due-soon-edge`, `tasks-overdue-nudge`) · `approval` (`tasks-approval-nudge`, `tasks-pending-approval`) · `projects` (`projects-controller`, `projects-controller:edge`) · `workflow` (`workflow:nudge`) · `tickets` (`ths-controller`) · `reminders` (`reminders-controller:due-nudge`, `reminders-controller:due-today-edge`) · `reminders-badge` (`reminders-controller`) |
 | `notifications` (4 rows → 2 subgroups) | `direct` (`posts-controller`, `contacts-controller`) · `channels` (`channels-controller`, `channels-controller:edge`) |
 | `content` (4 rows → 2 subgroups) | `calendar` (`shared-events`, `special-days`) · `media` (`feeds`, `gallery-controller`) |
-| `compliance` (4 rows → 3 subgroups) | `tracking` (`dms-controller`, `energy-controller`) · `reports` (`reports-controller`) · `tasksheet` (`tasksheet-controller`) |
+| `compliance` (8 rows → 5 subgroups) | `tracking` (`dms-controller`, `energy-controller`) · `reports` (`reports-controller`) · `tasksheet` (`tasksheet-controller`) · `ai-report` (`ai-report-controller` dot, `ai-report-controller:nudge` bell) · `correspondence` (`correspondence-controller` dot, `correspondence-controller:nudge` bell) |
 
 Every catalog row that belongs to a configured group carries a `'subgroup'` key naming which bucket it
-lands in (25 of the 27 rows — every row except `opportunities`'s 2). `grouped()` returns each group with an additional `'subgroups'` key — `[]`
+lands in (30 of the 32 rows — every row except `opportunities`'s 2). `grouped()` returns each group with an additional `'subgroups'` key — `[]`
 for `opportunities` (backward-compatible: `items` is unchanged, so no pre-existing consumer of
 `grouped()` needed updating), or `[{id,label,icon,items}]` for the four configured groups.
 `badge-legend.blade.php` renders the sub-pill row only `@if(!empty($group['subgroups']))`, falling back
@@ -1434,7 +1440,7 @@ the hook is dormant, kept for a future toast that wants locality. This replaced 
 ### Reconcile trigger chain
 
 `EdgeServiceProvider::boot()` → `EdgeService::register(new ChannelToast/ProjectToast())` → Eloquent
-listeners (from `triggers()`) → `ReconcileEdge` job (`afterCommit`, carries only primitives) →
+listeners (from `triggers()`) → `ReconcileEdgeJob` job (`afterCommit`, carries only primitives) →
 `EdgeService::reconcile()` → `edges` row → `Edge` Livewire `forUser()` → render. Push to materialize,
 pull to render.
 
@@ -1452,7 +1458,7 @@ registered rule's dismissed row on age alone: a forever-dismissed row is the onl
 dismissal, and `reconcile()` treats "no row" as "create" — deleting it let the next trigger resurrect
 the card for rules whose eligibility outlives 30 days (`ChannelToast`/`ProjectToast`: un-accepted
 invite, unread mention). Instead the command (1) deletes rows whose `edge_key` is no longer in
-`EdgeService::keys()` (skipped when the registry is empty), then (2) dispatches one `ReconcileEdge`
+`EdgeService::keys()` (skipped when the registry is empty), then (2) dispatches one `ReconcileEdgeJob`
 per distinct `(edge_key, subject_type, subject_id)` among `dismissed_at < now-N days` rows. Reconcile
 is the single eligibility evaluator: ineligible rows (subject gone, user left `for()`, `show()` false)
 are deleted by its existing branches; still-eligible ones survive with `dismissed_at` intact, so
@@ -1535,7 +1541,7 @@ Alpine state in `contact.js`/`channel.js`, not part of the toast component.
 - **One master class per domain, `match` on a kind** (never a class per notification): `TaskNudge('activity'|'overdue'|'approval')` replaced `TaskOverdueNudge`/`TaskApprovalNudge`; `ProjectNudge('invite'|'step')` replaced `WorkflowStepNudge`. Registry keys are UNCHANGED (`tasks-controller:nudge`, `:overdue-nudge`, `:approval-nudge`, `projects-controller:nudge`, `workflow:nudge`), so live bell rows, `NudgeService::reconcile` and `notifications:prune-stale` keep working. Older sections of this doc that name the removed classes describe the same behavior now living in the kind of the same name.
 - **Plan pattern:** `for($subject)` computes `$this->plan` ([userId => [title, body]]) once; `show/title/body` just read it. Wording is per event (completed, approved, sent back, reopened, assigned, removed, helper added, accountable, suspended, awaiting approval) instead of the generic «پاسخ جدید».
 - **Quiet events never ring** (`TaskNudge::QUIET`): archive, deadline, priority, label, project, meta, settings, workflow-step, department changes. The actor never receives their own event. Unlogged field edits leave no Reply and therefore no bell.
-- **Anti-noise:** the activity kind scans only the newest 4 non-quiet replies, `ReconcileNudge` is `ShouldBeUniqueUntilProcessing` (`uniqueFor` 2s, id = rule|class|subject) so one save no longer queues several identical reconciles, `badgeSuppressesCreate()` is false for every Task kind (a bare tasks badge row no longer swallows the nudge).
+- **Anti-noise:** the activity kind scans only the newest 4 non-quiet replies, `ReconcileNudgeJob` is `ShouldBeUniqueUntilProcessing` (`uniqueFor` 2s, id = rule|class|subject) so one save no longer queues several identical reconciles, `badgeSuppressesCreate()` is false for every Task kind (a bare tasks badge row no longer swallows the nudge).
 - **Escalation:** overdue notifies the doer; once overdue days reach the project's `escalation_days` (charter, default 3, 0 = off) the accountable (`responsible_user_id`) is also told. Approval notifies one approver and escalates by age (24h/48h) from `completed_at`. Suspended (`TaskState::Suspension`, «توقف») tasks are silent for overdue/urgency.
 - **Bell refresh:** `NudgeService::refreshBell()` dispatches `databaseNotificationsSent` on the current Livewire component (used by mark-read actions in Channel, Contact, Feeds, Posts). The bell DOT is an Alpine span fed by the `bell-unread` event that `UnreadNotifications::rendered()` dispatches on every redraw, so it follows dismiss, the poll (admin: `databaseNotificationsPolling`, 60–75 s jittered; user panel: no bell poll of its own since 2026-10-25 — `UnreadNotifications::getPollingInterval()` returns `null` and `Dashboard\Pulse` drives it, see "Pulse — one fingerprint poll" below) and `refreshBell()`. The aggregate-count cache key carries the live unread total and zero short-circuits, so raw writes cannot leave a stale count. Known race: `refreshBell()` after a mark-read can run before the `afterCommit` prune job removes the row, so the bell may briefly still show it — it self-heals on the next poll.
 - **ThsNudge is multi-head:** while a ticket is open every head of the target department is an action recipient (`User::headsOfDepartment`, `Ticket::isActionRecipient`); a ticket withdrawn by its requester never asks for a rating (`isAwaitingRating`).

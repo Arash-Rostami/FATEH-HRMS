@@ -3,8 +3,8 @@
 namespace Tests\Feature\Services;
 
 use App\Enums\PresenceStatus;
-use App\Filament\Resources\ProfileResource\Enums\Degree;
-use App\Filament\Resources\ProfileResource\Enums\Position;
+use App\Enums\Degree;
+use App\Enums\Position;
 use App\Models\Department;
 use App\Models\Profile;
 use App\Models\User;

@@ -7,8 +7,8 @@
                 <span class="material-symbols-rounded text-[16px]">fiber_manual_record</span>
             </div>
             <div class="min-w-0">
-                <p class="text-[12px] font-bold text-[var(--tool-sapphire-text)] mb-0.5">دات (نشانگر وضعیت زنده)</p>
-                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">تا وقتی شرایطی برقرار است روشن می‌ماند؛ به‌محض برطرف‌شدن شرایط — یا در برخی موارد، با مشاهدهٔ همان بخش — خودکار خاموش می‌شود.</p>
+                <p class="text-[12px] font-bold text-[var(--tool-sapphire-text)] mb-0.5">نقطهٔ رنگی (نشانگر وضعیت)</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وجود موردی تازه یا نیازمند اقدام را نشان می‌دهد. بسته به نوع آن، با مشاهدهٔ مورد، انجام اقدام لازم یا پایان اعتبار آن خاموش می‌شود.</p>
             </div>
         </div>
 
@@ -17,8 +17,8 @@
                 <span class="material-symbols-rounded text-[16px]">notifications</span>
             </div>
             <div class="min-w-0">
-                <p class="text-[12px] font-bold text-[var(--tool-gold-text)] mb-0.5">زنگوله (اعلان یک‌بارمصرف)</p>
-                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">به‌ازای هر مورد تازه یک‌بار ظاهر می‌شود و تا وقتی خودتان آن را نبندید باقی می‌ماند؛ دوباره ظاهر نمی‌شود. اگر دکمهٔ «مشاهده» داشته باشد، مستقیماً شما را به همان مورد می‌برد؛ اعلان‌های تجمیع‌شده (چند مورد در یک کارت) این دکمه را ندارند.</p>
+                <p class="text-[12px] font-bold text-[var(--tool-gold-text)] mb-0.5">اعلان‌های زنگوله</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">رویدادهای تازه را اطلاع می‌دهد. می‌توانید هر اعلان را ببندید؛ برخی اعلان‌ها پس از اقدام شما یا برطرف‌شدن موضوع نیز خودکار حذف می‌شوند. دکمهٔ «مشاهده» مورد مربوط را باز می‌کند؛ اعلان‌هایی که چند مورد را یکجا نمایش می‌دهند، این دکمه را ندارند.</p>
             </div>
         </div>
 

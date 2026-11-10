@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\AiReport;
+use App\Services\Ai\AiClient;
 use App\Services\AiReport\BlockCatalog;
 use App\Services\AiReport\FileExtractor;
 use App\Services\AiReport\ReportAiService;
@@ -33,9 +34,9 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
     public function __construct(public int $reportId)
     {
-        $padding = (int) config('ai_report.job.padding');
-        $this->timeout = 2 * ((int) config('services.ai_report.timeout') + (int) config('ai_report.provider.connect_timeout')) + $padding;
-        $ceiling = (int) config('queue.connections.' . config('queue.default') . '.retry_after') - (int) config('ai_report.job.retry_margin');
+        $padding = (int) config('ai.report.job.padding');
+        $this->timeout = 2 * ((int) AiClient::setting('report', 'timeout') + (int) AiClient::setting('report', 'connect_timeout')) + $padding;
+        $ceiling = (int) config('queue.connections.' . config('queue.default') . '.retry_after') - (int) config('ai.report.job.retry_margin');
         if ($ceiling >= 1 && $this->timeout > $ceiling) {
             $this->timeout = $ceiling;
         }

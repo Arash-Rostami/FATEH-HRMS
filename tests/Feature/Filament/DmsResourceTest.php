@@ -2,9 +2,18 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\DmsResource;
 use App\Filament\Resources\DmsResource\Pages\CreateDms;
 use App\Filament\Resources\DmsResource\Pages\EditDms;
 use App\Filament\Resources\DmsResource\Pages\ListDms;
+use App\Filament\Resources\DmsResource\RelationManagers\ReadsRelationManager;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\DMS;
 use App\Models\Department;
 use App\Models\Permission;
@@ -73,7 +82,7 @@ class DmsResourceTest extends TestCase
     {
         $this->assertSame(
             ['title', 'code', 'version', 'revision'],
-            \App\Filament\Resources\DmsResource::getGloballySearchableAttributes()
+            DmsResource::getGloballySearchableAttributes()
         );
     }
 
@@ -336,40 +345,40 @@ class DmsResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\DmsResource\Pages\CreateDms::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\DmsResource\Pages\EditDms::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\DmsResource\Pages\ListDms::class => \App\Filament\Pages\ListRecords::class,
+            CreateDms::class => CreateRecord::class,
+            EditDms::class => EditRecord::class,
+            ListDms::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\DmsResource\Pages\CreateDms::class, \App\Filament\Resources\DmsResource\Pages\EditDms::class];
+        $writers = [CreateDms::class, EditDms::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\DmsResource\RelationManagers\ReadsRelationManager::class];
+        $managers = [ReadsRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 
     public function test_edit_tracked_file_columns_delete_only_the_dropped_files(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
-        $tracked = (fn () => $this->trackedFileColumns())->call(new \App\Filament\Resources\DmsResource\Pages\EditDms());
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $tracked = (fn () => $this->trackedFileColumns())->call(new EditDms());
         Storage::fake('public');
         foreach (['dms/main.pdf', 'dms/old-extra.pdf', 'dms/kept-extra.pdf'] as $path) {
             Storage::disk('public')->put($path, 'x');
         }
-        $record = \App\Models\DMS::factory()->create(['file' => 'dms/main.pdf', 'extra_files' => ['dms/old-extra.pdf', 'dms/kept-extra.pdf']]);
+        $record = DMS::factory()->create(['file' => 'dms/main.pdf', 'extra_files' => ['dms/old-extra.pdf', 'dms/kept-extra.pdf']]);
         $before = $probe->trackedFilePaths($record, $tracked);
         $this->assertEqualsCanonicalizing(['dms/main.pdf', 'dms/old-extra.pdf', 'dms/kept-extra.pdf'], $before);
 

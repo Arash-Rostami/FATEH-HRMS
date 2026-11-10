@@ -39,7 +39,7 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">admin_panel_settings</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما در این صفحه: ساخت و نگهداری پکیج‌های آنبوردینگ</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما در این صفحه: ساخت و نگهداری مجموعه‌های آنبوردینگ</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
         جدول به‌طور پیش‌فرض موارد فعال را بالاتر نشان می‌دهد. ستون‌های اصلی (شناسه، کاربر، فعال، بخش‌های تکمیل‌شده، شمارشِ ویدیو/راهنما/اضافی) باز هستند؛ تاریخ ایجاد به‌صورت پیش‌فرض پنهان است. جستجوی سراسری پنل با نام کاربر، مورد را پیدا می‌کند و به صفحهٔ ویرایش می‌برد.

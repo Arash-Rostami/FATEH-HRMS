@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\DmsResource\Pages;
 
 use App\Filament\Resources\DmsResource;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\CreateRecord;
 
 class CreateDms extends CreateRecord

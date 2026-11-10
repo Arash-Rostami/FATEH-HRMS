@@ -143,6 +143,17 @@ class NavigationService
                 ],
             ],
             [
+                'id' => 'correspondence',
+                'title' => 'مکاتبات',
+                'subtitle' => 'نوشتن، امضا و ارسال نامه‌های اداری و ثبت نامه‌های دریافتی',
+                'icon' => 'mail',
+                'action' => 'route:correspondence',
+                'keywords' => [
+                    'correspondence', 'letter', 'letters', 'memo', 'sign letter', 'inbox letter',
+                    'مکاتبات', 'نامه', 'نامه نگاری', 'نامه‌نگاری', 'نامه اداری', 'امضای نامه', 'دبیرخانه', 'نامه دریافتی',
+                ],
+            ],
+            [
                 'id' => 'links',
                 'title' => 'لینک‌ها و مسیرهای دیجیتال سازمان',
                 'subtitle' => 'دسترسی متمرکز به سامانه‌های داخلی و خارجی',

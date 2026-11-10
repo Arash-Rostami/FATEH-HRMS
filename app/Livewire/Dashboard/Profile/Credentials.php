@@ -3,9 +3,12 @@
 namespace App\Livewire\Dashboard\Profile;
 
 use App\Actions\Fortify\UpdateUserPassword;
+use App\Livewire\Dashboard\Profile\Actions\SaveSignCodeAction;
 use App\Livewire\Dashboard\Profile\Forms\PasswordForm;
-use App\Traits\FocusOnRecord;
+use App\Livewire\Dashboard\Profile\Forms\SignCodeForm;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -17,6 +20,8 @@ class Credentials extends Component
     public string $search = '';
 
     public PasswordForm $passwordForm;
+
+    public SignCodeForm $signCodeForm;
 
     public function placeholder(): View
     {
@@ -36,6 +41,42 @@ class Credentials extends Component
         $this->passwordForm->reset();
 
         $this->dispatch('toast', message: 'رمز عبور با موفقیت تغییر کرد.', type: 'success');
+    }
+
+    public function saveSignCode(SaveSignCodeAction $action): void
+    {
+        $this->signCodeForm->validate();
+
+        try {
+            $action->execute($this->signCodeForm->current_password, $this->signCodeForm->code);
+        } catch (ValidationException $e) {
+            $this->signCodeForm->reset();
+
+            throw $e;
+        }
+
+        $this->signCodeForm->reset();
+        unset($this->hasSignCode);
+
+        $this->dispatch('toast', message: __('resources/correspondence/strings.profile.sign_code_saved'), type: 'success');
+    }
+
+    public function clearSignCode(SaveSignCodeAction $action): void
+    {
+        $this->signCodeForm->validateOnly('current_password');
+
+        try {
+            $action->clear($this->signCodeForm->current_password);
+        } catch (ValidationException $e) {
+            $this->signCodeForm->reset();
+
+            throw $e;
+        }
+
+        $this->signCodeForm->reset();
+        unset($this->hasSignCode);
+
+        $this->dispatch('toast', message: __('resources/correspondence/strings.profile.sign_code_cleared'), type: 'success');
     }
 
     #[Computed]
@@ -63,6 +104,12 @@ class Credentials extends Component
     public function hasAnyCredentials(): bool
     {
         return $this->credentials->isNotEmpty() || Auth::user()->credentials()->exists();
+    }
+
+    #[Computed]
+    public function hasSignCode(): bool
+    {
+        return filled(Auth::user()?->getExtraValue('admin.sign_code_hash'));
     }
 
     public function render()

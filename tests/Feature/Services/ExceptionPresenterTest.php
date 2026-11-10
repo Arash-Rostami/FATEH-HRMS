@@ -69,9 +69,9 @@ class ExceptionPresenterTest extends TestCase
         $tokenMismatch = ExceptionPresenter::present(new TokenMismatchException());
         $validation = ExceptionPresenter::present(ValidationException::withMessages(['assigned_to' => 'blocked']));
 
-        $this->assertSame('پایان نشست کاربری', $tokenMismatch['title']);
+        $this->assertSame('زمان اعتبار نشست شما تمام شد', $tokenMismatch['title']);
         $this->assertStringNotContainsString('کد پیگیری', $tokenMismatch['body']);
-        $this->assertSame('عملیات مجاز نیست', $validation['title']);
+        $this->assertSame('انجام این کار ممکن نیست', $validation['title']);
         $this->assertSame('blocked', $validation['body']);
     }
 
@@ -86,54 +86,54 @@ class ExceptionPresenterTest extends TestCase
     {
         $presented = ExceptionPresenter::present(new RuntimeException('boom'));
 
-        $this->assertSame('خطای سیستمی', $presented['title']);
-        $this->assertStringContainsString('در زمان پردازش درخواست شما خطای غیرمنتظره‌ای رخ داد', $presented['body']);
+        $this->assertSame('خطایی رخ داد', $presented['title']);
+        $this->assertStringContainsString('هنگام پردازش درخواست خطایی رخ داد', $presented['body']);
     }
 
     public function test_model_not_found_presents_the_not_found_title(): void
     {
         $presented = ExceptionPresenter::present(new ModelNotFoundException());
 
-        $this->assertSame('اطلاعات یافت نشد', $presented['title']);
-        $this->assertStringContainsString('اطلاعات موردنظر در سامانه یافت نشد', $presented['body']);
+        $this->assertSame('اطلاعات پیدا نشد', $presented['title']);
+        $this->assertStringContainsString('اطلاعات مورد نظر پیدا نشد', $presented['body']);
     }
 
     public function test_authorization_exception_presents_the_forbidden_title(): void
     {
         $presented = ExceptionPresenter::present(new AuthorizationException());
 
-        $this->assertSame('دسترسی غیرمجاز', $presented['title']);
-        $this->assertStringContainsString('سطح دسترسی لازم', $presented['body']);
+        $this->assertSame('اجازهٔ انجام این کار را ندارید', $presented['title']);
+        $this->assertStringContainsString('اجازهٔ انجام این کار را نمی‌دهد', $presented['body']);
     }
 
     public function test_filesystem_exception_presents_the_upload_incomplete_title(): void
     {
         $presented = ExceptionPresenter::present(UnableToRetrieveMetadata::mimeType('livewire-tmp/missing.mp4'));
 
-        $this->assertSame('بارگذاری فایل ناقص ماند', $presented['title']);
-        $this->assertStringContainsString('فایل را از فیلد بارگذاری حذف کنید', $presented['body']);
+        $this->assertSame('بارگذاری فایل کامل نشد', $presented['title']);
+        $this->assertStringContainsString('فایل را از کادر بارگذاری حذف کنید', $presented['body']);
     }
 
     public function test_query_exception_driver_codes_map_to_distinct_titles(): void
     {
         $expected = [
-            1264 => 'مقدار عددی بیش از حد مجاز',
-            1406 => 'طول متن بیش از حد مجاز',
-            1265 => 'قالب نامعتبر',
-            1366 => 'قالب نامعتبر',
-            1048 => 'نقص اطلاعات الزامی',
-            1062 => 'اطلاعات تکراری',
-            1451 => 'رکورد در حال استفاده',
-            1452 => 'مرجع نامعتبر',
-            1213 => 'سامانه درگیر پردازش',
-            1205 => 'سامانه درگیر پردازش',
-            2002 => 'اختلال در برقراری ارتباط',
-            2006 => 'اختلال در برقراری ارتباط',
-            2013 => 'اختلال در برقراری ارتباط',
-            1146 => 'خطای پیکربندی سامانه',
-            1054 => 'خطای پیکربندی سامانه',
-            1049 => 'خطای پیکربندی سامانه',
-            9999 => 'خطا در ذخیره‌سازی اطلاعات',
+            1264 => 'عدد بزرگ‌تر از حد مجاز است',
+            1406 => 'متن طولانی‌تر از حد مجاز است',
+            1265 => 'قالب اطلاعات معتبر نیست',
+            1366 => 'قالب اطلاعات معتبر نیست',
+            1048 => 'اطلاعات لازم کامل نیست',
+            1062 => 'اطلاعات تکراری است',
+            1451 => 'این مورد در حال استفاده است',
+            1452 => 'مورد انتخاب‌شده معتبر نیست',
+            1213 => 'سامانه مشغول است',
+            1205 => 'سامانه مشغول است',
+            2002 => 'ارتباط برقرار نشد',
+            2006 => 'ارتباط برقرار نشد',
+            2013 => 'ارتباط برقرار نشد',
+            1146 => 'تنظیمات سامانه مشکل دارد',
+            1054 => 'تنظیمات سامانه مشکل دارد',
+            1049 => 'تنظیمات سامانه مشکل دارد',
+            9999 => 'اطلاعات ذخیره نشد',
         ];
 
         $titles = [];
@@ -150,17 +150,17 @@ class ExceptionPresenterTest extends TestCase
     {
         $presented = ExceptionPresenter::present($this->queryException(1062));
 
-        $this->assertStringContainsString('رکوردی با این مشخصات پیش از این در سامانه ثبت شده است.', $presented['body']);
+        $this->assertStringContainsString('موردی با این مشخصات قبلاً ثبت شده است.', $presented['body']);
         $this->assertStringContainsString('کد پیگیری: ' . $presented['reference'], $presented['body']);
     }
 
     public function test_http_exception_interface_classifies_by_status_code(): void
     {
         $cases = [
-            [new NotFoundHttpException(), 'اطلاعات یافت نشد'],
-            [new AccessDeniedHttpException(), 'دسترسی غیرمجاز'],
-            [new HttpException(419), 'پایان نشست کاربری'],
-            [new HttpException(503), 'خطای سیستمی'],
+            [new NotFoundHttpException(), 'اطلاعات پیدا نشد'],
+            [new AccessDeniedHttpException(), 'اجازهٔ انجام این کار را ندارید'],
+            [new HttpException(419), 'زمان اعتبار نشست شما تمام شد'],
+            [new HttpException(503), 'خطایی رخ داد'],
         ];
 
         foreach ($cases as [$exception, $title]) {
@@ -177,7 +177,7 @@ class ExceptionPresenterTest extends TestCase
         $this->get('/-exception-presenter-probe')
             ->assertStatus(500)
             ->assertViewIs('errors.500')
-            ->assertViewHas('heading', 'خطای سیستمی')
+            ->assertViewHas('heading', 'خطایی رخ داد')
             ->assertViewHas('trace_id', fn (string $reference) => (bool) preg_match('/^ERR-\d{6}-\d{6}-[A-Z0-9]{4}$/', $reference))
             ->assertViewHas('message');
 

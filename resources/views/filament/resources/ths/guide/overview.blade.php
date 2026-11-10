@@ -13,7 +13,7 @@
         [
             'icon' => 'low_priority',
             'label' => 'اولویت — هنگام ثبت',
-            'hint' => 'اولویت سه‌پایه‌ای است: «عادی»، «فوری» و «خیلی فوری». اولویت هنگام ثبت تعیین می‌شود و کاربر پس از آن نمی‌تواند آن را عوض کند؛ فقط مدیر می‌تواند آن را در فرم ویرایش تغییر دهد.',
+            'hint' => 'اولویت سه سطح دارد: «عادی»، «فوری» و «خیلی فوری». اولویت هنگام ثبت تعیین می‌شود و کاربر پس از آن نمی‌تواند آن را عوض کند؛ فقط مدیر می‌تواند آن را در فرم ویرایش تغییر دهد.',
         ],
         [
             'icon' => 'sync',
@@ -27,7 +27,7 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">support_agent</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«تیکت» یک درخواست رسمی پشتیبانی، دسترسی یا توسعه است که کاربر ثبت می‌کند و شما نظارت کل‌سازمان دارید</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">ثبت و پیگیری درخواست‌های پشتیبانی، دسترسی و توسعه در قالب تیکت</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
         کاربران تیکت را از صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/ths</code> در پنل کاربری ثبت می‌کنند. شما در این صفحه همهٔ تیکت‌ها را می‌بینید، مسئول تعیین می‌کنید، مهلت می‌گذارید، اثربخشی را بازبینی می‌کنید و خروجی اکسل می‌گیرید. ساخت تیکت از طرف ادمین هم ممکن است ولی گردش‌کار اصلی همان است: درخواست‌دهنده ثبت می‌کند → مدیر واحد مسئول تعیین می‌کند → مسئول پاسخ می‌دهد و اثربخشی را ثبت می‌کند → تیکت بسته می‌شود → درخواست‌دهنده امتیاز رضایت می‌دهد.
@@ -56,7 +56,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                فیلدهای غیرثابت تیکت (واحد درخواست‌دهنده، واحد هدف، یادداشت رضایت) درون یک کیسهٔ JSON به‌نام <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra</code> نگهداری می‌شوند — واحد هدف همان چیزی است که پیشوند شناسه و فیلتر «واحد هدف» را تغذیه می‌کند.
+                واحد درخواست‌دهنده، واحد هدف و یادداشت رضایت در اطلاعات تیکت نگهداری می‌شوند. پیشوند شناسه و فیلتر «واحد هدف» بر اساس واحد هدف هستند.
             </p>
         </div>
     </div>

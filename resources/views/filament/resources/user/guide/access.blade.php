@@ -57,7 +57,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">نقش تعیین می‌کند چه کسی وارد پنل ادمین شود</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        ورود به پنل ادمین به نقش بستگی دارد، نه فقط به وضعیت. کاربر عادی به پنل ادمین راه ندارد؛ مدیر تنها اگر رکورد «دسترسی» (Permission) داشته باشد وارد می‌شود؛ توسعه‌دهنده همیشه سوپرادمین است. زبانهٔ «دسترسی‌ها» فقط برای مدیران ظاهر می‌شود — برای کاربر عادی یا توسعه‌دهنده پنهان است.
+        ورود به پنل مدیریت به نقش بستگی دارد، نه فقط وضعیت کاربر. کاربر عادی به پنل مدیریت راه ندارد. مدیر باید دسترسی تعریف‌شده داشته باشد و توسعه‌دهنده دسترسی کامل دارد. زبانهٔ «دسترسی‌ها» فقط برای مدیران نمایش داده می‌شود.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade ring-2 ring-[var(--md-sys-color-primary)]/30">

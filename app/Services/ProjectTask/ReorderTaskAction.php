@@ -2,7 +2,7 @@
 
 namespace App\Services\ProjectTask;
 
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskStatus;
 use App\Models\Task;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;

@@ -2,13 +2,27 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\FeedResource\RelationManagers\CommentsRelationManager;
+use App\Filament\Resources\FeedResource\RelationManagers\PollsRelationManager;
+use App\Filament\Resources\FeedResource\RelationManagers\ReactionsRelationManager;
+use App\Filament\Resources\FeedResource;
 use App\Filament\Resources\FeedResource\Pages\CreateFeed;
 use App\Filament\Resources\FeedResource\Pages\EditFeed;
 use App\Filament\Resources\FeedResource\Pages\ListFeeds;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Feed;
 use App\Models\Permission;
 use App\Models\User;
+use Filament\Actions\DeleteAction;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Illuminate\Support\Facades\Storage;
@@ -125,17 +139,17 @@ class FeedResourceTest extends TestCase
         $admin = $this->developer();
         $this->withoutExceptionHandling();
 
-        $signed = \Illuminate\Support\Facades\URL::signedRoute('livewire.upload-file');
+        $signed = URL::signedRoute('livewire.upload-file');
 
         try {
             $this->actingAs($admin)->post($signed, [
                 'files' => [UploadedFile::fake()->create('huge.mp4', 150000, 'video/mp4')],
             ]);
             $this->fail('Expected a ValidationException for the oversized upload.');
-        } catch (\Illuminate\Validation\ValidationException $exception) {
+        } catch (ValidationException $exception) {
             $message = $exception->validator->errors()->first('files.0');
 
-            $this->assertSame('فایل نباید بزرگتر از 102400 کیلوبایت باشد.', $message);
+            $this->assertSame('فایل نباید بزرگ‌تر از 102400 کیلوبایت باشد.', $message);
             foreach (['must', 'field', 'required', 'invalid', 'files'] as $englishWord) {
                 $this->assertStringNotContainsStringIgnoringCase($englishWord, $message);
             }
@@ -237,7 +251,7 @@ class FeedResourceTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)->test(ListFeeds::class)
-            ->callTableAction(\Filament\Actions\DeleteAction::class, $feed);
+            ->callTableAction(DeleteAction::class, $feed);
 
         $this->assertDatabaseMissing('feeds', ['id' => $feed->id]);
     }
@@ -458,40 +472,40 @@ class FeedResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\FeedResource\Pages\CreateFeed::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\FeedResource\Pages\EditFeed::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\FeedResource\Pages\ListFeeds::class => \App\Filament\Pages\ListRecords::class,
+            CreateFeed::class => CreateRecord::class,
+            EditFeed::class => EditRecord::class,
+            ListFeeds::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\FeedResource\Pages\CreateFeed::class, \App\Filament\Resources\FeedResource\Pages\EditFeed::class];
+        $writers = [CreateFeed::class, EditFeed::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\FeedResource\RelationManagers\CommentsRelationManager::class, \App\Filament\Resources\FeedResource\RelationManagers\PollsRelationManager::class, \App\Filament\Resources\FeedResource\RelationManagers\ReactionsRelationManager::class];
+        $managers = [CommentsRelationManager::class, PollsRelationManager::class, ReactionsRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 
     public function test_edit_tracked_file_columns_delete_only_the_dropped_media(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
-        $tracked = (fn () => $this->trackedFileColumns())->call(new \App\Filament\Resources\FeedResource\Pages\EditFeed());
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $tracked = (fn () => $this->trackedFileColumns())->call(new EditFeed());
         Storage::fake('public');
         foreach (['feed/image/old.jpg', 'feed/image/kept.jpg'] as $path) {
             Storage::disk('public')->put($path, 'x');
         }
-        $record = \App\Models\Feed::factory()->create(['media_paths' => ['feed/image/old.jpg', 'feed/image/kept.jpg']]);
+        $record = Feed::factory()->create(['media_paths' => ['feed/image/old.jpg', 'feed/image/kept.jpg']]);
         $before = $probe->trackedFilePaths($record, $tracked);
         $this->assertEqualsCanonicalizing(['feed/image/old.jpg', 'feed/image/kept.jpg'], $before);
 

@@ -4,8 +4,8 @@ namespace App\Filament\Resources\GalleryResource\Pages;
 
 use App\Filament\Resources\GalleryResource;
 use App\Models\Photo;
-use App\Traits\FilamentHeaderActions;
-use App\Traits\FilamentVisibility;
+use App\Traits\Filament\FilamentHeaderActions;
+use App\Traits\Filament\FilamentVisibility;
 use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;

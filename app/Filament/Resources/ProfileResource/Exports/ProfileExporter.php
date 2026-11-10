@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\ProfileResource\Exports;
 
-use App\Filament\Resources\ProfileResource\Enums\Degree;
-use App\Filament\Resources\ProfileResource\Enums\EmploymentStatus;
-use App\Filament\Resources\ProfileResource\Enums\EmploymentType;
-use App\Filament\Resources\ProfileResource\Enums\Gender;
-use App\Filament\Resources\ProfileResource\Enums\MaritalStatus;
+use App\Enums\Degree;
+use App\Enums\EmploymentStatus;
+use App\Enums\EmploymentType;
+use App\Enums\Gender;
+use App\Enums\MaritalStatus;
 use App\Models\Profile;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;

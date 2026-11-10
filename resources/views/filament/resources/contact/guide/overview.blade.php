@@ -5,7 +5,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«پیام‌رسان داخلی» گفتگوهای خصوصی یک‌به‌یک بین کاربران است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر ردیف در این جدول یک پیام مستقیم بین دو همکار است — یک <strong class="font-bold text-[var(--md-sys-color-on-surface)]">فرستنده</strong> و یک <strong class="font-bold text-[var(--md-sys-color-on-surface)]">گیرنده</strong>. پیام‌ها از صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/contact</code> در پنل کاربری ساخته می‌شوند؛ در این صفحهٔ مدیریت امکان ساخت پیام وجود ندارد (<code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] font-mono text-[11px] border border-[var(--md-sys-color-outline-variant)]/50">canCreate = false</code>). شما صرفاً نظارت دارید: کل پیام‌های سازمان را می‌بینید، متن را ویرایش می‌کنید، پیام را حذف یا بازیابی می‌کنید و خروجی اکسل می‌گیرید.
+        هر ردیف یک پیام مستقیم بین دو همکار است: یک <strong class="font-bold text-[var(--md-sys-color-on-surface)]">فرستنده</strong> و یک <strong class="font-bold text-[var(--md-sys-color-on-surface)]">گیرنده</strong>. کاربران پیام‌ها را در پنل کاربری ارسال می‌کنند؛ ساخت پیام در پنل مدیریت امکان‌پذیر نیست. در این صفحه می‌توانید پیام‌های سازمان را ببینید، متن را ویرایش کنید، پیام را حذف یا بازیابی کنید و خروجی اکسل بگیرید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -38,7 +38,7 @@
                             <span class="material-symbols-rounded text-[12px]">link</span> reply_to_id
                         </span>
                     </div>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">یک پیام می‌تواند پاسخ به پیامِ دیگری باشد؛ فیلد <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">reply_to_id</code> به پیامِ مادر اشاره می‌کند. ستون «پاسخ» در جدول نشان می‌دهد آیا این ردیف پاسخ است یا پیام اصلی. روی صفحهٔ ویرایش، بخش «پاسخ‌ها» زیر صفحه ظاهر می‌شود و تمام پیام‌هایی که به این پیام پاسخ داده‌اند را فهرست می‌کند.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">ستون «پاسخ» نشان می‌دهد پیام، پاسخ به پیام دیگری است یا پیام اصلی. در صفحهٔ ویرایش، بخش «پاسخ‌ها» پیام‌های پاسخ‌داده‌شده به آن را نشان می‌دهد.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -49,14 +49,14 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">پیوست‌ها و وضعیت خوانده‌شدن</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر پیام می‌تواند چند فایل پیوست داشته باشد (شمارش در ستون «پیوست‌ها») و یک زمان خوانده‌شدن (<code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">read_at</code>) — تا وقتی گیرنده پیام را باز نکرده، «خوانده‌نشده» می‌ماند.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">تعداد فایل‌های هر پیام در ستون «پیوست‌ها» دیده می‌شود. پیام تا زمانی که گیرنده آن را باز نکند، «خوانده‌نشده» می‌ماند.</p>
                 </div>
             </div>
         </div>
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                کوئریِ این صفحه <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">withoutGlobalScopes([SoftDeletingScope])</code> می‌زند — یعنی پیام‌های حذف‌شدهٔ نرم را هم می‌بینید، در حالی که کاربر آن‌ها را در پنل خودش نمی‌بیند.
+                پیام‌های حذف‌شده نیز در پنل مدیریت دیده می‌شوند، اما کاربران آن‌ها را در پنل خود نمی‌بینند.
             </p>
         </div>
     </div>

@@ -6,7 +6,7 @@ use App\Enums\ReleaseRequestStatus;
 use App\Filament\Resources\ReleaseRequestResource;
 use App\Filament\Resources\ReleaseRequestResource\Schemas\ReleaseRequestFormPresenter;
 use App\Models\ReleaseRequest;
-use App\Traits\FilamentHeaderActions;
+use App\Traits\Filament\FilamentHeaderActions;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;

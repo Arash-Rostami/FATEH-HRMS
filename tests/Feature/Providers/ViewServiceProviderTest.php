@@ -4,6 +4,15 @@ namespace Tests\Feature\Providers;
 
 use App\Models\Onboarding;
 use App\Models\User;
+use App\View\Composers\AiAssistantComposer;
+use App\View\Composers\AuthShellComposer;
+use App\View\Composers\LeftNavComposer;
+use App\View\Composers\ModuleChunkComposer;
+use App\View\Composers\ReleaseModulesComposer;
+use App\View\Composers\ScreenSaverComposer;
+use Illuminate\Routing\Route;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -91,6 +100,191 @@ class ViewServiceProviderTest extends TestCase
         $html = $this->actingAs($user)->get('/dashboard')->getContent();
 
         $this->assertStringNotContainsString('components/alpine/modules/', $html);
+    }
+
+    public function test_embed_mode_drops_the_loading_line_and_the_pulse_component_but_normal_pages_keep_them(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        $normal = $this->actingAs($user)->get('/dms')->getContent();
+        $this->assertStringContainsString('class="loading-line"', $normal);
+        $this->assertStringContainsString('x-data="pulse(', $normal);
+        $this->assertStringContainsString('id="content-shell"', $normal);
+
+        $embed = $this->actingAs($user)->get('/dms?embed=1')->getContent();
+        $this->assertStringNotContainsString('class="loading-line"', $embed);
+        $this->assertStringNotContainsString('x-data="pulse(', $embed);
+        $this->assertStringContainsString('id="content-shell"', $embed);
+        $this->assertStringContainsString('window.__tenantBackdrop', $embed);
+    }
+
+    public function test_layout_composer_supplies_shell_flags_backdrop_and_vite_entries(): void
+    {
+        $factory = app('view');
+        $composer = new ModuleChunkComposer();
+
+        request()->setRouteResolver(fn () => (new Route('GET', '/x', []))->name('dms'));
+        $view = $factory->make('layouts.app');
+        $composer->compose($view);
+        $data = $view->getData();
+
+        $this->assertSame('dms', $data['moduleChunk']);
+        $this->assertFalse($data['embed']);
+        $this->assertTrue($data['chrome']);
+        $this->assertSame([
+            'resources/css/app.css',
+            'resources/js/app.js',
+            'resources/js/components/alpine/modules/dms.js',
+        ], $data['viteEntries']);
+        $this->assertSame(
+            array_map('asset', config('app.backdrop.images')),
+            $data['backdrop']['images']
+        );
+
+        request()->setRouteResolver(fn () => (new Route('GET', '/x', []))->name('ads'));
+        $view = $factory->make('layouts.app');
+        $composer->compose($view);
+
+        $this->assertNull($view->getData()['moduleChunk']);
+        $this->assertSame(['resources/css/app.css', 'resources/js/app.js'], $view->getData()['viteEntries']);
+    }
+
+    public function test_layout_composer_hides_the_chrome_for_embed_and_for_the_minimal_layout_section(): void
+    {
+        $factory = app('view');
+        $composer = new ModuleChunkComposer();
+
+        request()->merge(['embed' => '1']);
+        $view = $factory->make('layouts.app');
+        $composer->compose($view);
+        $this->assertTrue($view->getData()['embed']);
+        $this->assertFalse($view->getData()['chrome']);
+
+        request()->replace([]);
+        $factory->startSection('minimal_layout', 'true');
+        try {
+            $view = $factory->make('layouts.app');
+            $composer->compose($view);
+            $this->assertFalse($view->getData()['embed']);
+            $this->assertFalse($view->getData()['chrome']);
+        } finally {
+            $factory->flushState();
+        }
+
+        $view = $factory->make('layouts.app');
+        $composer->compose($view);
+        $this->assertTrue($view->getData()['chrome']);
+    }
+
+    public function test_screen_saver_composer_resolves_the_enabled_flag_and_timeout_from_user_preferences(): void
+    {
+        $composer = new ScreenSaverComposer();
+        $read = function (?User $user) use ($composer) {
+            $user ? $this->actingAs($user) : auth()->logout();
+            $view = view('components.ui.loaders.screen-saver');
+            $composer->compose($view);
+
+            return $view->getData();
+        };
+
+        $guest = $read(null);
+        $this->assertFalse($guest['isScreenSaverEnabled']);
+
+        $user = User::factory()->create(['status' => 'active']);
+        $default = $read($user);
+        $this->assertTrue($default['isScreenSaverEnabled']);
+        $this->assertSame(60, $default['timeout']);
+
+        $user->extra = ['preferences' => ['screen_saver' => false, 'screen_saver_timeout' => '120']];
+        $custom = $read($user);
+        $this->assertFalse($custom['isScreenSaverEnabled']);
+        $this->assertSame(120, $custom['timeout']);
+    }
+
+    public function test_ai_assistant_composer_builds_the_embed_url_only_when_the_assistant_is_on(): void
+    {
+        config([
+            'app.ai_assistant_access' => true,
+            'services.ai_assistant.url' => 'https://ai.test/',
+            'app.name_en' => 'My App',
+            'app.ai_assistant_lang' => 'fa',
+        ]);
+        $user = User::factory()->create(['status' => 'active', 'role' => 'user']);
+        $composer = new AiAssistantComposer();
+
+        $view = view('components.dashboard.ai-assistant');
+        $this->actingAs($user);
+        $composer->compose($view);
+        $this->assertSame('https://ai.test/?user=my-app_' . $user->id . '&lang=fa&role=user', $view->getData()['aiAssistantBaseSrc']);
+        $this->assertTrue($view->getData()['aiAccess']);
+
+        config(['services.ai_assistant.url' => '']);
+        $off = view('components.dashboard.ai-assistant');
+        $composer->compose($off);
+        $this->assertNull($off->getData()['aiAssistantBaseSrc']);
+    }
+
+    public function test_left_nav_composer_supplies_the_four_module_links_in_order(): void
+    {
+        $view = view('components.dashboard.navbars.left');
+        (new LeftNavComposer())->compose($view);
+        $items = $view->getData()['navItems'];
+
+        $this->assertSame(['tasks', 'projects', 'dms', 'ths'], array_column($items, 'id'));
+        $this->assertSame(['taskboard', 'project', 'dms', 'ths'], array_column($items, 'module'));
+        $this->assertSame(url('/tasks'), $items[0]['href']);
+        $this->assertSame('animate-delay-500', $items[3]['delay']);
+    }
+
+    public function test_release_modules_composer_never_lists_a_module_the_tenant_switched_off(): void
+    {
+        $view = view('components.dashboard.modal.release');
+        (new ReleaseModulesComposer())->compose($view);
+        $modules = $view->getData()['allModules'];
+
+        $this->assertInstanceOf(Collection::class, $modules);
+        foreach ($modules as $module) {
+            $this->assertFalse(tenantOff($module['id']));
+        }
+    }
+
+    public function test_auth_shell_composer_feeds_the_layout_videos_and_the_card_logos(): void
+    {
+        $composer = new AuthShellComposer();
+
+        $layout = view('layouts.auth');
+        $composer->compose($layout);
+        $this->assertSame(array_map('asset', array_values(config('app.videos', []))), $layout->getData()['videos']);
+
+        $card = view('components.auth.card-no-signup');
+        $composer->compose($card);
+        $this->assertSame(asset(tenantLogo(false, 'user', true)), $card->getData()['lightLogo']);
+        $this->assertSame(asset(tenantLogo(true, 'user', true)), $card->getData()['darkLogo']);
+        $this->assertSame(config('app.name_en', 'WinterrA'), $card->getData()['appName']);
+    }
+
+    public function test_release_note_component_keeps_the_color_class_the_check_icon_and_raw_html_body(): void
+    {
+        $html = Blade::render('<x-dashboard.modal.release-note color="secondary" title="T1" :desc="$desc"/>', ['desc' => '<b>D</b>']);
+
+        $this->assertStringContainsString('text-[var(--md-sys-color-secondary)]', $html);
+        $this->assertStringContainsString('>check_circle</span>', $html);
+        $this->assertStringContainsString('<strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">T1</strong>', $html);
+        $this->assertStringContainsString('<b>D</b>', $html);
+    }
+
+    public function test_the_dashboard_left_nav_and_the_screen_saver_view_render_through_their_composers(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        $dashboard = $this->actingAs($user)->get('/dashboard')->getContent();
+        $this->assertStringContainsString('data-module="taskboard"', $dashboard);
+        $this->assertStringContainsString('data-module="ths"', $dashboard);
+
+        $this->assertStringContainsString('fs-overlay', view('components.ui.loaders.screen-saver')->render());
+
+        $user->extra = ['preferences' => ['screen_saver' => false]];
+        $this->assertStringNotContainsString('fs-overlay', view('components.ui.loaders.screen-saver')->render());
     }
 
     public function test_account_component_highlights_a_recently_updated_exclusive_onboarding(): void

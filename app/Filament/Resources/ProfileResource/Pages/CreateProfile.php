@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ProfileResource\Pages;
 
 use App\Filament\Resources\ProfileResource;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\CreateRecord;
 
 class CreateProfile extends CreateRecord

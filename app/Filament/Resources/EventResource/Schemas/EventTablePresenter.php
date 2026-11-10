@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\EventResource\Schemas;
 
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\FilamentFilters;
 use Filament\Tables\Columns\{IconColumn, TextColumn};
 use Filament\Tables\Filters\{Filter, SelectFilter, TernaryFilter};
 use Filament\Tables\Grouping\Group;

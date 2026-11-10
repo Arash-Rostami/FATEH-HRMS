@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Enums\TaskActivityType;
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
 use App\Livewire\Dashboard\TaskBoard\Actions\ForceDeleteTaskAction;
 use App\Models\Concerns\HasBoardRanking;
 use App\Models\Concerns\HasCycleStep;

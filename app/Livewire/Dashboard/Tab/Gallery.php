@@ -5,7 +5,7 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Livewire\Dashboard\Tab\Presentation\GalleryPresenter;
 use App\Models\Photo;
 use App\Services\Cache\ModelCacheVersion;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;

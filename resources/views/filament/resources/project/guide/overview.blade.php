@@ -4,7 +4,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«پروژه» یک فضای کاری تیمی است که چند وظیفه، یک گفتگو و یک تقویم را کنار هم می‌آورد</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        کاربران پروژه را از صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/projects</code> در پنل کاربری می‌سازند. اتصال یک وظیفه به پروژه کاملاً اختیاری است — وظایف بدون پروژه دقیقاً مثل قبل کار می‌کنند. شما (ادمین) در این صفحه نظارت کل‌سازمان دارید: همهٔ پروژه‌ها، اعضا، وظایف مرتبط و درصد پیشرفت را می‌بینید.
+        کاربران پروژه را از صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/projects</code> در پنل کاربری می‌سازند. اتصال یک وظیفه به پروژه کاملاً اختیاری است — وظایف بدون پروژه دقیقاً مثل قبل کار می‌کنند. در پنل مدیریت می‌توانید پروژه‌های سازمان، اعضا، وظایف مرتبط و درصد پیشرفت هر پروژه را بررسی کنید.
     </p>
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">

@@ -4,10 +4,17 @@ namespace Tests\Feature\Filament;
 
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\ReleaseRequestResource;
 use App\Filament\Resources\ReleaseRequestResource\Pages\CreateReleaseRequest;
 use App\Filament\Resources\ReleaseRequestResource\Pages\EditReleaseRequest;
 use App\Filament\Resources\ReleaseRequestResource\Pages\ListReleaseRequests;
 use App\Filament\Resources\ReleaseRequestResource\Schemas\ReleaseRequestFormPresenter;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Permission;
 use App\Models\ReleaseRequest;
 use App\Models\User;
@@ -63,13 +70,13 @@ class ReleaseRequestResourceTest extends TestCase
 
     public function test_edit_tracked_file_columns_delete_only_the_dropped_attachments(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
         $tracked = (fn () => $this->trackedFileColumns())->call(new EditReleaseRequest());
         Storage::fake('public');
         foreach (['release_request/attachments/old.pdf', 'release_request/attachments/kept.pdf'] as $path) {
             Storage::disk('public')->put($path, 'x');
         }
-        $record = \App\Models\ReleaseRequest::factory()->create(['attachments' => [
+        $record = ReleaseRequest::factory()->create(['attachments' => [
             ['path' => 'release_request/attachments/old.pdf', 'name' => 'old.pdf'],
             ['path' => 'release_request/attachments/kept.pdf', 'name' => 'kept.pdf'],
         ]]);
@@ -393,21 +400,21 @@ class ReleaseRequestResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ReleaseRequestResource\Pages\CreateReleaseRequest::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\ReleaseRequestResource\Pages\EditReleaseRequest::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ReleaseRequestResource\Pages\ListReleaseRequests::class => \App\Filament\Pages\ListRecords::class,
+            CreateReleaseRequest::class => CreateRecord::class,
+            EditReleaseRequest::class => EditRecord::class,
+            ListReleaseRequests::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ReleaseRequestResource\Pages\CreateReleaseRequest::class, \App\Filament\Resources\ReleaseRequestResource\Pages\EditReleaseRequest::class];
+        $writers = [CreateReleaseRequest::class, EditReleaseRequest::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 }

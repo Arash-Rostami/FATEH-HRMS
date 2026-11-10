@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\LinkResource\Exports;
 
-use App\Filament\Resources\LinkResource\Enums\LinkType;
+use App\Enums\LinkType;
 use App\Models\Link;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;

@@ -3,7 +3,7 @@
 namespace Tests\Feature\Models;
 
 use App\Enums\ProfileDetailGroup;
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Department;
 use App\Models\Feed;
 use App\Models\Post;
@@ -408,8 +408,8 @@ class ProfileModelTest extends TestCase
 
         $profile->update(['department_id' => $new->code]);
 
-        Queue::assertPushed(ReconcileNudge::class, fn(ReconcileNudge $j) => $j->subjectClass === Post::class && $j->subjectId === $post->id && $j->ruleKey === Post::NUDGE_KEY);
-        Queue::assertPushed(ReconcileNudge::class, fn(ReconcileNudge $j) => $j->subjectClass === Feed::class && $j->subjectId === $feed->id && $j->ruleKey === Feed::NUDGE_KEY);
-        Queue::assertNotPushed(ReconcileNudge::class, fn(ReconcileNudge $j) => $j->subjectClass === Post::class && $j->subjectId === $unrelated->id);
+        Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $j) => $j->subjectClass === Post::class && $j->subjectId === $post->id && $j->ruleKey === Post::NUDGE_KEY);
+        Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $j) => $j->subjectClass === Feed::class && $j->subjectId === $feed->id && $j->ruleKey === Feed::NUDGE_KEY);
+        Queue::assertNotPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $j) => $j->subjectClass === Post::class && $j->subjectId === $unrelated->id);
     }
 }

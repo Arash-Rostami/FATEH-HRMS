@@ -2,9 +2,9 @@
 
 namespace App\Services\ProjectTask;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
 use App\Models\Department;
 use App\Models\Project;
 use App\Models\Reply;

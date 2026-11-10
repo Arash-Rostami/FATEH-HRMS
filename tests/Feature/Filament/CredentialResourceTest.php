@@ -2,12 +2,19 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\CredentialResource;
 use App\Filament\Resources\CredentialResource\Pages\CreateCredential;
 use App\Filament\Resources\CredentialResource\Pages\EditCredential;
 use App\Filament\Resources\CredentialResource\Pages\ListCredentials;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Credential;
 use App\Models\Permission;
 use App\Models\User;
+use Filament\Actions\DeleteAction;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -137,7 +144,7 @@ class CredentialResourceTest extends TestCase
         $credential = Credential::factory()->create(['user_id' => $admin->id]);
 
         Livewire::actingAs($admin)->test(ListCredentials::class)
-            ->callTableAction(\Filament\Actions\DeleteAction::class, $credential);
+            ->callTableAction(DeleteAction::class, $credential);
 
         $this->assertDatabaseMissing('credentials', ['id' => $credential->id]);
     }
@@ -283,21 +290,21 @@ class CredentialResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\CredentialResource\Pages\CreateCredential::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\CredentialResource\Pages\EditCredential::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\CredentialResource\Pages\ListCredentials::class => \App\Filament\Pages\ListRecords::class,
+            CreateCredential::class => CreateRecord::class,
+            EditCredential::class => EditRecord::class,
+            ListCredentials::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\CredentialResource\Pages\CreateCredential::class, \App\Filament\Resources\CredentialResource\Pages\EditCredential::class];
+        $writers = [CreateCredential::class, EditCredential::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 

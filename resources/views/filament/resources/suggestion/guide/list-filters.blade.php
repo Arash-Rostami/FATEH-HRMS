@@ -1,6 +1,6 @@
 @php
     $tabs = [
-        ['chip' => 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]', 'label' => 'همه + هشت مرحله', 'hint' => 'نُه زبانه: «همه» و یک زبانه برای هر مرحله. هر زبانه شمارش آن مرحله را به‌صورت نشان می‌دهد (صفر پنهان است). زبانه‌ها با یک کوئری آماری واحد و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">once()</code> محاسبه می‌شوند — نه یک کوئری به ازای هر زبانه.'],
+        ['chip' => 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]', 'label' => 'همه + هشت مرحله', 'hint' => 'زبانهٔ «همه» و یک زبانه برای هر مرحله وجود دارد. تعداد هر مرحله روی زبانه دیده می‌شود؛ تعداد صفر نمایش داده نمی‌شود.'],
     ];
     $filters = [
         ['icon' => 'person', 'label' => 'ثبت‌کننده', 'hint' => 'پیشنهادهای یک پیشنهاددهندهٔ مشخص را نشان می‌دهد.'],

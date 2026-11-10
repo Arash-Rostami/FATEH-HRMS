@@ -32,7 +32,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">زبانه‌های فهرست، فیلترها و گروه‌بندی</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        فهرست پاسخ‌نامه‌ها پنج زبانه دارد که امتیازها را بر اساس آستانهٔ فرسودگی جدا می‌کنند. تعداد نشان هر زبانه یک‌جا محاسبه می‌شود، نه جداگانه برای هر زبانه. مرتب‌سازی پیش‌فرض بر اساس تاریخ تکمیل (نزولی) است.
+        با زبانه‌ها پاسخ‌نامه‌ها را بر اساس امتیاز یا تاریخ تکمیل ببینید. پاسخ‌نامه‌های جدیدتر ابتدا نمایش داده می‌شوند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

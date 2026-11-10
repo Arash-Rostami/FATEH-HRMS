@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ReleaseRequestResource\Pages;
 
 use App\Filament\Resources\ReleaseRequestResource;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
 

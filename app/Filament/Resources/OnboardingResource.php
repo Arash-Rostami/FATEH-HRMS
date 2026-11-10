@@ -8,9 +8,9 @@ use App\Filament\Resources\OnboardingResource\Schemas\{OnboardingFormPresenter,
     OnboardingInfolistPresenter,
     OnboardingTablePresenter};
 use App\Models\Onboarding;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;

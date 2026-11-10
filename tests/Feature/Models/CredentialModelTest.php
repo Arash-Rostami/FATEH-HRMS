@@ -6,6 +6,7 @@ use App\Models\Credential;
 use App\Models\User;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use Tests\TestCase;
 
 class CredentialModelTest extends TestCase
@@ -114,7 +115,7 @@ class CredentialModelTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'active']);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         Credential::factory()->create([
             'user_id' => $user->id,

@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\User;
 use App\Services\Menu\StateService;
 use Illuminate\Database\Eloquent\Builder;
@@ -55,12 +56,15 @@ trait HasSharedRecipients
             }
             $seen[] = $userId;
             static::query()->whereKey($row->id)->toBase()->update(['seen_by' => json_encode($seen, JSON_THROW_ON_ERROR)]);
-            DB::afterCommit(fn () => StateService::flush());
+            DB::afterCommit(function () use ($row) {
+                StateService::flush();
+                dispatch(new ReconcileNudgeJob('ai-report-controller:nudge', static::class, $row->id));
+            });
         });
     }
 
     public static function maxRecipients(): int
     {
-        return (int) config('ai_report.max_recipients');
+        return (int) config('ai.' . static::quotaFeature() . '.max_recipients');
     }
 }

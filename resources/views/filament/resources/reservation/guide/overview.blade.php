@@ -11,7 +11,7 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">info</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«رزرو» یعنی یک کاربر یک منبع را برای یک بازهٔ زمانی اشغال کرده است</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">رزرو، استفاده از یک منبع در بازهٔ زمانی مشخص را به کاربر اختصاص می‌دهد.</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
         کاربران رزرو را از صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/reservation</code> در پنل کاربری ثبت می‌کنند — زبانهٔ نوع منبع را باز می‌کنند، کارت یکی از منابعِ موجود را انتخاب می‌کنند و دکمهٔ «رزرو» را می‌زنند. شما (ادمین) در این صفحه فقط نظارت دارید: کل رزروهای سازمان را می‌بینید، می‌توانید لغو یا آزاد کنید، و خروجی اکسل بگیرید. ساخت رزرو از طرف کاربر کارِ این صفحه نیست؛ اینجا صرفاً دیدگاه مدیریتی است.

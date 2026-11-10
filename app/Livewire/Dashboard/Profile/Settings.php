@@ -5,7 +5,7 @@ namespace App\Livewire\Dashboard\Profile;
 use App\Models\Channel;
 use App\Models\Project;
 use App\Models\User;
-use App\Traits\HasFocusMode;
+use App\Traits\Livewire\HasFocusMode;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;

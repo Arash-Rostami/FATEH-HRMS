@@ -47,6 +47,14 @@ return [
         'section_workspace' => 'گفتگو و اقدامات',
     ],
 
+    'actions' => [
+        'close_and_save' => 'بستن تیکت',
+        'close' => 'بستن تیکت',
+        'take' => 'شروع رسیدگی (تخصیص به من)',
+        'taken_notice' => 'تیکت به شما تخصیص یافت و در حال بررسی است.',
+        'closed_notice' => 'تیکت با موفقیت بسته شد.',
+    ],
+
     'infolist' => [
         'section_header' => 'اطلاعات تیکت',
         'section_request' => 'درخواست',
@@ -71,6 +79,10 @@ return [
             'age' => 'زمان ثبت',
             'duration_closed' => 'زمان بسته‌شدن',
             'duration_running' => 'مدت باز بودن',
+            'wait_done' => 'انتظار تا شروع رسیدگی',
+            'wait_running' => 'در انتظار شروع رسیدگی',
+            'work_done' => 'مدت رسیدگی',
+            'work_running' => 'مدت رسیدگی تاکنون',
             'deadline' => 'مهلت رسیدگی',
             'first_response' => 'زمان اولین پاسخ',
             'owner' => 'مسئول رسیدگی',

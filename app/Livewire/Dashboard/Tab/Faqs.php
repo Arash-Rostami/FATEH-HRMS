@@ -5,7 +5,7 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Livewire\Dashboard\Tab\Presentation\FaqPresenter;
 use App\Models\Department;
 use App\Models\FAQ;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;

@@ -22,7 +22,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">زبانه‌های فهرست بر اساس «تاریخ رویداد» و چهار فیلتر برای محدود کردن جدول</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        سه زبانهٔ فهرست، گالری‌ها را بر اساس داشتن یا نداشتنِ تاریخ رویداد جدا می‌کنند. زبانه‌ها به‌صورت یک تنظیمِ نمایشی کاربر قابل غیرفعال‌شدن هستند (تنظیم <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">show_list_tabs</code>)؛ اگر خاموش باشند، فهرست بدون زبانه نمایش داده می‌شود.
+        سه زبانه، گالری‌ها را بر اساس داشتن یا نداشتن تاریخ رویداد جدا می‌کنند. می‌توانید نمایش زبانه‌ها را در تنظیمات خود خاموش کنید؛ در این صورت فهرست بدون زبانه نمایش داده می‌شود.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -77,7 +77,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                شمارشِ زبانه‌ها (داشتن/نداشتنِ تاریخ) با یک کوئریِ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">SUM(CASE WHEN ...)</code> و کشِ <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">once()</code> محاسبه می‌شود — فقط یک بار per render، نه به ازای هر زبانه.
+                تعداد گالری‌های دارای تاریخ و بدون تاریخ در زبانه‌های مربوط نمایش داده می‌شود.
             </p>
         </div>
     </div>

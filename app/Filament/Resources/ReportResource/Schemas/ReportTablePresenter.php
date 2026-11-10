@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ReportResource\Schemas;
 
 use App\Models\Department;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\FilamentFilters;
 use Filament\Actions\BulkAction;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;

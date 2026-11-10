@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserType;
 use App\Models\Concerns\HasUser;
 use App\Models\Concerns\HasMenuState;
 use App\Services\Cache\ModelCacheVersion;

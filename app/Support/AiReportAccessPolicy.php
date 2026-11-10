@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserType;
 use App\Models\AiReport;
 use App\Models\User;
 use App\Services\AiReport\ReportAiService;

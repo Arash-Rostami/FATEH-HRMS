@@ -8,12 +8,12 @@
         [
             'icon' => 'ballot',
             'label' => 'نظرسنجی و گزینه‌ها',
-            'hint' => 'وقتی دسته «نظرسنجی» انتخاب شود، شبکهٔ تنظیمات (تک‌انتخابی/چندانتخابی + فعال بودن نظر و واکنش) و repeater گزینه‌ها (حداقل ۲، حداکثر ۱۰) ظاهر می‌شوند. هنگام ذخیره، تنظیمات و گزینه‌ها در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">poll_options</code> به‌صورت یک آرایه بسته‌بندی می‌شوند و هنگام پر کردن فرم، دوباره از هم باز می‌شوند.',
+            'hint' => 'با انتخاب دستهٔ «نظرسنجی»، نوع رأی‌گیری و امکان ثبت نظر و واکنش را مشخص کنید. سپس دست‌کم ۲ و حداکثر ۱۰ گزینه اضافه کنید.',
         ],
         [
             'icon' => 'photo_library',
             'label' => 'تصویر و ویدیو',
-            'hint' => 'بخش تصویر تا ۸ پرونده (۵MB هرکدام، فقط image/*) و بخش ویدیو یک پرونده (۹۵MB). تصاویر در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">feed/image</code> و ویدیو در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">feed/video</code> روی دیسک public ذخیره می‌شوند و در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">media_paths</code> یکی می‌شوند.',
+            'hint' => 'می‌توانید تا ۸ تصویر، هرکدام حداکثر ۵ مگابایت، و یک ویدیو تا ۹۵ مگابایت اضافه کنید.',
         ],
         [
             'icon' => 'forum',
@@ -81,7 +81,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                تغییر دسته از «نظرسنجی» به دستهٔ دیگر، <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">poll_options</code> را <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">null</code> می‌کند ولی رأی‌های قبلی پاک نمی‌شوند — در صورت نیاز خودتان از بخش حذف کنید.
+                با تغییر دسته از «نظرسنجی» به دسته‌ای دیگر، تنظیمات نظرسنجی پاک می‌شود، اما رأی‌های قبلی باقی می‌مانند. در صورت نیاز، آن‌ها را از بخش رأی‌ها حذف کنید.
             </p>
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2 mt-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>

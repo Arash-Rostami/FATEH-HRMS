@@ -3,16 +3,16 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\FeedResource\Exports\FeedExporter;
-use App\Traits\AuthorizesByPermission;
+use App\Traits\Filament\AuthorizesByPermission;
 use BackedEnum;
 use App\Filament\Resources\FeedResource\Pages\{CreateFeed, EditFeed, ListFeeds};
 use App\Filament\Resources\FeedResource\RelationManagers\{CommentsRelationManager, PollsRelationManager, ReactionsRelationManager};
 use App\Filament\Resources\FeedResource\Schemas\{FeedFormPresenter, FeedInfolistPresenter, FeedTablePresenter};
 use App\Models\Feed;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentFilters;
-use App\Traits\FilamentVisibility;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentFilters;
+use App\Traits\Filament\FilamentVisibility;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

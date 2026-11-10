@@ -18,7 +18,7 @@
         [
             'icon' => 'rate_review',
             'label' => 'ثبت بازخورد (سرپرست واحد)',
-            'hint' => 'اگر واحدِ شما در مرحلهٔ بازخورد باشد، یک کارت «ثبت بازخورد» با سه گزینهٔ موافق/نیمه‌موافق/مخالف و توضیحات ظاهر می‌شود. ثبت بازخورد، مرحله را از طریق <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">syncStage</code> به‌روز می‌کند.',
+            'hint' => 'اگر واحد شما در مرحلهٔ بازخورد باشد، کارت «ثبت بازخورد» با گزینه‌های موافق، نیمه‌موافق و مخالف و بخش توضیحات نمایش داده می‌شود. با ثبت بازخورد، مرحله به‌روز می‌شود.',
         ],
         [
             'icon' => 'gavel',
@@ -45,7 +45,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کاربر در صفحهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">/suggestion</code> چه می‌بیند؟</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        صفحهٔ پیشنهاد کاربر یک پنل تک‌صفحه‌ای است — فهرست، فرم ساخت و جزئیات در کنار هم. وقتی کاربری از وضعیت پیشنهاد یا دسترسی‌اش شکایت می‌کند، این زبانه مرجعِ شما برای فهمیدنِ آنچه در پنل خودش می‌بیند است. همان <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">SuggestionAccessPolicy</code> که اکشن‌های ادمین را می‌سازد، کارت‌های این صفحه را هم کنترل می‌کند.
+        در صفحهٔ پیشنهاد، کاربر فهرست، فرم ثبت و جزئیات را کنار هم می‌بیند. کارت‌های قابل نمایش به دسترسی کاربر بستگی دارند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

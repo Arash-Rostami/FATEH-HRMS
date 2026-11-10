@@ -5,7 +5,7 @@ namespace App\Livewire\Dashboard\Contact\Presentation;
 use App\Enums\PresenceStatus;
 use App\Models\Profile;
 use App\Models\Concerns\HasAvatar;
-use App\Traits\BuildsChatBubbles;
+use App\Traits\Livewire\BuildsChatBubbles;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 

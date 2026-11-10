@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\TaskResource\Schemas;
 
 use Closure;
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
+use App\Enums\TaskStatus;
 use App\Models\Department;
 use App\Models\Project;
 use App\Models\User;
@@ -13,7 +13,7 @@ use App\Rules\ProjectDeadlineCap;
 use App\Rules\TaskLabelLength;
 use App\Services\PersianDateFieldService;
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use App\Traits\StoresAttachedFiles;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;

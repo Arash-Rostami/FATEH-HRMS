@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\ResourceResource\Schemas;
 
 use App\Enums\ResourceType;
-use App\Filament\Resources\ResourceResource\Enums\ResourceStatus;
-use App\Traits\FilamentFormDivider;
+use App\Enums\ResourceStatus;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\IconPosition;

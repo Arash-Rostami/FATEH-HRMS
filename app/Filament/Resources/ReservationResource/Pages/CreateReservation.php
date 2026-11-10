@@ -7,7 +7,7 @@ use App\Filament\Resources\ReservationResource\Actions\GenerateSeriesAction;
 use App\Models\Resource;
 use App\Models\User;
 use App\Services\Reservation\ValidationService;
-use App\Traits\{FilamentDateHandler, FilamentPageBehavior};
+use App\Traits\Filament\{FilamentDateHandler, FilamentPageBehavior};
 use Carbon\Carbon;
 use Exception;
 use Filament\Notifications\Notification;

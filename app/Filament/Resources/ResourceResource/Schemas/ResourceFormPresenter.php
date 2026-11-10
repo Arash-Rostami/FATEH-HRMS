@@ -4,11 +4,11 @@ namespace App\Filament\Resources\ResourceResource\Schemas;
 
 use App\Enums\ResourceType;
 use App\Enums\ResourceTypeIcon;
-use App\Filament\Resources\ResourceResource\Enums\ResourceStatus;
+use App\Enums\ResourceStatus;
 use App\Filament\Resources\ResourceResource\Schemas\Helper\TypeProvisioner;
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
-use App\Traits\FilamentIconOptions;
+use App\Traits\Filament\FilamentFormDivider;
+use App\Traits\Filament\FilamentIconOptions;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;

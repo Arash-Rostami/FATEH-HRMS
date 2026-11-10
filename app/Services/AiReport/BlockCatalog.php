@@ -25,7 +25,7 @@ final class BlockCatalog
                 'pages' => [
                     'type' => 'array',
                     'minItems' => 1,
-                    'maxItems' => (int) config('ai_report.spec.pages'),
+                    'maxItems' => (int) config('ai.report.spec.pages'),
                     'items' => [
                         'type' => 'object',
                         'additionalProperties' => false,
@@ -34,7 +34,7 @@ final class BlockCatalog
                             'blocks' => [
                                 'type' => 'array',
                                 'minItems' => 1,
-                                'maxItems' => (int) config('ai_report.spec.blocks'),
+                                'maxItems' => (int) config('ai.report.spec.blocks'),
                                 'items' => ['$ref' => '#/$defs/block'],
                             ],
                         ],
@@ -52,7 +52,7 @@ final class BlockCatalog
                         'subtitle' => ['type' => ['string', 'null']],
                         'items' => [
                             'type' => ['array', 'null'],
-                            'maxItems' => max((int) config('ai_report.spec.kpi_items'), (int) config('ai_report.spec.facts_items')),
+                            'maxItems' => max((int) config('ai.report.spec.kpi_items'), (int) config('ai.report.spec.facts_items')),
                             'items' => [
                                 'type' => 'object',
                                 'additionalProperties' => false,
@@ -65,24 +65,24 @@ final class BlockCatalog
                                 ],
                             ],
                         ],
-                        'bullets' => ['type' => ['array', 'null'], 'maxItems' => (int) config('ai_report.spec.items'), 'items' => ['type' => 'string']],
+                        'bullets' => ['type' => ['array', 'null'], 'maxItems' => (int) config('ai.report.spec.items'), 'items' => ['type' => 'string']],
                         'highlight' => ['type' => ['string', 'null']],
                         'columns' => [
                             'type' => ['array', 'null'],
-                            'maxItems' => max((int) config('ai_report.spec.columns'), (int) config('ai_report.spec.chart_labels')),
-                            'description' => 'Tables: at most ' . (int) config('ai_report.spec.columns') . ' columns, split wider data into two tables. Charts: category labels, at most ' . (int) config('ai_report.spec.chart_labels') . '.',
+                            'maxItems' => max((int) config('ai.report.spec.columns'), (int) config('ai.report.spec.chart_labels')),
+                            'description' => 'Tables: at most ' . (int) config('ai.report.spec.columns') . ' columns, split wider data into two tables. Charts: category labels, at most ' . (int) config('ai.report.spec.chart_labels') . '.',
                             'items' => ['type' => 'string'],
                         ],
-                        'rows' => ['type' => ['array', 'null'], 'maxItems' => (int) config('ai_report.spec.rows'), 'items' => ['type' => 'array', 'items' => ['type' => 'string']]],
+                        'rows' => ['type' => ['array', 'null'], 'maxItems' => (int) config('ai.report.spec.rows'), 'items' => ['type' => 'array', 'items' => ['type' => 'string']]],
                         'total' => ['type' => ['array', 'null'], 'items' => ['type' => 'string']],
                         'percent_column' => ['type' => ['integer', 'null']],
                         'status_column' => ['type' => ['integer', 'null']],
                         'footnote' => ['type' => ['string', 'null']],
                         'variant' => ['type' => ['string', 'null'], 'enum' => ['info', 'warning', 'decision', 'bar', 'pie', null]],
-                        'paragraphs' => ['type' => ['array', 'null'], 'maxItems' => (int) config('ai_report.spec.items'), 'items' => ['type' => 'string']],
+                        'paragraphs' => ['type' => ['array', 'null'], 'maxItems' => (int) config('ai.report.spec.items'), 'items' => ['type' => 'string']],
                         'options' => [
                             'type' => ['array', 'null'],
-                            'maxItems' => (int) config('ai_report.spec.options'),
+                            'maxItems' => (int) config('ai.report.spec.options'),
                             'items' => [
                                 'type' => 'object',
                                 'additionalProperties' => false,
@@ -112,7 +112,7 @@ final class BlockCatalog
             $errors[] = 'lang must be fa or en';
         }
 
-        $title = self::text($json['title'] ?? null, (int) config('ai_report.spec.short'));
+        $title = self::text($json['title'] ?? null, (int) config('ai.report.spec.short'));
         if ($title === null) {
             $errors[] = 'title is required';
         }
@@ -121,8 +121,8 @@ final class BlockCatalog
         if (!is_array($pages) || $pages === []) {
             $errors[] = 'pages are required';
             $pages = [];
-        } elseif (count($pages) > (int) config('ai_report.spec.pages')) {
-            $errors[] = 'pages exceed ' . (int) config('ai_report.spec.pages');
+        } elseif (count($pages) > (int) config('ai.report.spec.pages')) {
+            $errors[] = 'pages exceed ' . (int) config('ai.report.spec.pages');
             $pages = [];
         }
 
@@ -132,8 +132,8 @@ final class BlockCatalog
                 $errors[] = 'page blocks are required';
                 continue;
             }
-            if (count($page['blocks']) > (int) config('ai_report.spec.blocks')) {
-                $errors[] = 'page blocks exceed ' . (int) config('ai_report.spec.blocks');
+            if (count($page['blocks']) > (int) config('ai.report.spec.blocks')) {
+                $errors[] = 'page blocks exceed ' . (int) config('ai.report.spec.blocks');
                 continue;
             }
             $blocks = [];
@@ -157,8 +157,8 @@ final class BlockCatalog
 
         $spec = ['lang' => $lang, 'title' => $title, 'pages' => self::withAssumptions($outPages, $lang)];
         $encoded = json_encode($spec, JSON_UNESCAPED_UNICODE);
-        if ($encoded === false || strlen($encoded) > (int) config('ai_report.spec.bytes')) {
-            throw new \InvalidArgumentException('spec exceeds ' . (int) config('ai_report.spec.bytes') . ' bytes');
+        if ($encoded === false || strlen($encoded) > (int) config('ai.report.spec.bytes')) {
+            throw new \InvalidArgumentException('spec exceeds ' . (int) config('ai.report.spec.bytes') . ' bytes');
         }
 
         return $spec;
@@ -215,7 +215,7 @@ final class BlockCatalog
             }
             $old = self::columnNumbers($original ?? [], $j);
             $declared = self::number((string) ($original['total'][$j] ?? ''));
-            if ($old === [] || $declared === null || abs(array_sum($old) - $declared) > max(1, abs($declared) * (float) config('ai_report.check.total_tolerance'))) {
+            if ($old === [] || $declared === null || abs(array_sum($old) - $declared) > max(1, abs($declared) * (float) config('ai.report.check.total_tolerance'))) {
                 continue;
             }
             $nums = self::columnNumbers($block, $j);
@@ -299,15 +299,15 @@ final class BlockCatalog
         }
 
         $last = array_key_last($pages);
-        $heading = (string) config("ai_report.assumptions.heading.{$lang}");
+        $heading = (string) config("ai.report.assumptions.heading.{$lang}");
         $blocks = $pages[$last]['blocks'];
         $ignored = [];
-        $section = self::sectionBlock(['heading' => $heading, 'paragraphs' => [config("ai_report.assumptions.fallback.{$lang}")]], $ignored);
+        $section = self::sectionBlock(['heading' => $heading, 'paragraphs' => [config("ai.report.assumptions.fallback.{$lang}")]], $ignored);
         if ($section === null) {
             return $pages;
         }
-        if (count($blocks) >= (int) config('ai_report.spec.blocks')) {
-            if (count($pages) < (int) config('ai_report.spec.pages')) {
+        if (count($blocks) >= (int) config('ai.report.spec.blocks')) {
+            if (count($pages) < (int) config('ai.report.spec.pages')) {
                 $pages[] = ['blocks' => [$section]];
             }
 
@@ -339,7 +339,7 @@ final class BlockCatalog
 
     private static function titleBlock(array $block, array &$errors): ?array
     {
-        $heading = self::text($block['heading'] ?? null, (int) config('ai_report.spec.short'));
+        $heading = self::text($block['heading'] ?? null, (int) config('ai.report.spec.short'));
         if ($heading === null) {
             $errors[] = 'block title: heading is required';
 
@@ -347,7 +347,7 @@ final class BlockCatalog
         }
 
         $out = ['type' => 'title', 'heading' => $heading];
-        $subtitle = self::text($block['subtitle'] ?? null, (int) config('ai_report.spec.short'));
+        $subtitle = self::text($block['subtitle'] ?? null, (int) config('ai.report.spec.short'));
         if ($subtitle !== null) {
             $out['subtitle'] = $subtitle;
         }
@@ -358,20 +358,20 @@ final class BlockCatalog
     private static function kpiBlock(array $block, array &$errors, string $type = 'kpi_row'): ?array
     {
         $facts = $type === 'facts';
-        $cap = (int) config($facts ? 'ai_report.spec.facts_items' : 'ai_report.spec.kpi_items');
-        $min = $facts ? 1 : (int) config('ai_report.spec.kpi_min');
+        $cap = (int) config($facts ? 'ai.report.spec.facts_items' : 'ai.report.spec.kpi_items');
+        $min = $facts ? 1 : (int) config('ai.report.spec.kpi_min');
         $items = [];
         foreach (array_slice(is_array($block['items'] ?? null) ? $block['items'] : [], 0, $cap) as $item) {
             if (!is_array($item)) {
                 continue;
             }
-            $label = self::text($item['label'] ?? null, (int) config('ai_report.spec.short'));
-            $value = self::text($item['value'] ?? null, (int) config('ai_report.spec.short'));
+            $label = self::text($item['label'] ?? null, (int) config('ai.report.spec.short'));
+            $value = self::text($item['value'] ?? null, (int) config('ai.report.spec.short'));
             if ($label === null || $value === null) {
                 continue;
             }
             $row = ['label' => $label, 'value' => $value];
-            $hint = self::text($item['hint'] ?? null, (int) config('ai_report.spec.short'));
+            $hint = self::text($item['hint'] ?? null, (int) config('ai.report.spec.short'));
             if ($hint !== null) {
                 $row['hint'] = $hint;
             }
@@ -387,7 +387,7 @@ final class BlockCatalog
         }
 
         $out = ['type' => $type, 'items' => $items];
-        $heading = $facts ? self::text($block['heading'] ?? null, (int) config('ai_report.spec.short')) : null;
+        $heading = $facts ? self::text($block['heading'] ?? null, (int) config('ai.report.spec.short')) : null;
         if ($heading !== null) {
             $out['heading'] = $heading;
         }
@@ -397,7 +397,7 @@ final class BlockCatalog
 
     private static function summaryBlock(array $block, array &$errors): ?array
     {
-        $bullets = self::lines($block['bullets'] ?? null, (int) config('ai_report.spec.items'), (int) config('ai_report.spec.paragraph'));
+        $bullets = self::lines($block['bullets'] ?? null, (int) config('ai.report.spec.items'), (int) config('ai.report.spec.paragraph'));
         if ($bullets === []) {
             $errors[] = 'block summary: bullets are required';
 
@@ -405,11 +405,11 @@ final class BlockCatalog
         }
 
         $out = ['type' => 'summary', 'bullets' => $bullets];
-        $heading = self::text($block['heading'] ?? null, (int) config('ai_report.spec.short'));
+        $heading = self::text($block['heading'] ?? null, (int) config('ai.report.spec.short'));
         if ($heading !== null) {
             $out['heading'] = $heading;
         }
-        $highlight = self::text($block['highlight'] ?? null, (int) config('ai_report.spec.paragraph'));
+        $highlight = self::text($block['highlight'] ?? null, (int) config('ai.report.spec.paragraph'));
         if ($highlight !== null) {
             $out['highlight'] = $highlight;
         }
@@ -420,17 +420,17 @@ final class BlockCatalog
     private static function tableBlock(array $block, array &$errors): ?array
     {
         $rawColumns = is_array($block['columns'] ?? null) ? array_values($block['columns']) : [];
-        if (count($rawColumns) > (int) config('ai_report.spec.columns')) {
-            $errors[] = 'block table: too many columns (at most ' . (int) config('ai_report.spec.columns') . ')';
+        if (count($rawColumns) > (int) config('ai.report.spec.columns')) {
+            $errors[] = 'block table: too many columns (at most ' . (int) config('ai.report.spec.columns') . ')';
 
             return null;
         }
 
         $columns = [];
         foreach ($rawColumns as $header) {
-            $columns[] = self::text($header, (int) config('ai_report.spec.short')) ?? '';
+            $columns[] = self::text($header, (int) config('ai.report.spec.short')) ?? '';
         }
-        $rawRows = is_array($block['rows'] ?? null) ? array_slice($block['rows'], 0, (int) config('ai_report.spec.rows')) : [];
+        $rawRows = is_array($block['rows'] ?? null) ? array_slice($block['rows'], 0, (int) config('ai.report.spec.rows')) : [];
         if ($columns === [] || implode('', $columns) === '' || $rawRows === []) {
             $errors[] = 'block table: columns and rows are required';
 
@@ -448,7 +448,7 @@ final class BlockCatalog
         }
 
         $out = ['type' => 'table', 'columns' => $columns, 'rows' => $rows];
-        $heading = self::text($block['heading'] ?? null, (int) config('ai_report.spec.short'));
+        $heading = self::text($block['heading'] ?? null, (int) config('ai.report.spec.short'));
         if ($heading !== null) {
             $out['heading'] = $heading;
         }
@@ -470,7 +470,7 @@ final class BlockCatalog
         if (is_numeric($statusColumn) && (int) $statusColumn == $statusColumn && (int) $statusColumn >= 0 && (int) $statusColumn < $width && (int) $statusColumn !== ($out['percent_column'] ?? null)) {
             $out['status_column'] = (int) $statusColumn;
         }
-        $footnote = self::text($block['footnote'] ?? null, (int) config('ai_report.spec.paragraph'));
+        $footnote = self::text($block['footnote'] ?? null, (int) config('ai.report.spec.paragraph'));
         if ($footnote !== null) {
             $out['footnote'] = $footnote;
         }
@@ -487,14 +487,14 @@ final class BlockCatalog
             return null;
         }
 
-        $paragraphs = self::lines($block['paragraphs'] ?? null, (int) config('ai_report.spec.items'), (int) config('ai_report.spec.paragraph'));
+        $paragraphs = self::lines($block['paragraphs'] ?? null, (int) config('ai.report.spec.items'), (int) config('ai.report.spec.paragraph'));
         $options = [];
-        foreach (array_slice(is_array($block['options'] ?? null) ? $block['options'] : [], 0, (int) config('ai_report.spec.options')) as $option) {
+        foreach (array_slice(is_array($block['options'] ?? null) ? $block['options'] : [], 0, (int) config('ai.report.spec.options')) as $option) {
             if (!is_array($option)) {
                 continue;
             }
-            $label = self::text($option['label'] ?? null, (int) config('ai_report.spec.short'));
-            $text = self::text($option['text'] ?? null, (int) config('ai_report.spec.paragraph'));
+            $label = self::text($option['label'] ?? null, (int) config('ai.report.spec.short'));
+            $text = self::text($option['text'] ?? null, (int) config('ai.report.spec.paragraph'));
             if ($label === null || $text === null) {
                 continue;
             }
@@ -507,14 +507,14 @@ final class BlockCatalog
         }
 
         $out = ['type' => 'callout', 'variant' => $variant, 'paragraphs' => $paragraphs];
-        $heading = self::text($block['heading'] ?? null, (int) config('ai_report.spec.short'));
+        $heading = self::text($block['heading'] ?? null, (int) config('ai.report.spec.short'));
         if ($heading !== null) {
             $out['heading'] = $heading;
         }
         if ($options !== []) {
             $out['options'] = $options;
         }
-        $risk = self::text($block['risk'] ?? null, (int) config('ai_report.spec.paragraph'));
+        $risk = self::text($block['risk'] ?? null, (int) config('ai.report.spec.paragraph'));
         if ($risk !== null) {
             $out['risk'] = $risk;
         }
@@ -524,7 +524,7 @@ final class BlockCatalog
 
     private static function sectionBlock(array $block, array &$errors): ?array
     {
-        $heading = self::text($block['heading'] ?? null, (int) config('ai_report.spec.short'));
+        $heading = self::text($block['heading'] ?? null, (int) config('ai.report.spec.short'));
         if ($heading === null) {
             $errors[] = 'block section: heading is required';
 
@@ -532,11 +532,11 @@ final class BlockCatalog
         }
 
         $out = ['type' => 'section', 'heading' => $heading];
-        $paragraphs = self::lines($block['paragraphs'] ?? null, (int) config('ai_report.spec.items'), (int) config('ai_report.spec.paragraph'));
+        $paragraphs = self::lines($block['paragraphs'] ?? null, (int) config('ai.report.spec.items'), (int) config('ai.report.spec.paragraph'));
         if ($paragraphs !== []) {
             $out['paragraphs'] = $paragraphs;
         }
-        $bullets = self::lines($block['bullets'] ?? null, (int) config('ai_report.spec.items'), (int) config('ai_report.spec.paragraph'));
+        $bullets = self::lines($block['bullets'] ?? null, (int) config('ai.report.spec.items'), (int) config('ai.report.spec.paragraph'));
         if ($bullets !== []) {
             $out['bullets'] = $bullets;
         }
@@ -598,7 +598,7 @@ final class BlockCatalog
         $labels = [];
         $named = false;
         foreach (is_array($block['columns'] ?? null) ? array_values($block['columns']) : [] as $label) {
-            $label = self::text($label, (int) config('ai_report.spec.chart_label_chars'));
+            $label = self::text($label, (int) config('ai.report.spec.chart_label_chars'));
             $named = $named || $label !== null;
             $labels[] = $label ?? '—';
         }
@@ -608,7 +608,7 @@ final class BlockCatalog
 
             return null;
         }
-        if (count($labels) > (int) config('ai_report.spec.chart_labels') || count($rawRows) > (int) config('ai_report.spec.chart_series')) {
+        if (count($labels) > (int) config('ai.report.spec.chart_labels') || count($rawRows) > (int) config('ai.report.spec.chart_series')) {
             $errors[] = 'block chart: too many categories or series';
 
             return null;
@@ -616,7 +616,7 @@ final class BlockCatalog
         if ($kind === 'pie') {
             $rawRows = array_slice($rawRows, 0, 1);
         }
-        $limit = (float) config('ai_report.spec.chart_max_abs');
+        $limit = (float) config('ai.report.spec.chart_max_abs');
         $series = [];
         foreach ($rawRows as $row) {
             $row = is_array($row) ? array_values($row) : [];
@@ -645,10 +645,10 @@ final class BlockCatalog
 
                 return null;
             }
-            $series[] = ['name' => self::text($row[0] ?? null, (int) config('ai_report.spec.chart_label_chars')) ?? '', 'values' => $values];
+            $series[] = ['name' => self::text($row[0] ?? null, (int) config('ai.report.spec.chart_label_chars')) ?? '', 'values' => $values];
         }
         if ($kind === 'pie') {
-            $max = (int) config('ai_report.spec.pie_slices');
+            $max = (int) config('ai.report.spec.pie_slices');
             if (count($labels) > $max) {
                 $series[0]['values'] = [...array_slice($series[0]['values'], 0, $max - 1), round(array_sum(array_slice($series[0]['values'], $max - 1)), 4)];
                 $labels = [...array_slice($labels, 0, $max - 1), self::OTHER[$lang]];
@@ -661,11 +661,11 @@ final class BlockCatalog
         }
 
         $out = ['type' => 'chart', 'kind' => $kind, 'labels' => $labels, 'series' => $series];
-        $heading = self::text($block['heading'] ?? null, (int) config('ai_report.spec.short'));
+        $heading = self::text($block['heading'] ?? null, (int) config('ai.report.spec.short'));
         if ($heading !== null) {
             $out['heading'] = $heading;
         }
-        $unit = self::text($block['footnote'] ?? null, (int) config('ai_report.spec.short'));
+        $unit = self::text($block['footnote'] ?? null, (int) config('ai.report.spec.short'));
         if ($unit !== null) {
             $out['unit'] = $unit;
         }
@@ -676,7 +676,7 @@ final class BlockCatalog
     private static function rowsOf(array $block, int $width): array
     {
         $rows = [];
-        foreach (array_slice(is_array($block['rows'] ?? null) ? $block['rows'] : [], 0, (int) config('ai_report.spec.rows')) as $row) {
+        foreach (array_slice(is_array($block['rows'] ?? null) ? $block['rows'] : [], 0, (int) config('ai.report.spec.rows')) as $row) {
             $cells = [];
             foreach (array_slice(is_array($row) ? array_values($row) : [], 0, $width) as $cell) {
                 $cells[] = self::cell($cell);
@@ -689,11 +689,11 @@ final class BlockCatalog
 
     private static function titled(array $block, array $out): array
     {
-        $heading = self::text($block['heading'] ?? null, (int) config('ai_report.spec.short'));
+        $heading = self::text($block['heading'] ?? null, (int) config('ai.report.spec.short'));
         if ($heading !== null) {
             $out['heading'] = $heading;
         }
-        $footnote = self::text($block['footnote'] ?? null, (int) config('ai_report.spec.paragraph'));
+        $footnote = self::text($block['footnote'] ?? null, (int) config('ai.report.spec.paragraph'));
         if ($footnote !== null) {
             $out['footnote'] = $footnote;
         }
@@ -704,7 +704,7 @@ final class BlockCatalog
     public static function tone(string $cell): ?string
     {
         $needle = self::fold($cell);
-        foreach ((array) config('ai_report.status_values') as $tone => $words) {
+        foreach ((array) config('ai.report.status_values') as $tone => $words) {
             foreach ((array) $words as $word) {
                 if ($needle !== '' && $needle === self::fold((string) $word)) {
                     return (string) $tone;
@@ -717,7 +717,7 @@ final class BlockCatalog
 
     public static function isAssumptionsHeading(string $heading, string $lang): bool
     {
-        return self::fold($heading) === self::fold((string) config("ai_report.assumptions.heading.{$lang}"));
+        return self::fold($heading) === self::fold((string) config("ai.report.assumptions.heading.{$lang}"));
     }
 
     private static function fold(string $s): string
@@ -740,7 +740,7 @@ final class BlockCatalog
         $count = count($rows);
         $total = $block['total'] ?? null;
         $percent = $block['percent_column'] ?? null;
-        $need = max(2, (int) ceil((float) config('ai_report.check.numeric_ratio') * $count));
+        $need = max(2, (int) ceil((float) config('ai.report.check.numeric_ratio') * $count));
         $bad = [];
 
         for ($j = 0, $width = count($block['columns'] ?? []); $j < $width; $j++) {
@@ -757,8 +757,8 @@ final class BlockCatalog
             $sum = array_sum($nums);
             $declared = is_array($total) ? self::number((string) ($total[$j] ?? '')) : null;
             if (
-                ($declared !== null && abs($sum - $declared) > max(1, abs($declared) * (float) config('ai_report.check.total_tolerance')))
-                || ($percent === $j && abs($sum - 100) > (float) config('ai_report.check.percent_tolerance'))
+                ($declared !== null && abs($sum - $declared) > max(1, abs($declared) * (float) config('ai.report.check.total_tolerance')))
+                || ($percent === $j && abs($sum - 100) > (float) config('ai.report.check.percent_tolerance'))
             ) {
                 $bad[] = $j;
             }
@@ -782,7 +782,7 @@ final class BlockCatalog
 
     private static function cell(mixed $value): string
     {
-        return self::text($value, (int) config('ai_report.spec.cell')) ?? '';
+        return self::text($value, (int) config('ai.report.spec.cell')) ?? '';
     }
 
     private static function lines(mixed $value, int $max, int $length): array

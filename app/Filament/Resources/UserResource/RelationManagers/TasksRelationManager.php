@@ -5,7 +5,7 @@ namespace App\Filament\Resources\UserResource\RelationManagers;
 use App\Filament\Resources\TaskResource\Schemas\TaskFormPresenter;
 use App\Filament\Resources\TaskResource\Schemas\TaskInfolistPresenter;
 use App\Filament\Resources\TaskResource\Schemas\TaskTablePresenter;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

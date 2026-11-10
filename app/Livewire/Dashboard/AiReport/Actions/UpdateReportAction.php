@@ -65,7 +65,7 @@ class UpdateReportAction
             $report->title = $spec['title'] ?? $report->title;
         }
         if (array_key_exists('title', $changes)) {
-            $t = BlockCatalog::clean((string) $changes['title'], (int) config('ai_report.spec.short'));
+            $t = BlockCatalog::clean((string) $changes['title'], (int) config('ai.report.spec.short'));
             if ($t === '') {
                 throw ValidationException::withMessages(['titleDraft' => 'عنوان نمی‌تواند خالی باشد.']);
             }

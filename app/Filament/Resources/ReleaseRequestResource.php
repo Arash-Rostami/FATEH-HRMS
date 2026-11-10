@@ -10,10 +10,10 @@ use App\Filament\Resources\ReleaseRequestResource\Schemas\ReleaseRequestFormPres
 use App\Filament\Resources\ReleaseRequestResource\Schemas\ReleaseRequestInfolistPresenter;
 use App\Filament\Resources\ReleaseRequestResource\Schemas\ReleaseRequestTablePresenter;
 use App\Models\ReleaseRequest;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentFilters;
-use App\Traits\FilamentAdminGuide;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentFilters;
+use App\Traits\Filament\FilamentAdminGuide;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;

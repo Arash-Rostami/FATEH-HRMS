@@ -3,14 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PostResource\Exports\PostExporter;
-use App\Traits\AuthorizesByPermission;
+use App\Traits\Filament\AuthorizesByPermission;
 use App\Filament\Resources\PostResource\Pages\{CreatePost, EditPost, ListPosts};
 use App\Filament\Resources\PostResource\Schemas\{PostFormPresenter, PostInfolistPresenter, PostTablePresenter};
 use App\Models\Post;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentFilters;
-use App\Traits\FilamentVisibility;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentFilters;
+use App\Traits\Filament\FilamentVisibility;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;

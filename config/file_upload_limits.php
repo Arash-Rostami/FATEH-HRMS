@@ -15,10 +15,4 @@ return [
     'image' => 5120,
     'document' => 10240,
     'video' => 97280,
-    'ai' => [
-        'report' => 10240,
-        'inline' => 4096,
-        'inline_total' => 12288,
-        'total' => 25600,
-    ],
 ];

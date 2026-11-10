@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Services\Menu\Notifications\AdNudge;
+use App\Services\Menu\Notifications\AiReportNudge;
 use App\Services\Menu\Notifications\ChannelNudge;
 use App\Services\Menu\Notifications\ContactNudge;
+use App\Services\Menu\Notifications\CorrespondenceNudge;
 use App\Services\Menu\Notifications\DmsNudge;
 use App\Services\Menu\Notifications\FeedNudge;
 use App\Services\Menu\Notifications\PhotoNudge;
@@ -43,5 +45,7 @@ class NudgeServiceProvider extends ServiceProvider
         NudgeService::register(new DmsNudge());
         NudgeService::register(new ChannelNudge());
         NudgeService::register(new ReminderOverdueNudge());
+        NudgeService::register(new CorrespondenceNudge());
+        NudgeService::register(new AiReportNudge());
     }
 }

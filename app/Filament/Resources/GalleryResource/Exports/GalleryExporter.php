@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\GalleryResource\Exports;
 
 use App\Models\Photo;
-use App\Traits\FilamentVisibility;
+use App\Traits\Filament\FilamentVisibility;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;

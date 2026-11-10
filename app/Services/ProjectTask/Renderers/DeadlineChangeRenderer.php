@@ -2,7 +2,7 @@
 
 namespace App\Services\ProjectTask\Renderers;
 
-use App\Filament\Resources\TaskResource\Enums\TaskState;
+use App\Enums\TaskState;
 use App\Models\Reply;
 use App\Models\Task;
 use App\Services\ProjectTask\Contracts\ActivityLogRenderer;

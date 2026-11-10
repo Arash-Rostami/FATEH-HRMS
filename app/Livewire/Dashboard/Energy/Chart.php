@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Energy;
 
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserType;
 use App\Livewire\Dashboard\Energy\Presentation\ChartPresenter;
 use App\Models\EnergyTest;
 use App\Models\User;

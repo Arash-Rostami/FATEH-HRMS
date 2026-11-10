@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Enums\TaskActivityType;
 use App\Jobs\SyncTaskCalendarEventJob;
+use App\Livewire\Dashboard\TaskBoard\Main;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskDetail;
@@ -11,6 +12,7 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -361,8 +363,8 @@ class TaskDetailModelTest extends TestCase
             ['bad.key' => 'مقدار'],
             ['bad"key' => 'مقدار'],
         ] as $meta) {
-            \Livewire\Livewire::actingAs($user)
-                ->test(\App\Livewire\Dashboard\TaskBoard\Main::class)
+            Livewire::actingAs($user)
+                ->test(Main::class)
                 ->set('form.newTitle', 'Tinker meta key probe')
                 ->set('form.meta', $meta)
                 ->call('createTask')
@@ -376,8 +378,8 @@ class TaskDetailModelTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'active']);
 
-        \Livewire\Livewire::actingAs($user)
-            ->test(\App\Livewire\Dashboard\TaskBoard\Main::class)
+        Livewire::actingAs($user)
+            ->test(Main::class)
             ->set('form.newTitle', 'Tinker valid meta key probe')
             ->set('form.meta', ['cost_center' => 'CC-9'])
             ->call('createTask')

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Models;
 
+use App\Enums\TaskActivityType;
 use App\Models\Reply;
+use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -140,9 +142,9 @@ class ReplyModelTest extends TestCase
 
     public function test_type_is_fillable_and_casts_to_the_backed_enum(): void
     {
-        $reply = $this->createReply(['type' => \App\Enums\TaskActivityType::StatusChange]);
+        $reply = $this->createReply(['type' => TaskActivityType::StatusChange]);
 
-        $this->assertSame(\App\Enums\TaskActivityType::StatusChange, $reply->fresh()->type);
+        $this->assertSame(TaskActivityType::StatusChange, $reply->fresh()->type);
     }
 
     public function test_type_column_defaults_to_comment_when_omitted_from_an_insert(): void
@@ -157,18 +159,18 @@ class ReplyModelTest extends TestCase
             'body' => 'no type specified',
         ]);
 
-        $this->assertSame(\App\Enums\TaskActivityType::Comment, $reply->fresh()->type, 'the replies.type column default must back-fill to comment for a bare insert');
+        $this->assertSame(TaskActivityType::Comment, $reply->fresh()->type, 'the replies.type column default must back-fill to comment for a bare insert');
     }
 
     public function test_add_reply_defaults_to_comment_and_stores_an_explicit_type(): void
     {
         $user = User::factory()->create(['status' => 'active']);
         $ticket = Ticket::factory()->create(['requester_id' => $user->id, 'extra' => ['target_department' => 'PS']]);
-        $task = \App\Models\Task::factory()->create();
+        $task = Task::factory()->create();
 
-        $this->assertSame(\App\Enums\TaskActivityType::Comment, $ticket->addReply($user, 'plain')->fresh()->type);
-        $this->assertSame(\App\Enums\TaskActivityType::Comment, $task->addReply($user, 'plain')->fresh()->type);
-        $this->assertSame(\App\Enums\TaskActivityType::Assignment, $ticket->addReply($user, 'sys', [], \App\Enums\TaskActivityType::Assignment)->fresh()->type);
+        $this->assertSame(TaskActivityType::Comment, $ticket->addReply($user, 'plain')->fresh()->type);
+        $this->assertSame(TaskActivityType::Comment, $task->addReply($user, 'plain')->fresh()->type);
+        $this->assertSame(TaskActivityType::Assignment, $ticket->addReply($user, 'sys', [], TaskActivityType::Assignment)->fresh()->type);
     }
 
     public function test_payload_is_fillable_and_casts_to_array(): void

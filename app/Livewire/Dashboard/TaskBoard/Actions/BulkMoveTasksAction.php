@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\TaskBoard\Actions;
 
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskStatus;
 use App\Models\Task;
 use App\Services\Menu\StateService;
 use App\Services\ProjectTask\RankGenerator;

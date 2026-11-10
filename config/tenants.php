@@ -148,8 +148,12 @@ $tenants = [
         //     'status:chart' => false,
         //     'faq:card' => false,
         //     'calendar:day' => false,
+        //     'ths:ai' => false,
+        //     'correspondence' => false,       // whole letters module: route (404), menu, admin, badges, search (links already sent keep working)
+        //     'correspondence:ai' => false,    // only the letter AI drafting
         //     'taskboard' => false,            // also hides projects + tasksheet + ths (its 'with' list in config/modules.php)
             'ai-report' => false,            // hides the AI report module: route 404, menu, admin resource, badges
+            'correspondence' => false,       // letters module off for this tenant: route 404, menu, admin, badges, search (also off through notify 'with', kept explicit)
          ],                                   // see everything hidden: php artisan tenant:hidden   |  all keys: php artisan tenant:hidden --all
 
         'sibling' => [],

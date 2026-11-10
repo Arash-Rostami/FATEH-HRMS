@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Traits\FilamentPreferences;
+use App\Traits\Filament\FilamentPreferences;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Schemas\Concerns\InteractsWithSchemas;

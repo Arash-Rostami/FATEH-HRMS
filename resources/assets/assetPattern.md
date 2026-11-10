@@ -1,4 +1,3 @@
-```markdown
 # Static Asset Architecture
 
 Conventions for `resources/assets/` — static, non-hashed files copied verbatim to `public/build/assets/` by Vite, referenced by literal `asset('build/assets/...')` paths (not the Vite manifest).
@@ -50,7 +49,7 @@ viteStaticCopy({
 
 ## Offline fallback copy — `resources/fallback/`
 
-Sibling of `resources/assets/` (not inside it): a dormant committed copy of the font/icon files (`fonts/`, `material-symbols/`), most importantly the real 5 MB `material-symbols-rounded.woff2` that otherwise exists only in gitignored `node_modules` (the `resources/assets/fonts/` copy is a 0-byte decoy). Its `viteStaticCopy` target (`{src: 'resources/fallback', dest: '.'}` → `public/build/fallback/`) is deliberately commented out in `vite.config.js`; uncomment + `npm run build` only for a rainy day. Details in `resources/fallback/README.md`. No other runtime asset is CDN-loaded — the only internet-dependent features are Google Translate and the radio streams, which degrade gracefully.
+Sibling of `resources/assets/` (not inside it): a dormant committed copy of the font/icon files (`fonts/`, `material-symbols/`), most importantly the real 5 MB `material-symbols-rounded.woff2` that otherwise exists only in gitignored `node_modules` (the three empty `material-symbols-*.woff2` decoys that used to sit in `resources/assets/fonts/` were deleted on 2026-11-10; text fonts only live there now). Its `viteStaticCopy` target (`{src: 'resources/fallback', dest: '.'}` → `public/build/fallback/`) is deliberately commented out in `vite.config.mjs`; uncomment + `npm run build` only for a rainy day. Details in `resources/fallback/README.md`. No other runtime asset is CDN-loaded — the only internet-dependent features are Google Translate and the radio streams, which degrade gracefully.
 
 ## Reference Patterns
 
@@ -91,6 +90,10 @@ Tenant-scoped brand assets are never hand-written as literal paths like the abov
 | Icon system (SVG) | `img/icons/` | Potential future: sprite generation |
 | Per-tenant auth-page video playlist | `video/<tenant>/` | Copied as-is; sequentially numbered, see Tenant-scoped assets above |
 
+## Letterhead font families (2026-11-10)
+
+`fonts/<slug>/` holds the correspondence letterhead families (`vazirmatn`, `parastoo`, `noto-naskh-arabic`, `tinos`, `inter`; manifest + licences in `fonts/FONTS.md`). The build copies them to `public/build/assets/fonts/<slug>/`; the browser loads them through `@font-face` emitted by `paper.blade.php`, mPDF reads the `.ttf` straight from `resources/assets/fonts` (so those files must be deployed too). The registry is `config/ai/correspondence.php` `fonts`. `fonts/b-nazanin/` is optional, gitignored and licence-dependent.
+
 ## Anti-Patterns
 
 | Violation | Correction |
@@ -102,7 +105,4 @@ Tenant-scoped brand assets are never hand-written as literal paths like the abov
 
 ## Service Worker Integration
 
-`resources/js/sw.js` (custom `injectManifest`, via `vite-plugin-pwa`) precaches the static-asset tree via `precacheAndRoute(self.__WB_MANIFEST)`; the precache glob is `**/*.{js,css,html,ico,png,svg,woff,woff2}` (set in `vite.config.js` `VitePWA.workbox.globPatterns`). There is no runtime-caching route for `build/assets/` — assets are served from the precache on navigation, fall back to network otherwise.
-
----
-```
+`resources/js/sw.js` (custom `injectManifest`, via `vite-plugin-pwa`) precaches the static-asset tree via `precacheAndRoute(self.__WB_MANIFEST)`; the precache glob is `**/*.{js,css,html,ico,png,svg,woff,woff2}` (set in `vite.config.mjs` `VitePWA.workbox.globPatterns`). There is no runtime-caching route for `build/assets/` — assets are served from the precache on navigation, fall back to network otherwise.

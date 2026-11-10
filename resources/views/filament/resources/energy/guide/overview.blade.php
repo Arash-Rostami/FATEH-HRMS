@@ -9,7 +9,7 @@
     $rows = [
         ['icon' => 'trending_down', 'color' => 'error', 'label' => 'امتیاز بالاتر یعنی فرسودگی بیشتر', 'text' => 'این پرسشنامه سنجهٔ فرسودگی است، نه انرژی. هر گزینهٔ انتخابی یک «بله» محسوب می‌شود و امتیازِ بالاتر یعنی وضعیت بدتر. امتیاز کلی از ' . convertToPersian('0') . ' تا ' . convertToPersian('16') . ' است؛ ' . convertToPersian('12') . ' به‌ بالا در زبانهٔ «پرخطر» و زیر ' . convertToPersian('9') . ' در زبانهٔ «مطلوب» قرار می‌گیرد.'],
         ['icon' => 'event_repeat', 'color' => 'primary', 'label' => 'فاصلهٔ ثبت ' . convertToPersian('25') . ' روزه', 'text' => 'پس از تکمیل، کاربر تا ' . convertToPersian('25') . ' روز نمی‌تواند پرسشنامهٔ تازه ثبت کند. این محدودیت در خود سیستم بررسی می‌شود، نه فقط با پنهان‌کردن فرم.'],
-        ['icon' => 'event', 'color' => 'tertiary', 'label' => 'بانک پرسش‌های ماهانه', 'text' => 'برای هر بعد، ' . convertToPersian('12') . ' مجموعهٔ متفاوت پرسش وجود دارد که بر اساس ماه شمسی (شمارهٔ ' . convertToPersian('0') . ' تا ' . convertToPersian('11') . ') انتخاب می‌شود. همین پرسش در یک ماه برای همهٔ کاربران یکسان است.'],
+        ['icon' => 'event', 'color' => 'tertiary', 'label' => 'بانک پرسش‌های ماهانه', 'text' => 'برای هر بعد، ' . convertToPersian('12') . ' مجموعه پرسش وجود دارد. پرسش‌ها بر اساس ماه شمسی انتخاب می‌شوند و در هر ماه برای همهٔ کاربران یکسان‌اند.'],
     ];
 @endphp
 
@@ -20,7 +20,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">پرسشنامهٔ انرژی، یک سنجهٔ ماهانهٔ فرسودگی در چهار بعد است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        کاربران پرسشنامه را از پنل خودشان در صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/energy</code> تکمیل می‌کنند. شما (ادمین) در این صفحه فقط نظارت می‌کنید — ثبت پاسخ از طرف ادمین ممکن نیست. هر ردیف این جدول یک پاسخ‌نامهٔ تکمیل‌شدهٔ یک کاربر است.
+        کاربران پرسشنامه را در پنل کاربری تکمیل می‌کنند. هر ردیف جدول، پاسخ‌نامهٔ تکمیل‌شدهٔ یک کاربر است. در پنل مدیریت می‌توانید پاسخ‌ها را ببینید، اما نمی‌توانید به‌جای کاربر پاسخ ثبت کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\ThsResource\Schemas;
 
-use App\Filament\Resources\ThsResource\Enums\{TicketPriority, TicketStatus};
+use App\Enums\{TicketPriority, TicketStatus};
 use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\PersianDateFieldService;
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -99,7 +99,8 @@ class TicketFormPresenter
     public static function completionDate(): Hidden
     {
         return Hidden::make('completion_date')
-            ->label(__('resources/ths/strings.fields.completion_date'));
+            ->label(__('resources/ths/strings.fields.completion_date'))
+            ->dehydrated(fn ($record) => $record?->status !== 'closed');
     }
 
     public static function completionDeadlineDate(): FusedGroup

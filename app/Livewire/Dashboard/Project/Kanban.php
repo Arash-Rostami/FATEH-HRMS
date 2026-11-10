@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Project;
 
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskStatus;
 use App\Livewire\Dashboard\Dms\Presentation\DmsPresenter;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Models\Department;

@@ -5,6 +5,7 @@ namespace Tests\Feature\Models;
 use App\Enums\ChannelType;
 use App\Models\Channel;
 use App\Models\ChannelMessage;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -165,7 +166,7 @@ class ChannelModelTest extends TestCase
     {
         $owner = User::factory()->create(['status' => 'active']);
         $channel = Channel::factory()->create(['owner_id' => $owner->id]);
-        \App\Models\Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => [], 'channel_id' => $channel->id]);
+        Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => [], 'channel_id' => $channel->id]);
 
         $this->assertFalse($channel->fresh()->delete());
         $this->assertNull($channel->fresh()->deleted_at);

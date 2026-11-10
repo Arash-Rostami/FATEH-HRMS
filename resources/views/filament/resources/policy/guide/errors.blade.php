@@ -9,7 +9,7 @@
             <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-primary)]">error</span>
             کدهای خطای رزرو
         </h3>
-        <p class="text-[12px] font-semibold text-[var(--md-sys-color-on-surface-variant)] mt-1">هر خطا در پیام کاربر به‌شکل [ERR-XXX] نمایش داده می‌شود. ستون «قانون مربوط» نشان می‌دهد کدام قانون این خطا را ایجاد کرده است.</p>
+        <p class="text-[12px] font-semibold text-[var(--md-sys-color-on-surface-variant)] mt-1">کد خطا در پیام کاربر به‌شکل [ERR-XXX] دیده می‌شود. «قانون مربوط» نشان می‌دهد خطا به کدام قانون رزرو مربوط است.</p>
     </div>
 
     <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">

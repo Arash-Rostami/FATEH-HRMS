@@ -2,9 +2,15 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\GalleryResource;
 use App\Filament\Resources\GalleryResource\Pages\CreateGallery;
 use App\Filament\Resources\GalleryResource\Pages\EditGallery;
 use App\Filament\Resources\GalleryResource\Pages\ListGallery;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Permission;
 use App\Models\Photo;
 use App\Models\User;
@@ -345,21 +351,21 @@ class GalleryResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\GalleryResource\Pages\CreateGallery::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\GalleryResource\Pages\EditGallery::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\GalleryResource\Pages\ListGallery::class => \App\Filament\Pages\ListRecords::class,
+            CreateGallery::class => CreateRecord::class,
+            EditGallery::class => EditRecord::class,
+            ListGallery::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\GalleryResource\Pages\CreateGallery::class, \App\Filament\Resources\GalleryResource\Pages\EditGallery::class];
+        $writers = [CreateGallery::class, EditGallery::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 

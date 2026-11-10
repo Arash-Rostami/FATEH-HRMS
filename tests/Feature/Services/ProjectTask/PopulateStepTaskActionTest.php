@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Services\ProjectTask;
 
-use App\Filament\Resources\TaskResource\Enums\TaskState;
+use App\Enums\TaskState;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Workflow;

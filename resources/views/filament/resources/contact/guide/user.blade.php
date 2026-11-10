@@ -8,7 +8,7 @@
         [
             'icon' => 'mark_chat_unread',
             'label' => 'نمایش و رسید خوانده‌شدن',
-            'hint' => 'پیام‌های خودِ کاربر دو حالت رسید می‌گیرند: <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">done</code> (ارسال شد) و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">done_all</code> (خوانده شد). وقتی گیرنده پیام را باز کند، <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read_at</code> پر می‌شود و تیک به حالت خاکستریِ دوگانه تغییر می‌کند.',
+            'hint' => 'یک تیک نشان می‌دهد پیام ارسال شده است. وقتی گیرنده پیام را باز کند، تیک خاکستری دوگانه نمایش داده می‌شود.',
         ],
         [
             'icon' => 'edit',

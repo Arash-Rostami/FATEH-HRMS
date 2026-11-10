@@ -2,6 +2,11 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\OnboardingResource;
 use App\Filament\Resources\OnboardingResource\Pages\CreateOnboarding;
 use App\Filament\Resources\OnboardingResource\Pages\EditOnboarding;
 use App\Filament\Resources\OnboardingResource\Pages\ListOnboardings;
@@ -9,9 +14,13 @@ use App\Filament\Resources\OnboardingResource\Schemas\Helper\ExtrasTemplate;
 use App\Filament\Resources\OnboardingResource\Schemas\OnboardingFormPresenter;
 use App\Filament\Resources\OnboardingResource\Schemas\OnboardingInfolistPresenter;
 use App\Filament\Resources\OnboardingResource\Exports\OnboardingExporter;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Onboarding;
 use App\Models\Permission;
 use App\Models\User;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\Exports\Models\Export;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -120,7 +129,7 @@ class OnboardingResourceTest extends TestCase
         $row = Onboarding::factory()->create();
 
         Livewire::actingAs($admin)->test(ListOnboardings::class)
-            ->callTableAction(\Filament\Actions\DeleteAction::class, $row);
+            ->callTableAction(DeleteAction::class, $row);
 
         $this->assertDatabaseMissing('onboardings', ['id' => $row->id]);
     }
@@ -285,33 +294,33 @@ class OnboardingResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\OnboardingResource\Pages\CreateOnboarding::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\OnboardingResource\Pages\EditOnboarding::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\OnboardingResource\Pages\ListOnboardings::class => \App\Filament\Pages\ListRecords::class,
+            CreateOnboarding::class => CreateRecord::class,
+            EditOnboarding::class => EditRecord::class,
+            ListOnboardings::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\OnboardingResource\Pages\CreateOnboarding::class, \App\Filament\Resources\OnboardingResource\Pages\EditOnboarding::class];
+        $writers = [CreateOnboarding::class, EditOnboarding::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 
     public function test_edit_tracked_file_columns_cover_guides_and_video_thumbnails(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
-        $tracked = (fn () => $this->trackedFileColumns())->call(new \App\Filament\Resources\OnboardingResource\Pages\EditOnboarding());
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $tracked = (fn () => $this->trackedFileColumns())->call(new EditOnboarding());
         Storage::fake('public');
         foreach (['onboarding/guides/old.pdf', 'onboarding/guides/kept.pdf', 'onboarding/video/v.mp4', 'onboarding/thumbnail/old.jpg'] as $path) {
             Storage::disk('public')->put($path, 'x');
         }
-        $record = \App\Models\Onboarding::factory()->create([
+        $record = Onboarding::factory()->create([
             'guides' => [['url' => 'onboarding/guides/old.pdf'], ['url' => 'onboarding/guides/kept.pdf']],
             'videos' => [['url' => 'onboarding/video/v.mp4', 'thumbnail' => 'onboarding/thumbnail/old.jpg']],
         ]);

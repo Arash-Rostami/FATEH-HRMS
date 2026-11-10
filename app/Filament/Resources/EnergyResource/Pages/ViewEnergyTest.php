@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\EnergyResource\Pages;
 
 use App\Filament\Resources\EnergyTestResource;
-use App\Traits\FilamentHeaderActions;
+use App\Traits\Filament\FilamentHeaderActions;
 use App\Filament\Pages\ViewRecord;
 
 class ViewEnergyTest extends ViewRecord

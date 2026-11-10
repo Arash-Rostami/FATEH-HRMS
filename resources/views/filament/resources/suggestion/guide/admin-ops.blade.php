@@ -18,7 +18,7 @@
         [
             'icon' => 'forum',
             'label' => 'بخش «بررسی‌ها» در صفحهٔ ویرایش',
-            'hint' => 'روی صفحهٔ ویرایش، بخش «بررسی‌ها» در صفحهٔ ویرایش همهٔ ردیف‌های <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">Review</code> را نشان می‌دهد: بررسی‌کننده، واحد، نوع بازخورد، وضعیت تکمیل، توضیحات، اقدامات و تاریخ. این موردها با دکمه‌های «بازخورد»، «تصمیم» و «تکمیل اقدام» ثبت می‌شوند؛ معمولاً لازم نیست بررسی را دستی در این جدول بسازید.',
+            'hint' => 'بخش «بررسی‌ها» در صفحهٔ ویرایش، بررسی‌کننده، واحد، نوع بازخورد، وضعیت تکمیل، توضیحات، اقدامات و تاریخ را نشان می‌دهد. این موارد با دکمه‌های «بازخورد»، «تصمیم» و «تکمیل اقدام» ثبت می‌شوند؛ معمولاً نیازی به ثبت دستی بررسی نیست.',
         ],
         [
             'icon' => 'summarize',
@@ -28,7 +28,7 @@
         [
             'icon' => 'download',
             'label' => 'خروجی اکسل',
-            'hint' => 'با «خروجی اکسل» می‌توانید پیشنهادهای انتخاب‌شده را در یک فایل اکسل بگیرید. ستون‌ها و قالب از <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">SuggestionExporter</code> می‌آید.',
+            'hint' => 'با «خروجی اکسل» پیشنهادهای انتخاب‌شده را در یک فایل اکسل دریافت کنید.',
         ],
         [
             'icon' => 'search',
@@ -45,7 +45,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">عملیات مدیریتی شما روی پیشنهادها</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        سه اکشن اصلی روی صفحهٔ «مشاهده» — بازخورد، تصمیم و تکمیل اقدام — بر اساس نقش کاربر و مرحلهٔ پیشنهاد ظاهر می‌شوند. این اکشن‌ها از همان <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">SuggestionAccessPolicy</code>ای استفاده می‌کنند که پنل کاربری استفاده می‌کند، پس رفتار ادمین و کاربر یکسان است.
+        سه دکمهٔ «بازخورد»، «تصمیم» و «تکمیل اقدام» در صفحهٔ مشاهده بر اساس نقش کاربر و مرحلهٔ پیشنهاد دیده می‌شوند. قواعد دسترسی در پنل مدیریت و پنل کاربر یکسان است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -71,7 +71,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">tips_and_updates</span>
-                ویرایش مستقیم مرحله از فرم ادمین توصیه نمی‌شود — <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">syncStage</code> در اولین بازخورد بعدی آن را بازنویسی می‌کند.
+                تغییر مستقیم مرحله در فرم مدیریت توصیه نمی‌شود؛ با ثبت بازخورد بعدی، سیستم مرحله را دوباره تعیین می‌کند.
             </p>
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2 mt-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>

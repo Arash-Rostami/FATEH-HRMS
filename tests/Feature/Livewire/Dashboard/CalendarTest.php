@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Morilog\Jalali\Jalalian;
 use Tests\TestCase;
@@ -139,7 +140,7 @@ class CalendarTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'active']);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($user)->test(Calendar::class)->set('view', 'day');
     }

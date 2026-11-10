@@ -10,6 +10,7 @@ use App\Livewire\Dashboard\Analytics\Main as Analytics;
 use App\Livewire\Dashboard\Authority\Main as Authority;
 use App\Livewire\Dashboard\Contact\Main as Contact;
 use App\Livewire\Dashboard\Channel\Main as Channel;
+use App\Livewire\Dashboard\Correspondence\Main as Correspondence;
 use App\Livewire\Dashboard\Dms\Main as Dms;
 use App\Livewire\Dashboard\Energy\Main as Energy;
 use App\Livewire\Dashboard\Profile\Main as Profile;
@@ -21,7 +22,16 @@ use App\Livewire\Dashboard\Tabs;
 use App\Livewire\Dashboard\TaskBoard\Main as TaskBoard;
 use App\Livewire\Dashboard\Tasksheet\Main as Tasksheet;
 use App\Livewire\Dashboard\Ths\Main as Ths;
+use App\Http\Controllers\CorrespondenceLinkController;
+use App\Http\Controllers\CorrespondenceAttachmentController;
+use App\Http\Controllers\CorrespondencePdfController;
 use App\Http\Controllers\IconMissController;
+use App\Http\Middleware\UpdateLastSeen;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Http\Controllers\ProjectPulseController;
 use App\Http\Controllers\ToggleCalendarController;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +50,22 @@ Route::get('/site.webmanifest', fn () => response()
 
 
 Route::post('/icon-miss', IconMissController::class)->middleware('throttle:icon-miss')->name('icon.miss');
+
+Route::middleware(['letter.link', 'throttle:letter-link'])
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        ValidateCsrfToken::class,
+        UpdateLastSeen::class,
+    ])
+    ->controller(CorrespondenceLinkController::class)
+    ->where(['id' => '[1-9][0-9]{0,9}', 'token' => '[A-Za-z0-9_-]{43}'])
+    ->group(function () {
+        Route::get('/c/{id}-{token}', 'show')->name('correspondence.link');
+        Route::get('/c/{id}-{token}/pdf', 'pdf')->name('correspondence.link.pdf');
+    });
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
@@ -62,6 +88,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tasksheet/shared/{subject}', Tasksheet::class)->middleware('signed')->name('tasksheet.shared');
     Route::get('/ai-report', AiReport::class)->name('ai-report');
     Route::get('/ai-report/shared/{report}', AiReport::class)->middleware('signed')->name('ai-report.shared');
+    Route::get('/correspondence', Correspondence::class)->name('correspondence');
     Route::get('/dms', Dms::class)->name('dms');
     Route::get('/ths', Ths::class)->name('ths');
     Route::get('/ads', Ads::class)->name('ads');
@@ -71,8 +98,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/channels', Channel::class)->name('channels');
     Route::get('/energy', Energy::class)->name('energy');
     Route::get('/analytics', Analytics::class)->name('analytics');
-
     Route::get('/reservation', Reservation::class)->name('reservation');
+    Route::get('/correspondence/{id}/pdf', CorrespondencePdfController::class)->whereNumber('id')->name('correspondence.pdf');
+    Route::get('/correspondence/{id}/attachment/{index}', CorrespondenceAttachmentController::class)->whereNumber(['id', 'index'])->name('correspondence.attachment');
 
     Route::controller(Dms::class)->group(function () {
         Route::get('/authorized/{filename}', 'getAuthorizedFile')

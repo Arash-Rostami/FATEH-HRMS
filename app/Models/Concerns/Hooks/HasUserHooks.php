@@ -2,7 +2,7 @@
 
 namespace App\Models\Concerns\Hooks;
 
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserType;
 
 trait HasUserHooks
 {

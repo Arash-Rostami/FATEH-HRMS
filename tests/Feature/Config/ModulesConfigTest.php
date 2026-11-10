@@ -4,6 +4,7 @@ namespace Tests\Feature\Config;
 
 use App\Filament\Widgets\ModulesGuideWidget;
 use App\Livewire\Dashboard\Tabs;
+use App\Services\TenantService;
 use Illuminate\Support\Facades\Route;
 use ReflectionMethod;
 use Tests\TestCase;
@@ -177,6 +178,40 @@ class ModulesConfigTest extends TestCase
 
         foreach ($owners as $name => $claimants) {
             $this->assertCount(1, $claimants, "route '{$name}' is claimed by several modules: " . implode(', ', $claimants));
+        }
+    }
+
+    public function test_correspondence_module_registers_its_user_and_admin_entry_points_and_ai_view(): void
+    {
+        $module = collect(config('modules'))->firstWhere('id', 'correspondence');
+
+        $this->assertNotNull($module);
+        $this->assertSame('route', data_get($module, 'nav.type'));
+        $this->assertSame('correspondence', data_get($module, 'nav.target'));
+        $this->assertContains('ai', $module['views'] ?? []);
+    }
+
+    public function test_notify_module_cascades_off_into_correspondence_but_its_mail_view_alone_does_not(): void
+    {
+        $notify = collect(config('modules'))->firstWhere('id', 'notify');
+        $this->assertContains('correspondence', $notify['with'] ?? []);
+
+        $off = config('app.off');
+
+        try {
+            config(['app.off' => ['notify']]);
+            $lookup = app(TenantService::class)->lookup();
+            $this->assertArrayHasKey('correspondence', $lookup);
+            $this->assertTrue(tenantOff('correspondence'));
+            $this->assertTrue(tenantOff('correspondence:ai'));
+            $this->assertFalse(correspondenceMailOn());
+
+            config(['app.off' => ['notify:mail']]);
+            $this->assertArrayNotHasKey('correspondence', app(TenantService::class)->lookup());
+            $this->assertFalse(tenantOff('correspondence'));
+            $this->assertFalse(correspondenceMailOn());
+        } finally {
+            config(['app.off' => $off]);
         }
     }
 }

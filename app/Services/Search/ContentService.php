@@ -7,6 +7,7 @@ use App\Services\Search\Resources\AdResource;
 use App\Services\Search\Resources\AiReportResource;
 use App\Services\Search\Resources\ChannelMessageResource;
 use App\Services\Search\Resources\ChannelResource;
+use App\Services\Search\Resources\CorrespondenceResource;
 use App\Services\Search\Resources\CredentialResource;
 use App\Services\Search\Resources\DmsResource;
 use App\Services\Search\Resources\EventResource;
@@ -46,6 +47,7 @@ class ContentService
 
         // ===== PAGE modules (own route ?open=...) =====
         DmsResource::class,
+        CorrespondenceResource::class,
         TicketResource::class,
         TaskResource::class,
         ProjectResource::class,

@@ -5,7 +5,7 @@ namespace App\Filament\Resources\ProjectResource\Schemas;
 use App\Livewire\Dashboard\Project\Forms\ProjectForm;
 use App\Models\Department;
 use App\Models\User;
-use App\Support\ProjectCharter;
+use App\Services\ProjectTask\ProjectCharter;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;

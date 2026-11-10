@@ -5,7 +5,7 @@ namespace App\Livewire\Dashboard\Authority;
 use App\Livewire\Dashboard\Authority\Presentation\AuthorityPresenter;
 use App\Models\Authority;
 use App\Models\Department;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;

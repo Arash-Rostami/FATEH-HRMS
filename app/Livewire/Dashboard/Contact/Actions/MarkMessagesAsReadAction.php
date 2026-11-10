@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Contact\Actions;
 
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Message;
 use App\Models\User;
 use App\Services\Menu\NudgeService;
@@ -30,7 +30,7 @@ class MarkMessagesAsReadAction
                 PollDigestService::bump("dm:sv:{$viewerId}");
             });
 
-            dispatch(new ReconcileNudge('contacts-controller:nudge', User::class, $contactId))->afterCommit();
+            dispatch(new ReconcileNudgeJob('contacts-controller:nudge', User::class, $contactId))->afterCommit();
         }
 
         return $count;

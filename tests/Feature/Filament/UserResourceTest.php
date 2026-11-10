@@ -2,18 +2,31 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Enums\ResourceType;
 use App\Enums\SkillRequestStatus;
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
 use App\Filament\Resources\EventResource\RelationManagers\EventSharesRelationManager;
 use App\Filament\Resources\ReservationResource;
 use App\Filament\Resources\UserResource\Pages\CreateUser;
 use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Resources\UserResource\Pages\ListUsers;
+use App\Filament\Resources\UserResource\RelationManagers\CredentialRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\EnergyTestsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\PermissionsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\ProfileRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\ReportsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\ReservationsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\SkillsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\SuggestionsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\TicketsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\WorkflowsRelationManager;
 use App\Filament\Resources\UserResource\Schemas\UserFormPresenter;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Department;
 use App\Models\Event;
 use App\Models\Permission;
@@ -26,13 +39,17 @@ use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Models\Workflow;
+use App\Services\ProjectTask\TasksheetShareService;
 use App\Services\User\UserKeyGrouper;
 use Filament\Actions\EditAction;
 use Filament\Facades\Filament;
 use Filament\Resources\RelationManagers\RelationManagerConfiguration;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Mockery;
 use Tests\TestCase;
@@ -185,6 +202,124 @@ class UserResourceTest extends TestCase
         $fresh = $user->fresh();
         $this->assertSame('0 After Edit', $fresh->name);
         $this->assertSame('inactive', $fresh->status);
+    }
+
+    private function userWithProtectedExtra(): User
+    {
+        // FileUpload hydration verifies the file exists on the disk; seed it.
+        Storage::disk('local')->put('users/signatures/stored.png', 'png');
+
+        return User::factory()->create([
+            'name' => '0 Protected Extra',
+            'status' => 'active',
+            'presence' => 'onsite',
+            'role' => 'user',
+            'type' => 'employee',
+            'extra' => [
+                'preferences' => ['theme' => 'dark'],
+                'admin' => [
+                    'Company' => 'Tehran',
+                    'Floor' => '3',
+                    'sign_code_hash' => 'stored-hash',
+                    'signature' => 'users/signatures/stored.png',
+                    'correspondence_registry' => true,
+                ],
+            ],
+        ]);
+    }
+
+    public function test_edit_user_form_hides_protected_extra_keys_and_save_keeps_every_other_entry()
+    {
+        $admin = $this->developer();
+        $user = $this->userWithProtectedExtra();
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->assertFormSet([
+                'extra' => ['Company' => 'Tehran', 'Floor' => '3'],
+                'signature_image' => 'users/signatures/stored.png',
+                'registry_permission' => true,
+            ])
+            ->fillForm(['name' => '0 Extra Kept', 'extra' => ['Company' => 'Shiraz', 'Floor' => '3']])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $extra = $user->fresh()->extra;
+        $this->assertSame('Shiraz', $extra['admin']['Company']);
+        $this->assertSame('3', $extra['admin']['Floor']);
+        $this->assertSame('stored-hash', $extra['admin']['sign_code_hash']);
+        $this->assertSame('users/signatures/stored.png', $extra['admin']['signature']);
+        $this->assertTrue($extra['admin']['correspondence_registry']);
+        $this->assertSame('dark', $extra['preferences']['theme']);
+    }
+
+    public function test_edit_user_save_ignores_protected_keys_posted_through_the_extra_field()
+    {
+        $admin = $this->developer();
+        $user = $this->userWithProtectedExtra();
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm(['extra' => ['Company' => 'Tehran', 'sign_code_hash' => 'evil', 'signature' => '../evil.png']])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $admin = $user->fresh()->extra['admin'];
+        $this->assertSame('stored-hash', $admin['sign_code_hash']);
+        $this->assertSame('users/signatures/stored.png', $admin['signature']);
+    }
+
+    public function test_correspondence_admin_fields_clear_protected_values_without_touching_other_extra_entries(): void
+    {
+        $admin = $this->developer();
+        $user = $this->userWithProtectedExtra();
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm([
+                'signature_image' => null,
+                'registry_permission' => false,
+                'clear_sign_code' => true,
+                'sign_code_password' => 'password',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $extra = $user->fresh()->extra;
+        $this->assertArrayNotHasKey('signature', $extra['admin']);
+        $this->assertArrayNotHasKey('correspondence_registry', $extra['admin']);
+        $this->assertArrayNotHasKey('sign_code_hash', $extra['admin']);
+        $this->assertSame('Tehran', $extra['admin']['Company']);
+        $this->assertSame('3', $extra['admin']['Floor']);
+        $this->assertSame('dark', $extra['preferences']['theme']);
+    }
+
+    public function test_admin_sign_code_is_hashed_before_storage_and_never_hydrated_back(): void
+    {
+        $admin = $this->developer();
+        $user = $this->userWithProtectedExtra();
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm(['sign_code' => 'admin-code-678', 'sign_code_password' => 'password'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $hash = $user->fresh()->getExtraValue('admin.sign_code_hash');
+        $this->assertNotSame('admin-code-678', $hash);
+        $this->assertTrue(Hash::check('admin-code-678', $hash));
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->assertFormSet(['sign_code' => null])
+            ->assertDontSee($hash);
+    }
+
+    public function test_user_key_grouper_never_offers_protected_admin_keys_as_groups_or_filters()
+    {
+        $this->userWithProtectedExtra();
+
+        $labels = collect(UserKeyGrouper::map())->pluck('label')->map(fn ($l) => mb_strtolower($l))->all();
+
+        $this->assertContains('company', $labels);
+        foreach (User::PROTECTED_ADMIN_KEYS as $protected) {
+            $this->assertNotContains($protected, $labels);
+        }
     }
 
     public function test_toggle_status_table_action_deactivates_then_reactivates_the_user()
@@ -796,7 +931,7 @@ class UserResourceTest extends TestCase
     {
         $result = collect(UserFormPresenter::normalizeBookingState([['key' => 'meeting', 'value' => true]]))->pluck('value', 'key');
 
-        foreach (\App\Enums\ResourceType::cases() as $type) {
+        foreach (ResourceType::cases() as $type) {
             $this->assertTrue($result->has($type->value));
         }
 
@@ -842,7 +977,7 @@ class UserResourceTest extends TestCase
         $keys = collect(Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])->get('data.booking'))->pluck('key');
 
         $this->assertTrue($keys->contains('all'));
-        foreach (\App\Enums\ResourceType::cases() as $type) {
+        foreach (ResourceType::cases() as $type) {
             $this->assertTrue($keys->contains($type->value));
         }
     }
@@ -875,7 +1010,7 @@ class UserResourceTest extends TestCase
         $admin = $this->developer();
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
 
-        $this->mock(\App\Services\ProjectTask\TasksheetShareService::class, function ($mock) use ($user, $admin) {
+        $this->mock(TasksheetShareService::class, function ($mock) use ($user, $admin) {
             $mock->shouldReceive('shareWithManager')
                 ->once()
                 ->with(
@@ -907,7 +1042,7 @@ class UserResourceTest extends TestCase
         $foreign = Workflow::factory()->asTemplate()->create(['owner_id' => $foreignOwner->id]);
 
         Livewire::actingAs($admin)
-            ->test(WorkflowsRelationManager::class, ['ownerRecord' => $user, 'pageClass' => \App\Filament\Resources\UserResource\Pages\EditUser::class])
+            ->test(WorkflowsRelationManager::class, ['ownerRecord' => $user, 'pageClass' => EditUser::class])
             ->assertCanSeeTableRecords([$template, $instance])
             ->assertCanNotSeeTableRecords([$foreign]);
     }
@@ -919,7 +1054,7 @@ class UserResourceTest extends TestCase
         Workflow::factory()->asTemplate()->create(['owner_id' => $user->id]);
 
         Livewire::actingAs($admin)
-            ->test(WorkflowsRelationManager::class, ['ownerRecord' => $user, 'pageClass' => \App\Filament\Resources\UserResource\Pages\EditUser::class])
+            ->test(WorkflowsRelationManager::class, ['ownerRecord' => $user, 'pageClass' => EditUser::class])
             ->assertTableActionDoesNotExist('applyTemplate')
             ->assertTableActionDoesNotExist('create');
     }
@@ -931,10 +1066,10 @@ class UserResourceTest extends TestCase
         $project = Project::factory()->create(['owner_id' => $user->id, 'member_ids' => [], 'departments' => []]);
         $workflow = Workflow::factory()->active()->create(['owner_id' => $user->id, 'project_id' => $project->id]);
 
-        \Filament\Facades\Filament::setCurrentPanel('admin');
+        Filament::setCurrentPanel('admin');
 
         Livewire::actingAs($admin)
-            ->test(WorkflowsRelationManager::class, ['ownerRecord' => $user, 'pageClass' => \App\Filament\Resources\UserResource\Pages\EditUser::class])
+            ->test(WorkflowsRelationManager::class, ['ownerRecord' => $user, 'pageClass' => EditUser::class])
             ->callTableAction('cancel', $workflow);
 
         $this->assertSame(Workflow::STATUS_CANCELLED, $workflow->fresh()->status);
@@ -947,7 +1082,7 @@ class UserResourceTest extends TestCase
         $reservation = Reservation::factory()->create(['user_id' => $target->id]);
 
         Livewire::actingAs($admin)
-            ->test(\App\Filament\Resources\UserResource\RelationManagers\ReservationsRelationManager::class, [
+            ->test(ReservationsRelationManager::class, [
                 'ownerRecord' => $target,
                 'pageClass' => EditUser::class,
             ])
@@ -961,7 +1096,7 @@ class UserResourceTest extends TestCase
         $target = User::factory()->create(['status' => 'active']);
 
         $page = Livewire::actingAs($admin)
-            ->test(\App\Filament\Resources\UserResource\RelationManagers\ReservationsRelationManager::class, [
+            ->test(ReservationsRelationManager::class, [
                 'ownerRecord' => $target,
                 'pageClass' => EditUser::class,
             ])
@@ -1059,28 +1194,28 @@ class UserResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\UserResource\Pages\CreateUser::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\UserResource\Pages\EditUser::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\UserResource\Pages\ListUsers::class => \App\Filament\Pages\ListRecords::class,
+            CreateUser::class => CreateRecord::class,
+            EditUser::class => EditRecord::class,
+            ListUsers::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\UserResource\Pages\CreateUser::class, \App\Filament\Resources\UserResource\Pages\EditUser::class];
+        $writers = [CreateUser::class, EditUser::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\UserResource\RelationManagers\CredentialRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\EnergyTestsRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\PermissionsRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\ProfileRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\ReportsRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\ReservationsRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\SkillsRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\SuggestionsRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\TasksRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\TicketsRelationManager::class, \App\Filament\Resources\UserResource\RelationManagers\WorkflowsRelationManager::class];
+        $managers = [CredentialRelationManager::class, EnergyTestsRelationManager::class, PermissionsRelationManager::class, ProfileRelationManager::class, ReportsRelationManager::class, ReservationsRelationManager::class, SkillsRelationManager::class, SuggestionsRelationManager::class, TasksRelationManager::class, TicketsRelationManager::class, WorkflowsRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 
@@ -1180,11 +1315,11 @@ class EmptyListEditUser extends EditUser
     }
 }
 
-class ThrowingRelationManager extends \App\Filament\RelationManagers\RelationManager
+class ThrowingRelationManager extends RelationManager
 {
     protected static string $relationship = 'tasks';
 
-    public static function deniedByPermission(\Illuminate\Database\Eloquent\Model $ownerRecord): ?string
+    public static function deniedByPermission(Model $ownerRecord): ?string
     {
         throw new \RuntimeException('boom');
     }

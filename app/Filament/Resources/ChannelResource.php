@@ -8,10 +8,10 @@ use App\Filament\Resources\ChannelResource\RelationManagers\{ChannelMembersRelat
 use App\Filament\Resources\ChannelResource\Schemas\{ChannelFormPresenter, ChannelInfolistPresenter, ChannelTablePresenter};
 use App\Models\Channel;
 use App\Models\Project;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentFilters;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

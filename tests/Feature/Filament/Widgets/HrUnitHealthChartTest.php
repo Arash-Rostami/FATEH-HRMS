@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Filament\Widgets;
 
-use App\Filament\Resources\ProfileResource\Enums\Position;
+use App\Enums\Position;
 use App\Filament\Widgets\HrUnitHealthChart;
 use App\Models\Department;
 use App\Models\Profile;

@@ -2,14 +2,23 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\TaskResource;
 use App\Filament\Resources\TaskResource\Pages\CreateTask;
 use App\Filament\Resources\TaskResource\Pages\EditTask;
 use App\Filament\Resources\TaskResource\Pages\ListTasks;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Permission;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\Ticket;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
+use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -157,7 +166,7 @@ class TaskResourceTest extends TestCase
         ]]);
 
         $probe = new class {
-            use \App\Filament\Traits\HandlesDroppedFiles {
+            use HandlesDroppedFiles {
                 trackedFilePaths as public;
                 deleteDroppedFiles as public;
             }
@@ -1004,21 +1013,21 @@ class TaskResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\TaskResource\Pages\CreateTask::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\TaskResource\Pages\EditTask::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\TaskResource\Pages\ListTasks::class => \App\Filament\Pages\ListRecords::class,
+            CreateTask::class => CreateRecord::class,
+            EditTask::class => EditRecord::class,
+            ListTasks::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\TaskResource\Pages\CreateTask::class, \App\Filament\Resources\TaskResource\Pages\EditTask::class];
+        $writers = [CreateTask::class, EditTask::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 
@@ -1099,7 +1108,7 @@ class TaskResourceTest extends TestCase
     public function test_approve_action_needs_update_permission_and_approves_for_those_who_have_it(): void
     {
         $task = $this->pendingApprovalTask();
-        \Filament\Facades\Filament::setCurrentPanel('admin');
+        Filament::setCurrentPanel('admin');
 
         Livewire::actingAs($this->viewOnlyAdmin())->test(ListTasks::class)
             ->assertTableActionHidden('approve', $task);
@@ -1126,7 +1135,7 @@ class TaskResourceTest extends TestCase
     {
         $ticketTask = Task::factory()->create();
         $plain = Task::factory()->create();
-        $ticketTask->ticket_id = \App\Models\Ticket::factory()->create()->id;
+        $ticketTask->ticket_id = Ticket::factory()->create()->id;
         $ticketTask->saveQuietly();
 
         Livewire::actingAs($this->developer())->test(ListTasks::class)
@@ -1140,7 +1149,7 @@ class TaskResourceTest extends TestCase
     {
         $ticketTask = Task::factory()->create();
         $plain = Task::factory()->create();
-        $ticketTask->ticket_id = \App\Models\Ticket::factory()->create()->id;
+        $ticketTask->ticket_id = Ticket::factory()->create()->id;
         $ticketTask->saveQuietly();
 
         Livewire::actingAs($this->developer())->test(ListTasks::class)

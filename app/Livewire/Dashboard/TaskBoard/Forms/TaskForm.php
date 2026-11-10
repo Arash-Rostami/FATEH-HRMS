@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Dashboard\TaskBoard\Forms;
 
-use App\Filament\Resources\TaskResource\Enums\TaskPriority;
-use App\Filament\Resources\TaskResource\Enums\TaskState;
+use App\Enums\TaskPriority;
+use App\Enums\TaskState;
 use Closure;
 use Illuminate\Validation\Rules\Enum;
 use Livewire\Attributes\Validate;

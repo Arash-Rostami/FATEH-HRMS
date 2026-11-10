@@ -29,7 +29,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">زبانه‌ها، فیلترها و ستون‌های فهرست</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        فهرست فیدها چهار زبانهٔ شمارش‌دار دارد که همگی از یک کوئری آماری واحد تغذیه می‌شوند. زبانه‌ها با تنظیم <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">show_list_tabs</code> کاربر قابل خاموش‌اند.
+        از زبانه‌ها برای دیدن گروه‌های مختلف فید و تعداد آن‌ها استفاده کنید. می‌توانید نمایش زبانه‌ها را در تنظیمات خود خاموش کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -77,7 +77,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                شمارش زبانه‌ها همگی از یک کوئری خام واحد می‌آیند — برای زبانهٔ «دارای مدیا» فقط <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">media_paths IS NOT NULL</code> بررسی می‌شود، پس فید با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">[]</code> هم شمرده می‌شود. فیلتر «دارای مدیا» دقیق‌تر است (JSON_LENGTH).
+                شمارش زبانهٔ «دارای مدیا» ممکن است فیدهای بدون فایل را هم در بر بگیرد. برای یافتن فیدهای دارای تصویر یا ویدیو، از فیلتر «دارای مدیا» استفاده کنید.
             </p>
         </div>
     </div>

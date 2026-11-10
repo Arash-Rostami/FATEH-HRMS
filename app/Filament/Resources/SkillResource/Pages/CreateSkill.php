@@ -4,7 +4,7 @@ namespace App\Filament\Resources\SkillResource\Pages;
 
 use App\Filament\Resources\SkillResource;
 use App\Models\Skill;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentPageBehavior;
 use App\Filament\Pages\CreateRecord;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;

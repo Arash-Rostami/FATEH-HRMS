@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\SuggestionResource\Schemas;
 
-use App\Filament\Resources\SuggestionResource\Enums\SuggestionStage;
+use App\Enums\SuggestionStage;
 use App\Livewire\Dashboard\Suggestion\Presentation\SuggestionPresenter;
 use App\Models\Department;
 use App\Models\Suggestion;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;

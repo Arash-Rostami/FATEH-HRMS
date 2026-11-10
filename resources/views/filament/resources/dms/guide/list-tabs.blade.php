@@ -20,7 +20,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">چهار زبانه و فیلترهای فهرست</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        زبانه‌ها کوئریِ پایه را فیلتر می‌کنند و شمارش نشان‌ها یک‌بار در هر بارگذاری با مکانیزم <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">once()</code> و کش <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">dms_document_counts</code> ({{ convertToPersian('15') }} دقیقه) محاسبه می‌شود. زبانه‌ها را می‌توان از تنظیمات کاربری (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">show_list_tabs</code>) خاموش کرد.
+        برای دیدن اسناد بر اساس وضعیت از زبانه‌ها استفاده کنید. تعدادها ممکن است تا {{ convertToPersian('15') }} دقیقه با اطلاعات فعلی فاصله داشته باشند. نمایش زبانه‌ها را می‌توانید در تنظیمات خود خاموش کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

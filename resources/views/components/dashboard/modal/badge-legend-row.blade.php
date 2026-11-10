@@ -16,9 +16,9 @@
     <div class="min-w-0">
         <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">{{ $item['label'] }}</p>
         <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">
-            <span class="font-bold">روشن می‌شود:</span> {{ $item['lights'] }}
+            <span class="font-bold">زمان نمایش:</span> {{ $item['lights'] }}
             <span class="mx-1 opacity-40">·</span>
-            <span class="font-bold">خاموش می‌شود:</span> {{ $item['clears'] }}
+            <span class="font-bold">نحوهٔ رفع:</span> {{ $item['clears'] }}
             @isset($item['surface'])
                 <span class="mx-1 opacity-40">·</span>
                 <span class="font-bold">محل نمایش:</span> {{ $item['surface'] }}

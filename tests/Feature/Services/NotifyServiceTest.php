@@ -3,14 +3,24 @@
 namespace Tests\Feature\Services;
 
 use App\Enums\NotifyEvent;
-use App\Jobs\SendNotifyRule;
+use App\Jobs\SendNotifyRuleJob;
+use App\Mail\NotifyMail;
+use App\Models\Concerns\HasNotifyEvents;
+use App\Models\DMS;
+use App\Models\EnergyTest;
 use App\Models\Link;
 use App\Models\Message;
 use App\Models\NotifyLog;
 use App\Models\NotifyRule;
+use App\Models\Permission;
+use App\Models\Reminder;
+use App\Models\Reservation;
+use App\Models\Task;
 use App\Models\User;
+use App\Services\Notify\Message as NotifyMessage;
 use App\Services\Notify\NotifyRegistry;
 use App\Services\Notify\NotifyService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -80,7 +90,7 @@ class NotifyServiceTest extends TestCase
 
     private function dispatchedRuleIds(): array
     {
-        return Bus::dispatched(SendNotifyRule::class)->map(fn(SendNotifyRule $job) => $job->ruleId)->sort()->values()->all();
+        return Bus::dispatched(SendNotifyRuleJob::class)->map(fn(SendNotifyRuleJob $job) => $job->ruleId)->sort()->values()->all();
     }
 
     private function changedLink(array $changes): Link
@@ -104,13 +114,13 @@ class NotifyServiceTest extends TestCase
         DB::connection()->disableQueryLog();
 
         $this->assertSame([], $queries);
-        Bus::assertNotDispatched(SendNotifyRule::class);
+        Bus::assertNotDispatched(SendNotifyRuleJob::class);
     }
 
     public function test_enum_cast_attributes_become_their_plain_value_in_the_placeholder_values(): void
     {
-        $model = new class extends \Illuminate\Database\Eloquent\Model {
-            use \App\Models\Concerns\HasNotifyEvents;
+        $model = new class extends Model {
+            use HasNotifyEvents;
 
             protected $guarded = [];
 
@@ -132,7 +142,7 @@ class NotifyServiceTest extends TestCase
         NotifyService::handle(Link::factory()->make(['url_title' => 'Snapshot title']), NotifyEvent::Created);
 
         $this->assertSame([911, 912], $this->dispatchedRuleIds());
-        Bus::assertDispatched(SendNotifyRule::class, fn(SendNotifyRule $job) => $job->payload['event'] === 'created'
+        Bus::assertDispatched(SendNotifyRuleJob::class, fn(SendNotifyRuleJob $job) => $job->payload['event'] === 'created'
             && $job->payload['model'] === Link::class
             && $job->payload['label'] === Link::notifyLabel()
             && !array_key_exists('values', $job->payload)
@@ -147,7 +157,7 @@ class NotifyServiceTest extends TestCase
         NotifyService::handle($link, NotifyEvent::Updated);
         NotifyService::handle($link, NotifyEvent::Deleted);
 
-        $payloads = Bus::dispatched(SendNotifyRule::class)->map(fn(SendNotifyRule $job) => $job->payload)->keyBy('event');
+        $payloads = Bus::dispatched(SendNotifyRuleJob::class)->map(fn(SendNotifyRuleJob $job) => $job->payload)->keyBy('event');
         $this->assertArrayNotHasKey('values', $payloads['updated']);
         $this->assertSame(['url_title'], $payloads['updated']['changed']);
         $this->assertSame('Gone soon', $payloads['deleted']['values']['url_title']);
@@ -187,12 +197,12 @@ class NotifyServiceTest extends TestCase
 
     public function test_payload_values_come_from_real_columns_only_and_private_scores_are_excluded(): void
     {
-        $energy = new \App\Models\EnergyTest(['user_id' => 1, 'mind_score' => 7, 'overall_score' => 8]);
+        $energy = new EnergyTest(['user_id' => 1, 'mind_score' => 7, 'overall_score' => 8]);
         $this->assertArrayNotHasKey('mind_score', $energy->notifyValues());
         $this->assertArrayNotHasKey('overall_score', $energy->notifyValues());
-        $this->assertArrayNotHasKey('mind_score', array_flip(\App\Models\EnergyTest::notifyPlaceholders()));
+        $this->assertArrayNotHasKey('mind_score', array_flip(EnergyTest::notifyPlaceholders()));
 
-        $task = new \App\Models\Task(['title' => 'Plan']);
+        $task = new Task(['title' => 'Plan']);
         $this->assertSame('Plan', $task->notifyValues()['title']);
         $this->assertArrayNotHasKey('assignee_name', $task->notifyValues());
         $this->assertArrayNotHasKey('can_delete', $task->notifyValues());
@@ -200,7 +210,7 @@ class NotifyServiceTest extends TestCase
 
     public function test_a_reminder_relays_its_title_and_notes_capped_at_500_characters(): void
     {
-        $reminder = new \App\Models\Reminder(['title' => 'Pay the invoice', 'notes' => str_repeat('n', 900)]);
+        $reminder = new Reminder(['title' => 'Pay the invoice', 'notes' => str_repeat('n', 900)]);
 
         $values = $reminder->notifyValues();
 
@@ -213,7 +223,7 @@ class NotifyServiceTest extends TestCase
         $this->prime($this->rule(961, ['events' => ['updated']]));
 
         NotifyService::handle($this->changedLink(['notified_at' => now(), 'updated_at' => now()]), NotifyEvent::Updated);
-        Bus::assertNotDispatched(SendNotifyRule::class);
+        Bus::assertNotDispatched(SendNotifyRuleJob::class);
 
         NotifyService::handle($this->changedLink(['url_title' => 'real change']), NotifyEvent::Updated);
         $this->assertSame([961], $this->dispatchedRuleIds());
@@ -225,7 +235,7 @@ class NotifyServiceTest extends TestCase
 
         config(['app.off' => ['notify']]);
         NotifyService::handle(Link::factory()->make(), NotifyEvent::Created);
-        Bus::assertNotDispatched(SendNotifyRule::class);
+        Bus::assertNotDispatched(SendNotifyRuleJob::class);
         $this->assertSame([], NotifyRegistry::channelOptions());
         $this->assertTrue(tenantOffName('filament.admin.resources.notify-rules.index'));
 
@@ -272,9 +282,9 @@ class NotifyServiceTest extends TestCase
 
         $trackables = NotifyRegistry::trackables();
 
-        $this->assertArrayNotHasKey(\App\Models\Reservation::class, $trackables);
-        $this->assertArrayNotHasKey(\App\Models\DMS::class, $trackables);
-        $this->assertArrayHasKey(\App\Models\Task::class, $trackables);
+        $this->assertArrayNotHasKey(Reservation::class, $trackables);
+        $this->assertArrayNotHasKey(DMS::class, $trackables);
+        $this->assertArrayHasKey(Task::class, $trackables);
         $this->assertArrayHasKey(Link::class, $trackables);
     }
 
@@ -285,7 +295,7 @@ class NotifyServiceTest extends TestCase
         $this->assertSame([], NotifyRegistry::permitted());
 
         $admin = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'developer']);
-        \App\Models\Permission::create(['user_id' => $admin->id, 'is_super_admin' => true]);
+        Permission::create(['user_id' => $admin->id, 'is_super_admin' => true]);
         $this->actingAs($admin);
 
         $this->assertArrayHasKey(Link::class, NotifyRegistry::permitted());
@@ -362,5 +372,51 @@ class NotifyServiceTest extends TestCase
         $this->expectException(\RuntimeException::class);
 
         NotifyService::samplePayload($this->rule(951, ['model' => NotifyLog::class]));
+    }
+
+    public function test_notify_mail_attaches_only_existing_files_and_defaults_to_no_attachments(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'notify');
+        file_put_contents($file, '%PDF-1.4 test');
+
+        try {
+            $plain = new NotifyMail(new NotifyMessage('S', ['L'], 'r', 'M', 'e'));
+            $withFiles = new NotifyMail(new NotifyMessage('S', ['L'], 'r', 'M', 'e', 'plain', null, null, [$file, '/no/such/file.pdf', 5]));
+
+            $this->assertSame([], (new NotifyMessage('S', ['L'], 'r', 'M', 'e'))->attachments);
+            $this->assertCount(0, $plain->attachments());
+            $this->assertCount(1, $withFiles->attachments());
+        } finally {
+            unlink($file);
+        }
+    }
+
+    public function test_correspondence_mail_message_carries_its_private_link_and_pdf_attachment(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'correspondence-mail');
+        file_put_contents($file, '%PDF-1.4 test');
+
+        try {
+            $message = new NotifyMessage(
+                subject: 'نامه از Fateh',
+                lines: ['برای مشاهده از پیوند امن استفاده کنید.'],
+                ruleName: 'correspondence',
+                modelLabel: 'مکاتبه',
+                event: 'ارسال',
+                template: 'styled',
+                url: 'https://example.test/c/12-token',
+                action: 'مشاهده نامه',
+                attachments: [$file],
+            );
+            $mail = new NotifyMail($message);
+
+            $this->assertSame('correspondence', $message->ruleName);
+            $this->assertSame('https://example.test/c/12-token', $message->url);
+            $this->assertSame('مشاهده نامه', $message->action);
+            $this->assertCount(1, $mail->attachments());
+            $this->assertStringNotContainsString('بدنه نامه', $message->text());
+        } finally {
+            unlink($file);
+        }
     }
 }

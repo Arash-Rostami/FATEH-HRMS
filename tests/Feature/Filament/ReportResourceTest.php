@@ -2,15 +2,24 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\ReportResource;
 use App\Filament\Resources\ReportResource\Pages\CreateReport;
 use App\Filament\Resources\ReportResource\Pages\EditReport;
+use App\Filament\Resources\ReportResource\Exports\ReportExporter;
 use App\Filament\Resources\ReportResource\Pages\ListReports;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Department;
 use App\Models\Permission;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\Exports\Models\Export;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -462,33 +471,33 @@ class ReportResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ReportResource\Pages\CreateReport::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\ReportResource\Pages\EditReport::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ReportResource\Pages\ListReports::class => \App\Filament\Pages\ListRecords::class,
+            CreateReport::class => CreateRecord::class,
+            EditReport::class => EditRecord::class,
+            ListReports::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ReportResource\Pages\CreateReport::class, \App\Filament\Resources\ReportResource\Pages\EditReport::class];
+        $writers = [CreateReport::class, EditReport::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 
     public function test_edit_tracked_file_columns_delete_only_the_replaced_files(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
-        $tracked = (fn () => $this->trackedFileColumns())->call(new \App\Filament\Resources\ReportResource\Pages\EditReport());
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $tracked = (fn () => $this->trackedFileColumns())->call(new EditReport());
         Storage::fake('public');
         foreach (['reports/covers/old.jpg', 'reports/covers/new.jpg', 'reports/files/kept.pdf'] as $path) {
             Storage::disk('public')->put($path, 'x');
         }
-        $record = \App\Models\Report::factory()->create(['cover_image' => 'reports/covers/old.jpg', 'file_path' => 'reports/files/kept.pdf']);
+        $record = Report::factory()->create(['cover_image' => 'reports/covers/old.jpg', 'file_path' => 'reports/files/kept.pdf']);
         $before = $probe->trackedFilePaths($record, $tracked);
         $this->assertEqualsCanonicalizing(['reports/covers/old.jpg', 'reports/files/kept.pdf'], $before);
 
@@ -497,6 +506,19 @@ class ReportResourceTest extends TestCase
 
         Storage::disk('public')->assertMissing('reports/covers/old.jpg');
         Storage::disk('public')->assertExists('reports/files/kept.pdf');
+    }
+
+    public function test_export_completed_notification_body_resolves_with_the_row_count(): void
+    {
+        app()->setLocale('fa');
+        $export = new Export();
+        $export->successful_rows = 1234;
+
+        $body = ReportExporter::getCompletedNotificationBody($export);
+
+        $this->assertNotSame('resources/general/strings.notifications.export_completed', $body);
+        $this->assertStringContainsString('1,234', $body);
+        $this->assertStringNotContainsString(':count', $body);
     }
 
     public function test_group_and_query_closures_use_correct_param_names(): void

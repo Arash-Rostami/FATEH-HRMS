@@ -129,7 +129,7 @@
                             @endif
                             @if($contact['occasion'])
                                 <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-medium leading-none shrink-0 select-none {{ $contact['occasion_tone']['chip'] ?? 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' }}">
-                                    <span class="material-symbols-rounded text-[11px] shrink-0 leading-none animate-pulse-slow">auto_awesome</span>
+                                    <span class="material-symbols-rounded text-[11px] shrink-0 leading-none animate-pulse-slow text-[var(--ai-color)]">auto_awesome</span>
                                     <span>{{ $contact['occasion_tone']['label'] }}</span>
                                 </span>
                             @endif

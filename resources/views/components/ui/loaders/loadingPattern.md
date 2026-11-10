@@ -1,6 +1,6 @@
 # Loading-state pattern — user panel (Dashboard) + admin panel (Filament)
 
-Mandatory, app-wide, four categories for the user-panel Livewire dashboard, plus two admin-panel rules further down. Every "something is happening" moment in the user panel maps to exactly one. No fifth category, no hand-rolled spinner, no per-module invention. Any reviewer (Ollama gate, `claude-reviewer`, `omni-reviewer`, or self-review) checks new/changed loading UI against this table before approving.
+Mandatory, app-wide, four categories for the user-panel Livewire dashboard, plus two admin-panel rules further down. Every "something is happening" moment in the user panel maps to exactly one. No fifth category, no hand-rolled spinner, no per-module invention. Any reviewer (the `claude-reviewer` subagent, or self-review) checks new/changed loading UI against this table before approving.
 
 | # | Trigger | Component | Notes |
 |---|---|---|---|
@@ -14,6 +14,8 @@ Mandatory, app-wide, four categories for the user-panel Livewire dashboard, plus
 `#[Lazy]` trades total time for perceived speed: it never makes a query faster, it just defers the real `mount()`/query to a second request so the first response is a fast, empty skeleton instead of a blank/blocked tab. Final rule: **every module gets `#[Lazy]` + a matching `placeholder()`, except Channel and Contact.** Those two are the only permanent exclusions — real-time chat needs the instant, no-extra-round-trip feel, and enabling Lazy on either measurably broke their test suites (confirmed by differential testing: reverting Lazy fixed the failures). Everything else, including the light-mount modules (Home, Calendar, Energy, Profile) and the in-app tab-switch pairs (Channel↔Contact is excluded anyway; TaskBoard↔Project is Lazy on both sides), is Lazy for consistency — the tiny added round-trip on light modules is an accepted trade for a uniform skeleton experience app-wide.
 
 Confirmed Lazy modules: **Ads, Analytics, Authority, Dms, Energy, Profile (+ its 6 dynamic-component sub-tabs below), Project (+ its 5 dynamic-component sub-tabs — report/analytics/activity/projectCalendar/kanban, `#[Defer]`-attributed as of 2026-08-28, see `app/Livewire/Dashboard/Project/projectPattern.md`), Reservation, Suggestion, TaskBoard, Ths, and the entire `Tab/*` family** (Home, Calendar, Faqs, Feeds, Gallery, Links, Posts, Reports, Status). TeamChat is a deliberate exception — never Lazy/Defer, see the Project doc for why.
+
+Correspondence's view switch (2026-11-10): `toggleView` and `switchTab('table'|'report'|'compose')` hide the three view roots with `wire:loading.remove` and show one `skeleton.bar` + `skeleton.table-stripe` block (`correspondence-switch-skeleton`), all scoped by `wire:target`, so list tabs, filters and polling never trigger it.
 
 ### Gotcha: `<livewire:dynamic-component :lazy="...">` needs its OWN `placeholder()` per target class
 
@@ -53,6 +55,8 @@ Composed per module, not copy-pasted per module. Each takes only sizing/count pr
 - `table-stripe` — a header bar + N body rows.
 - `column-stack` — a vertical stack of `card`s inside a bordered column, for kanban.
 - `report` — a report-shaped placeholder (title bar, `kpis` tiles default 4, three text bars, then a `table-stripe` of `rows` default 4). Root carries `aria-busy="true"`, an `sr-only` label, `print:hidden`, and merges `$attributes` (so a `wire:key` passes through). AI Report's in-flight viewer branch (`ai-report-viewer-generating`) uses it as `ai-report-generating-skeleton`.
+
+**AI loader family (2026-11-08) — the `<x-ui.loaders.ai-shimmer>` component.** Every loader for an AI-generated result uses this one anonymous component: a decorative `aria-hidden` overlay (merging host `$attributes` onto `pointer-events-none absolute inset-0 overflow-hidden`) holding one `animate-shimmer` bar with the 18% `--tool-amethyst-color` gradient. The gradient and the reduced-motion rule (`motion-reduce:!animate-none motion-reduce:w-full` = static full-width tint; `.animate-shimmer` is unlayered `!important`, so the plain utility would lose) live ONLY in the component — never paste the markup. The host supplies the parent (`relative`) and, through attributes, the corner radius and visibility: `<x-ui.loaders.ai-shimmer x-show="aiLoading" style="display: none;" class="rounded-t-lg"/>`. Consumers: both Ths ticket field wrappers (`livewire/dashboard/ths/create.blade.php`) and `skeleton/report` (`class="rounded-2xl"`; its root also mutes the shared bars' pulse with `[&_.animate-pulse]:!animate-none`, only inside itself, so the single amethyst sweep is the only motion). The AI Report generating headline «در حال تولید گزارش…» uses `--tool-amethyst-color`. Rule: every future AI loader reuses this family. List/table status chips and the legend rows stay neutral/tertiary by design.
 
 ## Enforcement
 

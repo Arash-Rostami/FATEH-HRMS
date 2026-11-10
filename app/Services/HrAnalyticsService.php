@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Enums\PresenceStatus;
-use App\Filament\Resources\ProfileResource\Enums\Degree;
-use App\Filament\Resources\ProfileResource\Enums\Position;
-use App\Filament\Resources\UserResource\Enums\UserType;
-use App\Filament\Widgets\Concerns\DepartmentAxis;
+use App\Enums\Degree;
+use App\Enums\Position;
+use App\Enums\UserType;
+use App\Traits\DepartmentAxis;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Facades\DB;

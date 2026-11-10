@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Livewire\Auth\ForgotPassword;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification as ResetPassword;
+use Filament\Auth\Notifications\ResetPassword as FilamentResetPassword;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
@@ -95,13 +96,13 @@ class ForgotPasswordTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'active']);
 
-        $notification = app(\Filament\Auth\Notifications\ResetPassword::class, ['token' => 'adm1']);
+        $notification = app(FilamentResetPassword::class, ['token' => 'adm1']);
         $this->assertInstanceOf(ResetPassword::class, $notification);
 
         $notification->url = 'http://localhost/admin/password-reset/reset?token=adm1';
         $this->assertStringContainsString('/admin/password-reset/reset?token=adm1', $notification->toMail($user)->render());
 
-        $this->assertSame('لینک بازیابی رمز عبور به ایمیل شما ارسال شد.', __('passwords.sent'));
+        $this->assertSame('پیوند بازیابی رمز عبور به ایمیل شما ارسال شد.', __('passwords.sent'));
     }
 
     public function test_repeat_request_within_the_broker_throttle_says_wait_not_not_found()

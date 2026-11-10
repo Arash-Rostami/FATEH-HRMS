@@ -1,10 +1,10 @@
 @php
     $stages = [
-        ['icon' => 'delete', 'color' => 'primary', 'label' => 'حذف قابل بازیابی', 'text' => 'دکمهٔ «حذف» <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">deleted_at</code> را پر می‌کند. پیام از دید کاربر می‌رود ولی رکورد در پایگاه داده باقی می‌ماند و در زبانهٔ «حذف‌شده» قابل مشاهده و بازیابی است.'],
-        ['icon' => 'autorenew', 'color' => 'tertiary', 'label' => 'بازیابی', 'text' => 'دکمهٔ «بازیابی» فقط روی پیام‌های حذف‌شده ظاهر می‌شود و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">deleted_at</code> را پاک می‌کند. پیام به فهرست عادی برمی‌گردد و زمان شمارش ۳۰ روزه دوباره از صفر آغاز می‌شود.'],
+        ['icon' => 'delete', 'color' => 'primary', 'label' => 'حذف قابل بازیابی', 'text' => 'با حذف پیام، کاربر دیگر آن را نمی‌بیند. پیام در زبانهٔ «حذف‌شده» باقی می‌ماند و می‌توانید آن را بازیابی کنید.'],
+        ['icon' => 'autorenew', 'color' => 'tertiary', 'label' => 'بازیابی', 'text' => 'با دکمهٔ «بازیابی»، پیام حذف‌شده به فهرست عادی برمی‌گردد. اگر دوباره حذف شود، مهلت ۳۰ روزه از نو شروع می‌شود.'],
         ['icon' => 'history', 'color' => 'secondary', 'label' => 'هشدار', 'text' => 'وقتی پیام حذف‌شده بین ۲۰ تا ۳۰ روز بگذرد، نشان وضعیت زرد می‌شود و عبارت «تا حذف خودکار: ...» دیده می‌شود؛ یعنی حذف خودکار نزدیک است.'],
         ['icon' => 'warning', 'color' => 'error', 'label' => 'در آستانهٔ حذف (بیش از ۳۰ روز)', 'text' => 'وقتی پیام حذف‌شده بیش از ۳۰ روز بگذرد، نشان قرمز می‌شود و عبارت «در آستانهٔ حذف» دیده می‌شود. زبانهٔ «در آستانهٔ حذف» و فیلترِ هم‌نام این ردیف‌ها را جدا می‌کنند.'],
-        ['icon' => 'delete_forever', 'color' => 'error', 'label' => 'حذف خودکار (دائمی)', 'text' => 'فرمان Prunable لاراول ردیف‌هایی که <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">deleted_at &lt;= now()-۳۰روز</code> باشند را برای همیشه حذف می‌کند (ForceDeleteMessageAction). در همان لحظه فایل‌های پیوستِ آن پیام هم پاک می‌شوند و دیگر قابل بازیابی نیستند.'],
+        ['icon' => 'delete_forever', 'color' => 'error', 'label' => 'حذف خودکار (دائمی)', 'text' => 'پیام‌های حذف‌شده پس از ۳۰ روز برای همیشه پاک می‌شوند. فایل‌های پیوست آن‌ها هم پاک می‌شوند و دیگر قابل بازیابی نیستند.'],
     ];
 @endphp
 
@@ -51,7 +51,7 @@
     <div class="flex items-start gap-4 rounded-2xl bg-[var(--md-sys-color-tertiary-container)] p-5">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-on-tertiary-container)] mt-0.5">visibility</span>
         <p class="text-[12px] leading-relaxed font-bold text-[var(--md-sys-color-on-tertiary-container)]">
-            تفاوت دید ادمین و کاربر: ادمین پیام‌های حذف‌شدهٔ نرم را در زبانهٔ «حذف‌شده» می‌بیند و می‌تواند بازیابی کند؛ کاربر در پنل خودش فقط پیام‌های <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-tertiary-container)]">withoutTrashed</code> را می‌بیند — یعنی به‌محض حذف، پیام از نگاه کاربر ناپدید می‌شود و او ابزار بازیابی ندارد.
+            مدیر می‌تواند پیام حذف‌شده را در زبانهٔ «حذف‌شده» ببیند و بازیابی کند. کاربر پیام را پس از حذف نمی‌بیند و نمی‌تواند آن را بازیابی کند.
         </p>
     </div>
 </div>

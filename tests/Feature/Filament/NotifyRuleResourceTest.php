@@ -8,15 +8,21 @@ use App\Filament\Resources\NotifyRuleResource\Pages\ListNotifyRules;
 use App\Filament\Resources\NotifyRuleResource\RelationManagers\LogsRelationManager;
 use App\Filament\Resources\NotifyRuleResource;
 use App\Filament\Resources\NotifyRuleResource\Schemas\NotifyLogTablePresenter;
-use App\Jobs\SendNotifyRule;
+use App\Jobs\SendNotifyRuleJob;
 use App\Mail\NotifyMail;
+use App\Models\Department;
 use App\Models\Link;
 use App\Models\NotifyLog;
 use App\Models\NotifyRule;
 use App\Models\Permission;
 use App\Models\User;
+use App\Services\Notify\Message;
+use App\Services\Notify\NotifyRegistry;
 use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\Field;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Text;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
@@ -41,6 +47,7 @@ class NotifyRuleResourceTest extends TestCase
 
     protected function tearDown(): void
     {
+        \Mockery::close();
         DB::rollBack();
         Cache::forget('notify:rules');
         parent::tearDown();
@@ -179,7 +186,7 @@ class NotifyRuleResourceTest extends TestCase
             ->call('save')
             ->assertHasFormErrors(['user_ids' => 'required']);
 
-        $dept = \App\Models\Department::factory()->create();
+        $dept = Department::factory()->create();
 
         Livewire::actingAs($admin)->test(EditNotifyRule::class, ['record' => $rule->getRouteKey()])
             ->fillForm(['extra' => ['audience' => 'departments', 'departments' => [$dept->code]]])
@@ -419,8 +426,8 @@ class NotifyRuleResourceTest extends TestCase
         $this->assertSame(['mail'], $rule->channels);
         $this->assertSame(['outside@example.com'], $rule->extra['contacts']);
 
-        Bus::assertDispatchedTimes(SendNotifyRule::class, 1);
-        Bus::assertDispatched(SendNotifyRule::class, fn (SendNotifyRule $job) => $job->ruleId === $rule->id
+        Bus::assertDispatchedTimes(SendNotifyRuleJob::class, 1);
+        Bus::assertDispatched(SendNotifyRuleJob::class, fn (SendNotifyRuleJob $job) => $job->ruleId === $rule->id
             && $job->payload['model'] === NotifyRule::ONE_OFF
             && $job->payload['values'] === []
             && ! array_key_exists('event', $job->payload)
@@ -444,7 +451,7 @@ class NotifyRuleResourceTest extends TestCase
             ->assertHasActionErrors(['user_ids' => 'required', 'extra.contacts' => 'required']);
 
         $this->assertSame($before, NotifyRule::count());
-        Bus::assertNotDispatched(SendNotifyRule::class);
+        Bus::assertNotDispatched(SendNotifyRuleJob::class);
     }
 
     public function test_send_message_step_one_blocks_without_a_channel_or_recipient(): void
@@ -456,7 +463,7 @@ class NotifyRuleResourceTest extends TestCase
             ->goToNextWizardStep()
             ->assertHasActionErrors(['channels' => 'required', 'user_ids' => 'required', 'extra.contacts' => 'required']);
 
-        Bus::assertNotDispatched(SendNotifyRule::class);
+        Bus::assertNotDispatched(SendNotifyRuleJob::class);
     }
 
     public function test_send_message_step_two_blocks_without_a_subject_or_lines(): void
@@ -475,7 +482,7 @@ class NotifyRuleResourceTest extends TestCase
             ->assertHasActionErrors(['subject' => 'required', 'lines' => 'required']);
 
         $this->assertSame($before, NotifyRule::count());
-        Bus::assertNotDispatched(SendNotifyRule::class);
+        Bus::assertNotDispatched(SendNotifyRuleJob::class);
     }
 
     public function test_send_message_summary_line_names_the_audience_and_channels(): void
@@ -486,12 +493,12 @@ class NotifyRuleResourceTest extends TestCase
             ->fillForm(['channels' => ['mail'], 'extra' => ['audience' => 'all']]);
         $schema = (new \ReflectionMethod($page->instance(), 'getMountedActionSchema'))->invoke($page->instance());
         $summary = (string) collect($schema->getFlatComponents())
-            ->filter(fn ($c) => $c instanceof \Filament\Schemas\Components\Text)
+            ->filter(fn ($c) => $c instanceof Text)
             ->map(fn ($c) => (string) $c->getContent())
             ->first(fn ($text) => str_starts_with($text, 'ارسال به:'));
 
         $this->assertStringContainsString(__('resources/notify_rule/strings.audience.all'), $summary);
-        $this->assertStringContainsString(\App\Services\Notify\NotifyRegistry::channelOptions()['mail'], $summary);
+        $this->assertStringContainsString(NotifyRegistry::channelOptions()['mail'], $summary);
     }
 
     public function test_send_message_with_an_audience_needs_no_individual_recipient(): void
@@ -510,7 +517,7 @@ class NotifyRuleResourceTest extends TestCase
             ->callMountedAction()
             ->assertHasNoActionErrors();
 
-        Bus::assertDispatchedTimes(SendNotifyRule::class, 1);
+        Bus::assertDispatchedTimes(SendNotifyRuleJob::class, 1);
     }
 
     public function test_a_queue_failure_removes_the_rule_and_shows_a_danger_notification(): void
@@ -543,7 +550,7 @@ class NotifyRuleResourceTest extends TestCase
         app()->setLocale('fa');
         $page = Livewire::actingAs($this->developer())->test(ListNotifyRules::class)->mountAction('sendMessage');
         $schema = (new \ReflectionMethod($page->instance(), 'getMountedActionSchema'))->invoke($page->instance());
-        $hint = (string) collect($schema->getFlatComponents())->first(fn ($c) => $c instanceof \Filament\Forms\Components\TextInput && $c->getName() === 'subject')->getChildSchema(\Filament\Forms\Components\Field::BELOW_CONTENT_SCHEMA_KEY)->toHtml();
+        $hint = (string) collect($schema->getFlatComponents())->first(fn ($c) => $c instanceof TextInput && $c->getName() === 'subject')->getChildSchema(Field::BELOW_CONTENT_SCHEMA_KEY)->toHtml();
 
         $this->assertStringContainsString('{انجام‌دهنده}', $hint);
         $this->assertStringContainsString('{تاریخ و ساعت}', $hint);
@@ -552,7 +559,7 @@ class NotifyRuleResourceTest extends TestCase
 
     public function test_the_styled_mail_draws_the_event_pill_only_when_there_is_an_event(): void
     {
-        $render = fn (string $event) => (new NotifyMail(new \App\Services\Notify\Message('S', ['L'], 'r', 'M', $event, 'styled')))->render();
+        $render = fn (string $event) => (new NotifyMail(new Message('S', ['L'], 'r', 'M', $event, 'styled')))->render();
 
         $this->assertStringNotContainsString('border-radius:999px', $render(''));
         $this->assertStringContainsString('border-radius:999px', $render('سررسید'));
@@ -596,7 +603,7 @@ class NotifyRuleResourceTest extends TestCase
             ->assertNotified(__('resources/notify_rule/strings.manual.throttled'));
 
         $this->assertSame($count, NotifyRule::oneOff()->count());
-        Bus::assertDispatchedTimes(SendNotifyRule::class, 3);
+        Bus::assertDispatchedTimes(SendNotifyRuleJob::class, 3);
         RateLimiter::clear('notify-manual:' . $admin->id);
     }
 

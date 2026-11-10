@@ -2,7 +2,7 @@
 
 namespace App\Services\Menu;
 
-use App\Jobs\ReconcileEdge;
+use App\Jobs\ReconcileEdgeJob;
 use App\Models\Edge;
 use App\Services\Menu\Contracts\MenuEdge;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -51,7 +51,7 @@ class EdgeService
 
                     if ($subject === null) return;
 
-                    dispatch(new ReconcileEdge($key, get_class($subject), $subject->getKey()))
+                    dispatch(new ReconcileEdgeJob($key, get_class($subject), $subject->getKey()))
                         ->afterCommit();
                 });
             }

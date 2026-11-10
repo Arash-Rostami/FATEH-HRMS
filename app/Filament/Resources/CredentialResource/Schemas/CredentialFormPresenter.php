@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\CredentialResource\Schemas;
 
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;

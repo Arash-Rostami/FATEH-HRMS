@@ -5,7 +5,7 @@ namespace Tests\Feature\Services;
 use App\Models\Workflow;
 use App\Models\TaskDetail;
 use App\Enums\TaskActivityType;
-use App\Filament\Resources\FeedResource\Enums\FeedCategory;
+use App\Enums\FeedCategory;
 use App\Models\Ad;
 use App\Models\Channel;
 use App\Models\ChannelMessage;
@@ -29,6 +29,7 @@ use App\Models\Reminder;
 use App\Models\Report;
 use App\Models\Reply;
 use App\Models\Reservation;
+use App\Models\Review;
 use App\Models\Suggestion;
 use App\Models\Task;
 use App\Models\Ticket;
@@ -75,6 +76,7 @@ use App\Services\Menu\StateService;
 use App\Services\Cache\ModelCacheVersion;
 use Filament\Notifications\DatabaseNotification as FilamentDatabaseNotification;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
@@ -137,7 +139,7 @@ class MenuServiceTest extends TestCase
         return $id;
     }
 
-    private function notificationsFor(string $menuKey, int $userId): \Illuminate\Support\Collection
+    private function notificationsFor(string $menuKey, int $userId): Collection
     {
         return DB::table('notifications')
             ->where('type', FilamentDatabaseNotification::class)
@@ -240,6 +242,26 @@ class MenuServiceTest extends TestCase
         $this->assertNotNull(BadgeLegendCatalog::get('posts-controller'));
     }
 
+    public function test_badge_legend_catalog_carries_the_correspondence_rows_and_drops_them_with_the_module_or_notify(): void
+    {
+        config(['app.off' => []]);
+
+        foreach (['correspondence-controller', 'correspondence-controller:nudge'] as $key) {
+            $row = BadgeLegendCatalog::get($key);
+            $this->assertNotNull($row);
+            $this->assertSame('compliance', $row['group']);
+            $this->assertSame('correspondence', $row['subgroup']);
+        }
+
+        config(['app.off' => ['correspondence']]);
+        $this->assertNull(BadgeLegendCatalog::get('correspondence-controller'));
+        $this->assertNull(BadgeLegendCatalog::get('correspondence-controller:nudge'));
+
+        config(['app.off' => ['notify']]);
+        $this->assertNull(BadgeLegendCatalog::get('correspondence-controller'));
+        $this->assertNull(BadgeLegendCatalog::get('correspondence-controller:nudge'));
+    }
+
     public function test_badge_legend_catalog_grouped_folds_all_entries_into_five_groups(): void
     {
         $grouped = BadgeLegendCatalog::grouped();
@@ -247,7 +269,7 @@ class MenuServiceTest extends TestCase
         $this->assertCount(5, $grouped);
         $this->assertSame(['notifications', 'content', 'opportunities', 'tasks', 'compliance'], array_column($grouped, 'id'));
         $total = array_sum(array_map(fn($g) => count($g['items']), $grouped));
-        $this->assertSame(28, $total);
+        $this->assertSame(32, $total);
         $expectedLabels = array_map(fn($g) => BadgeLegendCatalog::groups()[$g['id']]['label'], $grouped);
         $this->assertSame($expectedLabels, array_column($grouped, 'label'));
         foreach ($grouped as $g) {
@@ -268,7 +290,7 @@ class MenuServiceTest extends TestCase
         $this->assertSame(['list', 'deadline', 'approval', 'projects', 'workflow', 'tickets', 'reminders', 'reminders-badge'], array_keys($defs['tasks']));
         $this->assertSame(['direct', 'channels'], array_keys($defs['notifications']));
         $this->assertSame(['calendar', 'media'], array_keys($defs['content']));
-        $this->assertSame(['tracking', 'reports', 'tasksheet', 'ai-report'], array_keys($defs['compliance']));
+        $this->assertSame(['tracking', 'reports', 'tasksheet', 'ai-report', 'correspondence'], array_keys($defs['compliance']));
 
         foreach ($grouped as $group) {
             if (!isset($defs[$group['id']])) {
@@ -1050,7 +1072,7 @@ class MenuServiceTest extends TestCase
         $triggers = $nudge->triggers();
         $this->assertSame(Suggestion::class, $triggers[0]['class']);
         $this->assertSame(['created', 'updated', 'deleted'], $triggers[0]['on']);
-        $this->assertSame(\App\Models\Review::class, $triggers[1]['class']);
+        $this->assertSame(Review::class, $triggers[1]['class']);
         $this->assertSame(['created', 'updated'], $triggers[1]['on']);
         $this->assertStringContainsString('/suggestion', $nudge->url($suggestion));
         $this->assertStringContainsString('open=11', $nudge->url($suggestion));
@@ -1086,7 +1108,7 @@ class MenuServiceTest extends TestCase
         $triggers = $nudge->triggers();
         $this->assertSame(Task::class, $triggers[0]['class']);
         $this->assertSame(['created', 'updated', 'deleted', 'restored', 'forceDeleted'], $triggers[0]['on']);
-        $this->assertSame(\App\Models\Reply::class, $triggers[1]['class']);
+        $this->assertSame(Reply::class, $triggers[1]['class']);
         $this->assertStringContainsString('/tasks', $nudge->url($task));
         $this->assertStringContainsString('open=14', $nudge->url($task));
     }
@@ -1138,7 +1160,7 @@ class MenuServiceTest extends TestCase
         $this->assertNotSame((new ThsNudge())->getKey(), $nudge->getKey());
         $this->assertFalse($nudge->badgeSuppressesCreate());
         $triggers = $nudge->triggers();
-        $this->assertSame(\App\Models\Reply::class, $triggers[0]['class']);
+        $this->assertSame(Reply::class, $triggers[0]['class']);
         $this->assertSame(['created', 'deleted'], $triggers[0]['on']);
         $this->assertSame(Ticket::class, $triggers[1]['class']);
         $this->assertSame(['updated'], $triggers[1]['on']);
@@ -1158,7 +1180,7 @@ class MenuServiceTest extends TestCase
         $resolver = $nudge->triggers()[0]['subject'];
 
         $this->assertTrue($reply->is($resolver($reply)));
-        $foreign = new \App\Models\Reply(['repliable_type' => Task::class]);
+        $foreign = new Reply(['repliable_type' => Task::class]);
         $this->assertNull($resolver($foreign));
         $this->assertStringContainsString('open=' . $ticket->id, $nudge->url($reply));
         $this->assertContains($requester->id, $nudge->for($reply)->pluck('id')->all());

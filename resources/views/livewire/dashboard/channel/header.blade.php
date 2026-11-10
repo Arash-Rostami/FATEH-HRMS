@@ -2,19 +2,10 @@
     $p = $this->presenter;
     $channel = $this->activeChannel;
     $header = $p->channelHeader($channel);
-    $isOwner = $channel
-        && $channel->owner_id !== null
-        && auth()->check()
-        && (int) $channel->owner_id === (int) auth()->id();
-    $typingMembers = $this->typingMembers ?? [];
-    $typingCount = count($typingMembers);
-    $channelIdJs = \Illuminate\Support\Js::from($header['id']);
-    $activeMembers = collect($this->channelMembers)->reject(fn (array $m) => $m['inactive']);
-    $onlineCount = $activeMembers->where('is_online', true)->count();
-    $lastMsgAt = collect($this->channels)->firstWhere('id', $header['id'])['last_message']['created_at'] ?? null;
-    $lastActivity = $lastMsgAt && \Illuminate\Support\Carbon::parse($lastMsgAt)->diffInMinutes(now()) >= 5
-        ? toJalaliRelative($lastMsgAt, dateAfterDays: 0)
-        : null;
+    [
+        'isOwner' => $isOwner, 'typingMembers' => $typingMembers, 'typingCount' => $typingCount,
+        'channelIdJs' => $channelIdJs, 'onlineCount' => $onlineCount, 'lastActivity' => $lastActivity,
+    ] = $p->headerState($channel, $header, $this->typingMembers, $this->channelMembers, $this->channels);
 @endphp
 
 <header class="chat-scale relative z-20 flex h-16 flex-shrink-0 items-center justify-between gap-2.5 md:gap-4 border-b px-3 md:px-5 transition-all duration-300

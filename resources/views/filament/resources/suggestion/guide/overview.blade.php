@@ -18,7 +18,7 @@
         [
             'icon' => 'block',
             'label' => 'مدیریت ارشد نمی‌تواند پیشنهاد ثبت کند',
-            'hint' => 'کاربران واحد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">MA</code> مجاز به ثبت پیشنهاد نیستند — هم یک قانون اعتبارسنجی (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">SuggestionSubmitterNotFromMa</code>) و هم یک نگهبان در اکشن ساخت این محدودیت را اجرا می‌کنند. فیلد «ثبت‌کننده» در فرم ادمین قفل‌شده و پیش‌فرض روی کاربر جاری است.',
+            'hint' => 'کاربران واحد مدیریت ارشد (MA) نمی‌توانند پیشنهاد ثبت کنند. در فرم مدیریت، «ثبت‌کننده» قابل تغییر نیست و به‌طور پیش‌فرض کاربر فعلی است.',
         ],
         [
             'icon' => 'edit_note',
@@ -28,7 +28,7 @@
         [
             'icon' => 'speed',
             'label' => 'شمارش بازخوردها',
-            'hint' => 'کوئری پایهٔ این منبع <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">withReviewCounts</code> را می‌زند تا شمارش موافق/نیمه‌موافق/مخالف به‌صورت ستون‌های مجزا بیاید — ستون‌های جدول این سه رقم را از همان کوئری می‌خوانند، نه با یک کوئری جداگانه در هر ردیف (بدون N+1).',
+            'hint' => 'تعداد بازخوردهای موافق، نیمه‌موافق و مخالف در ستون‌های جداگانهٔ جدول نمایش داده می‌شود.',
         ],
     ];
 @endphp
@@ -66,7 +66,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">tips_and_updates</span>
-                مرحلهٔ پیشنهاد را ادمین دستی عوض نمی‌کند — <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">syncStage</code> خودکار بر اساس بازخوردهای ثبت‌شده مرحله را محاسبه می‌کند (جزئیات در زبانهٔ «چرخهٔ بررسی»).
+                مرحلهٔ پیشنهاد به‌صورت خودکار و بر اساس بازخوردها تعیین می‌شود، نه با تغییر دستی مدیر. جزئیات در زبانهٔ «چرخهٔ بررسی» آمده است.
             </p>
         </div>
     </div>

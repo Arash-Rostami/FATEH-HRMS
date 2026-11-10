@@ -14,8 +14,9 @@ const BASE_ITEMS = [
     {id: 'tasksheet-controller', href: '/tasksheet', icon: 'assignment_turned_in', title: 'تسک‌شیت', sub: 'گزارش عملکرد شخصی', module: 'tasksheet', group: 'فضای کاری'},
     {id: 'ai-report-controller', href: '/ai-report', icon: 'article', title: 'گزارش ساز هوشمند', sub: 'تولید گزارش با هوش مصنوعی', module: 'ai-report', group: 'فضای کاری', ai: true},
     {id: 'ai-assistant', href: '-', icon: 'auto_awesome', title: 'دستیار هوش مصنوعی', sub: 'گفتگو با هوش مصنوعی', module: 'ai-assistant', action: 'ai-assistant', group: 'فضای کاری', ai: true, requires: 'aiAssistant'},
+    {id: 'correspondence-controller', href: '/correspondence', icon: 'mail', title: 'مکاتبات', sub: 'نامه‌های اداری', module: 'correspondence', group: 'خدمات', aiView: 'correspondence:ai'},
     {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس', module: 'dms', group: 'خدمات'},
-    {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری', module: 'ths', group: 'خدمات'},
+    {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری', module: 'ths', group: 'خدمات', aiView: 'ths:ai'},
     {id: 'suggestion-controller', href: '/suggestion', icon: 'lightbulb', title: 'پیشنهادات', sub: 'کانون نقاط نظر سازمانی', group: 'سازمان'},
     {id: 'reservation-seat', href: '/reservation?tab=seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری', resourceType: 'seat', module: 'reservation', group: 'رزرواسیون'},
     {id: 'reservation-spot', href: '/reservation?tab=spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک', resourceType: 'spot', module: 'reservation', group: 'رزرواسیون'},
@@ -423,6 +424,7 @@ export default function menu(options = {}) {
                     const {id} = base;
                     const item = {
                         ...base,
+                        ai: base.aiView ? options.aiOn === true && !off.has(base.aiView) : base.ai,
                         disabled: !!base.resourceType && disabledTypes.has(base.resourceType),
                         get hasNotification() {
                             return globalThis.Alpine?.store('menuBadges')?.on(id, menuState[id]) ?? !!menuState[id];

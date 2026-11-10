@@ -4,11 +4,11 @@ namespace App\Filament\Resources\LinkResource\Schemas;
 
 use Closure;
 use App\Enums\LinkIcon;
-use App\Filament\Resources\LinkResource\Enums\LinkType;
+use App\Enums\LinkType;
 use App\Models\Link;
 use App\Rules\ExtraRequiresInternalUrl;
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;

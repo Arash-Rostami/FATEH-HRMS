@@ -5,6 +5,7 @@ namespace Tests\Feature\Livewire\Dashboard;
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
 use App\Livewire\Dashboard\ReleaseRequest\Main;
+use App\Livewire\Dashboard\ReleaseRequest\Presentation\ReleaseRequestPresenter;
 use App\Models\ReleaseRequest;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -638,7 +639,7 @@ class ReleaseRequestTest extends TestCase
 
     public function test_type_meta_maps_each_release_request_type_to_icon_color_label(): void
     {
-        $presenter = new \App\Livewire\Dashboard\ReleaseRequest\Presentation\ReleaseRequestPresenter();
+        $presenter = new ReleaseRequestPresenter();
 
         $support = $presenter->typeMeta(ReleaseRequestType::Support->value);
         $this->assertSame('support_agent', $support['icon']);
@@ -656,7 +657,7 @@ class ReleaseRequestTest extends TestCase
 
     public function test_status_meta_returns_response_box_colors_for_every_status(): void
     {
-        $presenter = new \App\Livewire\Dashboard\ReleaseRequest\Presentation\ReleaseRequestPresenter();
+        $presenter = new ReleaseRequestPresenter();
 
         foreach (ReleaseRequestStatus::cases() as $status) {
             $meta = $presenter->statusMeta($status->value);

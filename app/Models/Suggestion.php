@@ -145,7 +145,7 @@ class Suggestion extends Model
     public static function notifyFields(): array
     {
         return [
-            'stage' => \App\Filament\Resources\SuggestionResource\Enums\SuggestionStage::class,
+            'stage' => \App\Enums\SuggestionStage::class,
             'priority' => ['low' => 'کم', 'medium' => 'متوسط', 'high' => 'زیاد'],
         ];
     }

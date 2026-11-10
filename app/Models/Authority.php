@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Filament\Resources\AuthorityResource\Enums\DelegationLevel;
-use App\Filament\Resources\AuthorityResource\Enums\ExecutionProcedure;
-use App\Filament\Resources\AuthorityResource\Enums\ImpactScore;
-use App\Filament\Resources\AuthorityResource\Enums\RepeatFrequency;
+use App\Enums\DelegationLevel;
+use App\Enums\ExecutionProcedure;
+use App\Enums\ImpactScore;
+use App\Enums\RepeatFrequency;
 use App\Models\Concerns\HasDepartment;
 use App\Models\Concerns\HasUser;
 use App\Models\Concerns\HasModelCache;

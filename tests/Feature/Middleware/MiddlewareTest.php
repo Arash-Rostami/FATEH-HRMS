@@ -4,12 +4,15 @@ namespace Tests\Feature\Middleware;
 
 use App\Http\Middleware\EnsureHasPermission;
 use App\Http\Middleware\EnsureUserModulePermission;
+use App\Http\Middleware\SecureLetterLink;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Cache\RateLimiter as CacheRateLimiter;
+use Illuminate\Http\Request;
 use Illuminate\Support\Once;
 use Tests\TestCase;
 
@@ -256,5 +259,34 @@ class MiddlewareTest extends TestCase
         Route::get('/_test/uls', fn () => response('OK'))->middleware([UpdateLastSeen::class]);
 
         $this->get('/_test/uls')->assertStatus(200);
+    }
+
+    public function test_secure_letter_link_applies_the_full_private_response_header_contract(): void
+    {
+        $response = (new SecureLetterLink())->handle(Request::create('/c/1-token'), fn () => response('body'));
+
+        foreach (SecureLetterLink::HEADERS as $name => $value) {
+            // Symfony appends ", private" to any computed Cache-Control without an explicit directive.
+            $expected = $name === 'Cache-Control' ? $value.', private' : $value;
+            $this->assertSame($expected, $response->headers->get($name));
+        }
+    }
+
+    public function test_correspondence_link_errors_render_empty_404_and_429_with_security_headers(): void
+    {
+        config(['cache.default' => 'array', 'cache.limiter' => 'array']);
+        Cache::setDefaultDriver('array');
+        $this->app->forgetInstance('cache.limiter');
+        $this->app->singleton('cache.limiter', fn ($app) => new CacheRateLimiter($app['cache']->store('array')));
+
+        $this->get('/c/0-invalid')->assertNotFound()->assertContent('')
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+            ->assertHeader('Cache-Control', 'no-store, private');
+
+        Route::middleware('throttle:1,1')->get('/c/test-throttle-render', fn () => response('ok'));
+        $this->get('/c/test-throttle-render')->assertOk();
+        $this->get('/c/test-throttle-render')->assertStatus(429)->assertContent('')
+            ->assertHeader('Referrer-Policy', 'no-referrer')
+            ->assertHeader('X-Frame-Options', 'DENY');
     }
 }

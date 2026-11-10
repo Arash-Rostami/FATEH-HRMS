@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\FAQResource\Schemas;
 
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;
 use Illuminate\Database\Eloquent\Model;

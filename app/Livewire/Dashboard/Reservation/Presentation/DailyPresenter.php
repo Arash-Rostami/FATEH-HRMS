@@ -3,7 +3,7 @@
 namespace App\Livewire\Dashboard\Reservation\Presentation;
 
 use App\Enums\ResourceType;
-use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Enums\UserType;
 use App\Models\Reservation;
 use App\Models\Resource;
 use App\Models\User;

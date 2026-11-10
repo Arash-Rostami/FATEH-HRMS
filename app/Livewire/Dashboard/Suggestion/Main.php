@@ -9,7 +9,7 @@ use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
 use App\Services\Cache\ModelCacheVersion;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;

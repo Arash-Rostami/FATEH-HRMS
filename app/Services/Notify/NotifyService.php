@@ -3,7 +3,7 @@
 namespace App\Services\Notify;
 
 use App\Enums\NotifyEvent;
-use App\Jobs\SendNotifyRule;
+use App\Jobs\SendNotifyRuleJob;
 use App\Models\NotifyRule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -57,7 +57,7 @@ final class NotifyService
             $payload = self::buildPayload($model, $event, $changed, $event === NotifyEvent::Deleted);
 
             foreach ($rules as $rule) {
-                dispatch(new SendNotifyRule($rule->id, $payload))->afterCommit();
+                dispatch(new SendNotifyRuleJob($rule->id, $payload))->afterCommit();
             }
         } catch (Throwable $e) {
             report($e);

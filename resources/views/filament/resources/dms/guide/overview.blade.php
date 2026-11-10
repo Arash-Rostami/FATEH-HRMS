@@ -8,7 +8,7 @@
         [
             'icon' => 'account_tree',
             'label' => 'دو نوع سند: اسناد و سوابق',
-            'hint' => 'فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">type</code> یک بولین است: <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">true</code> = اسناد (سند رسمی سازمان با کد و نسخه)، <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">false</code> = سوابق. اسکوپ‌های <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">systematic()</code> و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">nonSystematic()</code> کاربران را در دو زبانهٔ جداگانه می‌بینند. تغییر این مقدار، سند را از یک زبانه به زبانهٔ دیگر منتقل می‌کند.',
+            'hint' => 'نوع «اسناد» برای اسناد رسمی سازمان با کد و نسخه است؛ نوع «سوابق» برای نگهداری سوابق کاربرد دارد. کاربران هر نوع را در زبانه‌ای جدا می‌بینند. با تغییر نوع، مورد از یک زبانه به زبانهٔ دیگر منتقل می‌شود.',
         ],
         [
             'icon' => 'sync',

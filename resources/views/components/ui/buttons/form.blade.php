@@ -6,6 +6,7 @@
     'loadingText' => null,
     'showSpinner' => true,
     'size'    => null,
+    'href'    => null,
 ])
 
 @php
@@ -15,19 +16,34 @@
         'danger'    => 'bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] md3-btn hover:brightness-110 shadow-red-500/30',
         'ghost'     => 'bg-transparent hover:bg-[var(--md-sys-color-on-surface)]/10 text-[var(--md-sys-color-on-surface)] rounded-xl px-4 h-10',
         'tonal'     => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] rounded-xl h-10 px-4 text-sm font-bold',
+        'ai'        => 'bg-[var(--ai-bg)] text-[var(--ai-text)] border border-[color-mix(in_srgb,var(--ai-color)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--ai-bg)_78%,var(--ai-color))] rounded-xl h-10 px-4 text-sm font-bold',
         'none'      => '',
         default     => 'md3-btn',
     };
+
+    $icon ??= $variant === 'ai' ? 'auto_awesome' : null;
 
     $structuralClasses = $variant === 'none'
         ? 'relative inline-flex items-center justify-center disabled:cursor-not-allowed'
         : 'relative inline-flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95';
 
     $isIcon = $size === 'icon';
+
+    $tag = $href ? 'a' : 'button';
+
+    if ($href) {
+        $disabledLink = (bool) $attributes->get('disabled');
+        $attributes = $attributes->except('disabled');
+    }
 @endphp
 
-<button
-    type="{{ $type }}"
+<{{ $tag }}
+    @if($href)
+        href="{{ $href }}"
+        @if($disabledLink) aria-disabled="true" tabindex="-1" @endif
+    @else
+        type="{{ $type }}"
+    @endif
     @if($loading) wire:loading.attr="disabled" wire:target="{{ $loading }}" @endif
     {{ $attributes->merge([
         'class' => "$structuralClasses $baseClasses" . ($isIcon ? ' w-10 h-10 p-0 rounded-xl gap-0' : ' gap-2')
@@ -55,4 +71,4 @@
     @else
         {{ $slot }}
     @endif
-</button>
+</{{ $tag }}>

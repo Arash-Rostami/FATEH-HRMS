@@ -14,6 +14,7 @@ const MOBILE_BREAKPOINT = 768;
 const MAX_BODY_LENGTH = 4000;
 const UNDO_TOAST_MS = 4000;
 const SEND_LOCK_RESET_MS = 500;
+const CHIPS_FADE_MS = 3000;
 const NEAR_BOTTOM_PX = 120;
 const LOAD_OLDER_SCROLL_THRESHOLD = 80;
 const SCROLL_FAB_DISTANCE_THRESHOLD = 200;
@@ -28,6 +29,13 @@ const TOO_LONG_MSG = 'متن پیام نباید بیشتر از ۴۰۰۰ کار
 
 const RF_ID_OFFSET = DATA_RF_MESSAGE_PREFIX.length + 1;
 const ROW_SEL = `[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`;
+const UNREAD_SEL = `[${TOTAL_UNREAD_ATTR}]`;
+const TYPING_SEL = '[data-typing]';
+const CHANNEL_COUNT_SEL = '[data-channel-count]';
+const FLASH_CLASS = 'record-focus-flash';
+const EDITABLE_SEL = 'input, textarea, [contenteditable]';
+const FIELD_SEL = 'input, textarea, select, [contenteditable]';
+const WS = /\s/;
 
 const ta = () => document.getElementById(MSG_TEXTAREA_ID);
 const rowId = (row) => parseInt(row.getAttribute('data-rf').substring(RF_ID_OFFSET), 10) || 0;
@@ -87,6 +95,7 @@ export default function channel() {
 
             document.addEventListener('selectionchange', () => {
                 if (selRaf) return;
+                if (!this.quoteChip.visible && getSelection()?.isCollapsed) return;
                 selRaf = requestAnimationFrame(() => {
                     selRaf = null;
                     const chip = this._selectionChip();
@@ -97,7 +106,7 @@ export default function channel() {
 
             document.addEventListener('keydown', (e) => {
                 if (e.key !== '/' || e.isComposing || !this.$root.contains(e.target)) return;
-                if (document.activeElement?.closest?.('input, textarea, select, [contenteditable]')) return;
+                if (document.activeElement?.closest?.(FIELD_SEL)) return;
                 if (this.searchMessages) return;
                 e.preventDefault();
                 this.openMessageSearch();
@@ -244,7 +253,7 @@ export default function channel() {
             if (!node || !this._msgViewportEl?.contains(node)) return;
 
             const el = node.nodeType === 1 ? node : node.parentElement;
-            if (!el || el.closest('input, textarea, [contenteditable]')) return;
+            if (!el || el.closest(EDITABLE_SEL)) return;
 
             const row = el.closest(ROW_SEL);
             if (!row) return;
@@ -308,7 +317,7 @@ export default function channel() {
         _sendTypingPing() { return this._isl().pingTyping(); },
 
         _readUnread() {
-            return parseInt(document.querySelector(`[${TOTAL_UNREAD_ATTR}]`)?.getAttribute(TOTAL_UNREAD_ATTR), 10) || 0;
+            return parseInt(document.querySelector(UNREAD_SEL)?.getAttribute(TOTAL_UNREAD_ATTR), 10) || 0;
         },
 
         _readLastMessageMarker() {
@@ -317,18 +326,19 @@ export default function channel() {
         },
 
         _readTypingMarker() {
-            return document.querySelector('[data-typing]')?.getAttribute('data-typing') ?? null;
+            return document.querySelector(TYPING_SEL)?.getAttribute('data-typing') ?? null;
         },
 
         syncChannelCount() {
-            const el = document.querySelector('[data-channel-count]');
+            const el = document.querySelector(CHANNEL_COUNT_SEL);
             if (el) this.channelCount = parseInt(el.getAttribute('data-channel-count'), 10) || 0;
         },
 
         syncPushNotify() {
             this._riseOnlyMuted();
             const now = this._readUnread();
-            if (this._lastUnread !== undefined && now > this._lastUnread) {
+            const last = this._lastUnread;
+            if (last !== undefined && now > last) {
                 this.$store.push.notify('پیام جدید', 'یک گروه پیام جدید دارد', SCOPE);
                 if (!this.$wire.activeChannelId) this._ringIncoming(null);
             }
@@ -361,7 +371,7 @@ export default function channel() {
 
             const v = el.value;
             const pos = el.selectionStart ?? v.length;
-            const sp = pos > 0 && !/\s/.test(v[pos - 1]) ? ' ' : '';
+            const sp = pos > 0 && !WS.test(v[pos - 1]) ? ' ' : '';
             const next = v.substring(0, pos) + sp + '@' + v.substring(pos);
 
             el.value = next;
@@ -383,7 +393,7 @@ export default function channel() {
             const at = lastAt(v, pos);
             const segment = at < 0 ? '' : v.substring(at + 1, pos);
 
-            if (at < 0 || /\s/.test(segment) || (at > 0 && !/\s/.test(v[at - 1]))) {
+            if (at < 0 || WS.test(segment) || (at > 0 && !WS.test(v[at - 1]))) {
                 this.mentionOpen = false;
                 return;
             }
@@ -460,10 +470,10 @@ export default function channel() {
             const el = document.querySelector(`[data-rf="${DATA_RF_MESSAGE_PREFIX}-${id}"]`);
             if (!el) { this._isl().focusMessage(id).catch(() => {}); return; }
 
-            document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
+            document.querySelectorAll(`.${FLASH_CLASS}`).forEach(n => n.classList.remove(FLASH_CLASS));
             el.style.animation = 'none';
             this.programmaticScroll(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-            el.classList.add('record-focus-flash');
+            el.classList.add(FLASH_CLASS);
         },
 
         filterSender(name) {
@@ -492,7 +502,7 @@ export default function channel() {
 
         scheduleChipsFade() {
             clearTimeout(fadeTimer);
-            fadeTimer = setTimeout(() => { this.chipsVisible = false; }, 3000);
+            fadeTimer = setTimeout(() => { this.chipsVisible = false; }, CHIPS_FADE_MS);
         },
 
         selectChannel(id) {

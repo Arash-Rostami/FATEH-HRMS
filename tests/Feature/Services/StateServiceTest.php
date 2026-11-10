@@ -2,7 +2,13 @@
 
 namespace Tests\Feature\Services;
 
+use App\Models\AiReport;
 use App\Models\User;
+use App\Models\Correspondence;
+use App\Models\Ticket;
+use App\Services\Menu\Indicators\CorrespondenceBadge;
+use App\Services\Menu\Indicators\ThsBadge;
+use App\Services\Menu\Indicators\UnseenAiReports;
 use App\Services\Menu\StateService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -100,5 +106,221 @@ class StateServiceTest extends TestCase
 
         $this->actingAs($user2);
         $this->assertFalse(StateService::viewedToday('home'));
+    }
+
+    public function test_correspondence_badge_covers_waiting_signatures_and_recent_unseen_letters(): void
+    {
+        $author = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $viewer = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $badge = app(CorrespondenceBadge::class);
+
+        $this->assertFalse($badge->isActive());
+        $this->actingAs($viewer);
+        $waiting = Correspondence::forceCreate([
+            'user_id' => $author->id,
+            'direction' => Correspondence::DIRECTION_OUT,
+            'type' => 'letter',
+            'status' => Correspondence::STATUS_SHARED,
+            'route_mode' => Correspondence::ROUTE_SEQUENTIAL,
+            'awaiting_user_id' => $viewer->id,
+            'shared_at' => now(),
+            'created_at' => now(),
+            'parties' => [],
+        ]);
+        $this->assertTrue($badge->isActive());
+
+        $waiting->forceFill(['status' => Correspondence::STATUS_DONE, 'awaiting_user_id' => null])->save();
+        $unseen = Correspondence::forceCreate([
+            'user_id' => $author->id,
+            'direction' => Correspondence::DIRECTION_OUT,
+            'type' => 'letter',
+            'status' => Correspondence::STATUS_SHARED,
+            'route_mode' => Correspondence::ROUTE_SEQUENTIAL,
+            'shared_at' => now(),
+            'created_at' => now(),
+            'parties' => [['user_id' => $viewer->id, 'role' => 'fyi', 'opened_at' => null, 'signed_at' => null]],
+            'recipients' => [$viewer->id],
+        ]);
+        $this->assertTrue($badge->isActive());
+        $unseen->forceFill(['parties' => [['user_id' => $viewer->id, 'role' => 'fyi', 'opened_at' => now()->toIso8601String()]]])->save();
+        $this->assertFalse($badge->isActive());
+
+        Correspondence::forceCreate([
+            'user_id' => $author->id,
+            'direction' => Correspondence::DIRECTION_OUT,
+            'type' => 'letter',
+            'status' => Correspondence::STATUS_SHARED,
+            'route_mode' => Correspondence::ROUTE_PARALLEL,
+            'shared_at' => now()->subMonths(7),
+            'created_at' => now()->subMonths(7),
+            'parties' => [['user_id' => $viewer->id, 'role' => 'approver', 'opened_at' => null, 'signed_at' => null]],
+            'recipients' => [$viewer->id],
+        ]);
+        $this->assertFalse($badge->isActive());
+    }
+
+    private function sharedLetter(User $author, array $overrides): Correspondence
+    {
+        return Correspondence::forceCreate(array_replace([
+            'user_id' => $author->id,
+            'direction' => Correspondence::DIRECTION_OUT,
+            'type' => 'letter',
+            'status' => Correspondence::STATUS_SHARED,
+            'route_mode' => Correspondence::ROUTE_SEQUENTIAL,
+            'shared_at' => now(),
+            'created_at' => now(),
+            'parties' => [],
+            'recipients' => [],
+        ], $overrides));
+    }
+
+    public function test_correspondence_badge_lights_for_an_unsigned_parallel_approver_and_not_once_she_has_signed(): void
+    {
+        $author = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $viewer = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $badge = app(CorrespondenceBadge::class);
+        $this->actingAs($viewer);
+        $parallel = fn (array $party, $sharedAt) => $this->sharedLetter($author, [
+            'route_mode' => Correspondence::ROUTE_PARALLEL,
+            'shared_at' => $sharedAt,
+            'parties' => [array_replace(['user_id' => $viewer->id, 'role' => 'approver', 'opened_at' => now()->toIso8601String()], $party)],
+            'recipients' => [$viewer->id],
+        ]);
+
+        $signed = $parallel(['signed_at' => now()->toIso8601String()], now()->subDays(40));
+        $this->assertFalse($badge->isActive());
+
+        $signed->forceFill(['parties' => [['user_id' => $viewer->id, 'role' => 'approver', 'opened_at' => now()->toIso8601String()]]])->save();
+        $this->assertTrue($badge->isActive());
+    }
+
+    public function test_correspondence_badge_ignores_unseen_letters_older_than_thirty_days_and_signed_or_opened_ones(): void
+    {
+        $author = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $viewer = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $badge = app(CorrespondenceBadge::class);
+        $this->actingAs($viewer);
+        $party = ['user_id' => $viewer->id, 'role' => 'fyi'];
+
+        $this->sharedLetter($author, ['shared_at' => now()->subDays(31), 'parties' => [$party], 'recipients' => [$viewer->id]]);
+        $this->sharedLetter($author, ['parties' => [[...$party, 'signed_at' => now()->toIso8601String()]], 'recipients' => [$viewer->id]]);
+        $this->sharedLetter($author, ['status' => Correspondence::STATUS_APPROVED, 'parties' => [$party], 'recipients' => [$viewer->id]]);
+        $this->assertFalse($badge->isActive());
+
+        $this->sharedLetter($author, ['shared_at' => now()->subDays(29), 'parties' => [$party], 'recipients' => [$viewer->id]]);
+        $this->assertTrue($badge->isActive());
+    }
+
+    public function test_ths_and_ai_report_indicators_are_registered_in_the_menu_state_map(): void
+    {
+        $user = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $this->actingAs($user);
+
+        $state = app(StateService::class)->get();
+
+        $this->assertArrayHasKey('ths-controller', $state);
+        $this->assertArrayHasKey('ai-report-controller', $state);
+        $this->assertSame('ths-controller', (new ThsBadge())->getKey());
+        $this->assertSame('ai-report-controller', (new UnseenAiReports())->getKey());
+    }
+
+    public function test_ths_badge_lights_for_a_requester_awaiting_rating_and_clears_once_rated(): void
+    {
+        $requester = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $this->actingAs($requester);
+        $badge = new ThsBadge();
+
+        $ticket = Ticket::factory()->create([
+            'requester_id' => $requester->id,
+            'status' => 'closed',
+            'satisfaction_score' => null,
+            'action_result' => null,
+        ]);
+        $this->assertTrue($badge->isActive());
+
+        $ticket->forceFill(['satisfaction_score' => 5])->saveQuietly();
+        $this->assertFalse($badge->isActive());
+    }
+
+    public function test_ths_badge_ignores_a_withdrawn_ticket_and_is_off_for_guests(): void
+    {
+        $requester = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        Ticket::factory()->create([
+            'requester_id' => $requester->id,
+            'status' => 'closed',
+            'satisfaction_score' => null,
+            'action_result' => Ticket::WITHDRAWN_RESULT,
+        ]);
+        $badge = new ThsBadge();
+
+        $this->actingAs($requester);
+        $this->assertFalse($badge->isActive());
+
+        auth()->logout();
+        $this->assertFalse($badge->isActive());
+    }
+
+    public function test_ths_badge_clears_for_the_assignee_when_the_ticket_leaves_in_progress(): void
+    {
+        $assignee = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $this->actingAs($assignee);
+        $badge = new ThsBadge();
+        $ticket = Ticket::factory()->create(['assigned_to' => $assignee->id, 'status' => 'in-progress']);
+
+        $this->assertTrue($badge->isActive());
+
+        $ticket->forceFill(['status' => 'closed', 'satisfaction_score' => 4])->saveQuietly();
+        $this->assertFalse($badge->isActive());
+    }
+
+    public function test_unseen_ai_reports_badge_lights_for_a_shared_ready_report_and_clears_when_opened(): void
+    {
+        $owner = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $recipient = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $badge = new UnseenAiReports();
+        $report = AiReport::create([
+            'user_id' => $owner->id,
+            'status' => AiReport::STATUS_READY,
+            'active' => true,
+            'saved_at' => now(),
+            'recipients' => [$recipient->id],
+            'spec' => ['lang' => 'fa', 'title' => 'گزارش', 'pages' => []],
+        ]);
+
+        $this->actingAs($recipient);
+        $this->assertTrue($badge->isActive());
+
+        $this->actingAs($owner);
+        $this->assertFalse($badge->isActive());
+
+        $report->markSeenBy($recipient->id);
+        $this->actingAs($recipient);
+        $this->assertFalse($badge->isActive());
+    }
+
+    public function test_unseen_ai_reports_badge_ignores_drafts_and_inactive_reports_and_guests(): void
+    {
+        $owner = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $recipient = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $base = [
+            'user_id' => $owner->id,
+            'status' => AiReport::STATUS_READY,
+            'active' => true,
+            'saved_at' => now(),
+            'recipients' => [$recipient->id],
+            'spec' => ['lang' => 'fa', 'title' => 'گزارش', 'pages' => []],
+        ];
+        AiReport::create([...$base, 'saved_at' => null]);
+        AiReport::create([...$base, 'active' => false]);
+        $badge = new UnseenAiReports();
+
+        $this->actingAs($recipient);
+        $this->assertFalse($badge->isActive());
+
+        AiReport::create($base);
+        $this->assertTrue($badge->isActive());
+
+        auth()->logout();
+        $this->assertFalse($badge->isActive());
     }
 }

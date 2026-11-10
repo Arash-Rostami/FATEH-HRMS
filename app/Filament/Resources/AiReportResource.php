@@ -5,7 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AiReportResource\Pages\{ListAiReports, ViewAiReport};
 use App\Filament\Resources\AiReportResource\Schemas\{AiReportInfolistPresenter, AiReportTablePresenter};
 use App\Models\AiReport;
-use App\Traits\{AuthorizesByPermission, FilamentActions, FilamentAdminGuide, FilamentFilters, FilamentVisibility};
+use App\Traits\Filament\{AuthorizesByPermission, FilamentActions, FilamentAdminGuide, FilamentFilters, FilamentVisibility};
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

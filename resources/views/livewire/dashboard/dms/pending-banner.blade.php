@@ -20,7 +20,7 @@
                                 wire:click="togglePendingFilter('receive')"
                                 class="font-bold rounded px-1.5 transition-colors {{ $pendingFilter === 'receive' ? 'bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]' : 'underline decoration-dotted underline-offset-4 hover:text-[var(--md-sys-color-error)]' }}"
                         >{{ convertToPersian($this->receivePendingCount) }}</button>
-                        سند نیاز به تایید دریافت
+                        سند به تأیید دریافت
                     </span>
                 @endif
                 @if($this->receivePendingCount > 0 && $this->readPendingCount > 0)
@@ -33,7 +33,7 @@
                                 wire:click="togglePendingFilter('read')"
                                 class="font-bold rounded px-1.5 transition-colors {{ $pendingFilter === 'read' ? 'bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]' : 'underline decoration-dotted underline-offset-4 hover:text-[var(--md-sys-color-error)]' }}"
                         >{{ convertToPersian($this->readPendingCount) }}</button>
-                        سند نیاز به تایید مطالعه
+                        سند به تأیید مطالعه
                     </span>
                 @endif
                 دارند؛ لطفاً اقدام بفرمایید. این اقدام به عنوان امضای دیجیتال، تأیید آگاهی شما از اطلاعات ارائه شده تلقی می‌شود.

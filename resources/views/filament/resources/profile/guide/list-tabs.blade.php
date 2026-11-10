@@ -27,7 +27,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">زبانه‌های فهرست بر اساس وضعیت استخدام</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        فهرست پروفایل‌ها به چهار زبانه تقسیم می‌شود. تعداد روی هر زبانه یک‌جا محاسبه می‌شود. زبانه‌ها فقط وقتی نمایش داده می‌شوند که گزینهٔ نمایش زبانه‌ها در تنظیمات کاربری شما روشن باشد؛ در غیر این صورت فهرست بدون زبانه و فیلتر باز می‌شود.
+        از چهار زبانه برای دیدن پروفایل‌ها بر اساس وضعیت استخدام استفاده کنید. نمایش زبانه‌ها را می‌توانید در تنظیمات خود خاموش کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

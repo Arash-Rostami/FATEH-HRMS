@@ -97,9 +97,8 @@ someone's literal line manager. When resolution is ambiguous or null (no departm
 already is the top of their department), the method returns a failure message rather than guessing or
 silently failing, and `Main.php`/`UserResource` surface it as a toast/notification.
 
-Note: it does **not** go through `InteractsWithNotifications::notifyWithAction()` — that trait
-hardcodes the recipient to `auth()->user()` and its action always `dispatch()`es an event, never
-`->url()`s. Tasksheet needs to notify a *different* user (the manager) with a clickable `->url()`
+Note: it builds the notification inline (the former `InteractsWithNotifications` trait was deleted 2026-11-10; it hardcoded the recipient to `auth()->user()` and always `dispatch()`ed an event, never
+`->url()`s). Tasksheet needs to notify a *different* user (the manager) with a clickable `->url()`
 action, which that trait's contract can't express, so `TasksheetShareService` calls
 `Filament\Notifications\Notification::make()->sendToDatabase($manager)` directly instead.
 
@@ -264,7 +263,7 @@ same toggler `taskboard.blade.php`/`project.blade.php` already use between each 
 - `Actions/ExportTasksheetAction.php` — OpenSpout XLSX streaming export, sourced from `TasksheetService::report()`.
 - `resources/views/livewire/dashboard/tasksheet.blade.php` — the primary view (parent level, per `viewPattern.md` §2's cardinal rule).
 - `resources/views/livewire/dashboard/tasksheet/` — its partials: `header`, `scorecard`, `highlights`, `projects-accordion`, `standalone-accordion`, `row-table`, `task-table`, `activity-accordion`, `legend`, `placeholder`.
-- `app/Traits/RiskEscalationChip.php` — the success→warning→error tone-class primitive, extracted out of `ProjectPresenter` so `TasksheetPresenter` reuses the exact same escalation logic instead of a second copy (see `traitPattern.md` §2.2).
+- `app/Traits/Livewire/RiskEscalationChip.php` — the success→warning→error tone-class primitive, extracted out of `ProjectPresenter` so `TasksheetPresenter` reuses the exact same escalation logic instead of a second copy (see `traitPattern.md` §2.2).
 
 ## Overhaul sync (2026-10-09)
 

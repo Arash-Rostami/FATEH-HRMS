@@ -3,7 +3,7 @@
         [
             'icon' => 'corporate_fare',
             'label' => 'واحدهای مالک',
-            'hint' => 'فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">owners</code> یک آرایهٔ JSON از کدهای واحد است. انتخاب «همه واحدها» مقدار ویژهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">ALL</code> را ذخیره می‌کند — این کلمهٔ کلیدی است، نه یک واحد واقعی. اسکوپ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">visibleToUser</code> با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">orWhereJsonContains(owners, ALL)</code> سند را به کل سازمان منتشر می‌کند.',
+            'hint' => 'واحدهای دریافت‌کنندهٔ سند را انتخاب کنید. با انتخاب «همه واحدها»، سند در دسترس کل سازمان قرار می‌گیرد.',
         ],
         [
             'icon' => 'person',

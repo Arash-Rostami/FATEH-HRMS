@@ -14,6 +14,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -435,7 +436,7 @@ class NavbarTest extends TestCase
         $payload = $action->execute();
         $this->assertSame($staleValue, $payload);
 
-        app(\Illuminate\Support\Defer\DeferredCallbackCollection::class)->invoke();
+        app(DeferredCallbackCollection::class)->invoke();
 
         $this->assertSame($staleValue, Cache::get('weather.tehran'));
     }

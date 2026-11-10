@@ -5,7 +5,7 @@ namespace App\Filament\Resources\DepartmentResource\RelationManagers;
 use App\Filament\Resources\ReportResource\Schemas\ReportFormPresenter;
 use App\Filament\Resources\ReportResource\Schemas\ReportInfolistPresenter;
 use App\Filament\Resources\ReportResource\Schemas\ReportTablePresenter;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;

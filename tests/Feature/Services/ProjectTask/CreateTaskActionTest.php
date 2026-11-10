@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\ProjectTask\CreateTaskAction;
+use App\Traits\ResolvesTaskDeadline;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -129,7 +130,7 @@ class CreateTaskActionTest extends TestCase
         ]);
         $form = $this->form($owner);
         $resolver = new class {
-            use \App\Traits\ResolvesTaskDeadline;
+            use ResolvesTaskDeadline;
 
             public function call(...$args)
             {

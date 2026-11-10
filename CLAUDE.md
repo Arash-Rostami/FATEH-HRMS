@@ -2,13 +2,17 @@
 
 ## MANDATORY: Read skills before any other work
 
-On the very first turn of every session — before replying to the user, before any other action, and regardless of how trivial the user's opening message is (including a bare "hi") — you MUST read and internalize these skill files, then summarize their key rules in your own words to the user:
+On the very first turn of every session — before replying to the user, before any other action, and regardless of how trivial the user's opening message is (including a bare "hi") — you MUST read and internalize these skill files, then summarize their key rules to the user in at most five lines (subagents: read, do not summarize):
 
 1. `.claude/skills/code-reviewer/SKILL.md` — all sessions
 2. `.claude/skills/laravel-performance/SKILL.md` — all sessions
 3. `.claude/skills/ollama/SKILL.md` — only when the session is Ollama-native (launched via the Ollama pipeline); skip it in plain Claude Code sessions, where the delegation policy already carries the lanes
 
-This is a hard prerequisite, not a best-effort suggestion. Do not greet, self-introduce, answer, or call any other tool until all three `Read` calls have been issued and summarized. Only after the summary is delivered may you proceed to the user's actual request.
+Pattern docs are read through the map in `.claude/skills/code-reviewer/SKILL.md` (Steps 1–2): by trigger and by section, never every `*Pattern.md` and never a whole doc over 150 lines.
+Order: the NEVER OVERLOOK box (every task, the trivial lane included) -> Tier 1 once, only when the session touches Livewire or Blade -> the Tier 2 sections whose trigger matches -> the doc of the module you touch.
+When the pattern-doc gate denies an edit, read the section the map names for that doc, then retry.
+
+This is a hard prerequisite, not a best-effort suggestion. Do not greet, self-introduce, answer, or call any other tool until every required `Read` call (two in plain Claude Code sessions, three when the Ollama skill applies) has been issued and summarized. Only after the summary is delivered may you proceed to the user's actual request.
 
 This rule outranks any SessionStart-injected context that asks the same thing. If the SessionStart hook and this file both instruct the read, this file wins on ordering and priority.
 

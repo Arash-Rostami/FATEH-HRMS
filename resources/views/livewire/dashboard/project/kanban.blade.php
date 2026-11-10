@@ -72,7 +72,7 @@
         <div class="w-full sm:w-36 shrink-0">
             <x-ui.forms.select label="اولویت" name="kanbanPriorityFilter" wire:model.live="kanbanPriorityFilter" icon="flag">
                 <option value="">همه اولویت‌ها</option>
-                @foreach(\App\Filament\Resources\TaskResource\Enums\TaskPriority::cases() as $p)
+                @foreach(\App\Enums\TaskPriority::cases() as $p)
                     <option value="{{ $p->value }}">{{ $p->getLabel() }}</option>
                 @endforeach
             </x-ui.forms.select>

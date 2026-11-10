@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Config;
 
 class ContentSanitizerService
 {
-    private const MAX_BYTES = 65000;
+    public const MAX_BYTES = 65000;
 
     /** Invisible/formatting artifacts from copy-paste. Safe to strip from HTML. */
     private const ARTIFACTS = [

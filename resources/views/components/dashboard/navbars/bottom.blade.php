@@ -92,8 +92,8 @@
             <span class="material-symbols-rounded text-[16px]">visibility_off</span>
             <span>فقط آیکون</span>
         </button>
-        <button type="button" @click="setLabelPreset('smart')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-colors duration-200" :class="labelPreset === 'smart' ? 'bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'">
-            <span class="material-symbols-rounded text-[16px]">auto_awesome</span>
+        <button type="button" @click="setLabelPreset('smart')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-colors duration-200" :class="labelPreset === 'smart' ? 'bg-[var(--ai-bg)] text-[var(--ai-text)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'">
+            <span class="material-symbols-rounded text-[16px] text-[var(--ai-color)]">auto_awesome</span>
             <span>هوشمند (نوار خودپنهان)</span>
         </button>
     </div>

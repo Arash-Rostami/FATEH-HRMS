@@ -8,17 +8,17 @@
         [
             'icon' => 'edit',
             'label' => 'ویرایش (فقط متن)',
-            'hint' => 'فرم ویرایش فقط بدنهٔ پیام را قابل ویرایش می‌کند؛ فرستنده، گیرنده، پیش‌نمایش پاسخ و پیوست‌ها همه فقط قابل مشاهده‌اند. با ذخیره، فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">is_edited</code> خودکار <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">true</code> می‌شود — در نتیجه ستون «ویرایش‌شده» و نشان صفحهٔ جزئیات روشن می‌گردد. سقف متن ۱۰٬۰۰۰ نویسه است.',
+            'hint' => 'فقط متن پیام را می‌توانید ویرایش کنید؛ فرستنده، گیرنده، پیش‌نمایش پاسخ و پیوست‌ها فقط قابل مشاهده‌اند. پس از ذخیره، ستون و نشان «ویرایش‌شده» فعال می‌شوند. سقف متن ۱۰٬۰۰۰ نویسه است.',
         ],
         [
             'icon' => 'autorenew',
             'label' => 'بازیابی',
-            'hint' => 'دکمهٔ «بازیابی» فقط روی پیام‌های حذف‌شده ظاهر می‌شود. با تأیید، <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">deleted_at</code> پاک می‌شود و پیام به فهرست عادی برمی‌گردد.',
+            'hint' => 'برای بازگرداندن پیام حذف‌شده، «بازیابی» را انتخاب و تأیید کنید. پیام به فهرست عادی برمی‌گردد.',
         ],
         [
             'icon' => 'delete',
             'label' => 'حذف قابل بازیابی',
-            'hint' => 'دکمهٔ «حذف» فقط روی پیام‌های حذف‌نشده ظاهر می‌شود. این یک حذف قابل بازیابی است — <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">deleted_at</code> را پر می‌کند و پیام از دید کاربر می‌رود ولی رکورد محفوظ می‌ماند. بعد از ۳۰ روز خودکار هرس می‌شود (زبانهٔ «حذف و بازیابی» را ببینید).',
+            'hint' => 'دکمهٔ «حذف» فقط برای پیام‌های حذف‌نشده دیده می‌شود. پیام از دید کاربر پنهان می‌شود، اما قابل بازیابی است. پس از ۳۰ روز خودکار پاک می‌شود؛ زبانهٔ «حذف و بازیابی» را ببینید.',
         ],
         [
             'icon' => 'download',

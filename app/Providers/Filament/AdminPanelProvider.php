@@ -2,14 +2,14 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use App\Filament\Widgets\AccountWidget;
 use App\Filament\Widgets\Dashboard;
 use App\Http\Middleware\EnsureHasPermission;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Livewire\Admin\ManagePreferences;
 use App\Services\FilamentMenuService;
-use App\Support\FaultTolerantGlobalSearchProvider;
-use App\Support\FilamentPanelCustomizer;
+use App\Services\Search\FaultTolerantGlobalSearchProvider;
 use Filament\Enums\GlobalSearchPosition;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
@@ -38,7 +38,7 @@ class AdminPanelProvider extends PanelProvider
                 ->default()
                 ->id('admin')
                 ->path('admin')
-                ->login(\App\Filament\Pages\Auth\Login::class)
+                ->login(Login::class)
                 ->when(! tenantOff('password-reset'), fn (Panel $panel) => $panel->passwordReset())
                 ->colors(config('colors'))
                 ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

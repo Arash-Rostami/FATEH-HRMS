@@ -8,9 +8,9 @@ use App\Filament\Resources\AuthorityResource\Schemas\{AuthorityFormPresenter,
     AuthorityInfolistPresenter,
     AuthorityTablePresenter};
 use App\Models\Authority;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;

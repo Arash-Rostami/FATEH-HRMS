@@ -4,7 +4,7 @@ namespace App\Livewire\Dashboard\Reminder\Actions;
 
 use App\Livewire\Dashboard\Reminder\Forms\ReminderForm;
 use App\Models\Reminder;
-use App\Traits\ResolvesReminderDueDate;
+use App\Traits\Livewire\ResolvesReminderDueDate;
 
 class UpdateReminderAction
 {

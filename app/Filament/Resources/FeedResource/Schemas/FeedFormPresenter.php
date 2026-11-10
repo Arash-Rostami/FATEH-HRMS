@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\FeedResource\Schemas;
 
-use App\Filament\Resources\FeedResource\Enums\FeedCategory;
+use App\Enums\FeedCategory;
 use App\Models\Feed;
 use App\Support\FileNamer;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;

@@ -2,9 +2,16 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\FAQResource;
 use App\Filament\Resources\FAQResource\Pages\CreateFAQ;
 use App\Filament\Resources\FAQResource\Pages\EditFAQ;
 use App\Filament\Resources\FAQResource\Pages\ListFAQs;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
+use App\Models\Department;
 use App\Models\FAQ;
 use App\Models\Permission;
 use App\Models\User;
@@ -193,8 +200,8 @@ class FAQResourceTest extends TestCase
     public function test_department_filter_scopes_list_to_matching_department()
     {
         $admin = $this->developer();
-        $deptA = \App\Models\Department::factory()->create();
-        $deptB = \App\Models\Department::factory()->create();
+        $deptA = Department::factory()->create();
+        $deptB = Department::factory()->create();
 
         $matching = FAQ::factory()->create(['user_id' => $admin->id, 'department_id' => $deptA->code]);
         $other = FAQ::factory()->create(['user_id' => $admin->id, 'department_id' => $deptB->code]);
@@ -278,8 +285,8 @@ class FAQResourceTest extends TestCase
     public function test_sorting_by_department_and_user_orders_records_correctly()
     {
         $admin = $this->developer();
-        $deptA = \App\Models\Department::factory()->create(['name' => '0-AAA-sort-department']);
-        $deptZ = \App\Models\Department::factory()->create(['name' => '0-ZZZ-sort-department']);
+        $deptA = Department::factory()->create(['name' => '0-AAA-sort-department']);
+        $deptZ = Department::factory()->create(['name' => '0-ZZZ-sort-department']);
         $userA = User::factory()->create(['name' => '0-AAA-sort-user']);
         $userZ = User::factory()->create(['name' => '0-ZZZ-sort-user']);
 
@@ -322,21 +329,21 @@ class FAQResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\FAQResource\Pages\CreateFAQ::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\FAQResource\Pages\EditFAQ::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\FAQResource\Pages\ListFAQs::class => \App\Filament\Pages\ListRecords::class,
+            CreateFAQ::class => CreateRecord::class,
+            EditFAQ::class => EditRecord::class,
+            ListFAQs::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\FAQResource\Pages\CreateFAQ::class, \App\Filament\Resources\FAQResource\Pages\EditFAQ::class];
+        $writers = [CreateFAQ::class, EditFAQ::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 

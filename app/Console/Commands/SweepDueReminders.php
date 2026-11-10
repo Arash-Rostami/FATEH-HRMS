@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ReconcileEdge;
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileEdgeJob;
+use App\Jobs\ReconcileNudgeJob;
 use App\Models\Reminder;
 use App\Services\Menu\Notifications\ReminderOverdueNudge;
 use App\Services\Menu\Toasts\ReminderDueTodayEdge;
@@ -25,7 +25,7 @@ class SweepDueReminders extends Command
             ->select('id')
             ->chunkById(200, function ($reminders) use ($overdueKey) {
                 foreach ($reminders as $reminder) {
-                    ReconcileNudge::dispatch($overdueKey, Reminder::class, $reminder->id);
+                    ReconcileNudgeJob::dispatch($overdueKey, Reminder::class, $reminder->id);
                 }
             });
 
@@ -38,7 +38,7 @@ class SweepDueReminders extends Command
             ->with('user')
             ->chunkById(200, function ($reminders) use ($dueTodayKey) {
                 foreach ($reminders as $reminder) {
-                    ReconcileEdge::dispatch($dueTodayKey, Reminder::class, $reminder->id);
+                    ReconcileEdgeJob::dispatch($dueTodayKey, Reminder::class, $reminder->id);
 
                     $reminder->deliverDue();
                 }

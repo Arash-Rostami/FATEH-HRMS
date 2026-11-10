@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\TaskResource\Exports;
 
-use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Enums\TaskStatus;
 use App\Models\Task;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;

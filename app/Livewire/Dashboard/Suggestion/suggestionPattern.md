@@ -155,7 +155,6 @@ app/Filament/Resources/SuggestionResource/
 ├── Pages/CreateSuggestion.php                            admin create — SAME SuggestionAccessPolicy::buildReviewRows (admin panel pipeline)
 ├── Pages/ViewSuggestion.php                               admin decision/feedback/mark-complete header actions — SAME policy visible() checks as Detail.php
 ├── Pages/{EditSuggestion,ListSuggestions}.php
-├── Enums/{SuggestionStage,ReviewFeedback}.php
 ├── RelationManagers/ReviewsRelationManager.php
 └── Schemas/{SuggestionFormPresenter,SuggestionInfolistPresenter,SuggestionTablePresenter}.php
 

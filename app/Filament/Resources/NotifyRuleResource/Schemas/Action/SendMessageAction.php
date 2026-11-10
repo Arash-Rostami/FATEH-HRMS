@@ -4,7 +4,7 @@ namespace App\Filament\Resources\NotifyRuleResource\Schemas\Action;
 
 use App\Filament\Resources\NotifyRuleResource;
 use App\Filament\Resources\NotifyRuleResource\Schemas\NotifyRuleFormPresenter;
-use App\Jobs\SendNotifyRule;
+use App\Jobs\SendNotifyRuleJob;
 use App\Models\Department;
 use App\Models\NotifyRule;
 use App\Services\Notify\NotifyRegistry;
@@ -93,7 +93,7 @@ class SendMessageAction
                 ]);
 
                 try {
-                    dispatch(new SendNotifyRule($rule->id, [
+                    dispatch(new SendNotifyRuleJob($rule->id, [
                         'model' => NotifyRule::ONE_OFF,
                         'id' => $rule->id,
                         'label' => __('resources/notify_rule/strings.manual.label'),

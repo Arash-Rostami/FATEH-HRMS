@@ -161,7 +161,7 @@ class Main extends Component
 
     public function loadMoreReports(): void
     {
-        $this->listLimit = min($this->listLimit + $this->pageSize(), (int) config('ai_report.list_max'));
+        $this->listLimit = min($this->listLimit + $this->pageSize(), (int) config('ai.report.list_max'));
         $this->listSignature = '';
         unset($this->reports);
     }
@@ -330,7 +330,7 @@ class Main extends Component
         $version = $report?->status === AiReport::STATUS_FAILED ? $report->lastVersion() : [];
         $prompt = $version['prompt'] ?? null;
 
-        if (!filled($prompt) || in_array($report->fail_reason, config('ai_report.no_refund'), true)) {
+        if (!filled($prompt) || in_array($report->fail_reason, config('ai.report.no_refund'), true)) {
             return;
         }
 
@@ -632,7 +632,7 @@ class Main extends Component
     private function applyPresets(array $version): void
     {
         foreach (['type' => 'types', 'length' => 'lengths', 'audience' => 'audiences'] as $key => $group) {
-            if (is_string($version[$key] ?? null) && is_array(config("ai_report.{$group}.{$version[$key]}"))) {
+            if (is_string($version[$key] ?? null) && is_array(config("ai.report.{$group}.{$version[$key]}"))) {
                 $this->form->{$key} = $version[$key];
             }
         }
@@ -657,7 +657,7 @@ class Main extends Component
         $what = $columns !== '' ? "مجموع ستون «{$columns}»" : 'ارقام';
         $where = filled($block['heading'] ?? null) ? " در جدول «{$block['heading']}»" : ' در این جدول';
 
-        return mb_substr("{$what}{$where} با ردیف‌ها نمی‌خواند؛ لطفاً ارقام را با فایل پیوست یا درخواست اصلی تطبیق بده و جدول را اصلاح کن.", 0, (int) config('ai_report.prompt.max'));
+        return mb_substr("{$what}{$where} با ردیف‌ها نمی‌خواند؛ لطفاً ارقام را با فایل پیوست یا درخواست اصلی تطبیق بده و جدول را اصلاح کن.", 0, (int) config('ai.report.prompt.max'));
     }
 
     private function listQuery(): Builder
@@ -772,7 +772,7 @@ class Main extends Component
         };
 
         if ($result['truncated']) {
-            return [$message . ' تعداد گیرندگان به سقف ' . convertToPersian(config('ai_report.max_recipients')) . ' نفر محدود شد.', 'warning'];
+            return [$message . ' تعداد گیرندگان به سقف ' . convertToPersian(config('ai.report.max_recipients')) . ' نفر محدود شد.', 'warning'];
         }
 
         return [$message, $type];

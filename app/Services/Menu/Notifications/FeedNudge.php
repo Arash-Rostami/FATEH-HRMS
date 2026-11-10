@@ -2,7 +2,7 @@
 
 namespace App\Services\Menu\Notifications;
 
-use App\Filament\Resources\FeedResource\Enums\FeedCategory;
+use App\Enums\FeedCategory;
 use App\Models\Feed;
 use App\Models\User;
 use App\Services\Menu\Contracts\MenuNudge;

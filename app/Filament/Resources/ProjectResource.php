@@ -8,10 +8,10 @@ use App\Filament\Resources\ProjectResource\RelationManagers\WorkflowsRelationMan
 use App\Filament\Resources\ProjectResource\Schemas\{ProjectFormPresenter, ProjectInfolistPresenter, ProjectTablePresenter};
 use App\Models\Project;
 use App\Services\ProjectTask\TaskMetrics;
-use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentActions;
-use App\Traits\FilamentAdminGuide;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\AuthorizesByPermission;
+use App\Traits\Filament\FilamentActions;
+use App\Traits\Filament\FilamentAdminGuide;
+use App\Traits\Filament\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;

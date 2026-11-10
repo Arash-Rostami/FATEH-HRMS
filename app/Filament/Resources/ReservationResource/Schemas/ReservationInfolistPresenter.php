@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ReservationResource\Schemas;
 
 use App\Enums\CancelReason;
 use App\Enums\ReservationStatus;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\IconPosition;

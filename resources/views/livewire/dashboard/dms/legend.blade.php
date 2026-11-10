@@ -1,8 +1,8 @@
 @php
     $rows = [
-        ['icon' => 'edit_document', 'color' => 'error', 'label' => 'نیازمند تایید دریافت', 'text' => 'سند تازه به کارتابل شما رسیده و هنوز تایید نکرده‌اید که آن را دریافت کرده‌اید.'],
-        ['icon' => 'menu_book', 'color' => 'tertiary', 'label' => 'نیازمند تایید مطالعه', 'text' => 'دریافت سند را تایید کرده‌اید؛ اکنون باید محتوای آن را مطالعه و تایید مطالعه کنید.'],
-        ['icon' => 'check_circle', 'color' => 'primary', 'label' => 'مطالعه شده', 'text' => 'هر دو تایید (دریافت و مطالعه) ثبت شده و اقدامی از شما لازم نیست.'],
+        ['icon' => 'edit_document', 'color' => 'error', 'label' => 'نیازمند تأیید دریافت', 'text' => 'سند تازه به کارتابل شما رسیده است. دریافت آن را تأیید کنید.'],
+        ['icon' => 'menu_book', 'color' => 'tertiary', 'label' => 'نیازمند تأیید مطالعه', 'text' => 'دریافت سند را تأیید کرده‌اید. اکنون سند را بخوانید و مطالعهٔ آن را تأیید کنید.'],
+        ['icon' => 'check_circle', 'color' => 'primary', 'label' => 'مطالعه شده', 'text' => 'دریافت و مطالعهٔ سند تأیید شده است. اقدام دیگری لازم نیست.'],
     ];
 @endphp
 
@@ -29,7 +29,7 @@
     <div class="mt-5 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/40 space-y-2">
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>
-            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">این دو تایید جداگانه، معادل امضای دیجیتال است: تایید دریافت یعنی «سند را دیده‌ام»، تایید مطالعه یعنی «محتوای آن را خوانده و پذیرفته‌ام». تا هر دو ثبت نشود، سند در کارتابل به‌عنوان اقدام مورد نیاز باقی می‌ماند.</p>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">تأیید سند در دو مرحله ثبت می‌شود: ابتدا دریافت سند و سپس مطالعه و پذیرش محتوای آن را تأیید کنید. تا ثبت هر دو مرحله، سند در بخش «اقدام مورد نیاز» باقی می‌ماند.</p>
         </div>
     </div>
 
@@ -45,7 +45,7 @@
         </div>
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">link_off</span>
-            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر فایل سند باز نمی‌شود (صفحهٔ ۴۰۴)، آن سند برای واحد شما منتشر نشده یا فعال نیست — دسترسی فایل از مسیر امن بررسی می‌شود.</p>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر فایل سند در دسترس نیست، ممکن است سند غیرفعال شده باشد یا دسترسی واحد شما تغییر کرده باشد. برای بررسی، با مدیر سامانه تماس بگیرید.</p>
         </div>
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">file_present</span>

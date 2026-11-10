@@ -4,11 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\EventResource\Exports\EventExporter;
 use App\Filament\Resources\EventResource\RelationManagers\EventSharesRelationManager;
-use App\Traits\AuthorizesByPermission;
+use App\Traits\Filament\AuthorizesByPermission;
 use App\Filament\Resources\EventResource\Pages\{CreateEvent, EditEvent, ListEvents};
 use App\Filament\Resources\EventResource\Schemas\{EventFormPresenter, EventInfolistPresenter, EventTablePresenter};
 use App\Models\Event;
-use App\Traits\{FilamentActions, FilamentAdminGuide};
+use App\Traits\Filament\{FilamentActions, FilamentAdminGuide};
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;

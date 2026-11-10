@@ -2,14 +2,17 @@
 
 namespace App\Livewire\Dashboard\Suggestion\Forms;
 
-use Livewire\Attributes\Validate;
 use Livewire\Form;
 
 class FeedbackForm extends Form
 {
-    #[Validate('required|in:agree,neutral,disagree')]
     public string $feedback = '';
     public string $comment = '';
+
+    public function rules(): array
+    {
+        return ['feedback' => 'required|in:agree,neutral,disagree'];
+    }
 
     public function messages(): array
     {

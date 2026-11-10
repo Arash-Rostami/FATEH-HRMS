@@ -1,7 +1,8 @@
 @props(['kpis' => 4, 'rows' => 4])
 
-<div aria-busy="true" {{ $attributes->merge(['class' => 'flex flex-col gap-4 w-full text-start print:hidden']) }}>
+<div aria-busy="true" {{ $attributes->merge(['class' => 'relative flex flex-col gap-4 w-full text-start print:hidden [&_.animate-pulse]:!animate-none']) }}>
     <span class="sr-only">در حال آماده‌سازی گزارش…</span>
+    <x-ui.loaders.ai-shimmer class="rounded-2xl"/>
     <div class="flex flex-col gap-4" aria-hidden="true">
         <x-ui.loaders.skeleton.bar width="w-1/2" height="h-5"/>
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">

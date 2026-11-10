@@ -7,7 +7,7 @@ use App\Filament\Resources\SuggestionResource\Schemas\SuggestionFormPresenter;
 use App\Filament\Resources\SuggestionResource\Schemas\SuggestionInfolistPresenter;
 use App\Filament\Resources\SuggestionResource\Schemas\SuggestionTablePresenter;
 use App\Models\Suggestion;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use Filament\Actions\CreateAction;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;

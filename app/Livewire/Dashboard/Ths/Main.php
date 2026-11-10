@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Ths;
 
 use App\Livewire\Dashboard\Ths\Actions\SubmitRatingAction;
 use App\Livewire\Dashboard\Ths\Actions\SubmitTicketAction;
+use App\Livewire\Dashboard\Ths\Actions\SuggestTicketTextAction;
 use App\Livewire\Dashboard\Ths\Forms\RatingForm;
 use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
@@ -12,9 +13,10 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Ticket\TicketInsightsService;
 use App\Support\TicketAccessPolicy;
-use App\Traits\FocusOnRecord;
-use App\Traits\HasDateSpan;
+use App\Traits\Livewire\FocusOnRecord;
+use App\Traits\Livewire\HasDateSpan;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -265,6 +267,30 @@ class Main extends Component
 
         $this->activeTab = 'log';
         $this->dispatch('toast', message: 'درخواست شما با موفقیت ثبت شد.', type: 'success');
+    }
+
+    public function suggestTicketText(SuggestTicketTextAction $action): array
+    {
+        $result = $action->execute($this->ticket);
+
+        if ($result['error']) {
+            $this->dispatch('toast', message: match ($result['error']) {
+                'busy' => 'لطفاً چند لحظه صبر کنید.',
+                'blocked' => 'متن شما توسط سرویس هوش مصنوعی پذیرفته نشد؛ یک الگوی آماده درج شد و این بار از سهمیه کسر شد.',
+                'too_large' => 'پاسخ هوش مصنوعی کامل نشد؛ یک الگوی آماده درج شد.',
+                'long' => 'متن شما برای دستیار طولانی است؛ آن را کوتاه‌تر کنید.',
+                'quota' => 'سهمیهٔ امروز تمام شد؛ یک الگوی آماده درج شد.',
+                default => 'دستیار هوشمند در دسترس نیست؛ یک الگوی آماده درج شد.',
+            }, type: in_array($result['error'], ['busy', 'quota', 'long'], true) ? 'warning' : 'error');
+        }
+
+        return Arr::only($result, ['source', 'question', 'blanks', 'left']);
+    }
+
+    #[Computed]
+    public function aiLeft(): int
+    {
+        return max(0, Ticket::quotaCap() - Ticket::quotaUsed((int) auth()->id()));
     }
 
     public function switchTab(string $tab): void

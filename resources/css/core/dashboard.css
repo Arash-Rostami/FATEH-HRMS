@@ -578,6 +578,15 @@
         letter-spacing: 0.03em;
     }
 
+    .ai-suggested .md3-input {
+        color: color-mix(in srgb, var(--md-sys-color-on-surface), transparent 15%);
+        box-shadow: inset -3px 0 0 color-mix(in srgb, var(--ai-color), transparent 45%);
+    }
+
+    .ai-suggested .md3-input:focus {
+        box-shadow: inset -3px 0 0 color-mix(in srgb, var(--ai-color), transparent 45%), 0 8px 24px -14px color-mix(in srgb, var(--md-sys-color-primary), transparent 40%);
+    }
+
     .md3-switch {
         @apply relative inline-flex h-8 w-14 items-center rounded-full cursor-pointer border-2 border-transparent;
         background-color: var(--md-sys-color-surface-variant);
@@ -1054,6 +1063,72 @@
 
     .app-density-compact .ai-report-table tbody td {
         @apply !py-0
+    }
+
+    .app-density-compact .correspondence-table tbody td {
+        @apply !py-0
+    }
+
+    .correspondence-editor .ProseMirror {
+        min-height: 8rem;
+        outline: none;
+        color: var(--md-sys-color-on-surface);
+    }
+
+    .correspondence-editor .ProseMirror p { margin: 0 0 0.5rem; }
+    .correspondence-editor .ProseMirror h2 { font-size: 1.125rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }
+    .correspondence-editor .ProseMirror h3 { font-size: 1rem; font-weight: 700; margin: 0.5rem 0 0.25rem; }
+    .correspondence-editor .ProseMirror ul { list-style: disc; padding-inline-start: 1.5rem; margin: 0 0 0.5rem; }
+    .correspondence-editor .ProseMirror ol { list-style: decimal; padding-inline-start: 1.5rem; margin: 0 0 0.5rem; }
+    .correspondence-editor .ProseMirror table { width: 100%; border-collapse: collapse; margin: 0 0 0.5rem; }
+    .correspondence-editor .ProseMirror th,
+    .correspondence-editor .ProseMirror td { border: 1px solid var(--md-sys-color-outline-variant); padding: 0.25rem 0.5rem; }
+    .correspondence-editor .ProseMirror th { font-weight: 700; background: var(--md-sys-color-surface-container-highest); }
+    .correspondence-editor .ProseMirror blockquote { margin: 0 0 0.5rem; padding-inline-start: 0.75rem; border-inline-start: 3px solid var(--md-sys-color-outline-variant); color: var(--md-sys-color-on-surface-variant); }
+    .correspondence-editor .ProseMirror hr { border: 0; border-top: 1px solid var(--md-sys-color-outline); margin: 0.75rem 0; }
+    .correspondence-editor .ProseMirror hr.ProseMirror-selectednode { border-top-color: var(--md-sys-color-primary); }
+    .correspondence-editor .ProseMirror hr[style*="page-break-after"] { position: relative; border-top: 1px dashed var(--md-sys-color-outline); margin: 1.25rem 0; overflow: visible; }
+    .correspondence-editor .ProseMirror hr[style*="page-break-after"]::after { content: "شکست صفحه"; position: absolute; top: -0.7rem; left: 50%; transform: translateX(-50%); padding: 0 0.5rem; font-size: 0.75rem; line-height: 1.25rem; color: var(--md-sys-color-on-surface-variant); background: var(--md-sys-color-surface); }
+    .correspondence-editor .ProseMirror a { color: var(--md-sys-color-primary); text-decoration: underline; cursor: text; }
+    .correspondence-editor .ProseMirror mark { color: inherit; border-radius: 0.125rem; }
+    .correspondence-editor:focus-within { border-color: var(--md-sys-color-primary); }
+
+    [data-letter-editor][data-fullscreen] {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        gap: 0.75rem;
+        overscroll-behavior: contain;
+        background: color-mix(in srgb, var(--md-sys-color-surface) 95%, transparent);
+        padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    }
+
+    [data-letter-editor][data-fullscreen] > * {
+        width: 100%;
+        max-width: none;
+    }
+
+    [data-letter-editor][data-fullscreen] .correspondence-editor {
+        flex: 1 1 0%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    [data-letter-editor][data-fullscreen] .correspondence-editor > div {
+        flex: 1 1 0%;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    [data-letter-editor][data-fullscreen] .correspondence-editor > button {
+        display: none;
+    }
+
+    @media (min-width: 768px) {
+        [data-letter-editor][data-fullscreen] {
+            padding-block: max(1.5rem, env(safe-area-inset-top));
+        }
     }
 
     .app-density-compact .reservation-command-table .reservation-action-cluster {
@@ -1542,6 +1617,15 @@ html.max-restore #footer {
 
 #footer.layout-hidden {
     transform: translateY(10px);
+}
+
+body:has([data-letter-editor][data-fullscreen]) #content-shell {
+    position: relative;
+    z-index: 9999;
+}
+
+body:has([data-letter-editor][data-fullscreen]) > .z-\[110\] {
+    z-index: 10000;
 }
 
 @media (width < 48rem) {
@@ -2792,6 +2876,9 @@ html.declutter .right-rail:hover button:not(.rail-home) {
   body:has(.ai-report-doc) > :not(#content-shell) { display: none !important; }
   body:has(.ai-report-doc) #content-shell .print\:hidden { display: none !important; }
   body:has(.ai-report-doc) { background: #fff; color: #000; }
+  body:has(.correspondence-paper) > :not(#content-shell) { display: none !important; }
+  body:has(.correspondence-paper) #content-shell .print\:hidden { display: none !important; }
+  body:has(.correspondence-paper) { background: #fff; color: #000; }
   .ai-report-doc { color: #000; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .ai-report-page + .ai-report-page { break-before: page; }
   .ai-report-keep { break-inside: avoid; }

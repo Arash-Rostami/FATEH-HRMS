@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
+use App\Filament\Resources\ReportResource;
 use App\Filament\Resources\AiReportResource;
 use App\Filament\Resources\AiReportResource\Pages\ListAiReports;
 use App\Filament\Resources\AiReportResource\Pages\ViewAiReport;
 use App\Filament\Resources\AiReportResource\Schemas\AiReportTablePresenter;
 use App\Jobs\GenerateReportJob;
+use App\Jobs\ReconcileNudgeJob;
 use App\Livewire\Dashboard\AiReport\Actions\DeleteReportAction;
 use App\Livewire\Dashboard\AiReport\Actions\GenerateReportAction;
 use App\Livewire\Dashboard\AiReport\Actions\ShareReportAction;
@@ -17,14 +19,24 @@ use App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter;
 use App\Models\AiReport;
 use App\Models\Permission;
 use App\Models\User;
+use App\Services\Ai\AiClient;
 use App\Services\AiReport\BlockCatalog;
 use App\Services\AiReport\FileExtractor;
 use App\Services\AiReport\ReportAiService;
+use App\Services\Menu\BadgeLegendCatalog;
+use App\Services\Menu\Indicators\UnseenAiReports;
+use App\Services\Menu\Notifications\AiReportNudge;
+use App\Services\Menu\NudgeService;
+use App\Services\Menu\StateService;
 use App\Support\AiReportAccessPolicy;
-use App\Support\AiReportUploadLimits;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Factory as HttpClientFactory;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +44,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Livewire\Features\SupportFileUploads\FileUploadConfiguration;
 use Livewire\Livewire;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Row;
@@ -52,7 +66,7 @@ class AiReportTest extends TestCase
         Livewire::withoutLazyLoading();
         app()->setLocale('fa');
         Storage::fake('local');
-        config(['services.ai_report.key' => 'test-key', 'services.ai_report.url' => 'https://gateway.test/v1', 'ai_report.daily_cap' => 10]);
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'ai.report.daily_cap' => 10]);
     }
 
     protected function tearDown(): void
@@ -241,7 +255,7 @@ class AiReportTest extends TestCase
         $this->assertFalse(AiReportAccessPolicy::canGenerate($this->user(['status' => 'inactive'])));
         $this->assertFalse(AiReportAccessPolicy::canGenerate(null));
 
-        config(['services.ai_report.key' => '']);
+        config(['ai.gateway.key' => '']);
         $this->assertFalse(AiReportAccessPolicy::canGenerate($this->user()));
     }
 
@@ -359,8 +373,8 @@ class AiReportTest extends TestCase
 
     public function test_report_ai_service_repairs_once(): void
     {
-        Http::swap(new \Illuminate\Http\Client\Factory);
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview', 'services.ai_report.max_output' => 16384]);
+        Http::swap(new HttpClientFactory);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview', 'ai.gateway.max_output' => 16384]);
         $spec = [
             'lang' => 'fa',
             'title' => 'عنوان آزمایشی',
@@ -379,6 +393,8 @@ class AiReportTest extends TestCase
         Http::assertSentCount(2);
         Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'apikey test-key')
             && $request['response_format']['type'] === 'json_schema'
+            && $request['response_format']['json_schema']['name'] === 'report'
+            && $request['response_format']['json_schema']['strict'] === true
             && $request['messages'][1]['content'][0]['type'] === 'file'
             && collect($request['messages'][1]['content'])->last()['type'] === 'text'
             && $request['max_tokens'] === 16384);
@@ -386,8 +402,8 @@ class AiReportTest extends TestCase
 
     public function test_report_ai_service_does_not_repair_a_length_cutoff(): void
     {
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
+        Http::swap(new HttpClientFactory);
         Http::fake(['*' => Http::response(['choices' => [['finish_reason' => 'length', 'message' => ['content' => '{']]]])]);
         try {
             app(ReportAiService::class)->generate('یک درخواست آزمایشی');
@@ -400,8 +416,8 @@ class AiReportTest extends TestCase
 
     public function test_report_ai_service_does_not_repair_a_content_filter_block(): void
     {
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
+        Http::swap(new HttpClientFactory);
         Http::fake(['*' => Http::response(['choices' => [['finish_reason' => 'content_filter', 'message' => ['content' => '']]]])]);
         $this->expectException(\DomainException::class);
         $this->expectExceptionMessage('blocked');
@@ -462,13 +478,12 @@ class AiReportTest extends TestCase
         }
     }
 
-    public function test_share_notifies_only_new_integer_ids(): void
+    public function test_share_counts_only_new_integer_ids_and_keeps_one_bell_per_unseen_recipient(): void
     {
         $owner = $this->user();
         $already = $this->user();
         $fresh = $this->user();
         $report = $this->report($owner, ['title' => 'گزارش', 'recipients' => [(int) $already->id]]);
-        $before = DB::table('notifications')->where('notifiable_id', $already->id)->count();
 
         $result = app(ShareReportAction::class)->execute($report, $owner, [(string) $already->id, (string) $fresh->id, (string) $owner->id]);
 
@@ -476,8 +491,9 @@ class AiReportTest extends TestCase
         $this->assertSame(1, $result['added']);
         $this->assertSame([(int) $already->id, (int) $fresh->id], $saved);
         $this->assertIsInt($saved[0]);
-        $this->assertSame($before, DB::table('notifications')->where('notifiable_id', $already->id)->count());
+        $this->assertSame(1, DB::table('notifications')->where('notifiable_id', $already->id)->count());
         $this->assertSame(1, DB::table('notifications')->where('notifiable_id', $fresh->id)->count());
+        $this->assertSame(0, DB::table('notifications')->where('notifiable_id', $owner->id)->count());
     }
 
     public function test_generate_job_refunds_quota_once_per_failure(): void
@@ -519,7 +535,7 @@ class AiReportTest extends TestCase
         $bidi['title'] = "گزارش\u{202E}آزمایشی";
         $this->assertStringNotContainsString("\u{202E}", BlockCatalog::validate($bidi)['title']);
 
-        config(['ai_report.spec.pages' => 1]);
+        config(['ai.report.spec.pages' => 1]);
         $tooMany = $this->spec();
         $tooMany['pages'][] = $tooMany['pages'][0];
         $this->expectException(\InvalidArgumentException::class);
@@ -563,7 +579,7 @@ class AiReportTest extends TestCase
             @unlink($path);
         }
 
-        config(['file_upload_limits.ai.total' => 1024]);
+        config(['ai.report.upload.total_kb' => 1024]);
         $big = tempnam(sys_get_temp_dir(), 'air');
         file_put_contents($big, str_repeat("hello report text line\n", 45600));
         $form->files = [new UploadedFile($big, 'big.txt', 'text/plain', UPLOAD_ERR_OK, true)];
@@ -571,12 +587,12 @@ class AiReportTest extends TestCase
             app(GenerateReportAction::class)->execute($form, $owner);
             $this->fail('the total cap did not fire');
         } catch (ValidationException $e) {
-            $this->assertStringContainsString(convertToPersian(intdiv((int) config('file_upload_limits.ai.total'), 1024)), $e->errors()['form.files'][0]);
+            $this->assertStringContainsString(convertToPersian(intdiv((int) config('ai.report.upload.total_kb'), 1024)), $e->errors()['form.files'][0]);
         } finally {
             @unlink($big);
         }
 
-        config(['ai_report.upload.max_files' => 1, 'file_upload_limits.ai.total' => 25600]);
+        config(['ai.report.upload.max_files' => 1, 'ai.report.upload.total_kb' => 25600]);
         $form->files = [
             UploadedFile::fake()->create('a.txt', 1, 'text/plain'),
             UploadedFile::fake()->create('b.txt', 1, 'text/plain'),
@@ -665,7 +681,7 @@ class AiReportTest extends TestCase
 
     public function test_share_truncated_flag_ignores_ineligible_extras(): void
     {
-        config(['ai_report.max_recipients' => 1]);
+        config(['ai.report.max_recipients' => 1]);
         $owner = $this->user();
         $first = $this->user();
         $guest = $this->user(['type' => 'guest']);
@@ -679,7 +695,7 @@ class AiReportTest extends TestCase
 
     public function test_share_caps_recipients_and_the_job_writes_the_ready_row(): void
     {
-        config(['ai_report.max_recipients' => 1]);
+        config(['ai.report.max_recipients' => 1]);
         $owner = $this->user();
         $first = $this->user();
         $second = $this->user();
@@ -707,7 +723,7 @@ class AiReportTest extends TestCase
             ]],
         ]);
         Storage::disk('local')->put($generating->tempDirectory() . '/1-bad.docx', "PK\x03\x04not-a-zip");
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         Http::fake(function () use ($generating, $spec) {
             $skipped = $generating->fresh()->versions[0]['skipped'][0]['name'] ?? null;
             if ($skipped !== 'bad.docx') {
@@ -970,6 +986,123 @@ class AiReportTest extends TestCase
         $this->assertSame([false, false, true, false], array_column((new AiReportPresenter())->versions($report), 'is_current'));
     }
 
+    public function test_composer_state_decides_submit_rights_refine_target_and_quota_tone(): void
+    {
+        $owner = $this->user();
+        $this->actingAs($owner);
+        $presenter = new AiReportPresenter();
+        $limits = $presenter->limits();
+        $quota = fn (int $used, int $cap = 10) => ['used' => $used, 'cap' => $cap];
+
+        $fresh = $presenter->composerState(null, true, $quota(2), false, null, $limits);
+        $this->assertFalse($fresh['refining']);
+        $this->assertFalse($fresh['busy']);
+        $this->assertFalse($fresh['inactive']);
+        $this->assertFalse($fresh['sectionRefine']);
+        $this->assertTrue($fresh['canSubmit']);
+        $this->assertSame(20, $fresh['quotaPct']);
+        $this->assertSame(8, $fresh['quotaLeft']);
+        $this->assertSame('text-[var(--md-sys-color-on-surface-variant)]', $fresh['quotaTone']['text']);
+
+        $warn = $presenter->composerState(null, true, $quota(8), false, null, $limits);
+        $this->assertSame('text-[var(--tool-gold-color)]', $warn['quotaTone']['text']);
+        $this->assertTrue($warn['canSubmit']);
+
+        $full = $presenter->composerState(null, true, $quota(10), false, null, $limits);
+        $this->assertTrue($full['exhausted']);
+        $this->assertFalse($full['canSubmit']);
+        $this->assertSame('bg-[var(--md-sys-color-error)]', $full['quotaTone']['fill']);
+        $this->assertSame(0, $full['quotaLeft']);
+
+        $over = $presenter->composerState(null, true, $quota(12), false, null, $limits);
+        $this->assertSame(100, $over['quotaPct']);
+        $this->assertSame(0, $over['quotaLeft']);
+
+        $zero = $presenter->composerState(null, true, $quota(0, 0), false, null, $limits);
+        $this->assertSame(0, $zero['quotaPct']);
+        $this->assertTrue($zero['exhausted']);
+
+        $ready = $this->report($owner);
+        $refine = $presenter->composerState($ready, true, $quota(1), false, null, $limits);
+        $this->assertTrue($refine['refining']);
+        $this->assertTrue($refine['canSubmit']);
+        $this->assertFalse($presenter->composerState($ready, true, $quota(1), true, null, $limits)['canSubmit']);
+        $this->assertFalse($presenter->composerState($ready, false, $quota(1), false, null, $limits)['refining']);
+        $this->assertNull($presenter->composerState($ready, true, $quota(1), false, 'zz', $limits)['blockLabel']);
+        $this->assertFalse($presenter->composerState($ready, true, $quota(1), false, 'zz', $limits)['sectionRefine']);
+
+        $generating = $this->report($owner, ['status' => AiReport::STATUS_GENERATING]);
+        $busy = $presenter->composerState($generating, true, $quota(1), false, null, $limits);
+        $this->assertTrue($busy['busy']);
+        $this->assertFalse($busy['refining']);
+        $this->assertFalse($busy['canSubmit']);
+
+        $parked = $this->report($owner, ['active' => false]);
+        $inactive = $presenter->composerState($parked, true, $quota(1), false, null, $limits);
+        $this->assertTrue($inactive['inactive']);
+        $this->assertFalse($inactive['refining']);
+        $this->assertFalse($presenter->composerState($parked, false, $quota(1), false, null, $limits)['inactive']);
+
+        $rules = $fresh['rules'];
+        $this->assertSame(['سهمیه', 'فایل‌ها', 'همزمانی', 'اشتراک', 'بازبینی'], array_keys($rules));
+        $this->assertStringContainsString(convertToPersian('10'), $rules['سهمیه']);
+        $this->assertStringContainsString(convertToPersian((string) $limits['files']), $rules['فایل‌ها']);
+    }
+
+    public function test_table_chrome_helpers_decide_filter_state_and_load_more(): void
+    {
+        $presenter = new AiReportPresenter();
+
+        $this->assertSame(['all', 'mine', 'shared', 'draft', 'saved', 'inactive'], array_keys($presenter->filterLabels()));
+        $this->assertFalse($presenter->isFiltered('all', ''));
+        $this->assertTrue($presenter->isFiltered('mine', ''));
+        $this->assertTrue($presenter->isFiltered('all', 'x'));
+
+        config(['ai.report.list_max' => 20]);
+        $this->assertTrue($presenter->showLoadMore(10, 10));
+        $this->assertFalse($presenter->showLoadMore(9, 10));
+        $this->assertFalse($presenter->showLoadMore(20, 20));
+    }
+
+    public function test_block_editor_state_lists_only_editable_text_fields_and_locks_the_assumptions_heading(): void
+    {
+        $presenter = new AiReportPresenter();
+        $faHeading = (string) config('ai.report.assumptions.heading.fa');
+        $enHeading = (string) config('ai.report.assumptions.heading.en');
+        $report = $this->report($this->user());
+        $english = $this->report($this->user(), ['spec' => ['lang' => 'en', 'title' => 'R', 'pages' => []]]);
+
+        $draft = [
+            'type' => 'table',
+            'check' => 'mismatch',
+            'heading' => 'H',
+            'columns' => ['A', 'B'],
+            'rows' => [['1', '2']],
+            'total' => ['3', '4'],
+            'tone' => 'warn',
+            'bullets' => ['x', 'y'],
+            'pct' => 5,
+            'meta' => ['unit' => 'kg', 'note' => 'n'],
+        ];
+        $state = $presenter->blockEditor($draft, $report);
+
+        $this->assertSame(['heading', 'columns.0', 'columns.1', 'bullets.0', 'bullets.1', 'meta.note'], $state['fields']->keys()->all());
+        $this->assertSame(2, $state['width']);
+        $this->assertFalse($state['isAssumptions']);
+        $this->assertSame('جمع', $state['labels']['total']);
+        $this->assertContains('bullets', $state['long']);
+
+        $this->assertTrue($presenter->blockEditor(['type' => 'section', 'heading' => $faHeading], $report)['isAssumptions']);
+        $this->assertFalse($presenter->blockEditor(['type' => 'table', 'heading' => $faHeading], $report)['isAssumptions']);
+        $this->assertFalse($presenter->blockEditor(['type' => 'section', 'heading' => 'other'], $report)['isAssumptions']);
+        $this->assertTrue($presenter->blockEditor(['type' => 'section', 'heading' => $enHeading], $english)['isAssumptions']);
+        $this->assertSame(0, $presenter->blockEditor(['type' => 'text'], null)['width']);
+
+        $this->assertSame('نکته ' . convertToPersian(1), $presenter->blockFieldLabel('bullets.0'));
+        $this->assertSame('ردیف ' . convertToPersian(2) . ' ' . convertToPersian(3), $presenter->blockFieldLabel('rows.1.2'));
+        $this->assertSame('custom', $presenter->blockFieldLabel('custom'));
+    }
+
     public function test_poll_status_toasts_exactly_once_per_transition(): void
     {
         $owner = $this->user();
@@ -1027,7 +1160,7 @@ class AiReportTest extends TestCase
         $open = $this->report($owner);
         $other = $this->generatingReport($owner);
         $component = Livewire::actingAs($owner)->test(Main::class, ['report' => $open]);
-        $component->assertSeeHtml('wire:poll.visible.' . config('ai_report.poll_seconds') . 's="pollList"');
+        $component->assertSeeHtml('wire:poll.visible.' . config('ai.report.poll_seconds') . 's="pollList"');
 
         $signature = $component->get('listSignature');
         $this->assertStringContainsString($other->id . ':' . AiReport::STATUS_GENERATING . ':', $signature);
@@ -1053,7 +1186,7 @@ class AiReportTest extends TestCase
     {
         $owner = $this->user();
         $open = $this->generatingReport($owner);
-        $seconds = config('ai_report.poll_seconds');
+        $seconds = config('ai.report.poll_seconds');
 
         $viewer = Livewire::actingAs($owner)->test(Main::class, ['report' => $open]);
         $viewer->assertSeeHtml('wire:poll.visible.' . $seconds . 's="pollStatus"')->assertDontSeeHtml('ai-report-list-polling');
@@ -1109,7 +1242,7 @@ class AiReportTest extends TestCase
 
     public function test_the_system_prompt_carries_the_configured_numbers(): void
     {
-        config(['ai_report.spec.columns' => 3, 'ai_report.spec.kpi_items' => 5, 'ai_report.spec.kpi_min' => 1]);
+        config(['ai.report.spec.columns' => 3, 'ai.report.spec.kpi_items' => 5, 'ai.report.spec.kpi_min' => 1]);
 
         $method = new \ReflectionMethod(ReportAiService::class, 'systemPrompt');
         $prompt = $method->invoke(new ReportAiService());
@@ -1123,10 +1256,11 @@ class AiReportTest extends TestCase
 
     public function test_the_job_timeout_and_unique_window_follow_the_configured_padding(): void
     {
-        config(['ai_report.job.padding' => 50, 'ai_report.job.retry_margin' => 0, 'queue.connections.' . config('queue.default') . '.retry_after' => 100000]);
+        config(['ai.report.job.padding' => 50, 'ai.report.job.retry_margin' => 0, 'ai.report.timeout' => 40, 'ai.report.connect_timeout' => 7, 'queue.connections.' . config('queue.default') . '.retry_after' => 100000]);
         $job = new GenerateReportJob(1);
 
-        $this->assertSame(2 * ((int) config('services.ai_report.timeout') + (int) config('ai_report.provider.connect_timeout')) + 50, $job->timeout);
+        $this->assertSame(2 * ((int) AiClient::setting('report', 'timeout') + (int) AiClient::setting('report', 'connect_timeout')) + 50, $job->timeout);
+        $this->assertSame(2 * (40 + 7) + 50, $job->timeout);
         $this->assertSame($job->timeout + 50, $job->uniqueFor);
     }
 
@@ -1165,7 +1299,7 @@ class AiReportTest extends TestCase
 
     public function test_share_slices_the_requested_ids_before_the_lookup(): void
     {
-        config(['ai_report.max_recipients' => 1]);
+        config(['ai.report.max_recipients' => 1]);
         $owner = $this->user();
         $valid = $this->user();
         $report = $this->report($owner);
@@ -1179,7 +1313,7 @@ class AiReportTest extends TestCase
     public function test_quota_is_consumed_once_and_the_pre_check_rejects_at_the_cap(): void
     {
         Bus::fake();
-        config(['ai_report.daily_cap' => 1]);
+        config(['ai.report.daily_cap' => 1]);
         $owner = $this->user();
         $form = Livewire::actingAs($owner)->test(Main::class)->instance()->form;
         $form->prompt = 'a prompt that is long enough';
@@ -1211,7 +1345,7 @@ class AiReportTest extends TestCase
     public function test_a_quota_race_past_the_cap_fails_the_row_with_quota_and_refunds_once(): void
     {
         Bus::fake();
-        config(['ai_report.daily_cap' => 1]);
+        config(['ai.report.daily_cap' => 1]);
         $owner = $this->user();
         $form = Livewire::actingAs($owner)->test(Main::class)->instance()->form;
         $form->prompt = 'a prompt that is long enough';
@@ -1244,8 +1378,8 @@ class AiReportTest extends TestCase
             ->set('form.prompt', 'a prompt that is long enough')
             ->set('form.files', [UploadedFile::fake()->createWithContent('note.txt', 'hello report text')]);
         $name = $component->instance()->form->files[0]->getFilename();
-        $storage = \Livewire\Features\SupportFileUploads\FileUploadConfiguration::storage();
-        $path = \Livewire\Features\SupportFileUploads\FileUploadConfiguration::path($name);
+        $storage = FileUploadConfiguration::storage();
+        $path = FileUploadConfiguration::path($name);
         $this->assertTrue($storage->exists($path));
 
         $component->call('generate');
@@ -1273,13 +1407,12 @@ class AiReportTest extends TestCase
         $this->assertCount(0, $fresh->instance()->form->files);
     }
 
-    public function test_share_casts_ids_to_integers_and_notifies_only_new_ones(): void
+    public function test_share_casts_ids_to_integers_and_keeps_one_bell_per_unseen_recipient(): void
     {
         $owner = $this->user();
         $already = $this->user();
         $fresh = $this->user();
         $report = $this->report($owner, ['title' => 'Shared', 'recipients' => [(int) $already->id]]);
-        $before = DB::table('notifications')->where('notifiable_id', $already->id)->count();
 
         Livewire::actingAs($owner)->test(Main::class, ['report' => $report])
             ->set('shareRecipients', [(string) $already->id, (string) $fresh->id])
@@ -1287,7 +1420,7 @@ class AiReportTest extends TestCase
             ->assertDispatched('toast', $this->toastType('success'));
 
         $this->assertSame([(int) $already->id, (int) $fresh->id], $report->fresh()->recipients);
-        $this->assertSame($before, DB::table('notifications')->where('notifiable_id', $already->id)->count());
+        $this->assertSame(1, DB::table('notifications')->where('notifiable_id', $already->id)->count());
         $this->assertSame(1, DB::table('notifications')->where('notifiable_id', $fresh->id)->count());
     }
 
@@ -1394,12 +1527,12 @@ class AiReportTest extends TestCase
     public function test_a_two_hundred_character_title_round_trips(): void
     {
         $owner = $this->user();
-        $title = str_repeat('a', (int) config('ai_report.spec.short'));
+        $title = str_repeat('a', (int) config('ai.report.spec.short'));
         $report = $this->report($owner, ['title' => $title, 'spec' => $this->plainSpec('x')]);
 
         $this->assertSame($title, $report->fresh()->title);
-        app(UpdateReportAction::class)->execute($report, $owner, ['title' => str_repeat('b', (int) config('ai_report.spec.short') + 50)]);
-        $this->assertSame(str_repeat('b', (int) config('ai_report.spec.short')), $report->fresh()->title);
+        app(UpdateReportAction::class)->execute($report, $owner, ['title' => str_repeat('b', (int) config('ai.report.spec.short') + 50)]);
+        $this->assertSame(str_repeat('b', (int) config('ai.report.spec.short')), $report->fresh()->title);
     }
 
     public function test_the_livewire_component_name_follows_the_ai_report_slot(): void
@@ -1427,7 +1560,7 @@ class AiReportTest extends TestCase
         $free->versions = [...$padding, ['prompt' => 'p', 'files' => [], 'spec' => $this->plainSpec('x'), 'at' => now()->toIso8601String()]];
         $this->assertTrue(AiReportAccessPolicy::canRefine($free, $owner));
 
-        config(['services.ai_report.key' => null]);
+        config(['ai.gateway.key' => null]);
         $this->assertFalse(AiReportAccessPolicy::canGenerate($owner));
     }
 
@@ -1452,7 +1585,7 @@ class AiReportTest extends TestCase
 
     public function test_job_timeout_is_derived_from_the_provider_timeout_and_unreachable_maps_to_timeout(): void
     {
-        config(['services.ai_report.timeout' => 60]);
+        config(['ai.report.timeout' => 60, 'ai.report.connect_timeout' => 10, 'ai.report.job.padding' => 30, 'ai.report.job.retry_margin' => 0, 'queue.connections.' . config('queue.default') . '.retry_after' => 100000]);
         $job = new GenerateReportJob(1);
         $this->assertSame(2 * (60 + 10) + 30, $job->timeout);
         $this->assertSame($job->timeout + 30, $job->uniqueFor);
@@ -1463,7 +1596,7 @@ class AiReportTest extends TestCase
             'saved_at' => null,
             'versions' => [['prompt' => 'a prompt that is long enough', 'files' => [], 'at' => now()->toIso8601String()]],
         ]);
-        Http::fake(fn () => throw new \Illuminate\Http\Client\ConnectionException('cURL error 28 for https://gateway.test/v1/chat/completions'));
+        Http::fake(fn () => throw new ConnectionException('cURL error 28 for https://gateway.test/v1/chat/completions'));
 
         (new GenerateReportJob($report->id))->handle(app(ReportAiService::class), app(FileExtractor::class));
 
@@ -1474,7 +1607,7 @@ class AiReportTest extends TestCase
     public function test_stage_rejects_an_inline_file_above_the_inline_cap(): void
     {
         Bus::fake();
-        config(['file_upload_limits.ai.inline' => 1024]);
+        config(['ai.report.upload.inline_kb' => 1024]);
         $owner = $this->user();
         $form = Livewire::actingAs($owner)->test(Main::class)->instance()->form;
         $form->prompt = 'a prompt that is long enough';
@@ -1487,7 +1620,7 @@ class AiReportTest extends TestCase
             $this->fail('the inline cap did not fire');
         } catch (ValidationException $e) {
             $this->assertArrayHasKey('form.files', $e->errors());
-            $this->assertStringContainsString(convertToPersian(intdiv((int) config('file_upload_limits.ai.inline'), 1024)), $e->errors()['form.files'][0]);
+            $this->assertStringContainsString(convertToPersian(intdiv((int) config('ai.report.upload.inline_kb'), 1024)), $e->errors()['form.files'][0]);
         } finally {
             @unlink($path);
         }
@@ -1511,7 +1644,7 @@ class AiReportTest extends TestCase
     public function test_the_list_loads_more_in_steps_up_to_the_configured_maximum_and_close_resets_it(): void
     {
         Bus::fake();
-        config(['ai_report.list_max' => 7]);
+        config(['ai.report.list_max' => 7]);
         $owner = $this->user();
         $report = null;
         foreach (range(1, 8) as $i) {
@@ -1532,7 +1665,7 @@ class AiReportTest extends TestCase
         $component->call('close')->assertSet('listLimit', 5);
 
         $component->call('loadMoreReports')->assertSet('listLimit', 7);
-        $component->set('form.prompt', str_repeat('ط', (int) config('ai_report.prompt.min')))
+        $component->set('form.prompt', str_repeat('ط', (int) config('ai.report.prompt.min')))
             ->call('generate');
         $this->assertSame(7, $component->instance()->listLimit);
         $this->assertNotSame('', $component->get('listSignature'));
@@ -1540,7 +1673,7 @@ class AiReportTest extends TestCase
 
     public function test_the_quota_meter_leads_the_composer_and_warns_only_near_the_cap(): void
     {
-        config(['ai_report.daily_cap' => 5]);
+        config(['ai.report.daily_cap' => 5]);
         $owner = $this->user();
 
         $html = Livewire::actingAs($owner)->test(Main::class)->html();
@@ -1557,7 +1690,7 @@ class AiReportTest extends TestCase
 
     public function test_the_collapsed_rules_accordion_states_the_configured_cap_and_the_file_limits(): void
     {
-        config(['ai_report.daily_cap' => 7]);
+        config(['ai.report.daily_cap' => 7]);
         $owner = $this->user();
 
         Livewire::actingAs($owner)->test(Main::class)
@@ -1682,7 +1815,7 @@ class AiReportTest extends TestCase
 
     public function test_a_reply_wrapped_in_markdown_fences_or_prose_is_still_parsed(): void
     {
-        config(['services.ai_report.key' => 'test-key', 'services.ai_report.url' => 'https://gateway.test/v1']);
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1']);
         $json = json_encode(['lang' => 'fa', 'title' => 'گزارش آزمایشی', 'pages' => [[
             'blocks' => [['type' => 'title', 'heading' => 'گزارش آزمایشی'], ['type' => 'summary', 'heading' => 'خلاصه', 'bullets' => ['الف', 'ب'], 'highlight' => 'نکته']],
         ]]], JSON_UNESCAPED_UNICODE);
@@ -1705,7 +1838,7 @@ class AiReportTest extends TestCase
 
     public function test_a_scalar_json_reply_triggers_the_repair_call(): void
     {
-        config(['services.ai_report.key' => 'test-key', 'services.ai_report.url' => 'https://gateway.test/v1']);
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1']);
         $json = json_encode(['lang' => 'fa', 'title' => 'گزارش آزمایشی', 'pages' => [[
             'blocks' => [['type' => 'title', 'heading' => 'گزارش آزمایشی'], ['type' => 'summary', 'heading' => 'خلاصه', 'bullets' => ['الف', 'ب'], 'highlight' => 'نکته']],
         ]]], JSON_UNESCAPED_UNICODE);
@@ -1718,16 +1851,18 @@ class AiReportTest extends TestCase
         Http::assertSentCount(2);
     }
 
-    public function test_upload_limits_accessor_prefers_the_global_tier_and_falls_back_to_the_ai_report_config(): void
+    public function test_form_rule_and_presenter_figures_follow_the_overridden_upload_config(): void
     {
-        config(['file_upload_limits.ai.inline' => 2048, 'ai_report.upload.inline_kb' => 777]);
-        $this->assertSame(2048, AiReportUploadLimits::inlineKb());
+        config(['ai.report.upload.inline_kb' => 2048, 'ai.report.upload.per_file_kb' => 3072, 'ai.report.upload.total_kb' => 5120, 'ai.report.upload.inline_total_kb' => 4096]);
 
-        config(['file_upload_limits.ai.inline' => null]);
-        $this->assertSame(777, AiReportUploadLimits::inlineKb());
+        $form = Livewire::actingAs($this->user())->test(Main::class)->instance()->form;
+        $limits = (new AiReportPresenter)->limits();
 
-        config(['file_upload_limits.ai.report' => 0, 'file_upload_limits.document' => 10240]);
-        $this->assertSame(10240, AiReportUploadLimits::perFileKb());
+        $this->assertContains('max:3072', $form->rules()['files.*']);
+        $this->assertSame(convertToPersian(3), $limits['per_file_mb']);
+        $this->assertSame(convertToPersian(2), $limits['inline_mb']);
+        $this->assertSame(convertToPersian(5), $limits['total_mb']);
+        $this->assertSame(convertToPersian(4), $limits['inline_total_mb']);
     }
 
     public function test_opening_another_report_clears_staged_files_but_keeps_the_typed_prompt(): void
@@ -1878,7 +2013,7 @@ class AiReportTest extends TestCase
 
     public function test_the_system_prompt_block_limit_follows_config(): void
     {
-        config(['ai_report.spec.blocks' => 7]);
+        config(['ai.report.spec.blocks' => 7]);
 
         $system = (new \ReflectionMethod(ReportAiService::class, 'systemPrompt'))->invoke(app(ReportAiService::class), ['type' => 'monthly']);
 
@@ -1888,7 +2023,7 @@ class AiReportTest extends TestCase
 
     public function test_the_view_toggle_guards_match_modes_and_labels_every_button(): void
     {
-        $render = fn (array $modes): string => html_entity_decode(\Illuminate\Support\Facades\Blade::render(
+        $render = fn (array $modes): string => html_entity_decode(Blade::render(
             '<x-ui.buttons.view-toggle state="view" action="toggleView" :modes="$modes"/>',
             ['modes' => $modes]
         ));
@@ -1929,7 +2064,7 @@ class AiReportTest extends TestCase
 
     public function test_a_table_with_more_columns_than_the_cap_is_rejected_naming_the_cap(): void
     {
-        $cap = (int) config('ai_report.spec.columns');
+        $cap = (int) config('ai.report.spec.columns');
         $columns = array_map('strval', range(1, $cap + 1));
 
         $message = $this->b2Rejection(['type' => 'table', 'columns' => $columns, 'rows' => [array_fill(0, $cap + 1, 'x')]]);
@@ -1942,7 +2077,7 @@ class AiReportTest extends TestCase
     public function test_the_aggregate_inline_cap_refuses_before_any_quota_is_spent_and_a_larger_cap_accepts(): void
     {
         Bus::fake();
-        config(['file_upload_limits.ai.inline_total' => 2048, 'file_upload_limits.ai.inline' => 4096]);
+        config(['ai.report.upload.inline_total_kb' => 2048, 'ai.report.upload.inline_kb' => 4096]);
         $owner = $this->user();
         $form = Livewire::actingAs($owner)->test(Main::class)->instance()->form;
         $form->prompt = 'a prompt that is long enough';
@@ -1966,7 +2101,7 @@ class AiReportTest extends TestCase
             $this->assertSame(0, AiReport::quotaUsed($owner->id));
         }
 
-        config(['file_upload_limits.ai.inline_total' => 8192]);
+        config(['ai.report.upload.inline_total_kb' => 8192]);
         app(GenerateReportAction::class)->execute($form, $owner);
         $this->assertSame($before + 1, AiReport::query()->count());
         $this->assertSame(1, AiReport::quotaUsed($owner->id));
@@ -2013,19 +2148,19 @@ class AiReportTest extends TestCase
         $this->assertSame('۶۰ نفر', BlockCatalog::retotal($edited, $original)['total'][1]);
     }
 
-    public function test_a_failing_share_notification_rolls_the_share_back_and_shows_the_exception_toast(): void
+    public function test_share_sends_no_direct_bell_and_dispatches_the_nudge_reconcile_for_the_report(): void
     {
+        Bus::fake();
         $owner = $this->user();
         $fresh = $this->user();
         $report = $this->report($owner, ['title' => 'گزارش']);
-        \Illuminate\Support\Facades\Event::listen(\Illuminate\Notifications\Events\NotificationSending::class, fn () => throw new \LogicException('boom'));
 
-        Livewire::actingAs($owner)->test(Main::class, ['report' => $report])
-            ->set('shareRecipients', [(string) $fresh->id])
-            ->call('share')
-            ->assertDispatched('toast', $this->toastType('warning'));
+        app(ShareReportAction::class)->execute($report, $owner, [$fresh->id]);
 
-        $this->assertEmpty($report->fresh()->recipients);
+        $this->assertSame(0, DB::table('notifications')->where('notifiable_id', $fresh->id)->count());
+        Bus::assertDispatched(ReconcileNudgeJob::class, fn (ReconcileNudgeJob $job) => $job->ruleKey === 'ai-report-controller:nudge'
+            && $job->subjectClass === AiReport::class
+            && (int) $job->subjectId === (int) $report->id);
     }
 
     public function test_the_side_list_header_shows_the_total_of_the_open_list_tab(): void
@@ -2436,7 +2571,7 @@ class AiReportTest extends TestCase
         $this->assertSame(['monthly', 'one_page', 'mixed'], [$last['type'], $last['length'], $last['audience']]);
         $this->assertSame(array_values($columns), [$fresh->preset_type, $fresh->preset_length, $fresh->preset_audience]);
 
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview', 'services.ai_report.max_output' => 16384]);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview', 'ai.gateway.max_output' => 16384]);
         Http::fake(['*' => Http::response([
             'choices' => [['message' => ['content' => json_encode(['lang' => 'fa', 'title' => 'عنوان آزمایشی', 'pages' => [['blocks' => [['type' => 'title', 'heading' => 'عنوان آزمایشی']]]]])], 'finish_reason' => 'stop']],
             'usage' => ['total_tokens' => 3],
@@ -2471,7 +2606,7 @@ class AiReportTest extends TestCase
 
     public function test_the_job_forwards_presets_into_the_system_prompt_and_free_adds_no_type_line(): void
     {
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview', 'services.ai_report.max_output' => 16384]);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview', 'ai.gateway.max_output' => 16384]);
         $owner = $this->user();
         $spec = ['lang' => 'fa', 'title' => 'عنوان آزمایشی', 'pages' => [['blocks' => [['type' => 'title', 'heading' => 'عنوان آزمایشی']]]]];
         Http::fake(['*' => Http::response([
@@ -2489,21 +2624,21 @@ class AiReportTest extends TestCase
         (new GenerateReportJob($plant('free')->id))->handle(app(ReportAiService::class), app(FileExtractor::class));
 
         Http::assertSentCount(2);
-        $tokens = ['{blocks}' => (int) config('ai_report.spec.blocks'), '{one_page_blocks}' => (int) config('ai_report.spec.one_page_blocks')];
+        $tokens = ['{blocks}' => (int) config('ai.report.spec.blocks'), '{one_page_blocks}' => (int) config('ai.report.spec.one_page_blocks')];
         Http::assertSent(function ($request) use ($tokens) {
             $system = $request['messages'][0]['content'];
 
             return str_contains($system, 'REPORT TYPE: required block order for pages[0]')
-                && str_contains($system, strtr(config('ai_report.types.incident.rules'), $tokens))
-                && str_contains($system, 'LENGTH: ' . strtr(config('ai_report.lengths.detailed.rules'), $tokens))
-                && str_contains($system, 'AUDIENCE: ' . strtr(config('ai_report.audiences.mixed.rules'), $tokens));
+                && str_contains($system, strtr(config('ai.report.types.incident.rules'), $tokens))
+                && str_contains($system, 'LENGTH: ' . strtr(config('ai.report.lengths.detailed.rules'), $tokens))
+                && str_contains($system, 'AUDIENCE: ' . strtr(config('ai.report.audiences.mixed.rules'), $tokens));
         });
         Http::assertSent(function ($request) use ($tokens) {
             $system = $request['messages'][0]['content'];
 
             return !str_contains($system, 'REPORT TYPE:')
-                && str_contains($system, 'LENGTH: ' . strtr(config('ai_report.lengths.detailed.rules'), $tokens))
-                && str_contains($system, 'AUDIENCE: ' . strtr(config('ai_report.audiences.mixed.rules'), $tokens));
+                && str_contains($system, 'LENGTH: ' . strtr(config('ai.report.lengths.detailed.rules'), $tokens))
+                && str_contains($system, 'AUDIENCE: ' . strtr(config('ai.report.audiences.mixed.rules'), $tokens));
         });
     }
 
@@ -2535,7 +2670,7 @@ class AiReportTest extends TestCase
 
         $rail = (new AiReportPresenter())->versions($shared);
         $this->assertNull($rail[0]['type']);
-        $this->assertSame(config('ai_report.types.meeting.label'), $rail[1]['type']);
+        $this->assertSame(config('ai.report.types.meeting.label'), $rail[1]['type']);
         $this->assertSame('صورت‌جلسه', $rail[1]['type']);
     }
 
@@ -2610,7 +2745,7 @@ class AiReportTest extends TestCase
         $component
             ->assertSeeHtml('wire:key="ai-report-view-table"')
             ->assertSeeHtml('wire:key="ai-report-table-poll-anchor"')
-            ->assertSeeHtml('wire:poll.visible.' . config('ai_report.poll_seconds') . 's="pollList"');
+            ->assertSeeHtml('wire:poll.visible.' . config('ai.report.poll_seconds') . 's="pollList"');
 
         AiReport::whereKey($generating->id)->update(['status' => AiReport::STATUS_READY, 'saved_at' => now()]);
         $component->call('pollList')
@@ -2691,7 +2826,7 @@ class AiReportTest extends TestCase
         $component = Livewire::actingAs($owner)->test(Main::class)
             ->call('toggleView', 'report')
             ->assertSeeHtml('wire:key="ai-report-table-poll-anchor"')
-            ->assertSeeHtml('wire:poll.visible.' . config('ai_report.poll_seconds') . 's="pollList"')
+            ->assertSeeHtml('wire:poll.visible.' . config('ai.report.poll_seconds') . 's="pollList"')
             ->assertDontSeeHtml('wire:key="ai-report-viewer-generating"');
 
         $component->call('open', $generating->id)
@@ -2792,7 +2927,7 @@ class AiReportTest extends TestCase
 
     public function test_switching_the_list_tab_resets_the_limit_and_changes_the_list_signature(): void
     {
-        config(['ai_report.list_max' => 7]);
+        config(['ai.report.list_max' => 7]);
         $owner = $this->user();
         foreach (range(1, 6) as $i) {
             $this->report($owner);
@@ -3029,7 +3164,7 @@ class AiReportTest extends TestCase
 
     public function test_share_names_the_cap_when_the_request_is_truncated(): void
     {
-        config(['ai_report.max_recipients' => 2]);
+        config(['ai.report.max_recipients' => 2]);
         $owner = $this->user();
         $people = [$this->user(), $this->user(), $this->user()];
         $report = $this->report($owner, ['title' => 'Shared']);
@@ -3038,7 +3173,7 @@ class AiReportTest extends TestCase
             ->set('shareRecipients', array_map(fn ($p) => (string) $p->id, $people))
             ->call('share')
             ->assertDispatched('toast', fn ($event, $params) => ($params['type'] ?? null) === 'warning'
-                && str_contains((string) $params['message'], convertToPersian(config('ai_report.max_recipients'))));
+                && str_contains((string) $params['message'], convertToPersian(config('ai.report.max_recipients'))));
 
         $this->assertCount(2, $report->fresh()->recipients);
     }
@@ -3056,7 +3191,7 @@ class AiReportTest extends TestCase
     {
         $owner = $this->user();
         $report = $this->report($owner);
-        $boom = new \Illuminate\Database\QueryException('mysql', 'update x', [], new \Exception('db down'));
+        $boom = new QueryException('mysql', 'update x', [], new \Exception('db down'));
         $this->mock(UpdateReportAction::class, fn ($mock) => $mock->shouldReceive('execute')->andThrow($boom));
         $this->mock(ShareReportAction::class, fn ($mock) => $mock->shouldReceive('execute')->andThrow($boom));
         $this->mock(DeleteReportAction::class, fn ($mock) => $mock->shouldReceive('execute')->andThrow($boom));
@@ -3144,7 +3279,7 @@ class AiReportTest extends TestCase
 
     public function test_the_job_restarts_the_stale_clock_when_work_starts(): void
     {
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $owner = $this->user();
         $report = $this->generatingReport($owner);
         AiReport::whereKey($report->id)->update(['updated_at' => now()->subMinutes(AiReport::staleMinutes() + 1)]);
@@ -3167,7 +3302,7 @@ class AiReportTest extends TestCase
 
     public function test_the_job_stores_the_extractor_notes_on_the_version_and_the_presenter_returns_them(): void
     {
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $owner = $this->user();
         $report = $this->generatingReport($owner);
         Storage::disk('local')->put($report->tempDirectory() . '/1-bad.docx', "PK\x03\x04not-a-zip");
@@ -3188,7 +3323,7 @@ class AiReportTest extends TestCase
 
     public function test_the_job_persists_a_truncation_note_naming_the_cut_file(): void
     {
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview', 'ai_report.extract.text_per_file' => 50]);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview', 'ai.report.extract.text_per_file' => 50]);
         $owner = $this->user();
         $report = $this->generatingReport($owner);
         Storage::disk('local')->put($report->tempDirectory() . '/1-long.txt', str_repeat('abcdefghij ', 40));
@@ -3221,7 +3356,7 @@ class AiReportTest extends TestCase
 
     public function test_an_uppercase_finish_reason_is_accepted(): void
     {
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $report = $this->generatingReport($this->user());
         Http::fake(['*' => Http::response([
             'choices' => [['message' => ['content' => json_encode($this->plainSpec('Title here'))], 'finish_reason' => 'STOP']],
@@ -3257,7 +3392,7 @@ class AiReportTest extends TestCase
         $this->actingAs($this->filamentDeveloper());
         config(['app.off' => ['ai-report']]);
 
-        $names = array_map(fn ($action) => $action->getName(), \App\Filament\Resources\ReportResource::switchActions(\App\Filament\Resources\ReportResource::class));
+        $names = array_map(fn ($action) => $action->getName(), ReportResource::switchActions(ReportResource::class));
 
         $this->assertNotContains('switch_ai_report_resource', $names);
         $this->assertContains('switch_report_resource', $names);
@@ -3270,14 +3405,14 @@ class AiReportTest extends TestCase
         $report = $this->generatingReport($owner, ['versions' => [['prompt' => 'p long enough here', 'files' => [], 'at' => now()->toIso8601String(), 'quota_day' => '2026-03-01']]]);
         Cache::put(AiReport::quotaKey($owner->id, '2026-03-01'), 1);
         Cache::put(AiReport::quotaKey($owner->id, '2026-03-02'), 1);
-        \Illuminate\Support\Carbon::setTestNow('2026-03-02 00:30:00');
+        Carbon::setTestNow('2026-03-02 00:30:00');
 
         try {
             $this->assertTrue($report->markFailed('exception'));
             $this->assertSame(0, (int) Cache::get(AiReport::quotaKey($owner->id, '2026-03-01')));
             $this->assertSame(1, (int) Cache::get(AiReport::quotaKey($owner->id, '2026-03-02')));
         } finally {
-            \Illuminate\Support\Carbon::setTestNow();
+            Carbon::setTestNow();
         }
     }
 
@@ -3403,7 +3538,7 @@ class AiReportTest extends TestCase
             $this->fail('a legacy xls file was accepted');
         } catch (ValidationException $e) {
             $message = $e->errors()[array_key_first($e->errors())][0];
-            foreach (explode(',', (string) config('ai_report.upload.mimes')) as $extension) {
+            foreach (explode(',', (string) config('ai.report.upload.mimes')) as $extension) {
                 $this->assertStringContainsString($extension, $message);
             }
         } finally {
@@ -3413,9 +3548,9 @@ class AiReportTest extends TestCase
 
     public function test_every_validated_extension_is_offered_to_the_mobile_file_picker(): void
     {
-        $accept = (string) config('ai_report.upload.accept');
+        $accept = (string) config('ai.report.upload.accept');
 
-        foreach (explode(',', (string) config('ai_report.upload.mimes')) as $extension) {
+        foreach (explode(',', (string) config('ai.report.upload.mimes')) as $extension) {
             $this->assertStringContainsString('.' . $extension, $accept);
         }
     }
@@ -3425,13 +3560,39 @@ class AiReportTest extends TestCase
         config([
             'queue.default' => 'redis',
             'queue.connections.redis.retry_after' => 180,
-            'services.ai_report.timeout' => 1000,
+            'ai.report.timeout' => 1000,
+            'ai.report.connect_timeout' => 10,
+            'ai.report.job.padding' => 30,
+            'ai.report.job.retry_margin' => 10,
         ]);
 
         $job = new GenerateReportJob(1);
 
-        $this->assertLessThan(180, $job->timeout);
+        $this->assertGreaterThan(170, 2 * (1000 + 10) + 30);
+        $this->assertSame(170, $job->timeout);
         $this->assertSame($job->timeout + 30, $job->uniqueFor);
+    }
+
+    public function test_a_feature_setting_overrides_the_gateway_and_a_null_one_falls_back_to_it(): void
+    {
+        foreach (['timeout', 'connect_timeout', 'max_output'] as $key) {
+            config(["ai.gateway.{$key}" => 111, "ai.report.{$key}" => 222]);
+            $this->assertSame(222, AiClient::setting('report', $key));
+
+            config(["ai.report.{$key}" => null]);
+            $this->assertSame(111, AiClient::setting('report', $key));
+        }
+    }
+
+    public function test_a_missing_no_refund_config_refunds_instead_of_crashing(): void
+    {
+        config(['ai.report.no_refund' => null]);
+        $owner = $this->user();
+        $report = $this->generatingReport($owner);
+        AiReport::consumeQuota($owner->id);
+
+        $this->assertTrue($report->markFailed('too_large'));
+        $this->assertSame(0, AiReport::quotaUsed($owner->id));
     }
 
     public function test_a_spreadsheet_date_cell_is_followed_by_its_jalali_form(): void
@@ -3564,19 +3725,19 @@ JSON, true);
         $presenter = new AiReportPresenter;
         $limits = $presenter->limits();
 
-        $this->assertSame(convertToPersian(config('ai_report.upload.max_files')), $limits['files']);
-        $this->assertSame(convertToPersian((int) (config('file_upload_limits.ai.report') / 1024)), $limits['per_file_mb']);
-        $this->assertSame(convertToPersian((int) (config('file_upload_limits.ai.inline') / 1024)), $limits['inline_mb']);
-        $this->assertSame(convertToPersian((int) (config('file_upload_limits.ai.total') / 1024)), $limits['total_mb']);
-        $this->assertSame(convertToPersian((int) (config('file_upload_limits.ai.inline_total') / 1024)), $limits['inline_total_mb']);
-        $this->assertSame(convertToPersian(config('ai_report.prompt.min')), $limits['prompt_min']);
-        $this->assertSame(convertToPersian(config('ai_report.prompt.max')), $limits['prompt_max']);
-        $this->assertSame(convertToPersian(config('ai_report.max_recipients')), $limits['recipients']);
-        $this->assertSame(convertToPersian(config('ai_report.max_versions')), $limits['versions']);
-        $this->assertSame(convertToPersian(config('ai_report.share_link_days')), $limits['link_days']);
-        $this->assertSame(convertToPersian(config('ai_report.stale_minutes')), $limits['stale_minutes']);
-        $this->assertSame(convertToPersian(config('ai_report.stale_draft_days')), $limits['stale_draft_days']);
-        [$etaMin, $etaMax] = config('ai_report.eta_seconds');
+        $this->assertSame(convertToPersian(config('ai.report.upload.max_files')), $limits['files']);
+        $this->assertSame(convertToPersian((int) (config('ai.report.upload.per_file_kb') / 1024)), $limits['per_file_mb']);
+        $this->assertSame(convertToPersian((int) (config('ai.report.upload.inline_kb') / 1024)), $limits['inline_mb']);
+        $this->assertSame(convertToPersian((int) (config('ai.report.upload.total_kb') / 1024)), $limits['total_mb']);
+        $this->assertSame(convertToPersian((int) (config('ai.report.upload.inline_total_kb') / 1024)), $limits['inline_total_mb']);
+        $this->assertSame(convertToPersian(config('ai.report.prompt.min')), $limits['prompt_min']);
+        $this->assertSame(convertToPersian(config('ai.report.prompt.max')), $limits['prompt_max']);
+        $this->assertSame(convertToPersian(config('ai.report.max_recipients')), $limits['recipients']);
+        $this->assertSame(convertToPersian(config('ai.report.max_versions')), $limits['versions']);
+        $this->assertSame(convertToPersian(config('ai.report.share_link_days')), $limits['link_days']);
+        $this->assertSame(convertToPersian(config('ai.report.stale_minutes')), $limits['stale_minutes']);
+        $this->assertSame(convertToPersian(config('ai.report.stale_draft_days')), $limits['stale_draft_days']);
+        [$etaMin, $etaMax] = config('ai.report.eta_seconds');
         $this->assertSame(convertToPersian($etaMin) . ' تا ' . convertToPersian($etaMax), $limits['eta']);
 
         $html = view('livewire.dashboard.ai-report.legend', ['presenter' => $presenter])->render();
@@ -3758,7 +3919,7 @@ JSON, true);
         $report = $this->generatingReport($this->user());
 
         Livewire::actingAs($developer)->test(ListAiReports::class)
-            ->callTableBulkAction(\Filament\Actions\DeleteBulkAction::class, [$report]);
+            ->callTableBulkAction(DeleteBulkAction::class, [$report]);
 
         $this->assertDatabaseHas('ai_reports', ['id' => $report->id]);
     }
@@ -3798,7 +3959,7 @@ JSON, true);
         $recipient = $this->user();
         $stranger = $this->user();
         $report = $this->report($owner, ['recipients' => [$recipient->id]]);
-        $indicator = new \App\Services\Menu\Indicators\UnseenAiReports();
+        $indicator = new UnseenAiReports;
 
         $this->actingAs($recipient);
         $this->assertTrue($indicator->isActive());
@@ -3821,19 +3982,19 @@ JSON, true);
         $shared = $this->report($owner, ['recipients' => [$recipient->id]]);
         $private = $this->report($owner);
 
-        $version = \App\Services\Menu\StateService::version();
+        $version = StateService::version();
         $private->update(['active' => false]);
         $private->delete();
-        $this->assertSame($version, \App\Services\Menu\StateService::version());
+        $this->assertSame($version, StateService::version());
 
         usleep(2000);
         $shared->update(['active' => false]);
-        $afterToggle = \App\Services\Menu\StateService::version();
+        $afterToggle = StateService::version();
         $this->assertNotSame($version, $afterToggle);
 
         usleep(2000);
         $shared->delete();
-        $this->assertNotSame($afterToggle, \App\Services\Menu\StateService::version());
+        $this->assertNotSame($afterToggle, StateService::version());
     }
 
     public function test_the_badge_key_goes_off_with_the_module_for_a_tenant(): void
@@ -3854,7 +4015,7 @@ JSON, true);
         $this->report($owner, ['recipients' => [$recipient->id], 'status' => AiReport::STATUS_FAILED]);
 
         $this->actingAs($recipient);
-        $this->assertFalse((new \App\Services\Menu\Indicators\UnseenAiReports())->isActive());
+        $this->assertFalse((new UnseenAiReports)->isActive());
     }
 
     public function test_mark_seen_is_idempotent_and_the_owner_opening_does_not_mark(): void
@@ -3883,7 +4044,7 @@ JSON, true);
 
         app(ShareReportAction::class)->execute($report->fresh(), $owner, [$recipient->id]);
         $this->actingAs($recipient);
-        $this->assertTrue((new \App\Services\Menu\Indicators\UnseenAiReports())->isActive());
+        $this->assertTrue((new UnseenAiReports)->isActive());
     }
 
     public function test_the_new_chip_shows_on_an_unseen_received_row_and_not_after_opening_or_for_the_owner(): void
@@ -4094,7 +4255,7 @@ JSON, true);
 
     public function test_facts_reuse_the_tile_shape_with_their_own_cap_minimum_and_heading(): void
     {
-        config(['ai_report.spec.facts_items' => 3]);
+        config(['ai.report.spec.facts_items' => 3]);
         $items = array_map(fn (int $i): array => ['label' => "L{$i}", 'value' => "V{$i}", 'hint' => null, 'tone' => null], range(1, 5));
 
         $block = $this->b2Block(['type' => 'facts', 'heading' => '  زمینه  ', 'items' => $items]);
@@ -4229,7 +4390,7 @@ JSON, true);
             $this->assertSame($tone, BlockCatalog::tone((string) $word), json_encode($word, JSON_UNESCAPED_UNICODE));
         }
 
-        config(['ai_report.status_values' => ['success' => ['shipped']]]);
+        config(['ai.report.status_values' => ['success' => ['shipped']]]);
         $this->assertSame('success', BlockCatalog::tone('Shipped'));
         $this->assertNull(BlockCatalog::tone('late'));
     }
@@ -4243,11 +4404,11 @@ JSON, true);
     {
         $callout = ['type' => 'callout', 'variant' => 'decision', 'heading' => 'تصمیم', 'paragraphs' => ['یک'], 'options' => [['label' => 'الف', 'text' => 'گزینه']]];
         $title = ['type' => 'title', 'heading' => 'عنوان'];
-        $heading = config('ai_report.assumptions.heading.fa');
+        $heading = config('ai.report.assumptions.heading.fa');
 
         $blocks = $this->assumptionsPage([$title, $callout]);
         $this->assertSame(['title', 'section', 'callout'], array_column($blocks, 'type'));
-        $this->assertSame(['type' => 'section', 'heading' => $heading, 'paragraphs' => [BlockCatalog::clean(config('ai_report.assumptions.fallback.fa'), 1200)]], $blocks[1]);
+        $this->assertSame(['type' => 'section', 'heading' => $heading, 'paragraphs' => [BlockCatalog::clean(config('ai.report.assumptions.fallback.fa'), 1200)]], $blocks[1]);
 
         $appended = $this->assumptionsPage([$callout, $title]);
         $this->assertSame(['callout', 'title', 'section'], array_column($appended, 'type'));
@@ -4259,7 +4420,7 @@ JSON, true);
         $en = $this->assumptionsPage([['type' => 'title', 'heading' => 'T'], $callout], 'en');
         $this->assertSame(['title', 'section', 'callout'], array_column($en, 'type'));
         $this->assertSame('Assumptions and limitations', $en[1]['heading']);
-        $this->assertSame([config('ai_report.assumptions.fallback.en')], $en[1]['paragraphs']);
+        $this->assertSame([config('ai.report.assumptions.fallback.en')], $en[1]['paragraphs']);
     }
 
     public function test_a_model_written_assumptions_section_is_kept_and_nothing_is_added(): void
@@ -4284,19 +4445,19 @@ JSON, true);
         $this->assertSame($spec, BlockCatalog::validate($spec));
         $this->assertCount(2, $spec['pages'][0]['blocks']);
 
-        config(['ai_report.spec.blocks' => 2]);
+        config(['ai.report.spec.blocks' => 2]);
         $full = BlockCatalog::validate($this->b2Spec([['type' => 'title', 'heading' => 'عنوان'], ['type' => 'section', 'heading' => 'بخش', 'paragraphs' => ['x']]]));
         $this->assertCount(2, $full['pages']);
         $this->assertSame(['title', 'section'], array_column($full['pages'][0]['blocks'], 'type'));
         $this->assertSame(['section'], array_column($full['pages'][1]['blocks'], 'type'));
-        $this->assertSame(config('ai_report.assumptions.heading.fa'), $full['pages'][1]['blocks'][0]['heading']);
+        $this->assertSame(config('ai.report.assumptions.heading.fa'), $full['pages'][1]['blocks'][0]['heading']);
         $this->assertSame($full, BlockCatalog::validate($full));
 
         $html = $this->renderReport($full);
         $this->assertSame(2, substr_count($html, 'class="ai-report-page'));
-        $this->assertGreaterThan(strpos($html, 'بخش'), strpos($html, config('ai_report.assumptions.heading.fa')));
+        $this->assertGreaterThan(strpos($html, 'بخش'), strpos($html, config('ai.report.assumptions.heading.fa')));
 
-        config(['ai_report.spec.pages' => 1]);
+        config(['ai.report.spec.pages' => 1]);
         $capped = BlockCatalog::validate($this->b2Spec([['type' => 'title', 'heading' => 'عنوان'], ['type' => 'section', 'heading' => 'بخش', 'paragraphs' => ['x']]]));
         $this->assertCount(1, $capped['pages']);
         $this->assertSame(['title', 'section'], array_column($capped['pages'][0]['blocks'], 'type'));
@@ -4365,13 +4526,13 @@ JSON, true);
             ['type', 'heading', 'subtitle', 'items', 'bullets', 'highlight', 'columns', 'rows', 'total', 'percent_column', 'status_column', 'footnote', 'variant', 'paragraphs', 'options', 'risk'],
             array_keys($def['properties'])
         );
-        $this->assertSame(max((int) config('ai_report.spec.kpi_items'), (int) config('ai_report.spec.facts_items')), $def['properties']['items']['maxItems']);
-        $this->assertSame(max((int) config('ai_report.spec.columns'), (int) config('ai_report.spec.chart_labels')), $def['properties']['columns']['maxItems']);
+        $this->assertSame(max((int) config('ai.report.spec.kpi_items'), (int) config('ai.report.spec.facts_items')), $def['properties']['items']['maxItems']);
+        $this->assertSame(max((int) config('ai.report.spec.columns'), (int) config('ai.report.spec.chart_labels')), $def['properties']['columns']['maxItems']);
     }
 
     public function test_the_system_prompt_names_the_new_blocks_and_the_facts_cap(): void
     {
-        config(['ai_report.spec.facts_items' => 5]);
+        config(['ai.report.spec.facts_items' => 5]);
 
         $prompt = (new \ReflectionMethod(ReportAiService::class, 'systemPrompt'))->invoke(new ReportAiService());
 
@@ -4508,7 +4669,7 @@ JSON, true);
             $this->assertStringContainsString(trim($expected), $this->b2Rejection($block), $expected);
         }
 
-        config(['ai_report.spec.chart_max_abs' => 100]);
+        config(['ai.report.spec.chart_max_abs' => 100]);
         $this->assertStringContainsString('out of range', $this->b2Rejection($bar([['s', '101', '2']])));
         $this->assertSame([-100.0, 100.0], $this->b2Block($bar([['s', '-100', '100']]))['series'][0]['values']);
 
@@ -4536,15 +4697,15 @@ JSON, true);
 
     public function test_every_preset_block_name_exists_in_the_block_catalog(): void
     {
-        $this->assertNotEmpty(config('ai_report.types'));
-        foreach (config('ai_report.types') as $key => $type) {
+        $this->assertNotEmpty(config('ai.report.types'));
+        foreach (config('ai.report.types') as $key => $type) {
             $this->assertSame([], array_diff($type['blocks'], BlockCatalog::TYPES), $key);
         }
     }
 
     public function test_the_chart_schema_prompt_and_caps_come_from_config(): void
     {
-        config(['ai_report.spec.chart_labels' => 9, 'ai_report.spec.chart_series' => 2, 'ai_report.spec.pie_slices' => 4, 'ai_report.spec.columns' => 3]);
+        config(['ai.report.spec.chart_labels' => 9, 'ai.report.spec.chart_series' => 2, 'ai.report.spec.pie_slices' => 4, 'ai.report.spec.columns' => 3]);
 
         $props = BlockCatalog::schema()['$defs']['block']['properties'];
         $this->assertSame(['info', 'warning', 'decision', 'bar', 'pie', null], $props['variant']['enum']);
@@ -4594,7 +4755,7 @@ JSON, true);
         $this->assertStringContainsString('<bdi>1,234.5</bdi>', $en);
         $this->assertStringContainsString('>Category</th>', $en);
 
-        $frozen = \Illuminate\Support\Facades\Blade::render('<x-dashboard.ai-report :spec="$spec" :dir="$dir" :live="false"/>', ['spec' => $spec, 'dir' => 'rtl']);
+        $frozen = Blade::render('<x-dashboard.ai-report :spec="$spec" :dir="$dir" :live="false"/>', ['spec' => $spec, 'dir' => 'rtl']);
         $this->assertStringContainsString('x-data="{ drawn: false }"', $frozen);
         $this->assertStringNotContainsString('aiReportChart', $frozen);
         $this->assertSame(4, substr_count($frozen, '<tr>'));
@@ -4649,7 +4810,7 @@ JSON, true);
                 'blocks' => [
                     ['type' => 'title', 'heading' => 'گزارش اصلی'],
                     ['type' => 'summary', 'heading' => 'خلاصه', 'bullets' => ['اول', 'دوم'], 'highlight' => 'نکته'],
-                    ['type' => 'section', 'heading' => config('ai_report.assumptions.heading.fa'), 'paragraphs' => ['مفروض اول']],
+                    ['type' => 'section', 'heading' => config('ai.report.assumptions.heading.fa'), 'paragraphs' => ['مفروض اول']],
                 ],
             ]],
         ]);
@@ -4668,7 +4829,7 @@ JSON, true);
     public function test_a_block_refine_sends_only_that_block_and_merges_it_in_place(): void
     {
         Bus::fake();
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $owner = $this->user();
         $report = $this->blockRefineReport($owner);
 
@@ -4702,7 +4863,7 @@ JSON, true);
         $this->assertSame('خلاصهٔ کوتاه', $blocks[1]['heading']);
         $this->assertSame(['فقط یک نکته'], $blocks[1]['bullets']);
         $this->assertSame('گزارش اصلی', $blocks[0]['heading']);
-        $this->assertSame(config('ai_report.assumptions.heading.fa'), $blocks[2]['heading']);
+        $this->assertSame(config('ai.report.assumptions.heading.fa'), $blocks[2]['heading']);
         $this->assertSame(['مفروض اول'], $blocks[2]['paragraphs']);
         $this->assertCount(3, $blocks);
     }
@@ -4710,7 +4871,7 @@ JSON, true);
     public function test_a_title_block_refine_updates_the_spec_title_and_quota_stays_at_one(): void
     {
         Bus::fake();
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $owner = $this->user();
         $report = $this->blockRefineReport($owner);
 
@@ -4732,10 +4893,10 @@ JSON, true);
     public function test_a_block_refine_of_the_assumptions_section_keeps_its_exact_heading(): void
     {
         Bus::fake();
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $owner = $this->user();
         $report = $this->blockRefineReport($owner);
-        $heading = config('ai_report.assumptions.heading.fa');
+        $heading = config('ai.report.assumptions.heading.fa');
 
         Livewire::actingAs($owner)->test(Main::class, ['report' => $report])
             ->call('editBlock', '0:2')
@@ -4756,7 +4917,7 @@ JSON, true);
     public function test_a_block_refine_whose_type_changes_fails_with_invalid_spec(): void
     {
         Bus::fake();
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $owner = $this->user();
         $report = $this->blockRefineReport($owner);
 
@@ -4830,6 +4991,36 @@ JSON, true);
         $this->assertSame(AiReport::STATUS_READY, $report->fresh()->status);
     }
 
+    public function test_ai_actions_wear_the_ai_variant_and_the_sparkle_while_manual_edit_stays_neutral(): void
+    {
+        $owner = $this->user();
+        $button = fn (string $html, string $needle) => preg_match('/<button[^>]*' . preg_quote($needle, '/') . '.*?<\/button>/s', $html, $m) === 1 ? $m[0] : '';
+
+        $fresh = Livewire::actingAs($owner)->test(Main::class)->html();
+        $generate = $button($fresh, 'wire:click="generate"');
+        $this->assertStringContainsString('bg-[var(--ai-bg)]', $generate);
+        $this->assertStringContainsString('auto_awesome', $generate);
+        $this->assertStringNotContainsString('md3-btn', $generate);
+
+        $report = $this->blockRefineReport($owner);
+        $open = Livewire::actingAs($owner)->test(Main::class, ['report' => $report])->html();
+
+        $refine = $button($open, 'wire:click="refine"');
+        $this->assertStringContainsString('bg-[var(--ai-bg)]', $refine);
+        $this->assertStringContainsString('auto_awesome', $refine);
+        $this->assertStringNotContainsString('autorenew', $refine);
+
+        $blockRefine = $button($open, 'wire:click="editBlock(\'');
+        $this->assertStringContainsString('text-[var(--ai-color)]', $blockRefine);
+        $this->assertStringContainsString('auto_awesome', $blockRefine);
+        $this->assertStringNotContainsString('autorenew', $blockRefine);
+
+        $manual = $button($open, 'wire:click="openBlockEditor(\'');
+        $this->assertStringContainsString('>edit<', $manual);
+        $this->assertStringNotContainsString('--ai-', $manual);
+        $this->assertStringNotContainsString('auto_awesome', $manual);
+    }
+
     public function test_the_owner_sees_per_block_buttons_and_read_only_viewers_do_not(): void
     {
         $owner = $this->user();
@@ -4889,7 +5080,7 @@ JSON, true);
 
         $report = $report->fresh();
         $this->assertSame('جدول تازه', $report->spec['pages'][0]['blocks'][1]['heading']);
-        $this->assertSame(config('ai_report.assumptions.heading.fa'), $report->spec['pages'][0]['blocks'][2]['heading']);
+        $this->assertSame(config('ai.report.assumptions.heading.fa'), $report->spec['pages'][0]['blocks'][2]['heading']);
         $this->assertSame($versionsBefore + 1, count($report->versions));
         $last = $report->lastVersion();
         $this->assertTrue($last['manual'] ?? false);
@@ -4993,7 +5184,7 @@ JSON, true);
     {
         $owner = $this->user();
         $report = $this->blockRefineReport($owner);
-        $heading = (string) config('ai_report.assumptions.heading.fa');
+        $heading = (string) config('ai.report.assumptions.heading.fa');
 
         $editor = Livewire::actingAs($owner)->test(Main::class, ['report' => $report])
             ->call('openBlockEditor', '0:2')
@@ -5119,7 +5310,7 @@ JSON, true);
     public function test_a_block_refine_of_the_final_callout_merges_the_matching_reply_block(): void
     {
         Bus::fake();
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $owner = $this->user();
         $spec = BlockCatalog::validate([
             'lang' => 'fa',
@@ -5159,7 +5350,7 @@ JSON, true);
     public function test_a_block_refine_sends_no_report_type_or_length_rule_but_keeps_audience(): void
     {
         Bus::fake();
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $owner = $this->user();
         $report = $this->blockRefineReport($owner);
 
@@ -5187,7 +5378,7 @@ JSON, true);
     public function test_a_block_refine_sends_only_the_title_and_headings_of_the_other_sections_as_context(): void
     {
         Bus::fake();
-        config(['services.ai_report.model' => 'Gemini-3-Flash-Preview']);
+        config(['ai.gateway.model' => 'Gemini-3-Flash-Preview']);
         $owner = $this->user();
         $report = $this->blockRefineReport($owner);
 
@@ -5347,14 +5538,14 @@ JSON, true);
         $owner = $this->user();
         $presenter = new AiReportPresenter();
 
-        $this->assertStringContainsString('برگشت', $presenter->failHint('timeout'));
-        $this->assertStringContainsString('برگشت داده نشد', $presenter->failHint('too_large'));
-        $this->assertStringContainsString('برگشت', $presenter->failHint('bogus'));
+        $this->assertStringContainsString('بازگردانده شد', $presenter->failHint('timeout'));
+        $this->assertStringContainsString('بازگردانده نشد', $presenter->failHint('too_large'));
+        $this->assertStringContainsString('بازگردانده شد', $presenter->failHint('bogus'));
 
         $report = $this->blockRefineReport($owner);
         $report->update(['status' => AiReport::STATUS_FAILED, 'fail_reason' => 'invalid_spec']);
         $html = Livewire::actingAs($owner)->test(Main::class, ['report' => $report->fresh()])->html();
-        $this->assertStringContainsString('سهمیهٔ این ساخت به شما برگشت', $html);
+        $this->assertStringContainsString('سهمیهٔ مصرف‌شده برای این درخواست به شما بازگردانده شد', $html);
     }
 
     public function test_a_recipient_sees_the_read_only_banner_naming_the_sender(): void
@@ -5376,12 +5567,142 @@ JSON, true);
     {
         $owner = $this->user();
         $open = $this->generatingReport($owner);
-        $seconds = config('ai_report.poll_seconds');
+        $seconds = config('ai.report.poll_seconds');
 
         Livewire::actingAs($owner)->test(Main::class, ['report' => $open])
             ->assertSeeHtml('wire:key="ai-report-generating-skeleton"')
             ->assertSeeHtml('aria-busy="true"')
             ->assertSee('معمولاً')
             ->assertSeeHtml('wire:poll.visible.' . $seconds . 's="pollStatus"');
+    }
+
+    public function test_the_header_carries_the_notification_legend_button_before_the_help_button_and_its_modal(): void
+    {
+        $html = Livewire::actingAs($this->user())->test(Main::class)->html();
+
+        // Dialog modals render their name inside x-data (single-quoted JS), never as a name="..." attribute.
+        $badgeDialog = strpos($html, "name: 'ai-report-badge-legend' }");
+        $legendDialog = strpos($html, "name: 'ai-report-legend' }");
+
+        $this->assertNotFalse($badgeDialog);
+        $this->assertNotFalse($legendDialog);
+        $this->assertLessThan(
+            $legendDialog,
+            strpos($html, "name: 'ai-report-badge-legend' })") // the header dispatch, before both dialogs
+        );
+    }
+
+    public function test_the_notification_legend_shows_the_received_report_row_with_its_dot_surface(): void
+    {
+        $row = BadgeLegendCatalog::get('ai-report-controller');
+
+        $this->assertNotNull($row);
+        $this->assertSame('ai-report', $row['subgroup']);
+        $this->assertSame('sapphire', $row['tone']);
+        $this->assertArrayHasKey('surface', $row);
+
+        $bell = BadgeLegendCatalog::get('ai-report-controller:nudge');
+
+        $this->assertNotNull($bell);
+        $this->assertSame('ai-report', $bell['subgroup']);
+        $this->assertSame('sage', $bell['tone']);
+        $this->assertArrayNotHasKey('surface', $bell);
+        $this->assertStringContainsString(convertToPersian(config('ai.report.share_link_days')), $bell['clears']);
+
+        $html = Livewire::actingAs($this->user())->test(Main::class)->html();
+
+        $this->assertStringContainsString($row['label'], $html);
+        $this->assertStringContainsString($bell['label'], $html);
+    }
+
+    public function test_the_legend_rows_go_away_with_the_module_for_a_tenant(): void
+    {
+        config(['app.off' => ['ai-report']]);
+
+        $this->assertNull(BadgeLegendCatalog::get('ai-report-controller'));
+        $this->assertNull(BadgeLegendCatalog::get('ai-report-controller:nudge'));
+    }
+
+    public function test_the_nudge_follows_the_share_through_open_unshare_deactivate_delete_and_failure(): void
+    {
+        $owner = $this->user();
+        $recipient = $this->user();
+        $report = $this->report($owner);
+        $bells = fn () => DB::table('notifications')->where('notifiable_id', $recipient->id)->where('data->menu_key', 'ai-report-controller:nudge')->count();
+        $reconcile = fn () => NudgeService::reconcile('ai-report-controller:nudge', AiReport::class, $report->id);
+
+        app(ShareReportAction::class)->execute($report, $owner, [$recipient->id]);
+        $this->assertSame(1, $bells());
+
+        Livewire::actingAs($recipient)->test(Main::class)->call('open', $report->id);
+        $reconcile();
+        $this->assertSame(0, $bells());
+
+        app(ShareReportAction::class)->execute($report->fresh(), $owner, []);
+        app(ShareReportAction::class)->execute($report->fresh(), $owner, [$recipient->id]);
+        $this->assertSame(1, $bells());
+
+        app(ShareReportAction::class)->execute($report->fresh(), $owner, []);
+        $this->assertSame(0, $bells());
+
+        app(ShareReportAction::class)->execute($report->fresh(), $owner, [$recipient->id]);
+        $report->fresh()->update(['active' => false]);
+        $reconcile();
+        $this->assertSame(0, $bells());
+
+        $report->fresh()->update(['active' => true]);
+        $reconcile();
+        $this->assertSame(1, $bells());
+
+        $report->fresh()->update(['status' => AiReport::STATUS_FAILED]);
+        $reconcile();
+        $this->assertSame(0, $bells());
+
+        $report->fresh()->update(['status' => AiReport::STATUS_READY]);
+        $reconcile();
+        $this->assertSame(1, $bells());
+
+        $report->fresh()->delete();
+        $reconcile();
+        $this->assertSame(0, $bells());
+    }
+
+    public function test_the_nudge_trigger_reconciles_only_for_watched_columns_and_deletes(): void
+    {
+        $owner = $this->user();
+        $report = $this->report($owner, ['recipients' => [$this->user()->id]]);
+        $resolve = (new AiReportNudge())->triggers()[0]['subject'];
+
+        $unrelated = $report->fresh();
+        $unrelated->title = 'عنوان دیگر';
+        $unrelated->save();
+        $this->assertNull($resolve($unrelated));
+
+        $watched = $report->fresh();
+        $watched->seen_by = [999];
+        $watched->save();
+        $this->assertSame((int) $report->id, (int) $resolve($watched)->id);
+
+        $gone = $report->fresh();
+        $gone->delete();
+        $this->assertSame((int) $report->id, (int) $resolve($gone)->id);
+    }
+
+    public function test_sharing_a_report_sends_one_bell_notification_per_new_recipient_with_a_signed_view_link(): void
+    {
+        $owner = $this->user();
+        $recipient = $this->user();
+        $report = $this->report($owner);
+
+        app(ShareReportAction::class)->execute($report, $owner, [$recipient->id]);
+
+        $notification = $recipient->notifications()->latest()->first();
+        $this->assertNotNull($notification);
+        $this->assertSame('مشاهده', $notification->data['actions'][0]['label']);
+        $this->assertStringContainsString('signature=', $notification->data['actions'][0]['url']);
+        $this->assertCount(0, $owner->notifications()->get());
+
+        app(ShareReportAction::class)->execute($report->fresh(), $owner, [$recipient->id]);
+        $this->assertCount(1, $recipient->notifications()->get());
     }
 }

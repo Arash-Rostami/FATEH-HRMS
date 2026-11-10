@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\SuggestionResource\Pages;
 
 use App\Filament\Resources\SuggestionResource;
-use App\Filament\Resources\SuggestionResource\Enums\ReviewFeedback;
+use App\Enums\ReviewFeedback;
 use App\Livewire\Dashboard\Suggestion\Actions\MarkImplementationCompleteAction;
 use App\Livewire\Dashboard\Suggestion\Actions\SubmitDecisionAction;
 use App\Livewire\Dashboard\Suggestion\Actions\SubmitFeedbackAction;
@@ -83,7 +83,7 @@ class ViewSuggestion extends ViewRecord
                     ->visible(fn(Get $get): bool => $get('decision') === 'accepted'),
             ])
             ->action(function (array $data, SubmitDecisionAction $service): void {
-                $form = new DecisionForm();
+                $form = new DecisionForm($this, 'form');
                 $form->decision         = $data['decision'] ?? '';
                 $form->decisionComment  = (string) ($data['decisionComment'] ?? '');
                 $form->referralDepts    = (array) ($data['referralDepts'] ?? []);
@@ -126,7 +126,7 @@ class ViewSuggestion extends ViewRecord
                     ->rows(4),
             ])
             ->action(function (array $data, SubmitFeedbackAction $service): void {
-                $form = new FeedbackForm();
+                $form = new FeedbackForm($this, 'form');
                 $form->feedback = $data['feedback'] ?? '';
                 $form->comment  = (string) ($data['comment'] ?? '');
 

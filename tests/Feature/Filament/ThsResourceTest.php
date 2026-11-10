@@ -2,9 +2,20 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\ThsResource;
+use App\Filament\Resources\ThsResource\Exports\ThsExporter;
 use App\Filament\Resources\ThsResource\Pages\CreateTicket;
 use App\Filament\Resources\ThsResource\Pages\EditTicket;
 use App\Filament\Resources\ThsResource\Pages\ListTickets;
+use App\Filament\Resources\ThsResource\Schemas\TicketTablePresenter;
+use Filament\Actions\Exports\Models\Export;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Department;
 use App\Models\Permission;
 use App\Models\Profile;
@@ -12,9 +23,12 @@ use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\Select;
 use Filament\Infolists\Components\ViewEntry;
+use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -304,6 +318,214 @@ class ThsResourceTest extends TestCase
 
         $this->assertSame('closed', $ticket->fresh()->status);
         $this->assertSame('done', $task->fresh()->status, 'closing a ticket from the admin panel must advance its linked task to done');
+    }
+
+    private function closableTicket(string $status = 'in-progress'): array
+    {
+        $dept = 'T' . Str::upper(Str::random(3));
+        $requester = User::factory()->create(['status' => 'active', 'role' => 'user']);
+        $assignee = $this->deptStaff($dept);
+        $ticket = Ticket::factory()->create([
+            'status' => $status,
+            'assigned_to' => $assignee->id,
+            'effectiveness' => null,
+            'requester_id' => $requester->id,
+            'extra' => ['target_department' => $dept],
+        ]);
+
+        return [$ticket, $requester, $assignee, $dept];
+    }
+
+    public function test_close_and_save_action_is_visible_only_for_a_closable_open_ticket(): void
+    {
+        $admin = $this->developer();
+        [$open] = $this->closableTicket('open');
+        [$progress] = $this->closableTicket();
+        [$closed] = $this->closableTicket('closed');
+
+        foreach ([$open, $progress] as $ticket) {
+            Livewire::actingAs($admin)->test(EditTicket::class, ['record' => $ticket->getRouteKey()])->assertActionVisible('closeAndSave');
+        }
+
+        Livewire::actingAs($admin)->test(EditTicket::class, ['record' => $closed->getRouteKey()])->assertActionHidden('closeAndSave');
+    }
+
+    public function test_close_and_save_action_closes_the_ticket_and_saves_pending_edits_together(): void
+    {
+        $admin = $this->developer();
+        [$ticket, $requester, $assignee] = $this->closableTicket();
+        $task = Task::factory()->create([
+            'ticket_id' => $ticket->id,
+            'user_id' => $requester->id,
+            'assigned_to' => $assignee->id,
+            'status' => 'in-progress',
+        ]);
+
+        $component = Livewire::actingAs($admin)
+            ->test(EditTicket::class, ['record' => $ticket->getRouteKey()])
+            ->fillForm(['additional_notes' => 'closed-with-note', 'effectiveness' => '4'])
+            ->callAction('closeAndSave')
+            ->assertHasNoFormErrors();
+
+        $fresh = $ticket->fresh();
+        $this->assertSame('closed', $fresh->status);
+        $this->assertSame('closed-with-note', $fresh->additional_notes);
+        $this->assertSame('4', (string) $fresh->effectiveness);
+        $this->assertNotNull($fresh->completion_date);
+        $this->assertSame('done', $task->fresh()->status);
+
+        Livewire::actingAs($admin)
+            ->test(EditTicket::class, ['record' => $ticket->getRouteKey()])
+            ->assertActionHidden('closeAndSave')
+            ->assertFormFieldIsDisabled('status');
+    }
+
+    public function test_close_and_save_action_is_blocked_by_a_validation_failure(): void
+    {
+        $admin = $this->developer();
+        [$ticket] = $this->closableTicket();
+        $outsider = $this->deptStaff('X' . Str::upper(Str::random(3)));
+
+        Livewire::actingAs($admin)
+            ->test(EditTicket::class, ['record' => $ticket->getRouteKey()])
+            ->fillForm(['assigned_to' => $outsider->id])
+            ->callAction('closeAndSave')
+            ->assertHasErrors(['data.assigned_to']);
+
+        $this->assertSame('in-progress', $ticket->fresh()->status);
+        $this->assertNull($ticket->fresh()->completion_date);
+    }
+
+    public function test_list_close_action_is_visible_only_for_in_progress_rows(): void
+    {
+        $admin = $this->developer();
+        [$progress] = $this->closableTicket();
+        [$open] = $this->closableTicket('open');
+        [$closed] = $this->closableTicket('closed');
+
+        Livewire::actingAs($admin)
+            ->test(ListTickets::class)
+            ->assertTableActionVisible('closeTicket', $progress)
+            ->assertTableActionHidden('closeTicket', $open)
+            ->assertTableActionHidden('closeTicket', $closed);
+    }
+
+    public function test_list_close_action_closes_the_ticket_in_one_click_with_all_closing_effects(): void
+    {
+        $admin = $this->developer();
+        [$ticket, $requester, $assignee] = $this->closableTicket();
+        $ticket->addReply($assignee, 'مشکل برطرف شد');
+        $task = Task::factory()->create([
+            'ticket_id' => $ticket->id,
+            'user_id' => $requester->id,
+            'assigned_to' => $assignee->id,
+            'status' => 'in-progress',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(ListTickets::class)
+            ->callTableAction('closeTicket', $ticket)
+            ->assertNotified(__('resources/ths/strings.actions.closed_notice'));
+
+        $fresh = $ticket->fresh();
+        $this->assertSame('closed', $fresh->status);
+        $this->assertNotNull($fresh->completion_date);
+        $this->assertNotEmpty($fresh->action_result);
+        $this->assertSame('done', $task->fresh()->status);
+    }
+
+    public function test_list_take_action_assigns_an_open_ticket_to_the_admin_and_starts_it(): void
+    {
+        $admin = $this->developer();
+        $dept = 'T' . Str::upper(Str::random(3));
+        Department::firstOrCreate(['code' => $dept], ['name' => $dept, 'description' => $dept]);
+        Profile::factory()->create(['user_id' => $admin->id, 'department_id' => $dept, 'position' => 'employee']);
+        $ticket = Ticket::factory()->create(['status' => 'open', 'assigned_to' => null, 'extra' => ['target_department' => $dept]]);
+        [$progress] = $this->closableTicket();
+
+        Livewire::actingAs($admin)
+            ->test(ListTickets::class)
+            ->assertTableActionVisible('takeTicket', $ticket)
+            ->assertTableActionHidden('takeTicket', $progress)
+            ->assertTableActionHidden('closeTicket', $ticket)
+            ->callTableAction('takeTicket', $ticket)
+            ->assertNotified(__('resources/ths/strings.actions.taken_notice'));
+
+        $fresh = $ticket->fresh();
+        $this->assertSame($admin->id, $fresh->assigned_to);
+        $this->assertSame('in-progress', $fresh->status);
+    }
+
+    public function test_list_take_action_is_hidden_when_the_admin_is_outside_the_unit(): void
+    {
+        $admin = $this->developer();
+        $ticket = Ticket::factory()->create(['status' => 'open', 'assigned_to' => null, 'extra' => ['target_department' => 'T' . Str::upper(Str::random(3))]]);
+
+        Livewire::actingAs($admin)
+            ->test(ListTickets::class)
+            ->assertTableActionHidden('takeTicket', $ticket);
+
+        $this->assertNull($ticket->fresh()->assigned_to);
+        $this->assertSame('open', $ticket->fresh()->status);
+    }
+
+    public function test_list_close_action_disappears_for_a_ticket_closed_elsewhere_and_leaves_it_untouched(): void
+    {
+        $admin = $this->developer();
+        [$ticket] = $this->closableTicket();
+
+        $component = Livewire::actingAs($admin)->test(ListTickets::class);
+        $stamp = Ticket::find($ticket->id);
+        $stamp->update(['status' => 'closed']);
+        $completed = $stamp->fresh()->completion_date;
+
+        $component->assertTableActionHidden('closeTicket', $ticket);
+
+        $this->assertSame('closed', $ticket->fresh()->status);
+        $this->assertEquals($completed, $ticket->fresh()->completion_date);
+    }
+
+    public function test_list_take_action_reports_a_ticket_deleted_meanwhile_instead_of_failing(): void
+    {
+        $admin = $this->developer();
+        [$ticket] = $this->closableTicket();
+        $this->actingAs($admin);
+        $stale = Ticket::find($ticket->id);
+        Ticket::whereKey($ticket->id)->delete();
+        session()->forget('filament.notifications');
+
+        TicketTablePresenter::takeAction()->record($stale)->call();
+
+        $titles = collect(session('filament.notifications', []))->pluck('title')->all();
+        $this->assertContains('این تیکت دیگر وجود ندارد.', $titles);
+    }
+
+    public function test_list_close_action_reports_a_ticket_deleted_meanwhile(): void
+    {
+        $admin = $this->developer();
+        [$ticket] = $this->closableTicket();
+        $this->actingAs($admin);
+        $stale = Ticket::find($ticket->id);
+        Ticket::whereKey($ticket->id)->delete();
+        session()->forget('filament.notifications');
+
+        TicketTablePresenter::closeAction()->record($stale)->call();
+
+        $titles = collect(session('filament.notifications', []))->pluck('title')->all();
+        $this->assertContains('این تیکت دیگر وجود ندارد.', $titles);
+    }
+
+    public function test_list_close_action_swallows_a_refused_close_without_changing_the_ticket(): void
+    {
+        $admin = $this->developer();
+        [$ticket] = $this->closableTicket();
+        $other = User::factory()->create(['status' => 'active', 'role' => 'user']);
+
+        $action = TicketTablePresenter::closeAction();
+        $this->actingAs($other);
+        $action->record($ticket)->call();
+
+        $this->assertSame('in-progress', $ticket->fresh()->status);
     }
 
     public function test_delete_ticket_action_removes_row()
@@ -955,21 +1177,21 @@ class ThsResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\ThsResource\Pages\CreateTicket::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\ThsResource\Pages\EditTicket::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\ThsResource\Pages\ListTickets::class => \App\Filament\Pages\ListRecords::class,
+            CreateTicket::class => CreateRecord::class,
+            EditTicket::class => EditRecord::class,
+            ListTickets::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\ThsResource\Pages\CreateTicket::class, \App\Filament\Resources\ThsResource\Pages\EditTicket::class];
+        $writers = [CreateTicket::class, EditTicket::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 
@@ -1050,11 +1272,11 @@ class ThsResourceTest extends TestCase
 
     public function test_edit_tracked_file_columns_delete_only_the_dropped_ticket_files(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
         $tracked = (fn () => $this->trackedFileColumns())->call(new EditTicket());
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
         foreach (['ticket/requester/old.pdf', 'ticket/requester/kept.pdf', 'ticket/assignee/a.pdf'] as $path) {
-            \Illuminate\Support\Facades\Storage::disk('public')->put($path, 'x');
+            Storage::disk('public')->put($path, 'x');
         }
         $record = Ticket::factory()->create([
             'requester_files' => [['file' => 'ticket/requester/old.pdf'], ['file' => 'ticket/requester/kept.pdf']],
@@ -1066,9 +1288,9 @@ class ThsResourceTest extends TestCase
         $record->update(['requester_files' => [['file' => 'ticket/requester/kept.pdf']]]);
         $probe->deleteDroppedFiles($record, $before, $tracked);
 
-        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing('ticket/requester/old.pdf');
-        \Illuminate\Support\Facades\Storage::disk('public')->assertExists('ticket/requester/kept.pdf');
-        \Illuminate\Support\Facades\Storage::disk('public')->assertExists('ticket/assignee/a.pdf');
+        Storage::disk('public')->assertMissing('ticket/requester/old.pdf');
+        Storage::disk('public')->assertExists('ticket/requester/kept.pdf');
+        Storage::disk('public')->assertExists('ticket/assignee/a.pdf');
     }
 
     private function labelFixture(): array
@@ -1179,7 +1401,7 @@ class ThsResourceTest extends TestCase
         [$normal, , $orphan, , $requester] = $this->labelFixture();
         $legacy = $this->legacyTicket($requester);
         $map = array_fill_keys(['request_type', 'request_type_key', 'request_area', 'request_area_key'], true);
-        $export = fn(Ticket $t) => (new \App\Filament\Resources\ThsResource\Exports\ThsExporter(new \Filament\Actions\Exports\Models\Export(), $map, []))($t);
+        $export = fn(Ticket $t) => (new ThsExporter(new Export(), $map, []))($t);
 
         $this->assertSame([Ticket::$requestTypeOptions['support'], 'support', 'AAA-LBLZQ', 'zz_b_area'], $export($normal));
         $this->assertSame([Ticket::$requestTypeOptions['support'], 'support', 'zz_orphan_key', 'zz_orphan_key'], $export($orphan));
@@ -1220,7 +1442,7 @@ class ThsResourceTest extends TestCase
 
         $page = Livewire::actingAs($admin)->test(EditTicket::class, ['record' => $ticket->getRouteKey()])->assertSuccessful();
 
-        $select = collect($page->instance()->getSchema('form')->getFlatComponents())->first(fn($c) => $c instanceof \Filament\Forms\Components\Select && $c->getName() === 'assigned_to');
+        $select = collect($page->instance()->getSchema('form')->getFlatComponents())->first(fn($c) => $c instanceof Select && $c->getName() === 'assigned_to');
         $options = $select->getOptions();
 
         $this->assertNotContains(null, $options, 'no null label may reach the select');
@@ -1283,7 +1505,7 @@ class ThsResourceTest extends TestCase
                 ->mountTableAction('view', $ticket)
                 ->assertSuccessful();
             $components = collect((new \ReflectionMethod($page->instance(), 'getMountedActionSchema'))->invoke($page->instance())->getFlatComponents());
-            $labels = $components->filter(fn($c) => $c instanceof \Filament\Schemas\Components\Tabs\Tab)->map(fn($c) => (string)$c->getLabel());
+            $labels = $components->filter(fn($c) => $c instanceof Tab)->map(fn($c) => (string)$c->getLabel());
 
             $this->assertContains(__('resources/ths/strings.insight.tab_ticket'), $labels);
             $this->assertContains(__('resources/ths/strings.insight.tab_department'), $labels);

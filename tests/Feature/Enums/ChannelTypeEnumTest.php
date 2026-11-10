@@ -3,6 +3,9 @@
 namespace Tests\Feature\Enums;
 
 use App\Enums\ChannelType;
+use Filament\Support\Contracts\HasColor;
+use Filament\Support\Contracts\HasIcon;
+use Filament\Support\Contracts\HasLabel;
 use Tests\TestCase;
 use ValueError;
 
@@ -80,8 +83,8 @@ class ChannelTypeEnumTest extends TestCase
 
     public function test_implements_filament_label_color_and_icon_contracts(): void
     {
-        $this->assertInstanceOf(\Filament\Support\Contracts\HasLabel::class, ChannelType::Open);
-        $this->assertInstanceOf(\Filament\Support\Contracts\HasColor::class, ChannelType::Open);
-        $this->assertInstanceOf(\Filament\Support\Contracts\HasIcon::class, ChannelType::Open);
+        $this->assertInstanceOf(HasLabel::class, ChannelType::Open);
+        $this->assertInstanceOf(HasColor::class, ChannelType::Open);
+        $this->assertInstanceOf(HasIcon::class, ChannelType::Open);
     }
 }

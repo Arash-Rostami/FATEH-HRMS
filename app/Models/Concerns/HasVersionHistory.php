@@ -32,6 +32,6 @@ trait HasVersionHistory
 
     public static function maxVersions(): int
     {
-        return (int) config('ai_report.max_versions');
+        return (int) config('ai.' . static::quotaFeature() . '.max_versions');
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\AdResource\Schemas;
 
-use App\Filament\Resources\AdResource\Enums\AdGender;
-use App\Filament\Resources\AdResource\Enums\AdStatus;
-use App\Traits\FilamentFormDivider;
+use App\Enums\AdGender;
+use App\Enums\AdStatus;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Support\Enums\IconPosition;

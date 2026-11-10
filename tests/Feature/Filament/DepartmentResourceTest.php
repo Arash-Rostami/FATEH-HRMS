@@ -2,11 +2,20 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\DepartmentResource;
 use App\Filament\Resources\DepartmentResource\Pages\CreateDepartment;
 use App\Filament\Resources\DepartmentResource\Pages\EditDepartment;
 use App\Filament\Resources\DepartmentResource\Pages\ListDepartments;
+use App\Filament\Resources\DepartmentResource\RelationManagers\AuthoritiesRelationManager;
+use App\Filament\Resources\DepartmentResource\RelationManagers\ReportsRelationManager;
 use App\Filament\Resources\DepartmentResource\RelationManagers\UsersRelationManager;
 use App\Filament\Resources\DepartmentResource\Schemas\DepartmentFormPresenter;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Department;
 use App\Models\Permission;
 use App\Models\Profile;
@@ -113,6 +122,85 @@ class DepartmentResourceTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertTrue(collect($component->get('mountedActions.0.data.booking'))->every(fn($row) => $row['value'] === true));
+    }
+
+    private function memberWithProtectedExtra(Department $department): User
+    {
+        $member = User::factory()->create([
+            'status' => 'active',
+            'role' => 'user',
+            'type' => 'employee',
+            'extra' => [
+                'preferences' => ['theme' => 'dark'],
+                'admin' => [
+                    'Company' => 'Tehran',
+                    'Floor' => '3',
+                    'sign_code_hash' => 'stored-hash',
+                    'signature' => 'users/signatures/stored.png',
+                    'correspondence_registry' => true,
+                ],
+            ],
+        ]);
+        Profile::factory()->create(['user_id' => $member->id, 'department_id' => $department->code]);
+
+        return $member;
+    }
+
+    public function test_users_relation_manager_edit_form_shows_only_the_editable_extra_entries()
+    {
+        $admin = $this->developer();
+        $department = Department::factory()->create(['code' => $this->uniqueCode(), 'name' => '0Extra RM Dept']);
+        $member = $this->memberWithProtectedExtra($department);
+
+        $component = Livewire::actingAs($admin)
+            ->test(UsersRelationManager::class, ['ownerRecord' => $department, 'pageClass' => EditDepartment::class])
+            ->mountTableAction('edit', $member);
+
+        // KeyValue wire state is key/value rows; normalize to a flat, order-safe map.
+        $rows = collect($component->get('mountedActions.0.data.extra') ?? []);
+
+        $this->assertSame(['Company' => 'Tehran', 'Floor' => '3'], collect($rows->pluck('value', 'key')->sortKeys()->all())->sortKeys()->all());
+    }
+
+    public function test_users_relation_manager_edit_keeps_every_extra_entry_and_the_protected_keys()
+    {
+        $admin = $this->developer();
+        $department = Department::factory()->create(['code' => $this->uniqueCode(), 'name' => '0Extra Keep Dept']);
+        $member = $this->memberWithProtectedExtra($department);
+
+        Livewire::actingAs($admin)
+            ->test(UsersRelationManager::class, ['ownerRecord' => $department, 'pageClass' => EditDepartment::class])
+            ->mountTableAction('edit', $member)
+            ->set('mountedActions.0.data.name', '0 Dept Edited')
+            ->callMountedTableAction()
+            ->assertHasNoErrors();
+
+        $fresh = $member->fresh();
+        $this->assertSame('0 Dept Edited', $fresh->name);
+        $this->assertSame('Tehran', $fresh->extra['admin']['Company']);
+        $this->assertSame('3', $fresh->extra['admin']['Floor']);
+        $this->assertSame('stored-hash', $fresh->extra['admin']['sign_code_hash']);
+        $this->assertSame('users/signatures/stored.png', $fresh->extra['admin']['signature']);
+        $this->assertTrue($fresh->extra['admin']['correspondence_registry']);
+        $this->assertSame('dark', $fresh->extra['preferences']['theme']);
+    }
+
+    public function test_users_relation_manager_edit_ignores_protected_keys_posted_through_the_extra_field()
+    {
+        $admin = $this->developer();
+        $department = Department::factory()->create(['code' => $this->uniqueCode(), 'name' => '0Extra Evil Dept']);
+        $member = $this->memberWithProtectedExtra($department);
+
+        Livewire::actingAs($admin)
+            ->test(UsersRelationManager::class, ['ownerRecord' => $department, 'pageClass' => EditDepartment::class])
+            ->mountTableAction('edit', $member)
+            ->set('mountedActions.0.data.extra', ['Company' => 'Tehran', 'sign_code_hash' => 'evil', 'signature' => '../evil.png'])
+            ->callMountedTableAction()
+            ->assertHasNoErrors();
+
+        $admin = $member->fresh()->extra['admin'];
+        $this->assertSame('stored-hash', $admin['sign_code_hash']);
+        $this->assertSame('users/signatures/stored.png', $admin['signature']);
     }
 
     public function test_edit_page_explains_tabs_hidden_by_the_admins_permissions()
@@ -507,28 +595,28 @@ class DepartmentResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\DepartmentResource\Pages\CreateDepartment::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\DepartmentResource\Pages\EditDepartment::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\DepartmentResource\Pages\ListDepartments::class => \App\Filament\Pages\ListRecords::class,
+            CreateDepartment::class => CreateRecord::class,
+            EditDepartment::class => EditRecord::class,
+            ListDepartments::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\DepartmentResource\Pages\CreateDepartment::class, \App\Filament\Resources\DepartmentResource\Pages\EditDepartment::class];
+        $writers = [CreateDepartment::class, EditDepartment::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
 
-        $managers = [\App\Filament\Resources\DepartmentResource\RelationManagers\AuthoritiesRelationManager::class, \App\Filament\Resources\DepartmentResource\RelationManagers\ReportsRelationManager::class, \App\Filament\Resources\DepartmentResource\RelationManagers\UsersRelationManager::class];
+        $managers = [AuthoritiesRelationManager::class, ReportsRelationManager::class, UsersRelationManager::class];
 
         foreach ($managers as $manager) {
-            $this->assertSame(\App\Filament\RelationManagers\RelationManager::class, get_parent_class($manager));
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, class_uses_recursive($manager));
+            $this->assertSame(RelationManager::class, get_parent_class($manager));
+            $this->assertArrayHasKey(HandlesActionExceptions::class, class_uses_recursive($manager));
         }
     }
 

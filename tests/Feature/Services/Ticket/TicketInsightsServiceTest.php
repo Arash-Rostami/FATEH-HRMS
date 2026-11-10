@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Services\Ticket;
 
+use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Models\Department;
 use App\Models\Reply;
 use App\Models\Ticket;
@@ -112,6 +113,33 @@ class TicketInsightsServiceTest extends TestCase
         return collect($cards)->firstWhere('key', $key);
     }
 
+    private function stamped(?string $at, array $row = []): Ticket
+    {
+        return $this->ticket('support', 'vpn', [
+            ...$row,
+            'extra' => json_encode(['target_department' => $this->dept, ...($at ? ['in_progress_at' => $at] : [])]),
+        ]);
+    }
+
+    private function waitWork(Ticket $ticket): array
+    {
+        $cards = collect($this->service()->forTicket($ticket)['cards']);
+        $keys = $cards->pluck('key')->all();
+
+        $this->assertSame(['age', 'duration', 'wait', 'work', 'deadline', 'first-response', 'owner', 'requester-open'], $keys);
+
+        $wait = $cards->firstWhere('key', 'wait');
+        $work = $cards->firstWhere('key', 'work');
+        $this->assertSame(array_keys($wait), array_keys($work));
+
+        return [$wait, $work];
+    }
+
+    private function hours(int $n): string
+    {
+        return $this->fa($n) . ' ' . __('resources/ths/strings.insight.units.hour');
+    }
+
     private function summaryCard(array $summary, string $key): array
     {
         return $this->card(collect($summary['sections'])->flatMap(fn($s) => $s['cards'])->all(), $key);
@@ -220,6 +248,89 @@ class TicketInsightsServiceTest extends TestCase
         $this->assertSame(__('resources/ths/strings.fields.unassigned'), $this->card($aloneCards, 'owner')['value']);
     }
 
+    public function test_wait_and_work_cards_come_as_a_pair_with_controlled_values_for_a_closed_ticket(): void
+    {
+        $this->travelTo(now()->startOfMinute());
+        $created = now()->subDays(5);
+        $ticket = $this->stamped($created->copy()->addHours(2)->toDateTimeString(), [
+            'status' => 'closed',
+            'created_at' => $created,
+            'completion_date' => $created->copy()->addHours(24),
+        ]);
+
+        [$wait, $work] = $this->waitWork($ticket);
+
+        $this->assertSame($this->hours(2), $wait['value']);
+        $this->assertSame(__('resources/ths/strings.insight.cards.wait_done'), $wait['label']);
+        $this->assertSame($this->hours(22), $work['value']);
+        $this->assertSame(__('resources/ths/strings.insight.cards.work_done'), $work['label']);
+        $this->assertSame('info', $wait['color']);
+        $this->assertSame('info', $work['color']);
+    }
+
+    public function test_wait_and_work_cards_show_dashes_together_for_a_closed_ticket_without_an_in_progress_moment(): void
+    {
+        $created = now()->subDays(5);
+        $ticket = $this->stamped(null, ['status' => 'closed', 'created_at' => $created, 'completion_date' => $created->copy()->addHours(24)]);
+
+        [$wait, $work] = $this->waitWork($ticket);
+
+        $this->assertSame(['—', 'gray'], [$wait['value'], $wait['color']]);
+        $this->assertSame(['—', 'gray'], [$work['value'], $work['color']]);
+        $this->assertSame(__('resources/ths/strings.insight.cards.work_done'), $work['label']);
+    }
+
+    public function test_wait_and_work_cards_run_live_for_open_and_in_progress_tickets(): void
+    {
+        $this->travelTo(now()->startOfMinute());
+
+        $open = $this->stamped(null, ['created_at' => now()->subHours(3)]);
+        [$wait, $work] = $this->waitWork($open);
+        $this->assertSame($this->hours(3), $wait['value']);
+        $this->assertSame('warning', $wait['color']);
+        $this->assertSame(__('resources/ths/strings.insight.cards.wait_running'), $wait['label']);
+        $this->assertSame(['—', 'gray'], [$work['value'], $work['color']]);
+        $this->assertSame(__('resources/ths/strings.insight.cards.work_running'), $work['label']);
+
+        $running = $this->stamped(now()->subHours(2)->toDateTimeString(), ['status' => 'in-progress', 'assigned_to' => self::GHOST, 'created_at' => now()->subHours(5)]);
+        [$wait, $work] = $this->waitWork($running);
+        $this->assertSame($this->hours(3), $wait['value']);
+        $this->assertSame(__('resources/ths/strings.insight.cards.wait_done'), $wait['label']);
+        $this->assertSame($this->hours(2), $work['value']);
+        $this->assertSame(__('resources/ths/strings.insight.cards.work_running'), $work['label']);
+    }
+
+    public function test_wait_and_work_cards_fall_back_to_the_first_assign_system_reply(): void
+    {
+        $this->travelTo(now()->startOfMinute());
+        $staff = User::factory()->create(['status' => 'active', 'role' => 'user']);
+        $ticket = $this->stamped(null, ['status' => 'in-progress', 'assigned_to' => self::GHOST, 'created_at' => now()->subHours(6)]);
+
+        foreach ([[4, 'x'], [2, AssignTicketAction::REPLY_PREFIX . 'A'], [1, AssignTicketAction::REPLY_PREFIX . 'B']] as [$hoursAgo, $body]) {
+            $reply = Reply::create(['repliable_type' => Ticket::class, 'repliable_id' => $ticket->id, 'user_id' => $staff->id, 'body' => $body]);
+            DB::table('replies')->where('id', $reply->id)->update(['created_at' => now()->subHours($hoursAgo)]);
+        }
+
+        [$wait, $work] = $this->waitWork($ticket);
+
+        $this->assertSame($this->hours(4), $wait['value']);
+        $this->assertSame($this->hours(2), $work['value']);
+    }
+
+    public function test_in_progress_stamp_wins_over_the_assign_reply(): void
+    {
+        $this->travelTo(now()->startOfMinute());
+        $staff = User::factory()->create(['status' => 'active', 'role' => 'user']);
+        $ticket = $this->stamped(now()->subHours(5)->toDateTimeString(), ['status' => 'in-progress', 'assigned_to' => self::GHOST, 'created_at' => now()->subHours(6)]);
+        $reply = Reply::create(['repliable_type' => Ticket::class, 'repliable_id' => $ticket->id, 'user_id' => $staff->id, 'body' => AssignTicketAction::REPLY_PREFIX . 'A']);
+        DB::table('replies')->where('id', $reply->id)->update(['created_at' => now()->subHours(2)]);
+
+        [$wait, $work] = $this->waitWork($ticket);
+
+        $this->assertSame($this->hours(1), $wait['value']);
+        $this->assertSame($this->hours(5), $work['value']);
+    }
+
     public function test_for_ticket_lists_up_to_five_similar_tickets_excluding_itself_and_counts_other_open_ones(): void
     {
         $tickets = collect(range(1, 7))->map(fn() => $this->ticket('support', 'vpn'));
@@ -245,7 +356,7 @@ class TicketInsightsServiceTest extends TestCase
 
         $result = $this->service()->forTicket($legacy->fresh());
 
-        $this->assertCount(6, $result['cards']);
+        $this->assertCount(8, $result['cards']);
         $this->assertSame($default, $legacy->fresh()->effectiveTargetDepartment());
     }
 

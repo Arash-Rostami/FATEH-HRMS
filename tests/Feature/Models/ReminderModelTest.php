@@ -3,7 +3,7 @@
 namespace Tests\Feature\Models;
 
 use App\Enums\ReminderRecurrence;
-use App\Jobs\ReconcileReminderDue;
+use App\Jobs\ReconcileReminderDueJob;
 use App\Models\DMS;
 use App\Models\Reminder;
 use App\Models\Task;
@@ -349,8 +349,8 @@ class ReminderModelTest extends TestCase
         $reminder = $this->makeReminder($user, ['due_at' => now()->addHours(2)]);
         $reminder->update(['title' => 'renamed']);
 
-        Queue::assertPushed(ReconcileReminderDue::class, 1);
-        Queue::assertPushed(ReconcileReminderDue::class, fn (ReconcileReminderDue $job) => $job->reminderId === $reminder->id
+        Queue::assertPushed(ReconcileReminderDueJob::class, 1);
+        Queue::assertPushed(ReconcileReminderDueJob::class, fn (ReconcileReminderDueJob $job) => $job->reminderId === $reminder->id
             && $job->delay->equalTo($reminder->due_at));
     }
 
@@ -364,7 +364,7 @@ class ReminderModelTest extends TestCase
         $reminder->update(['due_at' => now()->addHours(5)]);
         $reminder->snooze(now()->addHours(8));
 
-        Queue::assertPushed(ReconcileReminderDue::class, 3);
+        Queue::assertPushed(ReconcileReminderDueJob::class, 3);
     }
 
     public function test_no_delayed_reconcile_for_far_future_or_completed_reminders(): void
@@ -377,7 +377,7 @@ class ReminderModelTest extends TestCase
         $this->makeReminder($user, ['due_at' => now()->addHours(2), 'completed_at' => now()]);
         $this->makeReminder($user, ['due_at' => now()->subHour(), 'completed_at' => now()]);
 
-        Queue::assertNotPushed(ReconcileReminderDue::class);
+        Queue::assertNotPushed(ReconcileReminderDueJob::class);
     }
 
     public function test_creating_an_already_due_reminder_queues_one_immediate_reconcile_even_after_repeated_saves(): void
@@ -390,8 +390,8 @@ class ReminderModelTest extends TestCase
         $reminder->update(['title' => 'renamed']);
         $reminder->update(['title' => 'renamed again']);
 
-        Queue::assertPushed(ReconcileReminderDue::class, 1);
-        Queue::assertPushed(ReconcileReminderDue::class, fn (ReconcileReminderDue $job) => $job->reminderId === $reminder->id);
+        Queue::assertPushed(ReconcileReminderDueJob::class, 1);
+        Queue::assertPushed(ReconcileReminderDueJob::class, fn (ReconcileReminderDueJob $job) => $job->reminderId === $reminder->id);
     }
 
     public function test_a_past_due_reminder_within_a_day_queues_a_reconcile_only_with_an_email_or_sms_channel(): void
@@ -401,10 +401,10 @@ class ReminderModelTest extends TestCase
         $user = User::factory()->create(['status' => 'active']);
 
         $this->makeReminder($user, ['due_at' => now()->subHours(2), 'channels' => ['inapp:edge,badge,nudge']]);
-        Queue::assertNotPushed(ReconcileReminderDue::class);
+        Queue::assertNotPushed(ReconcileReminderDueJob::class);
 
         $this->makeReminder($user, ['due_at' => now()->subHours(2), 'channels' => ['inapp:edge,badge,nudge', 'email']]);
-        Queue::assertPushed(ReconcileReminderDue::class, 1);
+        Queue::assertPushed(ReconcileReminderDueJob::class, 1);
     }
 
     public function test_a_reminder_overdue_by_more_than_a_day_is_not_requeued_by_a_save(): void
@@ -416,7 +416,7 @@ class ReminderModelTest extends TestCase
         $reminder = $this->makeReminder($user, ['due_at' => now()->subHours(30), 'channels' => ['email']]);
         $reminder->update(['title' => 'renamed']);
 
-        Queue::assertNotPushed(ReconcileReminderDue::class);
+        Queue::assertNotPushed(ReconcileReminderDueJob::class);
     }
 
     public function test_a_future_moment_within_a_day_queues_a_reconcile_regardless_of_channels(): void
@@ -427,7 +427,7 @@ class ReminderModelTest extends TestCase
 
         $this->makeReminder($user, ['due_at' => now()->addHours(3), 'channels' => ['inapp:edge,badge,nudge']]);
 
-        Queue::assertPushed(ReconcileReminderDue::class, 1);
+        Queue::assertPushed(ReconcileReminderDueJob::class, 1);
     }
 
     public function test_deliver_due_on_a_stale_instance_sends_nothing_once_the_row_is_completed_or_snoozed(): void

@@ -8,7 +8,7 @@
         [
             'icon' => 'calendar_month',
             'label' => 'فیلتر ماه (تایم‌لاین)',
-            'hint' => 'دکمهٔ تقویم بالای تایم‌لاین، ماه‌های موجود (مثل «اردیبهشت ۱۴۰۴») را از تاریخ رویداد می‌سازد؛ انتخاب یک ماه، فقط گالری‌های همان ماه را نشان می‌دهد و «همه ماه‌ها» فیلتر را پاک می‌کند.',
+            'hint' => 'با دکمهٔ تقویم، ماه مورد نظر را انتخاب کنید تا گالری‌های همان ماه دیده شوند. «همه ماه‌ها» فیلتر را برمی‌دارد.',
         ],
         [
             'icon' => 'photo_library',
@@ -18,7 +18,7 @@
         [
             'icon' => 'bolt',
             'label' => 'حالت تمرکز از پالت دستور',
-            'hint' => 'وقتی کاربر با پالت دستور (?open={id}) به یک گالری می‌رسد، فقط همان رکورد (با رعایتِ دیدِ واحد) نمایش داده می‌شود؛ دکمهٔ «نمایش همه» فهرست کامل را برمی‌گرداند.',
+            'hint' => 'وقتی کاربر از پالت دستور گالری مجازی را باز می‌کند، فقط همان گالری نمایش داده می‌شود؛ دکمهٔ «نمایش همه» فهرست کامل را برمی‌گرداند.',
         ],
         [
             'icon' => 'tune',
@@ -51,7 +51,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کاربر در زبانهٔ «گالری» چه می‌بیند؟</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        زبانهٔ گالریِ پنل کاربری یک تایم‌لاینِ افقی از کارت‌های گالری است. کاربر فقط گالری‌های عمومی یا آن‌هایی که واحدِ سازمانیِ او در <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">department_id</code> یا آرایهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">departments</code> دارند را می‌بیند — هیچ گالری خصوصیِ واحدِ دیگری برایش قابل دیدن نیست. وقتی کاربر از وضعیت دیدن محتوا شکایت می‌کند، این زبانه مرجعِ شماست.
+        در زبانهٔ گالری، کاربر گالری‌های عمومی و گالری‌های مربوط به واحد خود را می‌بیند؛ گالری خصوصی واحدهای دیگر برای او قابل مشاهده نیست. اگر کاربری به گالری دسترسی ندارد، واحدهای مخاطب آن را بررسی کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

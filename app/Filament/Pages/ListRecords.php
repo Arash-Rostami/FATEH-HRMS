@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Traits\HandlesActionExceptions;
+use App\Traits\Filament\HandlesActionExceptions;
 use Filament\Resources\Pages\ListRecords as BaseListRecords;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\AiReportResource\Schemas;
 
 use App\Models\AiReport;
 use App\Models\User;
-use App\Traits\FilamentFilters;
+use App\Traits\Filament\FilamentFilters;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -104,9 +104,9 @@ class AiReportTablePresenter
     public static function staleDraftFilter(): Filter
     {
         return Filter::make('stale_drafts')
-            ->label(__('resources/ai_report/strings.filters.stale_drafts', ['days' => convertToPersian(config('ai_report.stale_draft_days'))]))
+            ->label(__('resources/ai_report/strings.filters.stale_drafts', ['days' => convertToPersian(config('ai.report.stale_draft_days'))]))
             ->toggle()
-            ->query(fn(Builder $query) => $query->whereNull('saved_at')->where('created_at', '<', now()->subDays(config('ai_report.stale_draft_days'))));
+            ->query(fn(Builder $query) => $query->whereNull('saved_at')->where('created_at', '<', now()->subDays(config('ai.report.stale_draft_days'))));
     }
 
     public static function status(): TextColumn

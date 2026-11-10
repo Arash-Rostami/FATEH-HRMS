@@ -57,8 +57,16 @@ as 'php artisan schedule:list' | head -12
 
 echo "== PERMISSIONS / UPLOADS =="
 as 'touch storage/app/public/t storage/app/livewire-tmp/t storage/framework/cache/t bootstrap/cache/t && rm storage/app/public/t storage/app/livewire-tmp/t storage/framework/cache/t bootstrap/cache/t' && ok "office-bms can write storage, cache, Livewire uploads" || bad "write test failed: see paas-setup.md section 5"
+as 'mkdir -p storage/app/mpdf-tmp && touch storage/app/mpdf-tmp/t && rm storage/app/mpdf-tmp/t' && ok "office-bms can write storage/app/mpdf-tmp (letter PDFs: web and queue workers)" || bad "storage/app/mpdf-tmp not writable: PDF letters will fail, see paas-setup.md section 5"
 [ -f public/build/manifest.json ] && ok "vite manifest present" || bad "vite manifest missing: npm run build"
+[ -d public/build/assets/fonts/vazirmatn ] && ok "letterhead fonts built (public/build/assets/fonts/vazirmatn)" || bad "letterhead fonts missing from the build: npm run build"
+for f in public/js/prefs-manager.js public/js/mode-manager.js public/js/correspondence-link.js resources/assets/fonts/Yekan.ttf; do
+  [ -f "$f" ] && ok "hand-placed file present: $f" || bad "hand-placed file MISSING: $f (upload it, see paas-setup.md section 5)"
+done
 find storage bootstrap/cache public/build ! -user $U 2>/dev/null | head -3 | sed 's/^/[WARN] not owned by office-bms: /'
+grep -qF 'RewriteRule ^storage/dms/' public/.htaccess 2>/dev/null && ok "DMS guard rule present in public/.htaccess" || bad "DMS guard rule MISSING in public/.htaccess: direct /storage/dms/ links are open (run scripts/setup-container.sh, see paas-setup.md section 5)"
+DMSF=$(ls public/storage/dms 2>/dev/null | head -1)
+[ -n "$DMSF" ] && { c=$(curl -s -o /dev/null -w '%{http_code}' -H "Host: ${DOMAIN#https://}" "http://localhost/storage/dms/$DMSF"); [ "$c" = 302 ] && ok "direct /storage/dms/ URL is redirected (302)" || bad "direct /storage/dms/ URL returned $c (expect 302): the DMS guard is not working"; }
 
 echo "== APP =="
 echo "local HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://localhost)  (expect 302 - / always redirects to dashboard)"

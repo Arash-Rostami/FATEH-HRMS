@@ -8,8 +8,12 @@ use App\Enums\ReservationStatus;
 use App\Livewire\Dashboard\Reservation\Actions\BookAction;
 use App\Livewire\Dashboard\Reservation\Main;
 use App\Livewire\Dashboard\Reservation\Presentation\AvantgardePresenter;
+use App\Livewire\Dashboard\Reservation\Presentation\DailyPresenter;
+use App\Livewire\Dashboard\Reservation\Presentation\PolicySummaryPresenter;
 use App\Livewire\Dashboard\Reservation\Presentation\ReservationSummaryPresenter;
 use App\Livewire\Dashboard\Reservation\Presentation\TimeSlotPresenter;
+use App\Models\Message;
+use App\Models\Profile;
 use App\Models\Reservation;
 use App\Models\ReservationPolicy;
 use App\Models\Resource;
@@ -17,7 +21,10 @@ use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\Reservation\ValidationService;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 use Morilog\Jalali\Jalalian;
 use Tests\TestCase;
@@ -759,7 +766,7 @@ class ReservationTest extends TestCase
         $this->assertSame(1, $component->get('dailyData')['total']);
 
         $component->set('daily.limit', 1000000000)->set('daily.anchor', '9999-01-01')->call('setDailyQuick', 'month')->set('daily.anchor', '9999-01-01');
-        $this->assertLessThanOrEqual(\App\Livewire\Dashboard\Reservation\Presentation\DailyPresenter::MAX_ROWS, $component->get('dailyData')['total']);
+        $this->assertLessThanOrEqual(DailyPresenter::MAX_ROWS, $component->get('dailyData')['total']);
 
         $component->set('daily', []);
         $this->assertIsArray($component->get('dailyData')['groups']);
@@ -769,7 +776,7 @@ class ReservationTest extends TestCase
     public function test_reach_out_refuses_guests_inactive_holders_and_unpermitted_types()
     {
         [$viewer, $colleague, $desk, $tag] = $this->dailySetup();
-        \Illuminate\Support\Facades\RateLimiter::clear("reservation-contact:{$viewer->id}");
+        RateLimiter::clear("reservation-contact:{$viewer->id}");
         $guest = $this->actor(['type' => 'guest']);
         $inactive = $this->actor(['type' => 'employee', 'status' => 'inactive']);
         $meeting = Resource::factory()->create(['type' => 'meeting', 'status' => 'active', 'metadata' => []]);
@@ -784,24 +791,24 @@ class ReservationTest extends TestCase
             $component->call('reachOut', $reservation->id, 'contact')->assertDispatched('toast', fn($name, $params) => ($params['type'] ?? null) === 'error');
         }
 
-        $this->assertSame(0, \App\Models\Message::where('sender_id', $viewer->id)->count());
+        $this->assertSame(0, Message::where('sender_id', $viewer->id)->count());
         $this->travelBack();
     }
 
     public function test_reach_out_refuses_cancelled_reservations_but_allows_released_ones()
     {
         [$viewer, $colleague, $desk, $tag] = $this->dailySetup();
-        \Illuminate\Support\Facades\RateLimiter::clear("reservation-contact:{$viewer->id}");
+        RateLimiter::clear("reservation-contact:{$viewer->id}");
         $cancelled = $this->dailyBook($colleague, $desk, '2026-10-10', 'cancelled_user');
         $released = $this->dailyBook($colleague, Resource::factory()->create(['type' => 'seat', 'status' => 'active', 'metadata' => []]), '2026-10-10', 'released');
 
         $component = Livewire::actingAs($viewer)->test(Main::class);
         $component->call('reachOut', $cancelled->id, 'contact')->assertDispatched('toast', fn($name, $params) => ($params['type'] ?? null) === 'error');
-        $this->assertSame(0, \App\Models\Message::where('sender_id', $viewer->id)->count());
+        $this->assertSame(0, Message::where('sender_id', $viewer->id)->count());
 
         $component->call('reachOut', $released->id, 'contact')->assertDispatched('toast', fn($name, $params) => ($params['type'] ?? null) === 'success');
-        $this->assertSame(1, \App\Models\Message::where('sender_id', $viewer->id)->count());
-        \Illuminate\Support\Facades\RateLimiter::clear("reservation-contact:{$viewer->id}");
+        $this->assertSame(1, Message::where('sender_id', $viewer->id)->count());
+        RateLimiter::clear("reservation-contact:{$viewer->id}");
         $this->travelBack();
     }
 
@@ -844,42 +851,42 @@ class ReservationTest extends TestCase
     public function test_reach_out_sms_sends_chat_plus_a_sender_prefixed_sms_and_checks_every_precondition()
     {
         config(['services.kavenegar.key' => 'K']);
-        \Illuminate\Support\Facades\Http::fake(['api.kavenegar.com/*' => \Illuminate\Support\Facades\Http::response(['return' => ['status' => 200]])]);
+        Http::fake(['api.kavenegar.com/*' => Http::response(['return' => ['status' => 200]])]);
         [$viewer, $colleague, $desk] = $this->dailySetup();
-        \Illuminate\Support\Facades\RateLimiter::clear("reservation-contact:{$viewer->id}");
-        $profile = \App\Models\Profile::where('user_id', $colleague->id)->first();
+        RateLimiter::clear("reservation-contact:{$viewer->id}");
+        $profile = Profile::where('user_id', $colleague->id)->first();
         $profile
             ? $profile->update(['cellphone' => '09120000000'])
-            : \App\Models\Profile::factory()->create(['user_id' => $colleague->id, 'cellphone' => '09120000000']);
+            : Profile::factory()->create(['user_id' => $colleague->id, 'cellphone' => '09120000000']);
         $theirs = $this->dailyBook($colleague, $desk, '2026-10-10');
 
         $component = Livewire::actingAs($viewer)->test(Main::class);
 
         $component->call('reachOutSms', $theirs->id)->assertDispatched('toast', fn($name, $params) => ($params['type'] ?? null) === 'success');
         $this->assertDatabaseHas('messages', ['sender_id' => $viewer->id, 'recipient_id' => $colleague->id]);
-        \Illuminate\Support\Facades\Http::assertSent(fn($request) => $request['receptor'] === '09120000000'
+        Http::assertSent(fn($request) => $request['receptor'] === '09120000000'
             && str_starts_with($request['message'], $viewer->name . ': ')
             && str_contains($request['message'], $desk->name));
         $this->assertDatabaseHas('notify_logs', ['source' => 'reservation', 'sender_id' => $viewer->id, 'user_id' => $colleague->id, 'status' => 'sent', 'recipient' => '*******0000']);
 
-        $messages = \App\Models\Message::count();
+        $messages = Message::count();
         config(['app.off' => ['notify:sms']]);
         $component->call('reachOutSms', $theirs->id)->assertDispatched('toast', fn($name, $params) => ($params['type'] ?? null) === 'error');
         config(['app.off' => []]);
 
-        \App\Models\Profile::where('user_id', $colleague->id)->update(['cellphone' => null]);
+        Profile::where('user_id', $colleague->id)->update(['cellphone' => null]);
         $component->call('reachOutSms', $theirs->id)->assertDispatched('toast', fn($name, $params) => ($params['type'] ?? null) === 'error');
 
-        $this->assertSame($messages, \App\Models\Message::count());
-        \Illuminate\Support\Facades\Http::assertSentCount(1);
-        \Illuminate\Support\Facades\RateLimiter::clear("reservation-contact:{$viewer->id}");
+        $this->assertSame($messages, Message::count());
+        Http::assertSentCount(1);
+        RateLimiter::clear("reservation-contact:{$viewer->id}");
         $this->travelBack();
     }
 
     public function test_reach_out_sends_a_chat_message_and_enforces_guards()
     {
         [$viewer, $colleague, $desk] = $this->dailySetup();
-        \Illuminate\Support\Facades\RateLimiter::clear("reservation-contact:{$viewer->id}");
+        RateLimiter::clear("reservation-contact:{$viewer->id}");
         $theirs = $this->dailyBook($colleague, $desk, '2026-10-10');
         $mine = $this->dailyBook($viewer, Resource::factory()->create(['type' => 'seat', 'status' => 'active', 'metadata' => []]), '2026-10-11');
 
@@ -887,17 +894,17 @@ class ReservationTest extends TestCase
 
         $component->call('reachOut', $theirs->id, 'move')->assertDispatched('toast', fn($name, $params) => ($params['type'] ?? null) === 'success');
         $this->assertDatabaseHas('messages', ['sender_id' => $viewer->id, 'recipient_id' => $colleague->id]);
-        $this->assertStringContainsString($desk->name, \App\Models\Message::where('sender_id', $viewer->id)->latest('id')->value('body'));
+        $this->assertStringContainsString($desk->name, Message::where('sender_id', $viewer->id)->latest('id')->value('body'));
 
         $component->call('reachOut', $mine->id, 'move')->assertDispatched('toast', fn($name, $params) => ($params['type'] ?? null) === 'error');
         $component->call('reachOut', $theirs->id, 'bogus')->assertDispatched('toast', fn($name, $params) => ($params['type'] ?? null) === 'error');
-        $this->assertSame(1, \App\Models\Message::where('sender_id', $viewer->id)->count());
+        $this->assertSame(1, Message::where('sender_id', $viewer->id)->count());
 
         foreach (range(1, 5) as $i) {
             $component->call('reachOut', $theirs->id, 'contact');
         }
-        $this->assertSame(5, \App\Models\Message::where('sender_id', $viewer->id)->count());
-        \Illuminate\Support\Facades\RateLimiter::clear("reservation-contact:{$viewer->id}");
+        $this->assertSame(5, Message::where('sender_id', $viewer->id)->count());
+        RateLimiter::clear("reservation-contact:{$viewer->id}");
         $this->travelBack();
     }
 
@@ -905,15 +912,15 @@ class ReservationTest extends TestCase
     {
         $anchor = \Carbon\Carbon::create(2026, 10, 14, 9, 0, 0);
 
-        [$from, $to] = \App\Livewire\Dashboard\Reservation\Presentation\DailyPresenter::range('week', $anchor);
+        [$from, $to] = DailyPresenter::range('week', $anchor);
         $this->assertSame('2026-10-10', $from->toDateString());
         $this->assertSame('2026-10-16', $to->toDateString());
 
-        [$from, $to] = \App\Livewire\Dashboard\Reservation\Presentation\DailyPresenter::range('month', $anchor);
+        [$from, $to] = DailyPresenter::range('month', $anchor);
         $this->assertSame('2026-09-23', $from->toDateString());
         $this->assertSame('2026-10-22', $to->toDateString());
 
-        $next = \App\Livewire\Dashboard\Reservation\Presentation\DailyPresenter::shift('month', $anchor, 1);
+        $next = DailyPresenter::shift('month', $anchor, 1);
         $this->assertSame('2026-10-23', $next->toDateString());
     }
 
@@ -947,10 +954,10 @@ class ReservationTest extends TestCase
         $booking = $component->get('activeLimitUsage');
         $cancel = $component->get('cancelLimitUsage');
 
-        $this->assertSame(['count' => 4, 'max' => 5, 'level' => 'warn', 'left' => 1], \Illuminate\Support\Arr::only($booking, ['count', 'max', 'level', 'left']));
+        $this->assertSame(['count' => 4, 'max' => 5, 'level' => 'warn', 'left' => 1], Arr::only($booking, ['count', 'max', 'level', 'left']));
         $this->assertSame(13, $booking['reset']['days']);
         $this->assertStringContainsString('آبان', $booking['reset']['date']);
-        $this->assertSame(['count' => 2, 'max' => 3, 'level' => 'ok', 'left' => 1, 'dropsInDays' => 10], \Illuminate\Support\Arr::only($cancel, ['count', 'max', 'level', 'left', 'dropsInDays']));
+        $this->assertSame(['count' => 2, 'max' => 3, 'level' => 'ok', 'left' => 1, 'dropsInDays' => 10], Arr::only($cancel, ['count', 'max', 'level', 'left', 'dropsInDays']));
 
         $component->set('date', '2026-11-20');
         $this->assertNull($component->get('activeLimitUsage')['reset']);
@@ -1024,7 +1031,7 @@ class ReservationTest extends TestCase
 
     public function test_policy_summary_shows_every_rule_that_is_set()
     {
-        $presenter = \App\Livewire\Dashboard\Reservation\Presentation\PolicySummaryPresenter::class;
+        $presenter = PolicySummaryPresenter::class;
         $policies = [
             'window_days' => 14, 'window_hours' => 0, 'allowed_days' => ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
             'max_per_user' => 4, 'max_cancel_count' => 3, 'max_range_days' => 20, 'last_minute_hours' => 12,
@@ -1043,7 +1050,7 @@ class ReservationTest extends TestCase
 
     public function test_policy_summary_presenter_chips_levels_and_reset()
     {
-        $presenter = \App\Livewire\Dashboard\Reservation\Presentation\PolicySummaryPresenter::class;
+        $presenter = PolicySummaryPresenter::class;
         $timed = ['window_days' => 14, 'window_hours' => 2, 'allowed_hours' => ['start' => '08:00', 'end' => '18:00'], 'min_duration_minutes' => 30, 'max_duration_minutes' => 120, 'allowed_days' => ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday']];
 
         $timedText = implode(' | ', array_column($presenter::chips($timed, false), 'text'));

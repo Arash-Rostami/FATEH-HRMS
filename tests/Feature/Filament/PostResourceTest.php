@@ -2,9 +2,16 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CreateRecord;
+use App\Filament\Pages\EditRecord;
+use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\PostResource;
 use App\Filament\Resources\PostResource\Pages\CreatePost;
 use App\Filament\Resources\PostResource\Pages\EditPost;
 use App\Filament\Resources\PostResource\Pages\ListPosts;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Post;
 use App\Models\Permission;
 use App\Models\User;
@@ -321,32 +328,32 @@ class PostResourceTest extends TestCase
     public function test_pages_are_reparented_and_wired_for_exception_presentation(): void
     {
         $bases = [
-            \App\Filament\Resources\PostResource\Pages\CreatePost::class => \App\Filament\Pages\CreateRecord::class,
-            \App\Filament\Resources\PostResource\Pages\EditPost::class => \App\Filament\Pages\EditRecord::class,
-            \App\Filament\Resources\PostResource\Pages\ListPosts::class => \App\Filament\Pages\ListRecords::class,
+            CreatePost::class => CreateRecord::class,
+            EditPost::class => EditRecord::class,
+            ListPosts::class => ListRecords::class,
         ];
 
         foreach ($bases as $page => $base) {
             $this->assertSame($base, get_parent_class($page));
         }
 
-        $writers = [\App\Filament\Resources\PostResource\Pages\CreatePost::class, \App\Filament\Resources\PostResource\Pages\EditPost::class];
+        $writers = [CreatePost::class, EditPost::class];
 
         foreach ($writers as $page) {
             $uses = class_uses_recursive($page);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesActionExceptions::class, $uses);
-            $this->assertArrayHasKey(\App\Filament\Traits\HandlesSaveExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesActionExceptions::class, $uses);
+            $this->assertArrayHasKey(HandlesSaveExceptions::class, $uses);
         }
     }
 
     public function test_edit_tracked_file_columns_delete_only_the_replaced_files(): void
     {
-        $probe = new class { use \App\Filament\Traits\HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
-        $tracked = (fn () => $this->trackedFileColumns())->call(new \App\Filament\Resources\PostResource\Pages\EditPost());
+        $probe = new class { use HandlesDroppedFiles { trackedFilePaths as public; deleteDroppedFiles as public; } };
+        $tracked = (fn () => $this->trackedFileColumns())->call(new EditPost());
         Storage::fake('public');
         Storage::disk('public')->put('post/image/old.jpg', 'x');
         Storage::disk('public')->put('post/image/new.jpg', 'x');
-        $record = \App\Models\Post::factory()->create(['image' => 'post/image/old.jpg']);
+        $record = Post::factory()->create(['image' => 'post/image/old.jpg']);
         $before = $probe->trackedFilePaths($record, $tracked);
         $this->assertSame(['post/image/old.jpg'], $before);
 

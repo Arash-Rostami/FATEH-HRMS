@@ -2,27 +2,48 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
+use App\Enums\PresenceStatus;
 use App\Filament\Resources\DepartmentResource\Pages\EditDepartment;
+use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
+use App\Livewire\Dashboard\Ths\Actions\ReleaseTicketAction;
+use App\Livewire\Dashboard\Ths\Actions\RerouteTicketAction;
 use App\Livewire\Dashboard\Ths\Main;
+use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Livewire\Dashboard\Ths\Workspace;
 use App\Livewire\Dashboard\TaskBoard\Main as TaskBoardMain;
+use App\Livewire\Dashboard\UnreadNotifications;
 use App\Models\Department;
 use App\Models\Permission;
 use App\Models\Profile;
+use App\Models\Reply;
 use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Services\Ai\AiClient;
+use App\Services\Menu\BadgeLegendCatalog;
+use App\Services\Menu\Notifications\ThsReplyNudge;
 use App\Services\Menu\NudgeService;
 use App\Services\Menu\StateService;
+use App\Services\ProjectTask\RankGenerator;
 use App\Support\TicketAccessPolicy;
+use Filament\Notifications\Notification as FilamentNotification;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Factory as HttpClientFactory;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -214,7 +235,7 @@ class ThsTest extends TestCase
         $ticket = Ticket::factory()->create(['requester_id' => $requester->id, 'status' => 'in-progress']);
         $otherTicket = Ticket::factory()->create(['requester_id' => $otherRequester->id, 'status' => 'in-progress']);
 
-        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
 
         Livewire::actingAs($requester)
             ->test(Workspace::class, ['ticketId' => $ticket->id])
@@ -261,7 +282,7 @@ class ThsTest extends TestCase
             ->instance()->assignableUsers->firstWhere('id', $staff->id);
 
         $this->assertNotNull($candidate);
-        $this->assertSame(\App\Enums\PresenceStatus::Leave, $candidate->presence);
+        $this->assertSame(PresenceStatus::Leave, $candidate->presence);
     }
 
     public function test_assignee_picker_shows_unreachable_tag_and_real_online_state_for_leave_staff()
@@ -284,6 +305,23 @@ class ThsTest extends TestCase
         $this->assertSame(1, substr_count($html, 'پاسخ‌گو نیست'), 'only the leave user carries the tag, and assigning is never blocked');
         $this->assertStringContainsString('title="آنلاین"', $html);
         $this->assertStringContainsString('title="آفلاین · هرگز"', $html);
+    }
+
+    public function test_the_close_ticket_button_is_hidden_when_the_workspace_is_embedded_in_the_admin_page()
+    {
+        $head = $this->departmentHead();
+        $ticket = Ticket::factory()->create([
+            'status' => 'in-progress',
+            'assigned_to' => $head->id,
+            'effectiveness' => null,
+            'extra' => ['target_department' => $head->profile->department_id],
+        ]);
+
+        Livewire::actingAs($head)->test(Workspace::class, ['ticketId' => $ticket->id])
+            ->assertSee('بستن تیکت');
+
+        Livewire::actingAs($head)->test(Workspace::class, ['ticketId' => $ticket->id, 'embedded' => true])
+            ->assertDontSee('بستن تیکت');
     }
 
     public function test_assigning_a_ticket_creates_a_linked_task_visible_to_both_requester_and_assignee()
@@ -377,11 +415,11 @@ class ThsTest extends TestCase
             'status' => 'todo',
             'project_id' => null,
             'priority' => 'low',
-            'rank' => \App\Services\ProjectTask\RankGenerator::between($task->rank, null),
+            'rank' => RankGenerator::between($task->rank, null),
         ]);
 
         $ticket->update(['priority' => 'high']);
-        app(\App\Livewire\Dashboard\Ths\Actions\AssignTicketAction::class)->syncForAdmin($ticket->fresh(), $staff->id);
+        app(AssignTicketAction::class)->syncForAdmin($ticket->fresh(), $staff->id);
 
         $task->refresh();
         $lowerSibling->refresh();
@@ -411,7 +449,7 @@ class ThsTest extends TestCase
         $task = Task::where('ticket_id', $ticket->id)->firstOrFail();
         $rankBefore = $task->rank;
 
-        app(\App\Livewire\Dashboard\Ths\Actions\AssignTicketAction::class)->syncForAdmin($ticket->fresh(), $staff->id);
+        app(AssignTicketAction::class)->syncForAdmin($ticket->fresh(), $staff->id);
 
         $this->assertSame($rankBefore, $task->fresh()->rank, 'rank must be byte-identical when the ticket priority did not change');
     }
@@ -536,7 +574,7 @@ class ThsTest extends TestCase
             ->test(Workspace::class, ['ticketId' => $ticket->id, 'embedded' => true])
             ->call('closeTicket')
             ->assertNotDispatched('toast');
-        \Filament\Notifications\Notification::assertNotified('دسترسی لازم برای این عملیات وجود ندارد.');
+        FilamentNotification::assertNotified('دسترسی لازم برای این عملیات وجود ندارد.');
 
         $this->assertSame('in-progress', $ticket->fresh()->status);
 
@@ -544,14 +582,14 @@ class ThsTest extends TestCase
             ->test(Workspace::class, ['ticketId' => $ticket->id, 'embedded' => true])
             ->call('closeTicket')
             ->assertNotDispatched('toast');
-        \Filament\Notifications\Notification::assertNotified('تیکت با موفقیت بسته شد.');
+        FilamentNotification::assertNotified('تیکت با موفقیت بسته شد.');
 
         $this->assertSame('closed', $ticket->fresh()->status);
 
         Livewire::actingAs($assignee)
             ->test(Workspace::class, ['ticketId' => $ticket->id, 'embedded' => true])
             ->call('closeTicket');
-        \Filament\Notifications\Notification::assertNotified('این تیکت قبلاً بسته شده است.');
+        FilamentNotification::assertNotified('این تیکت قبلاً بسته شده است.');
     }
 
     public function test_closing_a_ticket_marks_its_linked_task_done()
@@ -691,7 +729,7 @@ class ThsTest extends TestCase
             'assigned_to' => null,
             'extra' => ['target_department' => $head->profile->department_id],
         ]);
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         Livewire::withoutLazyLoading();
 
@@ -714,7 +752,7 @@ class ThsTest extends TestCase
             'status' => 'open',
             'assigned_to' => null,
         ]);
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
         $formattedId = $presenter->formatId($ticket->toArray());
 
         Livewire::withoutLazyLoading();
@@ -946,7 +984,7 @@ class ThsTest extends TestCase
         $ticket = Ticket::factory()->create(['requester_id' => $requester->id, 'status' => 'in-progress', 'assigned_to' => $assignee->id]);
 
         $reply = $ticket->addReply($assignee, 'در حال بررسی.');
-        NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $reply->id);
+        NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $reply->id);
 
         $this->assertSame(2, DB::table('notifications')->where('data->menu_key', 'ths-controller:reply-nudge')->where('data->item_id', (string) $reply->id)->count());
         $this->assertSame(0, DB::table('notifications')->where('data->menu_key', 'ths-controller:reply-nudge')->where('data->item_id', (string) $ticket->id)->whereIn('notifiable_id', [$requester->id, $assignee->id])->count());
@@ -1150,7 +1188,7 @@ class ThsTest extends TestCase
 
     public function test_priority_meta_maps_low_medium_high_to_primary_secondary_error_and_unknown_to_null()
     {
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         $low = $presenter->priorityMeta('low');
         $this->assertSame('text-[var(--md-sys-color-primary)]', $low['color']);
@@ -1176,7 +1214,7 @@ class ThsTest extends TestCase
 
     public function test_status_meta_maps_open_in_progress_closed_and_unknown_to_null()
     {
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         $open = $presenter->statusMeta('open');
         $this->assertSame('pending', $open['icon']);
@@ -1217,7 +1255,7 @@ class ThsTest extends TestCase
             ],
         ]);
 
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         $this->assertSame('ناحیهٔ سفارشی آزمون', $presenter->requestAreaLabel('support', 'custom_area'), 'without department context a custom-only key falls back to any department label');
         $this->assertSame('orphan_zz_key', $presenter->requestAreaLabel('support', 'orphan_zz_key'));
@@ -1229,7 +1267,7 @@ class ThsTest extends TestCase
 
     public function test_deadline_chip_is_null_without_a_deadline_or_once_closed_with_no_completion_date()
     {
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         $this->assertNull($presenter->deadlineChip(null, null, 'open'));
         $this->assertNull($presenter->deadlineChip(now()->addDay(), null, 'closed'));
@@ -1237,7 +1275,7 @@ class ThsTest extends TestCase
 
     public function test_deadline_chip_flags_overdue_vs_on_time_for_an_open_ticket()
     {
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         $overdue = $presenter->deadlineChip(now()->subDay(), null, 'open');
         $this->assertSame('event_busy', $overdue['icon']);
@@ -1252,7 +1290,7 @@ class ThsTest extends TestCase
 
     public function test_deadline_chip_reports_final_late_or_early_verdict_once_completed()
     {
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
         $deadline = now()->subDays(2);
 
         $late = $presenter->deadlineChip($deadline, now(), 'closed');
@@ -1266,7 +1304,7 @@ class ThsTest extends TestCase
 
     public function test_status_steps_marks_done_active_and_upcoming_relative_to_current_status()
     {
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         $steps = $presenter->statusSteps('in-progress');
 
@@ -1534,7 +1572,7 @@ class ThsTest extends TestCase
     {
         $requester = $this->deptUser('PS', 'expert');
         $ticket = Ticket::factory()->create(['requester_id' => $requester->id, 'status' => 'open', 'assigned_to' => null]);
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
         $formattedId = $presenter->formatId($ticket->toArray());
 
         $component = Livewire::actingAs($requester)->test(Main::class);
@@ -1866,7 +1904,7 @@ class ThsTest extends TestCase
 
     public function test_ths_dates_follow_the_user_panel_convention(): void
     {
-        \Illuminate\Support\Carbon::setTestNow(\Illuminate\Support\Carbon::parse('2026-10-16 12:00:00', config('app.timezone')));
+        Carbon::setTestNow(Carbon::parse('2026-10-16 12:00:00', config('app.timezone')));
         $requester = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
         $assignee = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
         $ticket = Ticket::factory()->create(['requester_id' => $requester->id, 'status' => 'open']);
@@ -1889,17 +1927,17 @@ class ThsTest extends TestCase
             ->assertSee('۰۹:۱۵')
             ->assertDontSee('شنبه');
 
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
         $row = $ticket->fresh()->toArray();
         $this->assertSame('۱۸ مهر ۱۴۰۵', $presenter->statusSteps('closed', $row)[0]['meta']);
         $this->assertSame('مهلت: ۲۰ مهر ۱۴۰۵', $presenter->statusSteps('in-progress', $row)[1]['meta']);
         $this->assertSame('۱۹ مهر ۱۴۰۵', $presenter->statusSteps('closed', $row)[2]['meta']);
-        $this->assertSame('۱۴۰۵/۰۷/۱۸ ۱۱:۰۵', $presenter->replyTime(\Illuminate\Support\Carbon::parse('2026-10-10 11:05:00', config('app.timezone'))));
-        $this->assertSame('۰۹:۱۵', $presenter->replyTime(\Illuminate\Support\Carbon::parse('2026-10-16 09:15:00', config('app.timezone'))));
+        $this->assertSame('۱۴۰۵/۰۷/۱۸ ۱۱:۰۵', $presenter->replyTime(Carbon::parse('2026-10-10 11:05:00', config('app.timezone'))));
+        $this->assertSame('۰۹:۱۵', $presenter->replyTime(Carbon::parse('2026-10-16 09:15:00', config('app.timezone'))));
         $this->assertStringContainsString('پیش', $presenter->formatTimestamp(['created_at' => '2026-10-10 08:30:00'], 'created_at'));
         $this->assertSame('۶ مرداد ۱۴۰۵', $presenter->formatTimestamp(['created_at' => '2026-07-28 10:00:00'], 'created_at'));
 
-        \Illuminate\Support\Carbon::setTestNow();
+        Carbon::setTestNow();
     }
 
     private function customDepartment(bool $withHead): array
@@ -1932,14 +1970,14 @@ class ThsTest extends TestCase
         $ticket = Ticket::factory()->create(['requester_id' => $requester->id, 'status' => 'in-progress', 'assigned_to' => $assignee->id]);
 
         $first = $ticket->addReply($assignee, 'one');
-        NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $first->id);
-        NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $first->id);
+        NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $first->id);
+        NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $first->id);
         $this->assertCount(1, $this->nudgeRows($requester));
 
         DB::table('notifications')->where('notifiable_id', $requester->id)->update(['read_at' => now()]);
 
         $second = $ticket->addReply($assignee, 'two');
-        NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $second->id);
+        NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $second->id);
 
         $rows = $this->nudgeRows($requester);
         $this->assertCount(2, $rows);
@@ -1961,7 +1999,7 @@ class ThsTest extends TestCase
         $made = [];
         for ($i = 0; $i < $replies; $i++) {
             $made[] = $reply = $ticket->addReply($assignee, 'r' . $i);
-            NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $reply->id);
+            NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $reply->id);
         }
 
         return [$ticket, $requester, $assignee, $made];
@@ -1971,7 +2009,7 @@ class ThsTest extends TestCase
     {
         $fresh = $ticket->fresh();
         $events ? $fresh->update($attributes) : Ticket::withoutEvents(fn() => $fresh->update($attributes));
-        (new \App\Services\Menu\Notifications\ThsReplyNudge())->triggers()[1]['subject']($fresh);
+        (new ThsReplyNudge)->triggers()[1]['subject']($fresh);
     }
 
     public function test_a_reply_id_equal_to_a_ticket_id_never_collides_and_ticket_reconciles_leave_reply_rows_alone(): void
@@ -1983,7 +2021,7 @@ class ThsTest extends TestCase
         DB::table('replies')->where('id', $reply->id)->update(['repliable_id' => $sharedId]);
         DB::table('notifications')->whereIn('notifiable_id', [$requester->id, $assignee->id])->delete();
 
-        NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $sharedId);
+        NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $sharedId);
         NudgeService::reconcile('ths-controller:nudge', Ticket::class, $sharedId);
 
         foreach ([$requester, $assignee] as $user) {
@@ -1996,7 +2034,7 @@ class ThsTest extends TestCase
         $this->assertCount(1, $this->nudgeRows($requester, 'ths-controller:reply-nudge'));
 
         DB::table('replies')->where('id', $sharedId)->delete();
-        NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $sharedId);
+        NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $sharedId);
         $this->assertCount(0, $this->nudgeRows($requester, 'ths-controller:reply-nudge'));
         $this->assertCount(1, $this->nudgeRows($requester, 'ths-controller:nudge'));
     }
@@ -2054,11 +2092,11 @@ class ThsTest extends TestCase
         [$ticket, $requester, $assignee, [$first, $second]] = $this->replyThread(2);
 
         $second->delete();
-        NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $second->id);
+        NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $second->id);
         $this->assertSame([(string) $first->id], $this->nudgeRows($requester)->map(fn($r) => json_decode($r->data, true)['item_id'])->all());
 
         $ticket->delete();
-        NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $first->id);
+        NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $first->id);
         NudgeService::reconcile('ths-controller:nudge', Ticket::class, $ticket->id);
 
         $this->assertCount(0, $this->nudgeRows($requester));
@@ -2072,7 +2110,7 @@ class ThsTest extends TestCase
         NudgeService::reconcile('ths-controller:nudge', Ticket::class, $ticket->id);
 
         $this->assertSame(2, $requester->unreadNotifications()->count());
-        $this->assertSame(2, Livewire::actingAs($requester)->test(\App\Livewire\Dashboard\UnreadNotifications::class)->instance()->getUnreadNotificationsCount());
+        $this->assertSame(2, Livewire::actingAs($requester)->test(UnreadNotifications::class)->instance()->getUnreadNotificationsCount());
 
         $this->nudgeRows($requester)->each(fn($r) => DB::table('notifications')->where('id', $r->id)->update(['read_at' => now()]));
         $this->assertSame(1, $requester->unreadNotifications()->count());
@@ -2238,7 +2276,7 @@ class ThsTest extends TestCase
 
         $reply = $ticket->replies()->latest('id')->first();
         $this->assertSame($head->id, $reply->user_id);
-        NudgeService::reconcile('ths-controller:reply-nudge', \App\Models\Reply::class, $reply->id);
+        NudgeService::reconcile('ths-controller:reply-nudge', Reply::class, $reply->id);
         $this->assertCount(1, $this->nudgeRows($requester));
 
         $ticket->fresh()->update(['effectiveness' => '5']);
@@ -2289,7 +2327,7 @@ class ThsTest extends TestCase
         $ticket->update(['status' => 'closed']);
         Livewire::withoutLazyLoading();
 
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         Livewire::actingAs($requester)->test(Main::class)
             ->assertSee($presenter->formatId($ticket->fresh()->toArray()))
@@ -2314,13 +2352,53 @@ class ThsTest extends TestCase
         ], $overrides);
     }
 
+    public function test_info_state_merges_files_with_owner_group_and_resolves_viewer_flags(): void
+    {
+        $viewer = User::factory()->create(['status' => 'active', 'role' => 'user']);
+        $other = User::factory()->create(['status' => 'active', 'role' => 'user']);
+        $presenter = new TicketPresenter();
+        $ticket = $this->ticketArray([
+            'status' => 'in-progress',
+            'priority' => 'high',
+            'requester_id' => $viewer->id,
+            'target_department_code' => 'PS',
+            'satisfaction_score' => '4',
+            'requester_files' => [['name' => 'a.pdf']],
+            'assignee_files' => [['name' => 'b.png']],
+        ]);
+
+        $this->actingAs($viewer);
+        $state = $presenter->infoState($ticket);
+
+        $this->assertSame($presenter->statusMeta('in-progress'), $state['sm']);
+        $this->assertSame($presenter->priorityMeta('high'), $state['pm']);
+        $this->assertSame('PS', $state['deptCode']);
+        $this->assertTrue($state['isRequester']);
+        $this->assertSame(4, $state['score']);
+        $this->assertSame($ticket['timeline'], $state['timeline']);
+        $this->assertSame([
+            ['name' => 'a.pdf', 'by' => 'درخواست‌کننده', 'group' => 'requester'],
+            ['name' => 'b.png', 'by' => 'مسئول رسیدگی', 'group' => 'assignee'],
+        ], $state['files']);
+
+        $this->actingAs($other);
+        $this->assertFalse($presenter->infoState($ticket)['isRequester']);
+
+        $bare = $presenter->infoState($this->ticketArray(['priority' => 'low', 'requester_id' => null, 'timeline' => null]));
+        $this->assertFalse($bare['isRequester']);
+        $this->assertSame(0, $bare['score']);
+        $this->assertSame([], $bare['files']);
+        $this->assertNull($bare['deptCode']);
+        $this->assertSame([], $bare['timeline']);
+    }
+
     public function test_ball_banner_follows_the_viewers_role_and_the_ticket_status(): void
     {
         $head = $this->departmentHead();
         $code = $head->profile->department_id;
         $requester = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
         $assignee = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user', 'name' => 'کارشناس آزمون']);
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         $open = $this->ticketArray(['requester_id' => $requester->id, 'target_department_code' => $code]);
         $this->assertSame('در انتظار تخصیص توسط سرپرست واحد', $presenter->ballState($open, $requester)['title']);
@@ -2357,15 +2435,15 @@ class ThsTest extends TestCase
         $component = Livewire::actingAs($staff)->test(Workspace::class, ['ticketId' => $ticket->id]);
 
         foreach ([
-            \App\Livewire\Dashboard\Ths\Actions\AssignTicketAction::REPLY_PREFIX . 'علی',
-            '  ' . \App\Livewire\Dashboard\Ths\Actions\RerouteTicketAction::REPLY_PREFIX . 'واحد: چون',
-            \App\Livewire\Dashboard\Ths\Actions\ReleaseTicketAction::REPLY_PREFIX . 'چون',
+            AssignTicketAction::REPLY_PREFIX . 'علی',
+            '  ' . RerouteTicketAction::REPLY_PREFIX . 'واحد: چون',
+            ReleaseTicketAction::REPLY_PREFIX . 'چون',
             'پاسخ معمولی',
         ] as $body) {
             $component->set('replyForm.body', $body)->call('postReply');
         }
 
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
         $replies = $ticket->replies()->get();
 
         $this->assertCount(4, $replies);
@@ -2379,11 +2457,11 @@ class ThsTest extends TestCase
 
     public function test_reply_kind_detects_system_entries_from_the_shared_prefixes(): void
     {
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
-        $this->assertSame('assign', $presenter->replyKind(['body' => \App\Livewire\Dashboard\Ths\Actions\AssignTicketAction::REPLY_PREFIX . 'علی']));
-        $this->assertSame('reroute', $presenter->replyKind(['body' => \App\Livewire\Dashboard\Ths\Actions\RerouteTicketAction::REPLY_PREFIX . 'واحد: چون']));
-        $this->assertSame('release', $presenter->replyKind(['body' => \App\Livewire\Dashboard\Ths\Actions\ReleaseTicketAction::REPLY_PREFIX . 'چون']));
+        $this->assertSame('assign', $presenter->replyKind(['body' => AssignTicketAction::REPLY_PREFIX . 'علی']));
+        $this->assertSame('reroute', $presenter->replyKind(['body' => RerouteTicketAction::REPLY_PREFIX . 'واحد: چون']));
+        $this->assertSame('release', $presenter->replyKind(['body' => ReleaseTicketAction::REPLY_PREFIX . 'چون']));
         $this->assertSame('reply', $presenter->replyKind(['body' => 'پاسخ معمولی']));
         $this->assertNotNull($presenter->systemEntryMeta('assign'));
         $this->assertNull($presenter->systemEntryMeta('reply'));
@@ -2391,7 +2469,7 @@ class ThsTest extends TestCase
 
     public function test_deadline_ring_is_null_without_a_deadline_and_tracks_on_time_late_and_closed_outcomes(): void
     {
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
 
         $this->assertNull($presenter->deadlineRing($this->ticketArray()));
 
@@ -2416,7 +2494,7 @@ class ThsTest extends TestCase
 
     public function test_status_steps_carry_per_step_meta_and_flag_a_withdrawn_ticket(): void
     {
-        $presenter = new \App\Livewire\Dashboard\Ths\Presentation\TicketPresenter();
+        $presenter = new TicketPresenter();
         $steps = $presenter->statusSteps('closed', $this->ticketArray(['status' => 'closed', 'completion_deadline' => now()->toDateTimeString(), 'completion_date' => now()->toDateTimeString(), 'action_result' => Ticket::WITHDRAWN_RESULT]));
 
         $this->assertNotNull($steps[0]['meta']);
@@ -2486,7 +2564,7 @@ class ThsTest extends TestCase
         $this->assertStringContainsString('data-ths-system="assign"', $html);
         $this->assertStringContainsString('data-ths-system="release"', $html);
         $this->assertStringContainsString('data-ths-system="reroute"', $html);
-        $this->assertStringContainsString('توسط ' . $head->name, $html);
+        $this->assertStringContainsString('توسط ' . e($head->name), $html);
         $this->assertSame(3, substr_count($html, 'data-ths-system="'));
     }
 
@@ -2584,9 +2662,10 @@ class ThsTest extends TestCase
         $html = Livewire::actingAs($requester)->test(Main::class)->call('viewTicket', $ticket->id)->html();
         $modal = substr($html, strpos($html, '<template wire:key="ths-modal" x-teleport="body">'));
 
-        $this->assertStringContainsString('class="absolute inset-0 z-0 bg-[var(--md-sys-color-primary)]/60"', $modal);
+        $this->assertStringContainsString(":class=\"max ? '' : 'bg-[var(--md-sys-color-primary)]/60'\"", $modal);
+        $this->assertStringContainsString('x-on:click.self="if (!max) closeModal()"', $modal);
         $this->assertStringContainsString('class="relative z-10 isolate w-full', $modal);
-        $this->assertSame(2, substr_count($modal, 'x-on:click="closeModal()"'), 'only the backdrop and the close button may close the modal on click');
+        $this->assertSame(1, substr_count($modal, 'x-on:click="closeModal()"'), 'only the backdrop (click.self) and the close button may close the modal on click');
         $this->assertStringNotContainsString('x-on:click.outside="closeModal', $modal);
         $this->assertStringContainsString('x-on:click="toggleMaximize()"', $modal);
         $this->assertStringContainsString('x-on:click="info ? closeInfo() : openInfo()"', $modal);
@@ -2628,11 +2707,11 @@ class ThsTest extends TestCase
 
         $this->assertStringContainsString('<template wire:key="ths-modal" x-teleport="body">', $html);
         $this->assertStringContainsString('class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6"', $modal);
-        $this->assertStringContainsString('class="absolute inset-0 z-0 bg-[var(--md-sys-color-primary)]/60"', $modal);
+        $this->assertStringContainsString(":class=\"max ? '' : 'bg-[var(--md-sys-color-primary)]/60'\"", $modal);
         $this->assertStringContainsString('class="relative z-10 isolate w-full max-w-4xl max-h-[90vh] rounded-2xl bg-[var(--md-sys-color-surface)]', $modal);
         $this->assertStringContainsString('x-data="thsModal()"', $modal);
         $this->assertStringContainsString("'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving", $modal);
-        $this->assertStringContainsString('class="max-backdrop ', $modal);
+        $this->assertMatchesRegularExpression('/<template x-if="max">\s*<div\s+class="max-backdrop /', $modal);
         $this->assertStringContainsString('x-on:click="toggleMaximize()"', $modal);
         $this->assertStringNotContainsString('max = !max', $modal);
         $this->assertStringNotContainsString("max ? 'h-full", $modal);
@@ -3186,5 +3265,913 @@ class ThsTest extends TestCase
         $this->assertFalse(TicketAccessPolicy::canReroute($legacy, $member));
         $this->assertFalse(Ticket::query()->actionableBy($member)->whereKey($legacy->id)->exists());
         $this->assertFalse($legacy->currentActionRecipients()->contains('id', $member->id));
+    }
+
+    private function aiUser(): User
+    {
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'ai.gateway.model' => 'Gemini-3-Flash-Preview', 'app.off' => []]);
+        Http::swap(new HttpClientFactory);
+
+        $user = $this->deptUser('PS', 'expert');
+        $this->forgetAiKeys($user);
+        $this->beforeApplicationDestroyed(fn() => $this->forgetAiKeys($user));
+
+        return $user;
+    }
+
+    private function forgetAiKeys(User $user): void
+    {
+        Cache::forget(Ticket::quotaKey($user->id));
+        Cache::forget("ths:ai:busy:{$user->id}");
+        Cache::forget('ths:ai:down');
+    }
+
+    private function aiForm(User $user, string $priority = 'low'): Testable
+    {
+        Livewire::withoutLazyLoading();
+
+        return Livewire::actingAs($user)
+            ->test(Main::class)
+            ->set('ticket.requestType', 'support')
+            ->set('ticket.requestArea', 'vpn')
+            ->set('ticket.priority', $priority)
+            ->set('ticket.subject', 'vpn kar nemikone')
+            ->set('ticket.description', 'az sobh ghat ast');
+    }
+
+    private function aiReply(array $draft, string $finish = 'stop'): array
+    {
+        return [
+            'choices' => [['finish_reason' => $finish, 'message' => ['content' => json_encode($draft, JSON_UNESCAPED_UNICODE)]]],
+            'usage' => ['total_tokens' => 42],
+        ];
+    }
+
+    public function test_ticket_assistant_chips_use_the_ai_signature_tokens(): void
+    {
+        $html = $this->aiForm($this->aiUser())->set('ticket.targetDepartment', 'PS')->html();
+
+        $this->assertStringContainsString('wire:key="ths-create-ai-chips"', $html);
+        $this->assertStringContainsString('!bg-[var(--ai-bg)]', $html);
+        $this->assertStringContainsString('!text-[var(--ai-text)]', $html);
+    }
+
+    public function test_ticket_assistant_writes_the_ai_text_into_the_form_and_reports_the_remaining_quota(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::response($this->aiReply([
+            'subject' => 'مشکل VPN 12',
+            'description' => "خط یک\n\n**خط دو** 12 دستگاه: «____»",
+            'question' => null,
+        ]))]);
+        $left = Ticket::quotaCap() - 1;
+
+        $component = $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertHasNoErrors()
+            ->assertSet('ticket.subject', 'مشکل VPN ۱۲')
+            ->assertSet('ticket.description', "خط یک\nخط دو ۱۲ دستگاه: «____»")
+            ->assertReturned(['source' => 'ai', 'question' => null, 'blanks' => 1, 'left' => $left]);
+
+        Http::assertSentCount(1);
+        Http::assertSent(fn($request) => $request->hasHeader('Authorization', 'apikey test-key')
+            && $request->url() === 'https://gateway.test/v1/chat/completions'
+            && $request['model'] === 'Gemini-3-Flash-Preview'
+            && $request['max_tokens'] === 900
+            && $request['temperature'] === 0.2
+            && $request['messages'][0]['role'] === 'system'
+            && $request['response_format']['type'] === 'json_schema'
+            && $request['response_format']['json_schema']['name'] === 'ticket'
+            && $request['response_format']['json_schema']['strict'] === true);
+        $this->assertSame(1, Ticket::quotaUsed($user->id));
+        $this->assertSame($left, $component->instance()->aiLeft());
+    }
+
+    public function test_ticket_assistant_repairs_one_invalid_reply_and_keeps_legitimate_characters(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::sequence()
+            ->push(['choices' => [['finish_reason' => 'stop', 'message' => ['content' => 'not json']]]])
+            ->push($this->aiReply([
+                'subject' => 'خطای C# در *.pdf',
+                'description' => "فایل *.pdf و #123 و C#\n- مورد\n1) نصب",
+                'question' => null,
+            ]))]);
+
+        $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertSet('ticket.subject', 'خطای C# در *.pdf')
+            ->assertSet('ticket.description', "فایل *.pdf و #۱۲۳ و C#\nمورد\nنصب")
+            ->assertReturned(fn(array $data) => $data['source'] === 'ai');
+
+        Http::assertSentCount(2);
+        $this->assertSame(1, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_never_wipes_the_typed_text_when_the_ai_output_is_empty_twice(): void
+    {
+        $user = $this->aiUser();
+        $empty = $this->aiReply(['subject' => '**', 'description' => 'متن', 'question' => null]);
+        Http::fake(['*' => Http::sequence()->push($empty)->push($empty)]);
+
+        $component = $this->aiForm($user)->call('suggestTicketText');
+
+        $component->assertSet('ticket.subject', 'vpn kar nemikone')
+            ->assertReturned(fn(array $data) => $data['source'] === 'skeleton')
+            ->assertDispatched('toast', message: 'دستیار هوشمند در دسترس نیست؛ یک الگوی آماده درج شد.', type: 'error');
+        $this->assertSame("az sobh ghat ast\n" . implode("\n", config('ai.ticket.skeleton.lines')), $component->get('ticket.description'));
+        Http::assertSentCount(2);
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_fills_the_skeleton_without_calling_the_provider_when_the_quota_is_exhausted(): void
+    {
+        $user = $this->aiUser();
+        Http::fake();
+
+        for ($i = 0; $i < Ticket::quotaCap(); $i++) {
+            Ticket::consumeQuota($user->id);
+        }
+
+        $component = $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertSet('ticket.subject', 'vpn kar nemikone')
+            ->assertReturned(['source' => 'skeleton', 'question' => null, 'blanks' => 5, 'left' => 0])
+            ->assertDispatched('toast', message: 'سهمیهٔ امروز تمام شد؛ یک الگوی آماده درج شد.', type: 'warning');
+        $first = $component->get('ticket.description');
+
+        Cache::forget("ths:ai:busy:{$user->id}");
+        $component->call('suggestTicketText')->assertSet('ticket.description', $first);
+
+        Http::assertNothingSent();
+        $this->assertSame(Ticket::quotaCap(), Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_falls_back_to_the_skeleton_and_refunds_when_the_provider_is_unreachable(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(fn() => throw new ConnectionException('down'));
+
+        $component = $this->aiForm($user)->call('suggestTicketText');
+
+        $component->assertReturned(['source' => 'skeleton', 'question' => null, 'blanks' => 5, 'left' => Ticket::quotaCap()])
+            ->assertDispatched('toast', message: 'دستیار هوشمند در دسترس نیست؛ یک الگوی آماده درج شد.', type: 'error');
+        $this->assertStringContainsString('az sobh ghat ast', $component->get('ticket.description'));
+        $this->assertStringContainsString('محل: «____»', $component->get('ticket.description'));
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_falls_back_to_the_skeleton_and_refunds_on_a_provider_http_error(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $component = $this->aiForm($user)->call('suggestTicketText');
+
+        $component->assertReturned(['source' => 'skeleton', 'question' => null, 'blanks' => 5, 'left' => Ticket::quotaCap()])
+            ->assertDispatched('toast', message: 'دستیار هوشمند در دسترس نیست؛ یک الگوی آماده درج شد.', type: 'error');
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_falls_back_to_the_skeleton_and_refunds_on_a_scalar_json_body(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::response('"ok"', 200, ['Content-Type' => 'application/json'])]);
+
+        $component = $this->aiForm($user)->call('suggestTicketText');
+
+        $component->assertReturned(['source' => 'skeleton', 'question' => null, 'blanks' => 5, 'left' => Ticket::quotaCap()])
+            ->assertDispatched('toast', message: 'دستیار هوشمند در دسترس نیست؛ یک الگوی آماده درج شد.', type: 'error');
+        Http::assertSentCount(2);
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_logs_the_status_specific_outcome_and_refunds_on_http_401_and_429(): void
+    {
+        $user = $this->aiUser();
+        Log::spy();
+
+        foreach ([401, 429] as $status) {
+            $this->forgetAiKeys($user);
+            Http::swap(new HttpClientFactory);
+            Http::fake(['*' => Http::response([], $status)]);
+
+            $this->aiForm($user)
+                ->call('suggestTicketText')
+                ->assertReturned(['source' => 'skeleton', 'question' => null, 'blanks' => 5, 'left' => Ticket::quotaCap()])
+                ->assertDispatched('toast', message: 'دستیار هوشمند در دسترس نیست؛ یک الگوی آماده درج شد.', type: 'error');
+
+            Log::shouldHaveReceived('warning')->with('ths-ai', ['user' => $user->id, 'outcome' => "http_{$status}", 'tokens' => 0])->once();
+            $this->assertSame(0, Ticket::quotaUsed($user->id));
+            $this->assertSame($status === 429, Cache::has('ths:ai:down'));
+        }
+    }
+
+    public function test_ticket_assistant_does_not_trip_the_breaker_on_a_client_error_but_does_on_a_server_error(): void
+    {
+        $user = $this->aiUser();
+
+        foreach ([[401, 2, false], [500, 1, true]] as [$status, $sent, $down]) {
+            $this->forgetAiKeys($user);
+            Http::swap(new HttpClientFactory);
+            Http::fake(['*' => Http::response([], $status)]);
+
+            $component = $this->aiForm($user)->call('suggestTicketText');
+            Cache::forget("ths:ai:busy:{$user->id}");
+            $component->call('suggestTicketText');
+
+            Http::assertSentCount($sent);
+            $this->assertSame($down, Cache::has('ths:ai:down'));
+            $this->assertSame(0, Ticket::quotaUsed($user->id));
+        }
+    }
+
+    public function test_ticket_assistant_refunds_instead_of_crashing_when_the_no_refund_config_is_missing(): void
+    {
+        $user = $this->aiUser();
+        config(['ai.ticket.no_refund' => null]);
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertReturned(fn(array $data) => $data['source'] === 'skeleton' && $data['left'] === Ticket::quotaCap());
+
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_circuit_breaker_skips_the_provider_and_the_quota_until_it_expires(): void
+    {
+        $user = $this->aiUser();
+        Log::spy();
+        $calls = 0;
+        Http::fake(function () use (&$calls) {
+            $calls++;
+
+            throw new ConnectionException('down');
+        });
+
+        $component = $this->aiForm($user)->call('suggestTicketText');
+        $this->assertSame(1, $calls);
+        $this->assertTrue(Cache::has('ths:ai:down'));
+
+        Cache::forget("ths:ai:busy:{$user->id}");
+        $component->call('suggestTicketText')
+            ->assertReturned(['source' => 'skeleton', 'question' => null, 'blanks' => 5, 'left' => Ticket::quotaCap()])
+            ->assertDispatched('toast', message: 'دستیار هوشمند در دسترس نیست؛ یک الگوی آماده درج شد.', type: 'error');
+
+        $this->assertSame(1, $calls);
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+        Log::shouldHaveReceived('debug')->with('ths-ai', ['user' => $user->id, 'outcome' => 'down', 'tokens' => 0])->once();
+        Log::shouldHaveReceived('warning')->with('ths-ai', ['user' => $user->id, 'outcome' => 'unreachable', 'tokens' => 0])->once();
+
+        Cache::forget('ths:ai:down');
+        Cache::forget("ths:ai:busy:{$user->id}");
+        $component->call('suggestTicketText');
+
+        $this->assertSame(2, $calls);
+    }
+
+    public function test_ai_client_setting_throws_an_actionable_error_only_when_both_values_are_missing(): void
+    {
+        config(['ai.gateway.timeout' => null, 'ai.ticket.timeout' => null]);
+
+        try {
+            AiClient::setting('ticket', 'timeout');
+            $this->fail('expected the stale-config guard');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('ai.ticket.timeout', $e->getMessage());
+            $this->assertStringContainsString('ai.gateway.timeout', $e->getMessage());
+            $this->assertStringContainsString('config:clear', $e->getMessage());
+        }
+
+        config(['ai.gateway.timeout' => 60]);
+        $this->assertSame(60, AiClient::setting('ticket', 'timeout'));
+    }
+
+    public function test_ticket_assistant_leaves_no_lock_or_spent_quota_when_the_ai_config_is_stale(): void
+    {
+        $user = $this->aiUser();
+        Http::fake();
+        config(['ai.gateway.timeout' => null, 'ai.ticket.timeout' => null]);
+        $thrown = false;
+
+        try {
+            $this->aiForm($user)->call('suggestTicketText');
+        } catch (\RuntimeException) {
+            $thrown = true;
+        }
+
+        $this->assertTrue($thrown);
+        Http::assertNothingSent();
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+        $this->assertFalse(Cache::has("ths:ai:busy:{$user->id}"));
+    }
+
+    public function test_ticket_assistant_holds_the_busy_lock_for_the_whole_run_then_only_for_the_cooldown(): void
+    {
+        $user = $this->aiUser();
+        $key = "ths:ai:busy:{$user->id}";
+        $cooldown = (int) config('ai.ticket.cooldown');
+        $window = 2 * ((int) config('ai.ticket.timeout') + (int) config('ai.ticket.connect_timeout')) + $cooldown;
+        $inside = [];
+        $this->travelTo(now()->startOfDay()->addHours(10));
+        Http::fake(function () use (&$inside, $key, $window, $cooldown) {
+            $inside['held'] = Cache::has($key);
+            $this->travelTo(now()->addSeconds($window - $cooldown - 1));
+            $inside['still'] = Cache::has($key);
+
+            throw new ConnectionException('down');
+        });
+
+        $this->aiForm($user)->call('suggestTicketText');
+
+        $this->assertTrue($inside['held']);
+        $this->assertTrue($inside['still']);
+        $this->assertTrue(Cache::has($key));
+
+        $this->travelTo(now()->addSeconds($cooldown - 1));
+        $this->assertTrue(Cache::has($key));
+
+        $this->travelTo(now()->addSeconds(2));
+        $this->assertFalse(Cache::has($key));
+    }
+
+    public function test_ticket_ai_connect_timeout_resolves_through_the_shared_client_setting(): void
+    {
+        $this->assertSame(10, AiClient::setting('ticket', 'timeout'));
+        $this->assertSame(3, AiClient::setting('ticket', 'connect_timeout'));
+        $this->assertSame(10, AiClient::setting('report', 'connect_timeout'));
+    }
+
+    public function test_ticket_assistant_applies_the_skeleton_and_keeps_the_quota_spent_when_the_provider_blocks_the_text(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::response(['choices' => [['finish_reason' => 'content_filter', 'message' => ['content' => '']]]])]);
+
+        $component = $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertSet('ticket.subject', 'vpn kar nemikone')
+            ->assertReturned(['source' => 'skeleton', 'question' => null, 'blanks' => 5, 'left' => Ticket::quotaCap() - 1])
+            ->assertDispatched('toast', message: 'متن شما توسط سرویس هوش مصنوعی پذیرفته نشد؛ یک الگوی آماده درج شد و این بار از سهمیه کسر شد.', type: 'error');
+
+        $this->assertStringContainsString('محل: «____»', $component->get('ticket.description'));
+        $this->assertSame(1, Ticket::quotaUsed($user->id));
+        $this->assertFalse(Cache::has('ths:ai:down'));
+    }
+
+    public function test_ticket_assistant_applies_the_skeleton_and_refunds_when_the_reply_is_too_large(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::response(['choices' => [['finish_reason' => 'length', 'message' => ['content' => '{']]]])]);
+
+        $component = $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertReturned(['source' => 'skeleton', 'question' => null, 'blanks' => 5, 'left' => Ticket::quotaCap()])
+            ->assertDispatched('toast', message: 'پاسخ هوش مصنوعی کامل نشد؛ یک الگوی آماده درج شد.', type: 'error');
+
+        $this->assertStringContainsString('محل: «____»', $component->get('ticket.description'));
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_re_asks_with_unchanged_messages_after_an_empty_reply_and_repairs_text_with_the_pair(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::sequence()
+            ->push(['choices' => [['finish_reason' => 'stop', 'message' => ['content' => '']]]])
+            ->push($this->aiReply(['subject' => 'عنوان', 'description' => 'شرح', 'question' => null]))]);
+
+        $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertReturned(fn(array $data) => $data['source'] === 'ai');
+
+        $sent = Http::recorded()->map(fn($pair) => $pair[0]['messages'])->values();
+        $this->assertCount(2, $sent);
+        $this->assertSame($sent[0], $sent[1]);
+
+        $this->forgetAiKeys($user);
+        Http::swap(new HttpClientFactory);
+        Http::fake(['*' => Http::sequence()
+            ->push(['choices' => [['finish_reason' => 'stop', 'message' => ['content' => 'not json']]]])
+            ->push($this->aiReply(['subject' => 'عنوان', 'description' => 'شرح', 'question' => null]))]);
+
+        $this->aiForm($user)->call('suggestTicketText');
+
+        $repair = Http::recorded()->map(fn($pair) => $pair[0]['messages'])->values();
+        $this->assertCount(2, $repair);
+        $this->assertCount(2, $repair[0]);
+        $this->assertCount(4, $repair[1]);
+        $this->assertSame('assistant', $repair[1][2]['role']);
+        $this->assertSame('not json', $repair[1][2]['content']);
+    }
+
+    public function test_ticket_assistant_refuses_a_forged_subject_over_its_own_limit_even_below_input_max(): void
+    {
+        $user = $this->aiUser();
+        Http::fake();
+
+        $this->aiForm($user)
+            ->set('ticket.subject', str_repeat('م', (int) config('ai.ticket.subject_max') + 1))
+            ->call('suggestTicketText')
+            ->assertReturned(fn(array $data) => $data['source'] === 'none')
+            ->assertDispatched('toast', message: 'متن شما برای دستیار طولانی است؛ آن را کوتاه‌تر کنید.', type: 'warning');
+
+        Http::assertNothingSent();
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_cleans_and_caps_the_question_and_drops_a_non_string_one(): void
+    {
+        $user = $this->aiUser();
+        $cap = (int) config('ai.ticket.subject_max');
+        $draft = fn($question) => $this->aiReply(['subject' => 'عنوان', 'description' => 'شرح', 'question' => $question]);
+        Http::fake(['*' => Http::sequence()
+            ->push($draft("**چرا\u{202E} فوری** است؟ " . str_repeat('ب', $cap + 50)))
+            ->push($draft(123))
+            ->push($draft(null))]);
+
+        $this->aiForm($user, 'high')
+            ->call('suggestTicketText')
+            ->assertReturned(fn(array $data) => $data['question'] !== null
+                && mb_strlen($data['question']) === $cap
+                && str_starts_with($data['question'], 'چرا فوری است؟')
+                && !str_contains($data['question'], '*')
+                && !str_contains($data['question'], "\u{202E}"));
+
+        foreach ([1, 2] as $i) {
+            $this->forgetAiKeys($user);
+            $this->aiForm($user, 'high')
+                ->call('suggestTicketText')
+                ->assertReturned(fn(array $data) => $data['source'] === 'ai' && $data['question'] === null);
+        }
+    }
+
+    public function test_ticket_assistant_strips_bidi_and_invisible_controls_but_keeps_the_half_space(): void
+    {
+        $user = $this->aiUser();
+        $dirty = "\u{200B}\u{200E}\u{200F}\u{202A}\u{202E}\u{2066}\u{2069}\u{FEFF}";
+        Http::fake(['*' => Http::response($this->aiReply([
+            'subject' => "{$dirty}می‌خواهم{$dirty}",
+            'description' => "{$dirty}خط می‌خواهم\u{200D}{$dirty}",
+            'question' => "{$dirty}چرا می‌خواهم؟",
+        ]))]);
+
+        $component = $this->aiForm($user, 'high')
+            ->call('suggestTicketText')
+            ->assertSet('ticket.subject', 'می‌خواهم')
+            ->assertReturned(fn(array $data) => $data['question'] === 'چرا می‌خواهم؟');
+
+        $this->assertSame("خط می‌خواهم\u{200D}", $component->get('ticket.description'));
+    }
+
+    public function test_ticket_assistant_logs_the_user_id_and_outcome_without_any_text(): void
+    {
+        $user = $this->aiUser();
+        Log::spy();
+        Http::fake(['*' => Http::response($this->aiReply(['subject' => 'عنوان', 'description' => 'شرح', 'question' => null]))]);
+
+        $this->aiForm($user)->call('suggestTicketText');
+
+        Log::shouldHaveReceived('info')->with('ths-ai', ['user' => $user->id, 'outcome' => 'ok', 'tokens' => 42])->once();
+    }
+
+    public function test_ticket_assistant_logs_the_tokens_of_failed_attempts(): void
+    {
+        $user = $this->aiUser();
+        Log::spy();
+        $empty = ['choices' => [['finish_reason' => 'stop', 'message' => ['content' => '']]], 'usage' => ['total_tokens' => 7]];
+        Http::fake(['*' => Http::sequence()->push($empty)->push($empty)]);
+
+        $this->aiForm($user)->call('suggestTicketText');
+
+        Log::shouldHaveReceived('warning')->with('ths-ai', ['user' => $user->id, 'outcome' => 'empty', 'tokens' => 14])->once();
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_counts_the_tokens_of_cut_off_and_filtered_replies(): void
+    {
+        $reply = fn(string $finish, string $content, int $tokens) => ['choices' => [['finish_reason' => $finish, 'message' => ['content' => $content]]], 'usage' => ['total_tokens' => $tokens]];
+        $cases = [
+            ['too_large', 900, [$reply('length', '{', 900)]],
+            ['blocked', 33, [$reply('content_filter', '', 33)]],
+            ['too_large', 907, [$reply('stop', '', 7), $reply('length', '{', 900)]],
+        ];
+
+        foreach ($cases as [$outcome, $tokens, $replies]) {
+            $user = $this->aiUser();
+            Log::spy();
+            $sequence = Http::sequence();
+            foreach ($replies as $item) {
+                $sequence->push($item);
+            }
+            Http::fake(['*' => $sequence]);
+
+            $this->aiForm($user)->call('suggestTicketText');
+
+            Log::shouldHaveReceived('warning')->with('ths-ai', ['user' => $user->id, 'outcome' => $outcome, 'tokens' => $tokens])->once();
+        }
+    }
+
+    public function test_ticket_assistant_strips_extra_invisible_and_control_characters_but_keeps_joiners(): void
+    {
+        $user = $this->aiUser();
+        $dirty = "\u{061C}\u{2060}\u{00AD}\x01\x07\x1F\x7F";
+        Http::fake(['*' => Http::response($this->aiReply([
+            'subject' => "عنوان{$dirty} می‌خواهم",
+            'description' => "خط{$dirty} یک\u{200D}\nخط دو «____»",
+            'question' => null,
+        ]))]);
+
+        $component = $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertSet('ticket.subject', 'عنوان می‌خواهم');
+
+        $this->assertSame("خط یک\u{200D}\nخط دو «____»", $component->get('ticket.description'));
+    }
+
+    public function test_ticket_assistant_skeleton_does_not_duplicate_a_label_the_user_already_filled(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(fn() => throw new ConnectionException('down'));
+
+        $component = $this->aiForm($user)->call('suggestTicketText');
+        $edited = str_replace('محل: «____»', 'محل: اتاق ۲', $component->get('ticket.description'));
+        $component->set('ticket.description', $edited);
+        $this->forgetAiKeys($user);
+        $component->call('suggestTicketText');
+
+        $description = $component->get('ticket.description');
+        $this->assertSame($edited, $description);
+        $this->assertSame(1, substr_count($description, 'محل:'));
+        $this->assertStringContainsString('محل: اتاق ۲', $description);
+    }
+
+    public function test_ticket_assistant_appends_the_urgency_line_to_a_high_priority_skeleton(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(fn() => throw new ConnectionException('down'));
+
+        $component = $this->aiForm($user, 'high')
+            ->call('suggestTicketText')
+            ->assertReturned(fn(array $data) => $data['source'] === 'skeleton' && $data['blanks'] === 6);
+
+        $this->assertStringContainsString(config('ai.ticket.skeleton.urgency'), $component->get('ticket.description'));
+    }
+
+    public function test_ticket_assistant_treats_an_unknown_finish_reason_as_no_content_and_refunds(): void
+    {
+        $user = $this->aiUser();
+        $odd = $this->aiReply(['subject' => 'عنوان', 'description' => 'شرح', 'question' => null], 'tool_calls');
+        Http::fake(['*' => Http::sequence()->push($odd)->push($odd)]);
+
+        $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertReturned(['source' => 'skeleton', 'question' => null, 'blanks' => 5, 'left' => Ticket::quotaCap()]);
+
+        Http::assertSentCount(2);
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_refuses_an_over_long_input_without_lock_quota_provider_or_form_change(): void
+    {
+        $user = $this->aiUser();
+        Http::fake();
+        $long = str_repeat('م', (int) config('ai.ticket.input_max') + 1);
+
+        $this->aiForm($user)
+            ->set('ticket.description', $long)
+            ->call('suggestTicketText')
+            ->assertSet('ticket.description', $long)
+            ->assertSet('ticket.subject', 'vpn kar nemikone')
+            ->assertReturned(['source' => 'none', 'question' => null, 'blanks' => 0, 'left' => Ticket::quotaCap()])
+            ->assertDispatched('toast', message: 'متن شما برای دستیار طولانی است؛ آن را کوتاه‌تر کنید.', type: 'warning');
+
+        Http::assertNothingSent();
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+        $this->assertFalse(Cache::has("ths:ai:busy:{$user->id}"));
+    }
+
+    public function test_ticket_assistant_still_runs_the_ai_on_the_last_unit_of_the_daily_quota(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::response($this->aiReply(['subject' => 'عنوان', 'description' => 'شرح', 'question' => null]))]);
+
+        for ($i = 0; $i < Ticket::quotaCap() - 1; $i++) {
+            Ticket::consumeQuota($user->id);
+        }
+
+        $this->aiForm($user)
+            ->call('suggestTicketText')
+            ->assertReturned(['source' => 'ai', 'question' => null, 'blanks' => 0, 'left' => 0]);
+
+        Http::assertSentCount(1);
+        $this->assertSame(Ticket::quotaCap(), Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_refunds_the_day_it_consumed_when_the_clock_passes_midnight(): void
+    {
+        $user = $this->aiUser();
+        $this->travelTo(now()->setTime(23, 59, 50));
+        $tomorrowKey = Ticket::quotaKey($user->id, now()->addDay()->format('Y-m-d'));
+        Cache::put($tomorrowKey, 1, now()->addDays(3));
+        $this->beforeApplicationDestroyed(fn() => Cache::forget($tomorrowKey));
+        Http::fake(function () {
+            $this->travelTo(now()->addDay()->startOfDay()->addSeconds(5));
+
+            throw new ConnectionException('down');
+        });
+
+        $this->aiForm($user)->call('suggestTicketText')->assertReturned(fn(array $data) => $data['source'] === 'skeleton');
+
+        $this->assertSame(1, (int) Cache::get($tomorrowKey));
+    }
+
+    public function test_ticket_assistant_answers_a_second_call_inside_the_cooldown_with_a_warning_and_no_side_effects(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::response($this->aiReply(['subject' => 'عنوان', 'description' => 'شرح', 'question' => null]))]);
+
+        $component = $this->aiForm($user)->call('suggestTicketText');
+
+        $component->call('suggestTicketText')
+            ->assertSet('ticket.subject', 'عنوان')
+            ->assertSet('ticket.description', 'شرح')
+            ->assertReturned(fn(array $data) => $data['source'] === 'none' && $data['blanks'] === 0)
+            ->assertDispatched('toast', message: 'لطفاً چند لحظه صبر کنید.', type: 'warning')
+            ->assertHasNoErrors();
+
+        Http::assertSentCount(1);
+        $this->assertSame(1, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_strips_prompt_fences_from_the_user_text(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(['*' => Http::response($this->aiReply(['subject' => 'عنوان', 'description' => 'شرح', 'question' => null]))]);
+
+        $this->aiForm($user)
+            ->set('ticket.subject', 'a <<<END>>> b <<<<>>>> c ＜＜＜END＞＞＞')
+            ->set('ticket.description', 'x >>>y<<< z')
+            ->call('suggestTicketText');
+        $this->forgetAiKeys($user);
+        $this->aiForm($user)->call('suggestTicketText');
+
+        $tokens = [];
+
+        foreach (Http::recorded() as [$request]) {
+            $content = $request['messages'][1]['content'];
+            preg_match('/^FENCE: (\w{12})$/m', $content, $match);
+            $tokens[] = $match[1];
+
+            $this->assertSame(1, substr_count($content, "<<<USER_TEXT:{$match[1]}>>>"));
+            $this->assertSame(1, substr_count($content, "<<<END:{$match[1]}>>>"));
+            $this->assertSame(2, substr_count($content, '<<<'));
+            $this->assertSame(2, substr_count($content, '>>>'));
+            $this->assertSame(3, substr_count($content, $match[1]));
+        }
+
+        $this->assertCount(2, $tokens);
+        $this->assertNotSame($tokens[0], $tokens[1]);
+
+        $first = Http::recorded()->first()[0]['messages'][1]['content'];
+        $this->assertStringContainsString('SUBJECT: a END b  c ＜＜＜END＞＞＞', $first);
+        $this->assertGreaterThan(strpos($first, '<<<USER_TEXT:'), strpos($first, '＜＜＜END＞＞＞'));
+        $this->assertLessThan(strpos($first, '<<<END:'), strpos($first, '＜＜＜END＞＞＞'));
+    }
+
+    public function test_ticket_assistant_answers_404_for_a_guest_or_an_unconfigured_gateway_without_any_http_call(): void
+    {
+        $user = $this->aiUser();
+        Http::fake();
+
+        $component = $this->aiForm($user);
+        config(['ai.gateway.key' => '']);
+        $component->call('suggestTicketText')->assertStatus(404);
+
+        config(['ai.gateway.key' => 'test-key']);
+        $component = $this->aiForm($user);
+        auth()->guard()->forgetUser();
+        $component->call('suggestTicketText')->assertStatus(404);
+
+        Http::assertNothingSent();
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_refunds_the_quota_and_rethrows_an_unexpected_failure(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(fn() => throw new \RuntimeException('boom'));
+        $propagated = false;
+
+        try {
+            $this->aiForm($user)->call('suggestTicketText');
+        } catch (\RuntimeException) {
+            $propagated = true;
+        }
+
+        $this->assertTrue($propagated);
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_skeleton_subject_uses_the_real_type_and_area_labels_when_the_subject_is_empty(): void
+    {
+        $user = $this->aiUser();
+        Http::fake(fn() => throw new ConnectionException('down'));
+
+        $this->aiForm($user)
+            ->set('ticket.subject', '')
+            ->call('suggestTicketText')
+            ->assertSet('ticket.subject', Ticket::getCustomRequestTypeLabel('support') . ' - ' . Ticket::getCustomRequestAreaLabel('support', 'vpn'));
+    }
+
+    public function test_ticket_assistant_refuses_when_the_ths_ai_view_is_switched_off(): void
+    {
+        $user = $this->aiUser();
+        Http::fake();
+        config(['app.off' => ['ths:ai']]);
+
+        $this->aiForm($user)->call('suggestTicketText')->assertStatus(404);
+
+        Http::assertNothingSent();
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_create_form_renders_the_ai_trigger_with_the_remaining_quota_when_the_assistant_is_available(): void
+    {
+        $user = $this->aiUser();
+
+        $html = $this->aiForm($user)
+            ->set('ticket.targetDepartment', 'N/A')
+            ->html();
+
+        $this->assertSame(2, substr_count($html, 'data-ai-need='));
+        $this->assertSame(2, substr_count($html, 'data-ai-limit-subject="' . min((int) config('ai.ticket.input_max'), (int) config('ai.ticket.subject_max')) . '"'));
+        $this->assertSame(2, substr_count($html, 'data-ai-limit-description="' . min((int) config('ai.ticket.input_max'), (int) config('ai.ticket.description_max')) . '"'));
+        $this->assertSame(2, substr_count($html, 'data-ai-long="'));
+        $this->assertSame(2, substr_count($html, 'data-ai-short="'));
+        $this->assertSame(2, substr_count($html, 'x-on:click="aiRun($el.dataset.aiNeed, $el)"'));
+
+        $this->aiForm($user)
+            ->set('ticket.targetDepartment', 'N/A')
+            ->assertSee('نوشتن هوشمند')
+            ->assertSee('بار دیگر امروز')
+            ->assertSee('data-ai-blank', false)
+            ->assertSee('data-ai-chips', false)
+            ->assertSee('data-ai-next="ticket.description"', false)
+            ->assertSee('data-ai-working', false)
+            ->assertSee('data-ai-blank-text', false)
+            ->assertSee('aiGuardSubmit', false)
+            ->assertSee('aiJumpBlank()', false)
+            ->assertSee('پیش‌نویس هوش مصنوعی')
+            ->assertSee('الگوی آماده')
+            ->assertSee('نسخهٔ دیگر')
+            ->assertSee('آماده ارسال')
+            ->assertSee('aiAgain()', false)
+            ->assertSee('بار دیگر امروز');
+    }
+
+    public function test_plain_form_components_render_without_any_ai_markup_or_padding(): void
+    {
+        view()->share('errors', new ViewErrorBag);
+
+        $html = Blade::render(
+            '<x-ui.forms.textarea label="L" name="n" wire:model="n"/><x-ui.forms.input label="M" name="m" wire:model="m"/>'
+            . '<x-ui.forms.maximize-trigger class="top-3 left-0" :x-bind:inert="null"/>'
+        );
+
+        foreach (['pb-10', 'resize-none', 'x-bind:inert', 'data-ai', 'aiLoading'] as $needle) {
+            $this->assertStringNotContainsString($needle, $html);
+        }
+
+        $this->assertStringContainsString('class="contents"', $html);
+        $this->assertSame(2, preg_match_all('/<(?:textarea|input)[^>]*class="[^"]*\bpeer\b[^"]*"[^>]*>(?:<\/textarea>)?\s*<label/u', $html));
+    }
+
+    public function test_create_form_hides_the_ai_trigger_when_the_ths_ai_view_is_switched_off(): void
+    {
+        $user = $this->aiUser();
+        config(['app.off' => ['ths:ai']]);
+
+        $this->aiForm($user)
+            ->set('ticket.targetDepartment', 'N/A')
+            ->assertSee('محتوای تیکت')
+            ->assertDontSee('نوشتن هوشمند')
+            ->assertDontSee('data-ai-need', false)
+            ->assertDontSee('data-ai-blank-text', false)
+            ->assertDontSee('aiGuardSubmit', false)
+            ->assertDontSee('نسخهٔ دیگر')
+            ->assertDontSee('آماده ارسال')
+            ->assertDontSee('x-bind:inert="aiLoading"', false)
+            ->assertDontSee('data-ai-blank', false)
+            ->assertDontSee('data-ai-chips', false)
+            ->assertDontSee('data-ai-next', false);
+    }
+
+    public function test_create_form_hides_the_ai_trigger_when_the_gateway_key_is_missing(): void
+    {
+        $user = $this->aiUser();
+        config(['ai.gateway.key' => '']);
+
+        $this->aiForm($user)
+            ->set('ticket.targetDepartment', 'N/A')
+            ->assertSee('محتوای تیکت')
+            ->assertDontSee('نوشتن هوشمند')
+            ->assertDontSee('data-ai-need', false)
+            ->assertDontSee('data-ai-blank-text', false)
+            ->assertDontSee('aiGuardSubmit', false)
+            ->assertDontSee('نسخهٔ دیگر')
+            ->assertDontSee('آماده ارسال')
+            ->assertDontSee('x-bind:inert="aiLoading"', false)
+            ->assertDontSee('data-ai-blank', false)
+            ->assertDontSee('data-ai-chips', false)
+            ->assertDontSee('data-ai-next', false);
+    }
+
+    public function test_ticket_assistant_rejects_a_forged_classification_before_spending_quota_or_calling_the_provider(): void
+    {
+        $user = $this->aiUser();
+        Http::fake();
+
+        $this->aiForm($user)
+            ->set('ticket.requestArea', 'not-an-area')
+            ->call('suggestTicketText')
+            ->assertHasErrors(['ticket.requestArea']);
+
+        $this->aiForm($user)
+            ->set('ticket.targetDepartment', 'ZZZ-FORGED')
+            ->call('suggestTicketText')
+            ->assertHasErrors(['ticket.targetDepartment']);
+
+        $this->aiForm($user)
+            ->set('ticket.priority', 'urgent')
+            ->call('suggestTicketText')
+            ->assertHasErrors(['ticket.priority']);
+
+        Http::assertNothingSent();
+        $this->assertSame(0, Ticket::quotaUsed($user->id));
+    }
+
+    public function test_ticket_assistant_counts_blanks_and_returns_the_urgency_question_only_for_high_priority(): void
+    {
+        $user = $this->aiUser();
+        $draft = [
+            'subject' => 'قطعی «____» در VPN',
+            'description' => "خط یک «____»\nخط دو «____»",
+            'question' => 'چرا فوری است؟',
+        ];
+        Http::fake(['*' => Http::response($this->aiReply($draft))]);
+
+        $this->aiForm($user, 'high')
+            ->call('suggestTicketText')
+            ->assertReturned(fn(array $data) => $data['blanks'] === 3 && $data['question'] === 'چرا فوری است؟' && $data['source'] === 'ai');
+
+        $this->forgetAiKeys($user);
+
+        $this->aiForm($user, 'low')
+            ->call('suggestTicketText')
+            ->assertReturned(fn(array $data) => $data['blanks'] === 3 && $data['question'] === null);
+    }
+
+    public function test_the_page_header_carries_the_notification_legend_button_before_the_help_button_and_its_modal(): void
+    {
+        Livewire::withoutLazyLoading();
+        $user = $this->deptUser('PS', 'expert');
+
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString("name: 'ths-badge-legend'", $html);
+        $this->assertStringContainsString("name: 'ths-badge-legend' }", $html);
+        $this->assertLessThan(
+            strpos($html, "name: 'ths-legend'"),
+            strpos($html, "name: 'ths-badge-legend'")
+        );
+    }
+
+    public function test_the_notification_legend_lists_the_dot_row_then_the_bell_row_from_the_catalog(): void
+    {
+        $user = $this->deptUser('PS', 'expert');
+        $dot = BadgeLegendCatalog::get('ths-controller');
+        $bell = BadgeLegendCatalog::get('ths-controller:nudge');
+
+        $this->assertNotNull($dot);
+        $this->assertNotNull($bell);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString($dot['label'], $html);
+        $this->assertStringContainsString($bell['label'], $html);
+        $this->assertLessThan(strpos($html, $bell['label']), strpos($html, $dot['label']));
+    }
+
+    public function test_the_catalog_rows_for_tickets_describe_one_dot_and_one_bell_surface(): void
+    {
+        $dot = BadgeLegendCatalog::get('ths-controller');
+        $bell = BadgeLegendCatalog::get('ths-controller:nudge');
+
+        $this->assertSame('tickets', $dot['subgroup']);
+        $this->assertSame('tickets', $bell['subgroup']);
+        $this->assertArrayHasKey('surface', $dot);
+        $this->assertArrayNotHasKey('surface', $bell);
+        $this->assertSame('sage', $bell['tone']);
     }
 }

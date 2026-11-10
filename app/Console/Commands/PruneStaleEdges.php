@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ReconcileEdge;
+use App\Jobs\ReconcileEdgeJob;
 use App\Models\Edge;
 use App\Services\Menu\EdgeService;
 use Illuminate\Console\Command;
@@ -46,7 +46,7 @@ class PruneStaleEdges extends Command
             ->cursor();
 
         foreach ($stale as $row) {
-            ReconcileEdge::dispatch($row->edge_key, $row->subject_type, $row->subject_id);
+            ReconcileEdgeJob::dispatch($row->edge_key, $row->subject_type, $row->subject_id);
             $subjects++;
         }
 

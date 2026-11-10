@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Rules;
 
-use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
+use App\Enums\DocumentStatus;
 use App\Models\DMS;
 use App\Rules\UniqueLiveDocument;
 use Illuminate\Support\Facades\Schema;

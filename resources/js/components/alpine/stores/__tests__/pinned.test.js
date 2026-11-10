@@ -122,3 +122,19 @@ describe('pinned.getPinned', () => {
         expect(s.getPinned('bogus')).toEqual([])
     })
 })
+
+describe('pinned correspondence scope', () => {
+    test('restores and persists correspondence ids under its dedicated key', async () => {
+        localStorage.setItem('pinned-correspondence', JSON.stringify([21]))
+        const s = freshStore()
+        s.init()
+        expect(s.isPinned(21, 'correspondence')).toBe(true)
+
+        s.togglePin(34, 'correspondence')
+        await Promise.resolve()
+
+        expect(s.getPinned('correspondence').sort((a, b) => a - b)).toEqual([21, 34])
+        expect(JSON.parse(localStorage.getItem('pinned-correspondence')).sort((a, b) => a - b)).toEqual([21, 34])
+        expect(localStorage.getItem('pinned-ai-reports')).toBeNull()
+    })
+})

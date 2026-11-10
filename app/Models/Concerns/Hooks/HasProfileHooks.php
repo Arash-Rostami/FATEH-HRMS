@@ -2,7 +2,7 @@
 
 namespace App\Models\Concerns\Hooks;
 
-use App\Jobs\ReconcileNudge;
+use App\Jobs\ReconcileNudgeJob;
 use App\Jobs\SyncProjectChannelMembershipJob;
 use App\Models\Feed;
 use App\Models\Photo;
@@ -65,17 +65,17 @@ trait HasProfileHooks
                 $class::whereNotNull('departments')
                     ->where(fn($q) => collect($codes)->each(fn($code) => $q->orWhereJsonContains('departments', $code)))
                     ->pluck('id')
-                    ->each(fn($id) => ReconcileNudge::dispatch($nudgeKey, $class, $id));
+                    ->each(fn($id) => ReconcileNudgeJob::dispatch($nudgeKey, $class, $id));
             }
 
             Photo::where(fn($q) => collect($codes)->each(fn($code) => $q->orWhere('department_id', $code)->orWhereJsonContains('departments', $code)))
                 ->pluck('id')
-                ->each(fn($id) => ReconcileNudge::dispatch('gallery-controller:nudge', Photo::class, $id));
+                ->each(fn($id) => ReconcileNudgeJob::dispatch('gallery-controller:nudge', Photo::class, $id));
         }
 
         Ticket::where('status', 'open')
             ->where(fn($q) => collect($codes)->each(fn($code) => $q->orWhere(fn($sq) => $sq->targetedAt($code))))
             ->pluck('id')
-            ->each(fn($id) => ReconcileNudge::dispatch('ths-controller:nudge', Ticket::class, $id));
+            ->each(fn($id) => ReconcileNudgeJob::dispatch('ths-controller:nudge', Ticket::class, $id));
     }
 }

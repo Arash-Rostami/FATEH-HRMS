@@ -5,6 +5,7 @@ namespace Tests\Feature\Models;
 use App\Enums\ResourceType;
 use App\Models\Profile;
 use App\Models\Reservation;
+use App\Models\ReservationPolicy;
 use App\Models\Resource;
 use App\Models\User;
 use Carbon\Carbon;
@@ -587,7 +588,7 @@ class ResourceModelTest extends TestCase
 
     public function test_deleting_last_resource_of_a_type_prunes_its_reservation_policies(): void
     {
-        \App\Models\ReservationPolicy::insert([
+        ReservationPolicy::insert([
             ['resource_type' => 'projector', 'key' => 'display_label', 'value' => json_encode('پروژکتور')],
             ['resource_type' => 'projector', 'key' => 'window_days', 'value' => json_encode(21)],
         ]);
@@ -600,7 +601,7 @@ class ResourceModelTest extends TestCase
 
     public function test_deleting_one_of_several_same_type_resources_keeps_reservation_policies(): void
     {
-        \App\Models\ReservationPolicy::insert([
+        ReservationPolicy::insert([
             ['resource_type' => 'projector', 'key' => 'display_label', 'value' => json_encode('پروژکتور')],
         ]);
         $first = Resource::factory()->create(['type' => 'projector', 'status' => 'active']);

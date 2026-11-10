@@ -5,7 +5,7 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Livewire\Dashboard\Tab\Actions\MarkPostAsReadAction;
 use App\Models\Post;
 use App\Services\Cache\ModelCacheVersion;
-use App\Traits\FocusOnRecord;
+use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;

@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Notifications\PasswordResetNotification;
-use App\Traits\FilamentViewActionDefaults;
+use App\Traits\Filament\FilamentViewActionDefaults;
 use Filament\Actions\View\ActionsRenderHook;
 use Filament\Actions\ViewAction;
 use Filament\Auth\Notifications\ResetPassword as FilamentResetPassword;

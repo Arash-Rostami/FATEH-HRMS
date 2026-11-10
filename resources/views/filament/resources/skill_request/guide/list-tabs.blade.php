@@ -22,7 +22,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">زبانه‌ها و فیلترها: درخواست‌های منتظر بررسی بالای جدول، قدیمی‌ها جدا</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        چهار زبانهٔ وضعیت بالای جدول، با نشانِ شمارش از یک کوئریِ تجمیعیِ واحد. مرتب‌سازی پیش‌فرض، درخواست‌های «در حال بررسی» را بالای جدول و قدیمی‌ترین‌ها را اول می‌آورد — تا قدیمی‌ترین درخواست منتظر بررسی از چشم دور نماند.
+        چهار زبانهٔ وضعیت بالای جدول قرار دارند و تعداد درخواست‌ها را نشان می‌دهند. درخواست‌های در حال بررسی و قدیمی‌تر ابتدا نمایش داده می‌شوند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

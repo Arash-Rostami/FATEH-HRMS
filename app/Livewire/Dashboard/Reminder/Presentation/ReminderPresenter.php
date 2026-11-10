@@ -8,7 +8,7 @@ use App\Models\Reminder;
 use App\Models\Reservation;
 use App\Models\Task;
 use App\Models\Ticket;
-use App\Traits\RiskEscalationChip;
+use App\Traits\Livewire\RiskEscalationChip;
 
 class ReminderPresenter
 {

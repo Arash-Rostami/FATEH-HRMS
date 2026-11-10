@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\ProfileResource\Schemas;
 
-use App\Filament\Resources\ProfileResource\Enums\Degree;
-use App\Filament\Resources\ProfileResource\Enums\EmploymentStatus;
-use App\Filament\Resources\ProfileResource\Enums\EmploymentType;
-use App\Filament\Resources\ProfileResource\Enums\Gender;
-use App\Filament\Resources\ProfileResource\Enums\Position;
+use App\Enums\Degree;
+use App\Enums\EmploymentStatus;
+use App\Enums\EmploymentType;
+use App\Enums\Gender;
+use App\Enums\Position;
 use App\Models\Department;
 use App\Models\Profile;
 use Illuminate\Database\Eloquent\Model;

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ReminderResource\Schemas;
 
 use App\Enums\ReminderRecurrence;
 use App\Models\Reminder;
-use App\Traits\FilamentFormDivider;
+use App\Traits\Filament\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;
 use Illuminate\Database\Eloquent\Model;

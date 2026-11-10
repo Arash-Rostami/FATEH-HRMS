@@ -107,7 +107,7 @@ class Link extends Model
     public static function notifyFields(): array
     {
         return [
-            'link' => \App\Filament\Resources\LinkResource\Enums\LinkType::class,
+            'link' => \App\Enums\LinkType::class,
             'sequence' => 'number',
         ];
     }

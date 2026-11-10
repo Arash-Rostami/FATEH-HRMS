@@ -5,7 +5,7 @@ namespace App\Filament\Resources\UserResource\RelationManagers;
 use App\Filament\Resources\CredentialResource\Schemas\CredentialFormPresenter;
 use App\Filament\Resources\CredentialResource\Schemas\CredentialInfolistPresenter;
 use App\Filament\Resources\CredentialResource\Schemas\CredentialTablePresenter;
-use App\Traits\FilamentActions;
+use App\Traits\Filament\FilamentActions;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

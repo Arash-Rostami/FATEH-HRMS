@@ -5,8 +5,8 @@ namespace App\Filament\Resources\NotifyRuleResource\Pages;
 use App\Filament\Pages\CreateRecord;
 use App\Filament\Resources\NotifyRuleResource;
 use App\Filament\Resources\NotifyRuleResource\Schemas\NotifyRuleFormPresenter;
-use App\Traits\FilamentDateHandler;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\Filament\FilamentDateHandler;
+use App\Traits\Filament\FilamentPageBehavior;
 
 class CreateNotifyRule extends CreateRecord
 {

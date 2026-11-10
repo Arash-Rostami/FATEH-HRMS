@@ -40,7 +40,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">هر مورد یک «گالری» از تصاویر و ویدیوهاست</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        مدلِ این ماژول <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">Photo</code> است (نه Gallery) — جدول <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">photos</code>. هر ردیف یک گالری مستقل است که می‌تواند تصاویر و ویدیوها را در یک آرایهٔ JSON (ستون <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">path</code>) نگه دارد. این ماژول دو طرفی است: ادمین محتوا را بارگذاری می‌کند و کاربران آن را در زبانهٔ «گالری» پنل خود می‌بینند (زبانهٔ «تجربهٔ کاربر» را ببینید).
+        برای هر رویداد یا مناسبت، یک گالری بسازید و تصاویر و ویدیوهای آن را بارگذاری کنید. هر ردیف، یک گالری مستقل است. کاربران محتوا را در زبانهٔ «گالری» پنل خود می‌بینند. جزئیات نمایش محتوا در زبانهٔ «تجربهٔ کاربر» آمده است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -71,7 +71,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                ستون <code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">path</code> از نوع longText با collation باینری (<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">utf8mb4_bin</code>) است تا JSON روی ترتیب فایل‌ها پایدار بماند؛ ویدیو و تصویر را با هم در همان آرایه نگه می‌دارد و نوع فایل از پسوند شناسایی می‌شود.
+                تصویر و ویدیو در یک مجموعه نگهداری می‌شوند. ترتیب فایل‌ها حفظ می‌شود و نوع هر فایل از پسوند آن تشخیص داده می‌شود.
             </p>
         </div>
     </div>

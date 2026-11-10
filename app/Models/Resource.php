@@ -134,6 +134,6 @@ class Resource extends Model
 
     public static function notifyFields(): array
     {
-        return ['status' => \App\Filament\Resources\ResourceResource\Enums\ResourceStatus::class];
+        return ['status' => \App\Enums\ResourceStatus::class];
     }
 }

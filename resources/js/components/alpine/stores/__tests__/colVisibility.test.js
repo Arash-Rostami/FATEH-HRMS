@@ -181,3 +181,26 @@ describe('colVisibility.render — multi-domain rule building', () => {
         rafSpy.mockRestore()
     })
 })
+
+describe('colVisibility correspondence scope', () => {
+    test('restores, persists and renders the correspondence table mask independently', async () => {
+        localStorage.setItem('correspondence-col-hidden', JSON.stringify(['subject']))
+        const s = fresh()
+        s.init()
+        expect(s.maps.correspondence).toEqual(['subject'])
+        expect(s.isHidden('subject', 'correspondence')).toBe(true)
+
+        s.toggle('number', 'correspondence')
+        await flushMicrotask()
+        expect(JSON.parse(localStorage.getItem('correspondence-col-hidden'))).toEqual(['subject', 'number'])
+
+        await flushRaf()
+        expect(document.getElementById('dms-col-visibility-style').textContent)
+            .toContain('.correspondence-table [data-col="number"]{display:none!important}')
+        expect(s.maps['ai-report']).toEqual([])
+
+        s.reset('correspondence')
+        await flushMicrotask()
+        expect(JSON.parse(localStorage.getItem('correspondence-col-hidden'))).toEqual([])
+    })
+})

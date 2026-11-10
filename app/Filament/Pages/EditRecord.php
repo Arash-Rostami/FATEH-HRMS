@@ -2,10 +2,10 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Traits\ExplainsHiddenRelationTabs;
-use App\Filament\Traits\HandlesActionExceptions;
-use App\Filament\Traits\HandlesDroppedFiles;
-use App\Filament\Traits\HandlesSaveExceptions;
+use App\Traits\Filament\ExplainsHiddenRelationTabs;
+use App\Traits\Filament\HandlesActionExceptions;
+use App\Traits\Filament\HandlesDroppedFiles;
+use App\Traits\Filament\HandlesSaveExceptions;
 use Filament\Resources\Pages\EditRecord as BaseEditRecord;
 use Filament\Support\Exceptions\Cancel;
 use Filament\Support\Exceptions\Halt;
