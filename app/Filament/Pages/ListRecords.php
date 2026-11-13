@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Traits\Filament\GuardsModuleLock;
 use App\Traits\Filament\HandlesActionExceptions;
 use Filament\Resources\Pages\ListRecords as BaseListRecords;
 use Filament\Tables\Table;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ListRecords extends BaseListRecords
 {
+    use GuardsModuleLock;
     use HandlesActionExceptions;
 
     protected function makeBaseTable(): Table

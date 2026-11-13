@@ -138,13 +138,15 @@ class CorrespondencePdfControllerTest extends TestCase
         $this->assertStringContainsString(FileNamer::download('pdf', 'L-1405-77'), (string) $response->headers->get('Content-Disposition'));
     }
 
-    public function test_a_failing_pdf_builder_gives_a_plain_404_not_an_error_page(): void
+    public function test_a_failing_pdf_builder_redirects_back_with_a_toast_flash_and_a_missing_letter_is_a_404(): void
     {
         $owner = User::factory()->create(['role' => 'user', 'status' => 'active']);
         $letter = $this->approvedLetter($owner);
         Correspondence::query()->whereKey($letter->id)->toBase()->update(['spec' => '[]']);
 
-        $this->actingAs($owner)->get(route('correspondence.pdf', ['id' => $letter->id]))->assertNotFound();
+        $this->actingAs($owner)->get(route('correspondence.pdf', ['id' => $letter->id]))
+            ->assertRedirect(route('correspondence', ['open' => $letter->id]))
+            ->assertSessionHas('correspondence_error');
         $this->actingAs($owner)->get(route('correspondence.pdf', ['id' => $letter->id + 900000]))->assertNotFound();
     }
 

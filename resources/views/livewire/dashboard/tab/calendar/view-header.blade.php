@@ -1,8 +1,21 @@
 <div class="flex items-center justify-between w-full mb-4 md:mb-5"
      :class="$wire.view === 'month' ? 'p-0' : 'p-4'"
 >
+    <div class="flex items-center gap-1.5 md:gap-2 shrink-0 slide-up">
+    <button
+        type="button"
+        wire:click="stepMonth(-1)"
+        x-show="$wire.view === 'month'"
+        x-cloak
+        title="ماه قبل"
+        aria-label="ماه قبل"
+        class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 shrink-0 text-[var(--md-sys-color-on-surface-variant)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-high)_70%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:text-[var(--md-sys-color-primary)] rounded-xl transition-all duration-200 active:scale-95"
+    >
+        <span class="material-symbols-rounded text-[20px] md:text-[24px]">chevron_right</span>
+    </button>
+
     <div
-        class="relative shrink-0 slide-up"
+        class="relative shrink-0"
         x-data="{ pickerOpen: false }"
         @click.outside="pickerOpen = false"
         @keydown.escape.window="pickerOpen = false"
@@ -29,6 +42,19 @@
         >
             @include('livewire.dashboard.tab.calendar.mini-month')
         </div>
+    </div>
+
+    <button
+        type="button"
+        wire:click="stepMonth(1)"
+        x-show="$wire.view === 'month'"
+        x-cloak
+        title="ماه بعد"
+        aria-label="ماه بعد"
+        class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 shrink-0 text-[var(--md-sys-color-on-surface-variant)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-high)_70%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:text-[var(--md-sys-color-primary)] rounded-xl transition-all duration-200 active:scale-95"
+    >
+        <span class="material-symbols-rounded text-[20px] md:text-[24px]">chevron_left</span>
+    </button>
     </div>
 
     <div class="flex items-center gap-2 md:gap-3 slide-up" style="animation-delay: 0.05s">

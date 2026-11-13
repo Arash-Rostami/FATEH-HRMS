@@ -5,8 +5,9 @@
         $answerSnippet = $presenter->answerSnippet($faq);
     @endphp
     <div wire:key="faq-list-{{ $faq->id }}" data-rf="faqs-{{ $faq->id }}"
+         x-show="!onlySaved || $store.pinned.isPinned({{ $faq->id }}, 'faq')"
          class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-primary)]/30 bg-[var(--md-sys-color-surface-container-low)] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-        <div @click="toggle({{ $faq->id }})"
+        <div @click="toggle({{ $faq->id }}, $el)"
              class="flex items-center gap-4 p-4 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300 group cursor-pointer">
             <div class="shrink-0 p-2 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] group-hover:bg-[var(--md-sys-color-primary)] group-hover:text-[var(--md-sys-color-on-primary)] transition-colors">
                 <span class="material-symbols-rounded text-[20px] leading-none">forum</span>
@@ -32,6 +33,7 @@
                 </div>
             </div>
 
+            <span x-show="$store.pinned.isPinned({{ $faq->id }}, 'faq')" x-cloak class="material-symbols-rounded text-[18px] leading-none font-fill text-[var(--md-sys-color-primary)] shrink-0" aria-hidden="true">bookmark</span>
             <span class="material-symbols-rounded text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-transform duration-300 shrink-0"
                   :class="active === {{ $faq->id }} ? 'rotate-180' : ''">expand_more</span>
         </div>
@@ -45,6 +47,7 @@
                 <span class="material-symbols-rounded text-[16px] leading-none text-[var(--md-sys-color-primary)]" aria-hidden="true">reply</span>
                 <span class="text-[11px] font-bold tracking-wide text-[var(--md-sys-color-primary)]">پاسخ</span>
                 <span class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)]/50" aria-hidden="true"></span>
+                @include('livewire.dashboard.tab.faqs.actions')
             </div>
             <div class="max-w-none text-sm leading-7 text-justify prose prose-sm prose-p:text-[var(--md-sys-color-on-surface)] prose-a:text-[var(--md-sys-color-primary)] rich-colors"
                  dir="rtl"

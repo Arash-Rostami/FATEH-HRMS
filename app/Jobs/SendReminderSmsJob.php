@@ -29,7 +29,7 @@ class SendReminderSmsJob implements ShouldQueue
         }
 
         $channel->send(new Message(
-            'یادآوری «'.$reminder->title.'» سررسید شده است.',
+            'موعد یادآوری «'.$reminder->title.'» رسیده است.',
             array_values(array_filter([$reminder->notes])),
             'reminder',
             __('resources/reminder/strings.plural_label'),

@@ -8,7 +8,7 @@
             count="{{ $this->suggestions->total() }}"
         />
 
-        @if(!in_array($this->authDeptCode, ['MA', 'MG'], true))
+        @if($this->authDeptCode && !in_array($this->authDeptCode, ['MA', 'MG'], true))
         <x-ui.buttons.form
             class="w-full justify-center gap-2 hover:brightness-95 active:scale-[0.97] transition-all glow-sm"
             icon="add"
@@ -49,6 +49,7 @@
         @forelse($this->suggestions as $item)
             @php($p = $this->presenter($item))
             @php($stage = $p->stageConfig())
+            @php($needsAction = array_key_exists($item->id, $this->attentionIds))
 
             <div wire:key="s-{{ $item->id }}" data-rf="suggestion-{{ $item->id }}" class="group">
             <div
@@ -60,11 +61,11 @@
                     'relative w-full text-right rounded-2xl border p-4 transition-all text-left hover:-translate-y-[1px] cursor-pointer',
                     'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/30' => $selectedId !== $item->id,
                     'border-[var(--md-sys-color-primary)] shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]' => $selectedId === $item->id,
-                    'bg-gradient-to-l from-[var(--md-sys-color-error)]/10 to-transparent border-r-3 border-r-[var(--md-sys-color-error)]' => $p->requiresMyAction(),
+                    'bg-gradient-to-l from-[var(--md-sys-color-error)]/10 to-transparent border-r-3 border-r-[var(--md-sys-color-error)]' => $needsAction,
                 ])
             >
 
-                @if($p->requiresMyAction())
+                @if($needsAction)
                     <div wire:key="suggestion-action-badge" class="absolute top-1 left-2 z-10">
                         <x-ui.notification-badge />
                     </div>
@@ -120,7 +121,7 @@
                             <span wire:key="suggestion-dept-overflow" title=" {{ $p->showDeptDetails($item,'all_deps') }}"
                                   class="cursor-help shrink-0 px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)]
                                        text-[var(--md-sys-color-on-surface-variant)] text-[10px]">
-                                {{ $p->showDeptDetails($item,'deps_count') - 2 }}+
+                                {{ convertToPersian($p->showDeptDetails($item,'deps_count') - 2) }}+
                             </span>
                         @endif
                     </span>

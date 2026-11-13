@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Dashboard\AiReport\Forms;
 
+use Closure;
+use finfo;
 use Illuminate\Http\UploadedFile;
 use Livewire\Form;
 
@@ -37,10 +39,14 @@ class ComposerForm extends Form
                 'bail',
                 'file',
                 'max:' . $kb,
-                fn (string $attribute, mixed $value, \Closure $fail) => $value instanceof UploadedFile
-                    && self::isEncryptedOffice((new \finfo(FILEINFO_MIME_TYPE))->file($value->getRealPath() ?: $value->getPathname()) ?: '', (string) $value->getClientOriginalName())
+                fn (string $attribute, mixed $value, Closure $fail) => $value instanceof UploadedFile
+                    && self::isEncryptedOffice((new finfo(FILEINFO_MIME_TYPE))->file($value->getRealPath() ?: $value->getPathname()) ?: '', (string) $value->getClientOriginalName())
                     && $fail(self::encryptedFileMessage()),
-                'mimes:' . config('ai.report.upload.mimes'),
+                'mimes:' . config('ai.report.upload.mimes') . ',zip',
+                fn (string $attribute, mixed $value, Closure $fail) => $value instanceof UploadedFile
+                    && $value->guessExtension() === 'zip'
+                    && !self::isOfficeZip($value)
+                    && $fail(self::unsupportedFileMessage()),
             ],
         ];
     }
@@ -53,18 +59,18 @@ class ComposerForm extends Form
         $mb = intdiv((int) config('ai.report.upload.per_file_kb'), 1024);
 
         return [
-            'prompt.required' => 'متن درخواست را وارد کنید.',
-            'prompt.min' => 'متن درخواست باید حداقل ' . convertToPersian($min) . ' نویسه باشد.',
-            'prompt.max' => 'متن درخواست نباید بیش از ' . convertToPersian($max) . ' نویسه باشد.',
-            'type.required' => 'نوع گزارش معتبر نیست.',
-            'type.in' => 'نوع گزارش معتبر نیست.',
-            'length.required' => 'حجم گزارش معتبر نیست.',
-            'length.in' => 'حجم گزارش معتبر نیست.',
-            'audience.required' => 'مخاطب گزارش معتبر نیست.',
-            'audience.in' => 'مخاطب گزارش معتبر نیست.',
-            'files.max' => 'حداکثر ' . convertToPersian($files) . ' فایل می‌توانید پیوست کنید.',
-            'files.*.file' => 'فایل پیوست معتبر نیست.',
-            'files.*.max' => 'حجم هر فایل نباید بیش از ' . convertToPersian($mb) . ' مگابایت باشد.',
+            'prompt.required' => __('resources/ai_report/strings.form.prompt_required'),
+            'prompt.min' => __('resources/ai_report/strings.form.prompt_min', ['min' => convertToPersian($min)]),
+            'prompt.max' => __('resources/ai_report/strings.form.prompt_max', ['max' => convertToPersian($max)]),
+            'type.required' => __('resources/ai_report/strings.form.type'),
+            'type.in' => __('resources/ai_report/strings.form.type'),
+            'length.required' => __('resources/ai_report/strings.form.length'),
+            'length.in' => __('resources/ai_report/strings.form.length'),
+            'audience.required' => __('resources/ai_report/strings.form.audience'),
+            'audience.in' => __('resources/ai_report/strings.form.audience'),
+            'files.max' => __('resources/ai_report/strings.form.files_max', ['count' => convertToPersian($files)]),
+            'files.*.file' => __('resources/ai_report/strings.errors.file_invalid'),
+            'files.*.max' => __('resources/ai_report/strings.form.file_max', ['mb' => convertToPersian($mb)]),
             'files.*.mimes' => self::unsupportedFileMessage(),
         ];
     }
@@ -80,15 +86,18 @@ class ComposerForm extends Form
             || ($mime === 'application/CDFV2' && in_array(strtolower(pathinfo($name, PATHINFO_EXTENSION)), ['docx', 'xlsx'], true));
     }
 
+    public static function isOfficeZip(UploadedFile $file): bool
+    {
+        return in_array(strtolower(pathinfo((string) $file->getClientOriginalName(), PATHINFO_EXTENSION)), ['docx', 'xlsx'], true);
+    }
+
     public static function encryptedFileMessage(): string
     {
-        return 'این فایل با رمز عبور محافظت شده است؛ آن را بدون رمز عبور ذخیره کنید و دوباره پیوست کنید.';
+        return __('resources/ai_report/strings.form.encrypted');
     }
 
     public static function unsupportedFileMessage(): string
     {
-        $exts = str_replace(',', ', ', (string) config('ai.report.upload.mimes'));
-
-        return 'قالب فایل پشتیبانی نمی‌شود. مجاز: ' . $exts . '. به‌جای .xls و .doc از .xlsx و .docx استفاده کنید؛ .ppt و .pptx پذیرفته نمی‌شود.';
+        return __('resources/ai_report/strings.form.unsupported', ['exts' => str_replace(',', ', ', (string) config('ai.report.upload.mimes'))]);
     }
 }

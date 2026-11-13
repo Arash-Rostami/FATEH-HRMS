@@ -866,7 +866,8 @@ class ReservationTest extends TestCase
         $this->assertDatabaseHas('messages', ['sender_id' => $viewer->id, 'recipient_id' => $colleague->id]);
         Http::assertSent(fn($request) => $request['receptor'] === '09120000000'
             && str_starts_with($request['message'], $viewer->name . ': ')
-            && str_contains($request['message'], $desk->name));
+            && str_contains($request['message'], $desk->name)
+            && str_ends_with($request['message'], "\nاین پیامک از سامانه " . str_replace('ـ', '', config('app.name')) . ' ارسال شده است'));
         $this->assertDatabaseHas('notify_logs', ['source' => 'reservation', 'sender_id' => $viewer->id, 'user_id' => $colleague->id, 'status' => 'sent', 'recipient' => '*******0000']);
 
         $messages = Message::count();

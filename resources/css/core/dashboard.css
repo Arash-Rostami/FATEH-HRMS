@@ -2846,7 +2846,6 @@ html.declutter .right-rail:hover button:not(.rail-home) {
 .right-rail button:nth-child(7) { --slide: 336px; --seq: 5; }
 .right-rail button:nth-child(8) { --slide: 392px; --seq: 6; }
 .right-rail button:nth-child(9) { --slide: 448px; --seq: 7; }
-
 .stat-tile .stat-icon { position: relative; transition: background-color .3s, border-color .3s, box-shadow .3s; }
 .stat-tile .stat-glyph { transition: color .3s, opacity .3s, transform .3s; }
 .stat-tile .stat-num { transition: color .3s, opacity .3s; }

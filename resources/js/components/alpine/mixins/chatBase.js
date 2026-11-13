@@ -99,6 +99,29 @@ export default function chatBase(scope) {
             this._muteEval = { total, snap, muted };
             return muted;
         },
+        _pushMessage(total, fallback) {
+            const previous = this._pushSnapshot;
+            const rows = [...document.querySelectorAll(UNREAD_ID_SEL)];
+            this._pushSnapshot = {
+                total,
+                snap: new Map(rows.map((el) => [Number(el.dataset.unreadId), Number(el.dataset.unread) || 0])),
+            };
+            if (!previous || total <= previous.total) return ['پیام جدید', fallback];
+
+            const rises = rows.filter((el) => {
+                const id = Number(el.dataset.unreadId);
+                return Number(el.dataset.unread) > (previous.snap.get(id) ?? 0);
+            });
+            const row = rises[0];
+            const rise = row ? Number(row.dataset.unread) - (previous.snap.get(Number(row.dataset.unreadId)) ?? 0) : 0;
+            if (rises.length !== 1 || rise !== total - previous.total || row.dataset.notifyMine === '1' || !row.dataset.notifyName) {
+                return ['پیام جدید', fallback];
+            }
+
+            const body = row.dataset.notifyBody?.trim() || 'پیام جدید';
+            const sender = row.dataset.notifySender?.trim();
+            return [row.dataset.notifyName, sender ? `${sender}: ${body}` : body];
+        },
         _playRing(id) {
             const now = Date.now();
             if (now - this._lastIncomingAt < INCOMING_DEDUPE_MS) return;

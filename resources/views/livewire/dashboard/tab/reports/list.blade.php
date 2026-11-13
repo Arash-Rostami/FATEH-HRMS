@@ -1,6 +1,7 @@
 <div class="space-y-4">
     @forelse ($this->reports as $report)
         <div wire:key="report-list-{{ $report->id }}"
+             x-show="!onlySaved || $store.pinned.isPinned({{ $report->id }}, 'report')"
              class="flex flex-col md:flex-row items-center p-4 bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] rounded-xl transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-outline)] group cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md"
              @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type', 'thumbnail']) + ['created_at_formatted' =>  toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; showModal = true; recordOpen(activeReport)">
 
@@ -22,7 +23,7 @@
                                 class="bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded-md text-[var(--md-sys-color-on-surface-variant)]">{{ $report->department?->displayLabel() ?? 'General' }}</span>
                     @if($report->pinned)
                         <span class="flex items-center gap-1 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] px-2 py-0.5 rounded-md text-[10px] font-bold">
-                            <span class="material-symbols-rounded text-[12px] leading-none">bookmark</span>
+                            <span class="material-symbols-rounded text-[12px] leading-none font-fill rotate-45">keep</span>
                             سنجاق
                         </span>
                     @endif
@@ -36,7 +37,8 @@
                 </div>
             </div>
 
-            <div class="flex-shrink-0 self-start md:self-auto md:mr-6 mt-2 md:mt-0">
+            <div class="flex-shrink-0 self-start md:self-auto md:mr-6 mt-2 md:mt-0 flex items-center gap-1">
+                <x-ui.buttons.bookmark :id="$report->id" scope="report"/>
                 <button wire:click.stop="download({{ $report->id }})"
                         class="p-2 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] hover:bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-primary)] transition-all shadow-sm hover:shadow-lg">
                     <span class="material-symbols-rounded text-lg">download</span>
@@ -56,8 +58,9 @@
     @endforelse
 
     @if($this->hasMorePages)
-        <div class="py-8 flex justify-center w-full">
+        <div wire:key="reports-list-load-more" class="py-8 flex justify-center w-full">
             <x-ui.buttons.load-more
+                    x-show="!onlySaved || !$store.pinned.isEmpty('report')"
                     action="loadMore"
                     text="بارگذاری بیشتر"
                     loading-text="در حال دریافت..."

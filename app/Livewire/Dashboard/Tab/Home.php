@@ -58,6 +58,12 @@ class Home extends Component
         TabPresenter::forgetStats();
     }
 
+    #[On('presence-changed')]
+    public function refreshTeamPulse(): void
+    {
+        TabPresenter::forgetTeamPulse();
+    }
+
     public function updatedTeamSearch(): void
     {
         $this->teamShowCount = 10;

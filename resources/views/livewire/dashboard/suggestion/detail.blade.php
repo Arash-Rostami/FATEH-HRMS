@@ -133,7 +133,7 @@
                             <div class="flex items-start justify-between gap-3 flex-wrap">
                                 <div class="min-w-0">
                                     <span class="{{ $item['title_classes'] }}">
-                                        {{ $item['step'] }}. {{ $item['title'] }}
+                                        {{ convertToPersian($item['step']) }}. {{ $item['title'] }}
                                     </span>
                                     <p class="text-xs mt-1 leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">
                                         {{ $item['description'] }}
@@ -471,7 +471,7 @@
 
                         <label class="relative flex items-center gap-3 p-3.5 rounded-xl cursor-pointer select-none transition-all
                                       border-2 border-transparent hover:border-[var(--md-sys-color-outline)]
-                                      {{ 'bg-[color-mix(in_srgb,var(--md-sys-color-' . $fs[0] . ') 20%,transparent)]' }}
+                                      {{ 'bg-[color-mix(in_srgb,var(--md-sys-color-' . $fs[0] . ')_15%,transparent)]' }}
                                       has-[:checked]:border-[var(--md-sys-color-primary)]
                                       has-[:checked]:bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_60%,transparent)]">
 

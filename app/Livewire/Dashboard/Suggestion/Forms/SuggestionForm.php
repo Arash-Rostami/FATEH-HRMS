@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Suggestion\Forms;
 
+use App\Models\Suggestion;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -44,6 +45,9 @@ class SuggestionForm extends Form
             'attachment' => 'nullable|file|mimes:pdf,png,jpg,jpeg,webp|max:' . config('file_upload_limits.document'),
             'feedbackTeam' => ['in:,agree,neutral,disagree'],
             'feedback.*' => ['in:agree,neutral,disagree'],
+            'descriptionDepts.*' => ['nullable', 'string'],
+            'purpose.*' => ['in:' . implode(',', array_keys(Suggestion::PURPOSES))],
+            'rule.*' => ['in:' . implode(',', array_keys(Suggestion::RULES))],
         ];
     }
 

@@ -42,7 +42,7 @@
                                         'bg-gradient-to-br from-[#F4D2A7] via-[#CD7F32] to-[#7A4316] text-[#2A1306] ring-1 ring-[#F1D7B7]' => $index === 2,
                                         'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/50 shadow-none' => $index > 2,
                                     ])>
-                                        {{ $index + 1 }}
+                                        {{ convertToPersian($index + 1) }}
                            </span>
                                 <span class="font-medium truncate max-w-[120px]">
                                     {{ $contributor->user->name ?? 'کاربر ناشناس' }}

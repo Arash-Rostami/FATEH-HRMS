@@ -1163,6 +1163,28 @@ describe('chatBase refactor guards — edge cases that must stay identical', () 
         expect(c._riseOnlyMuted()).toBe(false)
     })
 
+    test('_pushMessage shows an identifiable incoming preview and falls back for ambiguous changes', () => {
+        const c = chatBase('channel')
+        document.body.innerHTML = '<div data-unread-id="1" data-unread="0" data-notify-name="گروه" data-notify-sender="علی" data-notify-body="سلام"></div><div data-unread-id="2" data-unread="0" data-notify-name="دیگر"></div>'
+        const [first, second] = document.querySelectorAll('[data-unread-id]')
+        expect(c._pushMessage(0, 'عمومی')).toEqual(['پیام جدید', 'عمومی'])
+        first.dataset.unread = '1'
+        expect(c._pushMessage(1, 'عمومی')).toEqual(['گروه', 'علی: سلام'])
+        first.dataset.unread = '2'
+        second.dataset.unread = '1'
+        expect(c._pushMessage(3, 'عمومی')).toEqual(['پیام جدید', 'عمومی'])
+        first.dataset.unread = '3'
+        first.dataset.notifyMine = '1'
+        expect(c._pushMessage(4, 'عمومی')).toEqual(['پیام جدید', 'عمومی'])
+        first.dataset.notifyMine = '0'
+        first.dataset.notifySender = ''
+        first.dataset.notifyBody = 'پیوست'
+        first.dataset.unread = '4'
+        expect(c._pushMessage(5, 'عمومی')).toEqual(['گروه', 'پیوست'])
+        first.dataset.unread = '5'
+        expect(c._pushMessage(7, 'عمومی')).toEqual(['پیام جدید', 'عمومی'])
+    })
+
     test('_settlePin stops on wheel/touchstart/pointerdown/keydown only', () => {
         vi.useFakeTimers()
         try {

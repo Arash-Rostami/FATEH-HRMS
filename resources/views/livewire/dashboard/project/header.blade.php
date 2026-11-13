@@ -128,7 +128,7 @@
                     <div class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors">
                         <div class="flex-shrink-0">
                             <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']"
-                                         size="sm" :online="$member['is_online']" :status="$member['presence']" :focus="$member['focus']"/>
+                                         size="sm" :online="$member['is_online']" :status="$member['presence']" :focus="$member['focus']" :uid="$member['id']"/>
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-1 flex-wrap">

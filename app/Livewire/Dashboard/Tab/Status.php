@@ -9,14 +9,13 @@ use App\Livewire\Dashboard\Profile\Actions\EndorseSkillAction;
 use App\Livewire\Dashboard\Profile\Actions\RevokeEndorsementAction;
 use App\Livewire\Dashboard\Profile\Presentation\SkillPresenter;
 use App\Livewire\Dashboard\Profile\Presentation\SkillUserPresenter;
-use App\Livewire\Dashboard\Tab\Actions\SendSmsAction;
 use App\Livewire\Dashboard\Tab\Presentation\StatusPresenter;
 use App\Models\Profile;
 use App\Models\Skill;
 use App\Models\SkillUser;
 use App\Models\User;
-use App\Services\Notify\Channels\SmsChannel;
 use App\Services\User\UserKeyGrouper;
+use App\Traits\Livewire\SendsSms;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +23,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -31,15 +31,14 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 #[Lazy]
 class Status extends Component
 {
+    use SendsSms;
+
     public string $activeFilter = 'all';
     public string $activeClassifier = 'all';
     public string $search = '';
     #[Locked]
     public string $view = 'grid';
     public $showAboutModal = false;
-    public bool $showSmsModal = false;
-    public ?int $smsUserId = null;
-    public string $smsText = '';
 
     public ?int $skillId = null;
     public string $skillSearch = '';
@@ -77,29 +76,9 @@ class Status extends Component
         return view('livewire.dashboard.tab.status.placeholder');
     }
 
-    public function submitSms(SendSmsAction $action, SmsChannel $sms): void
+    #[On('presence-changed')]
+    public function onPresenceChanged(): void
     {
-        $this->validate(
-            ['smsText' => 'required|string|max:140'],
-            ['smsText.required' => 'متن پیام را بنویسید.', 'smsText.max' => 'متن پیام حداکثر ۱۴۰ نویسه است.'],
-        );
-
-        if ($this->sendSms((string) $this->smsUserId, $action, $sms, $this->smsText)) {
-            $this->showSmsModal = false;
-            $this->smsText = '';
-        }
-    }
-
-    public function sendSms(string $userId, SendSmsAction $action, SmsChannel $sms, ?string $text = null): bool
-    {
-        if (tenantOff('notify:sms')) {
-            return false;
-        }
-
-        $result = $action->execute($userId, $sms, $text);
-        $this->dispatch('toast', message: $result['message'], type: $result['type']);
-
-        return $result['type'] === 'success';
     }
 
     public function setFilter(string $filter)
@@ -233,6 +212,12 @@ class Status extends Component
     public function selectedSkill(): ?Skill
     {
         return $this->skillId !== null ? Skill::activeCatalog()->find($this->skillId) : null;
+    }
+
+    #[Computed]
+    public function aboutMeUser(): ?User
+    {
+        return $this->aboutMeUserId === null ? null : User::query()->with('profile')->visibleOnBoard()->find($this->aboutMeUserId);
     }
 
     #[Computed]

@@ -17,6 +17,7 @@
     :online="$dot ? $online : null"
     :status="$badge ? $user->presence : null"
     :focus="$user->focusLabel()"
+    :uid="$user->id"
     :onlineLabel="$online ? 'آنلاین' : 'آفلاین · ' . $user->lastSeenLabel()"
     {{ $attributes }}
 />

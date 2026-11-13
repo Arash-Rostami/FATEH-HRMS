@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 @php
     ['labels' => $labels, 'fields' => $fields, 'width' => $width, 'long' => $long, 'isAssumptions' => $isAssumptions] = $presenter->blockEditor($blockDraft, $report);
     $fieldLabel = fn (string $dot): string => $presenter->blockFieldLabel($dot);
@@ -8,8 +9,9 @@
         <p class="text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">متن‌ها و ارقام را مستقیم ویرایش کنید؛ تغییر به‌عنوان نسخهٔ تازه ذخیره می‌شود و جمع ستون‌های عددی خودکار به‌روز می‌شود. امکان افزودن یا حذف ردیف وجود ندارد.</p>
         @foreach($fields as $dot => $value)
             @php($head = explode('.', $dot)[0])
+            @continue($head === 'columns' && in_array($blockDraft['type'] ?? null, ['action_items', 'progress'], true))
             <div wire:key="ai-report-block-field-{{ str_replace('.', '-', $dot) }}">
-                @if(in_array($head, $long, true) || in_array(\Illuminate\Support\Str::afterLast($dot, '.'), $long, true))
+                @if(in_array($head, $long, true) || in_array(Str::afterLast($dot, '.'), $long, true))
                     <x-ui.forms.textarea :label="$fieldLabel($dot)" name="blockDraft.{{ $dot }}" wire:model="blockDraft.{{ $dot }}" :rows="2" :maxlength="(int) config('ai.report.spec.paragraph')"/>
                 @else
                     <x-ui.forms.input :label="$fieldLabel($dot)" name="blockDraft.{{ $dot }}" wire:model="blockDraft.{{ $dot }}" :maxlength="(int) config('ai.report.spec.short')" :disabled="$dot === 'heading' && $isAssumptions"/>
@@ -25,7 +27,7 @@
                     @foreach($blockDraft['rows'] as $i => $row)
                         @foreach($row as $j => $cell)
                             <div wire:key="ai-report-block-cell-{{ $i }}-{{ $j }}" class="contents">
-                                <x-ui.forms.input :label="$fieldLabel('rows.' . $i) . ' · ' . ($blockDraft['columns'][$j] ?? '')" name="blockDraft.rows.{{ $i }}.{{ $j }}" wire:model="blockDraft.rows.{{ $i }}.{{ $j }}" :maxlength="(int) config('ai.report.spec.cell')"/>
+                                <x-ui.forms.input :label="$fieldLabel('rows.' . $i) . ' · ' . ($blockDraft['columns'][$j] ?? '')" name="blockDraft.rows.{{ $i }}.{{ $j }}" wire:model="blockDraft.rows.{{ $i }}.{{ $j }}" :maxlength="(int) config('ai.report.spec.cell')" :disabled="($blockDraft['type'] ?? null) === 'progress' && $j === 3"/>
                             </div>
                         @endforeach
                     @endforeach

@@ -1,5 +1,5 @@
 @php
-    $showLoadMore = count($this->reports) === $this->listLimit && $this->listLimit < (int) config('ai.report.list_max');
+    $showLoadMore = $presenter->showLoadMore(count($this->reports), $this->listLimit);
 @endphp
 
 <div class="flex items-center gap-3 mb-2">
@@ -8,7 +8,7 @@
     </div>
     <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)] whitespace-nowrap">گزارش‌های شما</h2>    <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)] min-w-[20px] opacity-50"></div>
     <span wire:key="ai-report-list-total" title="مجموع گزارش‌های این زبانه"
-          class="text-[11px] font-bold px-2.5 py-1 rounded-lg tabular-nums bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)]">{{ convertToPersian((string) $this->total) }}</span>
+          class="text-[11px] font-bold px-2.5 py-1 rounded-lg tabular-nums bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">{{ convertToPersian((string) $this->total) }}</span>
 </div>
 
 <div wire:key="ai-report-list-tabs" class="w-fit max-w-full mx-auto md:mx-0 z-1 mb-2">

@@ -28,7 +28,7 @@
         'bg-[color-mix(in_srgb,var(--tool-amethyst-bg,var(--md-sys-color-tertiary-container))_70%,transparent)] text-[var(--tool-amethyst-color,var(--md-sys-color-on-tertiary-container))] border border-[color-mix(in_srgb,var(--tool-amethyst-color,var(--md-sys-color-tertiary))_40%,transparent)]' => !$isReminder && $event['is_owner'] && !empty($event['private']),
         'bg-[color-mix(in_srgb,var(--md-sys-color-secondary-container)_70%,transparent)] text-[var(--md-sys-color-on-secondary-container)] border border-[color-mix(in_srgb,var(--md-sys-color-secondary)_40%,transparent)]' => !$isReminder && !$event['is_owner'] && !empty($event['is_shared']),
         'bg-[color-mix(in_srgb,var(--tool-sage-bg,var(--md-sys-color-tertiary-container))_70%,transparent)] text-[var(--tool-sage-color,var(--md-sys-color-on-tertiary-container))] border border-[color-mix(in_srgb,var(--tool-sage-color,var(--md-sys-color-tertiary))_40%,transparent)]' => $isReservation,
-        'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_70%,transparent)] text-[var(--md-sys-color-on-primary-container)] border border-[color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' => $isReminder,
+        'bg-[color-mix(in_srgb,var(--tool-sapphire-bg,var(--md-sys-color-primary-container))_70%,transparent)] text-[var(--tool-sapphire-color,var(--md-sys-color-on-primary-container))] border border-[color-mix(in_srgb,var(--tool-sapphire-color,var(--md-sys-color-primary))_40%,transparent)]' => $isReminder,
     ])
 >
     <div class="flex items-center gap-1.5">

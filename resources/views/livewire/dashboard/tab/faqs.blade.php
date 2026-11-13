@@ -11,6 +11,7 @@
         <x-ui.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال">
             <x-slot:actions>
                 <x-ui.buttons.view-toggle module="faq"/>
+                <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'faqs-legend' })"
@@ -37,6 +38,8 @@
              class="absolute inset-0 bg-[var(--md-sys-color-surface-container-lowest)]/50 z-50 flex items-center justify-center">
             <x-ui.loaders.spin-badge text="در حال فیلتر کردن..."/>
         </div>
+
+        <x-ui.saved-empty scope="faq"/>
 
         @unless(tenantOff('faq:card'))
             <div wire:key="faq-view-card" x-show="view === 'card'" x-cloak
@@ -67,6 +70,7 @@
         @if($this->faqs->hasMorePages())
             <div wire:key="faq-load-more" class="flex justify-center py-6">
                 <x-ui.buttons.load-more
+                    x-show="!onlySaved || !$store.pinned.isEmpty('faq')"
                     action="loadMore"
                     text="بارگذاری بیشتر"
                     loading-text="در حال دریافت..."

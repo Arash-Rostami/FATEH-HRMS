@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\AiReport;
 
 use App\Livewire\Dashboard\AiReport\Actions\DeleteReportAction;
 use App\Livewire\Dashboard\AiReport\Actions\GenerateReportAction;
+use App\Livewire\Dashboard\AiReport\Actions\RestoreReportAction;
 use App\Livewire\Dashboard\AiReport\Actions\ShareReportAction;
 use App\Livewire\Dashboard\AiReport\Actions\UpdateReportAction;
 use App\Livewire\Dashboard\AiReport\Forms\ComposerForm;
@@ -16,6 +17,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use PDOException;
+use RuntimeException;
+use Throwable;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
@@ -150,13 +154,6 @@ class Main extends Component
         }
 
         $this->unavailable();
-    }
-
-    public function updatedReportId(): void
-    {
-        if ($this->reportId === null) {
-            $this->close();
-        }
     }
 
     public function loadMoreReports(): void
@@ -296,7 +293,7 @@ class Main extends Component
         $this->form->reset();
         $this->select($report);
         $this->watchedId = $report->id;
-        $this->toast('گزارش در حال تولید است؛ چند ثانیه صبر کنید.', 'success');
+        $this->toast(__('resources/ai_report/strings.toasts.generating'), 'success');
     }
 
     public function refine(GenerateReportAction $action): void
@@ -318,8 +315,8 @@ class Main extends Component
         $this->watchedId = $report->id;
         $this->toast(
             $report->id === $parent->id
-                ? 'اصلاح گزارش در حال انجام است؛ چند ثانیه صبر کنید.'
-                : 'گزارش اشتراک‌گذاری‌شده ثابت می‌ماند؛ نسخهٔ جدید به‌صورت پیش‌نویس ساخته شد.',
+                ? __('resources/ai_report/strings.toasts.refining')
+                : __('resources/ai_report/strings.toasts.forked'),
             'success'
         );
     }
@@ -339,7 +336,7 @@ class Main extends Component
 
         if (!empty($version['files'])) {
             $this->dispatch('ai-report-open');
-            $this->toast('فایل‌ها را دوباره پیوست کنید و روی اصلاح بزنید.', 'warning');
+            $this->toast(__('resources/ai_report/strings.toasts.reattach'), 'warning');
 
             return;
         }
@@ -348,8 +345,22 @@ class Main extends Component
             $this->refine($action);
         } catch (ValidationException $e) {
             $this->form->reset();
-            $this->toast(collect($e->errors())->flatten()->first() ?? 'امکان تلاش مجدد نیست.', 'warning');
+            $this->toast(collect($e->errors())->flatten()->first() ?? __('resources/ai_report/strings.errors.retry_unavailable'), 'warning');
         }
+    }
+
+    public function restore(RestoreReportAction $action): void
+    {
+        $report = $this->actionable();
+
+        if ($report === null || $this->run(fn() => $action->execute($report, auth()->user()), __('resources/ai_report/strings.errors.restore_denied')) === null) {
+            return;
+        }
+
+        $this->forgetReport();
+        $this->lastSeenStatus = AiReport::STATUS_READY;
+        $this->titleDraft = $this->report?->title;
+        $this->toast(__('resources/ai_report/strings.toasts.restored'), 'success');
     }
 
     public function editBlock(string $ref, bool $flagged = false): void
@@ -394,7 +405,7 @@ class Main extends Component
     public function saveBlock(UpdateReportAction $action): void
     {
         $ref = $this->blockRef;
-        if ($ref === null || !$this->update($action, ['block' => $ref, 'data' => $this->blockDraft, 'editor_hash' => $this->editorHash], 'بخش ویرایش شد و به‌عنوان نسخهٔ تازه ذخیره شد.')) {
+        if ($ref === null || !$this->update($action, ['block' => $ref, 'data' => $this->blockDraft, 'editor_hash' => $this->editorHash], __('resources/ai_report/strings.toasts.block_saved'))) {
             return;
         }
 
@@ -412,17 +423,17 @@ class Main extends Component
 
     public function save(UpdateReportAction $action): void
     {
-        $this->update($action, ['save' => true], 'گزارش ذخیره شد.');
+        $this->update($action, ['save' => true], __('resources/ai_report/strings.toasts.saved'));
     }
 
     public function rename(UpdateReportAction $action): void
     {
-        $this->update($action, ['title' => (string) ($this->titleDraft ?? $this->report?->title)], 'عنوان گزارش ذخیره شد.');
+        $this->update($action, ['title' => (string) ($this->titleDraft ?? $this->report?->title)], __('resources/ai_report/strings.toasts.renamed'));
     }
 
     public function revert(UpdateReportAction $action, int $index): void
     {
-        $this->update($action, ['revert_to' => $index], 'گزارش به نسخهٔ انتخابی برگشت.');
+        $this->update($action, ['revert_to' => $index], __('resources/ai_report/strings.toasts.reverted'));
     }
 
     public function toggleActive(UpdateReportAction $action): void
@@ -431,7 +442,7 @@ class Main extends Component
         $this->update(
             $action,
             ['active' => $active],
-            $active ? 'گزارش دوباره فعال شد.' : 'گزارش غیرفعال شد؛ گیرندگان دیگر به آن دسترسی ندارند.'
+            __('resources/ai_report/strings.toasts.' . ($active ? 'reactivated' : 'deactivated'))
         );
     }
 
@@ -445,7 +456,7 @@ class Main extends Component
 
         $result = $this->run(
             fn() => $action->execute($report, auth()->user(), array_map('intval', $this->shareRecipients)),
-            'اشتراک‌گذاری این گزارش مجاز نیست.'
+            __('resources/ai_report/strings.errors.share_denied')
         );
 
         if ($result === null) {
@@ -463,12 +474,12 @@ class Main extends Component
     {
         $report = $this->actionable();
 
-        if ($report === null || $this->run(fn() => $action->execute($report, auth()->user()), 'حذف این گزارش مجاز نیست.') === null) {
+        if ($report === null || $this->run(fn() => $action->execute($report, auth()->user()), __('resources/ai_report/strings.errors.delete_denied')) === null) {
             return;
         }
 
         $this->close();
-        $this->toast('گزارش حذف شد.', 'success');
+        $this->toast(__('resources/ai_report/strings.toasts.deleted'), 'success');
     }
 
     public function openShare(): void
@@ -530,7 +541,7 @@ class Main extends Component
         }
 
         $this->titleDraft = $report->title;
-        $this->toast('گزارش آماده شد.', 'success');
+        $this->toast(__('resources/ai_report/strings.toasts.ready'), 'success');
     }
 
     #[Computed]
@@ -654,10 +665,10 @@ class Main extends Component
             ->map(fn(int $j) => $block['columns'][$j] ?? null)
             ->filter(fn($name) => filled($name))
             ->implode('»، «');
-        $what = $columns !== '' ? "مجموع ستون «{$columns}»" : 'ارقام';
-        $where = filled($block['heading'] ?? null) ? " در جدول «{$block['heading']}»" : ' در این جدول';
+        $what = $columns !== '' ? __('resources/ai_report/strings.mismatch.sum', ['columns' => $columns]) : __('resources/ai_report/strings.mismatch.figures');
+        $where = filled($block['heading'] ?? null) ? __('resources/ai_report/strings.mismatch.in_table', ['heading' => $block['heading']]) : __('resources/ai_report/strings.mismatch.in_this_table');
 
-        return mb_substr("{$what}{$where} با ردیف‌ها نمی‌خواند؛ لطفاً ارقام را با فایل پیوست یا درخواست اصلی تطبیق بده و جدول را اصلاح کن.", 0, (int) config('ai.report.prompt.max'));
+        return mb_substr(__('resources/ai_report/strings.mismatch.prompt', ['what' => $what, 'where' => $where]), 0, (int) config('ai.report.prompt.max'));
     }
 
     private function listQuery(): Builder
@@ -722,10 +733,15 @@ class Main extends Component
             return;
         }
 
-        $row = AiReport::query()->ownedBy($userId)->find($watched, ['id', 'status', 'fail_reason']);
+        $row = AiReport::query()->ownedBy($userId)->find($watched, ['id', 'status', 'fail_reason', 'title']);
+
+        if ($row !== null && $watched === $this->reportId) {
+            $this->lastSeenStatus = $row->status;
+            $this->titleDraft = $row->title;
+        }
 
         match ($row?->status) {
-            AiReport::STATUS_READY => $this->toast('گزارش آماده شد.', 'success'),
+            AiReport::STATUS_READY => $this->toast(__('resources/ai_report/strings.toasts.ready'), 'success'),
             AiReport::STATUS_FAILED => $this->toast((new AiReportPresenter())->failToast($row->fail_reason), 'warning'),
             default => null,
         };
@@ -758,21 +774,21 @@ class Main extends Component
 
     private function unavailable(): void
     {
-        $this->toast('این گزارش دیگر در دسترس نیست.', 'warning');
+        $this->toast(__('resources/ai_report/strings.errors.unavailable'), 'warning');
         $this->close();
     }
 
     private function shareToast(array $result): array
     {
         [$message, $type] = match (true) {
-            $result['added'] > 0 && $result['removed'] > 0 => [convertToPersian($result['added']) . ' نفر افزوده و ' . convertToPersian($result['removed']) . ' نفر از گیرندگان حذف شد.', 'success'],
-            $result['added'] > 0 => [convertToPersian($result['added']) . ' نفر تازه به گیرندگان افزوده شد.', 'success'],
-            $result['removed'] > 0 => [convertToPersian($result['removed']) . ' نفر از گیرندگان حذف شد.', 'success'],
-            default => ['گیرندگان تغییری نکرد.', 'warning'],
+            $result['added'] > 0 && $result['removed'] > 0 => [__('resources/ai_report/strings.toasts.share_both', ['added' => convertToPersian($result['added']), 'removed' => convertToPersian($result['removed'])]), 'success'],
+            $result['added'] > 0 => [__('resources/ai_report/strings.toasts.share_added', ['added' => convertToPersian($result['added'])]), 'success'],
+            $result['removed'] > 0 => [__('resources/ai_report/strings.toasts.share_removed', ['removed' => convertToPersian($result['removed'])]), 'success'],
+            default => [__('resources/ai_report/strings.toasts.share_same'), 'warning'],
         };
 
         if ($result['truncated']) {
-            return [$message . ' تعداد گیرندگان به سقف ' . convertToPersian(config('ai.report.max_recipients')) . ' نفر محدود شد.', 'warning'];
+            return [$message . __('resources/ai_report/strings.toasts.share_capped', ['max' => convertToPersian(config('ai.report.max_recipients'))]), 'warning'];
         }
 
         return [$message, $type];
@@ -784,8 +800,8 @@ class Main extends Component
             return $callback() ?? true;
         } catch (ValidationException $e) {
             throw $e;
-        } catch (\Throwable $e) {
-            if ($denied !== null && $e instanceof \RuntimeException && !$e instanceof \PDOException) {
+        } catch (Throwable $e) {
+            if ($denied !== null && $e instanceof RuntimeException && !$e instanceof PDOException) {
                 $stale = $e->getCode() === UpdateReportAction::STALE_EDITOR;
                 $this->toast($stale ? $e->getMessage() : $denied, 'warning');
                 $stale && $this->cancelBlockEditor();
@@ -804,7 +820,7 @@ class Main extends Component
     {
         $report = $this->actionable();
 
-        if ($report === null || $this->run(fn() => $action->execute($report, auth()->user(), $changes), 'این عملیات برای این گزارش مجاز نیست.') === null) {
+        if ($report === null || $this->run(fn() => $action->execute($report, auth()->user(), $changes), __('resources/ai_report/strings.errors.action_denied')) === null) {
             return false;
         }
 

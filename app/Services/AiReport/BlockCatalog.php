@@ -2,6 +2,9 @@
 
 namespace App\Services\AiReport;
 
+use InvalidArgumentException;
+use Normalizer;
+
 final class BlockCatalog
 {
     public const TYPES = ['title', 'kpi_row', 'facts', 'summary', 'table', 'action_items', 'progress', 'chart', 'callout', 'section'];
@@ -103,7 +106,7 @@ final class BlockCatalog
     public static function validate(mixed $json): array
     {
         if (!is_array($json)) {
-            throw new \InvalidArgumentException('spec must be an object');
+            throw new InvalidArgumentException('spec must be an object');
         }
 
         $errors = [];
@@ -149,16 +152,16 @@ final class BlockCatalog
         }
 
         if ($errors !== []) {
-            throw new \InvalidArgumentException(implode('; ', $errors));
+            throw new InvalidArgumentException(implode('; ', $errors));
         }
         if ($outPages === []) {
-            throw new \InvalidArgumentException('pages are required');
+            throw new InvalidArgumentException('pages are required');
         }
 
         $spec = ['lang' => $lang, 'title' => $title, 'pages' => self::withAssumptions($outPages, $lang)];
         $encoded = json_encode($spec, JSON_UNESCAPED_UNICODE);
         if ($encoded === false || strlen($encoded) > (int) config('ai.report.spec.bytes')) {
-            throw new \InvalidArgumentException('spec exceeds ' . (int) config('ai.report.spec.bytes') . ' bytes');
+            throw new InvalidArgumentException('spec exceeds ' . (int) config('ai.report.spec.bytes') . ' bytes');
         }
 
         return $spec;
@@ -171,8 +174,8 @@ final class BlockCatalog
         $s = preg_replace('/\p{Cc}/u', '', $s) ?? $s;
         $s = str_replace("\u{E000}", "\n", $s);
         $s = preg_replace('/[\x{202A}-\x{202E}\x{2066}-\x{2069}\x{200B}\x{2060}\x{061C}]/u', '', $s) ?? $s;
-        if (class_exists(\Normalizer::class)) {
-            $normalized = \Normalizer::normalize($s, \Normalizer::FORM_C);
+        if (class_exists(Normalizer::class)) {
+            $normalized = Normalizer::normalize($s, Normalizer::FORM_C);
             if (is_string($normalized)) {
                 $s = $normalized;
             }
@@ -222,7 +225,14 @@ final class BlockCatalog
             if ($nums === []) {
                 continue;
             }
-            $sum = (string) round(array_sum($nums), 2);
+            $rounded = round(array_sum($nums), 2);
+            $sample = implode(' ', array_column($block['rows'], $j)) . ' ' . (string) ($original['total'][$j] ?? '');
+            $sum = number_format(
+                $rounded,
+                strlen(substr((string) strrchr((string) $rounded, '.'), 1)),
+                str_contains($sample, '٫') ? '٫' : '.',
+                preg_match('/[٬,،]/u', $sample, $separator) === 1 ? $separator[0] : ''
+            );
             $block['total'][$j] = self::hasPersianDigits($block['rows'], $j) ? (string) convertToPersian($sum) : $sum;
         }
 

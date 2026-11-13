@@ -1,5 +1,6 @@
+@use('App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter')
 @php
-    $limits = (new \App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter)->limits();
+    $limits = (new AiReportPresenter)->limits();
 
     $steps = [
         ['icon' => 'edit', 'label' => 'درخواست و پیوست', 'text' => 'کاربر درخواست را می‌نویسد (حداقل ' . $limits['prompt_min'] . ' حرف) و تا ' . $limits['files'] . ' فایل (PDF، تصویر، Word، Excel، CSV، متن؛ هر PDF یا تصویر تا ' . $limits['inline_mb'] . ' و روی‌هم تا ' . $limits['inline_total_mb'] . ' مگابایت، سایر انواع تا ' . $limits['per_file_mb'] . ' مگابایت، مجموع تا ' . $limits['total_mb'] . ' مگابایت) پیوست می‌کند. متن و فایل‌ها برای تولید گزارش به سرویس هوش مصنوعی خارجی ارسال می‌شود. هر کاربر روزی تا ' . convertToPersian(config('ai.report.daily_cap')) . ' بار می‌تواند بسازد یا اصلاح کند: ساخت، اصلاح کل گزارش، اصلاح یک بخش و تلاش دوباره هرکدام یک واحد مصرف می‌کنند؛ ویرایش دستی، برگشت به نسخهٔ قبل، اشتراک‌گذاری، چاپ و رونوشت رایگان‌اند.'],

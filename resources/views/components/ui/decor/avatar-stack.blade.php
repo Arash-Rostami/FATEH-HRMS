@@ -26,7 +26,7 @@
             @endif
         @else
             @foreach($shown as $item)
-                <x-ui.avatar :existingImage="$item['avatar_url']" :alt="$item['name']" size="xs" :online="$item['online'] ?? null"/>
+                <x-ui.avatar :existingImage="$item['avatar_url']" :alt="$item['name']" size="xs" :online="$item['online'] ?? null" :uid="$item['id'] ?? null"/>
             @endforeach
             @if($overflow > 0)
                 <span class="w-5 h-5 text-[9px] rounded-[28%] bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] font-bold flex items-center justify-center border border-[var(--md-sys-color-surface)] ring-1 ring-[var(--md-sys-color-outline-variant)]">

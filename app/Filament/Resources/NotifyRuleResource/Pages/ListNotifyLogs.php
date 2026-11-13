@@ -7,6 +7,7 @@ use App\Filament\Resources\NotifyRuleResource\Schemas\Action\ViewSwitchActions;
 use App\Filament\Resources\NotifyRuleResource\Schemas\NotifyLogInfolistPresenter;
 use App\Filament\Resources\NotifyRuleResource\Schemas\NotifyLogTablePresenter;
 use App\Models\NotifyLog;
+use App\Traits\Filament\GuardsModuleLock;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
@@ -23,6 +24,7 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class ListNotifyLogs extends Page implements HasTable
 {
+    use GuardsModuleLock;
     use InteractsWithTable;
 
     protected static string $resource = NotifyRuleResource::class;

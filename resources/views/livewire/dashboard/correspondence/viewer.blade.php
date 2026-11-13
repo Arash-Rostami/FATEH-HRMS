@@ -348,7 +348,7 @@
                 <div wire:key="correspondence-mobile-bar" class="md:hidden fixed inset-x-0 bottom-20 z-20 print:hidden border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-3 flex items-center justify-between gap-2">
                     <div class="min-w-0">
                         <p class="text-sm font-bold truncate"><bdi>{{ $row['subject'] }}</bdi></p>
-                        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] truncate"><bdi>{{ $letter->number ?: '—' }}</bdi> · <bdi>{{ $row['awaiting'] }}</bdi></p>
+                        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] truncate"><bdi>{{ $row['number'] ?: '—' }}</bdi> · <bdi>{{ $row['awaiting'] }}</bdi></p>
                     </div>
                     <div class="flex gap-1 shrink-0">
                         <x-ui.buttons.form type="button" variant="primary" x-on:click="openSign()">{{ $v['approve_label'] }}</x-ui.buttons.form>

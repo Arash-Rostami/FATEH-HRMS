@@ -22,6 +22,7 @@ use Filament\Notifications\Notification;
 use App\Filament\Pages\ViewRecord;
 use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class ViewSuggestion extends ViewRecord
 {
@@ -71,7 +72,7 @@ class ViewSuggestion extends ViewRecord
 
                 Select::make('referralDepts')
                     ->label(__('resources/suggestion/strings.decision.referral_depts'))
-                    ->options(fn(): array => Department::getCachedOptions()->toArray())
+                    ->options(fn(): array => Department::getCachedOptions()->except('MA')->toArray())
                     ->multiple()
                     ->searchable()
                     ->preload()
@@ -82,14 +83,19 @@ class ViewSuggestion extends ViewRecord
                     ->rows(3)
                     ->visible(fn(Get $get): bool => $get('decision') === 'accepted'),
             ])
-            ->action(function (array $data, SubmitDecisionAction $service): void {
+            ->action(function (array $data, SubmitDecisionAction $service, Action $action): void {
                 $form = new DecisionForm($this, 'form');
                 $form->decision         = $data['decision'] ?? '';
                 $form->decisionComment  = (string) ($data['decisionComment'] ?? '');
                 $form->referralDepts    = (array) ($data['referralDepts'] ?? []);
                 $form->referralActions  = (string) ($data['referralActions'] ?? '');
 
-                $service->execute($form, $this->getSuggestion());
+                try {
+                    $service->execute($form, $this->getSuggestion());
+                } catch (ValidationException $e) {
+                    Notification::make()->danger()->title((string) collect($e->errors())->flatten()->first())->send();
+                    $action->halt();
+                }
 
                 Notification::make()
                     ->title(__('resources/suggestion/strings.notifications.decision_saved'))

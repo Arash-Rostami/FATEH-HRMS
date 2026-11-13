@@ -435,12 +435,29 @@ class SuggestionAccessPolicyTest extends TestCase
             homeDept: 'TST',
             submitterUserId: 5,
             submitterIsManager: true,
-            selfFill: false,
+            selfFill: true,
             homeFeedback: 'neutral',
             homeComment: 'custom remark',
         );
 
         $this->assertSame('neutral', $rows[0]['feedback']);
         $this->assertSame('custom remark', $rows[0]['comments']);
+    }
+
+    public function test_build_review_rows_ignores_home_feedback_without_self_fill(): void
+    {
+        $rows = SuggestionAccessPolicy::buildReviewRows(
+            suggestionId: 10,
+            departments: ['TST'],
+            homeDept: 'TST',
+            submitterUserId: 5,
+            submitterIsManager: false,
+            selfFill: false,
+            homeFeedback: 'agree',
+            homeComment: 'forged',
+        );
+
+        $this->assertSame('unknown', $rows[0]['feedback']);
+        $this->assertNull($rows[0]['comments']);
     }
 }

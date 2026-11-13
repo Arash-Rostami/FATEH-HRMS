@@ -47,6 +47,7 @@
                     $isSeen = $this->seenIds->has($post->id);
                 @endphp
                 <article wire:key="post-list-{{ $post->id }}" data-rf="posts-{{ $post->id }}"
+                    x-show="!onlySaved || $store.pinned.isPinned({{ $post->id }}, 'post')"
                     @click="$dispatch('select-post', { id: {{ $post->id }} })"
                     class="flex items-center gap-4 p-3 bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] rounded-xl transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-primary)]/30 group cursor-pointer shadow-sm hover:shadow-md">
                     <div class="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-[var(--md-sys-color-surface-variant)]">
@@ -65,6 +66,7 @@
                             <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-[14px] leading-none">person</span>{{ $post->user?->name ?? 'ادمین' }}</span>
                         </div>
                     </div>
+                    <x-ui.buttons.bookmark :id="$post->id" scope="post" class="shrink-0"/>
                     <span class="material-symbols-rounded text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors flip-rtl shrink-0">arrow_left_alt</span>
                 </article>
             @endforeach
@@ -82,6 +84,7 @@
     @if($this->hasMorePosts)
         <div class="mt-8 mb-4 lg:mb-20 flex justify-center">
             <x-ui.buttons.load-more
+                x-show="!onlySaved || !$store.pinned.isEmpty('post')"
                 action="loadMore"
                 text="نمایش بیشتر"
                 loading-text="در حال دریافت..."

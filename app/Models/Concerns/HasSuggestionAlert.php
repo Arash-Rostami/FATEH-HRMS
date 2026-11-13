@@ -22,7 +22,7 @@ trait HasSuggestionAlert
         $user ??= auth()->user();
         $deptId = $user?->profile?->department_id;
 
-        if (!$deptId) {
+        if (!$user) {
             return $query->whereRaw('1=0');
         }
 
@@ -34,7 +34,7 @@ trait HasSuggestionAlert
                 $q->orWhere('stage', 'awaiting_decision');
             }
 
-            if ($user->isDeptHead() && !$user->isTopExecutive()) {
+            if ($deptId && $user->isDeptHead() && !$user->isTopExecutive()) {
                 $q->orWhere(fn($q) => $q
                     ->where('stage', 'team_remarks')
                     ->where('departments->[0]', $deptId)

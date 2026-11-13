@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Correspondence\Actions;
 
+use App\Jobs\ReconcileNudgeJob;
 use App\Jobs\SendCorrespondenceJob;
 use App\Models\Correspondence;
 use App\Services\Menu\StateService;
@@ -9,16 +10,18 @@ use Illuminate\Support\Facades\DB;
 
 class MarkOpenedAction
 {
+    private const STATUSES = [Correspondence::STATUS_SHARED, Correspondence::STATUS_RECEIVED, Correspondence::STATUS_ROUTED];
+
     public function execute(Correspondence $letter, int $userId): void
     {
-        if ($letter->status !== Correspondence::STATUS_SHARED || !is_array($letter->parties) || $this->pendingIndex($letter->parties, $userId) === null) {
+        if (!in_array($letter->status, self::STATUSES, true) ||!is_array($letter->parties) || $this->pendingIndex($letter->parties, $userId) === null) {
             return;
         }
 
         DB::transaction(function () use ($letter, $userId): void {
             $locked = Correspondence::query()->whereKey($letter->getKey())->lockForUpdate()->first(['id', 'status', 'parties', 'events']);
 
-            if (!$locked || $locked->status !== Correspondence::STATUS_SHARED || !is_array($locked->parties)) {
+            if (!$locked || !in_array($locked->status, self::STATUSES, true) || !is_array($locked->parties)) {
                 return;
             }
 
@@ -38,6 +41,9 @@ class MarkOpenedAction
                 $columns['events'] = $events;
             }
             SendCorrespondenceJob::writeQuiet($locked, $columns);
+            if ($locked->status !== Correspondence::STATUS_SHARED) {
+                dispatch(new ReconcileNudgeJob('correspondence-controller:nudge', Correspondence::class, $locked->id))->afterCommit();
+            }
             DB::afterCommit(fn () => StateService::flush());
         });
     }

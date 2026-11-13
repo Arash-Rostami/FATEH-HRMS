@@ -19,6 +19,7 @@ use Livewire\Component;
 
 class Tabs extends Component
 {
+
     #[Url(as: 'tab')]
     public $activeTab = 'home';
 

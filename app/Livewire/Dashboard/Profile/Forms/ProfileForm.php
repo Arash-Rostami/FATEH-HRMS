@@ -110,13 +110,13 @@ class ProfileForm extends Form
     protected function messages(): array
     {
         return [
-            'gender.required' => 'انتخاب جنسیت الزامی می‌باشد.',
-            'marital_status.required' => 'انتخاب وضعیت تأهل الزامی می‌باشد.',
+            'gender.required' => 'انتخاب جنسیت الزامی است.',
+            'marital_status.required' => 'انتخاب وضعیت تأهل الزامی است.',
             'number_of_children.required' => 'وارد کردن تعداد فرزندان الزامی است.',
             'id_booklet_number.required' => 'وارد کردن شماره شناسنامه الزامی است.',
             'id_card_number.unique' => __('resources/profile/strings.validation.id_card_number.unique'),
             'id_booklet_number.unique' => __('resources/profile/strings.validation.id_booklet_number.unique'),
-            'degree.required' => 'انتخاب مقطع تحصیلی الزامی می‌باشد.',
+            'degree.required' => 'انتخاب مقطع تحصیلی الزامی است.',
             'degree.in' => 'مقطع تحصیلی انتخاب‌شده نامعتبر است.',
             'work_experience.in' => 'سابقه کاری انتخاب‌شده نامعتبر است.',
             'field.required' => 'وارد کردن رشته تحصیلی الزامی است.',

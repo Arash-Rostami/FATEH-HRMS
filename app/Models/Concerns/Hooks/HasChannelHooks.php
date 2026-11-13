@@ -3,6 +3,7 @@
 namespace App\Models\Concerns\Hooks;
 
 use App\Enums\ChannelType;
+use App\Models\Lock;
 use App\Services\Messaging\PollDigestService;
 use Illuminate\Support\Facades\DB;
 
@@ -14,6 +15,7 @@ trait HasChannelHooks
         static::saving(self::privatizeProjectLinkedOnSaving(...));
         static::deleting(self::blockProjectLinkedDeleteOnDeleting(...));
         static::forceDeleted(self::deleteMessageDirectoryOnForceDeleted(...));
+        static::forceDeleted(self::deleteOwnerKeyOnForceDeleted(...));
         static::updated(self::bumpThreadDigestOnUpdated(...));
         static::deleted(self::bumpThreadDigestOnDeleted(...));
     }
@@ -46,6 +48,11 @@ trait HasChannelHooks
     private static function deleteMessageDirectoryOnForceDeleted(self $channel)
     {
         return static::deleteStoredDirectory("channel_messages/{$channel->id}");
+    }
+
+    private static function deleteOwnerKeyOnForceDeleted(self $channel)
+    {
+        Lock::query()->where('lockable_type', 'channel')->where('lockable_id', $channel->id)->get()->each->delete();
     }
 
     private static function bumpThreadDigestOnUpdated(self $channel)

@@ -2,6 +2,7 @@
 
 namespace App\Traits\Filament;
 
+use App\Support\LockPolicy;
 use BackedEnum;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,7 @@ trait AuthorizesByPermission
 
     public static function canDelete(Model $record): bool
     {
-        return static::permits('delete');
+        return static::permits('delete', $record);
     }
 
     public static function canDeleteAny(): bool
@@ -28,7 +29,7 @@ trait AuthorizesByPermission
 
     public static function canEdit(Model $record): bool
     {
-        return static::permits('update');
+        return static::permits('update', $record);
     }
 
     public static function canEditAny(): bool
@@ -38,7 +39,7 @@ trait AuthorizesByPermission
 
     public static function canForceDelete(Model $record): bool
     {
-        return static::permits('delete');
+        return static::permits('delete', $record);
     }
 
     public static function canForceDeleteAny(): bool
@@ -48,7 +49,7 @@ trait AuthorizesByPermission
 
     public static function canRestore(Model $record): bool
     {
-        return static::permits('restore');
+        return static::permits('restore', $record);
     }
 
     public static function canRestoreAny(): bool
@@ -58,7 +59,7 @@ trait AuthorizesByPermission
 
     public static function canView(Model $record): bool
     {
-        return static::permits('view');
+        return static::permits('view', $record);
     }
 
     public static function canViewAny(): bool
@@ -81,7 +82,7 @@ trait AuthorizesByPermission
 
         return match ($mapped) {
             'create' => static::canCreate(),
-            default => $mapped && static::permits($mapped),
+            default => $mapped && static::permits($mapped, $record),
         } ? Response::allow() : Response::deny();
     }
 
@@ -94,11 +95,13 @@ trait AuthorizesByPermission
         return Str::snake($english);
     }
 
-    protected static function permits(string $action): bool
+    protected static function permits(string $action, ?Model $record = null): bool
     {
         $user = Auth::user();
         if (!$user) return false;
 
-        return $user->permits(static::moduleKey(), $action);
+        return !LockPolicy::blocks(static::moduleKey())
+            && !($record !== null && LockPolicy::blocksRecord(static::moduleKey(), $record))
+            && $user->permits(static::moduleKey(), $action);
     }
 }

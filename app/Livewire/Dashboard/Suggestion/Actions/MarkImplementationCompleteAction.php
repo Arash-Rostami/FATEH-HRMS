@@ -7,6 +7,7 @@ use App\Models\Suggestion;
 use App\Services\Menu\StateService;
 use App\Support\SuggestionAccessPolicy;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MarkImplementationCompleteAction
 {
@@ -17,10 +18,12 @@ class MarkImplementationCompleteAction
         $deptId = Auth::user()->profile->department_id;
         $review = SuggestionAccessPolicy::departmentReview($suggestion, $deptId);
 
-        $review->complete = true;
-        $review->save();
+        DB::transaction(function () use ($review, $suggestion): void {
+            $review->complete = true;
+            $review->save();
 
-        $suggestion->load('reviews')->syncStage();
+            $suggestion->load('reviews')->syncStage();
+        });
 
         StateService::flush();
 

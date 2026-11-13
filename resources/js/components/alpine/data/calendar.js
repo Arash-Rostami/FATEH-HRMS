@@ -518,9 +518,43 @@ export function calendarNow({startIso, spanHours}) {
     };
 }
 
-export function calendarView() {
+export function calendarDay({hourHeight, startHour, endHour, isToday = false, firstTop = null}) {
+    return {
+        showAllDay: false,
+
+        init() {
+            setTimeout(() => this.scrollToTarget(), 120);
+        },
+
+        scrollTarget() {
+            if (isToday) {
+                const now = new Date();
+                const hours = now.getHours() + now.getMinutes() / 60;
+
+                return hours >= startHour && hours <= endHour ? (hours - startHour) * hourHeight : null;
+            }
+
+            return firstTop;
+        },
+
+        scrollToTarget() {
+            const target = this.scrollTarget();
+            const container = this.$refs.gridWrapper?.closest('.overflow-y-auto, .overflow-auto');
+
+            if (target === null || !container) return;
+
+            container.scrollTo({top: Math.max(0, target - 100), behavior: 'smooth'});
+        },
+    };
+}
+
+export function calendarView({senderId = null, smsYear = null} = {}) {
     let destroyed = false;
     let unwatch = null;
+    const smsStorageKey = `calendar-sms-sent:${senderId}`;
+    const validSmsKey = key => typeof key === 'string'
+        && /^(birthday|anniversary)-[1-9]\d*-\d{4}$/.test(key)
+        && Number(key.slice(-4)) >= Number(smsYear);
 
     return {
         ...persistentStateMixin(),
@@ -528,6 +562,7 @@ export function calendarView() {
 
         view: 'month',
         scrollMemory: {},
+        smsSent: [],
 
         get _isDestroyed() { return destroyed; },
         set _isDestroyed(value) { destroyed = !!value; },
@@ -537,6 +572,7 @@ export function calendarView() {
             this.initMaximize();
             this.view = this.$wire.get('view') || 'month';
             this.scrollMemory = this._loadState(SCROLL_STORAGE_KEY, {}) || {};
+            this.loadSmsMemory();
 
             if (typeof unwatch === 'function') unwatch();
 
@@ -547,6 +583,31 @@ export function calendarView() {
             });
 
             this.$nextTick(() => this.restoreScroll(this.view));
+        },
+
+        loadSmsMemory() {
+            if (!senderId || !smsYear) return;
+            try {
+                const stored = JSON.parse(localStorage.getItem(smsStorageKey) || '[]');
+                this.smsSent = Array.isArray(stored) ? [...new Set(stored.filter(validSmsKey))] : [];
+            } catch {
+                this.smsSent = [];
+            }
+            try {
+                localStorage.setItem(smsStorageKey, JSON.stringify(this.smsSent));
+            } catch {}
+        },
+
+        rememberSms(detail) {
+            if (detail?.source !== 'calendar' || Number(detail.senderId) !== Number(senderId) || !validSmsKey(detail.key)) return;
+            this.smsSent = [...new Set([...this.smsSent.filter(validSmsKey), detail.key])];
+            try {
+                localStorage.setItem(smsStorageKey, JSON.stringify(this.smsSent));
+            } catch {}
+        },
+
+        smsAlreadySent(key) {
+            return this.smsSent.includes(key);
         },
 
         saveScroll(mode) {

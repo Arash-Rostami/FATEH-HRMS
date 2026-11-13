@@ -55,9 +55,22 @@ class LoginTest extends TestCase
             ->set('email', $user->email)
             ->set('password', 'password')
             ->call('login')
-            ->assertRedirect('/dashboard');
+            ->assertSet('outcome', 'success')
+            ->assertSee('ورود موفق');
 
         $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_failed_login_flags_the_button_as_failed(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::test(Login::class)
+            ->set('email', $user->email)
+            ->set('password', 'wrong-password')
+            ->call('login')
+            ->assertSet('outcome', 'fail')
+            ->assertSee('ورود ناموفق');
     }
 
     public function test_invalid_password_adds_email_error_and_does_not_authenticate(): void

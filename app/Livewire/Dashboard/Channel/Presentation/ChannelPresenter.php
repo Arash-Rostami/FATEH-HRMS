@@ -54,7 +54,8 @@ class ChannelPresenter
             'members_count' => (int)($c['members_count'] ?? 0),
             'is_entered' => !empty($c['is_entered']),
             'last_message' => $last ? [
-                'body' => Str::limit($last['body'] ?? '', 30),
+                'body' => Str::limit(trim((string) ($last['body'] ?? '')) !== '' ? $last['body'] : (filled($last['attachments'] ?? []) ? 'پیوست' : ''), 30),
+                'sender_name' => $last['sender_name'] ?? null,
                 'time' => toJalaliRelative($last['created_at'] ?? null, short: true),
                 'datetime' => $last['created_at'] ?? null,
                 'is_mine' => (int)($last['sender_id'] ?? 0) === $authId,

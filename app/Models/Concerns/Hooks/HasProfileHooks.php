@@ -12,15 +12,47 @@ use App\Models\Report;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
+use App\Support\TopPositionPolicy;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 trait HasProfileHooks
 {
     protected static function bootHasProfileHooks(): void
     {
+        static::deleting(self::guardTopPositionOnDeleting(...));
         static::deleting(self::deleteFilesAndBumpUserCacheOnDeleting(...));
         static::creating(self::guardDuplicateProfileOnCreating(...));
+        static::saving(self::guardTopPositionOnSaving(...));
         static::saved(self::reconcileDepartmentMoveOnSaved(...));
+    }
+
+    private static function guardTopPositionOnSaving(self $profile)
+    {
+        if (TopPositionPolicy::mayAssign() || !$profile->isDirty(['position', 'user_id'])) {
+            return;
+        }
+
+        $persisted = self::persistedPosition($profile);
+        $positionTouched = $profile->isDirty('position')
+            && (TopPositionPolicy::isLocked($profile->position) || TopPositionPolicy::isLocked($persisted));
+        $ownerMoved = $profile->exists && $profile->isDirty('user_id') && TopPositionPolicy::isLocked($persisted);
+
+        if ($positionTouched || $ownerMoved) {
+            throw ValidationException::withMessages(['position' => __('resources/profile/strings.validation.position_locked')]);
+        }
+    }
+
+    private static function guardTopPositionOnDeleting(self $profile)
+    {
+        if (!TopPositionPolicy::mayAssign() && TopPositionPolicy::isLocked(self::persistedPosition($profile))) {
+            throw ValidationException::withMessages(['position' => __('resources/profile/strings.validation.position_locked')]);
+        }
+    }
+
+    private static function persistedPosition(self $profile): ?string
+    {
+        return $profile->exists ? static::query()->whereKey($profile->getKey())->lockForUpdate()->value('position') : null;
     }
 
     private static function deleteFilesAndBumpUserCacheOnDeleting(self $profile)

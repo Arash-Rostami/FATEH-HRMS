@@ -7,6 +7,7 @@ use App\Services\Ai\AiClient;
 use App\Services\AiReport\BlockCatalog;
 use App\Services\AiReport\FileExtractor;
 use App\Services\AiReport\ReportAiService;
+use DomainException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,6 +18,9 @@ use Illuminate\Queue\TimeoutExceededException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
+use JsonException;
+use Throwable;
 
 class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
@@ -30,10 +34,11 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
     public int $uniqueFor;
 
-    private const ALL_SKIPPED = "\u{0647}\u{06CC}\u{0686}\u{200C}\u{06CC}\u{06A9} \u{0627}\u{0632} \u{0641}\u{0627}\u{06CC}\u{0644}\u{200C}\u{0647}\u{0627}\u{06CC} \u{067E}\u{06CC}\u{0648}\u{0633}\u{062A} \u{0642}\u{0627}\u{0628}\u{0644} \u{062E}\u{0648}\u{0627}\u{0646}\u{062F}\u{0646} \u{0646}\u{0628}\u{0648}\u{062F}.";
+    public ?string $run = null;
 
-    public function __construct(public int $reportId)
+    public function __construct(public int $reportId, ?string $run = null)
     {
+        $this->run = $run;
         $padding = (int) config('ai.report.job.padding');
         $this->timeout = 2 * ((int) AiClient::setting('report', 'timeout') + (int) AiClient::setting('report', 'connect_timeout')) + $padding;
         $ceiling = (int) config('queue.connections.' . config('queue.default') . '.retry_after') - (int) config('ai.report.job.retry_margin');
@@ -46,7 +51,7 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
     public function uniqueId(): string
     {
-        return (string) $this->reportId;
+        return $this->reportId . ($this->run !== null ? ':' . $this->run : '');
     }
 
     public function handle(ReportAiService $ai, FileExtractor $files): void
@@ -58,6 +63,10 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
             return;
         }
 
+        if ($this->superseded($report)) {
+            return;
+        }
+
         $report->touch();
 
         try {
@@ -66,7 +75,7 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
             $last = array_key_last($versions);
             $notes = $extracted['notes'];
             if ($extracted['skipped'] !== [] && $extracted['text'] === '' && $extracted['inline'] === []) {
-                $notes[] = self::ALL_SKIPPED;
+                $notes[] = __('resources/ai_report/strings.notes.all_skipped');
             }
             if ($last !== null && ($extracted['skipped'] !== [] || $notes !== [])) {
                 if ($extracted['skipped'] !== []) {
@@ -89,7 +98,7 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
             DB::transaction(function () use ($result, $blockRef) {
                 $fresh = AiReport::query()->whereKey($this->reportId)->lockForUpdate()->first();
-                if (!$fresh || $fresh->status !== AiReport::STATUS_GENERATING) {
+                if (!$fresh || $fresh->status !== AiReport::STATUS_GENERATING || $this->superseded($fresh)) {
                     return;
                 }
                 $versions = $fresh->versions ?? [];
@@ -113,28 +122,37 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
                     'preset_audience' => is_string($versions[$last]['audience'] ?? null) ? $versions[$last]['audience'] : null,
                 ]))->save();
             }, 3);
-        } catch (\Throwable $e) {
-            $this->failWith($report, $e);
+        } catch (Throwable $e) {
+            if (!$this->superseded(AiReport::query()->find($this->reportId))) {
+                $this->failWith($report, $e, $ai->spent);
+            }
         } finally {
-            Storage::disk('local')->deleteDirectory($report->tempDirectory());
+            if (!$this->superseded(AiReport::query()->find($this->reportId))) {
+                Storage::disk('local')->deleteDirectory($report->tempDirectory());
+            }
         }
     }
 
-    public function failed(?\Throwable $e): void
+    public function failed(?Throwable $e): void
     {
         $report = AiReport::query()->find($this->reportId);
-        if (!$report) {
+        if (!$report || $this->superseded($report)) {
             return;
         }
         $report->markFailed($e instanceof TimeoutExceededException ? 'timeout' : 'exception');
         Storage::disk('local')->deleteDirectory($report->tempDirectory());
     }
 
+    private function superseded(?AiReport $report): bool
+    {
+        return $this->run !== null && $report !== null && ($report->lastVersion()['run'] ?? null) !== $this->run;
+    }
+
     private function mergeBlock(array $parent, array $result, string $ref): array
     {
         $target = BlockCatalog::resolveBlock($parent, $ref);
         if ($target === null) {
-            throw new \InvalidArgumentException('block refine: target missing');
+            throw new InvalidArgumentException('block refine: target missing');
         }
         $lang = ($parent['lang'] ?? 'fa') === 'en' ? 'en' : 'fa';
         $original = $target['block'];
@@ -152,7 +170,7 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
             break;
         }
         if ($revised === null) {
-            throw new \InvalidArgumentException('block refine: type mismatch');
+            throw new InvalidArgumentException('block refine: type mismatch');
         }
         if ($revised['type'] === 'section' && is_string($original['heading'] ?? null) && BlockCatalog::isAssumptionsHeading($original['heading'], $lang)) {
             $revised['heading'] = $original['heading'];
@@ -165,8 +183,12 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         return BlockCatalog::validate($parent);
     }
 
-    private function failWith(AiReport $report, \Throwable $e): void
+    private function failWith(AiReport $report, Throwable $e, int $spent = 0): void
     {
+        if ($spent > 0) {
+            AiReport::query()->whereKey($report->id)->where('status', AiReport::STATUS_GENERATING)->increment('tokens_total', $spent);
+        }
+
         if ($e instanceof RequestException) {
             $status = $e->response?->status() ?? 0;
             $decoded = json_decode((string) $e->response?->body(), true);
@@ -193,9 +215,9 @@ class GenerateReportJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         }
 
         $code = match (true) {
-            $e instanceof \JsonException => 'invalid_json',
-            $e instanceof \InvalidArgumentException => 'invalid_spec',
-            $e instanceof \DomainException => match ($e->getMessage()) {
+            $e instanceof JsonException => 'invalid_json',
+            $e instanceof InvalidArgumentException => 'invalid_spec',
+            $e instanceof DomainException => match ($e->getMessage()) {
                 'too_large', 'blocked', 'empty' => $e->getMessage(),
                 'unreachable' => 'timeout',
                 default => 'exception',

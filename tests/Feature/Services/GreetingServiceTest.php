@@ -3,8 +3,8 @@
 namespace Tests\Feature\Services;
 
 use App\Services\GreetingService;
+use App\Services\Template\Words\Greetings;
 use Carbon\Carbon;
-use ReflectionClass;
 use ReflectionMethod;
 use Tests\TestCase;
 
@@ -39,12 +39,12 @@ class GreetingServiceTest extends TestCase
 
     private function messages(): array
     {
-        return (new ReflectionClass(GreetingService::class))->getConstant('MESSAGES');
+        return Greetings::MESSAGES;
     }
 
     private function shortMessages(): array
     {
-        return (new ReflectionClass(GreetingService::class))->getConstant('SHORT_MESSAGES');
+        return Greetings::SHORT_MESSAGES;
     }
 
     public function test_get_time_of_day_morning_branch_covers_hours_4_through_11(): void

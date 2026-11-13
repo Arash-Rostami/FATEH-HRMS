@@ -67,6 +67,23 @@ class TabsTest extends TestCase
             ->assertSeeHtml('<aside');
     }
 
+    public function test_peek_markup_is_wired_to_every_rail_icon(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::actingAs($user)
+            ->test(Tabs::class)
+            ->assertSeeHtml('x-data="peek"')
+            ->assertSeeHtml('data-active="home"')
+            ->assertSeeHtml('data-peek-card')
+            ->assertSeeHtml('sandbox="allow-same-origin"')
+            ->assertSeeHtml("show('post', \$el)")
+            ->assertSeeHtml("show('reports', \$el)")
+            ->assertSeeHtml("show('gallery', \$el)")
+            ->assertSeeHtml("show('home', \$el)")
+            ->assertSeeHtml("show('faqs', \$el)");
+    }
+
     public function test_off_tab_is_absent_and_query_tab_falls_back_to_home_and_returns_when_on()
     {
         $user = User::factory()->create(['status' => 'active']);

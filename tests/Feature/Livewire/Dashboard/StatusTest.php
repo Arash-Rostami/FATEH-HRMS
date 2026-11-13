@@ -147,7 +147,7 @@ class StatusTest extends TestCase
             ->assertDispatched('toast', message: 'پیامک با موفقیت ارسال شد', type: 'success');
 
         Http::assertSent(fn ($request) => $request['receptor'] === '09120000000'
-            && $request['message'] === 'آرش رستمی: جلسه ساعت ۱۰');
+            && $request['message'] === 'آرش رستمی: جلسه ساعت ۱۰' . "\nاین پیامک از سامانه " . str_replace('ـ', '', config('app.name')) . ' ارسال شده است');
         $this->assertDatabaseHas('notify_logs', ['source' => 'status', 'sender_id' => $actor->id, 'user_id' => $target->id, 'status' => 'sent', 'recipient' => '*******0000', 'notify_rule_id' => null]);
     }
 

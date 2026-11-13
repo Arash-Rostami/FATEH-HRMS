@@ -109,6 +109,41 @@ describe('pinned.isPinned / togglePin', () => {
         expect(JSON.parse(localStorage.getItem('pinned-ai-reports')).sort()).toEqual([3, 5])
         expect(localStorage.getItem('pinned-reservations')).toBeNull()
     })
+
+    test('the post, report and gallery bookmark scopes persist under their own saved_* keys', async () => {
+        const s = freshStore()
+        s.init()
+        s.togglePin(1, 'post')
+        s.togglePin(2, 'report')
+        s.togglePin(3, 'gallery')
+        await Promise.resolve()
+        expect(JSON.parse(localStorage.getItem('saved_posts'))).toEqual([1])
+        expect(JSON.parse(localStorage.getItem('saved_reports'))).toEqual([2])
+        expect(JSON.parse(localStorage.getItem('saved_gallery'))).toEqual([3])
+        expect(s.isPinned(1, 'report')).toBe(false)
+    })
+
+    test('isEmpty reports whether a scope has no bookmarks', () => {
+        const s = freshStore()
+        s.init()
+        expect(s.isEmpty('post')).toBe(true)
+        s.togglePin(1, 'post')
+        expect(s.isEmpty('post')).toBe(false)
+        expect(s.isEmpty('report')).toBe(true)
+    })
+
+    test('the faq scope persists FAQ bookmarks under the saved_faqs key', async () => {
+        localStorage.setItem('saved_faqs', JSON.stringify([4]))
+        const s = freshStore()
+        s.init()
+        expect(s.isPinned(4, 'faq')).toBe(true)
+        s.togglePin(7, 'faq')
+        await Promise.resolve()
+        expect(JSON.parse(localStorage.getItem('saved_faqs')).sort()).toEqual([4, 7])
+        s.togglePin(4, 'faq')
+        await Promise.resolve()
+        expect(JSON.parse(localStorage.getItem('saved_faqs'))).toEqual([7])
+    })
 })
 
 describe('pinned.getPinned', () => {
@@ -136,5 +171,25 @@ describe('pinned correspondence scope', () => {
         expect(s.getPinned('correspondence').sort((a, b) => a - b)).toEqual([21, 34])
         expect(JSON.parse(localStorage.getItem('pinned-correspondence')).sort((a, b) => a - b)).toEqual([21, 34])
         expect(localStorage.getItem('pinned-ai-reports')).toBeNull()
+    })
+})
+
+describe('pinned two-tab safety', () => {
+    test('a toggle builds on what another tab already saved instead of overwriting it', async () => {
+        const s = freshStore()
+        s.init()
+        s.togglePin(1, 'faq')
+        await Promise.resolve()
+        localStorage.setItem('saved_faqs', JSON.stringify([1, 2]))
+        s.togglePin(3, 'faq')
+        expect(s.lists.faq.sort()).toEqual([1, 2, 3])
+    })
+
+    test('with nothing stored yet the in-memory list is kept', () => {
+        const s = freshStore()
+        s.init()
+        s.sets.faq = new Set([7])
+        s.togglePin(8, 'faq')
+        expect(s.lists.faq.sort()).toEqual([7, 8])
     })
 })

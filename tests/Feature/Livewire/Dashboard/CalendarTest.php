@@ -5,6 +5,7 @@ namespace Tests\Feature\Livewire\Dashboard;
 use App\Livewire\Dashboard\Tab\Actions\MoveEventAction;
 use App\Livewire\Dashboard\Tab\Actions\ResizeEventAction;
 use App\Livewire\Dashboard\Tab\Calendar;
+use App\Livewire\Dashboard\Tab\Status;
 use App\Livewire\Dashboard\Tab\Presentation\CalendarPresenter;
 use App\Livewire\Dashboard\EventReminder;
 use App\Enums\ReservationStatus;
@@ -14,16 +15,19 @@ use App\Models\Profile;
 use App\Models\Reminder;
 use App\Models\Reservation;
 use App\Models\Resource;
+use App\Models\NotifyLog;
 use App\Models\User;
 use App\Rules\JalaliDateRule;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\HolidayService;
+use App\Services\Template\Words\Sms;
 use App\Services\Menu\StateService;
 use App\Values\CalendarLayout;
 use App\Values\CalendarRange;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
@@ -33,6 +37,125 @@ use Tests\TestCase;
 
 class CalendarTest extends TestCase
 {
+    private function smsFixture(int $gatewayStatus = 200): array
+    {
+        config(['app.off' => [], 'services.sms.provider' => 'kavenegar', 'services.kavenegar.key' => 'KEY']);
+        Http::fake(['api.kavenegar.com/*' => Http::response(['return' => ['status' => $gatewayStatus]])]);
+        $actor = User::factory()->create(['status' => 'active', 'type' => 'employee', 'presence' => 'onsite', 'role' => 'user']);
+        $target = User::factory()->create(['status' => 'active', 'type' => 'employee', 'presence' => 'onsite', 'role' => 'user']);
+        Profile::factory()->create([
+            'user_id' => $target->id, 'cellphone' => '09120000000',
+            'birthdate' => now()->subYears(32)->toDateString(), 'start_date' => now()->subYears(4)->toDateString(),
+        ]);
+        $this->actingAs($actor);
+        RateLimiter::clear('sms-send:' . $actor->id);
+        RateLimiter::clear("sms-to:{$target->id}:{$actor->id}");
+
+        return [$actor, $target, Jalalian::now()->format('Y-m-d')];
+    }
+
+    public function test_occasion_sms_templates_and_all_calendar_presentations_have_matching_keys(): void
+    {
+        [$actor, $target, $date] = $this->smsFixture();
+        $component = Livewire::test(Calendar::class)->set('selectedDate', $date)->set('navigationDate', $date);
+        foreach (['birthday', 'anniversary'] as $type) {
+            $templates = $component->instance()->smsTemplates[$type];
+            $this->assertNotEmpty($templates);
+            $this->assertLessThanOrEqual(10, count($templates));
+            $this->assertSame(Sms::for($type), $templates);
+            $expectedKey = $type . '-' . $target->id . '-' . Jalalian::now()->getYear();
+            $entry = $component->instance()->selectedDayEvents->first(fn ($e) => ($e['user_id'] ?? null) === $target->id && $e['type'] === $type);
+            $this->assertTrue($entry['can_sms']);
+            $this->assertSame($expectedKey, $entry['sms_key']);
+            foreach ($templates as $template) {
+                $this->assertLessThanOrEqual(140, mb_strlen(str_replace('{name}', 'همکار', $template)));
+                $this->assertDoesNotMatchRegularExpression('/\{(?!name\})[^}]+\}/u', $template);
+            }
+            $allDay = collect($component->instance()->rangeEvents['allDayEntries'])->firstWhere('sms_key', $expectedKey);
+            $this->assertTrue($allDay['can_sms']);
+            $agenda = collect($component->instance()->agendaItems('week'))->pluck('items')->flatten(1)->firstWhere('sms_key', $expectedKey);
+            $this->assertTrue($agenda['can_sms']);
+        }
+        $this->assertSame([], Sms::for('event'));
+    }
+
+    public function test_calendar_sms_checks_eligibility_from_cached_profiles_and_refreshes_after_edits(): void
+    {
+        [$actor, $target, $date] = $this->smsFixture();
+        $entry = fn () => (new CalendarPresenter)->selectedDayEvents($date)->first(fn ($e) => ($e['user_id'] ?? null) === $target->id && $e['type'] === 'birthday');
+        $this->assertTrue($entry()['can_sms']);
+        foreach ([['presence' => 'grumpy'], ['status' => 'inactive'], ['type' => 'guest']] as $change) {
+            $target->update($change);
+            $this->assertFalse($entry()['can_sms']);
+            $target->update(['status' => 'active', 'type' => 'employee', 'presence' => 'onsite']);
+            $this->assertTrue($entry()['can_sms']);
+        }
+        $target->profile->update(['cellphone' => null]);
+        $this->assertFalse($entry()['can_sms']);
+        $target->profile->update(['cellphone' => '09120000000']);
+        $this->assertTrue($entry()['can_sms']);
+        config(['app.off' => ['notify:sms']]);
+        $this->assertFalse($entry()['can_sms']);
+        config(['app.off' => []]);
+        $this->actingAs($target);
+        $this->assertFalse($entry()['can_sms']);
+    }
+
+    public function test_calendar_sms_sends_personal_text_with_calendar_audit_and_success_memory_event(): void
+    {
+        [$actor, $target, $date] = $this->smsFixture();
+        $key = 'birthday-' . $target->id . '-' . Jalalian::now()->getYear();
+        Livewire::test(Calendar::class)->set('selectedDate', $date)->set('navigationDate', $date)
+            ->set('smsUserId', $target->id)->set('smsType', 'birthday')->set('smsKey', $key)
+            ->set('smsText', 'تولدت مبارک')->set('showSmsModal', true)->call('submitSms')
+            ->assertHasNoErrors()->assertSet('showSmsModal', false)->assertSet('smsText', '')
+            ->assertDispatched('sms-sent', key: $key, senderId: $actor->id, source: 'calendar');
+        Http::assertSent(fn ($request) => $request['receptor'] === '09120000000'
+            && $request['message'] === $actor->name . ': تولدت مبارک' . "\nاین پیامک از سامانه " . str_replace('ـ', '', config('app.name')) . ' ارسال شده است');
+        $this->assertDatabaseHas('notify_logs', ['source' => NotifyLog::SOURCE_CALENDAR, 'sender_id' => $actor->id, 'user_id' => $target->id, 'status' => 'sent']);
+    }
+
+    public function test_calendar_sms_refuses_forged_context_disabled_sms_and_failed_delivery_without_memory(): void
+    {
+        [$actor, $target, $date] = $this->smsFixture();
+        $key = 'birthday-' . $target->id . '-' . Jalalian::now()->getYear();
+        $component = Livewire::test(Calendar::class)->set('selectedDate', $date)->set('navigationDate', $date)
+            ->set('smsUserId', $target->id)->set('smsType', 'event')->set('smsKey', $key)->set('smsText', 'سلام');
+        $component->call('submitSms')->assertNotDispatched('sms-sent');
+        $component->set('smsType', 'birthday')->set('smsKey', 'birthday-999-1400')->call('submitSms')->assertNotDispatched('sms-sent');
+        config(['app.off' => ['notify:sms']]);
+        $component->set('smsKey', $key)->call('submitSms')->assertNotDispatched('sms-sent');
+        Http::assertNothingSent();
+    }
+
+    public function test_calendar_sms_failed_delivery_keeps_the_modal_open_and_never_reports_success(): void
+    {
+        [$actor, $target, $date] = $this->smsFixture(418);
+        Livewire::test(Calendar::class)->set('selectedDate', $date)->set('navigationDate', $date)
+            ->set('smsUserId', $target->id)->set('smsType', 'birthday')
+            ->set('smsKey', 'birthday-' . $target->id . '-' . Jalalian::now()->getYear())
+            ->set('smsText', 'سلام')->set('showSmsModal', true)->call('submitSms')
+            ->assertSet('showSmsModal', true)
+            ->assertDispatched('toast', fn ($name, $params) => $params['type'] === 'error')
+            ->assertNotDispatched('sms-sent');
+    }
+
+    public function test_calendar_and_status_share_sender_and_recipient_sms_limits(): void
+    {
+        [$actor, $target, $date] = $this->smsFixture();
+        $status = Livewire::test(Status::class);
+        for ($i = 0; $i < 3; $i++) {
+            $status->call('sendSms', (string) $target->id);
+        }
+        $calendar = Livewire::test(Calendar::class)->set('selectedDate', $date)->set('navigationDate', $date)
+            ->set('smsUserId', $target->id)->set('smsType', 'birthday')
+            ->set('smsKey', 'birthday-' . $target->id . '-' . Jalalian::now()->getYear())->set('smsText', 'تولدت مبارک');
+        $calendar->call('submitSms')->assertNotDispatched('sms-sent');
+        RateLimiter::clear('sms-send:' . $actor->id);
+        $calendar->call('submitSms')->assertNotDispatched('sms-sent');
+        Http::assertSentCount(3);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -392,7 +515,24 @@ class CalendarTest extends TestCase
         $this->assertSame('month', $component->instance()->view);
     }
 
-    public function test_next_period_steps_jalali_month_for_month_view()
+    public function test_period_arrows_step_one_day_in_month_view_and_cross_the_month_boundary()
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Calendar::class)
+            ->set('selectedDate', '1405-12-29')
+            ->set('navigationDate', '1405-12-29')
+            ->call('toggleView', 'month')
+            ->call('nextPeriod')
+            ->assertSet('navigationDate', '1405-12-30')
+            ->assertSet('selectedDate', '1405-12-30')
+            ->call('prevPeriod')
+            ->call('prevPeriod')
+            ->assertSet('navigationDate', '1405-12-28');
+    }
+
+    public function test_step_month_moves_the_jalali_month_and_keeps_selection_in_sync()
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
 
@@ -401,21 +541,12 @@ class CalendarTest extends TestCase
             ->set('selectedDate', '1405-12-15')
             ->set('navigationDate', '1405-12-15')
             ->call('toggleView', 'month')
-            ->call('nextPeriod')
-            ->assertSet('navigationDate', '1406-01-15');
-    }
-
-    public function test_prev_period_steps_jalali_month_for_month_view()
-    {
-        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
-
-        Livewire::withoutLazyLoading();
-        Livewire::actingAs($user)->test(Calendar::class)
-            ->set('selectedDate', '1406-01-15')
-            ->set('navigationDate', '1406-01-15')
-            ->call('toggleView', 'month')
-            ->call('prevPeriod')
-            ->assertSet('navigationDate', '1405-12-15');
+            ->call('stepMonth', 1)
+            ->assertSet('navigationDate', '1406-01-15')
+            ->assertSet('selectedDate', '1406-01-15')
+            ->call('stepMonth', -1)
+            ->call('stepMonth', -1)
+            ->assertSet('navigationDate', '1405-11-15');
     }
 
     public function test_next_period_steps_one_day_for_day_view()
@@ -2221,6 +2352,9 @@ class CalendarTest extends TestCase
         $this->assertSame(convertToPersian('09:00'), $p->dayEventRangeLabel(['type' => 'event', 'duration_minutes' => 30, 'start_minutes' => 540, 'time' => '09:00']));
         $this->assertSame(convertToPersian('09:00'), $p->dayEventRangeLabel(['type' => 'birthday', 'duration_minutes' => 90, 'start_minutes' => 540, 'time' => '09:00']));
         $this->assertSame(convertToPersian('09:00'), $p->dayEventRangeLabel(['duration_minutes' => 90, 'start_minutes' => 540, 'time' => '09:00']));
+        $this->assertSame('', $p->dayEventRangeLabel(['type' => 'birthday', 'time' => '00:00']));
+        $this->assertSame('', $p->dayEventRangeLabel(['type' => 'anniversary', 'time' => '00:00']));
+        $this->assertSame(convertToPersian('00:00'), $p->dayEventRangeLabel(['type' => 'event', 'duration_minutes' => 30, 'start_minutes' => 0, 'time' => '00:00']));
     }
 
     public function test_mini_month_data_resolves_prev_and_next_month_navigation()

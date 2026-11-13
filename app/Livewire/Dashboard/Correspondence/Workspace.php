@@ -20,7 +20,6 @@ use App\Livewire\Dashboard\Correspondence\Actions\RenameLetterAction;
 use App\Livewire\Dashboard\Correspondence\Actions\RerouteLetterAction;
 use App\Livewire\Dashboard\Correspondence\Actions\RestoreVersionAction;
 use App\Livewire\Dashboard\Correspondence\Actions\RouteLetterAction;
-use App\Livewire\Dashboard\Correspondence\Actions\SaveBlockAction;
 use App\Livewire\Dashboard\Correspondence\Actions\SaveLetterAction;
 use App\Livewire\Dashboard\Correspondence\Actions\SaveMailTextAction;
 use App\Livewire\Dashboard\Correspondence\Actions\ShareLetterAction;
@@ -54,7 +53,7 @@ class Workspace extends Component
 {
     use WithFileUploads;
 
-    private const GUARDED = ['form', 'blockDraft'];
+    private const GUARDED = ['form'];
 
     private const GUARDED_TRANSITIONS = ['share', 'approve', 'reject', 'reroute', 'correct'];
 
@@ -75,12 +74,6 @@ class Workspace extends Component
     public ?string $lastSeenStatus = null;
 
     #[Locked]
-    public ?int $blockIndex = null;
-
-    #[Locked]
-    public string $editorHash = '';
-
-    #[Locked]
     public string $contentHash = '';
 
     #[Locked]
@@ -91,10 +84,6 @@ class Workspace extends Component
 
     #[Locked]
     public bool $correcting = false;
-
-    public array $blockDraft = [];
-
-    public bool $blockEditorOpen = false;
 
     public string $rejectReason = '';
 
@@ -166,13 +155,6 @@ class Workspace extends Component
     public function refreshGenerating(): void
     {
         unset($this->generatingId);
-    }
-
-    public function updatedBlockEditorOpen(bool $open): void
-    {
-        if (!$open) {
-            $this->cancelBlockEditor();
-        }
     }
 
     public function updatedFormType(): void
@@ -260,53 +242,6 @@ class Workspace extends Component
         $this->mutate($action, ['subject' => $subject], __('resources/correspondence/strings.toasts.saved'), function (Correspondence $saved) {
             $this->form->subject = (string) $saved->subject;
         });
-    }
-
-    public function openBlockEditor(int $index): void
-    {
-        $blocks = $this->letterId === null ? $this->form->blocks : ($this->letter?->spec['blocks'] ?? []);
-        $block = $blocks[$index] ?? null;
-        if (!is_array($block) || $this->readOnly || $this->registryOnly) {
-            return;
-        }
-        $this->blockIndex = $index;
-        $this->editorHash = LetterRules::blockHash($block);
-        $this->blockDraft = $block;
-        $this->blockEditorOpen = true;
-    }
-
-    public function saveBlock(SaveBlockAction $action): void
-    {
-        if ($this->blockIndex === null) {
-            return;
-        }
-        if ($this->letterId === null) {
-            $this->form->blocks[$this->blockIndex] = $this->blockDraft;
-            $this->cancelBlockEditor();
-
-            return;
-        }
-        $index = $this->blockIndex;
-        $saved = $this->mutate($action, [
-            'block' => $index,
-            'data' => $this->blockDraft,
-            'block_hash' => $this->editorHash,
-        ], __('resources/correspondence/strings.toasts.saved'), function (Correspondence $letter) use ($index) {
-            if (isset($letter->spec['blocks'][$index])) {
-                $this->form->blocks[$index] = $letter->spec['blocks'][$index];
-            }
-        });
-        if ($saved) {
-            $this->cancelBlockEditor();
-        }
-    }
-
-    public function cancelBlockEditor(): void
-    {
-        $this->blockEditorOpen = false;
-        $this->blockIndex = null;
-        $this->editorHash = '';
-        $this->blockDraft = [];
     }
 
     public function addBlock(): void
@@ -590,6 +525,12 @@ class Workspace extends Component
             return;
         }
 
+        if ($this->form->files !== [] || $this->form->image !== null) {
+            $this->toast(__('resources/correspondence/strings.errors.smart_uploads'), 'warning');
+
+            return;
+        }
+
         $current = null;
         if ($this->letterId !== null && ($current = $this->letter) === null) {
             $this->unavailable();
@@ -857,7 +798,6 @@ class Workspace extends Component
         $this->routeMode = Correspondence::ROUTE_SEQUENTIAL;
         $this->reset(self::LETTER_TEXT);
         $this->cancelCorrection();
-        $this->cancelBlockEditor();
         $this->form->reset();
         $this->forgetLetter();
     }
@@ -1098,7 +1038,6 @@ class Workspace extends Component
             $silent || $this->toast(__('resources/correspondence/strings.errors.' . ($stale ? 'changed_elsewhere' : 'denied')), 'warning');
             if ($stale) {
                 $this->stale = true;
-                $this->cancelBlockEditor();
             }
         } catch (Throwable $e) {
             report($e);

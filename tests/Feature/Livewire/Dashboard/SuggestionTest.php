@@ -203,7 +203,7 @@ class SuggestionTest extends TestCase
             ->set('form.rule', ['simplify'])
             ->set('form.departments', ['ZZ'])
             ->call('submit')
-            ->assertHasErrors(['departments']);
+            ->assertHasErrors(['form.departments']);
 
         $this->assertSame(0, Suggestion::where('title', 'Fake dept probe')->count());
     }
@@ -445,6 +445,23 @@ class SuggestionTest extends TestCase
             ->test(Main::class)
             ->set('perPage', 200)
             ->set('search', 'SN-2037')
+            ->instance()->suggestions->getCollection()->pluck('id')->all();
+
+        $this->assertSame([$match->id], $ids);
+        $this->assertNotContains($control->id, $ids);
+    }
+
+    public function test_search_by_serial_typed_with_persian_digits_finds_the_suggestion()
+    {
+        $user = $this->deptUser('TST', 'expert');
+        $match = $this->makeSuggestion(['title' => 'PersianDigitSerialProbe']);
+        $control = $this->makeSuggestion(['title' => 'PersianDigitSerialControlProbe']);
+        DB::table('suggestions')->where('id', $match->id)->update(['created_at' => '2037-05-04 12:30:00']);
+
+        $ids = Livewire::actingAs($user)
+            ->test(Main::class)
+            ->set('perPage', 200)
+            ->set('search', 'SN-۲۰۳۷')
             ->instance()->suggestions->getCollection()->pluck('id')->all();
 
         $this->assertSame([$match->id], $ids);
@@ -795,6 +812,7 @@ class SuggestionTest extends TestCase
     {
         $this->uniqueDept('TST');
         $ceo = $this->deptUser('MA', 'ceo');
+        $this->deptUser('TST', 'manager');
         $suggestion = $this->makeSuggestion(['stage' => 'awaiting_decision', 'departments' => ['TST']]);
         Review::factory()->create([
             'suggestion_id' => $suggestion->id, 'department_id' => 'TST',
@@ -1108,6 +1126,18 @@ class SuggestionTest extends TestCase
         $suggestion = $this->makeSuggestion(['stage' => 'team_remarks', 'departments' => ['TST']]);
 
         $this->assertFalse(Suggestion::requiresAttentionFor($suggestion, $chairman));
+    }
+
+    public function test_attention_required_scope_includes_a_senior_decision_maker_without_a_department()
+    {
+        $this->uniqueDept('TST');
+        $chairman = $this->deptUser('TST', 'chairman');
+        $chairman->profile->forceFill(['department_id' => ''])->save();
+        $suggestion = $this->makeSuggestion(['stage' => 'awaiting_decision', 'departments' => ['TST']]);
+
+        $this->actingAs($chairman->fresh());
+
+        $this->assertTrue(Suggestion::attentionRequired()->whereKey($suggestion->id)->exists());
     }
 
     public function test_attention_required_true_for_ceo_at_awaiting_decision()
@@ -1615,7 +1645,7 @@ class SuggestionTest extends TestCase
         $this->assertSame('awaiting_decision', $suggestion->stage);
     }
 
-    public function test_deptless_submitter_creates_no_null_department_review_row(): void
+    public function test_deptless_submitter_is_blocked_and_creates_nothing(): void
     {
         $user = User::factory()->create(['status' => 'active']);
 
@@ -1626,10 +1656,9 @@ class SuggestionTest extends TestCase
             ->set('form.purpose', ['cost'])
             ->set('form.rule', ['simplify'])
             ->call('submit')
-            ->assertHasNoErrors();
+            ->assertHasErrors(['form.title']);
 
-        $suggestion = Suggestion::where('title', 'Deptless submitter probe')->firstOrFail();
-        $this->assertSame(0, Review::where('suggestion_id', $suggestion->id)->whereNull('department_id')->count());
+        $this->assertSame(0, Suggestion::where('title', 'Deptless submitter probe')->count());
     }
 
     public function test_search_by_displayed_serial_with_short_unpadded_id_finds_the_suggestion(): void

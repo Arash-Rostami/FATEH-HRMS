@@ -49,7 +49,7 @@
                                           class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[var(--md-sys-color-on-surface)] text-[10px] font-bold hover:opacity-80 transition-opacity"
                                           style="background:color-mix(in srgb,var(--header-border-color) 22%,var(--md-sys-color-surface));">
                                         <span class="w-2 h-2 rounded-full animate-pulse" style="background:var(--header-border-color);"></span>
-                                        بروزرسانی جدید
+                                        به‌روزرسانی جدید
                                     </span>
                                 </x-slot:trigger>
                             </x-dashboard.modal.release>

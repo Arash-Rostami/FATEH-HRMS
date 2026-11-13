@@ -67,7 +67,7 @@
                     @endif
                     <div class="flex items-center justify-between gap-2 pt-2 border-t border-[var(--md-sys-color-outline-variant)]/15">
                         <div class="flex items-center gap-2 min-w-0">
-                            <x-ui.avatar :existingImage="$presenter->avatarUrl($feed->user)" :alt="$feed->user?->name ?? 'Guest'" size="xs" :online="$feed->user?->isOnline()"/>
+                            <x-ui.avatar :existingImage="$presenter->avatarUrl($feed->user)" :alt="$feed->user?->name ?? 'Guest'" size="xs" :online="$feed->user?->isOnline()" :uid="$feed->user?->id"/>
                             <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">{{ $feed->user?->name ?? 'کاربر ناشناس' }}</span>
                         </div>
                         <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] shrink-0" title="{{ $dateLabel }}">{{ $relLabel }}</span>

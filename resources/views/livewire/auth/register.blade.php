@@ -1,4 +1,4 @@
-<x-auth.card title="ایجاد حساب کاربری" description="به جمع متخصصین ما بپیوندید و دسترسی کامل داشته باشید.">
+<x-auth.card title="ایجاد حساب کاربری" description="برای ایجاد حساب، اطلاعات خود را وارد کنید.">
 
 
     <div x-data="{ showPassword: false, showConfirm: false, strength: 0 }">
@@ -150,7 +150,7 @@
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
 
-                        <span wire:loading.remove wire:target="register" class="font-bold tracking-wide">ثبت نام و ایجاد حساب</span>
+                        <span wire:loading.remove wire:target="register" class="font-bold tracking-wide">ثبت‌نام و ایجاد حساب</span>
                         <span wire:loading wire:target="register" class="font-bold tracking-wide">در حال ایجاد...</span>
                     </div>
                 </button>

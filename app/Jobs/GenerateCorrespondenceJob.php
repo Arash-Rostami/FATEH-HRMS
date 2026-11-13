@@ -102,8 +102,8 @@ class GenerateCorrespondenceJob implements ShouldQueue, ShouldBeUniqueUntilProce
         }
 
         try {
-            $alive = Correspondence::query()->whereKey($this->letterId)->where('status', Correspondence::STATUS_GENERATING)->update(['updated_at' => now()]);
-            if ($alive === 0) {
+            $generating = Correspondence::query()->whereKey($this->letterId)->where('status', Correspondence::STATUS_GENERATING);
+            if ($generating->update(['updated_at' => now()]) === 0 && !$generating->exists()) {
                 return;
             }
             $this->store($this->compose($letter, $client));

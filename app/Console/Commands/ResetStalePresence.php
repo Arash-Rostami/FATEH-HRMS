@@ -32,6 +32,7 @@ class ResetStalePresence extends Command
 
         if ($count > 0) {
             ModelCacheVersion::bump(User::class);
+            ModelCacheVersion::bump(User::PRESENCE_VERSION_KEY);
         }
 
         $this->info("Reset {$count} stale mood presences (offline since before {$cutoff->toDateTimeString()}).");

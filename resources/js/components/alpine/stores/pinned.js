@@ -1,4 +1,4 @@
-const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation', 'ai-report', 'correspondence'];
+const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation', 'ai-report', 'correspondence', 'faq', 'post', 'report', 'gallery'];
 
 const KEYS = {
     contact: 'pinned-contacts',
@@ -9,13 +9,17 @@ const KEYS = {
     menu: 'pinned-menu-items',
     reservation: 'pinned-reservations',
     'ai-report': 'pinned-ai-reports',
-    correspondence: 'pinned-correspondence'
+    correspondence: 'pinned-correspondence',
+    faq: 'saved_faqs',
+    post: 'saved_posts',
+    report: 'saved_reports',
+    gallery: 'saved_gallery'
 };
 
 export default function pinned(Alpine) {
     Alpine.store('pinned', {
-        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null, 'ai-report': null, correspondence: null },
-        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [], 'ai-report': [], correspondence: [] },
+        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null, 'ai-report': null, correspondence: null, faq: null, post: null, report: null, gallery: null },
+        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [], 'ai-report': [], correspondence: [], faq: [], post: [], report: [], gallery: [] },
 
         init() {
             for (let i = 0; i < SCOPES.length; i++) {
@@ -65,9 +69,21 @@ export default function pinned(Alpine) {
             return s.has(scope === 'menu' ? String(id) : Number(id));
         },
 
+        _fresh(scope, fallback) {
+            try {
+                if (localStorage.getItem(KEYS[scope]) === null) return fallback;
+            } catch {
+                return fallback;
+            }
+
+            return this._load(scope);
+        },
+
         togglePin(id, scope = 'contact') {
-            const rawSet = Alpine.raw(this.sets[scope]);
-            if (!rawSet) return;
+            const current = Alpine.raw(this.sets[scope]);
+            if (!current) return;
+
+            const rawSet = this._fresh(scope, current);
 
             const key = scope === 'menu' ? String(id) : Number(id);
             const nextSet = new Set(rawSet);
@@ -82,6 +98,10 @@ export default function pinned(Alpine) {
             this.lists[scope] = Array.from(nextSet);
 
             this._persist(scope);
+        },
+
+        isEmpty(scope) {
+            return this.getPinned(scope).length === 0;
         },
 
         getPinned(scope = 'contact') {

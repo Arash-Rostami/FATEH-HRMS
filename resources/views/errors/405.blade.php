@@ -2,7 +2,7 @@
 
 @section('error_code', 'ERR_405')
 
-@section('title', 'متد مجاز نیست')
+@section('title', 'درخواست پذیرفته نشد')
 
 @section('icon')
 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-orange-500">
@@ -10,6 +10,6 @@
 </svg>
 @endsection
 
-@section('heading', 'متد درخواست پشتیبانی نمی‌شود')
+@section('heading', 'درخواست پذیرفته نشد')
 
-@section('message', 'این آدرس، متد HTTP استفاده‌شده (مانند GET یا POST) را نمی‌پذیرد. لطفاً از مسیر صحیح وارد شوید و دوباره تلاش کنید.')
+@section('message', 'این درخواست برای این صفحه پذیرفته نمی‌شود. از صفحه مربوط وارد شوید و دوباره تلاش کنید.')

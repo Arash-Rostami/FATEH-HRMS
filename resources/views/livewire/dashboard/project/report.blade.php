@@ -132,7 +132,7 @@
                             </td></tr>
                         @else
                             <tr wire:key="report-empty-none"><td colspan="10" class="px-3 md:px-6 py-12">
-                                <x-ui.empty icon="inbox" title="رکوردی یافت نشد" variant="list" description="هنوز هیچ وظیفه‌ای برای این پروژه ثبت نشده است."/>
+                                <x-ui.empty icon="inbox" title="وظیفه‌ای یافت نشد" variant="list" description="هنوز هیچ وظیفه‌ای برای این پروژه ثبت نشده است."/>
                             </td></tr>
                         @endif
                     @endforelse

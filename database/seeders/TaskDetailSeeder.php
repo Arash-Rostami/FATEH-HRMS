@@ -26,7 +26,7 @@ class TaskDetailSeeder extends Seeder
         $units = ['تهیه', 'بازرسی', 'اجرای', 'پشتیبانی', 'مالی'];
         $sections = ['بخش مرکزی', 'بخش شمال', 'بخش جنوب', 'بخش معاونت'];
         $projects = ['پروژه توسعه', 'پروژه نوسازی', 'پروژه یکپارچه‌سازی', 'پروژه پایش'];
-        $schemes = ['طرح اولیه', 'طرح تکمیلی', 'طرح pilots', 'طرح ملی'];
+        $schemes = ['طرح اولیه', 'طرح تکمیلی', 'طرح آزمایشی', 'طرح ملی'];
         $domains = ['internal', 'external', 'partner', 'vendor'];
         $states = ['draft', 'in_review', 'approved', 'in_progress', 'done', 'cancelled'];
 

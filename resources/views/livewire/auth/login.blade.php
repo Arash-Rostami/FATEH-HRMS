@@ -1,4 +1,4 @@
-<x-auth.card-no-signup title="ورود به سیستم" description="جهت دسترسی به پنل کاربری، اطلاعات ورود خود را وارد نمایید." :siblings="tenantOff('auth:sibling') ? [] : config('app.siblings')">
+<x-auth.card-no-signup title="ورود به سیستم" description="برای ورود، اطلاعات حساب خود را وارد کنید." :siblings="tenantOff('auth:sibling') ? [] : config('app.siblings')">
     <div x-data="{ showPassword: false, remember: @entangle('remember') }">
         <form wire:submit.prevent="login" class="space-y-6">
             <div class="space-y-5">
@@ -90,24 +90,45 @@
 
             <div class="space-y-4 pt-2">
                 <button type="submit"
-                        class="md3-btn w-full h-12 text-base shadow-lg shadow-[var(--md-sys-color-primary)]/15 active:shadow-none transition-all group hover:scale-[1.01]"
+                        @class([
+                            'md3-btn w-full h-12 text-base shadow-lg shadow-[var(--md-sys-color-primary)]/15 active:shadow-none transition-all group hover:scale-[1.01]',
+                            '!bg-[var(--md-sys-color-success)] !text-[var(--md-sys-color-on-success)] pointer-events-none' => $outcome === 'success',
+                            '!bg-[var(--md-sys-color-error)] !text-[var(--md-sys-color-on-error)]' => $outcome === 'fail',
+                        ])
+                        x-data
+                        x-effect="$wire.outcome === 'fail' && setTimeout(() => $wire.set('outcome', '', false), 2200)"
                         wire:loading.attr="disabled"
+                        @disabled($outcome === 'success')
                         wire:target="login">
                     <div class="relative flex items-center justify-center gap-2 w-full">
-                        <span class="material-symbols-rounded text-[22px]" wire:loading.remove
-                              wire:target="login">login</span>
+                        @if($outcome === 'success')
+                            <span wire:key="login-btn-success" class="contents">
+                                <span class="material-symbols-rounded text-[22px]">check_circle</span>
+                                <span class="font-bold tracking-wide">ورود موفق</span>
+                            </span>
+                        @elseif($outcome === 'fail')
+                            <span wire:key="login-btn-fail" class="contents">
+                                <span class="material-symbols-rounded text-[22px]">cancel</span>
+                                <span class="font-bold tracking-wide">ورود ناموفق</span>
+                            </span>
+                        @else
+                            <span wire:key="login-btn-idle" class="contents">
+                                <span class="material-symbols-rounded text-[22px]" wire:loading.remove
+                                      wire:target="login">login</span>
 
-                        <svg  class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
-                             viewBox="0 0 24 24" wire:loading wire:target="login">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                     viewBox="0 0 24 24" wire:loading wire:target="login">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
 
-                        <span wire:loading.remove wire:target="login"
-                              class="font-bold tracking-wide">احراز هویت و ورود</span>
-                        <span wire:loading wire:target="login" class="font-bold tracking-wide">درحال بررسی...</span>
+                                <span wire:loading.remove wire:target="login"
+                                      class="font-bold tracking-wide">ورود</span>
+                                <span wire:loading wire:target="login" class="font-bold tracking-wide">در حال بررسی...</span>
+                            </span>
+                        @endif
                     </div>
                 </button>
 {{--                <div class="relative flex py-1 items-center">--}}

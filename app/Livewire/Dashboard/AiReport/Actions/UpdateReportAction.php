@@ -6,8 +6,11 @@ use App\Models\AiReport;
 use App\Models\User;
 use App\Services\AiReport\BlockCatalog;
 use App\Support\AiReportAccessPolicy;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
+use RuntimeException;
 
 class UpdateReportAction
 {
@@ -67,7 +70,7 @@ class UpdateReportAction
         if (array_key_exists('title', $changes)) {
             $t = BlockCatalog::clean((string) $changes['title'], (int) config('ai.report.spec.short'));
             if ($t === '') {
-                throw ValidationException::withMessages(['titleDraft' => 'عنوان نمی‌تواند خالی باشد.']);
+                throw ValidationException::withMessages(['titleDraft' => __('resources/ai_report/strings.errors.title_empty')]);
             }
             $spec = $report->spec ?? [];
             $spec['title'] = $t;
@@ -88,18 +91,18 @@ class UpdateReportAction
             }
             ['p' => $p, 'b' => $b, 'block' => $original] = $target;
             if (is_string($changes['editor_hash'] ?? null) && $changes['editor_hash'] !== md5(json_encode($original))) {
-                throw new \RuntimeException('گزارش در جای دیگری تغییر کرده؛ پنجره را ببندید و دوباره باز کنید.', self::STALE_EDITOR);
+                throw new RuntimeException(__('resources/ai_report/strings.errors.stale_editor'), self::STALE_EDITOR);
             }
             $data = is_array($changes['data'] ?? null) ? $changes['data'] : [];
             $data['type'] = $original['type'];
             $lang = ($report->spec['lang'] ?? 'fa') === 'en' ? 'en' : 'fa';
             $normalized = BlockCatalog::normalizeBlock(BlockCatalog::retotal($data, $original), $lang);
             if ($normalized === null) {
-                throw ValidationException::withMessages(['blockDraft' => 'محتوای بخش ناقص است؛ عنوان یا متن لازم را خالی نگذارید.']);
+                throw ValidationException::withMessages(['blockDraft' => __('resources/ai_report/strings.errors.block_incomplete')]);
             }
             foreach (['items', 'rows', 'bullets', 'paragraphs', 'options', 'labels', 'series'] as $list) {
-                if (is_array($original[$list] ?? null) && count($original[$list]) > count($normalized[$list] ?? [])) {
-                    throw ValidationException::withMessages(['blockDraft' => 'محتوای بخش ناقص است؛ عنوان یا متن لازم را خالی نگذارید.']);
+                if (is_array($original[$list] ?? null) && count($original[$list]) !== count($normalized[$list] ?? [])) {
+                    throw ValidationException::withMessages(['blockDraft' => __('resources/ai_report/strings.errors.block_incomplete')]);
                 }
             }
             if ($original['type'] === 'section' && is_string($original['heading'] ?? null) && BlockCatalog::isAssumptionsHeading($original['heading'], $lang)) {
@@ -112,13 +115,13 @@ class UpdateReportAction
             }
             try {
                 $report->spec = BlockCatalog::validate($spec);
-            } catch (\InvalidArgumentException) {
-                throw ValidationException::withMessages(['blockDraft' => 'این تغییر گزارش را از سقف مجاز بیرون می‌برد؛ متن را کوتاه‌تر کنید.']);
+            } catch (InvalidArgumentException) {
+                throw ValidationException::withMessages(['blockDraft' => __('resources/ai_report/strings.errors.block_over_limit')]);
             }
             if ($original['type'] === 'title') {
                 $report->title = $spec['title'];
             }
-            $report->pushVersion(['prompt' => 'ویرایش دستی', 'files' => [], 'manual' => true, 'spec' => $report->spec, 'at' => now()->toIso8601String(), 'quota_day' => now()->format('Y-m-d')]);
+            $report->pushVersion([...Arr::only($report->lastVersion(), ['type', 'length', 'audience']), 'prompt' => 'ویرایش دستی', 'files' => [], 'manual' => true, 'spec' => $report->spec, 'at' => now()->toIso8601String(), 'quota_day' => now()->format('Y-m-d')]);
         }
         if (array_key_exists('active', $changes)) {
             $report->active = (bool) $changes['active'];
@@ -128,6 +131,6 @@ class UpdateReportAction
 
     private function deny(): never
     {
-        throw new \RuntimeException('این عملیات مجاز نیست.');
+        throw new RuntimeException('این عملیات مجاز نیست.');
     }
 }

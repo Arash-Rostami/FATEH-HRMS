@@ -62,7 +62,7 @@
                     </div>
                 @else
                     <div wire:key="correspondence-view-report" wire:loading.remove wire:target="{{ $switchTargets }}" id="correspondence-letter" class="flex flex-col gap-4 min-w-0 print:w-full print:max-w-none">
-                        <livewire:dashboard.correspondence.workspace :letter-id="$letterId" :reply-to-id="$replyToId" :key="'correspondence-workspace-'.$epoch" />
+                        <livewire:dashboard.correspondence.workspace :letter-id="$letterId" :reply-to-id="$replyToId" :key="'correspondence-workspace-report-'.$epoch" />
 
                     </div>
                 @endif
@@ -73,7 +73,7 @@
         @else
             <div wire:key="correspondence-view-compose" wire:loading.remove wire:target="{{ $switchTargets }}" class="grid grid-cols-1 lg:grid-cols-[1fr_minmax(240px,300px)] gap-4 items-start">
                 <div id="correspondence-letter" class="flex flex-col gap-4 min-w-0 print:w-full print:max-w-none">
-                    <livewire:dashboard.correspondence.workspace :letter-id="$letterId" :reply-to-id="$replyToId" :key="'correspondence-workspace-'.$epoch" />
+                    <livewire:dashboard.correspondence.workspace :letter-id="$letterId" :reply-to-id="$replyToId" :key="'correspondence-workspace-compose-'.$epoch" />
 
                 </div>
                 @if($pollList)

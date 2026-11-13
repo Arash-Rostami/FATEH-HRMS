@@ -1,6 +1,8 @@
 @props(['activeTab', 'tabs'])
 
 <aside
+    x-data="peek"
+    data-active="{{ $activeTab }}"
     wire:keydown.window.arrow-down.prevent="navigateTab(1)"
     wire:keydown.window.arrow-up.prevent="navigateTab(-1)"
     :class="$store.focus.active ? 'focus-dim' : ''"
@@ -22,6 +24,9 @@
                        : 'hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-primary)] hover:shadow-md hover:scale-105'
                    }} {{ $key === 'home' ? 'rail-home' : '' }}"
             aria-label="{{ $tab['label'] }}"
+            @mouseenter="show('{{ $key }}', $el)"
+            @mouseleave="hide()"
+            @click="capture(); hide()"
         >
             <span class="material-symbols-rounded text-[22px] transition-all duration-300 group-hover:scale-110
                 {{ $activeTab === $key ? 'animate-spring-pop text-[var(--md-sys-color-primary)]' : '' }}">
@@ -36,7 +41,8 @@
                         class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-700 border-2 border-[var(--md-sys-color-surface)]"></span>
                 </span>
             @endif
-            <x-ui.modals.tooltip :text="$tab['label']" position="left"/>
         </button>
     @endforeach
+
+    <x-ui.peek/>
 </aside>

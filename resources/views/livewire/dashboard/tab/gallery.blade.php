@@ -21,6 +21,7 @@
         countLabel="مورد">
         <x-slot:actions>
             <x-ui.buttons.view-toggle module="gallery" :modes="$viewModes" />
+            <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
             <x-ui.month-filter :months="$months" />
             <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'filmstrip'" x-cloak/>
 
@@ -56,11 +57,13 @@
 
 
     <div x-show="view === 'filmstrip'" x-cloak class="flex-1 min-h-0 relative">
+        <x-ui.saved-empty scope="gallery"/>
         <x-ui.buttons.rail-arrows />
         @include('livewire.dashboard.tab.gallery.timeline')
     </div>
 
     <div x-show="view === 'wall'" x-cloak class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pb-6">
+        <x-ui.saved-empty scope="gallery"/>
         @include('livewire.dashboard.tab.gallery.wall')
     </div>
 </x-ui.scroll-panel>

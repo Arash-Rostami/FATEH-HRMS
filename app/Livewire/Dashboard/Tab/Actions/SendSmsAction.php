@@ -10,8 +10,14 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class SendSmsAction
 {
-    public function execute(string $userId, SmsChannel $sms, ?string $text = null): array
+    public const DEFAULT_TEXT = 'لطفاً با من تماس بگیرید.';
+
+    public function execute(string $userId, SmsChannel $sms, ?string $text = null, string $source = NotifyLog::SOURCE_STATUS): array
     {
+        if (tenantOff('notify:sms')) {
+            return ['message' => 'ارسال پیامک در این سامانه فعال نیست.', 'type' => 'error'];
+        }
+
         $key = "sms-send:" . Auth::id();
 
         if (RateLimiter::tooManyAttempts($key, 3)) {
@@ -58,10 +64,10 @@ class SendSmsAction
             RateLimiter::hit($perRecipient, 3600);
 
             $name = Auth::user()?->name;
-            $body = ($name ? $name . ': ' : '') . (filled($text) ? mb_substr(trim($text), 0, 140) : 'لطفاً با من تماس بگیرید.');
+            $body = ($name ? $name . ': ' : '') . (filled($text) ? mb_substr(trim($text), 0, 140) : self::DEFAULT_TEXT);
 
             $delivered = $sms->text($user->sms_number, $body);
-            NotifyLog::audit(NotifyLog::SOURCE_STATUS, (int) Auth::id(), $user->id, $user->sms_number, $delivered);
+            NotifyLog::audit($source, (int) Auth::id(), $user->id, $user->sms_number, $delivered);
 
             if (!$delivered) {
                 return [

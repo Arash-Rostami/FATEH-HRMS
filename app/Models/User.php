@@ -46,6 +46,8 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
 
     public const TOUCH_MINUTES = 3;
 
+    public const PRESENCE_VERSION_KEY = 'presence';
+
     public const INDEFINITE_FOCUS_MINUTES = 525600;
 
     public const PROTECTED_ADMIN_KEYS = ['signature', 'sign_code_hash', 'correspondence_registry'];

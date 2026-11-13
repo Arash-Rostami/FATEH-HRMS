@@ -24,6 +24,7 @@ Mixed directly into a `Livewire\Component` class. Hold `#[Computed]` properties,
 
 | Trait | Shared by | What it holds |
 |---|---|---|
+| `SendsSms` | `Tab\Status`, `Tab\Calendar` | Shared SMS modal state, validation, `submitSms()`/`sendSms()`, tenant gate and success-only `sms-sent` event. Protected `smsContext()` defaults to the Status audit source; Calendar overrides it to check a visible birthday/anniversary and return its server-derived key. |
 | `ChatComposer` (53 ln) | `Channel\Main`, `Contact\Main` | `updated()` hook on `composer.attachments`, `syncAttachments()`, `removeAttachment()`, `#[Computed] groupedMessages()`, `#[Js] cancelReply()` |
 | `FocusOnRecord` (52 ln) | `Channel`, `Contact`, `TaskBoard`, `Project`, `Ths`, `Reservation` | `#[Url] $open`, `mountFocusOnRecord()` deep-link dispatch, `isFocusing()`, `clearFocus()` — the `?open={id}` global-search/menu deep-link contract every focusable module implements |
 | `ManagesTaskModal` (325 ln) | `TaskBoard\Main`, `Project\Main` | The unified task create/edit modal — form state, checklist/label array sync, tab badges, attachment staging |

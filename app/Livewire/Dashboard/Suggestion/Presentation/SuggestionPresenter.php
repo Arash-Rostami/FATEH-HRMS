@@ -77,7 +77,7 @@ class SuggestionPresenter
     public function deadlineConfig(): array
     {
         $deadline = $this->suggestion->updated_at->addHours(self::REVIEW_DEADLINE_HOURS);
-        $isPast = $deadline->isPast();
+        $isPast = $deadline->isPast() && !in_array($this->suggestion->stage, ['accepted', 'rejected', 'closed'], true);
 
         return [
             'date' => $deadline,
@@ -142,8 +142,6 @@ class SuggestionPresenter
             ?? $this->ceoReview()?->referral
             ?? [];
     }
-
-    public function requiresMyAction(): bool { return Suggestion::requiresAttentionFor($this->suggestion, auth()->user()); }
 
     public function reviewItems(): array
     {
@@ -368,7 +366,7 @@ class SuggestionPresenter
 
     private function formatResponseCount(int $total, int $responded): string
     {
-        return $total > 0 ? "{$responded} / {$total} " : '0';
+        return $total > 0 ? convertToPersian("{$responded} / {$total} ") : '0';
     }
 
     private function getReviewByDeptId(?string $id): ?Review

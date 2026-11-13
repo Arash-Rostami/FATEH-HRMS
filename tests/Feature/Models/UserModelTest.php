@@ -16,6 +16,7 @@ use Filament\Panel;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class UserModelTest extends TestCase
@@ -819,5 +820,84 @@ class UserModelTest extends TestCase
         $head->profile->update(['position' => 'employee']);
 
         Queue::assertPushed(ReconcileNudgeJob::class, fn($job) => $job->subjectId === $legacy->id);
+    }
+
+    public function test_a_plain_admin_cannot_tamper_with_holder_accounts_or_the_developer_role(): void
+    {
+        $admin = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        $developer = User::factory()->create(['status' => 'active', 'role' => 'developer']);
+        $ceo = User::factory()->create(['status' => 'active', 'role' => 'user', 'email' => 'ceo-holder@example.test']);
+        Profile::factory()->create(['user_id' => $ceo->id, 'position' => 'ceo']);
+        $ceo = User::find($ceo->id);
+
+        $this->actingAs($admin);
+
+        foreach ([['email' => 'taken-over@example.test'], ['role' => 'admin'], ['password' => 'a-new-password-1'], ['status' => 'inactive']] as $change) {
+            try {
+                $ceo->update($change);
+                $this->fail('admin must not change a holder account: ' . key($change));
+            } catch (ValidationException $e) {
+                $this->assertNotEmpty($e->errors());
+            }
+        }
+
+        $this->assertSame('ceo-holder@example.test', $ceo->fresh()->email);
+
+        try {
+            $admin->update(['role' => 'developer']);
+            $this->fail('admin must not self-promote to developer');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('role', $e->errors());
+        }
+
+        $this->assertSame('admin', $admin->role);
+        $this->assertFalse($admin->isDeveloper());
+
+        try {
+            $ceo->delete();
+            $this->fail('admin must not delete a holder account');
+        } catch (ValidationException $e) {
+            $this->assertNotEmpty($e->errors());
+        }
+
+        $admin->update(['name' => 'renamed admin']);
+        $this->assertSame('renamed admin', $admin->fresh()->name);
+
+        $this->actingAs($developer);
+        $ceo->update(['email' => 'ceo-moved@example.test']);
+        $this->assertSame('ceo-moved@example.test', $ceo->fresh()->email);
+    }
+
+    public function test_a_stale_target_copy_cannot_be_changed_or_deleted_after_a_concurrent_promotion(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'active', 'role' => 'admin']));
+        $target = User::factory()->create(['status' => 'active', 'role' => 'user']);
+        Profile::factory()->create(['user_id' => $target->id, 'position' => 'employee']);
+
+        $stale = User::find($target->id);
+        DB::table('profiles')->where('user_id', $target->id)->update(['position' => 'ceo']);
+
+        foreach ([fn () => $stale->update(['email' => 'stale-takeover@example.test']), fn () => $stale->delete()] as $attempt) {
+            try {
+                $attempt();
+                $this->fail('a stale copy must not alter or delete a promoted holder');
+            } catch (ValidationException $e) {
+                $this->assertNotEmpty($e->errors());
+            }
+        }
+
+        $this->assertNotNull(User::find($target->id));
+    }
+
+    public function test_the_holder_guard_costs_nothing_when_no_guarded_field_changes(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'active', 'role' => 'admin']));
+        $target = User::factory()->create(['status' => 'active', 'role' => 'user']);
+
+        DB::enableQueryLog();
+        $target->update(['name' => 'plain rename']);
+        $profileReads = collect(DB::getQueryLog())->filter(fn (array $q): bool => str_contains($q['query'], 'from `profiles`'));
+
+        $this->assertCount(0, $profileReads);
     }
 }

@@ -63,10 +63,15 @@ class SmsChannel implements NotifyChannel
         return mb_strimwidth($message->text(), 0, (int) config('notify.sms_max'), '…');
     }
 
+    public static function footer(): string
+    {
+        return 'این پیامک از سامانه ' . str_replace('ـ', '', (string) config('app.name')) . ' ارسال شده است';
+    }
+
     public function text(string $to, string $body): bool
     {
         try {
-            $this->deliver($to, $body);
+            $this->deliver($to, $body . "\n" . self::footer());
 
             return true;
         } catch (Throwable $e) {

@@ -10,6 +10,7 @@
     'status' => null,
     'focus' => null,
     'onlineLabel' => null,
+    'uid' => null,
 ])
 
 @php
@@ -46,7 +47,7 @@
 @endphp
 
 @if ($wrap)
-<span class="relative inline-block shrink-0 {{ $box }}">
+<span @if($uid) data-u="{{ $uid }}" @endif class="relative inline-block shrink-0 {{ $box }}">
 <span class="block w-full h-full overflow-hidden rounded-[28%]">
 @endif
 @if ($image)
@@ -76,7 +77,7 @@
 <x-ui.presence-dot :online="$online" :size="$dot" :label="$onlineLabel"/>
 @endif
 @if ($enum && !$inactive)
-<span title="{{ $enum->tip() }}{{ filled($focus) ? ' · ' . $focus : '' }}" data-presence="{{ $enum->value }}" style="--pb: {{ $enum->cssVar() }}" class="presence-badge absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-[30%] {{ $badge }} {{ $enum->badgeClasses() }}">
+<span title="{{ $enum->tip() }}{{ filled($focus) ? ' · ' . $focus : '' }}" data-presence="{{ $enum->value }}" data-focus="{{ $focus }}" style="--pb: {{ $enum->cssVar() }}" class="presence-badge absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-[30%] data-[presence=angry]:animate-bounce {{ $badge }}">
 <span class="material-symbols-rounded leading-none font-fill {{ $badgeIcon }}">{{ filled($focus) ? 'self_improvement' : $enum->icon() }}</span>
 </span>
 @endif

@@ -67,14 +67,12 @@ class CorrespondenceLinkController extends Controller
             return $this->missing();
         }
 
-        if (!$request->isMethod('HEAD')) {
-            $stamped = $this->stamp($id, $token);
-            if ($stamped instanceof Response) {
-                return $stamped;
-            }
-            if ($stamped['void']) {
-                return $this->voided($stamped['letter']);
-            }
+        $stamped = $this->stamp($id, $token);
+        if ($stamped instanceof Response) {
+            return $stamped;
+        }
+        if ($stamped['void']) {
+            return $this->voided($stamped['letter']);
         }
 
         $file = CorrespondencePdf::absolute($relative);

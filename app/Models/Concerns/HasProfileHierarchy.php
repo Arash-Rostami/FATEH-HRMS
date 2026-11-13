@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Services\Cache\ModelCacheVersion;
+use App\Support\TopPositionPolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -51,7 +52,7 @@ trait HasProfileHierarchy
 
     public function isTopExecutive(): bool
     {
-        return in_array($this->profile?->position, ['chairman', 'ceo'], true);
+        return TopPositionPolicy::isLocked($this->profile?->position);
     }
 
     public function isSeniorDecisionMaker(): bool

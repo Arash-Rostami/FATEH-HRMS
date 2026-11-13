@@ -160,6 +160,47 @@
                     <span>مدیریت اعضا</span>
                 </button>
 
+                <div wire:key="channel-info-key" class="flex flex-col gap-2">
+                    <button x-show="!keyOpen"
+                            x-on:click="openChannelKey()"
+                            type="button"
+                            style="display: none;"
+                            class="flex w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-2 text-xs font-bold text-[var(--md-sys-color-on-surface)] transition-all hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-[0.98]">
+                        <span class="material-symbols-rounded text-[17px]">lock</span>
+                        <span>کلید دسترسی گروه</span>
+                    </button>
+
+                    <div x-show="keyOpen"
+                         style="display: none;"
+                         class="flex flex-col gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-high)] p-2.5">
+                        <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)]">کلید دسترسی گروه</p>
+                        <p class="text-[10px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">مدیران سامانه برای دیدن این گروه در پنل مدیریت باید این کلید را وارد کنند. دست‌کم ۸ کاراکتر؛ برای برداشتن کلید، «حذف کلید» را بزنید.</p>
+                        <x-ui.forms.input type="password" name="channel_key" label="کلید جدید" icon="key" x-model="channelKey" autocomplete="new-password"/>
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button type="button"
+                                    x-on:click="closeChannelKey()"
+                                    class="rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_8%,transparent)] px-3 py-1 text-[11px] font-semibold transition-all hover:brightness-90 active:scale-95">
+                                انصراف
+                            </button>
+                            <button type="button"
+                                    x-on:click="saveChannelKey({{ $header['id'] }}, true)"
+                                    wire:loading.attr="disabled"
+                                    wire:target="saveChannelKey"
+                                    class="rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_65%,transparent)] px-3 py-1 text-[11px] font-semibold text-[var(--md-sys-color-on-error-container)] transition-all hover:brightness-105 active:scale-95">
+                                حذف کلید
+                            </button>
+                            <x-ui.buttons.form x-on:click.prevent="saveChannelKey({{ $header['id'] }})"
+                                               x-bind:disabled="channelKey.length < 8"
+                                               wire:loading.attr="disabled"
+                                               wire:target="saveChannelKey"
+                                               loading="saveChannelKey"
+                                               class="h-auto rounded-lg bg-[var(--md-sys-color-primary)] px-3 py-1 text-[11px] font-bold text-[var(--md-sys-color-on-primary)] transition-all hover:brightness-110">
+                                ثبت کلید
+                            </x-ui.buttons.form>
+                        </div>
+                    </div>
+                </div>
+
                 @if((int) $header['members_count'] === 1 && $channel->isProjectLinked())
                     <p wire:key="channel-info-project-linked" class="text-center text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-80">
                         گفتگوی پروژه است و با حذف پروژه حذف می‌شود.

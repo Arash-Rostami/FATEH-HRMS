@@ -6,9 +6,10 @@
 <div
     wire:key="faq-card-{{ $faq->id }}"
     data-rf="faqs-{{ $faq->id }}"
+    x-show="!onlySaved || $store.pinned.isPinned({{ $faq->id }}, 'faq')"
     class="slide-up group flex flex-col w-full overflow-hidden transition-all duration-300 rounded-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] hover:border-[var(--md-sys-color-primary)] hover:shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.6)]"
 >
-    <div @click="toggle({{ $faq->id }})"
+    <div @click="toggle({{ $faq->id }}, $el)"
          class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 p-4 bg-transparent cursor-pointer">
         <div class="flex flex-1 items-start gap-4 min-w-0 basis-52">
             <div class="mt-0.5 flex shrink-0 items-center justify-center w-9 h-9 transition-all duration-300 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary)] group-hover:text-[var(--md-sys-color-on-primary)]">
@@ -34,6 +35,7 @@
         </div>
 
         <div class="flex items-center gap-2 shrink-0 max-ms-auto">
+            <span x-show="$store.pinned.isPinned({{ $faq->id }}, 'faq')" x-cloak class="material-symbols-rounded text-[18px] leading-none font-fill text-[var(--md-sys-color-primary)]" aria-hidden="true">bookmark</span>
             <div class="inline-flex items-center gap-1.5 px-3 py-1 whitespace-nowrap rounded-md border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] animate-bubble-in {{ $badge['colorClasses'] }}">
                 <span class="material-symbols-rounded text-[14px] leading-none {{ $badge['isUpdated'] ? 'text-[var(--md-sys-color-secondary)]' : '' }}" aria-hidden="true">{{ $badge['icon'] }}</span>
                 <span dir="rtl" class="font-sans text-[11px] font-semibold tracking-wide">{{ $badge['label'] }}: {{ $badge['date'] }}</span>
@@ -56,6 +58,7 @@
                 <span class="material-symbols-rounded text-[16px] leading-none text-[var(--md-sys-color-primary)]" aria-hidden="true">reply</span>
                 <span class="text-[11px] font-bold tracking-wide text-[var(--md-sys-color-primary)]">پاسخ</span>
                 <span class="flex-1 h-px bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)]" aria-hidden="true"></span>
+                @include('livewire.dashboard.tab.faqs.actions')
             </div>
 
             <div class="grid grid-cols-[3px_1fr] gap-x-4">

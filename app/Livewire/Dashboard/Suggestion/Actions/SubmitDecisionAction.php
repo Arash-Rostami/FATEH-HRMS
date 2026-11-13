@@ -9,6 +9,7 @@ use App\Models\Suggestion;
 use App\Models\User;
 use App\Services\Menu\StateService;
 use App\Support\SuggestionAccessPolicy;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -21,14 +22,21 @@ class SubmitDecisionAction
 
         $form->validate();
 
-        $validDepts = Department::getCachedModels()->keys()->all();
+        $validDepts = Department::getCachedModels()->keys()->diff(['MA'])->all();
         if (array_diff($form->referralDepts, $validDepts)) {
             throw ValidationException::withMessages([
                 'decisionForm.referralDepts' => 'یک یا چند واحد انتخابی معتبر نیست.',
             ]);
         }
 
-        DB::transaction(function () use ($form, $suggestion): void {
+        $rankedByDept = User::highestRankingInDepartments($form->referralDepts);
+        if ($form->decision === 'accepted' && array_diff($form->referralDepts, $rankedByDept->keys()->all())) {
+            throw ValidationException::withMessages([
+                'decisionForm.referralDepts' => 'یک یا چند واحد انتخابی سرپرست فعال ندارد و قابل ارجاع نیست.',
+            ]);
+        }
+
+        DB::transaction(function () use ($form, $suggestion, $rankedByDept): void {
             $suggestion->comments = $form->decisionComment;
             $suggestion->save();
 
@@ -51,16 +59,16 @@ class SubmitDecisionAction
             );
 
             if ($isAccepted && !empty($form->referralDepts)) {
-                $this->ensureReferralReviews($suggestion, $form);
+                $this->ensureReferralReviews($suggestion, $form, $rankedByDept);
             }
-        });
 
-        $suggestion->load('reviews')->syncStage();
+            $suggestion->load('reviews')->syncStage();
+        });
 
         StateService::flush();
     }
 
-    private function ensureReferralReviews(Suggestion $suggestion, DecisionForm $form): void
+    private function ensureReferralReviews(Suggestion $suggestion, DecisionForm $form, Collection $rankedByDept): void
     {
         $existingDeptIds = Review::where('suggestion_id', $suggestion->id)
             ->whereIn('department_id', $form->referralDepts)
@@ -68,10 +76,7 @@ class SubmitDecisionAction
             ->all();
 
         $now = now();
-        $fallbackUserId = Auth::id();
         $rows = [];
-
-        $rankedByDept = User::highestRankingInDepartments($form->referralDepts);
 
         foreach ($form->referralDepts as $deptId) {
             if (in_array($deptId, $existingDeptIds, true)) {
@@ -81,10 +86,10 @@ class SubmitDecisionAction
             $rows[] = [
                 'suggestion_id' => $suggestion->id,
                 'department_id' => $deptId,
-                'feedback' => 'neutral',
+                'feedback' => 'unknown',
                 'comments' => null,
                 'complete' => false,
-                'user_id' => $rankedByDept->get($deptId)?->id ?? $fallbackUserId,
+                'user_id' => $rankedByDept->get($deptId)->id,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];

@@ -12,5 +12,7 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         Table::configureUsing(fn (Table $table) => $table->deferLoading(false));
+
+        config(['locks.disabled' => true]);
     }
 }

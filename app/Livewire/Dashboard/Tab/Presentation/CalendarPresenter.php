@@ -5,6 +5,8 @@ namespace App\Livewire\Dashboard\Tab\Presentation;
 use App\Models\Event;
 use App\Models\Profile;
 use App\Models\Reminder;
+use App\Enums\UserStatus;
+use App\Enums\UserType;
 use App\Services\HolidayService;
 use App\Services\Reservation\EventSyncService;
 use App\Values\CalendarLayout;
@@ -378,6 +380,10 @@ class CalendarPresenter
                     'time' => '00:00',
                     'clickable' => false,
                     'icon' => self::ICON_BY_TYPE[$e['type']] ?? 'event',
+                    'user_id' => $e['user_id'] ?? null,
+                    'can_sms' => $e['can_sms'] ?? false,
+                    'sms_key' => $e['sms_key'] ?? '',
+                    'sms_name' => $e['sms_name'] ?? '',
                 ];
             }
             foreach ($byDay[$jKey] ?? [] as $p) {
@@ -490,6 +496,7 @@ class CalendarPresenter
 
         $birthdays = $profiles->filter(fn($p) => $p->birthdate?->month === $month && $p->birthdate?->day === $day)
             ->map(fn($p) => [
+                ...$this->occasionSms($p, 'birthday', (int) substr($selectedDate, 0, 4)),
                 'id' => 'birthday-' . $p->id,
                 'type' => 'birthday',
                 'title' => 'تولد ' . ($p->user->name ?? 'کاربر'),
@@ -505,6 +512,7 @@ class CalendarPresenter
                 $years = $p->start_date->diffInYears($gregorianDate);
                 $firstDay = $p->start_date->isSameDay($gregorianDate);
                 return [
+                    ...$this->occasionSms($p, 'anniversary', Jalalian::fromCarbon($gregorianDate)->getYear()),
                     'id' => 'anniversary-' . $p->id,
                     'type' => 'anniversary',
                     'title' => $firstDay ? 'اولین روز کاری ' . ($p->user->name ?? 'کاربر') : ($years > 0 ? $years . 'مین ' : '') . 'سالگرد همکاری ' . ($p->user->name ?? 'کاربر'),
@@ -572,6 +580,10 @@ class CalendarPresenter
 
     public function dayEventRangeLabel(array $event): string
     {
+        if ($event['time'] === '00:00' && in_array($event['type'] ?? '', ['birthday', 'anniversary', 'holiday'], true)) {
+            return '';
+        }
+
         $rangeLabel = convertToPersian($event['time']);
         if (($event['type'] ?? '') === 'event' && $event['duration_minutes'] > 30) {
             $cappedDuration = min($event['duration_minutes'], 1440 - $event['start_minutes']);
@@ -802,6 +814,24 @@ class CalendarPresenter
     private function range(string $navDateYmd, string $view): CalendarRange
     {
         return $this->rangeCache["$navDateYmd|$view"] ??= CalendarRange::fromNavigation($navDateYmd, $view);
+    }
+
+    private function occasionSms(Profile $profile, string $type, int $year): array
+    {
+        $user = $profile->getRelation('user');
+
+        return [
+            'user_id' => (int) $profile->user_id,
+            'sms_name' => $user?->name ?? 'همکار',
+            'sms_key' => $type . '-' . $profile->user_id . '-' . $year,
+            'can_sms' => !tenantOff('notify:sms')
+                && $year === Jalalian::now()->getYear()
+                && (int) $profile->user_id !== $this->authId()
+                && filled($profile->cellphone)
+                && $user?->status === UserStatus::Active->value
+                && $user?->type !== UserType::Guest->value
+                && !presence($user?->presence)->isObscured(),
+        ];
     }
 
     private function getProfilesWithDates(): Collection
@@ -1056,6 +1086,7 @@ class CalendarPresenter
 
             foreach ($birthdayLookup[$mdKey] ?? [] as $p) {
                 $entries[] = [
+                    ...$this->occasionSms($p, 'birthday', (int) substr($jalaliKey, 0, 4)),
                     'id' => 'birthday-' . $p->id,
                     'type' => 'birthday',
                     'title' => 'تولد ' . ($p->user->name ?? 'کاربر'),
@@ -1071,6 +1102,7 @@ class CalendarPresenter
                 $years = $p->start_date->diffInYears($carbon);
                 $firstDay = $p->start_date->isSameDay($carbon);
                 $entries[] = [
+                    ...$this->occasionSms($p, 'anniversary', (int) substr($jalaliKey, 0, 4)),
                     'id' => 'anniversary-' . $p->id,
                     'type' => 'anniversary',
                     'title' => $firstDay ? 'اولین روز کاری ' . ($p->user->name ?? 'کاربر') : ($years > 0 ? $years . 'مین ' : '') . 'سالگرد همکاری ' . ($p->user->name ?? 'کاربر'),

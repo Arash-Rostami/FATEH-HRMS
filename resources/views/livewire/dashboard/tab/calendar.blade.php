@@ -1,7 +1,8 @@
 <div
     dir="rtl"
     class="relative w-full max-w-[88rem] mx-auto flex flex-col gap-4 h-auto"
-    x-data="{ ...calendarView() }"
+    x-data="calendarView({ senderId: @js(auth()->id()), smsYear: @js($smsYear) })"
+    @sms-sent.window="rememberSms($event.detail)"
     x-cloak
     @refresh-calendar.window="$wire.$refresh"
     @keydown.escape.window="if(max) toggleMaximize()"
@@ -109,10 +110,10 @@
     >
         @include('livewire.dashboard.tab.calendar.view-header')
 
-        <div class="hidden md:block min-h-0 overflow-y-auto scrollbar-hover-reveal p-4 md:p-6" :class="max ? 'h-[calc(100svh-12rem)]' : 'h-[calc(100svh-19rem)]'">
+        <div class="hidden md:block min-h-0 overflow-y-auto scrollbar-hover-reveal p-4 md:p-6 bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_60%,transparent)]" :class="max ? 'h-[calc(100svh-12rem)]' : 'h-[calc(100svh-19rem)]'">
             @include('livewire.dashboard.tab.calendar.week')
         </div>
-        <div class="md:hidden p-4">
+        <div class="md:hidden p-4 bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_60%,transparent)]">
             @include('livewire.dashboard.tab.calendar.mobile-list', ['scope' => 'week'])
         </div>
     </div>
@@ -128,14 +129,15 @@
     >
         @include('livewire.dashboard.tab.calendar.view-header')
 
-        <div class="hidden md:block min-h-0 overflow-y-auto scrollbar-hover-reveal p-4 md:p-6" :class="max ? 'h-[calc(100svh-12rem)]' : 'h-[calc(100svh-19rem)]'">
+        <div class="hidden md:block min-h-0 overflow-y-auto scrollbar-hover-reveal p-4 md:p-6 bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_60%,transparent)]" :class="max ? 'h-[calc(100svh-12rem)]' : 'h-[calc(100svh-19rem)]'">
             @include('livewire.dashboard.tab.calendar.day')
         </div>
-        <div class="md:hidden p-4">
+        <div class="md:hidden p-4 bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_60%,transparent)]">
             @include('livewire.dashboard.tab.calendar.mobile-list', ['scope' => 'day'])
         </div>
     </div>
 
     @include('livewire.dashboard.tab.calendar.create')
     @include('livewire.dashboard.tab.calendar.share')
+    <x-ui.modals.sms scope="calendar" :templates="$this->smsTemplates" />
 </div>

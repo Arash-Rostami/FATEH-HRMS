@@ -1,3 +1,5 @@
+@use('App\Models\AiReport')
+@use('Illuminate\Support\Str')
 @php
     $skipped = $report !== null ? $presenter->skippedFiles($report) : [];
     $notes = $report !== null ? $presenter->notes($report) : [];
@@ -6,12 +8,12 @@
 
 <div class="flex flex-col gap-4 print:gap-3">
     <p wire:key="ai-report-live" class="sr-only" role="status" aria-live="polite">
-        @if($report === null)@elseif($report->status === \App\Models\AiReport::STATUS_GENERATING)در حال تولید گزارش…@elseif($report->status === \App\Models\AiReport::STATUS_FAILED)ساخت گزارش ناموفق بود@elseگزارش آماده است@endif
+        @if($report === null)@elseif($report->status === AiReport::STATUS_GENERATING)در حال تولید گزارش…@elseif($report->status === AiReport::STATUS_FAILED)ساخت گزارش ناموفق بود@elseگزارش آماده است@endif
     </p>
     @if($report !== null && $readOnly)
         <div wire:key="ai-report-recipient-banner" class="print:hidden">
             <x-ui.notice-card icon="forward_to_inbox">
-                <p class="text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">این گزارش را <bdi>{{ $report->user?->name ?? 'همکار شما' }}</bdi> برای شما فرستاده است و فقط خواندنی است.</p>
+                <p class="text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">@if($report->isRecipient(auth()->user()))این گزارش را <bdi>{{ $report->user?->name ?? 'همکار شما' }}</bdi> برای شما فرستاده است و @else این گزارش @endifفقط خواندنی است.</p>
             </x-ui.notice-card>
         </div>
     @endif
@@ -34,7 +36,7 @@
                 </div>
             </x-ui.empty>
         </div>
-    @elseif($report->status === \App\Models\AiReport::STATUS_GENERATING)
+    @elseif($report->status === AiReport::STATUS_GENERATING)
         <div wire:key="ai-report-viewer-generating" wire:poll.visible.{{ config('ai.report.poll_seconds') }}s="pollStatus" role="status" aria-live="polite" aria-busy="true"
              class="flex flex-col items-center justify-center gap-3 py-16 text-center print:hidden">
             <x-ui.loaders.skeleton.report wire:key="ai-report-generating-skeleton"/>
@@ -45,13 +47,13 @@
             </div>
             @php($generatingVersion = $report->lastVersion())
             @if(filled($generatingVersion['prompt'] ?? ''))
-                <p wire:key="ai-report-generating-echo" class="max-w-xl w-full text-start text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]" dir="auto">{{ \Illuminate\Support\Str::limit($generatingVersion['prompt'], 160) }}</p>
+                <p wire:key="ai-report-generating-echo" class="max-w-xl w-full text-start text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]" dir="auto">{{ Str::limit($generatingVersion['prompt'], 160) }}</p>
             @endif
             @if(!empty($generatingVersion['files'] ?? []))
                 <p wire:key="ai-report-generating-files" class="max-w-xl w-full text-start text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]"><bdi>{{ implode('، ', $generatingVersion['files']) }}</bdi></p>
             @endif
         </div>
-    @elseif($report->status === \App\Models\AiReport::STATUS_FAILED)
+    @elseif($report->status === AiReport::STATUS_FAILED)
         @php($lastVersion = $report->lastVersion())
         @php($lastPrompt = $lastVersion['prompt'] ?? '')
         <div wire:key="ai-report-viewer-failed" class="flex flex-col gap-4 print:gap-3">
@@ -73,6 +75,12 @@
                             <p wire:key="ai-report-retry-quota-note" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">این تلاش دوباره یک سهمیه مصرف می‌کند؛ سهمیهٔ تلاش ناموفق قبلی برگردانده شده است.</p>
                         </div>
                     @endif
+                @endif
+                @if($owner && $presenter->canRestore($report))
+                    <div wire:key="ai-report-restore" class="mt-3 flex flex-col gap-1.5">
+                        <x-ui.buttons.form type="button" variant="tonal" icon="history" wire:click="restore" loading="restore">{{ __('resources/ai_report/strings.restore.button') }}</x-ui.buttons.form>
+                        <p wire:key="ai-report-restore-note" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ __('resources/ai_report/strings.restore.note') }}</p>
+                    </div>
                 @endif
             </x-ui.notice-card>
             </div>
@@ -167,7 +175,7 @@
         </div>
     @endif
 
-    @if($report !== null && $owner && $report->status !== \App\Models\AiReport::STATUS_GENERATING)
+    @if($report !== null && $owner && $report->status !== AiReport::STATUS_GENERATING)
         <div wire:key="ai-report-delete-strip" class="flex flex-wrap items-center gap-2 print:hidden">
             <button type="button" wire:key="ai-report-active-toggle" wire:click="toggleActive" wire:loading.attr="disabled" wire:target="toggleActive"
                     title="{{ $report->active ? 'گزارش از دسترس گیرندگان خارج می‌شود و ' . ($activeTab === 'compose' ? 'در فهرست کناری، زبانهٔ «غیرفعال» می‌ماند' : 'در زبانهٔ جدول زیر «غیرفعال‌ها» می‌ماند') : 'گزارش دوباره برای شما و گیرندگان در دسترس می‌شود' }}"

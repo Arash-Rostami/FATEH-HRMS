@@ -1,8 +1,10 @@
+@use('App\Models\AiReport')
 @use('App\Services\Menu\BadgeLegendCatalog')
 @php
     $report = $this->report;
     $owner = $report !== null && $report->isOwnedBy(auth()->user());
     $limits = $presenter->limits();
+    $switchTargets = "toggleView,switchTab('table'),switchTab('report'),switchTab('compose')";
 @endphp
 
 <div dir="rtl" x-on:confirmation-confirmed.window="{{ confirmDialogListener(['delete' => false]) }}"
@@ -36,7 +38,7 @@
                                            @click="$dispatch('open-modal', { name: 'ai-report-share' })"/>
                     @endif
 
-                    @if($report !== null && $activeTab !== 'table' && $report->status === \App\Models\AiReport::STATUS_READY)
+                    @if($report !== null && $activeTab !== 'table' && $report->status === AiReport::STATUS_READY)
                         <x-ui.buttons.form wire:key="ai-report-print-button" type="button" variant="tonal" size="icon" icon="print" title="چاپ یا ذخیره PDF: در پنجرهٔ چاپ، مقصد «ذخیره به‌صورت PDF» را انتخاب کنید"
                                             aria-label="چاپ یا ذخیره PDF: در پنجرهٔ چاپ، مقصد «ذخیره به‌صورت PDF» را انتخاب کنید" class="!h-8 !w-8 !p-0 !rounded-lg" x-on:click="window.print()"/>
                         <x-ui.buttons.form wire:key="ai-report-copy-button" type="button" variant="tonal" size="icon" icon="content_copy"
@@ -125,11 +127,11 @@
                 </div>
 
                 @if($activeTab === 'table')
-                    <div wire:key="ai-report-view-table" x-data="aiReportTable" class="flex flex-col gap-3 print:hidden">
+                    <div wire:key="ai-report-view-table" x-data="aiReportTable" wire:loading.remove wire:target="{{ $switchTargets }}" class="flex flex-col gap-3 print:hidden">
                         @include('livewire.dashboard.ai-report.table')
                     </div>
                 @else
-                    <div wire:key="ai-report-view-report" class="flex flex-col gap-4 min-w-0 print:w-full print:max-w-none">
+                    <div wire:key="ai-report-view-report" wire:loading.remove wire:target="{{ $switchTargets }}" class="flex flex-col gap-4 min-w-0 print:w-full print:max-w-none">
                         @include('livewire.dashboard.ai-report.viewer', ['report' => $report, 'owner' => $owner])
 
                         @unless($readOnly)
@@ -138,12 +140,12 @@
                     </div>
                 @endif
 
-                @if($this->hasGenerating && ($activeTab === 'table' || $report === null || $report->status !== \App\Models\AiReport::STATUS_GENERATING))
-                    <div wire:key="ai-report-table-poll-anchor" wire:poll.visible.{{ config('ai.report.poll_seconds') }}s="pollList"></div>
+                @if($this->hasGenerating && ($activeTab === 'table' || $report === null || $report->status !== AiReport::STATUS_GENERATING))
+                    <div wire:key="ai-report-table-poll-anchor" wire:poll.visible.{{ config('ai.report.poll_seconds') }}s="pollList" class="sticky bottom-0 h-px pointer-events-none"></div>
                 @endif
             </div>
         @else
-            <div wire:key="ai-report-view-compose" class="grid grid-cols-1 lg:grid-cols-[1fr_minmax(240px,300px)] gap-4 items-start">
+            <div wire:key="ai-report-view-compose" wire:loading.remove wire:target="{{ $switchTargets }}" class="grid grid-cols-1 lg:grid-cols-[1fr_minmax(240px,300px)] gap-4 items-start">
                 <div class="flex flex-col gap-4 min-w-0 print:w-full print:max-w-none">
                     @include('livewire.dashboard.ai-report.viewer', ['report' => $report, 'owner' => $owner])
 
@@ -153,10 +155,11 @@
                 </div>
 
                 @unless($readOnly)
-                    @if($this->hasGenerating && ($report === null || $report->status !== \App\Models\AiReport::STATUS_GENERATING))
-                        <aside wire:key="ai-report-list-polling" wire:poll.visible.{{ config('ai.report.poll_seconds') }}s="pollList"
+                    @if($this->hasGenerating && ($report === null || $report->status !== AiReport::STATUS_GENERATING))
+                        <aside wire:key="ai-report-list-polling"
                                class="flex flex-col gap-2 lg:sticky lg:top-4 p-3 rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border border-[var(--md-sys-color-outline-variant)]/40 print:hidden">
                             @include('livewire.dashboard.ai-report.list')
+                            <div wire:key="ai-report-list-poll-anchor" wire:poll.visible.{{ config('ai.report.poll_seconds') }}s="pollList" class="sticky bottom-0 h-px pointer-events-none"></div>
                         </aside>
                     @else
                         <aside wire:key="ai-report-list-idle"
@@ -167,5 +170,10 @@
                 @endunless
             </div>
         @endif
+
+        <div wire:key="ai-report-switch-skeleton" wire:loading.flex wire:target="{{ $switchTargets }}" class="flex-col gap-2 print:hidden" role="status" aria-label="در حال بارگذاری...">
+            <x-ui.loaders.skeleton.bar height="h-11"/>
+            <x-ui.loaders.skeleton.table-stripe :columns="4" :rows="6"/>
+        </div>
     </div>
 </div>

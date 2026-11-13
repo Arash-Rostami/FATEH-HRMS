@@ -6,12 +6,16 @@ use App\Filament\Resources\ChannelResource\Exports\ChannelExporter;
 use App\Filament\Resources\ChannelResource\Pages\{CreateChannel, EditChannel, ListChannels};
 use App\Filament\Resources\ChannelResource\RelationManagers\{ChannelMembersRelationManager, ChannelMessagesRelationManager};
 use App\Filament\Resources\ChannelResource\Schemas\{ChannelFormPresenter, ChannelInfolistPresenter, ChannelTablePresenter};
+use App\Filament\Pages\UnlockModules;
 use App\Models\Channel;
 use App\Models\Project;
+use App\Support\LockPolicy;
 use App\Traits\Filament\AuthorizesByPermission;
 use App\Traits\Filament\FilamentActions;
 use App\Traits\Filament\FilamentAdminGuide;
 use App\Traits\Filament\FilamentFilters;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -80,9 +84,9 @@ class ChannelResource extends Resource
         return $record->name ?? '';
     }
 
-    public static function getGlobalSearchResultUrl(Model $record): string
+    public static function getGlobalSearchResultUrl(Model $record): ?string
     {
-        return static::getUrl('edit', ['record' => $record]);
+        return LockPolicy::blocksRecord(static::moduleKey(), $record) ? null : static::getUrl('edit', ['record' => $record]);
     }
 
     public static function getGloballySearchableAttributes(): array
@@ -166,15 +170,30 @@ class ChannelResource extends Resource
             ])
             ->filtersFormColumns(2)
             ->recordActions([
+                self::unlockAction(),
                 self::viewAction(),
                 self::editAction(),
                 self::restoreAction(),
                 self::deleteAction()->visible(fn($record) => !$record->trashed() && !in_array($record->id, self::projectChannelIds(), true)),
             ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(ChannelExporter::class))
+            ->groupedBulkActions(array_map(
+                fn($action) => $action instanceof DeleteBulkAction ? $action->authorizeIndividualRecords() : $action,
+                self::bulkActions(ChannelExporter::class),
+            ))
             ->emptyStateIcon('heroicon-o-bookmark')
             ->defaultSort('created_at', 'desc')
             ->striped();
+    }
+
+    private static function unlockAction(): Action
+    {
+        return Action::make('unlock')
+            ->label(__('resources/lock/strings.unlock.action'))
+            ->icon('heroicon-m-lock-closed')
+            ->iconButton()
+            ->color('warning')
+            ->visible(fn(Model $record): bool => LockPolicy::blocksRecord(self::moduleKey(), $record))
+            ->url(fn(Model $record): string => UnlockModules::getUrl(['record' => $record->getKey()]));
     }
 
     private static function projectChannelIds(): array

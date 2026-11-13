@@ -131,8 +131,8 @@ class UserFormPresenter
             ->valueLabel(__('resources/user/strings.form.extra_value'))
             ->columns(2)
             ->addActionLabel('افزودن ردیف')
-            ->afterStateHydrated(function (KeyValue $component, ?array $state): void {
-                $component->state(User::editableExtraOf($state));
+            ->afterStateHydrated(function (KeyValue $component, ?array $state, ?User $record): void {
+                $component->state($record?->editableExtra() ?? User::editableExtraOf($state));
             })
             ->dehydrateStateUsing(function (?array $state, ?User $record): array {
                 $stored = collect($record?->adminExtra() ?? [])->only(User::PROTECTED_ADMIN_KEYS);

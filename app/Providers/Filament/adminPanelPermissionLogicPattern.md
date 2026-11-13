@@ -113,7 +113,7 @@ The trait maps every Filament authorization method to `permits($action)` in **tw
   none exists, so a canX-only trait never hid or blocked in-table Delete/Edit. Unauthorized actions now
   auto-hide. Resource-level `canX` overrides (`canCreate=false` on Contact/EnergyTest/ReservationPolicy,
   `canForceDelete=false` on Project) are **not** consulted by it.
-- `permits($action)` → delegates to `Auth::user()->permits(static::moduleKey(), $action)`
+- `permits($action, ?Model $record = null)` → `!LockPolicy::blocks(moduleKey)` AND (when a record is passed) `!LockPolicy::blocksRecord(moduleKey, $record)` AND `Auth::user()->permits(static::moduleKey(), $action)` — every record-taking `can*` and `getAuthorizationResponse` pass the record (see `app/Services/Lock/lockPattern.md`); delegates to `Auth::user()->permits(static::moduleKey(), $action)`
   (null-user guard first; developer bypass and the instance memo live in `User::permits()`).
 - `moduleKey()` = `Str::snake` of the class basename with the **trailing** `Resource`
   suffix stripped (`substr($base, 0, -strlen('Resource'))`) → `AuthorityResource` →
@@ -212,6 +212,10 @@ $fail = fn(string $m) => throw new \RuntimeException($m);
 (new \App\Rules\SuperAdminExclusion())->validate('x', range(1, 6), $fail);
 (new \App\Rules\SuperAdminExclusion())->validate('x', range(1, 7), $fail);
 ```
+
+## Module locks (second gate, 2026-11-12)
+
+`permits()` in `AuthorizesByPermission` now reads `!LockPolicy::blocks(moduleKey()) && $user->permits(...)`: a locked module is simply a permission denial, so nav, search, tabs and row/bulk/header actions disappear through existing code; `GuardsModuleLock` (Livewire `booted` hook, public so Livewire can call it, on the page and relation-manager bases) closes pages that were already open. Developers and chairman/ceo bypass locks but never permissions. The `permission` module is never lockable (its `canViewAny` is overridden outside `permits()`). Rules, tables and limits: `app/Services/Lock/lockPattern.md`.
 
 ## Things that are intentionally NOT touched
 

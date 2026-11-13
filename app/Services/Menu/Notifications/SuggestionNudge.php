@@ -6,6 +6,7 @@ use App\Models\Review;
 use App\Models\Suggestion;
 use App\Models\User;
 use App\Services\Menu\Contracts\MenuNudge;
+use App\Support\SuggestionAccessPolicy;
 
 class SuggestionNudge implements MenuNudge
 {
@@ -29,8 +30,10 @@ class SuggestionNudge implements MenuNudge
 
     public function for($subject)
     {
+        $depts = array_merge(['MA', 'MG'], $subject->departments ?? [], SuggestionAccessPolicy::ceoReview($subject)?->referral ?? []);
+
         return User::active()
-            ->whereHas('profile', fn($q) => $q->whereIn('department_id', array_merge(['MA', 'MG'], $subject->departments ?? [])))
+            ->whereHas('profile', fn($q) => $q->where(fn($w) => $w->whereIn('department_id', $depts)->orWhereIn('position', ['chairman', 'ceo'])))
             ->get();
     }
 

@@ -202,6 +202,7 @@ return [
         'source_rule' => 'قانون اعلان',
         'source_status' => 'پیامک تب وضعیت',
         'source_reservation' => 'پیامک رزرو',
+        'source_calendar' => 'پیامک تقویم',
     ],
 
     'logs' => [

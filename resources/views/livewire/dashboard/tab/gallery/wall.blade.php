@@ -18,7 +18,7 @@
             @endphp
             <div wire:key="wall-{{ $photo->id }}"
                  data-photo-id="{{ $photo->id }}"
-                 x-show="!month || month === @js($monthKey)"
+                 x-show="(!month || month === @js($monthKey)) && (!onlySaved || $store.pinned.isPinned({{ $photo->id }}, 'gallery'))"
                  class="mb-4 break-inside-avoid relative group/wall rounded-2xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm bg-[var(--md-sys-color-surface)] ring-1 ring-transparent hover:ring-[var(--md-sys-color-primary)]/30 transition-all duration-300">
                 @if($lead)
                     <a href="{{ $lead }}" data-fancybox="gallery-wall-{{ $photo->id }}" class="block relative overflow-hidden">
@@ -41,9 +41,12 @@
                         <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-on-surface-variant)] opacity-40">photo_library</span>
                     </div>
                 @endif
-                <div class="p-2 space-y-0.5">
-                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)] line-clamp-1">{{ $photo->title }}</p>
-                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">{{ $dateLabel }}</p>
+                <div class="p-2 flex items-center justify-between gap-2">
+                    <div class="min-w-0 space-y-0.5">
+                        <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)] line-clamp-1">{{ $photo->title }}</p>
+                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">{{ $dateLabel }}</p>
+                    </div>
+                    <x-ui.buttons.bookmark :id="$photo->id" scope="gallery" class="shrink-0"/>
                 </div>
             </div>
         @endforeach
@@ -52,6 +55,7 @@
     @if($this->hasMorePages)
         <div wire:key="gallery-wall-load-more" class="flex justify-center py-6">
             <x-ui.buttons.load-more
+                x-show="!onlySaved || !$store.pinned.isEmpty('gallery')"
                 action="loadMore"
                 text="بارگذاری بیشتر"
                 loading-text="در حال دریافت..."

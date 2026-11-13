@@ -103,7 +103,7 @@ class Documents extends Component
     private function dispatchConfirmation(string $message): void
     {
         $this->dispatch('open-confirmation',
-            title: 'تایید نهایی بارگذاری',
+            title: 'تأیید نهایی بارگذاری',
             message: $message,
             method: 'confirmAction',
             params: 'confirm-upload-documents'

@@ -2,8 +2,13 @@
 
 namespace App\Services\AiReport;
 
+use Carbon\Carbon;
+use DateTimeInterface;
+use finfo;
 use Illuminate\Support\Facades\Storage;
 use OpenSpout\Reader\XLSX\Reader;
+use Throwable;
+use ZipArchive;
 
 final class FileExtractor
 {
@@ -31,12 +36,12 @@ final class FileExtractor
         $storage = Storage::disk($disk);
         $used = 0;
         $inlineBytes = 0;
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
         foreach ($storage->files($directory) as $relative) {
             $name = basename($relative);
             try {
                 $this->consume($storage->path($relative), $name, $out, $used, $inlineBytes, $finfo);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $this->skip($out, $name, 'corrupt');
             }
         }
@@ -44,7 +49,7 @@ final class FileExtractor
         return $out;
     }
 
-    private function consume(string $path, string $name, array &$out, int &$used, int &$inlineBytes, \finfo $finfo): void
+    private function consume(string $path, string $name, array &$out, int &$used, int &$inlineBytes, finfo $finfo): void
     {
         $size = filesize($path) ?: 0;
         if ($size === 0) {
@@ -75,9 +80,9 @@ final class FileExtractor
 
     private function zipKind(string $path): string
     {
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         $code = $zip->open($path);
-        if (in_array($code, [\ZipArchive::ER_NOPASSWD, \ZipArchive::ER_WRONGPASSWD, \ZipArchive::ER_ENCRNOTSUPP], true)) {
+        if (in_array($code, [ZipArchive::ER_NOPASSWD, ZipArchive::ER_WRONGPASSWD, ZipArchive::ER_ENCRNOTSUPP], true)) {
             return 'encrypted';
         }
         if ($code !== true) {
@@ -115,9 +120,9 @@ final class FileExtractor
 
     private function docx(string $path, string $name, array &$out, int &$used): void
     {
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         $code = $zip->open($path);
-        if (in_array($code, [\ZipArchive::ER_NOPASSWD, \ZipArchive::ER_WRONGPASSWD, \ZipArchive::ER_ENCRNOTSUPP], true)) {
+        if (in_array($code, [ZipArchive::ER_NOPASSWD, ZipArchive::ER_WRONGPASSWD, ZipArchive::ER_ENCRNOTSUPP], true)) {
             $this->skip($out, $name, 'encrypted');
 
             return;
@@ -161,7 +166,7 @@ final class FileExtractor
 
             return;
         }
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         $opened = $zip->open($path) === true;
         $oversized = !$opened || $this->zipOversized($zip, 'xlsx_xml_kb');
         if ($opened) {
@@ -233,15 +238,34 @@ final class FileExtractor
         }
         $capped = $size > strlen($raw);
         if (!mb_check_encoding($raw, 'UTF-8')) {
-            if (!$capped) {
+            $converted = $this->transcode($raw, $capped);
+            if ($converted === null && !$capped) {
                 $this->skip($out, $name, 'corrupt');
 
                 return;
             }
-            $raw = mb_scrub($raw, 'UTF-8');
+            $raw = $converted ?? mb_scrub($raw, 'UTF-8');
         }
         $text = mb_substr($raw, 0, $perFile);
         $this->pushText($out, $name, $text, $capped || mb_strlen($raw) > $perFile, $used);
+    }
+
+    private function transcode(string $raw, bool $capped): ?string
+    {
+        $from = match (true) {
+            str_starts_with($raw, "\xFF\xFE") => 'UTF-16LE',
+            str_starts_with($raw, "\xFE\xFF") => 'UTF-16BE',
+            $capped => null,
+            default => 'Windows-1256',
+        };
+        if ($from === null) {
+            return null;
+        }
+        $text = $from === 'Windows-1256' ? @iconv('CP1256', 'UTF-8', $raw) : mb_convert_encoding($raw, 'UTF-8', $from);
+
+        return is_string($text) && mb_check_encoding($text, 'UTF-8') && preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', $text) === 0
+            ? ltrim($text, "\u{FEFF}")
+            : null;
     }
 
     private function pushText(array &$out, string $name, string $text, bool $capped, int &$used): void
@@ -269,7 +293,7 @@ final class FileExtractor
         }
         if ($capped) {
             $text .= "\n" . self::TRUNCATION;
-            $out['notes'][] = 'فایل «' . $this->reportedName($name) . '» به دلیل حجم زیاد ادامه‌اش بریده شد.';
+            $out['notes'][] = __('resources/ai_report/strings.notes.truncated', ['name' => $this->reportedName($name)]);
         }
         $used += mb_strlen($text);
         $safeName = str_replace(['<<<', '>>>'], ['«', '»'], $this->reportedName($name));
@@ -280,8 +304,8 @@ final class FileExtractor
 
     private function cell(mixed $value): string
     {
-        if ($value instanceof \DateTimeInterface) {
-            $value = $value->format('Y-m-d H:i') . ' (' . toJalali(\Carbon\Carbon::instance($value), 'j F Y') . ')';
+        if ($value instanceof DateTimeInterface) {
+            $value = $value->format('Y-m-d H:i') . ' (' . toJalali(Carbon::instance($value), 'j F Y') . ')';
         } elseif (is_bool($value)) {
             $value = $value ? '1' : '0';
         } elseif (is_int($value)) {
@@ -295,7 +319,7 @@ final class FileExtractor
         return mb_substr(trim($value), 0, (int) config('ai.report.spec.cell'));
     }
 
-    private function zipOversized(\ZipArchive $zip, string $capKey): bool
+    private function zipOversized(ZipArchive $zip, string $capKey): bool
     {
         if ($zip->numFiles > (int) config('ai.report.extract.zip_entries')) {
             return true;
@@ -323,7 +347,7 @@ final class FileExtractor
 
     private function officeEncrypted(string $path, string $inner): bool
     {
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         if ($zip->open($path) !== true) {
             return false;
         }

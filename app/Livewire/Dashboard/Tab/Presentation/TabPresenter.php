@@ -39,6 +39,13 @@ class TabPresenter
         Cache::forget(self::statsKey());
     }
 
+    public static function forgetTeamPulse(): void
+    {
+        if (Cache::add('home_team_pulse_forgot', true, 5)) {
+            Cache::forget('home_team_pulse');
+        }
+    }
+
     public function teamPulse(): Collection
     {
         return $this->rankedOnlineUsers()->reject(fn(User $u) => $u->id === auth()->id())->values();
@@ -47,7 +54,7 @@ class TabPresenter
     public function rankedOnlineUsers(): Collection
     {
         return ModelCacheVersion::rememberGlobal('home_team_pulse', fn(): Collection =>
-            User::active()
+            User::visibleOnBoard()
                 ->online()
                 ->whereNotIn('presence', PresenceStatus::unreachableValues())
                 ->with(['profile', 'profile.details' => fn($q) => $q->where('key', 'display_name')])

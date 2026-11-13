@@ -282,7 +282,7 @@ meaningful, since placeholders and watch options derive from it.
   and `SendReminderSmsJob` does nothing. To swap the SMS provider for a client, add/choose a provider class (see "SMS providers") and set its `services.*` keys and `SMS_PROVIDER`. Success = JSON `return.status === 200`; any other status throws `RuntimeException("کاوه‌نگار {code}: {return.message}")`
   (the job logs it in `notify_logs.error`). The key is part of the URL, so **never log or surface the request URL/exception text**: every
   transport failure is rewrapped as a fixed Persian message. Direction marks (RLE/PDF…) are stripped from the SMS text. No retries
-  (the job is `tries = 1`; a retry could double-send). `SmsChannel::text()` serves the user-panel `SendSmsAction` (catches, returns bool).
+  (the job is `tries = 1`; a retry could double-send). `SmsChannel::text()` serves the user-panel `SendSmsAction` (catches, returns bool) and appends the one tenant footer `SmsChannel::footer()` (brand name without tatweel) — the SMS modal's preview tab reads the same method, so never inline the sentence elsewhere.
 - **Send-test** (`SendTestAction::make('mail'|'sms')`, edit-page header + table row icon buttons `sendTestMail` / `sendTestSms`)
   sends ONE test through that single channel to the logged-in admin only, using the latest record of the model (or `…`
   placeholders when the table is empty), prefixes the subject with «[آزمایشی]», and writes **no** `NotifyLog` rows. Each button is

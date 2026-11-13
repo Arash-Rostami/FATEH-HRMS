@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Traits\Filament\GuardsModuleLock;
 use App\Traits\Filament\HandlesActionExceptions;
 use App\Traits\Filament\HandlesSaveExceptions;
 use Filament\Resources\Pages\CreateRecord as BaseCreateRecord;
@@ -13,6 +14,7 @@ use Throwable;
 
 class CreateRecord extends BaseCreateRecord
 {
+    use GuardsModuleLock;
     use HandlesActionExceptions;
     use HandlesSaveExceptions;
 

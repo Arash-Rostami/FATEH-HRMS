@@ -33,6 +33,15 @@ final class AiReportAccessPolicy
             && in_array($report->status, [AiReport::STATUS_READY, AiReport::STATUS_FAILED], true);
     }
 
+    public static function canRestore(AiReport $report, ?User $user): bool
+    {
+        return $report->isOwnedBy($user)
+            && $report->active
+            && $report->status === AiReport::STATUS_FAILED
+            && is_array($report->spec)
+            && $report->spec !== [];
+    }
+
     public static function canSave(AiReport $report, ?User $user): bool
     {
         return $report->isOwnedBy($user) && $report->status === AiReport::STATUS_READY;

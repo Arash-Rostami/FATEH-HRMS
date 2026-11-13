@@ -2,9 +2,37 @@ const CHANNEL_NAME = 'pulse';
 const LOCK_NAME = 'pulse-leader';
 const INTERVAL_MS = 70000;
 
+function paintPresence({ on, p, f }, meta) {
+    const online = new Set(on);
+
+    document.querySelectorAll('[data-u]').forEach((el) => {
+        const id = el.dataset.u;
+        const dot = el.querySelector('[data-dot]');
+        const isOn = online.has(Number(id));
+
+        if (dot && dot.hasAttribute('data-on') !== isOn) {
+            dot.toggleAttribute('data-on', isOn);
+            dot.title = isOn ? 'آنلاین' : 'آفلاین';
+        }
+
+        const badge = el.querySelector('.presence-badge');
+        const status = p[id] ?? 'onsite';
+        const focus = f[id] ?? '';
+
+        if (badge && meta[status] && (badge.dataset.presence !== status || (badge.dataset.focus ?? '') !== focus)) {
+            badge.dataset.presence = status;
+            badge.dataset.focus = focus;
+            badge.style.setProperty('--pb', `var(--presence-${status})`);
+            badge.title = meta[status].t + (focus ? ' · ' + focus : '');
+            badge.firstElementChild.textContent = focus ? 'self_improvement' : meta[status].i;
+        }
+    });
+}
+
 export default function pulse(fingerprint) {
     return {
         fp: fingerprint,
+        presenceMap: null,
         lastAt: 0,
         pending: new Set(),
         _channel: null,
@@ -91,7 +119,8 @@ export default function pulse(fingerprint) {
             if (this._leading) this._schedule(INTERVAL_MS);
         },
 
-        _apply({ events, fingerprint, at }) {
+        _apply({ events, fingerprint, at, presence }) {
+            if (presence) this.presenceMap = presence;
             const grew = ['notifications', 'edges'].some((k) => parseInt(fingerprint[k]) > (parseInt(this.fp[k]) || 0));
             if (grew) this.$store?.sound?.playNotification();
             this.fp = fingerprint;
@@ -102,6 +131,11 @@ export default function pulse(fingerprint) {
 
         _flush() {
             if (document.hidden) return;
+
+            if (this.presenceMap) {
+                paintPresence(this.presenceMap, this._meta ??= JSON.parse(this.$el.dataset.presenceMeta || '{}'));
+                this.presenceMap = null;
+            }
 
             this.pending.forEach((event) => window.Livewire?.dispatch(event));
             this.pending.clear();

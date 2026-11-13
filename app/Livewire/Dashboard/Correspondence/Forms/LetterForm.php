@@ -380,7 +380,7 @@ class LetterForm extends Form
             'senderCategory.required_if' => 'دستهٔ فرستنده را انتخاب کنید.',
             'prompt.required_if' => 'متن درخواست هوشمند را وارد کنید.',
             'prompt.min' => 'متن درخواست هوشمند کوتاه است.',
-            'relatedId.required_with' => 'رکورد مرتبط را انتخاب کنید.',
+            'relatedId.required_with' => 'مورد مرتبط را انتخاب کنید.',
             'files.max' => 'تعداد پیوست از سقف مجاز بیشتر است.',
             'files.*.mimes' => ComposerForm::unsupportedFileMessage(),
             'image.mimes' => 'تصویر باید jpg، png یا webp باشد.',

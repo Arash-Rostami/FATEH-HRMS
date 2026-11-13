@@ -121,7 +121,7 @@
                         </svg>
 
                         <span wire:loading.remove wire:target="submitReset" class="font-bold tracking-wide">ذخیره رمز جدید</span>
-                        <span wire:loading wire:target="submitReset" class="font-bold tracking-wide">در حال بروزرسانی...</span>
+                        <span wire:loading wire:target="submitReset" class="font-bold tracking-wide">در حال به‌روزرسانی...</span>
                     </div>
                 </button>
             </div>
@@ -132,7 +132,7 @@
                 <div class="flex items-center gap-2 text-[10px] font-medium transition-colors duration-300"
                      :class="hasLen ? 'text-green-600' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-80'">
                     <span class="material-symbols-rounded text-[16px]" x-text="hasLen ? 'check_circle' : 'radio_button_unchecked'"></span>
-                    <span>حداقل ۸ کاراکتر</span>
+                    <span>حداقل ۸ نویسه</span>
                 </div>
                 <div class="flex items-center gap-2 text-[10px] font-medium transition-colors duration-300"
                      :class="hasMix ? 'text-green-600' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-80'">

@@ -15,6 +15,8 @@ components/
 ```
 
 ### 1.1 UI Components (`components.ui.*`)
+
+`<x-ui.modals.sms>` is the shared Status/Calendar colleague-SMS form, built on `x-ui.modals.action` and its existing transitions. Its optional `templates` map is keyed by birthday/anniversary; `scope` isolates `open-sms` events. The text box opens EMPTY; a two-button bar below it offers «متن دلخواه» (`custom()`, clears the text) and the AI-styled «ساخت هوشمند» (`next()`), which only fills/cycles the ready templates with `{name}` replaced as text — no AI call, no quota. Filled text stays editable. A `<x-ui.buttons.tab-selector>` (write | «پیش‌نمایش موبایل») switches panels via the factory's `view`; the preview panel is a phone mock (status bar, bubble, input bar) whose part count comes from the factory's `segments()` (1 part ≤ 70 chars, then 67 per part — never inline the math in Blade); `preview()` builds `sender: text⏎footer` from a server-passed `frame` ({sender, footer from `SmsChannel::footer()`}; an empty editor gives an empty preview — submit requires text, so no fallback text is ever shown) so the preview can never drift from what `SendSmsAction` + `SmsChannel::text()` really send. All its Alpine logic lives in the registered factory `smsModal(value, templates, scope)` (`data/sms.js`) — no inline handlers. It requires the host's `SendsSms` trait. Only a successful server send dispatches `sms-sent`; Calendar uses that event for browser-only memory, scoped to the sender and Jalali occasion year. The form explains the sender prefix and tenant footer. Triggers on a component tag (the Calendar icon buttons) must NOT use `@js(...)` in `x-on:`/`x-show` — Blade does not compile directives inside component-tag attributes, so the browser gets the literal `@js(` text and Alpine throws; pass the payload with a bound `:data-sms="json_encode([...])"` and read `JSON.parse($el.dataset.sms)`.
 Design system primitives with zero business logic. Dedicated subdirectories for variant families (`ui/buttons/`, `ui/modals/`, `ui/forms/`); root `ui/` for singletons.
 
 | Criterion | UI Location | Domain Location |
@@ -102,6 +104,9 @@ Layout auto-includes cross-cutting concerns: confirmation modals, toast notifica
 | Scenario | Location | Example |
 |----------|----------|---------|
 | MD3 button with variants | `components.ui.buttons.form` (`variant` prop) | `<x-ui.buttons.form variant="primary">` |
+| Hover miniature of a tab's own pane (trial) | `components.ui.peek` inside an `x-data="peek"` scope | `<x-ui.peek/>` + scope root `data-active="{{ $activeTab }}"`, icons `@mouseenter="show('post', $el)" @mouseleave="hide()" @click="capture(); hide()"` |
+| "Nothing saved" empty state for the saved-only filter (also a one-line "only loaded saved items are shown" hint when something is saved) | `components.ui.saved-empty` (`scope`) | `<x-ui.saved-empty scope="post"/>` |
+| Per-user client-side bookmark (FAQ, Posts, Reports, Gallery) | `components.ui.buttons.bookmark` (`id`, `scope` → `$store.pinned`) | `<x-ui.buttons.bookmark :id="$post->id" scope="post"/>` |
 | Badge/nudge legend with catalog backing | `components.dashboard.modal.badge-legend` | `<x-dashboard.modal.badge-legend>` |
 | Stateful form with validation | `livewire.auth.login` + `App\Livewire\Auth\Login` | `<livewire:auth.login />` |
 | HTTP 500 error page | `errors.500` | Extends `errors.layout` (standalone shell) |

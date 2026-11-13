@@ -364,7 +364,6 @@ class StatusPresenter
                 'division' => $user->profile?->detailsMap()->get('unit'),
                 'section' => $user->profile?->detailsMap()->get('section'),
                 'favoriteColors' => $user->profile?->favorite_colors ?? [],
-                'is_online' => $user->isOnline(),
             ],
             'aboutMe' => $this->flattenAboutMe($user->profile?->about_me ?? []),
         ];

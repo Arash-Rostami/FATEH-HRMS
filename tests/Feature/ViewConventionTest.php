@@ -89,6 +89,7 @@ class ViewConventionTest extends TestCase
         'livewire/dashboard/tab/home.blade.php',
         'livewire/dashboard/tab/status/filters.blade.php',
         'livewire/dashboard/tab/status/occasions.blade.php',
+        'components/ui/modals/sms.blade.php',
     ];
 
     public static function smellProvider(): array

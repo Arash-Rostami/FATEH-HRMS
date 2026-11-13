@@ -43,6 +43,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Arr;
@@ -585,6 +586,7 @@ class CorrespondenceTest extends TestCase
         $signed = $this->user();
         $oldUnsigned = $this->user();
         $newApprover = $this->user();
+        $unsignedNew = $this->user();
         $letter = $this->letter($author, [
             'status' => Correspondence::STATUS_SHARED,
             'route_mode' => Correspondence::ROUTE_PARALLEL,
@@ -594,6 +596,11 @@ class CorrespondenceTest extends TestCase
             ],
             'recipients' => [$signed->id, $oldUnsigned->id],
         ]);
+
+        $this->expectValidation(fn () => $this->act($author, $letter, 'reroute', [
+            'parties' => [$this->party($signed), $this->party($unsignedNew)],
+        ]), 'status');
+        $this->signature($newApprover);
 
         $this->act($author, $letter, 'reroute', [
             'parties' => [$this->party($signed), $this->party($newApprover)],
@@ -1038,7 +1045,20 @@ class CorrespondenceTest extends TestCase
         $this->assertStringContainsString('wire:key="correspondence-switch-skeleton"', $html);
         $this->assertStringContainsString('wire:loading.remove', $html);
         $this->assertStringContainsString('toggleView,switchTab', $html);
-        $this->assertStringContainsString('wire:key="correspondence-workspace-', $html);
+    }
+
+    public function test_the_two_layouts_key_the_workspace_differently_so_toggling_never_leaves_a_blank_stub(): void
+    {
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($this->user())->test(Main::class);
+
+        $report = $component->set('activeTab', 'report')->html();
+        $this->assertStringContainsString('correspondence-workspace-report-', $report);
+        $this->assertStringNotContainsString('correspondence-workspace-compose-', $report);
+
+        $compose = $component->set('activeTab', 'compose')->html();
+        $this->assertStringContainsString('correspondence-workspace-compose-', $compose);
+        $this->assertStringNotContainsString('correspondence-workspace-report-', $compose);
     }
 
     public function test_opening_a_shared_letter_stamps_the_party_and_event_once_but_not_for_the_author(): void
@@ -1462,6 +1482,7 @@ class CorrespondenceTest extends TestCase
             'spec' => ['blocks' => [['type' => 'text', 'text' => 'بدنه']], 'sender' => ['name' => 'مرجع']],
         ]);
 
+        $this->act($registry, $received, 'correct', ['fields' => ['subject' => 'عنوان   اصلاح‌شده']]);
         $this->act($registry, $received, 'correct', ['fields' => ['subject' => 'عنوان اصلاح‌شده']]);
         $this->assertSame('عنوان اصلاح‌شده', $received->fresh()->subject);
         $this->act($registry, $received, 'close');
@@ -2508,6 +2529,34 @@ class CorrespondenceTest extends TestCase
         $this->assertStringNotContainsString('correspondence-form-party-delivery-0', $html);
     }
 
+    public function test_a_pdf_only_party_never_turns_not_opened_and_gets_no_remind(): void
+    {
+        $presenter = new CorrespondencePresenter();
+        $days = LetterForm::limits()['not_opened_days'];
+
+        $rows = $presenter->deliveryRows([
+            $this->outside(['name' => 'پی‌دی‌اف', 'delivery' => 'pdf', 'sent_at' => now()->subDays($days + 1)->toIso8601String(), 'token_hash' => str_repeat('a', 64), 'expires_at' => now()->addDays(5)->toIso8601String()]),
+        ]);
+
+        $this->assertNotSame('not_opened', $rows[0]['state']);
+        $this->assertFalse($rows[0]['can_remind']);
+    }
+
+    public function test_the_template_save_block_shows_to_the_author_only(): void
+    {
+        $author = $this->user();
+        $approver = $this->user();
+        $shared = $this->shared($author, [$this->party($approver)]);
+
+        $draft = $this->letter($author, ['subject' => 'draft for template']);
+
+        $authorHtml = Livewire::actingAs($author)->test(Workspace::class, ['letterId' => $draft->id])->html();
+        $approverHtml = Livewire::actingAs($approver)->test(Workspace::class, ['letterId' => $shared->id])->html();
+
+        $this->assertStringContainsString('correspondence-template-save', $authorHtml);
+        $this->assertStringNotContainsString('correspondence-template-save', $approverHtml);
+    }
+
     public function test_delivery_rows_report_state_flags_errors_and_expiry_per_outside_party(): void
     {
         $presenter = new CorrespondencePresenter();
@@ -2936,6 +2985,23 @@ class CorrespondenceTest extends TestCase
         Queue::assertNothingPushed();
         $this->assertSame(Correspondence::quotaCap(), Correspondence::quotaUsed($user->id));
         $this->assertFalse(Correspondence::query()->where('user_id', $user->id)->where('status', Correspondence::STATUS_GENERATING)->exists());
+    }
+
+    public function test_generate_warns_and_keeps_the_picked_files_instead_of_dropping_them(): void
+    {
+        $this->aiOn();
+        $user = $this->user();
+
+        $component = Livewire::actingAs($user)->test(Workspace::class)
+            ->set('form.prompt', 'Draft a short office letter about the approved request.')
+            ->set('form.files', [UploadedFile::fake()->create('note.pdf', 10, 'application/pdf')])
+            ->call('generate')
+            ->assertDispatched('toast')
+            ->assertSet('form.prompt', 'Draft a short office letter about the approved request.');
+
+        $this->assertCount(1, $component->instance()->form->files);
+        Queue::assertNothingPushed();
+        $this->assertSame(0, Correspondence::quotaUsed($user->id));
     }
 
     public function test_a_second_generation_is_refused_while_a_fresh_run_is_still_generating(): void

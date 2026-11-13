@@ -204,7 +204,7 @@
                                 'border-[var(--md-sys-color-error)]/40 bg-[var(--md-sys-color-error-container)]/15 ring-1 ring-inset ring-[var(--md-sys-color-error)]/25' => $entry['mentions_you'] ?? false,
                             ])>
                                 <div class="flex items-start gap-3">
-                                    <x-ui.avatar :existingImage="$entry['avatar_url'] ?? null" :alt="$entry['user_name'] ?? ''" size="md" :online="$entry['online'] ?? null"/>
+                                    <x-ui.avatar :existingImage="$entry['avatar_url'] ?? null" :alt="$entry['user_name'] ?? ''" size="md" :online="$entry['online'] ?? null" :uid="$entry['user_id'] ?: null"/>
 
                                     <div class="flex-1 min-w-0">
                                         <header class="flex items-center flex-wrap gap-x-2 gap-y-1 mb-1">

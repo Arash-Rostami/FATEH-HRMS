@@ -177,10 +177,10 @@ class Profile extends Model
     public static function cachedWithDates(): Collection
     {
         return static::cached(
-            'with_dates:u' . ModelCacheVersion::version(User::class),
+            'with_dates:u' . ModelCacheVersion::version(User::class) . ':p' . ModelCacheVersion::version(User::PRESENCE_VERSION_KEY),
             fn() => static::query()
-                ->select('id', 'user_id', 'birthdate', 'start_date', 'image')
-                ->with('user:id,name')
+                ->select('id', 'user_id', 'birthdate', 'start_date', 'image', 'cellphone')
+                ->with('user:id,name,status,type,presence')
                 ->where(fn($q) => $q->whereNotNull('birthdate')->orWhereNotNull('start_date'))
                 ->get()
         );

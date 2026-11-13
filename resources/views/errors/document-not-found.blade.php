@@ -12,9 +12,9 @@
             </div>
 
             <div class="flex flex-col gap-4">
-                <h1 class="text-2xl font-bold text-[var(--md-sys-color-on-surface)]">سند مورد نظر یافت نشد</h1>
+                <h1 class="text-2xl font-bold text-[var(--md-sys-color-on-surface)]">سند پیدا نشد</h1>
                 <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm leading-relaxed">
-                    فایل فیزیکی این سند در سرور موجود نیست یا مسیر آن تغییر کرده است. لطفاً وضعیت فایل را در سیستم بررسی کنید.
+                    فایل این سند در دسترس نیست. وضعیت آن را در سیستم بررسی کنید.
                 </p>
             </div>
 

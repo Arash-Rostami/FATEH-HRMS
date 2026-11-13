@@ -8,6 +8,7 @@
     <x-ui.title icon="campaign" title="اعلانات‌" :count="$this->totalPosts">
         <x-slot:actions>
             <x-ui.buttons.view-toggle module="announce" />
+            <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'posts-badge-legend' })"
@@ -41,6 +42,8 @@
     @include('livewire.dashboard.tab.posts.filters')
 
     <div class="w-full relative flex flex-col gap-6 lg:flex-1 lg:overflow-hidden">
+        <x-ui.saved-empty scope="post"/>
+
         @unless(tenantOff('announce:card'))
             <div wire:key="posts-view-card" x-show="view === 'card'" x-cloak
                  x-transition:enter="transition ease-out duration-300"

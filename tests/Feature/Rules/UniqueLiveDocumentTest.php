@@ -5,6 +5,7 @@ namespace Tests\Feature\Rules;
 use App\Enums\DocumentStatus;
 use App\Models\DMS;
 use App\Rules\UniqueLiveDocument;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -21,6 +22,8 @@ class UniqueLiveDocumentTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Queue::fake();
 
         Schema::create('dms', function ($t) {
             $t->id();

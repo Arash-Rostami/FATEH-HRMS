@@ -3,7 +3,7 @@
         [
             'icon' => 'format_list_bulleted',
             'label' => 'فهرست پیشنهادها',
-            'hint' => 'نوار کناری فهرست پیشنهادها را با جستجو (در عنوان و شناسهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">SN-</code>) و دکمهٔ «بارگذاری بیشتر» نشان می‌دهد. هر کارت شمارش موافق/نیمه‌موافق/مخالف، نام ثبت‌کننده و واحدهای ذی‌نفع را نمایش می‌دهد. کارتِ پیشنهادی که از واحدِ شما انتظار پاسخ دارد، با یک نشان اعلان و حاشیهٔ قرمز مشخص می‌شود (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">requiresMyAction</code>).',
+            'hint' => 'نوار کناری فهرست پیشنهادها را با جستجو (در عنوان و شناسهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">SN-</code>) و دکمهٔ «بارگذاری بیشتر» نشان می‌دهد. هر کارت شمارش موافق/نیمه‌موافق/مخالف، نام ثبت‌کننده و واحدهای ذی‌نفع را نمایش می‌دهد. کارتِ پیشنهادی که از واحدِ شما انتظار پاسخ دارد، با یک نشان اعلان و حاشیهٔ قرمز مشخص می‌شود (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">attentionIds</code>).',
         ],
         [
             'icon' => 'add_circle',

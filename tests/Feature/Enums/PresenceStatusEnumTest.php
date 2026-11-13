@@ -253,14 +253,6 @@ class PresenceStatusEnumTest extends TestCase
         }
     }
 
-    public function test_badge_class_returns_animate_bounce_only_for_angry_and_empty_otherwise(): void
-    {
-        foreach (PresenceStatus::cases() as $case) {
-            $expected = $case === PresenceStatus::Angry ? 'animate-bounce' : '';
-            $this->assertSame($expected, $case->badgeClasses(), "Badge class mismatch for {$case->name}.");
-        }
-    }
-
     public function test_lift_class_returns_strong_lift_only_for_angry_and_default_otherwise(): void
     {
         foreach (PresenceStatus::cases() as $case) {

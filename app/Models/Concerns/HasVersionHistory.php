@@ -6,7 +6,7 @@ trait HasVersionHistory
 {
     public function pushVersion(array $version): void
     {
-        $all = [...($this->versions ?? []), $version];
+        $all = [...array_map(fn (array $old) => isset($old['spec']) ? $old : array_diff_key($old, ['parent_spec' => 1]), $this->versions ?? []), $version];
         if (count($all) > self::maxVersions()) {
             $all = array_slice($all, -self::maxVersions());
             $all[0]['trimmed'] = true;

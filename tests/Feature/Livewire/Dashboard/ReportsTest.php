@@ -54,6 +54,29 @@ class ReportsTest extends TestCase
         return Department::factory()->create(['code' => $code, 'name' => $code, 'description' => $code]);
     }
 
+    public function test_reports_carry_the_bookmark_button_and_saved_only_toggle()
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $report = Report::factory()->create(['user_id' => $user->id, 'active' => true]);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Reports::class)
+            ->assertSeeHtml("togglePin({$report->id}, 'report')")
+            ->assertSeeHtml('onlySaved')
+            ->assertSeeHtml("isEmpty('report')")
+            ->assertSee('موردی نشان نشده است');
+    }
+
+    public function test_admin_pinned_report_badge_uses_the_keep_icon_not_the_bookmark(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        Report::factory()->create(['user_id' => $user->id, 'active' => true, 'pinned' => true]);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Reports::class)
+            ->assertSeeHtml('leading-none font-fill rotate-45">keep</span>');
+    }
+
     public function test_reports_render_and_toggle()
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);

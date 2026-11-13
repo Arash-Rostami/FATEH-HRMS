@@ -43,10 +43,13 @@
                 {{ toJalali($photo->event_date, 'j F Y') }}
             </span>
         </div>
-        <div
-            title="{{ $scope['label'] }}"
-            class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center shadow-sm cursor-help">
-            <span class="material-symbols-rounded text-base">{{ $scope['icon'] }}</span>
+        <div class="flex items-center gap-1 shrink-0">
+            <x-ui.buttons.bookmark :id="$photo->id" scope="gallery"/>
+            <div
+                title="{{ $scope['label'] }}"
+                class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center shadow-sm cursor-help">
+                <span class="material-symbols-rounded text-base">{{ $scope['icon'] }}</span>
+            </div>
         </div>
     </div>
 

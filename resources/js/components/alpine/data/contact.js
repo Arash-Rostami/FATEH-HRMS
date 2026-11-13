@@ -270,10 +270,11 @@ export default function contact() {
         syncPushNotify() {
             this._riseOnlyMuted();
             const now = this._readUnread();
+            const message = this._pushMessage(now, 'یک گفتگو پیام جدید دارد');
             const last = this._lastUnread;
             if (last !== undefined) {
                 if (now > last) {
-                    this.$store.push.notify('پیام جدید', 'یک گفتگو پیام جدید دارد', SCOPE);
+                    this.$store.push.notify(...message, SCOPE);
                     if (!this.$wire.activeUserId) this._ringIncoming(null);
                 }
                 this.$store.menuBadges?.set('contacts-controller', now > 0);

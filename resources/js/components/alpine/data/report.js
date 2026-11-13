@@ -17,6 +17,7 @@ export default function report() {
         view: null,
         activeId: null,
         showTimeline: false,
+        onlySaved: false,
         loading: false,
         recent: [],
 
@@ -36,6 +37,7 @@ export default function report() {
         init() {
             this._isDestroyed = false;
             this.view = this.$wire.get('view');
+            this.$watch('onlySaved', () => this.$nextTick(() => this.updateActiveItem()));
 
             try {
                 const saved = localStorage.getItem(RECENT_KEY);

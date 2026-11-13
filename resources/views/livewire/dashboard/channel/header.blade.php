@@ -135,7 +135,7 @@
                             <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']"
                                          :inactive="$member['inactive']"
                                          size="sm" :online="$member['is_online']" :status="$member['presence']"
-                                         :focus="$member['focus']"/>
+                                         :focus="$member['focus']" :uid="$member['id']"/>
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-1 flex-wrap">

@@ -1,3 +1,4 @@
+@use('App\Services\AiReport\BlockCatalog')
 @props(['block' => [], 'lang' => 'fa', 'editable' => false, 'ref' => null])
 @php($percent = $block['percent_column'] ?? null)
 @php($status = $block['status_column'] ?? null)
@@ -45,7 +46,7 @@
                     <tr>
                         @foreach($row as $index => $cell)
                             @if($index === $percent)
-                                @php($n = \App\Services\AiReport\BlockCatalog::number($cell))
+                                @php($n = BlockCatalog::number($cell))
                                 @php($bare = $n !== null && preg_match('/^[\s\d۰-۹٠-٩.,٬٫+-]+$/u', $cell) === 1)
                                 <td class="px-3 py-1.5 text-start tabular-nums align-middle whitespace-nowrap">
                                     <span class="inline-flex items-center justify-start gap-1.5">
@@ -54,11 +55,11 @@
                                                 <span wire:key="ai-report-table-percent-bar" class="block h-full rounded-full bg-[var(--md-sys-color-primary)]" style="width: {{ min(100, max(0, $n)) }}%"></span>
                                             @endif
                                         </span>
-                                        <bdi>{{ $bare ? trim($cell) . '%' : $cell }}</bdi>
+                                        <bdi>{{ $bare ? trim($cell) . ($lang === 'en' ? '%' : '٪') : $cell }}</bdi>
                                     </span>
                                 </td>
                             @elseif($index === $status)
-                                @php($tone = \App\Services\AiReport\BlockCatalog::tone($cell))
+                                @php($tone = BlockCatalog::tone($cell))
                                 <td class="px-3 py-1.5 align-middle {{ $tone !== null ? 'text-start whitespace-nowrap' : 'text-start break-words max-w-[12rem] text-[var(--md-sys-color-on-surface)]' }}">
                                     @if($tone !== null)
                                         <span wire:key="ai-report-table-status-badge" class="contents"><x-ui.badge :variant="$tone"><bdi>{{ $cell }}</bdi></x-ui.badge></span>
@@ -67,7 +68,7 @@
                                     @endif
                                 </td>
                             @else
-                                @php($numeric = \App\Services\AiReport\BlockCatalog::number($cell) !== null)
+                                @php($numeric = BlockCatalog::number($cell) !== null)
                                 <td class="px-3 py-1.5 {{ $numeric ? 'text-start tabular-nums' : 'text-start break-words max-w-[12rem] text-[var(--md-sys-color-on-surface)]' }}"><bdi>{{ $cell }}</bdi></td>
                             @endif
                         @endforeach
@@ -77,10 +78,10 @@
                     <tr wire:key="ai-report-table-total" class="font-black border-t-2 border-[var(--md-sys-color-outline)]">
                         @foreach($block['total'] as $index => $cell)
                             @if($index === $percent)
-                                @php($totalBare = \App\Services\AiReport\BlockCatalog::number($cell) !== null && preg_match('/^[\s\d۰-۹٠-٩.,٬٫+-]+$/u', $cell) === 1)
-                                <td class="px-3 py-2 text-start tabular-nums"><bdi>{{ $totalBare ? trim($cell) . '%' : $cell }}</bdi></td>
+                                @php($totalBare = BlockCatalog::number($cell) !== null && preg_match('/^[\s\d۰-۹٠-٩.,٬٫+-]+$/u', $cell) === 1)
+                                <td class="px-3 py-2 text-start tabular-nums"><bdi>{{ $totalBare ? trim($cell) . ($lang === 'en' ? '%' : '٪') : $cell }}</bdi></td>
                             @else
-                                @php($totalNumeric = \App\Services\AiReport\BlockCatalog::number($cell) !== null)
+                                @php($totalNumeric = BlockCatalog::number($cell) !== null)
                                 <td class="px-3 py-2 {{ $totalNumeric ? 'text-start tabular-nums' : 'text-start break-words max-w-[12rem] text-[var(--md-sys-color-on-surface)]' }}"><bdi>{{ $cell }}</bdi></td>
                             @endif
                         @endforeach

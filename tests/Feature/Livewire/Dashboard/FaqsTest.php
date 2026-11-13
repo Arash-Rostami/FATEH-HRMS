@@ -437,6 +437,28 @@ class FaqsTest extends TestCase
             ->assertDontSeeHtml("view = 'card'; active =");
     }
 
+    public function test_presenter_builds_the_plain_copy_text(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $faq = FAQ::factory()->create(['user_id' => $user->id, 'question' => 'Q one', 'answer' => '<p>Answer <b>two</b></p>']);
+        $presenter = new FaqPresenter();
+
+        $this->assertSame("Q one\n\nAnswer two", $presenter->copyText($faq));
+    }
+
+    public function test_every_faq_row_carries_the_bookmark_and_copy_actions(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $faq = FAQ::factory()->create(['user_id' => $user->id]);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Faqs::class)
+            ->assertSeeHtml("togglePin({$faq->id}, 'faq')")
+            ->assertSeeHtml('onlySaved')
+            ->assertSeeHtml("isEmpty('faq')")
+            ->assertSee('موردی نشان نشده است');
+    }
+
     public function test_card_view_answer_is_wired_to_the_same_toggle_accordion(): void
     {
         $user = User::factory()->create(['status' => 'active']);

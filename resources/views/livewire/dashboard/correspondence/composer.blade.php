@@ -1,6 +1,7 @@
 @use('App\Livewire\Dashboard\Correspondence\Forms\LetterForm')
 @use('App\Models\Correspondence')
 @use('App\Models\Letterhead')
+@use('App\Support\CorrespondenceAccessPolicy')
 @if(isset($partyRows))
     @php
         $people = ($tools ?? $presenter->editorTools($this->people->all()))['people'];
@@ -198,9 +199,9 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <x-ui.forms.input label="سازمان گیرنده" name="form.recipientOrg" wire:model="form.recipientOrg" :disabled="$lockAll"/>
-        <x-ui.forms.input label="شخص گیرنده" name="form.recipientPerson" wire:model="form.recipientPerson" :disabled="$lockAll"/>
-        <x-ui.forms.input label="سمت گیرنده" name="form.recipientTitle" wire:model="form.recipientTitle" :disabled="$lockAll"/>
+        <x-ui.forms.input label="سازمان گیرنده" name="form.recipientOrg" wire:model="form.recipientOrg" :disabled="$lockHead"/>
+        <x-ui.forms.input label="شخص گیرنده" name="form.recipientPerson" wire:model="form.recipientPerson" :disabled="$lockHead"/>
+        <x-ui.forms.input label="سمت گیرنده" name="form.recipientTitle" wire:model="form.recipientTitle" :disabled="$lockHead"/>
     </div>
 
     <x-ui.forms.input label="{{ __('resources/correspondence/strings.fields.subject') }}" name="form.subject" wire:model="form.subject" :disabled="$lockAll"
@@ -447,6 +448,12 @@
         @if($form->image)
             <span wire:key="correspondence-image-pending" class="text-xs text-[var(--md-sys-color-on-surface-variant)]">تصویر آمادهٔ ذخیره است.</span>
         @endif
+        @if($form->files !== [])
+            <span wire:key="correspondence-files-pending" class="text-xs text-[var(--md-sys-color-on-surface-variant)]">{{ convertToPersian(count($form->files)) }} پیوست آمادهٔ ذخیره است.</span>
+        @endif
+        <div wire:loading.delay wire:target="form.files, form.image">
+            <x-ui.loaders.bar/>
+        </div>
     </div>
     @if($form->image)
         <div wire:key="correspondence-image-options" class="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -516,7 +523,7 @@
         </div>
     @endif
 
-    @if($letter)
+    @if($letter && CorrespondenceAccessPolicy::isAuthor(auth()->user(), $letter))
         <div wire:key="correspondence-template-save" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
             <x-ui.forms.input label="نام الگو" name="templateName" wire:model="templateName" :disabled="$lockAll"/>
             <x-ui.forms.select label="محدودهٔ الگو" name="templateScope" wire:model="templateScope" :disabled="$lockAll">

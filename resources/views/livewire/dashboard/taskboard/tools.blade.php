@@ -6,7 +6,7 @@
                     <x-ui.table.tools :maximize="false" class="!w-auto">
                         <x-ui.table.density-toggle/>
 
-                        <x-ui.table.sort-popover :options="['created' => 'تاریخ ایجاد', 'updated' => 'آخرین بروزرسانی', 'deadline' => 'مهلت', 'priority' => 'اولویت', 'title' => 'عنوان']"
+                        <x-ui.table.sort-popover :options="['created' => 'تاریخ ایجاد', 'updated' => 'آخرین به‌روزرسانی', 'deadline' => 'مهلت', 'priority' => 'اولویت', 'title' => 'عنوان']"
                                                  :sort="$sort" :sortDir="$sortDir" :isDefault="$sort === ''"/>
 
                         <x-ui.table.col-toggle :scope="'taskboard'" icon="dashboard_customize" title="نمایش و مخفی کردن بخش‌های کارت" heading="بخش‌های کارت" :columns="$presenter->cardFieldOptions()"/>

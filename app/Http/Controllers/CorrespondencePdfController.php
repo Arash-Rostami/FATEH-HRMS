@@ -30,11 +30,11 @@ class CorrespondencePdfController extends Controller
         try {
             $file = CorrespondencePdf::absolute(CorrespondencePdf::path($letter));
         } catch (RuntimeException) {
-            abort(404);
+            $file = null;
         }
 
         if ($file === null) {
-            abort(404);
+            return redirect()->route('correspondence', ['open' => $letter->id])->with('correspondence_error', __('resources/correspondence/strings.errors.pdf_download'));
         }
 
         $response = response()->download($file, FileNamer::download('pdf', $letter->number));

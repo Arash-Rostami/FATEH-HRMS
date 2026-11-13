@@ -15,13 +15,13 @@ class DmsPresenter
             'status' => 'وضعیت',
             'details'=> 'جزییات',
             'desc'   => 'توضیحات',
-            'action' => 'مشاهده و تایید',
+            'action' => 'مشاهده و تأیید',
         ];
     }
 
     public function sortOptions(): array
     {
-        return ['updated' => 'بروزرسانی', 'title' => 'عنوان سند', 'code' => 'نسخه'];
+        return ['updated' => 'به‌روزرسانی', 'title' => 'عنوان سند', 'code' => 'نسخه'];
     }
 
     public function sortIsDefault(string $sort, string $sortDir): bool

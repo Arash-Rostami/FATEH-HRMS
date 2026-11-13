@@ -29,6 +29,7 @@ use App\Traits\Filament\HandlesActionExceptions;
 use App\Traits\Filament\HandlesSaveExceptions;
 use App\Models\Department;
 use App\Models\Event;
+use App\Models\Lock;
 use App\Models\Permission;
 use App\Models\Profile;
 use App\Models\Project;
@@ -39,8 +40,10 @@ use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Models\Workflow;
+use App\Services\Cache\ModelCacheVersion;
 use App\Services\ProjectTask\TasksheetShareService;
 use App\Services\User\UserKeyGrouper;
+use App\Support\LockPolicy;
 use Filament\Actions\EditAction;
 use Filament\Facades\Filament;
 use Filament\Resources\RelationManagers\RelationManagerConfiguration;
@@ -623,6 +626,28 @@ class UserResourceTest extends TestCase
         Permission::create(['user_id' => $admin->id, 'is_super_admin' => false, 'abilities' => $abilities]);
 
         return $admin;
+    }
+
+    public function test_an_already_open_relation_manager_stops_when_its_inferred_related_module_gets_locked()
+    {
+        config(['locks.disabled' => false]);
+        Lock::query()->delete();
+        ModelCacheVersion::bump(Lock::class);
+        LockPolicy::flush();
+        $target = User::factory()->create(['status' => 'active']);
+        $admin = $this->adminWith([['module' => 'user', 'actions' => ['view']], ['module' => 'ths', 'actions' => ['view']]]);
+
+        $component = Livewire::actingAs($admin)
+            ->test(TicketsRelationManager::class, ['ownerRecord' => $target, 'pageClass' => EditUser::class])
+            ->assertSuccessful();
+
+        Lock::create(['lockable_type' => 'ths', 'lockable_id' => 0, 'slot' => Lock::SLOT_CEO, 'secret_hash' => Hash::make('ceo-secret-1')]);
+        LockPolicy::flush();
+
+        $component->call('$refresh')->assertForbidden();
+
+        ModelCacheVersion::bump(Lock::class);
+        LockPolicy::flush();
     }
 
     public function test_relation_manager_tab_follows_the_related_modules_permission_not_the_owners()

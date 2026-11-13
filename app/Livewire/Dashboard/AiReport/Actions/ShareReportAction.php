@@ -8,13 +8,14 @@ use App\Models\User;
 use App\Services\Menu\StateService;
 use App\Support\AiReportAccessPolicy;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class ShareReportAction
 {
     public function execute(AiReport $report, User $user, array $recipientIds): array
     {
         if (!AiReportAccessPolicy::canShare($report, $user)) {
-            throw new \RuntimeException('این عملیات مجاز نیست.');
+            throw new RuntimeException('این عملیات مجاز نیست.');
         }
 
         $wanted = array_slice(array_values(array_unique(array_filter(array_map('intval', $recipientIds)))), 0, AiReport::maxRecipients() * 2);
@@ -24,7 +25,7 @@ class ShareReportAction
         [$merged, $added, $removed, $stamp, $truncated] = DB::transaction(function () use ($report, $user, $wanted, $board) {
             $locked = AiReport::query()->whereKey($report->id)->lockForUpdate()->first();
             if (!$locked) {
-                throw new \RuntimeException('این عملیات مجاز نیست.');
+                throw new RuntimeException('این عملیات مجاز نیست.');
             }
             $existing = array_values(array_unique(array_map('intval', $locked->recipients ?? [])));
             $cap = AiReport::maxRecipients();
@@ -49,7 +50,7 @@ class ShareReportAction
                 'updated_at' => now(),
             ]);
             if ($written !== 1 && !$scope()->exists()) {
-                throw new \RuntimeException('این عملیات مجاز نیست.');
+                throw new RuntimeException('این عملیات مجاز نیست.');
             }
 
             return [

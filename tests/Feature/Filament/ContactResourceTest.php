@@ -11,9 +11,13 @@ use App\Filament\Resources\ContactResource\Pages\ListContacts;
 use App\Filament\Resources\ContactResource\RelationManagers\RepliesRelationManager;
 use App\Traits\Filament\HandlesActionExceptions;
 use App\Traits\Filament\HandlesSaveExceptions;
+use App\Models\Lock;
 use App\Models\Message;
 use App\Models\Permission;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
+use App\Support\LockPolicy;
+use Illuminate\Support\Facades\Hash;
 use Filament\Actions\DeleteAction;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -486,5 +490,35 @@ class ContactResourceTest extends TestCase
             $offenders,
             "Closure param must be named \$record/\$query (or carry an explicit type hint) so Filament's by-name evaluate() injection binds correctly:\n" . implode("\n", $offenders),
         );
+    }
+
+    public function test_a_locked_contact_module_blocks_a_plain_admin_until_a_key_opens_it_and_never_blocks_a_developer()
+    {
+        config(['locks.disabled' => false]);
+        Lock::query()->delete();
+        ModelCacheVersion::bump(Lock::class);
+        LockPolicy::flush();
+        $admin = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        Permission::create(['user_id' => $admin->id, 'is_super_admin' => true]);
+        $developer = $this->developer();
+
+        $this->actingAs($admin);
+        $this->assertTrue(ContactResource::canViewAny());
+
+        $lock = Lock::create(['lockable_type' => 'contact', 'lockable_id' => 0, 'slot' => Lock::SLOT_CHAIRMAN, 'secret_hash' => Hash::make('chair-secret-1')]);
+        LockPolicy::flush();
+
+        $this->assertFalse(ContactResource::canViewAny());
+        Livewire::actingAs($admin)->test(ListContacts::class)->assertForbidden();
+
+        LockPolicy::remember('contact', $lock);
+        $this->assertTrue(ContactResource::canViewAny());
+
+        $this->actingAs($developer);
+        LockPolicy::flush();
+        $this->assertTrue(ContactResource::canViewAny());
+
+        ModelCacheVersion::bump(Lock::class);
+        LockPolicy::flush();
     }
 }

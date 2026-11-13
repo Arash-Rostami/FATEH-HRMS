@@ -6,6 +6,7 @@ use App\Filament\Resources\AiReportResource\Pages\{ListAiReports, ViewAiReport};
 use App\Filament\Resources\AiReportResource\Schemas\{AiReportInfolistPresenter, AiReportTablePresenter};
 use App\Models\AiReport;
 use App\Traits\Filament\{AuthorizesByPermission, FilamentActions, FilamentAdminGuide, FilamentFilters, FilamentVisibility};
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -124,17 +125,17 @@ class AiReportResource extends Resource
             ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
-                self::deleteAction()->hidden(fn (AiReport $record) => $record->status === AiReport::STATUS_GENERATING)->before(function ($action, AiReport $record) {
-                    if (AiReport::query()->whereKey($record->getKey())->where('status', AiReport::STATUS_GENERATING)->exists()) {
-                        \Filament\Notifications\Notification::make()->warning()->title('گزارش در حال تولید قابل حذف نیست.')->send();
+                self::deleteAction()->hidden(fn (AiReport $record) => $record->status === AiReport::STATUS_GENERATING && !$record->isStale())->before(function ($action, AiReport $record) {
+                    if (AiReport::query()->whereKey($record->getKey())->where('status', AiReport::STATUS_GENERATING)->where('updated_at', '>=', now()->subMinutes(AiReport::staleMinutes()))->exists()) {
+                        Notification::make()->warning()->title('گزارش در حال تولید قابل حذف نیست.')->send();
                         $action->cancel();
                     }
                 }),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions([
                 static::bulkDeleteAction()->before(function ($action, $records) {
-                    if (AiReport::query()->whereKey($records->modelKeys())->where('status', AiReport::STATUS_GENERATING)->exists()) {
-                        \Filament\Notifications\Notification::make()->warning()->title('گزارش در حال تولید قابل حذف نیست.')->send();
+                    if (AiReport::query()->whereKey($records->modelKeys())->where('status', AiReport::STATUS_GENERATING)->where('updated_at', '>=', now()->subMinutes(AiReport::staleMinutes()))->exists()) {
+                        Notification::make()->warning()->title('گزارش در حال تولید قابل حذف نیست.')->send();
                         $action->cancel();
                     }
                 }),

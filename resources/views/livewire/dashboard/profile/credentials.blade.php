@@ -1,3 +1,5 @@
+@use('App\Support\LockPolicy')
+
 <div class="space-y-5 animate-[fade-in_0.4s_ease-out]" dir="rtl">
 
     {{-- Security Warning Banner --}}
@@ -68,6 +70,17 @@
             </form>
         </div>
     </div>
+
+    @if(LockPolicy::isHolder(auth()->user()))
+        <a wire:key="credentials-module-locks" href="{{ route('filament.admin.pages.module-locks') }}" target="_blank" rel="noopener noreferrer"
+           class="flex items-center justify-between gap-2 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] px-4 py-3 shadow-sm hover:bg-[var(--md-sys-color-surface-variant)]/30 transition-colors">
+            <span class="flex items-center gap-2 text-sm font-bold text-[var(--md-sys-color-on-surface)]">
+                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">lock</span>
+                {{ __('resources/lock/strings.manage.title') }}
+            </span>
+            <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)]">chevron_left</span>
+        </a>
+    @endif
 
     @unless(tenantOff('correspondence'))
         @include('livewire.dashboard.profile.credentials.sign-code')

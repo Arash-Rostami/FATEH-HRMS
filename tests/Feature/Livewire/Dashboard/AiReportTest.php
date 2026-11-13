@@ -53,6 +53,7 @@ use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Tests\TestCase;
+use ZipArchive;
 
 class AiReportTest extends TestCase
 {
@@ -514,6 +515,27 @@ class AiReportTest extends TestCase
 
         $this->assertSame('http_429', $report->fresh()->fail_reason);
         $this->assertSame($used - 1, AiReport::quotaUsed($owner->id));
+    }
+
+    public function test_a_failed_run_still_records_the_tokens_it_spent(): void
+    {
+        $owner = $this->user();
+        $report = $this->report($owner, [
+            'status' => AiReport::STATUS_GENERATING,
+            'saved_at' => null,
+            'tokens_total' => 0,
+            'versions' => [['prompt' => 'یک درخواست آزمایشی', 'files' => [], 'at' => now()->toIso8601String()]],
+        ]);
+        Http::fake(['*' => Http::response([
+            'choices' => [['message' => ['content' => 'not json at all'], 'finish_reason' => 'stop']],
+            'usage' => ['total_tokens' => 7],
+        ])]);
+
+        (new GenerateReportJob($report->id))->handle(app(ReportAiService::class), app(FileExtractor::class));
+
+        $failed = $report->fresh();
+        $this->assertSame(AiReport::STATUS_FAILED, $failed->status);
+        $this->assertGreaterThan(0, (int) $failed->tokens_total);
     }
 
     public function test_block_catalog_rejects_missing_fields_empty_headers_and_bidi(): void
@@ -2378,20 +2400,6 @@ class AiReportTest extends TestCase
             ->assertDispatched('toast', $this->toastType('warning'));
     }
 
-    public function test_clearing_the_report_id_externally_drops_the_read_only_flag(): void
-    {
-        $owner = $this->user();
-        $recipient = $this->user();
-        $report = $this->report($owner, ['recipients' => [(int) $recipient->id]]);
-
-        $component = Livewire::actingAs($recipient)->test(Main::class, ['report' => $report])->assertSet('readOnly', true);
-        $instance = $component->instance();
-        $instance->reportId = null;
-        $instance->updatedReportId();
-
-        $component->assertSet('readOnly', false)->assertSet('shareRecipients', []);
-    }
-
     public function test_actions_on_a_report_that_became_unavailable_toast_and_close(): void
     {
         $owner = $this->user();
@@ -3715,7 +3723,7 @@ JSON, true);
         $this->assertStringNotContainsString('٪%', $html);
         $this->assertStringNotContainsString('%%', $html);
         $this->assertStringContainsString('45.4%', $html);
-        $this->assertStringContainsString('100%', $html);
+        $this->assertStringContainsString('100٪', $html);
         $this->assertStringNotContainsString('—%', $html);
         $this->assertStringNotContainsString('این بلوک نباید رندر شود', $html);
     }
@@ -4597,8 +4605,8 @@ JSON, true);
         $this->assertSame(2, substr_count($html, 'style="width:'));
         $this->assertStringContainsString('style="width: 75%"', $html);
         $this->assertStringContainsString('style="width: 100%"', $html);
-        $this->assertStringContainsString('<bdi>۷۵%</bdi>', $html);
-        $this->assertStringContainsString('<bdi>۱۲۰%</bdi>', $html);
+        $this->assertStringContainsString('<bdi>۷۵٪</bdi>', $html);
+        $this->assertStringContainsString('<bdi>۱۲۰٪</bdi>', $html);
         $this->assertStringNotContainsString('<bdi>75%</bdi>', $html);
         $this->assertStringNotContainsString('ring-inset', $html);
 
@@ -4824,6 +4832,47 @@ JSON, true);
             'choices' => [['message' => ['content' => json_encode($spec, JSON_UNESCAPED_UNICODE)], 'finish_reason' => 'stop']],
             'usage' => ['total_tokens' => 5],
         ]);
+    }
+
+    public function test_a_utf16_csv_is_transcoded_instead_of_skipped_as_corrupt(): void
+    {
+        Storage::disk('local')->put('ai-report/tmp/8/1-sales.csv', "\xFF\xFE" . mb_convert_encoding("name,amount\nalpha,10", 'UTF-16LE', 'UTF-8'));
+
+        $out = app(FileExtractor::class)->extract('local', 'ai-report/tmp/8');
+
+        $this->assertStringContainsString('alpha,10', $out['text']);
+        $this->assertSame([], $out['skipped']);
+    }
+
+    public function test_a_windows_1256_csv_is_transcoded_instead_of_skipped_as_corrupt(): void
+    {
+        Storage::disk('local')->put('ai-report/tmp/9/1-sales.csv', iconv('UTF-8', 'CP1256', "نام,مبلغ\nسلام,10"));
+
+        $out = app(FileExtractor::class)->extract('local', 'ai-report/tmp/9');
+
+        $this->assertStringContainsString('سلام,10', $out['text']);
+        $this->assertSame([], $out['skipped']);
+    }
+
+    public function test_a_block_refine_whose_block_vanished_in_another_tab_is_refused_not_widened(): void
+    {
+        Bus::fake();
+        $owner = $this->user();
+        $report = $this->blockRefineReport($owner);
+
+        $component = Livewire::actingAs($owner)->test(Main::class, ['report' => $report])
+            ->call('editBlock', '0:1');
+
+        $spec = $report->fresh()->spec;
+        array_splice($spec['pages'][0]['blocks'], 1, 2);
+        AiReport::whereKey($report->id)->update(['spec' => json_encode($spec)]);
+
+        $component
+            ->set('form.prompt', 'خلاصه را بسیار کوتاه‌تر کن')
+            ->call('refine')
+            ->assertHasErrors(['form.prompt']);
+
+        Bus::assertNothingDispatched();
     }
 
     public function test_a_block_refine_sends_only_that_block_and_merges_it_in_place(): void
@@ -5704,5 +5753,136 @@ JSON, true);
 
         app(ShareReportAction::class)->execute($report->fresh(), $owner, [$recipient->id]);
         $this->assertCount(1, $recipient->notifications()->get());
+    }
+
+    public function test_restore_brings_back_the_previous_version_after_a_failed_refine_for_the_owner_only(): void
+    {
+        $owner = $this->user();
+        $previous = $this->plainSpec('Previous');
+        $report = $this->report($owner, [
+            'status' => AiReport::STATUS_FAILED,
+            'fail_reason' => 'timeout',
+            'spec' => $previous,
+            'versions' => [
+                ['prompt' => 'first', 'files' => [], 'spec' => $previous, 'at' => now()->toIso8601String()],
+                ['prompt' => 'second that failed', 'files' => [], 'parent_spec' => $previous, 'at' => now()->toIso8601String()],
+            ],
+        ]);
+
+        Livewire::actingAs($owner)->test(Main::class, ['report' => $report])->assertSeeHtml('ai-report-restore');
+
+        $intruder = $this->user();
+        $this->assertFalse(AiReportAccessPolicy::canRestore($report, $intruder));
+        $this->assertTrue(AiReportAccessPolicy::canRestore($report, $owner));
+
+        Livewire::actingAs($owner)->test(Main::class, ['report' => $report])
+            ->call('restore')
+            ->assertDispatched('toast', $this->toastType('success'))
+            ->assertDontSeeHtml('ai-report-restore');
+
+        $fresh = $report->fresh();
+        $this->assertSame(AiReport::STATUS_READY, $fresh->status);
+        $this->assertNull($fresh->fail_reason);
+        $this->assertEquals($previous, $fresh->spec);
+        $this->assertCount(1, $fresh->versions);
+        $this->assertSame('first', $fresh->versions[0]['prompt']);
+    }
+
+    public function test_restore_is_refused_without_a_previous_spec_or_for_a_ready_report(): void
+    {
+        $owner = $this->user();
+        $firstRun = $this->report($owner, [
+            'status' => AiReport::STATUS_FAILED,
+            'fail_reason' => 'timeout',
+            'spec' => null,
+            'versions' => [['prompt' => 'never finished', 'files' => [], 'at' => now()->toIso8601String()]],
+        ]);
+        $ready = $this->report($owner);
+
+        Livewire::actingAs($owner)->test(Main::class, ['report' => $firstRun])->assertDontSeeHtml('ai-report-restore');
+
+        foreach ([$firstRun, $ready] as $row) {
+            $before = $row->fresh()->only(['status', 'fail_reason']);
+            Livewire::actingAs($owner)->test(Main::class, ['report' => $row])
+                ->call('restore')
+                ->assertDispatched('toast', $this->toastType('warning'));
+            $this->assertSame($before, $row->fresh()->only(['status', 'fail_reason']));
+        }
+    }
+
+    public function test_a_docx_detected_as_zip_passes_validation_but_a_plain_zip_does_not(): void
+    {
+        $owner = $this->user();
+        $path = tempnam(sys_get_temp_dir(), 'arz');
+        $zip = new ZipArchive();
+        $zip->open($path, ZipArchive::OVERWRITE);
+        $zip->addFromString('docProps/app.xml', '<Properties/>');
+        $zip->addFromString('word/document.xml', '<w:p><w:t>hello</w:t></w:p>');
+        $zip->close();
+        $bytes = (string) file_get_contents($path);
+        unlink($path);
+        $this->assertSame('application/zip', (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes));
+
+        $form = Livewire::actingAs($owner)->test(Main::class)->instance()->form;
+        $form->prompt = 'a prompt that is long enough';
+
+        foreach (['report.docx', 'sheet.xlsx'] as $name) {
+            $form->files = [UploadedFile::fake()->createWithContent($name, $bytes)];
+            $this->assertArrayHasKey('prompt', $form->validated());
+        }
+
+        $form->files = [UploadedFile::fake()->createWithContent('archive.zip', $bytes)];
+        try {
+            $form->validated();
+            $this->fail('a plain zip passed validation');
+        } catch (ValidationException $e) {
+            $this->assertSame([ComposerForm::unsupportedFileMessage()], collect($e->errors())->flatten()->all());
+        }
+    }
+
+    public function test_a_superseded_job_leaves_the_newer_run_untouched_and_the_current_run_proceeds(): void
+    {
+        $owner = $this->user();
+        $report = $this->report($owner, [
+            'status' => AiReport::STATUS_GENERATING,
+            'saved_at' => null,
+            'versions' => [['prompt' => 'a request that is long enough', 'files' => [], 'run' => 'new-run', 'at' => now()->toIso8601String()]],
+        ]);
+        Storage::disk('local')->put($report->tempDirectory() . '/1-note.txt', 'hello');
+        Http::fake(['*' => Http::response([], 429)]);
+
+        (new GenerateReportJob($report->id, 'old-run'))->handle(app(ReportAiService::class), app(FileExtractor::class));
+
+        Http::assertNothingSent();
+        $this->assertSame(AiReport::STATUS_GENERATING, $report->fresh()->status);
+        Storage::disk('local')->assertExists($report->tempDirectory() . '/1-note.txt');
+
+        (new GenerateReportJob($report->id, 'new-run'))->handle(app(ReportAiService::class), app(FileExtractor::class));
+
+        $this->assertSame('http_429', $report->fresh()->fail_reason);
+        $this->assertSame('1:y', (new GenerateReportJob(1, 'y'))->uniqueId());
+        $this->assertSame('1', (new GenerateReportJob(1))->uniqueId());
+    }
+
+    public function test_a_job_queued_before_the_run_token_existed_still_reads_a_null_run(): void
+    {
+        $legacy = (new \ReflectionClass(GenerateReportJob::class))->newInstanceWithoutConstructor();
+
+        $this->assertNull($legacy->run);
+    }
+
+    public function test_generate_stamps_the_run_token_on_the_version_and_the_dispatched_job(): void
+    {
+        Bus::fake();
+        $owner = $this->user();
+
+        Livewire::actingAs($owner)->test(Main::class)
+            ->set('form.prompt', 'a prompt that is long enough')
+            ->call('generate');
+
+        $created = AiReport::query()->ownedBy($owner->id)->latest('id')->first();
+        $run = $created->lastVersion()['run'] ?? null;
+        $this->assertNotEmpty($run);
+        Bus::assertDispatched(GenerateReportJob::class, fn (GenerateReportJob $job) => $job->reportId === $created->id && $job->run === $run);
     }
 }

@@ -27,10 +27,20 @@ class FaqPresenter
         return superClean($faq->question ?: 'بدون عنوان', 300);
     }
 
-    public function answerSnippet(FAQ $faq): string
+    public function answerText(FAQ $faq): string
     {
         $text = html_entity_decode(preg_replace('/<[^>]+>/', ' ', (string) $faq->answer), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-        return Str::limit(trim(preg_replace('/\s+/u', ' ', $text)), 140);
+        return trim(preg_replace('/\s+/u', ' ', $text));
+    }
+
+    public function answerSnippet(FAQ $faq): string
+    {
+        return Str::limit($this->answerText($faq), 140);
+    }
+
+    public function copyText(FAQ $faq): string
+    {
+        return $this->questionText($faq) . "\n\n" . $this->answerText($faq);
     }
 }

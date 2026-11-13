@@ -67,8 +67,8 @@ class ProfileDetailCatalog
             'birthplace' => ['section' => 'identity', 'label' => 'محل تولد', 'type' => 'select', 'options' => self::getSortedOptions('cities'), 'searchable' => true],
             'nationality' => ['section' => 'identity', 'label' => 'ملیت', 'type' => 'select', 'options' => self::getSortedOptions('nationalities'), 'searchable' => true],
             'religion' => ['section' => 'identity', 'label' => 'دین', 'type' => 'select', 'options' => self::list(['اسلام', 'مسیحیت', 'یهودیت', 'زرتشتی', 'سایر'])],
-            'display_name' => ['section' => 'identity', 'label' => 'نام صمیمانه (جایگزین نام در صفحه خوشامدگویی)', 'type' => 'text', 'max' => 40],
-            'foreign_residency' => ['section' => 'identity', 'label' => 'پاسپورت/اقامت سایر کشورها', 'type' => 'select', 'options' => self::hasNot()],
+            'display_name' => ['section' => 'identity', 'label' => 'نام دلخواه در صفحه خوشامدگویی', 'type' => 'text', 'max' => 40],
+            'foreign_residency' => ['section' => 'identity', 'label' => 'گذرنامه یا اقامت کشورهای دیگر', 'type' => 'select', 'options' => self::hasNot()],
             'clearance_certificate' => ['section' => 'identity', 'label' => 'گواهی عدم سوءپیشینه', 'type' => 'select', 'options' => self::hasNot()],
 
             // ───────────────── Employment extras ─────────────────
@@ -102,21 +102,21 @@ class ProfileDetailCatalog
             'english_level' => ['section' => 'skills', 'label' => 'میزان آشنایی با زبان انگلیسی', 'type' => 'select', 'options' => self::list(['ابتدایی', 'متوسط', 'پیشرفته', 'مادری'])],
             'fluent_language' => ['section' => 'skills', 'label' => 'زبان خارجی با تسلط کامل', 'type' => 'select', 'options' => self::getSortedOptions('languages'), 'searchable' => true],
             'training_courses' => ['section' => 'skills', 'label' => 'دوره‌های آموزشی گذرانده‌شده', 'type' => 'textarea'],
-            'specialized_software' => ['section' => 'skills', 'label' => 'نرم‌افزار تخصصی با تسلط', 'type' => 'textarea'],
+            'specialized_software' => ['section' => 'skills', 'label' => 'نرم‌افزارهای تخصصی که به آن‌ها تسلط دارید', 'type' => 'textarea'],
             'teaching_experience' => ['section' => 'skills', 'label' => 'سابقه تدریس', 'type' => 'text'],
             'teaching_field' => ['section' => 'skills', 'label' => 'زمینه تدریس', 'type' => 'text'],
-            'achievements' => ['section' => 'skills', 'label' => 'دستاوردهای ورزشی/علمی/فرهنگی/هنری (مقام/مدال)', 'type' => 'textarea'],
+            'achievements' => ['section' => 'skills', 'label' => 'دستاوردهای ورزشی، علمی، فرهنگی یا هنری (مقام یا مدال)', 'type' => 'textarea'],
 
             // ───────────────── Family & dependents ─────────────────
             'marriage_date' => ['section' => 'family', 'label' => 'تاریخ ازدواج', 'type' => 'date', 'help' => 'نمونه: ۱۳۹۵/۰۳/۱۵'],
             'spouse_job' => ['section' => 'family', 'label' => 'شغل همسر', 'type' => 'text'],
             'daughters_single' => ['section' => 'family', 'label' => 'تعداد فرزندان دختر مجرد', 'type' => 'select', 'options' => self::list(range(0, 10))],
-            'daughters_under18' => ['section' => 'family', 'label' => ' تعداد دختر کمتر از ۱۸ سال', 'type' => 'select', 'options' => self::list(range(0, 10))],
-            'daughters_over18_student' => ['section' => 'family', 'label' => ' تعداد دختر بالاتر از ۱۸ سال دانشجو', 'type' => 'select', 'options' => self::list(range(0, 10))],
-            'daughters_over18_nonstudent' => ['section' => 'family', 'label' => 'تعداد دختر بالاتر از ۱۸ سال غیردانشجو', 'type' => 'select', 'options' => self::list(range(0, 10))],
-            'sons_under18' => ['section' => 'family', 'label' => ' تعداد پسر کمتر از ۱۸ سال', 'type' => 'select', 'options' => self::list(range(0, 10))],
-            'sons_over18_student' => ['section' => 'family', 'label' => 'تعداد پسر بالاتر از ۱۸ سال دانشجو', 'type' => 'select', 'options' => self::list(range(0, 10))],
-            'sons_over18_nonstudent' => ['section' => 'family', 'label' => 'تعداد پسر بالاتر از ۱۸ سال غیردانشجو ', 'type' => 'select', 'options' => self::list(range(0, 10))],
+            'daughters_under18' => ['section' => 'family', 'label' => 'تعداد دختران زیر ۱۸ سال', 'type' => 'select', 'options' => self::list(range(0, 10))],
+            'daughters_over18_student' => ['section' => 'family', 'label' => 'تعداد دختران دانشجوی بالای ۱۸ سال', 'type' => 'select', 'options' => self::list(range(0, 10))],
+            'daughters_over18_nonstudent' => ['section' => 'family', 'label' => 'تعداد دختران غیردانشجوی بالای ۱۸ سال', 'type' => 'select', 'options' => self::list(range(0, 10))],
+            'sons_under18' => ['section' => 'family', 'label' => 'تعداد پسران زیر ۱۸ سال', 'type' => 'select', 'options' => self::list(range(0, 10))],
+            'sons_over18_student' => ['section' => 'family', 'label' => 'تعداد پسران دانشجوی بالای ۱۸ سال', 'type' => 'select', 'options' => self::list(range(0, 10))],
+            'sons_over18_nonstudent' => ['section' => 'family', 'label' => 'تعداد پسران غیردانشجوی بالای ۱۸ سال', 'type' => 'select', 'options' => self::list(range(0, 10))],
             'children_disabled' => ['section' => 'family', 'label' => 'تعداد فرزندان دارای معلولیت', 'type' => 'select', 'options' => self::list(range(0, 10))],
             'dependent_parents' => ['section' => 'family', 'label' => 'پدر و مادر تحت تکفل', 'type' => 'text'],
             'other_dependents' => ['section' => 'family', 'label' => 'سایر افراد تحت تکفل', 'type' => 'text'],
@@ -131,9 +131,9 @@ class ProfileDetailCatalog
             'chronic_disease' => ['section' => 'health', 'label' => 'سابقه بیماری خاص', 'type' => 'text'],
             'family_chronic_disease' => ['section' => 'health', 'label' => 'سابقه بیماری خاص همسر یا فرزند', 'type' => 'text'],
             'disease_type' => ['section' => 'health', 'label' => 'نوع بیماری', 'type' => 'text'],
-            'pre_employment_exam' => ['section' => 'health', 'label' => 'آزمایشات بدو استخدام', 'type' => 'text'],
-            'periodic_exam' => ['section' => 'health', 'label' => 'آزمایشات ادواری', 'type' => 'text'],
-            'last_periodic_exam_date' => ['section' => 'health', 'label' => 'آخرین تاریخ آزمایشات ادواری', 'type' => 'date', 'help' => 'نمونه: ۱۴۰۳/۰۲/۱۰'],
+            'pre_employment_exam' => ['section' => 'health', 'label' => 'آزمایش‌های پیش از استخدام', 'type' => 'text'],
+            'periodic_exam' => ['section' => 'health', 'label' => 'آزمایش‌های دوره‌ای', 'type' => 'text'],
+            'last_periodic_exam_date' => ['section' => 'health', 'label' => 'تاریخ آخرین آزمایش دوره‌ای', 'type' => 'date', 'help' => 'نمونه: ۱۴۰۳/۰۲/۱۰'],
 
             // ───────────────── Military service ─────────────────
             'military_status' => ['section' => 'military', 'label' => 'وضعیت نظام وظیفه', 'type' => 'select', 'options' => self::list(['مشمول', 'در حال خدمت', 'پایان خدمت', 'معاف', 'معافیت تحصیلی'])],
@@ -147,7 +147,7 @@ class ProfileDetailCatalog
             'loan_fund_member' => ['section' => 'financial', 'label' => 'عضویت صندوق وام', 'type' => 'select', 'options' => self::list(['عضو', 'غیرعضو'])],
             'housing_status' => ['section' => 'financial', 'label' => 'وضعیت مسکن', 'type' => 'select', 'options' => self::list(['شخصی', 'استیجاری', 'سازمانی', 'سایر'])],
             'personal_vehicle' => ['section' => 'financial', 'label' => 'وسیله نقلیه شخصی', 'type' => 'select', 'options' => self::hasNot()],
-            'commute_method' => ['section' => 'financial', 'label' => 'وسیله ایاب و ذهاب به محل کار', 'type' => 'select', 'options' => self::list(['سرویس شرکت', 'خودرو شخصی', 'حمل و نقل عمومی', 'سایر'])],
+            'commute_method' => ['section' => 'financial', 'label' => 'وسیله رفت‌وآمد به محل کار', 'type' => 'select', 'options' => self::list(['سرویس شرکت', 'خودرو شخصی', 'حمل و نقل عمومی', 'سایر'])],
 
             // ───────────────── Other ─────────────────
             'city_code' => ['section' => 'other', 'label' => 'کد شهر', 'type' => 'text'],

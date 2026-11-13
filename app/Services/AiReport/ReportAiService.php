@@ -3,9 +3,14 @@
 namespace App\Services\AiReport;
 
 use App\Services\Ai\AiClient;
+use DomainException;
+use InvalidArgumentException;
+use JsonException;
 
 class ReportAiService
 {
+    public int $spent = 0;
+
     public function __construct(private AiClient $client = new AiClient())
     {
     }
@@ -17,6 +22,7 @@ class ReportAiService
 
     public function generate(string $prompt, string $extractedText = '', array $inlineParts = [], ?array $parentSpec = null, array $notes = [], array $options = []): array
     {
+        $this->spent = 0;
         $parts = [];
         foreach (array_values($inlineParts) as $index => $part) {
             if (!is_array($part)) {
@@ -38,11 +44,14 @@ class ReportAiService
         $budget = (int) config('ai.report.provider.max_calls');
         $ask = function (array $messages) use (&$budget): array {
             if ($budget < 1) {
-                throw new \DomainException('empty');
+                throw new DomainException('empty');
             }
             $budget--;
 
-            return $this->client->json($messages, BlockCatalog::schema(), 'report');
+            $reply = $this->client->json($messages, BlockCatalog::schema(), 'report');
+            $this->spent += $reply['tokens'];
+
+            return $reply;
         };
         $first = $ask($messages);
         $tokens = $first['tokens'];
@@ -53,12 +62,12 @@ class ReportAiService
             $content = $second['content'];
         }
         if ($content === null) {
-            throw new \DomainException('empty');
+            throw new DomainException('empty');
         }
 
         try {
             $spec = $this->decode($content, $replyLang);
-        } catch (\JsonException | \InvalidArgumentException $e) {
+        } catch (JsonException | InvalidArgumentException $e) {
             if ($budget < 1) {
                 throw $e;
             }
@@ -67,14 +76,14 @@ class ReportAiService
             $repair = $ask($messages);
             $tokens += $repair['tokens'];
             if ($repair['content'] === null) {
-                throw new \DomainException('empty');
+                throw new DomainException('empty');
             }
             $spec = $this->decode($repair['content'], $replyLang);
         }
 
         return [
             'spec' => $spec,
-            'model' => (string) config('ai.gateway.model'),
+            'model' => (string) AiClient::setting('report', 'model'),
             'tokens' => $tokens,
         ];
     }

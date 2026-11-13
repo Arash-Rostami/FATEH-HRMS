@@ -29,6 +29,8 @@ class NotifyLog extends Model
 
     public const SOURCE_RESERVATION = 'reservation';
 
+    public const SOURCE_CALENDAR = 'calendar';
+
     protected $fillable = [
         'notify_rule_id',
         'run_id',

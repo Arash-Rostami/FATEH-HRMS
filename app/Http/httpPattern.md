@@ -14,7 +14,7 @@ Five middlewares (`UpdateLastSeen`, `EnsureHasPermission`, `EnsureUserModulePerm
 
 A user with `status` other than `active` cannot hold a session anywhere. Enforced at three independent points so no path slips through:
 
-1. **User-panel login** — `App\Livewire\Auth\Login::login()` checks `isActive()` right after `Auth::attempt()` and logs out + errors on `email` otherwise.
+1. **User-panel login** — `App\Livewire\Auth\Login::login()` checks `isActive()` right after `Auth::attempt()` and logs out + errors on `email` otherwise. The submit button reads `$outcome` (`success`/`fail`, green check / red cross): success does NOT `redirect()` (Livewire skips the re-render on a server redirect, the check would never paint) — it sets `outcome` and leaves via `$this->js()` after 800ms to the `url.intended` session value.
 2. **Admin-panel login** — `App\Filament\Pages\Auth\Login` (subclass of the vendor page, registered via `->login()` in `AdminPanelProvider`) overrides `authenticate()`, calls the parent, then re-checks `Filament::auth()->user()->isActive()` and logs out + throws `ValidationException` on key `data.email` (the vendor page's own error key).
 3. **Every live request** — `UpdateLastSeen`'s boot above.
 

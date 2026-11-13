@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -411,5 +412,106 @@ class ProfileModelTest extends TestCase
         Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $j) => $j->subjectClass === Post::class && $j->subjectId === $post->id && $j->ruleKey === Post::NUDGE_KEY);
         Queue::assertPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $j) => $j->subjectClass === Feed::class && $j->subjectId === $feed->id && $j->ruleKey === Feed::NUDGE_KEY);
         Queue::assertNotPushed(ReconcileNudgeJob::class, fn(ReconcileNudgeJob $j) => $j->subjectClass === Post::class && $j->subjectId === $unrelated->id);
+    }
+
+    public function test_only_a_developer_may_define_chairman_and_ceo_positions(): void
+    {
+        $admin = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        $developer = User::factory()->create(['status' => 'active', 'role' => 'developer']);
+        $profile = Profile::factory()->create(['user_id' => User::factory()->create()->id, 'position' => 'employee']);
+
+        $this->actingAs($admin);
+
+        foreach (['ceo', 'chairman'] as $locked) {
+            try {
+                $profile->update(['position' => $locked]);
+                $this->fail("admin must not set {$locked}");
+            } catch (ValidationException $e) {
+                $this->assertArrayHasKey('position', $e->errors());
+            }
+        }
+
+        $this->assertSame('employee', $profile->fresh()->position);
+
+        $this->actingAs($developer);
+        $profile->update(['position' => 'ceo']);
+        $this->assertSame('ceo', $profile->fresh()->position);
+    }
+
+    public function test_a_locked_profile_stays_frozen_for_admins_but_other_fields_still_save(): void
+    {
+        $admin = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        $profile = Profile::factory()->create(['user_id' => User::factory()->create()->id, 'position' => 'ceo']);
+
+        $this->actingAs($admin);
+        $profile = $profile->fresh();
+
+        $profile->update(['landline' => '02111112222']);
+        $this->assertSame('02111112222', $profile->fresh()->landline);
+
+        foreach ([fn () => $profile->update(['position' => 'employee']), fn () => $profile->update(['user_id' => User::factory()->create()->id]), fn () => $profile->delete()] as $attempt) {
+            try {
+                $attempt();
+                $this->fail('admin must not alter or delete a ceo profile');
+            } catch (ValidationException $e) {
+                $this->assertArrayHasKey('position', $e->errors());
+            }
+        }
+
+        $this->assertSame('ceo', $profile->fresh()->position);
+    }
+
+    public function test_a_stale_admin_copy_cannot_overwrite_a_position_a_developer_just_protected(): void
+    {
+        $admin = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        $profile = Profile::factory()->create(['user_id' => User::factory()->create()->id, 'position' => 'employee']);
+        $this->actingAs($admin);
+
+        $stale = Profile::find($profile->id);
+        DB::table('profiles')->where('id', $profile->id)->update(['position' => 'ceo']);
+
+        try {
+            $stale->update(['position' => 'manager']);
+            $this->fail('a stale copy must not overwrite a protected position');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('position', $e->errors());
+        }
+
+        $this->assertSame('ceo', $profile->fresh()->position);
+    }
+
+    public function test_a_stale_admin_copy_cannot_delete_a_profile_a_developer_just_promoted(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'active', 'role' => 'admin']));
+        $profile = Profile::factory()->create(['user_id' => User::factory()->create()->id, 'position' => 'employee']);
+
+        $stale = Profile::find($profile->id);
+        DB::table('profiles')->where('id', $profile->id)->update(['position' => 'ceo']);
+
+        try {
+            $stale->delete();
+            $this->fail('a stale copy must not delete a protected profile');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('position', $e->errors());
+        }
+
+        $this->assertNotNull(Profile::find($profile->id));
+    }
+
+    public function test_an_admin_cannot_create_a_locked_profile_but_console_contexts_can(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'active', 'role' => 'admin']));
+
+        $this->expectException(ValidationException::class);
+        Profile::factory()->create(['user_id' => User::factory()->create()->id, 'position' => 'chairman']);
+    }
+
+    public function test_no_authenticated_actor_may_define_locked_positions(): void
+    {
+        $this->app['auth']->forgetGuards();
+
+        $profile = Profile::factory()->create(['user_id' => User::factory()->create()->id, 'position' => 'chairman']);
+
+        $this->assertSame('chairman', $profile->fresh()->position);
     }
 }

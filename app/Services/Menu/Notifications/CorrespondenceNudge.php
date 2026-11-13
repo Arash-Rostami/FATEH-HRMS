@@ -77,8 +77,24 @@ class CorrespondenceNudge implements MenuNudge
             Correspondence::STATUS_SHARED => $this->signaturePlan($letter),
             Correspondence::STATUS_APPROVED => $this->approvedPlan($letter),
             Correspondence::STATUS_REJECTED => $this->authorPlan($letter, 'رد شد: ', 'این نامه رد شد.'),
+            Correspondence::STATUS_RECEIVED, Correspondence::STATUS_ROUTED => $this->routedPlan($letter),
             default => [],
         };
+    }
+
+    private function routedPlan(Correspondence $letter): array
+    {
+        $plan = [];
+
+        foreach ($letter->parties ?? [] as $party) {
+            $userId = is_array($party) ? (int) ($party['user_id'] ?? 0) : 0;
+
+            if ($userId > 0 && $userId !== (int) $letter->user_id && blank($party['opened_at'] ?? null)) {
+                $plan[$userId] = ['نامهٔ وارده برای شما ارجاع شد', 'نامهٔ «' . $this->label($letter) . '» برای اطلاع شما ثبت یا ارجاع شده است.'];
+            }
+        }
+
+        return $plan;
     }
 
     private function signaturePlan(Correspondence $letter): array

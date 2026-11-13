@@ -97,7 +97,7 @@ final class CorrespondencePresenter
         return [
             'id' => $letter->id,
             'subject' => $hideSubject ? $this->confidentialLabel() : ($letter->subject ?: 'بدون موضوع'),
-            'number' => $letter->number ?: '',
+            'number' => convertToPersian($letter->number) ?? '',
             'status' => (string) $letter->status,
             'status_label' => __('resources/correspondence/strings.status.' . $letter->status),
             'dot' => self::DOTS[$overdue ? 'overdue' : $letter->status] ?? self::DOTS['draft'],
@@ -109,7 +109,7 @@ final class CorrespondencePresenter
             'template_name' => $hideSubject ? '' : ($letter->meta['template_name'] ?? ''),
             'is_mine' => (int) $letter->user_id === $viewerId,
             'tags' => $hideSubject ? [] : ($letter->tags ?? []),
-            'stamp' => $letter->letter_date ?: ($letter->updated_at ? toJalali($letter->updated_at, 'Y/m/d') : ''),
+            'stamp' => convertToPersian($letter->letter_date) ?: ($letter->updated_at ? toJalali($letter->updated_at, 'Y/m/d') : ''),
             'direction' => (string) $letter->direction,
             'type' => __('resources/correspondence/strings.types.' . $letter->type),
             'urgency' => __('resources/correspondence/strings.urgency.' . $letter->urgency),
@@ -204,7 +204,7 @@ final class CorrespondencePresenter
             }
             $sentAt = filled($party['sent_at'] ?? null) ? Carbon::parse($party['sent_at']) : null;
             $openedAt = filled($party['opened_at'] ?? null) ? Carbon::parse($party['opened_at']) : null;
-            $stale = $sentAt && !$openedAt && $sentAt->lte(now()->subDays($days));
+            $stale = $sentAt && !$openedAt && ($party['delivery'] ?? 'link') !== 'pdf' && $sentAt->lte(now()->subDays($days));
             $code = (string) ($party['delivery_error'] ?? '');
             $sending = $code === 'sending' && filled($party['sending_at'] ?? null) && Carbon::parse($party['sending_at'])->gt(now()->subSeconds(self::SENDING_SECONDS));
             $state = $sending ? 'sending' : ($openedAt ? 'opened' : ($stale ? 'not_opened' : ($sentAt ? 'sent' : 'not_sent')));

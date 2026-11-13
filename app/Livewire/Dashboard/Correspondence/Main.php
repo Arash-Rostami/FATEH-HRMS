@@ -118,6 +118,9 @@ class Main extends Component
         if ($this->letterId) {
             $this->open($this->letterId);
         }
+        if (is_string($error = session('correspondence_error'))) {
+            $this->toast($error, 'error');
+        }
     }
 
     public function updatedSearch(string $value): void

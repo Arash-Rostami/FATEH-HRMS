@@ -3,7 +3,7 @@
 use App\Enums\PresenceStatus;
 use App\Models\Permission;
 use App\Services\GreetingService;
-use App\Services\QuoteService;
+use App\Services\Template\Words\Quotes;
 use App\Services\Reservation\ValidationService;
 use App\Services\TenantService;
 use Carbon\CarbonInterface;
@@ -204,7 +204,7 @@ if (!function_exists('quotes')) {
     function quotes(): array
     {
         static $quotes;
-        return $quotes ??= app(QuoteService::class)->all();
+        return $quotes ??= Quotes::for('general');
     }
 }
 
@@ -238,11 +238,11 @@ if (!function_exists('getEventStyles')) {
     function getEventStyles(string $type): string
     {
         return match ($type) {
-            'birthday' => 'bg-pink-50 text-pink-600 ring-1 ring-pink-100',
-            'anniversary' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-100',
-            'holiday' => 'bg-rose-50 text-rose-600 ring-1 ring-rose-100',
-            'reminder' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
-            default => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
+            'birthday' => 'bg-[color-mix(in_srgb,var(--tool-amethyst-bg,var(--md-sys-color-tertiary-container))_70%,transparent)] text-[var(--tool-amethyst-color,var(--md-sys-color-on-tertiary-container))]',
+            'anniversary' => 'bg-[color-mix(in_srgb,var(--tool-gold-bg,var(--md-sys-color-secondary-container))_70%,transparent)] text-[var(--tool-gold-color,var(--md-sys-color-on-secondary-container))]',
+            'holiday' => 'bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_50%,transparent)] text-[var(--md-sys-color-error)]',
+            'reminder' => 'bg-[color-mix(in_srgb,var(--tool-sapphire-bg,var(--md-sys-color-primary-container))_70%,transparent)] text-[var(--tool-sapphire-color,var(--md-sys-color-on-primary-container))]',
+            default => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
         };
     }
 }

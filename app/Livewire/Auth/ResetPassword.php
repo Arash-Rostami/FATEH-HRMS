@@ -64,6 +64,6 @@ class ResetPassword extends Component
             return redirect()->route('login');
         }
 
-        $this->addError('email', 'ایمیل یا توکن نامعتبر است.');
+        $this->addError('email', 'ایمیل یا لینک بازیابی معتبر نیست.');
     }
 }

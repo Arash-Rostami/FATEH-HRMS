@@ -34,7 +34,7 @@
                 <div
                     wire:key="photo-{{ $photo->id }}"
                     data-photo-id="{{ $photo->id }}"
-                    x-show="!month || month === @js(toJalali($photo->event_date, 'F Y'))"
+                    x-show="(!month || month === @js(toJalali($photo->event_date, 'F Y'))) && (!onlySaved || $store.pinned.isPinned({{ $photo->id }}, 'gallery'))"
                     class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
                         'z-30 scale-100 md:scale-[1.15]': activeId == {{ $photo->id }},
@@ -60,6 +60,7 @@
                     class="shrink-0 w-full md:w-32 h-24 md:h-full snap-center flex items-center justify-center"
                 >
                     <x-ui.buttons.load-more
+                        x-show="!onlySaved || !$store.pinned.isEmpty('gallery')"
                         action="loadMore"
                         text="بارگذاری بیشتر"
                         loading-text="در حال دریافت..."

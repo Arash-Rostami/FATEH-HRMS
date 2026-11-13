@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Services;
 
+use App\Jobs\ReconcileNudgeJob;
+use App\Livewire\Dashboard\Correspondence\Actions\MarkOpenedAction;
 use App\Models\AiReport;
 use App\Models\User;
 use App\Models\Correspondence;
@@ -10,6 +12,7 @@ use App\Services\Menu\Indicators\CorrespondenceBadge;
 use App\Services\Menu\Indicators\ThsBadge;
 use App\Services\Menu\Indicators\UnseenAiReports;
 use App\Services\Menu\StateService;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -209,6 +212,34 @@ class StateServiceTest extends TestCase
 
         $this->sharedLetter($author, ['shared_at' => now()->subDays(29), 'parties' => [$party], 'recipients' => [$viewer->id]]);
         $this->assertTrue($badge->isActive());
+    }
+
+    public function test_correspondence_badge_lights_for_an_unopened_routed_incoming_letter_and_clears_once_opened(): void
+    {
+        $author = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $viewer = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $badge = app(CorrespondenceBadge::class);
+        $this->actingAs($viewer);
+        $party = ['user_id' => $viewer->id, 'role' => 'fyi'];
+
+        $letter = $this->sharedLetter($author, ['status' => Correspondence::STATUS_ROUTED, 'direction' => Correspondence::DIRECTION_IN, 'type' => 'incoming', 'parties' => [$party], 'recipients' => [$viewer->id]]);
+        $this->assertTrue($badge->isActive());
+
+        $letter->forceFill(['parties' => [[...$party, 'opened_at' => now()->toIso8601String()]]])->save();
+        $this->assertFalse($badge->isActive());
+    }
+
+    public function test_opening_a_routed_incoming_letter_stamps_it_and_reconciles_the_bell(): void
+    {
+        Bus::fake();
+        $author = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $viewer = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $letter = $this->sharedLetter($author, ['status' => Correspondence::STATUS_ROUTED, 'direction' => Correspondence::DIRECTION_IN, 'type' => 'incoming', 'parties' => [['user_id' => $viewer->id, 'role' => 'fyi']], 'recipients' => [$viewer->id]]);
+
+        app(MarkOpenedAction::class)->execute($letter, (int) $viewer->id);
+
+        $this->assertNotEmpty($letter->fresh()->parties[0]['opened_at']);
+        Bus::assertDispatched(ReconcileNudgeJob::class, fn (ReconcileNudgeJob $job) => $job->ruleKey === 'correspondence-controller:nudge' && (int) $job->subjectId === (int) $letter->id);
     }
 
     public function test_ths_and_ai_report_indicators_are_registered_in_the_menu_state_map(): void

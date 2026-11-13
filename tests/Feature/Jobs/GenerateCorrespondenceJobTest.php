@@ -108,7 +108,7 @@ class GenerateCorrespondenceJobTest extends TestCase
         ])]);
     }
 
-    private function output(array $paragraphs, string $subject = 'درخواست تجهیزات'): array
+    private function fakeOutput(array $paragraphs, string $subject = 'درخواست تجهیزات'): array
     {
         return ['subject' => $subject, 'blocks' => [['type' => 'text', 'heading' => null, 'paragraphs' => $paragraphs, 'header' => [], 'rows' => []]]];
     }
@@ -132,10 +132,11 @@ class GenerateCorrespondenceJobTest extends TestCase
 
     public function test_non_normal_classification_or_unusable_type_marks_the_run_disabled(): void
     {
-        $this->gateway($this->output(['متن']));
+        $this->gateway($this->fakeOutput(['متن']));
         $secret = $this->generatingLetter('run-token', ['classification' => Correspondence::CLASSIFICATION_CONFIDENTIAL]);
-        $memo = $this->generatingLetter('run-token', ['type' => 'memo']);
-        $incoming = $this->generatingLetter('run-token', ['type' => 'incoming']);
+        $memo = $this->generatingLetter('run-token');
+        Correspondence::query()->whereKey($memo->id)->update(['type' => 'memo']);
+        $incoming = $this->generatingLetter('run-token', ['type' => 'incoming', 'direction' => Correspondence::DIRECTION_IN]);
 
         foreach ([$secret, $memo, $incoming] as $letter) {
             (new GenerateCorrespondenceJob((int) $letter->id, 'run-token'))->handle(new AiClient());
@@ -148,7 +149,7 @@ class GenerateCorrespondenceJobTest extends TestCase
 
     public function test_a_valid_answer_is_stored_as_a_new_version_with_the_subject_and_tokens(): void
     {
-        $this->gateway($this->output(['متن آزمایشی نامه']));
+        $this->gateway($this->fakeOutput(['متن آزمایشی نامه']));
         $letter = $this->generatingLetter();
 
         (new GenerateCorrespondenceJob((int) $letter->id, 'run-token'))->handle(new AiClient());
@@ -171,7 +172,7 @@ class GenerateCorrespondenceJobTest extends TestCase
 
     public function test_a_run_started_from_a_saved_letter_returns_it_to_saved(): void
     {
-        $this->gateway($this->output(['متن آزمایشی نامه']));
+        $this->gateway($this->fakeOutput(['متن آزمایشی نامه']));
         $letter = $this->generatingLetter();
         $letter->forceFill(['versions' => [['ai' => true, 'run' => 'run-token', 'kind' => 'generate', 'prompt' => 'A valid prompt.', 'from' => Correspondence::STATUS_SAVED]]])->saveQuietly();
 
@@ -183,7 +184,7 @@ class GenerateCorrespondenceJobTest extends TestCase
     public function test_descriptive_blanks_become_the_canonical_marker_and_the_hint_is_kept(): void
     {
         $long = '[' . str_repeat('م', 90) . ']';
-        $this->gateway($this->output(['لطفاً [شماره قرارداد] را بنویسید', "مقدار {$long} باقی بماند"]));
+        $this->gateway($this->fakeOutput(['لطفاً [شماره قرارداد] را بنویسید', "مقدار {$long} باقی بماند"]));
         $letter = $this->generatingLetter();
 
         (new GenerateCorrespondenceJob((int) $letter->id, 'run-token'))->handle(new AiClient());
@@ -199,7 +200,7 @@ class GenerateCorrespondenceJobTest extends TestCase
 
     public function test_refine_replaces_only_the_target_block_and_keeps_its_heading_and_the_subject(): void
     {
-        $this->gateway($this->output(['بند بازنویسی‌شده'], 'هر چیز'));
+        $this->gateway($this->fakeOutput(['بند بازنویسی‌شده'], 'هر چیز'));
         $letter = $this->generatingLetter('run-token', [
             'subject' => 'موضوع نامه',
             'spec' => ['blocks' => [['type' => 'text', 'text' => 'بند اول'], ['type' => 'text', 'heading' => 'عنوان', 'text' => 'بند دوم']]],
@@ -233,7 +234,7 @@ class GenerateCorrespondenceJobTest extends TestCase
 
     public function test_too_large_and_blocked_failures_keep_the_spent_quota(): void
     {
-        $this->gateway($this->output(['متن']), 'length');
+        $this->gateway($this->fakeOutput(['متن']), 'length');
         $letter = $this->generatingLetter('run-token', ['versions' => [['ai' => true, 'run' => 'run-token', 'kind' => 'generate', 'prompt' => 'A valid prompt.', 'quota_day' => now()->format('Y-m-d')]]]);
         Cache::forget(Correspondence::quotaKey((int) $letter->user_id));
         Correspondence::consumeQuota((int) $letter->user_id);

@@ -18,6 +18,18 @@ use Tests\TestCase;
 
 class SmsChannelTest extends TestCase
 {
+    public function test_text_adds_one_tenant_footer_without_decorative_stretch_marks(): void
+    {
+        config(['services.sms.provider' => 'kavenegar', 'services.kavenegar.key' => 'KEY', 'app.name' => 'ویــنترا']);
+        Http::fake(['api.kavenegar.com/*' => Http::response(['return' => ['status' => 200]])]);
+
+        $this->assertTrue((new SmsChannel)->text('09120000000', 'سلام'));
+
+        Http::assertSentCount(1);
+        Http::assertSent(fn ($request) => $request['message'] === "سلام\nاین پیامک از سامانه وینترا ارسال شده است");
+        $this->assertSame('این پیامک از سامانه وینترا ارسال شده است', SmsChannel::footer());
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();

@@ -741,7 +741,7 @@ class ProfileTest extends TestCase
             ->set('form.files.shenasnameh', $file)
             ->assertHasErrors(['form.files.shenasnameh']);
 
-        $this->assertStringContainsString('حجم فایل نباید بیشتر از 10 مگابایت باشد.', $component->html());
+        $this->assertStringContainsString('حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.', $component->html());
     }
 
     public function test_documents_standard_doc_cards_carry_status_scoped_wire_keys()

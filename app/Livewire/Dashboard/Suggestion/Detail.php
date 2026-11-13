@@ -15,10 +15,12 @@ use App\Support\SuggestionAccessPolicy;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class Detail extends Component
 {
+    #[Locked]
     public int $suggestionId;
 
     public FeedbackForm $feedbackForm;
@@ -27,7 +29,7 @@ class Detail extends Component
     #[Computed]
     public function allDepartments(): array
     {
-        return Department::getCachedOptions()->toArray();
+        return Department::getCachedOptions()->except('MA')->toArray();
     }
 
     #[Computed]

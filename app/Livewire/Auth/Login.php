@@ -14,6 +14,7 @@ class Login extends Component
     public string $email = '';
     public string $password = '';
     public bool $remember = false;
+    public string $outcome = '';
 
     private function throttleKey(): string
     {
@@ -31,6 +32,7 @@ class Login extends Component
 
         if (RateLimiter::tooManyAttempts($key, 4)) {
             $this->addError('email', 'تعداد تلاش‌های ورود بیش از حد مجاز است. لطفاً ' . RateLimiter::availableIn($key) . ' ثانیه دیگر تلاش کنید.');
+            $this->outcome = 'fail';
             return;
         }
 
@@ -38,6 +40,7 @@ class Login extends Component
             RateLimiter::hit($key);
             $this->reset('password');
             $this->addError('email', 'اطلاعات ورود اشتباه است یا حساب کاربری وجود ندارد.');
+            $this->outcome = 'fail';
             return;
         }
 
@@ -45,13 +48,15 @@ class Login extends Component
             Auth::logout();
             $this->reset('password');
             $this->addError('email', 'حساب کاربری شما غیرفعال است.');
+            $this->outcome = 'fail';
             return;
         }
 
         RateLimiter::clear($key);
         session()->regenerate();
 
-        return redirect()->intended(config('fortify.home', '/dashboard'));
+        $this->outcome = 'success';
+        $this->js('setTimeout(() => window.location.href = ' . json_encode(url(session()->pull('url.intended', config('fortify.home', '/dashboard')))) . ', 800)');
     }
 
     public function render()

@@ -228,8 +228,8 @@ class NotifyLogTablePresenter
         return SelectFilter::make('source')
             ->label(__('resources/notify_rule/strings.log.fields.source'))
             ->options(array_combine(
-                [NotifyLog::SOURCE_RULE, NotifyLog::SOURCE_STATUS, NotifyLog::SOURCE_RESERVATION],
-                array_map(fn (string $s) => self::sourceLabel($s), [NotifyLog::SOURCE_RULE, NotifyLog::SOURCE_STATUS, NotifyLog::SOURCE_RESERVATION]),
+                [NotifyLog::SOURCE_RULE, NotifyLog::SOURCE_STATUS, NotifyLog::SOURCE_RESERVATION, NotifyLog::SOURCE_CALENDAR],
+                array_map(fn (string $s) => self::sourceLabel($s), [NotifyLog::SOURCE_RULE, NotifyLog::SOURCE_STATUS, NotifyLog::SOURCE_RESERVATION, NotifyLog::SOURCE_CALENDAR]),
             ));
     }
 

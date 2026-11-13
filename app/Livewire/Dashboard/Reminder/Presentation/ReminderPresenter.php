@@ -68,7 +68,7 @@ class ReminderPresenter
         return array_values(array_filter([
             tenantOff('notify:mail') ? null : ['name' => 'form.emailEnabled', 'label' => 'ایمیل'],
             tenantOff('notify:sms') ? null : static::smsToggle(),
-            ['name' => 'form.inAppBadge', 'label' => $scoped ? 'نشانگر منو' : 'نشانگر منو (فقط رکورد متصل)', 'disabled' => ! $scoped],
+            ['name' => 'form.inAppBadge', 'label' => $scoped ? 'نشانگر منو' : 'نشانگر منو (فقط مورد مرتبط)', 'disabled' => ! $scoped],
             ['name' => 'form.inAppNudge', 'label' => 'پیام اعلانات'],
             ['name' => 'form.inAppEdge', 'label' => 'پیام ثابت صفحه'],
         ]));
@@ -131,7 +131,7 @@ class ReminderPresenter
             Project::class => 'پروژه',
             DMS::class => 'سند',
             Reservation::class => 'رزرو',
-            default => 'رکورد',
+            default => 'مورد',
         };
 
         return $label . ' #' . convertToPersian((string) $this->reminder->remindable_id);

@@ -45,7 +45,7 @@ class AuthorityPresenter
                 'value' => match ($details['execution_procedure'] ?? null) {
                     'yes' => 'دارد',
                     'no' => 'ندارد',
-                    'pending' => 'در انتظار (تصویب / بروزرسانی)',
+                    'pending' => 'در انتظار (تصویب / به‌روزرسانی)',
                     default => 'داده نشده!',
                 },
                 'color' => match ($details['execution_procedure'] ?? null) {

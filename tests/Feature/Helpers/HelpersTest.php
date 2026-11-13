@@ -276,11 +276,12 @@ class HelpersTest extends TestCase
 
     public function test_get_event_styles_returns_a_class_string_per_type(): void
     {
-        $this->assertSame('bg-pink-50 text-pink-600 ring-1 ring-pink-100', getEventStyles('birthday'));
-        $this->assertSame('bg-amber-50 text-amber-600 ring-1 ring-amber-100', getEventStyles('anniversary'));
-        $this->assertSame('bg-rose-50 text-rose-600 ring-1 ring-rose-100', getEventStyles('holiday'));
+        $this->assertStringContainsString('--tool-amethyst-bg', getEventStyles('birthday'));
+        $this->assertStringContainsString('--tool-gold-bg', getEventStyles('anniversary'));
+        $this->assertStringContainsString('--md-sys-color-error', getEventStyles('holiday'));
+        $this->assertStringContainsString('--tool-sapphire-bg', getEventStyles('reminder'));
         $this->assertSame(
-            'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
+            'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
             getEventStyles('anything-else')
         );
     }

@@ -28,9 +28,9 @@ class CorrectLetterAction
             $row->letter_date = LetterFlow::jalali(now('Asia/Tehran'));
         }
 
-        $row->content_hash = LetterRules::contentHash($row);
         LetterFlow::log($row, $actor, 'corrected');
         $row->save();
+        $row->forceFill(['content_hash' => LetterRules::contentHash($row)])->save();
     }
 
     private function fix(Correspondence $letter, array $fields): void

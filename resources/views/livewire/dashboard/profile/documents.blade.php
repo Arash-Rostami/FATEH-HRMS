@@ -13,25 +13,25 @@
             <div class="flex-1">
                 <h3 class="text-sm font-bold tracking-tight mb-2">راهنمای بارگذاری مدارک و الزامات پرونده</h3>
                 <p class="text-xs opacity-90 leading-relaxed mb-4">
-                    کاربر گرامی، تصاویر اسکن‌شده باید با کیفیت مطلوب و حجم کمتر از ۱۰ مگابایت باشند. توجه داشته باشید که پس از تایید نهایی، امکان ویرایش مستندات وجود نخواهد داشت. رعایت موارد زیر جهت تکمیل پرونده الزامی است:
+                    تصاویر اسکن‌شده باید باکیفیت و کمتر از ۱۰ مگابایت باشند. پس از تأیید نهایی، نمی‌توانید مدارک را ویرایش کنید. برای تکمیل پرونده، موارد زیر را رعایت کنید:
                 </p>
 
                 <ul class="text-xs opacity-90 leading-relaxed space-y-3">
                     <li class="flex items-start gap-2">
                         <span class="material-symbols-rounded text-[16px] opacity-80 shrink-0">document_scanner</span>
-                        <span>تصاویر مدارک باید دارای کادربندی استاندارد باشند؛ لطفاً از بارگذاری تصاویر زاویه‌دار، فاقد نور مناسب یا ناخوانا اکیداً خودداری فرمایید.</span>
+                        <span>تصاویر مدارک را صاف، روشن و خوانا بارگذاری کنید.</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <span class="material-symbols-rounded text-[16px] opacity-80 shrink-0">group</span>
-                        <span>علاوه بر مدارک هویتی پایه، بارگذاری تصویر <strong>تمامی صفحات</strong> شناسنامه همسر و فرزندان نیز الزامی است.</span>
+                        <span>علاوه بر مدارک هویتی خود، تصویر <strong>تمامی صفحات</strong> شناسنامه همسر و فرزندان را بارگذاری کنید.</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <span class="material-symbols-rounded text-[16px] opacity-80 shrink-0">policy</span>
-                        <span>همچنین، ارائه و بارگذاری تصویر گواهی معتبر عدم سوء پیشینه کیفری. </span>
+                        <span>تصویر گواهی معتبر عدم سوء پیشینه کیفری را بارگذاری کنید.</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <span class="material-symbols-rounded text-[16px] opacity-80 shrink-0">account_balance</span>
-                        <span>بارگذاری تصویر مستندات بانکی (یک برگه) حاوی شماره حساب فعال به نام شخص متقاضی، منحصراً نزد <strong>بانک تجارت</strong>.</span>
+                        <span>یک برگه بانکی با شماره حساب فعال به نام خودتان در <strong>بانک تجارت</strong> بارگذاری کنید.</span>
                     </li>
                 </ul>
             </div>
@@ -43,7 +43,7 @@
             <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">folder_open</span>
             <div>
                 <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">بارگذاری مدارک هویتی</h3>
-                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">تصاویر اسکن شده مدارک خود را با کیفیت مناسب بارگذاری نمایید.</p>
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">تصاویر اسکن‌شده مدارک خود را با کیفیت مناسب بارگذاری کنید.</p>
             </div>
         </div>
         <div class="p-6">
@@ -82,7 +82,7 @@
                                         {{ $status === 'approved' ? 'text-[var(--md-sys-color-primary)]' :
                                            ($status === 'pending'  ? 'text-[var(--md-sys-color-tertiary)]' :
                                            ($status === 'rejected' ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]')) }}">
-                                        {{ $status === 'approved' ? 'تایید شده' : ($status === 'pending' ? 'در انتظار تایید' : ($status === 'rejected' ? 'رد شده' : 'بارگذاری نشده')) }}
+                                        {{ $status === 'approved' ? 'تأیید شده' : ($status === 'pending' ? 'در انتظار تأیید' : ($status === 'rejected' ? 'رد شده' : 'بارگذاری نشده')) }}
                                     </span>
                                 </div>
                             </div>
@@ -108,7 +108,7 @@
                                 @elseif($status === 'pending')
                                     <div wire:key="profile-doc-{{ $key }}-pending"
                                         class="flex items-center justify-between bg-[var(--md-sys-color-tertiary-container)]/30 border border-[var(--md-sys-color-tertiary)]/20 px-3 py-2 rounded-xl">
-                                        <span class="text-[11px] font-bold text-[var(--md-sys-color-tertiary)]">در انتظار تایید</span>
+                                        <span class="text-[11px] font-bold text-[var(--md-sys-color-tertiary)]">در انتظار تأیید</span>
                                         @if($resetAction->hasFile($form, $key))
                                             <button type="button" wire:click.prevent="removeFile('{{ $key }}')"
                                                     class="text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] p-1 rounded-lg transition-colors">
@@ -212,7 +212,7 @@
                          class="text-center mt-2 text-xs text-[var(--md-sys-color-primary)] font-bold animate-pulse">در
                         حال آماده‌سازی فایل...
                     </div>
-                    <p x-show="sizeError" x-cloak class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">حجم فایل نباید بیشتر از 10 مگابایت باشد.</p>
+                    <p x-show="sizeError" x-cloak class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.</p>
                 </div>
                 <div x-show="fileName" x-cloak class="space-y-3">
                     <div

@@ -79,6 +79,7 @@ describe('report.init — recent restoration (fixed 2026-10-01: now checks the p
     function freshReport() {
         const c = report()
         c.$wire = { get: vi.fn(() => null) }
+        c.$watch = vi.fn()
         c.$nextTick = vi.fn((fn) => fn())
         c.$refs = {}
         c.$root = document.createElement('div')
@@ -111,6 +112,7 @@ describe('report.init — mobile view enforcement', () => {
     function freshReport(view) {
         const c = report()
         c.$wire = { get: vi.fn(() => view), call: vi.fn() }
+        c.$watch = vi.fn()
         c.$nextTick = vi.fn((fn) => fn())
         c.$refs = {}
         c.$root = document.createElement('div')
@@ -138,6 +140,7 @@ describe('report.destroy', () => {
     test('tears down the resize listener, timers, observer, and morph hook without throwing', () => {
         const c = report()
         c.$wire = { get: vi.fn(() => 'list') }
+        c.$watch = vi.fn()
         c.$nextTick = vi.fn((fn) => fn())
         c.$refs = {}
         c.$root = document.createElement('div')

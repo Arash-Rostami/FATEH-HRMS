@@ -1,5 +1,5 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
-import { calendarNow, calendarView, calendarDrag, calendarResize } from '../calendar.js'
+import { calendarDay, calendarNow, calendarView, calendarDrag, calendarResize } from '../calendar.js'
 
 beforeEach(() => {
     vi.useFakeTimers()
@@ -110,6 +110,75 @@ describe('calendarNow — recompute on the 60s tick and day-change dispatch', ()
         vi.advanceTimersByTime(120000)
 
         expect(c.nowTop).toBeCloseTo(0)
+    })
+})
+
+describe('calendarDay — auto-scroll target', () => {
+    const base = { hourHeight: 60, startHour: 6, endHour: 24 }
+
+    test('another day scrolls to its first event, including one at the very top of the grid (top 0)', () => {
+        expect(calendarDay({ ...base, firstTop: 240 }).scrollTarget()).toBe(240)
+        expect(calendarDay({ ...base, firstTop: 0 }).scrollTarget()).toBe(0)
+        expect(calendarDay({ ...base, firstTop: null }).scrollTarget()).toBeNull()
+    })
+
+    test('today scrolls to the current time when it is inside the grid and nowhere when outside', () => {
+        vi.useFakeTimers()
+        vi.setSystemTime(new Date(2026, 10, 12, 9, 30))
+        expect(calendarDay({ ...base, isToday: true }).scrollTarget()).toBe(210)
+        vi.setSystemTime(new Date(2026, 10, 12, 3, 0))
+        expect(calendarDay({ ...base, isToday: true }).scrollTarget()).toBeNull()
+        vi.useRealTimers()
+    })
+})
+
+describe('calendar SMS memory', () => {
+    beforeEach(() => localStorage.clear())
+    afterEach(() => vi.restoreAllMocks())
+
+    test('successful calendar events remember an occasion once for the signed-in sender', () => {
+        const c = calendarView({ senderId: 7, smsYear: 1405 })
+        const detail = { source: 'calendar', senderId: 7, key: 'birthday-12-1405' }
+        c.rememberSms(detail)
+        c.rememberSms(detail)
+        expect(c.smsAlreadySent(detail.key)).toBe(true)
+        expect(c.smsAlreadySent('anniversary-12-1405')).toBe(false)
+        expect(c.smsAlreadySent('birthday-12-1406')).toBe(false)
+        expect(JSON.parse(localStorage.getItem('calendar-sms-sent:7'))).toEqual([detail.key])
+        const restored = calendarView({ senderId: 7, smsYear: 1405 })
+        restored.loadSmsMemory()
+        expect(restored.smsAlreadySent(detail.key)).toBe(true)
+        const other = calendarView({ senderId: 8, smsYear: 1405 })
+        other.loadSmsMemory()
+        expect(other.smsAlreadySent(detail.key)).toBe(false)
+    })
+
+    test('old Jalali years and invalid keys are removed while future occasions remain', () => {
+        localStorage.setItem('calendar-sms-sent:7', JSON.stringify(['birthday-12-1404', 'birthday-12-1405', 'anniversary-12-1406', 'event-12-1405', null]))
+        const c = calendarView({ senderId: 7, smsYear: 1405 })
+        c.loadSmsMemory()
+        expect(c.smsSent).toEqual(['birthday-12-1405', 'anniversary-12-1406'])
+        expect(JSON.parse(localStorage.getItem('calendar-sms-sent:7'))).toEqual(c.smsSent)
+    })
+
+    test('unrelated senders and sources never hide calendar buttons', () => {
+        const c = calendarView({ senderId: 7, smsYear: 1405 })
+        for (const detail of [null, { source: 'status', senderId: 7, key: 'birthday-12-1405' }, { source: 'calendar', senderId: 8, key: 'birthday-12-1405' }]) {
+            c.rememberSms(detail)
+        }
+        expect(c.smsSent).toEqual([])
+    })
+
+    test('corrupt or unavailable storage leaves the calendar usable', () => {
+        const c = calendarView({ senderId: 7, smsYear: 1405 })
+        localStorage.setItem('calendar-sms-sent:7', '{broken')
+        expect(() => c.loadSmsMemory()).not.toThrow()
+        expect(c.smsSent).toEqual([])
+        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked') })
+        expect(() => c.loadSmsMemory()).not.toThrow()
+        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('full') })
+        expect(() => c.rememberSms({ source: 'calendar', senderId: 7, key: 'birthday-12-1405' })).not.toThrow()
+        expect(c.smsAlreadySent('birthday-12-1405')).toBe(true)
     })
 })
 

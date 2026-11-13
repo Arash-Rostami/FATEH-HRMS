@@ -74,6 +74,8 @@ final class SuggestionAccessPolicy
         array $deptFeedback = [],
         array $deptComments = [],
     ): array {
+        if (!$selfFill) $homeFeedback = $homeComment = '';
+
         $now = now();
         $base = [
             'suggestion_id' => $suggestionId,

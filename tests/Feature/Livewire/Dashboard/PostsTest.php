@@ -71,6 +71,18 @@ class PostsTest extends TestCase
             ->assertHasNoErrors();
     }
 
+    public function test_regular_posts_carry_the_bookmark_button_and_saved_only_toggle()
+    {
+        $post = Post::factory()->notPinned()->create();
+
+        Livewire::withoutLazyLoading();
+        Livewire::test(Posts::class)
+            ->assertSeeHtml("togglePin({$post->id}, 'post')")
+            ->assertSeeHtml('onlySaved')
+            ->assertSeeHtml("isEmpty('post')")
+            ->assertSee('موردی نشان نشده است');
+    }
+
     public function test_pins_returns_only_pinned_posts()
     {
         $pinnedPost = Post::factory()->pinned()->create();

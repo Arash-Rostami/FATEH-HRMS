@@ -93,7 +93,9 @@
                  x-on:click="selectContact({{ $contact['id'] }})"
                  x-on:keydown.enter.prevent="selectContact({{ $contact['id'] }})"
                  x-on:keydown.space.prevent="selectContact({{ $contact['id'] }})"
-                 data-rf="people-{{ $contact['id'] }}" data-unread-id="{{ $contact['id'] }}" data-unread="{{ (int) $contact['unread'] }}" role="option" tabindex="0"
+                 data-rf="people-{{ $contact['id'] }}" data-unread-id="{{ $contact['id'] }}" data-unread="{{ (int) $contact['unread'] }}"
+                 data-notify-name="{{ $contact['name'] }}" data-notify-body="{{ $contact['last_message']['body'] ?? '' }}"
+                 data-notify-mine="{{ !empty($contact['last_message']['is_mine']) ? '1' : '0' }}" role="option" tabindex="0"
                  aria-selected="{{ $activeUserId === $contact['id'] ? 'true' : 'false' }}"
                  :style="{ order: $store.pinned.isPinned({{ $contact['id'] }}, 'contact') ? -1 : 0 }"
                  :title="sbCollapsed ? @js($contact['name']) : null"
@@ -108,7 +110,7 @@
                 <div class="relative flex-shrink-0">
                     <x-ui.avatar :image="null" :existingImage="$contact['avatar']" :alt="$contact['name']"
                                  :inactive="$contact['inactive']" size="md" icon-size="text-xl"
-                                 :online="$contact['is_online']" :status="$contact['presence']" :focus="$contact['focus']"/>
+                                 :online="$contact['is_online']" :status="$contact['presence']" :focus="$contact['focus']" :uid="$contact['id']"/>
                     @if($contact['unread'])
                         <span class="sb-rail-dot absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-md text-[9px] font-bold items-center justify-center ring-2 ring-[var(--md-sys-color-surface)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">{{ $contact['unread'] > 99 ? '⁹⁹⁺' : $contact['unread'] }}</span>
                     @endif

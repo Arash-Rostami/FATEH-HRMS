@@ -10,6 +10,6 @@
 </svg>
 @endsection
 
-@section('heading', 'نیاز به تایید هویت')
+@section('heading', 'نیاز به ورود')
 
 @section('message', 'برای دسترسی به این بخش، لطفاً ابتدا وارد حساب کاربری خود شوید.')

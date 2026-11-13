@@ -2,9 +2,12 @@
 
 namespace App\Services\Ai;
 
+use DomainException;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use JsonException;
+use RuntimeException;
 
 class AiClient
 {
@@ -42,7 +45,7 @@ class AiClient
                 ]);
             $response->throw();
         } catch (GuzzleException | ConnectionException) {
-            throw new \DomainException('unreachable');
+            throw new DomainException('unreachable');
         }
 
         $json = $response->json();
@@ -55,8 +58,8 @@ class AiClient
         try {
             $strict = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
-            return is_array($strict) ? $strict : throw new \JsonException('not an object');
-        } catch (\JsonException $e) {
+            return is_array($strict) ? $strict : throw new JsonException('not an object');
+        } catch (JsonException $e) {
             $start = strpos($content, '{');
             $end = strrpos($content, '}');
             if ($start === false || $end === false || $end <= $start) {
@@ -71,7 +74,7 @@ class AiClient
     public static function setting(string $feature, string $key): mixed
     {
         return config("ai.{$feature}.{$key}") ?? config("ai.gateway.{$key}")
-            ?? throw new \RuntimeException("AI setting missing: ai.{$feature}.{$key} and ai.gateway.{$key} are both unset; run `php artisan config:clear` and check config/ai.php.");
+            ?? throw new RuntimeException("AI setting missing: ai.{$feature}.{$key} and ai.gateway.{$key} are both unset; run `php artisan config:clear` and check config/ai.php.");
     }
 
     private function read(array $json): array
@@ -81,10 +84,10 @@ class AiClient
         $finish = is_string($finish) ? strtolower($finish) : $finish;
         $tokens = $this->tokens = (int) data_get($json, 'usage.total_tokens', 0);
         if ($finish === 'length') {
-            throw new \DomainException('too_large');
+            throw new DomainException('too_large');
         }
         if ($finish === 'content_filter') {
-            throw new \DomainException('blocked');
+            throw new DomainException('blocked');
         }
         if (!is_string($content) || trim($content) === '' || (is_string($finish) && $finish !== 'stop')) {
             return ['content' => null, 'tokens' => $tokens];

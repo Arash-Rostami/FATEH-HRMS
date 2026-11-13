@@ -47,6 +47,10 @@ class RerouteLetterAction
             throw LetterRules::fail('routeParties', 'too_many_recipients');
         }
 
+        if ($row->sign_mode === Correspondence::SIGN_MODE_ELECTRONIC) {
+            LetterSeal::signatureSources(array_values(array_filter($approvers, fn (array $party) => !isset($signed[(int) ($party['user_id'] ?? 0)]))));
+        }
+
         $mode = $payload['route_mode'] ?? null;
         $meta = (array) ($row->meta ?? []);
         unset($meta['resume']);

@@ -113,6 +113,8 @@
                     x-on:keydown.enter.prevent="selectChannel({{ $ch['id'] }})"
                     x-on:keydown.space.prevent="selectChannel({{ $ch['id'] }})"
                     data-rf="channel-{{ $ch['id'] }}" data-unread-id="{{ $ch['id'] }}" data-unread="{{ (int) $ch['unread'] }}"
+                    data-notify-name="{{ $ch['name'] }}" data-notify-body="{{ $ch['last_message']['body'] ?? '' }}"
+                    data-notify-sender="{{ $ch['last_message']['sender_name'] ?? '' }}" data-notify-mine="{{ !empty($ch['last_message']['is_mine']) ? '1' : '0' }}"
                     role="option"
                     tabindex="0"
                     aria-selected="{{ $activeChannelId === $ch['id'] ? 'true' : 'false' }}"

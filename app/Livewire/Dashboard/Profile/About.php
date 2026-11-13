@@ -49,6 +49,6 @@ class About extends Component
 
         $action->execute($this->form, $this->extraAnswers);
 
-        $this->dispatch('toast', message: 'اطلاعات درباره من با موفقیت بروزرسانی شد', type: 'success');
+        $this->dispatch('toast', message: 'اطلاعات درباره من به‌روزرسانی شد', type: 'success');
     }
 }

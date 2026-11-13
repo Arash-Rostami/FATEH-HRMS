@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Template\Words;
 
-class QuoteService
+use App\Services\TemplateService;
+
+class Quotes extends TemplateService
 {
-    private const QUOTES = [
+    public const QUOTES = [
         'مقیاس‌پذیریِ یک کسب‌وکار، پیش از زیرساخت‌های فنی، به وسعتِ ظرفیتِ روانیِ رهبرانش گره خورده است.',
         'استراتژیِ واقعی، در بودجه‌ای که تخصیص می‌دهید پنهان است، نه در ارائه‌های جذابی که در جلسات نمایش می‌دهید.',
         'بهینه‌سازیِ موضعیِ یک بخش از سیستم بدون درکِ کلِ آن، قطعی‌ترین راه برای تخریبِ پنهانِ سازمان است.',
@@ -257,8 +259,8 @@ class QuoteService
         'پایان هر جستجو، شناختن همان نقطه‌ای است که از آن آغاز کرده‌ایم.',
     ];
 
-    public static function all(): array
+    protected static function lines(): array
     {
-        return self::QUOTES;
+        return ['general' => self::QUOTES];
     }
 }

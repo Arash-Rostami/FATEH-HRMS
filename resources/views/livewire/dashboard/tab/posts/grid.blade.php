@@ -12,6 +12,7 @@
         @if($this->posts->isNotEmpty())
             @foreach($this->posts as $post)
                 <article wire:key="post-{{ $post->id }}" data-rf="posts-{{ $post->id }}"
+                         x-show="!onlySaved || $store.pinned.isPinned({{ $post->id }}, 'post')"
                          class="group relative flex flex-col bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 transition-all duration-300 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1 hover:border-[var(--md-sys-color-primary)]/30"
                 >
                     <div class="absolute top-0 left-0 right-0 h-[3px] bg-[var(--md-sys-color-primary)] z-20 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_60%,transparent)]"></div>
@@ -89,6 +90,7 @@
                                 <span>ادامه مطلب</span>
                                 <span class="material-symbols-rounded text-base flip-rtl">arrow_left_alt</span>
                             </button>
+                            <x-ui.buttons.bookmark :id="$post->id" scope="post"/>
                         </div>
                     </div>
                 </article>
@@ -107,6 +109,7 @@
     @if($this->hasMorePosts)
         <div class="mt-8 mb-4 lg:mb-20 flex justify-center">
             <x-ui.buttons.load-more
+                x-show="!onlySaved || !$store.pinned.isEmpty('post')"
                 action="loadMore"
                 text="نمایش بیشتر"
                 loading-text="در حال دریافت..."

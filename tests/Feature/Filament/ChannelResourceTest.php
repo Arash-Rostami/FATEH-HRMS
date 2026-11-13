@@ -11,13 +11,19 @@ use App\Filament\Resources\ChannelResource;
 use App\Filament\Resources\ChannelResource\Pages\CreateChannel;
 use App\Filament\Resources\ChannelResource\Pages\EditChannel;
 use App\Filament\Resources\ChannelResource\Pages\ListChannels;
+use App\Filament\Pages\UnlockModules;
 use App\Models\Channel;
+use App\Models\Lock;
 use App\Models\Permission;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
+use App\Support\LockPolicy;
+use Illuminate\Support\Facades\Hash;
 use App\Filament\Resources\ChannelResource\RelationManagers\ChannelMembersRelationManager;
 use App\Filament\Resources\ChannelResource\RelationManagers\ChannelMessagesRelationManager;
 use App\Traits\Filament\HandlesActionExceptions;
 use App\Traits\Filament\HandlesSaveExceptions;
+use Filament\Facades\Filament;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DetachAction;
@@ -37,6 +43,7 @@ class ChannelResourceTest extends TestCase
     protected function tearDown(): void
     {
         DB::rollBack();
+        LockPolicy::flush();
         parent::tearDown();
     }
 
@@ -432,5 +439,118 @@ class ChannelResourceTest extends TestCase
             $offenders,
             "Closure param must be named \$record/\$query (or carry an explicit type hint) so Filament's by-name evaluate() injection binds correctly:\n" . implode("\n", $offenders),
         );
+    }
+
+    private function keyedChannel(): array
+    {
+        config(['locks.disabled' => false]);
+        Lock::query()->delete();
+        ModelCacheVersion::bump(Lock::class);
+        LockPolicy::flush();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $admin = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        Permission::create(['user_id' => $admin->id, 'is_super_admin' => true]);
+        $ownerAdmin = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        Permission::create(['user_id' => $ownerAdmin->id, 'is_super_admin' => true]);
+        $channel = Channel::factory()->create(['owner_id' => $ownerAdmin->id]);
+        $lock = Lock::create(['lockable_type' => 'channel', 'lockable_id' => $channel->id, 'slot' => Lock::SLOT_OWNER, 'secret_hash' => Hash::make('owner-key-123')]);
+        LockPolicy::flush();
+
+        return [$admin, $ownerAdmin, $channel, $lock, ChannelResource::getUrl('edit', ['record' => $channel->id])];
+    }
+
+    public function test_an_owner_keyed_channel_stays_listed_but_denies_a_plain_admin_its_actions()
+    {
+        [$admin, , $channel] = $this->keyedChannel();
+
+        $this->actingAs($admin);
+        $this->assertTrue(ChannelResource::canViewAny());
+        $this->assertFalse(ChannelResource::canEdit($channel));
+        $this->assertNull(ChannelResource::getGlobalSearchResultUrl($channel));
+
+        Livewire::actingAs($admin)->test(ListChannels::class)
+            ->assertCanSeeTableRecords([$channel])
+            ->assertTableActionVisible('unlock', $channel)
+            ->assertTableActionHidden('edit', $channel)
+            ->callTableBulkAction('delete', [$channel]);
+
+        $this->assertNotNull(Channel::find($channel->id));
+    }
+
+    public function test_the_session_grant_opens_an_owner_keyed_channel_for_a_plain_admin()
+    {
+        [$admin, , $channel, $lock, $editUrl] = $this->keyedChannel();
+
+        $grant = $admin->id . ':' . $lock->id . ':' . $lock->fingerprint();
+        $this->actingAs($admin)->withSession(['locks.channel:' . $channel->id => $grant])->get($editUrl)->assertSuccessful();
+    }
+
+    public function test_the_channel_owner_who_is_an_admin_opens_their_own_keyed_channel()
+    {
+        [, $ownerAdmin, , , $editUrl] = $this->keyedChannel();
+
+        $this->actingAs($ownerAdmin)->get($editUrl)->assertSuccessful();
+    }
+
+    public function test_a_developer_opens_an_owner_keyed_channel()
+    {
+        [, , , , $editUrl] = $this->keyedChannel();
+
+        $this->actingAs($this->developer())->get($editUrl)->assertSuccessful();
+    }
+
+    public function test_an_owner_keyed_channel_redirects_a_plain_admin_to_the_unlock_page_on_first_open()
+    {
+        [$admin, , $channel, , $editUrl] = $this->keyedChannel();
+
+        $this->actingAs($admin)->get($editUrl)->assertRedirect(UnlockModules::getUrl(['record' => $channel->id]));
+    }
+
+    public function test_an_admin_without_channel_permission_still_gets_a_plain_403_on_an_owner_keyed_channel()
+    {
+        config(['locks.disabled' => false]);
+        Lock::query()->delete();
+        ModelCacheVersion::bump(Lock::class);
+        LockPolicy::flush();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $outsider = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        Permission::create(['user_id' => $outsider->id, 'is_super_admin' => false, 'abilities' => [['module' => 'user', 'actions' => ['view']]]]);
+        $channel = Channel::factory()->create(['owner_id' => User::factory()->create()->id]);
+        Lock::create(['lockable_type' => 'channel', 'lockable_id' => $channel->id, 'slot' => Lock::SLOT_OWNER, 'secret_hash' => Hash::make('owner-key-123')]);
+        LockPolicy::flush();
+
+        $this->actingAs($outsider)->get(ChannelResource::getUrl('edit', ['record' => $channel->id]))->assertForbidden();
+    }
+
+    public function test_a_locked_channel_module_blocks_a_plain_admin_until_a_key_opens_it_and_never_blocks_a_developer()
+    {
+        config(['locks.disabled' => false]);
+        Lock::query()->delete();
+        ModelCacheVersion::bump(Lock::class);
+        LockPolicy::flush();
+        $admin = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        Permission::create(['user_id' => $admin->id, 'is_super_admin' => true]);
+        $developer = $this->developer();
+
+        $this->actingAs($admin);
+        $this->assertTrue(ChannelResource::canViewAny());
+
+        $lock = Lock::create(['lockable_type' => 'channel', 'lockable_id' => 0, 'slot' => Lock::SLOT_CEO, 'secret_hash' => Hash::make('ceo-secret-1')]);
+        LockPolicy::flush();
+
+        $this->assertFalse(ChannelResource::canViewAny());
+        Livewire::actingAs($admin)->test(ListChannels::class)->assertForbidden();
+
+        LockPolicy::remember('channel', $lock);
+        $this->assertTrue(ChannelResource::canViewAny());
+
+        $this->actingAs($developer);
+        LockPolicy::flush();
+        $this->assertTrue(ChannelResource::canViewAny());
+
+        ModelCacheVersion::bump(Lock::class);
+        LockPolicy::flush();
     }
 }

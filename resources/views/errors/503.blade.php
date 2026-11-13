@@ -2,7 +2,7 @@
 
 @section('error_code', 'ERR_503')
 
-@section('title', 'در حال بروزرسانی')
+@section('title', 'در حال به‌روزرسانی')
 
 @section('icon')
 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-blue-500">
@@ -10,6 +10,6 @@
 </svg>
 @endsection
 
-@section('heading', 'سیستم در حال بروزرسانی')
+@section('heading', 'سیستم در حال به‌روزرسانی')
 
-@section('message', 'سیستم در حال حاضر برای انجام بروزرسانی و بهبود عملکرد از دسترس خارج است. لطفاً دقایقی دیگر مراجعه فرمایید.')
+@section('message', 'سیستم در حال حاضر در دسترس نیست. چند دقیقه بعد دوباره تلاش کنید.')

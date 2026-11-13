@@ -9,6 +9,7 @@ export default function gallery() {
         activeId: null,
         loading: false,
         showTimeline: false,
+        onlySaved: false,
         view: 'filmstrip',
         previewTimer: null,
 
@@ -23,6 +24,7 @@ export default function gallery() {
             this._isDestroyed = false;
             this.view = this.$wire.get('view') || 'filmstrip';
             this.watchMonth();
+            this.$watch('onlySaved', () => this.$nextTick(() => { this.refreshVisible(); this.updateActiveItem(); }));
 
             this._enforce = () => {
                 if (window.innerWidth < MOBILE_BREAKPOINT && this.view !== 'filmstrip') {

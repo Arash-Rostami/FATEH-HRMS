@@ -2055,7 +2055,7 @@ class MenuServiceTest extends TestCase
             Carbon::setTestNow();
         }
 
-        $this->assertSame(['reminder-changed', 'event-reminder-changed'], PulseService::changedEvents($before, $after));
+        $this->assertSame(['reminder-changed', 'event-reminder-changed', 'presence-changed'], PulseService::changedEvents($before, $after));
     }
 
     public function test_reminder_badge_nudge_and_toast_all_wait_for_the_due_time_of_day(): void

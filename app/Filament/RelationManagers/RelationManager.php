@@ -2,6 +2,7 @@
 
 namespace App\Filament\RelationManagers;
 
+use App\Traits\Filament\GuardsModuleLock;
 use App\Traits\Filament\HandlesActionExceptions;
 use App\Traits\Filament\HandlesDroppedFiles;
 use Filament\Actions\Action;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class RelationManager extends BaseRelationManager
 {
+    use GuardsModuleLock;
     use HandlesActionExceptions;
     use HandlesDroppedFiles;
 
@@ -55,7 +57,7 @@ class RelationManager extends BaseRelationManager
         return $module === 'permission' ? null : $module;
     }
 
-    private static function relatedModelResource(Model $ownerRecord): ?string
+    protected static function relatedModelResource(Model $ownerRecord): ?string
     {
         if (static::shouldSkipAuthorization() || static::getRelatedResource()) {
             return null;

@@ -21,6 +21,11 @@ final class AiReportPresenter
         return AiReportAccessPolicy::canRefine($r, auth()->user());
     }
 
+    public function canRestore(AiReport $r): bool
+    {
+        return AiReportAccessPolicy::canRestore($r, auth()->user());
+    }
+
     public function canRename(AiReport $r): bool
     {
         return AiReportAccessPolicy::canRename($r, auth()->user());

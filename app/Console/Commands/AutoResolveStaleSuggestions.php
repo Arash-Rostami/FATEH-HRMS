@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\Review;
 use App\Models\Suggestion;
+use App\Services\Menu\StateService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class AutoResolveStaleSuggestions extends Command
 {
@@ -19,24 +21,27 @@ class AutoResolveStaleSuggestions extends Command
         Suggestion::where('stage', 'team_remarks')
             ->where('updated_at', '<=', $cutoff)
             ->with('reviews')
-            ->each(function (Suggestion $suggestion) {
-                $homeDept = $suggestion->departments[0] ?? null;
-                if (!$homeDept) return;
-
-                $this->autoFillNeutral($suggestion, $homeDept);
-                $suggestion->load('reviews')->syncStage();
-            });
+            ->eachById(fn (Suggestion $suggestion) => $this->fillAndSync($suggestion, array_slice((array) $suggestion->departments, 0, 1)));
 
         Suggestion::where('stage', 'dept_remarks')
             ->where('updated_at', '<=', $cutoff)
             ->with('reviews')
-            ->each(function (Suggestion $suggestion) {
-                foreach ((array) $suggestion->departments as $dept) {
-                    $this->autoFillNeutral($suggestion, $dept);
-                }
+            ->eachById(fn (Suggestion $suggestion) => $this->fillAndSync($suggestion, (array) $suggestion->departments));
 
-                $suggestion->load('reviews')->syncStage();
-            });
+        StateService::flush();
+    }
+
+    private function fillAndSync(Suggestion $suggestion, array $depts): void
+    {
+        if (!$depts) return;
+
+        DB::transaction(function () use ($suggestion, $depts): void {
+            foreach ($depts as $dept) {
+                $this->autoFillNeutral($suggestion, $dept);
+            }
+
+            $suggestion->load('reviews')->syncStage();
+        });
     }
 
     private function autoFillNeutral(Suggestion $suggestion, string $dept): void

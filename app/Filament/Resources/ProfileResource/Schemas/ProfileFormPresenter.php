@@ -17,7 +17,9 @@ use App\Models\Department;
 use App\Models\Skill;
 use App\Services\PersianDateFieldService;
 use App\Services\ProfileDetailCatalog;
+use App\Support\TopPositionPolicy;
 use App\Traits\Filament\FilamentFormDivider;
+use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -479,6 +481,13 @@ class ProfileFormPresenter
             ->options(Position::class)
             ->default(Position::Employee->value)
             ->preload()
+            ->disableOptionWhen(fn(string $value): bool => TopPositionPolicy::isLocked($value) && !TopPositionPolicy::mayAssign())
+            ->disabled(fn(?Model $record): bool => TopPositionPolicy::isLocked($record?->position) && !TopPositionPolicy::mayAssign())
+            ->rule(fn(): Closure => function (string $attribute, mixed $value, Closure $fail): void {
+                if (TopPositionPolicy::isLocked($value) && !TopPositionPolicy::mayAssign()) {
+                    $fail(__('resources/profile/strings.validation.position_locked'));
+                }
+            })
             ->helperText(__('resources/profile/strings.hints.position'));
     }
 
@@ -607,6 +616,7 @@ class ProfileFormPresenter
             ->relationship('user', 'name')
             ->searchable()
             ->required()
+            ->disabled(fn(?Model $record): bool => TopPositionPolicy::isLocked($record?->position) && !TopPositionPolicy::mayAssign())
             ->columnSpanFull()
             ->native(false)
             ->helperText(__('resources/profile/strings.hints.user_id'));

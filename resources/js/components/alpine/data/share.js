@@ -8,6 +8,7 @@ export default function share() {
         shareTitle: '',
         shareText: '',
         view: 'card',
+        onlySaved: false,
 
         init() {
             this.view = this.$wire.get('view') || 'card';

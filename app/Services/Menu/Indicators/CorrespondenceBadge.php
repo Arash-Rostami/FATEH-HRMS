@@ -48,7 +48,7 @@ class CorrespondenceBadge implements MenuBadge
             return true;
         }
 
-        return $this->find($user->id)->isNotEmpty();
+        return $this->find($user->id)->isNotEmpty() || $this->incoming($user->id);
     }
 
     private function find(int $userId): Collection
@@ -97,6 +97,23 @@ class CorrespondenceBadge implements MenuBadge
             return false;
         }
 
+        return $this->unopened($letter, $userId);
+    }
+
+    private function incoming(int $userId): bool
+    {
+        return Correspondence::query()
+            ->whereIn('status', [Correspondence::STATUS_RECEIVED, Correspondence::STATUS_ROUTED])
+            ->where('updated_at', '>=', now()->subDays(self::UNSEEN_DAYS))
+            ->whereJsonContains('parties', ['user_id' => $userId])
+            ->orderByDesc('id')
+            ->limit(self::PAGE)
+            ->get(['id', 'status', 'parties'])
+            ->contains(fn (Correspondence $letter): bool => $this->unopened($letter, $userId));
+    }
+
+    private function unopened(Correspondence $letter, int $userId): bool
+    {
         foreach ($letter->parties ?? [] as $party) {
             if (is_array($party)
                 && (int) ($party['user_id'] ?? 0) === $userId

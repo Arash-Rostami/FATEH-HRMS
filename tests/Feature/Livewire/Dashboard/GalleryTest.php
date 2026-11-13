@@ -49,6 +49,22 @@ class GalleryTest extends TestCase
         config(['database.default' => 'mysql']);
     }
 
+    public function test_gallery_cards_carry_the_bookmark_button_and_saved_only_toggle()
+    {
+        Department::firstOrCreate(['code' => 'IT'], ['name' => 'IT']);
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        Profile::factory()->create(['user_id' => $user->id, 'department_id' => 'IT']);
+        $photo = Photo::factory()->create(['department_id' => 'IT']);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)
+            ->test(Gallery::class)
+            ->assertSeeHtml("togglePin({$photo->id}, 'gallery')")
+            ->assertSeeHtml('onlySaved')
+            ->assertSeeHtml("isEmpty('gallery')")
+            ->assertSee('موردی نشان نشده است');
+    }
+
     public function test_gallery_renders_and_loads_more()
     {
         Department::firstOrCreate(['code' => 'IT'], ['name' => 'IT']);

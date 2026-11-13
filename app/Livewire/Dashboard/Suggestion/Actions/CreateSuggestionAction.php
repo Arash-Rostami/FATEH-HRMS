@@ -23,16 +23,24 @@ class CreateSuggestionAction
     {
         $form->validate();
 
-        if (in_array(Auth::user()?->profile?->department_id, ['MA', 'MG'], true)) {
+        $homeDept = Auth::user()?->profile?->department_id;
+
+        if (in_array($homeDept, ['MA', 'MG'], true)) {
             throw ValidationException::withMessages([
                 'form.title' => __('resources/suggestion/strings.errors.ma_restricted'),
+            ]);
+        }
+
+        if (!$homeDept) {
+            throw ValidationException::withMessages([
+                'form.title' => __('resources/suggestion/strings.errors.no_department'),
             ]);
         }
 
         $validDeptCodes = Department::getCachedModels()->keys()->all();
         foreach ($form->departments as $dept) {
             if (!in_array($dept, $validDeptCodes, true)) {
-                throw ValidationException::withMessages(['departments' => 'واحد انتخابی معتبر نیست.']);
+                throw ValidationException::withMessages(['form.departments' => 'واحد انتخابی معتبر نیست.']);
             }
         }
 

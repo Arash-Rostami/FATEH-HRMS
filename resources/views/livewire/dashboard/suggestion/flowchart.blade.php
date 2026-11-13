@@ -19,7 +19,7 @@
                         <span class="inline-flex items-center justify-center w-7 h-7 rounded-full
                                      bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
                                      text-[11px] font-bold">
-                            {{ $step['step'] }}
+                            {{ convertToPersian($step['step']) }}
                         </span>
                         <span
                                 class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-on-primary-container)]">

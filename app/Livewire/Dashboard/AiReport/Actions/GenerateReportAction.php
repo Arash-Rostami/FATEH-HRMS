@@ -9,50 +9,51 @@ use App\Models\User;
 use App\Services\AiReport\BlockCatalog;
 use App\Services\AiReport\FileExtractor;
 use App\Support\AiReportAccessPolicy;
+use finfo;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use RuntimeException;
+use Throwable;
 
 class GenerateReportAction
 {
-    private const BUSY = 'یک گزارش در حال تولید است';
-
-    private const QUOTA = "\u{0633}\u{0647}\u{0645}\u{06CC}\u{0647}\u{0654} \u{0627}\u{0645}\u{0631}\u{0648}\u{0632} \u{0634}\u{0645}\u{0627} \u{0628}\u{0647} \u{067E}\u{0627}\u{06CC}\u{0627}\u{0646} \u{0631}\u{0633}\u{06CC}\u{062F}\u{0647} \u{0627}\u{0633}\u{062A}.";
-
     public function execute(ComposerForm $form, User $user, ?AiReport $parent = null): AiReport
     {
         $form->validated();
         if (!AiReportAccessPolicy::canGenerate($user) || ($parent && !AiReportAccessPolicy::canRefine($parent, $user))) {
-            throw ValidationException::withMessages(['form.prompt' => 'تولید گزارش برای شما مجاز نیست.']);
+            throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.generate_denied')]);
         }
         $staged = $this->stage($form);
         if (AiReport::quotaUsed($user->id) >= AiReport::quotaCap()) {
-            throw ValidationException::withMessages(['form.prompt' => self::QUOTA]);
+            throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.quota')]);
         }
 
         $names = array_column($staged, 'name');
+        $token = Str::random(16);
         try {
-            $report = Cache::lock('ai-report:generate:' . $user->id, (int) config('ai.report.lock.ttl'))->block((int) config('ai.report.lock.wait'), function () use ($user, $parent, $form, $names) {
+            $report = Cache::lock('ai-report:generate:' . $user->id, (int) config('ai.report.lock.ttl'))->block((int) config('ai.report.lock.wait'), function () use ($user, $parent, $form, $names, $token) {
                 if (AiReport::quotaUsed($user->id) >= AiReport::quotaCap()) {
-                    throw ValidationException::withMessages(['form.prompt' => self::QUOTA]);
+                    throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.quota')]);
                 }
-                $report = DB::transaction(function () use ($user, $parent, $form, $names) {
+                $report = DB::transaction(function () use ($user, $parent, $form, $names, $token) {
                     $this->assertIdle($user->id);
                     if (!$parent) {
                         return AiReport::query()->create([
                             'user_id' => $user->id,
                             'status' => AiReport::STATUS_GENERATING,
-                            'versions' => [$this->version($form, $names)],
+                            'versions' => [$this->version($form, $names, $token)],
                         ] + $this->presets($form));
                     }
 
                     $locked = AiReport::query()->whereKey($parent->id)->lockForUpdate()->first();
                     if (!$locked || !AiReportAccessPolicy::canRefine($locked, $user)) {
-                        throw ValidationException::withMessages(['form.prompt' => 'این گزارش قابل بازبینی نیست.']);
+                        throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.not_refinable')]);
                     }
                     $parentSpec = $locked->spec;
                     if (empty($parentSpec) && $locked->status === AiReport::STATUS_FAILED) {
@@ -60,11 +61,14 @@ class GenerateReportAction
                     }
                     if (is_array($parentSpec)) {
                         $block = null;
-                        if (is_string($form->block) && BlockCatalog::resolveBlock($parentSpec, $form->block) !== null) {
+                        if (is_string($form->block)) {
+                            if (BlockCatalog::resolveBlock($parentSpec, $form->block) === null) {
+                                throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.block_stale')]);
+                            }
                             $block = $form->block;
                         }
                     }
-                    $version = $this->version($form, $names, is_array($parentSpec) ? $parentSpec : null, $block ?? null);
+                    $version = $this->version($form, $names, $token, is_array($parentSpec) ? $parentSpec : null, $block ?? null);
                     if (filled($locked->recipients)) {
                         $version['forked_from'] = $locked->id;
 
@@ -83,16 +87,21 @@ class GenerateReportAction
 
                     return $locked;
                 });
-                $n = AiReport::consumeQuota($user->id);
+                try {
+                    $n = AiReport::consumeQuota($user->id);
+                } catch (Throwable) {
+                    $report->markFailed('exception');
+                    throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.busy')]);
+                }
                 if ($n > AiReport::quotaCap()) {
                     $report->markFailed('quota');
-                    throw ValidationException::withMessages(['form.prompt' => self::QUOTA]);
+                    throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.quota')]);
                 }
 
                 return $report;
             });
         } catch (LockTimeoutException) {
-            throw ValidationException::withMessages(['form.prompt' => self::BUSY]);
+            throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.busy')]);
         }
 
         try {
@@ -100,23 +109,23 @@ class GenerateReportAction
             foreach ($staged as $item) {
                 $stored = $item['file']->storeAs($report->tempDirectory(), $item['stored'], 'local');
                 if ($stored === false) {
-                    throw new \RuntimeException('store failed');
+                    throw new RuntimeException('store failed');
                 }
                 if ($item['file'] instanceof TemporaryUploadedFile) {
                     try {
                         $item['file']->delete();
-                    } catch (\Throwable) {
+                    } catch (Throwable) {
                     }
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $report->markFailed('exception');
             throw $e;
         }
 
         try {
-            GenerateReportJob::dispatch($report->id);
-        } catch (\Throwable $e) {
+            GenerateReportJob::dispatch($report->id, $token);
+        } catch (Throwable $e) {
             $report->markFailed('exception');
             throw $e;
         }
@@ -130,7 +139,7 @@ class GenerateReportAction
             ->lockForUpdate()
             ->exists();
         if ($busy) {
-            throw ValidationException::withMessages(['form.prompt' => self::BUSY]);
+            throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.busy')]);
         }
     }
 
@@ -138,14 +147,14 @@ class GenerateReportAction
     {
         $staged = [];
         $total = 0;
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
         $cap = (int) config('ai.report.upload.total_kb') * 1024;
         $inlineCap = (int) config('ai.report.upload.inline_kb') * 1024;
         $inlineTotal = 0;
         $inlineTotalCap = (int) config('ai.report.upload.inline_total_kb') * 1024;
         foreach ($form->files as $file) {
             if (!$file instanceof UploadedFile) {
-                throw ValidationException::withMessages(['form.files' => 'فایل پیوست معتبر نیست.']);
+                throw ValidationException::withMessages(['form.files' => __('resources/ai_report/strings.errors.file_invalid')]);
             }
             $client = basename(str_replace('\\', '/', (string) $file->getClientOriginalName()));
             $path = $file->getRealPath() ?: $file->getPathname();
@@ -159,17 +168,17 @@ class GenerateReportAction
             $size = $file->getSize();
             $size = is_int($size) ? $size : (int) (filesize($path) ?: 0);
             if (FileExtractor::MIMES[$mime][0] === 'inline' && $size > $inlineCap) {
-                throw ValidationException::withMessages(['form.files' => "\u{062D}\u{062C}\u{0645} \u{0647}\u{0631} \u{0641}\u{0627}\u{06CC}\u{0644} PDF \u{06CC}\u{0627} \u{062A}\u{0635}\u{0648}\u{06CC}\u{0631} \u{0646}\u{0628}\u{0627}\u{06CC}\u{062F} \u{0628}\u{06CC}\u{0634} \u{0627}\u{0632} " . convertToPersian(intdiv($inlineCap, 1024 * 1024)) . " \u{0645}\u{06AF}\u{0627}\u{0628}\u{0627}\u{06CC}\u{062A} \u{0628}\u{0627}\u{0634}\u{062F}."]);
+                throw ValidationException::withMessages(['form.files' => __('resources/ai_report/strings.errors.inline_size', ['mb' => convertToPersian(intdiv($inlineCap, 1024 * 1024))])]);
             }
             if (FileExtractor::MIMES[$mime][0] === 'inline') {
                 $inlineTotal += $size;
                 if ($inlineTotal > $inlineTotalCap) {
-                    throw ValidationException::withMessages(['form.files' => 'حجم مجموع فایل‌های PDF و تصویر نباید بیش از ' . convertToPersian(intdiv($inlineTotalCap, 1024 * 1024)) . ' مگابایت باشد.']);
+                    throw ValidationException::withMessages(['form.files' => __('resources/ai_report/strings.errors.inline_total', ['mb' => convertToPersian(intdiv($inlineTotalCap, 1024 * 1024))])]);
                 }
             }
             $total += $size;
             if ($total > $cap) {
-                throw ValidationException::withMessages(['form.files' => 'حجم مجموع فایل‌ها نباید بیش از ' . convertToPersian(intdiv($cap, 1024 * 1024)) . ' مگابایت باشد.']);
+                throw ValidationException::withMessages(['form.files' => __('resources/ai_report/strings.errors.total_size', ['mb' => convertToPersian(intdiv($cap, 1024 * 1024))])]);
             }
             $staged[] = [
                 'file' => $file,
@@ -190,11 +199,12 @@ class GenerateReportAction
         ];
     }
 
-    private function version(ComposerForm $form, array $files, ?array $parentSpec = null, ?string $block = null): array
+    private function version(ComposerForm $form, array $files, string $run, ?array $parentSpec = null, ?string $block = null): array
     {
         $version = [
             'prompt' => $form->prompt,
             'files' => $files,
+            'run' => $run,
             'type' => $form->type,
             'length' => $form->length,
             'audience' => $form->audience,

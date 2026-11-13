@@ -34,6 +34,7 @@ import share from "./data/share.js";
 import background from "./data/background.js";
 import feed from "./data/feed.js";
 import faq from "./data/faq.js";
+import peek from "./data/peek.js";
 import links from "./data/links.js";
 import gallery from "./data/gallery.js";
 import report from "./data/report.js";
@@ -48,8 +49,9 @@ import ambient from "./data/ambient.js";
 import feedComposer from "./data/feedComposer.js";
 import feedReactions from "./data/feedReactions.js";
 import countdown from "./data/countdown.js";
-import { calendarDrag, calendarNow, calendarResize, calendarView } from "./data/calendar.js";
+import { calendarDay, calendarDrag, calendarNow, calendarResize, calendarView } from "./data/calendar.js";
 import status from "./data/status.js";
+import smsModal from "./data/sms.js";
 import tabSelector from "./data/tabSelector.js";
 import tagInput from "./data/tagInput.js";
 
@@ -91,6 +93,7 @@ export default function initAlpine() {
         Alpine.data('background', background)
         Alpine.data('feed', feed)
         Alpine.data('faq', faq)
+        Alpine.data('peek', peek)
         Alpine.data('links', links)
         Alpine.data('gallery', gallery)
         Alpine.data('report', report)
@@ -105,11 +108,13 @@ export default function initAlpine() {
         Alpine.data('feedComposer', feedComposer)
         Alpine.data('feedReactions', feedReactions)
         Alpine.data('countdown', countdown)
+        Alpine.data('calendarDay', calendarDay)
         Alpine.data('calendarDrag', calendarDrag)
         Alpine.data('calendarNow', calendarNow)
         Alpine.data('calendarResize', calendarResize)
         Alpine.data('calendarView', calendarView)
         Alpine.data('status', status)
+        Alpine.data('smsModal', smsModal)
         Alpine.data('tabSelector', tabSelector)
         Alpine.data('tagInput', tagInput)
     })

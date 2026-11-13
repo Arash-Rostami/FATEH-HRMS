@@ -6,6 +6,7 @@
     <x-ui.title icon="show_chart" title="گزارشات" :count="$this->totalReports" countLabel="گزارش">
         <x-slot:actions>
             <x-ui.buttons.view-toggle module="reports" />
+            <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
             <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'card'" x-cloak />
 
             @unless(tenantOff('ai-report'))
@@ -60,6 +61,8 @@
          class="w-full hidden md:block relative"
          style="height: clamp(420px, calc(100svh - 200px), 800px);">
 
+        <x-ui.saved-empty scope="report"/>
+
         <x-ui.buttons.rail-arrows />
 
         @include('livewire.dashboard.tab.reports.cards')
@@ -71,6 +74,8 @@
          x-transition:enter-start="opacity-0 translate-y-4"
          x-transition:enter-end="opacity-100 translate-y-0"
          class="w-full md:px-12 pb-8">
+
+        <x-ui.saved-empty scope="report"/>
 
         <section x-data="{ open: false }"
                  x-show="recent.length"

@@ -18,14 +18,11 @@
             <div class="px-6 py-6 flex items-center justify-between border-b border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)]/80 sticky top-0 z-20">
                 <div class="flex items-center gap-5">
                     <div class="relative group shrink-0">
-                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-[var(--md-sys-color-surface-variant)] shadow-[0_8px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)] border-2 border-[var(--md-sys-color-surface)] transition-transform duration-500 group-hover:scale-105 relative">
-                            <template x-if="user?.image">
-                                <img :src="user.image" :alt="user?.name" class="w-full h-full object-cover" />
-                            </template>
-                        </div>
-                        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-[var(--md-sys-color-surface)] shadow-sm transition-colors duration-300"
-                             :class="user?.is_online ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-[var(--md-sys-color-surface)] shadow-[inset_0_0_0_2px_var(--md-sys-color-outline)]'"
-                             :title="user?.is_online ? 'آنلاین' : 'آفلاین'"></div>
+                        @if($this->aboutMeUser)
+                            <div wire:key="status-about-avatar" class="contents">
+                                <x-dashboard.user-avatar :user="$this->aboutMeUser" size="xl"/>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="space-y-1">

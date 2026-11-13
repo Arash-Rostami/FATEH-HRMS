@@ -17,6 +17,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use Morilog\Jalali\CalendarUtils;
 
 #[Lazy]
 class Main extends Component
@@ -145,10 +146,12 @@ class Main extends Component
             ->when($this->search !== '', function ($q) {
                 $term = '%' . addcslashes($this->search, '\\%_') . '%';
 
-                $q->where(function ($w) use ($term) {
+                $latin = CalendarUtils::convertNumbers($this->search, true);
+
+                $q->where(function ($w) use ($term, $latin) {
                     $w->where('title', 'like', $term);
 
-                    preg_match('/^SN-(\d{2,8})(?:-(\d{1,6}))?$/i', $this->search, $m);
+                    preg_match('/^SN-(\d{2,8})(?:-(\d{1,6}))?$/i', $latin, $m);
                     $digits = $m[1] ?? '';
                     $idPart = $m[2] ?? '';
 
@@ -167,7 +170,7 @@ class Main extends Component
                     } else {
                         $w->orWhereRaw(
                             "CONCAT('SN-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 6, '0')) like ?",
-                            [$term]
+                            ['%' . addcslashes($latin, '\\%_') . '%']
                         );
                     }
                 });
@@ -175,6 +178,16 @@ class Main extends Component
             ->orderByRaw("FIELD(priority, 'high', 'medium', 'low')")
             ->orderByDesc('created_at')
             ->paginate($this->perPage);
+    }
+
+    #[Computed]
+    public function attentionIds(): array
+    {
+        return Suggestion::attentionRequired()
+            ->whereKey($this->suggestions->getCollection()->modelKeys())
+            ->pluck('id')
+            ->flip()
+            ->all();
     }
 
     public function updatedSearch(): void

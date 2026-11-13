@@ -10,10 +10,13 @@ use App\Livewire\Dashboard\Tab\Actions\ShareEventAction;
 use App\Livewire\Dashboard\Tab\Forms\EventForm;
 use App\Livewire\Dashboard\Tab\Presentation\CalendarPresenter;
 use App\Models\Event;
+use App\Models\NotifyLog;
 use App\Models\User;
 use App\Services\Menu\StateService;
+use App\Services\Template\Words\Sms;
 use App\Services\Reservation\EventSyncService;
 use App\Traits\Livewire\FocusOnRecord;
+use App\Traits\Livewire\SendsSms;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
@@ -30,6 +33,7 @@ use Throwable;
 class Calendar extends Component
 {
     use FocusOnRecord;
+    use SendsSms;
 
     public EventForm $form;
     public string $navigationDate;
@@ -46,6 +50,34 @@ class Calendar extends Component
     public array $shareRecipientIds = [];
 
     private ?CalendarPresenter $presenter = null;
+
+    #[Computed]
+    public function smsTemplates(): array
+    {
+        return [
+            'birthday' => Sms::for('birthday'),
+            'anniversary' => Sms::for('anniversary'),
+        ];
+    }
+
+    protected function smsContext(int $userId): ?array
+    {
+        if (tenantOff('calendar') || !in_array($this->smsType, ['birthday', 'anniversary'], true)) {
+            return null;
+        }
+
+        $occasions = $this->selectedDayEvents->concat($this->rangeEvents['allDayEntries'] ?? []);
+        foreach ($occasions as $occasion) {
+            if (($occasion['can_sms'] ?? false)
+                && ($occasion['user_id'] ?? null) === $userId
+                && ($occasion['type'] ?? '') === $this->smsType
+                && ($occasion['sms_key'] ?? '') === $this->smsKey) {
+                return ['source' => NotifyLog::SOURCE_CALENDAR, 'key' => $occasion['sms_key']];
+            }
+        }
+
+        return null;
+    }
 
     #[Computed]
     public function activeDate(): array
@@ -238,13 +270,17 @@ class Calendar extends Component
     public function nextPeriod(): void
     {
         $j = Jalalian::fromFormat('Y-m-d', $this->navigationDate);
+        $days = $this->view === 'week' ? 7 : 1;
+        $this->navigationDate = Jalalian::fromCarbon($j->toCarbon()->addDays($days))->format('Y-m-d');
 
-        if ($this->view === 'month') {
-            $this->navigationDate = $j->addMonths(1)->format('Y-m-d');
-        } else {
-            $days = $this->view === 'week' ? 7 : 1;
-            $this->navigationDate = Jalalian::fromCarbon($j->toCarbon()->addDays($days))->format('Y-m-d');
-        }
+        $this->selectedDate = $this->navigationDate;
+        $this->invalidateNavigationComputeds();
+    }
+
+    public function stepMonth(int $delta): void
+    {
+        $j = Jalalian::fromFormat('Y-m-d', $this->navigationDate);
+        $this->navigationDate = ($delta >= 0 ? $j->addMonths(1) : $j->subMonths(1))->format('Y-m-d');
 
         $this->selectedDate = $this->navigationDate;
         $this->invalidateNavigationComputeds();
@@ -259,13 +295,8 @@ class Calendar extends Component
     public function prevPeriod(): void
     {
         $j = Jalalian::fromFormat('Y-m-d', $this->navigationDate);
-
-        if ($this->view === 'month') {
-            $this->navigationDate = $j->subMonths(1)->format('Y-m-d');
-        } else {
-            $days = $this->view === 'week' ? 7 : 1;
-            $this->navigationDate = Jalalian::fromCarbon($j->toCarbon()->subDays($days))->format('Y-m-d');
-        }
+        $days = $this->view === 'week' ? 7 : 1;
+        $this->navigationDate = Jalalian::fromCarbon($j->toCarbon()->subDays($days))->format('Y-m-d');
 
         $this->selectedDate = $this->navigationDate;
         $this->invalidateNavigationComputeds();
@@ -273,7 +304,10 @@ class Calendar extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.calendar', ['presenter' => $this->presenter()]);
+        return view('livewire.dashboard.tab.calendar', [
+            'presenter' => $this->presenter(),
+            'smsYear' => Jalalian::now()->getYear(),
+        ]);
     }
 
     public function placeholder(): \Illuminate\View\View

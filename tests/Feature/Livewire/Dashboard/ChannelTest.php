@@ -15,7 +15,9 @@ use App\Livewire\Dashboard\Channel\Actions\JoinChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\MarkChannelReadAction;
 use App\Livewire\Dashboard\Channel\Actions\SearchChannelMessagesAction;
 use App\Livewire\Dashboard\Channel\Actions\SaveEditChannelMessageAction;
+use App\Filament\Resources\ChannelResource;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
+use App\Livewire\Dashboard\Channel\Actions\SetChannelKeyAction;
 use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
 use App\Livewire\Dashboard\Tab\Actions\SendSmsAction;
 use App\Livewire\Dashboard\Tab\Presentation\TabPresenter;
@@ -28,6 +30,7 @@ use App\Models\Channel;
 use App\Models\ChannelMember;
 use App\Models\ChannelMessage;
 use App\Models\Edge;
+use App\Models\Lock;
 use App\Models\User;
 use App\Services\Menu\EdgeService;
 use App\Services\Menu\Toasts\ChannelToast;
@@ -37,6 +40,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Js;
@@ -2534,6 +2538,67 @@ class ChannelTest extends TestCase
             ->assertSet('mobileShowChat', false);
 
         $this->assertNotContains($channel->id, array_column($component->instance()->channels(), 'id'));
+    }
+
+    public function test_owner_sets_changes_and_clears_the_channel_key_and_the_code_never_stays_in_the_component(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $channel = Channel::factory()->ownedBy($owner)->create();
+
+        $component = Livewire::actingAs($owner)->test(Main::class)->call('selectChannel', $channel->id);
+
+        $component->call('saveChannelKey', $channel->id, 'first-key-123')->assertDispatched('show-toast');
+
+        $row = Lock::where('lockable_type', 'channel')->where('lockable_id', $channel->id)->first();
+        $this->assertSame(Lock::SLOT_OWNER, $row->slot);
+        $this->assertTrue(Hash::check('first-key-123', $row->secret_hash));
+
+        $component->call('saveChannelKey', $channel->id, 'second-key-456');
+        $this->assertSame(1, Lock::where('lockable_type', 'channel')->where('lockable_id', $channel->id)->count());
+        $this->assertTrue(Hash::check('second-key-456', Lock::find($row->id)->secret_hash));
+        $this->assertStringNotContainsString('second-key-456', json_encode($component->instance()->all()));
+        $this->assertStringNotContainsString('second-key-456', $component->html());
+
+        $component->call('saveChannelKey', $channel->id, '');
+        $this->assertSame(0, Lock::where('lockable_type', 'channel')->where('lockable_id', $channel->id)->count());
+    }
+
+    public function test_only_the_live_owner_can_write_a_channel_key_and_bad_codes_write_nothing(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $other = User::factory()->create(['status' => 'active']);
+        $channel = Channel::factory()->ownedBy($owner)->create();
+        $foreign = Channel::factory()->ownedBy($other)->create();
+
+        Livewire::actingAs($other)->test(Main::class)->call('saveChannelKey', $channel->id, 'intruder-key-1');
+        Livewire::actingAs($owner)->test(Main::class)->call('saveChannelKey', $foreign->id, 'forged-id-key-1');
+        Livewire::actingAs($owner)->test(Main::class)
+            ->call('saveChannelKey', $channel->id, 'short')
+            ->assertDispatched('show-toast', type: 'error');
+        Livewire::actingAs($owner)->test(Main::class)
+            ->call('saveChannelKey', $channel->id, str_repeat('a', Lock::MAX_CODE_BYTES + 1))
+            ->assertDispatched('show-toast', type: 'error');
+
+        $this->assertSame(0, Lock::where('lockable_type', 'channel')->whereIn('lockable_id', [$channel->id, $foreign->id])->count());
+
+        $channel->delete();
+        Livewire::actingAs($owner)->test(Main::class)->call('saveChannelKey', $channel->id, 'deleted-channel-1');
+        $this->assertSame(0, Lock::where('lockable_type', 'channel')->where('lockable_id', $channel->id)->count());
+    }
+
+    public function test_the_channel_key_action_is_rate_limited_per_owner_and_targets_the_channel_resource_module(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $channel = Channel::factory()->ownedBy($owner)->create();
+        $component = Livewire::actingAs($owner)->test(Main::class);
+
+        foreach (range(1, 6) as $attempt) {
+            $component->call('saveChannelKey', $channel->id, "attempt-key-{$attempt}");
+        }
+
+        $row = Lock::where('lockable_type', 'channel')->where('lockable_id', $channel->id)->first();
+        $this->assertTrue(Hash::check('attempt-key-5', $row->secret_hash));
+        $this->assertSame(ChannelResource::moduleKey(), SetChannelKeyAction::MODULE);
     }
 
     private function channelWithMembers(User $owner, array $members = [], string $type = 'private'): Channel

@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Every setting of the AI Report module in one place — nothing is hardcoded at a call site.
- * Gateway lives in config/ai.php; timeout, connect_timeout and max_output here override the gateway's.
- * Upload sizes (KB) are read directly from config('ai.report.upload.*').
- * Read through the config repository: config('ai.report.upload.max_files').
- */
-
 return [
     'daily_cap' => 6,
     'timeout' => 60,

@@ -458,7 +458,7 @@ class ReminderTest extends TestCase
         $scopedRow = collect(ReminderPresenter::channelToggles(true))->firstWhere('name', 'form.inAppBadge');
 
         $this->assertTrue($unscopedRow['disabled']);
-        $this->assertStringContainsString('فقط رکورد متصل', $unscopedRow['label']);
+        $this->assertStringContainsString('فقط مورد مرتبط', $unscopedRow['label']);
         $this->assertFalse($scopedRow['disabled']);
     }
 

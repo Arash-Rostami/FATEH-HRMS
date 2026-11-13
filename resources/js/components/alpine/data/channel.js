@@ -61,6 +61,8 @@ export default function channel() {
         editingBody: '',
         quoteChip: { visible: false, x: 0, y: 0, id: 0, sender: '', snippet: '' },
         confirmingDeleteChannel: false,
+        keyOpen: false,
+        channelKey: '',
         activeSender: null,
         chipsVisible: true,
         mentionOpen: false,
@@ -337,9 +339,10 @@ export default function channel() {
         syncPushNotify() {
             this._riseOnlyMuted();
             const now = this._readUnread();
+            const message = this._pushMessage(now, 'یک گروه پیام جدید دارد');
             const last = this._lastUnread;
             if (last !== undefined && now > last) {
-                this.$store.push.notify('پیام جدید', 'یک گروه پیام جدید دارد', SCOPE);
+                this.$store.push.notify(...message, SCOPE);
                 if (!this.$wire.activeChannelId) this._ringIncoming(null);
             }
             this._lastUnread = now;
@@ -459,6 +462,7 @@ export default function channel() {
             this.quoteChip.visible = false;
             this.activeSender = null;
             this.confirmingDeleteChannel = false;
+            this.closeChannelKey();
             if (this.$wire.createMode) this.closeCreate();
             if (this.$wire.browseMode) this.toggleBrowse();
             this.$wire.cancelReply();
@@ -523,6 +527,7 @@ export default function channel() {
             this.bookmarksOpen = false;
             this.daysOpen = false;
             this.confirmingDeleteChannel = false;
+            this.closeChannelKey();
             this._clearEdit();
 
             this.$wire.cancelReply();
@@ -673,6 +678,27 @@ export default function channel() {
 
         cancelDeleteChannel() {
             this.confirmingDeleteChannel = false;
+        },
+
+        openChannelKey() {
+            this.keyOpen = true;
+        },
+
+        closeChannelKey() {
+            this.keyOpen = false;
+            this.channelKey = '';
+        },
+
+        async saveChannelKey(id, clear = false) {
+            if (!id) return;
+            const code = clear ? '' : this.channelKey;
+            try {
+                await this._isl().saveChannelKey(id, code);
+            } catch {
+                this.toast('خطا در ثبت کلید گروه.', 'error');
+            } finally {
+                this.closeChannelKey();
+            }
         },
 
         async doDeleteChannel(id) {

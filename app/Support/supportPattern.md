@@ -2,7 +2,7 @@
 
 Static, framework-light rule classes. Every screen, action, bulk path, report, calendar, badge and the admin panel asks THESE, never a hand-rolled check. Authorization lives here; lifecycle lives in model hooks (`Task::booted`, `TaskDetail`, `Project::booted`); metrics live in `App\Services\ProjectTask\TaskMetrics`.
 
-Files: `TaskAccessPolicy`, `ProjectAccessPolicy`, `TicketAccessPolicy`, `SuggestionAccessPolicy` (unchanged, review-stage gate), `AiReportAccessPolicy` (§3b), `CorrespondenceAccessPolicy` (§3d), `FileNamer` (§5).
+Files: `TaskAccessPolicy`, `ProjectAccessPolicy`, `TicketAccessPolicy`, `SuggestionAccessPolicy` (unchanged, review-stage gate), `AiReportAccessPolicy` (§3b), `CorrespondenceAccessPolicy` (§3d), `LockPolicy` + `TopPositionPolicy` (§3e), `FileNamer` (§5).
 
 Moved out (2026-11-10): `CorrespondencePdf` + `CorrespondenceFonts` -> `app/Services/Correspondence/` (`servicePattern.md` §4d); `ProjectCharter` -> `app/Services/ProjectTask/` (`servicePattern.md` §4e); `FaultTolerantGlobalSearchProvider` -> `app/Services/Search/` (`filamentPattern.md` rule 65); `FilamentPanelCustomizer` -> `app/Providers/Filament/` (`providersPattern.md`).
 
@@ -39,6 +39,10 @@ Cycle lock (`Task::isCycleLocked()`): the CURRENT step task of an ACTIVE cycle c
 ## 3d. `CorrespondenceAccessPolicy` (final, all static, user nullable -> false)
 
 `canView` (live user + letter not trashed; the author always; anyone else only when the status is not draft-like/saved AND they are in `recipients` or hold a `parties` entry), `canEdit` (author while draft-like/saved/rejected; an `approver` party while `shared`), `isAuthor`, `partyOf`, `isRegistry` (active user with `extra.admin.correspondence_registry` truthy — the admin toggle «مسئول ثبت نامه‌های دریافتی»), `canRegistry` (a clerk may open, metadata-only, a letter in `CorrespondencePresenter::REGISTRY_STATUSES` she cannot otherwise view), `canSteward` (author, or a clerk on a normal-classification letter / one she can view: wet-sign steps and manual delivery). The presenter, the `*LetterAction` classes and `Letter*` support classes, `GenerateAction`, Search and the PDF controller all ask here; `LetterFlow::run` re-asks on the locked row. See `app/Livewire/Dashboard/Correspondence/correspondencePattern.md` §4.
+
+## 3e. `LockPolicy` and `TopPositionPolicy` (final, all static; admin-panel module locks, 2026-11-12)
+
+`LockPolicy`: `blocks($module)` (kill switch, developer and top executives never wait, no key rows = open, else the session fingerprint must match one key), `remember($module, $lock)` (stores the unlock; a record lock stores under `locks.{module}:{id}`), `blocksRecord($module, $record)` and `lockedRecordIds($module)` (the per-record twin: channel-owner keys; the record's `owner_id` is exempt), `isHolder`, `manages($user, $slot)` (both thin forms of `Lock::slotFor`), `lockedKeys()`, `lockableModules()` (admin resources that are not tenant-off, minus `permission`; memoised per request), `flush()`. `TopPositionPolicy`: `isLocked($position)` for chairman/ceo and `mayAssign($actor)` (developer or no actor). Full rules: `app/Services/Lock/lockPattern.md`.
 
 ## 5. `FileNamer` (2026-10-14) — the one upload-naming standard
 

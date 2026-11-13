@@ -15,6 +15,7 @@ use App\Livewire\Dashboard\Channel\Actions\MarkChannelReadAction;
 use App\Livewire\Dashboard\Channel\Actions\SaveEditChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SearchChannelMessagesAction;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
+use App\Livewire\Dashboard\Channel\Actions\SetChannelKeyAction;
 use App\Livewire\Dashboard\Channel\Actions\SyncChannelMembersAction;
 use App\Livewire\Dashboard\Channel\Actions\UndoDeleteChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Forms\ChannelMessageComposerForm;
@@ -123,6 +124,7 @@ class Main extends Component
 
         $messageIds = $rows->pluck('last_message_id')->filter()->unique();
         $lastMessages = ChannelMessage::withoutTrashed()
+            ->with('sender:id,name')
             ->whereIn('id', $messageIds)
             ->get()
             ->keyBy('id');
@@ -142,6 +144,8 @@ class Main extends Component
                 'last_message' => $last ? [
                     'body' => $last->body,
                     'sender_id' => $last->sender_id,
+                    'sender_name' => $last->sender?->name,
+                    'attachments' => $last->attachments,
                     'created_at' => $last->created_at->toISOString(),
                 ] : null,
             ];
@@ -856,6 +860,17 @@ class Main extends Component
         } catch (\Exception $e) {
             report($e);
             $this->dispatch('show-toast', message: 'خطای سیستمی رخ داده است', type: 'error');
+        }
+    }
+
+    #[Renderless]
+    public function saveChannelKey(SetChannelKeyAction $action, int $channelId, ?string $code = null): void
+    {
+        try {
+            $isSet = $action->execute($channelId, auth()->id(), $code);
+            $this->dispatch('show-toast', message: $isSet ? 'کلید گروه ثبت شد' : 'کلید گروه حذف شد', type: 'success');
+        } catch (ValidationException $e) {
+            $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'کلید نامعتبر است', type: 'error');
         }
     }
 

@@ -69,14 +69,6 @@ enum PresenceStatus: string
         };
     }
 
-    public function badgeClasses(): string
-    {
-        return match ($this) {
-            self::Angry => 'animate-bounce',
-            default => '',
-        };
-    }
-
     public function liftClass(): string
     {
         return match ($this) {
