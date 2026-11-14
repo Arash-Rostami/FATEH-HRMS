@@ -27,7 +27,7 @@ app/Livewire/Dashboard/Profile/{Actions/SaveSignCodeAction,Forms/SignCodeForm}.p
 app/Filament/Resources/{CorrespondenceResource,LetterheadResource}(+Pages,Schemas) ; UserResource signature/code/registry section
 config/ai/correspondence.php     every setting as `ai.correspondence.*` (types, caps, limits, prompts); tenant keys `correspondence`, `correspondence:ai`
 lang/fa/resources/correspondence/strings.php
-database/migrations/2026_11_09_00000{1,2}_create_{letterheads,correspondences}_table.php (plain Schema::create, no `migrated/` move yet)
+database/migrations/migrated/2026_11_09_00000{1,2}_create_{letterheads,correspondences}_table.php (plain Schema::create)
 resources/views/livewire/dashboard/correspondence.blade.php + correspondence/{workspace,composer,viewer,list,table,legend,paper}.blade.php
 resources/views/correspondence/link.blade.php + public/js/correspondence-link.js   public link page (standalone, no app bundle)
 resources/js/components/alpine/{data,modules}/correspondence.js (+ data/__tests__/correspondence.test.js)

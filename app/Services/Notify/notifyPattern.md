@@ -35,7 +35,7 @@ App\Models\NotifyRule.php                    rule row; fires(event), watches(cha
 App\Models\NotifyLog.php                     one row per attempt (or per chunk/run: `summary`, `skipped`, aggregated `sent` rows carry a `count`) with `user_id` (null for extra contacts), `event` (created/updated/deleted) and `record_id` (the payload id as a string) copied from the payload; STATUS_SENT / STATUS_FAILED; MassPrunable (90 days)
 App\Models\Concerns\HasNotifyEvents.php      the model-side hook (see below)
 App\Filament\Resources\NotifyRuleResource    admin CRUD + Send-test action + one-off «ارسال فوری» action (see "One-off messages") + LogsRelationManager + guide tab + read-only logs page (see "Logs view")
-database/migrations/2026_10_27_00000{1,2}_*  notify_rules, notify_logs
+database/migrations/migrated/2026_10_27_00000{1,2}_*  notify_rules, notify_logs
 lang/fa/resources/notify_rule/strings.php    all admin copy
 ```
 

@@ -18,6 +18,7 @@ return new class extends Migration {
                 $table->json('units')->nullable();
                 $table->json('sections')->nullable();
                 $table->json('ticket_options')->nullable();
+                $table->boolean('free_assignment')->default(false);
                 $table->integer('ticket_options_length')->virtualAs('JSON_LENGTH(ticket_options)')->nullable();
                 $table->timestamp('created_at')->useCurrent()->nullable(false);
                 $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate()->nullable(false);
