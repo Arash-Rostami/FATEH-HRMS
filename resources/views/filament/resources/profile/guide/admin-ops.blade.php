@@ -72,4 +72,13 @@
             </p>
         </div>
     </div>
+
+    <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
+                دکمهٔ «پیامک تبریک تولد» در تقویم کاربران فقط وقتی دیده می‌شود که این فیلدها در پروفایل کامل باشد: «موبایل» پر شده، وضعیت کاربر «فعال»، نوع کاربر غیر از «مهمان»، و حضور او «مرخصی» یا «مأموریت» نباشد — هر کدام خالی یا نادرست باشد، دکمه برای همکاران پنهان می‌ماند.
+            </p>
+        </div>
+    </div>
 </div>

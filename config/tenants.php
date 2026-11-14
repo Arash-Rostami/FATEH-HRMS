@@ -140,18 +140,15 @@ $tenants = [
         ],
 
         'modules' => [                       // unlisted = on; list only what you want off. true = on again (a sub-tenant can re-enable)
-            'notify' => false,
+            'notify:mail' => false,
+            'notify:sms' => false,
             'password-reset' => false,       // no mail server: hides forgot-password link, routes, admin reset and Fortify endpoints
             'auth:sibling' => false,         // the login card's back face (sibling apps); on = list them in this tenant's top-level sibling list via tenantSiblings()
         //     'reservation' => false,        // whole module: pages, URL (404), admin, menus, search
         //     'reservation:avantgarde' => false, // only one view of a module (see 'views' in config/modules.php)
-        //     'status:chart' => false,
-        //     'faq:card' => false,
-        //     'calendar:day' => false,
-        //     'ths:ai' => false,
-        //     'correspondence' => false,       // whole letters module: route (404), menu, admin, badges, search (links already sent keep working)
-        //     'correspondence:ai' => false,    // only the letter AI drafting
         //     'taskboard' => false,            // also hides projects + tasksheet + ths (its 'with' list in config/modules.php)
+            'status:chart' => false,
+            'ths:ai' => false,
             'ai-report' => false,            // hides the AI report module: route 404, menu, admin resource, badges
             'correspondence' => false,       // letters module off for this tenant: route 404, menu, admin, badges, search (also off through notify 'with', kept explicit)
          ],                                   // see everything hidden: php artisan tenant:hidden   |  all keys: php artisan tenant:hidden --all

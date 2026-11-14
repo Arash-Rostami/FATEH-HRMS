@@ -216,4 +216,26 @@ class TenantsConfigTest extends TestCase
 
         $this->assertFalse($modules['correspondence'] ?? true);
     }
+
+    public function test_fateh_keeps_notify_on_but_mail_and_sms_off(): void
+    {
+        $modules = config('tenants.fateh.modules');
+
+        $this->assertArrayNotHasKey('notify', $modules);
+        $this->assertFalse($modules['notify:mail'] ?? true);
+        $this->assertFalse($modules['notify:sms'] ?? true);
+    }
+
+    public function test_fateh_hides_the_status_org_chart_view(): void
+    {
+        $this->assertFalse(config('tenants.fateh.modules')['status:chart'] ?? true);
+    }
+
+    public function test_fateh_turns_every_ai_module_off(): void
+    {
+        $modules = config('tenants.fateh.modules');
+
+        $this->assertFalse($modules['ths:ai'] ?? true);
+        $this->assertFalse($modules['ai-report'] ?? true);
+    }
 }

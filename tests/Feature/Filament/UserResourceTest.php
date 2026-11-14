@@ -590,6 +590,19 @@ class UserResourceTest extends TestCase
             ->assertTableActionHidden('create');
     }
 
+    public function test_profile_relation_manager_edit_process_returns_null_when_record_is_null(): void
+    {
+        $admin = $this->developer();
+        $target = User::factory()->create(['status' => 'active']);
+        $component = Livewire::actingAs($admin)
+            ->test(ProfileRelationManager::class, ['ownerRecord' => $target, 'pageClass' => EditUser::class]);
+
+        $action = $component->instance()->getTable()->getAction('edit');
+
+        $this->assertInstanceOf(EditAction::class, $action);
+        $this->assertNull($action->process(null, ['record' => null, 'data' => ['gender' => 'male']]));
+    }
+
     public function test_skills_relation_manager_hidden_when_user_has_no_skills()
     {
         $admin = $this->developer();

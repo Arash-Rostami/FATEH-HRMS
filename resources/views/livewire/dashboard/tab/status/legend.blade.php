@@ -12,6 +12,10 @@
         ['id' => 'structure', 'icon' => 'account_tree', 'label' => 'ساختار'],
         ['id' => 'notes', 'icon' => 'info', 'label' => 'نکات'],
     ];
+
+    if (tenantOff('status:chart')) {
+        $tabs = array_values(array_filter($tabs, fn($t) => $t['id'] !== 'structure'));
+    }
 @endphp
 
 <div x-data="status()">
