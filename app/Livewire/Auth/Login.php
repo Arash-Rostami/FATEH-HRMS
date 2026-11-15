@@ -1,10 +1,12 @@
 <?php
 namespace App\Livewire\Auth;
 
+use App\Livewire\Auth\Actions\PasswordLoginAction;
+use App\Livewire\Auth\Actions\SendLoginCodeAction;
+use App\Livewire\Auth\Actions\VerifyLoginCodeAction;
+use App\Services\Notify\Channels\SmsChannel;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
 use App\Traits\Livewire\AuthValidationRules;
 
 class Login extends Component
@@ -15,52 +17,84 @@ class Login extends Component
     public string $password = '';
     public bool $remember = false;
     public string $outcome = '';
+    public bool $smsLogin = false;
+    public string $phone = '';
+    public string $code = '';
+    public bool $codeSent = false;
 
-    private function throttleKey(): string
-    {
-        return 'login:' . Str::lower($this->email) . '|' . request()->ip();
-    }
-
-    public function login()
+    public function login(PasswordLoginAction $action)
     {
         $this->validate(
             ['email' => $this->emailRules(), 'password' => $this->passwordRules()],
             $this->validationMessages()
         );
 
-        $key = $this->throttleKey();
+        $error = $action->execute($this->email, $this->password, $this->remember, request()->ip());
 
-        if (RateLimiter::tooManyAttempts($key, 4)) {
-            $this->addError('email', 'تعداد تلاش‌های ورود بیش از حد مجاز است. لطفاً ' . RateLimiter::availableIn($key) . ' ثانیه دیگر تلاش کنید.');
-            $this->outcome = 'fail';
-            return;
-        }
-
-        if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
-            RateLimiter::hit($key);
+        if ($error) {
             $this->reset('password');
-            $this->addError('email', 'اطلاعات ورود اشتباه است یا حساب کاربری وجود ندارد.');
+            $this->addError('email', $error);
             $this->outcome = 'fail';
             return;
         }
 
-        if (! Auth::user()->isActive()) {
-            Auth::logout();
-            $this->reset('password');
-            $this->addError('email', 'حساب کاربری شما غیرفعال است.');
+        $this->enter();
+    }
+
+    public function updatedSmsLogin(): void
+    {
+        $this->resetErrorBag();
+        $this->reset('phone', 'code', 'codeSent', 'outcome');
+        $this->smsLogin = $this->smsLogin && SendLoginCodeAction::available();
+    }
+
+    public function sendCode(SendLoginCodeAction $action, SmsChannel $sms): void
+    {
+        $this->phone = $this->latinDigits($this->phone);
+        $this->validate(['phone' => $this->phoneRules()], $this->validationMessages());
+
+        if ($error = $action->execute($this->phone, request()->ip(), $sms)) {
+            $this->addError('phone', $error);
             $this->outcome = 'fail';
             return;
         }
 
-        RateLimiter::clear($key);
+        $this->reset('code');
+        $this->codeSent = true;
+        $this->dispatch('login-code-sent', seconds: SendLoginCodeAction::COOLDOWN);
+    }
+
+    public function verifyCode(VerifyLoginCodeAction $action, SmsChannel $sms): void
+    {
+        $this->code = $this->latinDigits($this->code);
+        $this->validate(['code' => $this->codeRules()], $this->validationMessages());
+
+        if (! $user = $action->execute($this->phone, $this->code, request()->ip(), $sms)) {
+            $this->reset('code');
+            $this->addError('code', 'کد نادرست یا منقضی شده است.');
+            $this->outcome = 'fail';
+            return;
+        }
+
+        Auth::login($user, $this->remember);
+        $this->enter();
+    }
+
+    private function enter(): void
+    {
         session()->regenerate();
 
         $this->outcome = 'success';
         $this->js('setTimeout(() => window.location.href = ' . json_encode(url(session()->pull('url.intended', config('fortify.home', '/dashboard')))) . ', 800)');
     }
 
+    private function latinDigits(string $value): string
+    {
+        return strtr($value, ['۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4', '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9', '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9']);
+    }
+
     public function render()
     {
-        return view('livewire.auth.login')->layout('layouts.auth');
+        return view('livewire.auth.login', ['otpOn' => SendLoginCodeAction::available()])->layout('layouts.auth');
     }
 }

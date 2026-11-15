@@ -286,7 +286,33 @@ const authMusic = src => ({
     },
 });
 
+const authResend = () => ({
+    left: 0,
+    timer: null,
+
+    start(seconds) {
+        clearInterval(this.timer);
+        this.left = Number(seconds) || 0;
+
+        if (this.left > 0) {
+            this.timer = setInterval(() => {
+                this.left = Math.max(0, this.left - 1);
+                if (this.left === 0) clearInterval(this.timer);
+            }, 1000);
+        }
+    },
+
+    fa(n) {
+        return String(n).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[+d]);
+    },
+
+    destroy() {
+        clearInterval(this.timer);
+    },
+});
+
 document.addEventListener('alpine:init', () => {
     Alpine.data('authBackground', authBackground);
     Alpine.data('authMusic', authMusic);
+    Alpine.data('authResend', authResend);
 });

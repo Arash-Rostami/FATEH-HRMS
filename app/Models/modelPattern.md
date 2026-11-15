@@ -62,7 +62,7 @@ class Post extends Model
 - `cachedForUser(int $userId, string $suffix, Closure $callback, $ttl = null)` — bakes `u{$userId}:` into the suffix and defaults TTL to `ModelCacheVersion::viewerSeconds()`.
 - A model carries `use HasModelCache;` **when it grows a `cached*()` method** — the trait is inert otherwise; never sprinkle it for uniformity.
 - **Viewer-scoped keys:** a cached list/count reading through `HasAudience`'s `forViewer()` bakes the department code into the suffix (`pins:{dept}`, `total_count:{dept}`, …) — a dept-free key would leak one department's hidden rows to another.
-- The five direct-migration models (`Department`, `User`, `Skill`, `Permission`, `EnergyTest` + `Profile::cachedWithDates()`) call `ModelCacheVersion::key()` directly; respelling through `cached()` is optional purity, not required.
+- The five direct-migration models (`Department`, `User`, `Skill`, `Permission`, `EnergyTest` + `Profile::cachedWithDates()`) call `ModelCacheVersion::key()` directly; respelling through `cached()` is optional purity, not required. `Profile::cachedWithDates()` reads through `Profile::scopeCurrent()` (not terminated AND `User::visibleOnBoard()`), the shared "current staff" rule also used by `SpecialDays`; its key already carries the `User` version, so a status/type change refreshes it.
 
 Caching lives at the **model layer**. Livewire `#[Computed]` is per-request memoization only — never a cross-request cache. Livewire's cached-computed path has three structural failures (fixed-string key with no invalidation path; argument-unaware key generation → per-user/dept contamination; direct method calls bypassing the magic-get path so `cache: true` silently never engages) — which is why cross-request caching is model-owned.
 
@@ -122,6 +122,30 @@ A model never registers `static::creating/…/forceDeleted` inline — hook bodi
 - **Return values are behaviour.** A moved callback returns exactly what the original did (a `false` cancels halting events; non-null stops later listeners) and carries no return type unless the original declared one.
 - **Off-label version keys.** `HasUserHooks` bumps `User::PRESENCE_VERSION_KEY` (a plain string, not a model class) when `presence`/`focus_until` change; Pulse reads it for the `presence-changed` event (statePattern "Presence part"). `touchLastSeen()`/`markOffline()` are `saveQuietly` and never bump it; any raw/`toBase()` presence write needs a manual `ModelCacheVersion::bump(User::PRESENCE_VERSION_KEY)` (as `presence:reset-stale` does).
 - **Verification.** Snapshot listener counts per model per event before/after any hook refactor and require them identical; `ModelHooksTest` pins the structure (no inline hooks, one model per hooks trait, hooks trait last).
+
+## Current staff, termination lifecycle and hook couplings (2026-11-14)
+
+**One rule, four spellings — keep them in sync.** "Current staff" = active, `users.type != guest`, profile not `terminated` (no profile = current).
+- `User::scopeVisibleOnBoard()` (whereDoesntHave a terminated profile); `scopeVisibleOnBoardOr($keep)` is the Filament-select form (an already-saved id stays selectable); `Profile::scopeCurrent()` delegates to it.
+- `User::isVisibleOnBoard()` — instance check; reads the profile only when the relation is already loaded (no N+1; safe because a terminated user is always deactivated by the lifecycle below). It can disagree with the scope only for a legacy terminated-but-active row.
+- `User::CURRENT_STAFF_SQL` + `User::currentStaff($query)` — raw/joined analytics; needs UNALIASED `users` and `profiles` joins.
+- `Department::currentUsers()` (filtered twin; counts) vs `Department::users()` (unfiltered; admin RelationManager).
+Change the rule in all four together. New code uses one of them instead of an inline `status` + guest pair; `User::active()` intentionally stays only where a guest owns the data (reminder overdue/due-today, shared events, task due-soon toast).
+
+**Lifecycle (`HasProfileHooks`, `HasUserHooks`).**
+- Profile saving: terminated + empty `end_date` => today; leaving terminated clears `end_date` unless edited; `end_date < start_date` throws; a terminated profile (on save, on `created`, or moved to another user) deactivates its user with a nested normal save, user errors re-keyed to `data.employment_status`. Rehire never reactivates.
+- User saving: reactivating a user whose profile is terminated throws `terminated_locked` (`data.status`); deactivating/guesting a user who owns a non-project channel throws `owns_channels`. User saved: `cancelFutureReservations()` (active -> inactive or guest), `releaseFromProjectWork()` (non-guest originals).
+- Profile saved bumps the `User` cache version on created / `employment_status` / `user_id` / `department_id` / `position`, so every User-keyed cache (incl. `Profile::cachedWithDates()`) rebuilds.
+- Hook errors use `data.*` keys so they surface on the Filament form.
+- `ProfileFactory` never emits `terminated` (it would auto-deactivate the user); a fixture needing it pins it, and "terminated but still active" is built raw with `Profile::whereKey()->update()` + `ModelCacheVersion::bump(User::class)`.
+
+**Other couplings (private static methods in the hooks traits).** Reservation: status -> cancelled stamps `cancelled_by_id`/`cancelled_at`, -> active clears them, -> released trims a started range's future `end_time` to now. Reminder: `due_at` change clears `notified_at`. Feed: poll votes deleted when the category leaves Poll or the choice list changes (packed settings keep votes). Channel: a new owner is attached only if not already a member (join dates kept). Skill: `is_active` un-ghosts. Department: `code` locked after creation (`data.code`); delete blocked (`ValidationException`, key `department`) while referenced by profiles/authorities/faqs/photos/reports/reviews/task_details, sub-departments, tickets (`extra->target_department`), or JSON audiences (feeds/photos/posts/projects/reports/suggestions `departments`, `dms.owners`, `notify_rules.extra.departments`). Report: `expires_at >= report_date`; `ReportNudge` hides expired reports; the form's `department` and `departments` stay independent.
+
+**Enum-select gotcha.** Filament dehydrates `Select::options(SomeEnum::class)` to the enum OBJECT; a model attribute without a cast holds that instance, so `=== 'string'` and `isDirty()` in hooks are wrong on admin saves (votes dropped, reservations cancelled, end dates filled on every edit). Any attribute edited through an enum Select needs the `set:` mutator that stores a `BackedEnum`'s `->value` (as `Task` does; now on `User.status`/`type`/`role`, `Profile.employment_status`/`position`, `Reservation.status`, `Feed.category`; the holder guard's `isDirty(['role', …, 'extra'])` (a non-developer admin cannot change a holder account's role/status/type/email/password or its `extra` bucket: signature image, sign code, registry permission) and the User cache bump on `position` depend on it).
+
+**Known limits.** A report that expires naturally keeps its bells until the report is next touched. The department delete guard still counts soft-deleted rows in the plain tables (projects and tickets via `extra->target_department` are checked through their models). Rolling the code back does NOT undo cancelled reservations, deleted poll votes, moved ownership, auto-filled end dates or deactivated users.
+
+**Deploy.** No migrations. Bump the `User` cache version once (`php artisan optimize:clear` / cache flush); reset OPcache and restart plain queue workers. On EVERY install run `SELECT COUNT(*) FROM users u JOIN profiles p ON p.user_id=u.id WHERE p.employment_status='terminated' AND u.status='active'`; a non-zero count must be deactivated through a model save (channel owners reassigned first) before or right after deploy, because those people are hidden from lists but can still log in (Fateh production is clean).
 
 ## Correspondence and Letterhead (2026-11-09)
 

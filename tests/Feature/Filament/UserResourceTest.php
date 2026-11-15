@@ -27,6 +27,7 @@ use App\Filament\Resources\UserResource\RelationManagers\WorkflowsRelationManage
 use App\Filament\Resources\UserResource\Schemas\UserFormPresenter;
 use App\Traits\Filament\HandlesActionExceptions;
 use App\Traits\Filament\HandlesSaveExceptions;
+use App\Models\Channel;
 use App\Models\Department;
 use App\Models\Event;
 use App\Models\Lock;
@@ -378,6 +379,36 @@ class UserResourceTest extends TestCase
 
         $this->assertSame('inactive', $user->fresh()->status);
         $this->assertSame('active', $admin->fresh()->status);
+    }
+
+    public function test_bulk_deactivate_skips_a_channel_owner_and_lists_it_while_the_rest_are_deactivated()
+    {
+        $admin = $this->developer();
+        $plain = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'name' => 'zz' . uniqid()]);
+        Channel::factory()->create(['owner_id' => $owner->id]);
+
+        Livewire::actingAs($admin)->test(ListUsers::class)
+            ->callTableBulkAction('bulk_deactivate', [$plain, $owner])
+            ->assertNotified('این کاربران غیرفعال نشدند');
+
+        $this->assertSame('inactive', $plain->fresh()->status);
+        $this->assertSame('active', $owner->fresh()->status);
+    }
+
+    public function test_toggle_status_cannot_reactivate_a_user_whose_profile_is_terminated()
+    {
+        $admin = $this->developer();
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $profile = Profile::factory()->create(['user_id' => $user->id, 'employment_status' => 'working']);
+        $profile->update(['employment_status' => 'terminated']);
+        $this->assertSame('inactive', $user->fresh()->status);
+
+        Livewire::actingAs($admin)->test(ListUsers::class)
+            ->callTableAction('toggleStatus', $user->fresh())
+            ->assertNotified(__('resources/user/strings.validation.terminated_locked'));
+
+        $this->assertSame('inactive', $user->fresh()->status);
     }
 
     public function test_status_filter_scopes_list_to_matching_users()

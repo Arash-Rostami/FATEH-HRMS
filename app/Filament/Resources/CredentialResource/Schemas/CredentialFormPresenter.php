@@ -63,7 +63,7 @@ class CredentialFormPresenter
         $isAdmin = auth()->user()?->hasElevatedRole() ?? false;
         return Select::make('user_id')
             ->label(__('resources/credential/strings.fields.user'))
-            ->relationship('user', 'name')
+            ->relationship('user', 'name', fn($query, $get) => $query->visibleOnBoardOr($get('user_id')))
             ->searchable()
             ->preload()
             ->native(false)

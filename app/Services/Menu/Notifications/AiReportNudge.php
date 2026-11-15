@@ -30,7 +30,7 @@ class AiReportNudge implements MenuNudge
 
         $subject->loadMissing('user:id,name');
 
-        return User::active()
+        return User::visibleOnBoard()
             ->whereIn('id', array_map('intval', $subject->recipients))
             ->where('id', '!=', $subject->user_id)
             ->get(['id']);

@@ -74,7 +74,7 @@ class EventSyncService
             ->reject(fn($id) => (int) $id === $owner->id)
             ->unique();
 
-        $recipientIds = User::active()->whereIn('id', $candidateIds)->pluck('id');
+        $recipientIds = User::visibleOnBoard()->whereIn('id', $candidateIds)->pluck('id');
 
         $event->shares()
             ->whereNotIn('user_id', $recipientIds)

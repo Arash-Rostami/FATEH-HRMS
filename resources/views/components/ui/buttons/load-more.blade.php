@@ -1,5 +1,6 @@
 @props([
-    'action',
+    'action' => null,
+    'click' => null,
     'text',
     'loadingText' => null,
     'icon' => null,
@@ -13,32 +14,33 @@
 @php
     $clickExpr = $island ? "\$wire.\$island('{$island}').{$action}()" : "\$wire.{$action}()";
     $clickExpr = $keepPlace ? "loadOlderKeepingPlace(() => {$clickExpr})" : ($wrap ? "{$wrap}(() => {$clickExpr})" : $clickExpr);
+    $clickExpr = $click ?? $clickExpr;
+    $wireAttributes = $action ? ['wire:loading.attr' => 'disabled', 'wire:target' => $action] : [];
 @endphp
 
 <x-ui.buttons.form
     variant="none"
     x-on:click="{{ $clickExpr }}"
-    wire:loading.attr="disabled"
-    wire:target="{{ $action }}"
-    {{ $attributes->merge(['class' => 'group flex items-center justify-center gap-2 transition-all outline-none']) }}
+    {{ $attributes->merge(['class' => 'group flex items-center justify-center gap-2 transition-all outline-none'] + $wireAttributes) }}
 >
-    <span wire:loading.remove wire:target="{{ $action }}">{{ $text }}</span>
+    <span @if($action) wire:loading.remove wire:target="{{ $action }}" @endif>{{ $text }}</span>
 
-    @if($loadingText)
+    @if($loadingText && $action)
         <span wire:loading wire:target="{{ $action }}">{{ $loadingText }}</span>
     @endif
 
     @if($icon)
         <span class="material-symbols-rounded {{ $iconSize }} {{ $iconHoverClass }} transition-transform"
-              wire:loading.remove
-              wire:target="{{ $action }}">
+              @if($action) wire:loading.remove wire:target="{{ $action }}" @endif>
             {{ $icon }}
         </span>
     @endif
 
-    <span class="material-symbols-rounded {{ $iconSize }} animate-spin"
-          wire:loading
-          wire:target="{{ $action }}">
-        progress_activity
-    </span>
+    @if($action)
+        <span class="material-symbols-rounded {{ $iconSize }} animate-spin"
+              wire:loading
+              wire:target="{{ $action }}">
+            progress_activity
+        </span>
+    @endif
 </x-ui.buttons.form>

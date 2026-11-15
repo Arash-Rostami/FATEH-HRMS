@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Enums\UserType;
 use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\User;
@@ -115,7 +114,6 @@ final class TicketAccessPolicy
             && Department::freeAssignment($target)
             && (string) ($user->profile?->department_id ?? '') === $target
             && $ticket->requester_id !== $user->id
-            && $user->status === 'active'
-            && $user->type !== UserType::Guest->value;
+            && $user->isVisibleOnBoard();
     }
 }

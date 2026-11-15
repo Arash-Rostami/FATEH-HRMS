@@ -29,7 +29,7 @@ class ProjectFormPresenter
     {
         return Select::make('owner_id')
             ->label(__('resources/project/strings.fields.owner'))
-            ->relationship('owner', 'name')
+            ->relationship('owner', 'name', fn($query, $get) => $query->visibleOnBoardOr($get('owner_id')))
             ->searchable()
             ->preload()
             ->default(fn() => auth()->id())

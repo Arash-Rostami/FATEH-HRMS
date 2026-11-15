@@ -3,7 +3,6 @@
 namespace App\Livewire\Dashboard\Ths\Presentation;
 
 use App\Enums\TicketPriority;
-use App\Enums\UserType;
 use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Livewire\Dashboard\Ths\Actions\ReleaseTicketAction;
 use App\Livewire\Dashboard\Ths\Actions\RerouteTicketAction;
@@ -257,7 +256,7 @@ class TicketPresenter
         $isAssignee = $user !== null && (int) ($ticket['assigned_to'] ?? 0) === $user->id;
         $dept = $ticket['target_department_code'] ?? null;
         $freeQueue = $status === 'open' && $dept && Department::freeAssignment($dept)
-            && $user !== null && $user->status === 'active' && $user->type !== UserType::Guest->value;
+            && $user !== null && $user->isVisibleOnBoard();
         $canAssign = $user !== null && !$isRequester && (
             ($dept && $user->isHeadOfDepartment($dept))
             || $user->hasElevatedRole()

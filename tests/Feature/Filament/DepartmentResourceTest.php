@@ -207,6 +207,7 @@ class DepartmentResourceTest extends TestCase
     {
         $this->app->setLocale('fa');
         $department = Department::factory()->create(['code' => $this->uniqueCode(), 'name' => '0Hidden Tabs Dept']);
+        $developer = $this->developer();
         $admin = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'admin']);
         Permission::create(['user_id' => $admin->id, 'is_super_admin' => false, 'abilities' => [['module' => 'department', 'actions' => ['view', 'update']]]]);
 
@@ -216,7 +217,7 @@ class DepartmentResourceTest extends TestCase
             ->assertSeeText('ماژول user')
             ->assertSeeText('ماژول authority');
 
-        Livewire::actingAs($this->developer())->test(EditDepartment::class, ['record' => $department->getRouteKey()])
+        Livewire::actingAs($developer)->test(EditDepartment::class, ['record' => $department->getRouteKey()])
             ->assertDontSeeText('به‌دلیل سطح دسترسی شما');
     }
 
@@ -311,6 +312,55 @@ class DepartmentResourceTest extends TestCase
         $fresh = $department->fresh();
         $this->assertSame('Updated Name', $fresh->name);
         $this->assertSame('Updated description text.', $fresh->description);
+    }
+
+    public function test_the_code_field_is_disabled_on_edit()
+    {
+        $admin = $this->developer();
+        $department = Department::factory()->create(['code' => $this->uniqueCode()]);
+
+        Livewire::actingAs($admin)->test(EditDepartment::class, ['record' => $department->getRouteKey()])
+            ->assertSuccessful()
+            ->assertFormFieldDisabled('code');
+    }
+
+    public function test_deleting_a_referenced_department_from_the_list_is_refused_without_a_crash()
+    {
+        $admin = $this->developer();
+        $department = Department::factory()->create(['code' => $this->uniqueCode()]);
+        $member = User::factory()->create(['status' => 'active', 'type' => 'employee']);
+        Profile::factory()->create(['user_id' => $member->id, 'department_id' => $department->code, 'employment_status' => 'working']);
+
+        Livewire::actingAs($admin)->test(ListDepartments::class)
+            ->callTableAction(DeleteAction::class, $department)
+            ->assertSuccessful()
+            ->assertNotified(__('errors/strings.notifications.validation_title'));
+
+        $this->assertDatabaseHas('departments', ['code' => $department->code]);
+    }
+
+    public function test_the_list_users_count_counts_current_staff_only()
+    {
+        $admin = $this->developer();
+        $department = Department::factory()->create(['code' => $this->uniqueCode()]);
+        $make = function (array $user = []) use ($department): User {
+            $person = User::factory()->create(['status' => 'active', 'type' => 'employee', 'role' => 'user', ...$user]);
+            Profile::factory()->create(['user_id' => $person->id, 'department_id' => $department->code, 'employment_status' => 'working']);
+
+            return $person;
+        };
+
+        $make();
+        $make(['status' => 'inactive']);
+        $make(['type' => 'guest']);
+        $terminated = $make();
+        Profile::where('user_id', $terminated->id)->update(['employment_status' => 'terminated']);
+
+        $component = Livewire::actingAs($admin)->test(ListDepartments::class)
+            ->set('tableRecordsPerPage', 'all');
+
+        $row = $component->instance()->getTableRecords()->firstWhere('code', $department->code);
+        $this->assertSame(1, (int) $row->users_count);
     }
 
     public function test_delete_department_removes_row_from_database()

@@ -264,6 +264,7 @@ class UserResource extends Resource
                 self::editAction(),
                 UserTablePresenter::toggleStatusAction(),
             ], RecordActionsPosition::AfterCells)
+            ->recordClasses(fn($record) => $record->isActive() ? null : 'opacity-60')
             ->striped()
             ->groupedBulkActions([
                 UserTablePresenter::bulkDeactivateAction(),

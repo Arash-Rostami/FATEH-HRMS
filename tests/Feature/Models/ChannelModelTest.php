@@ -66,6 +66,23 @@ class ChannelModelTest extends TestCase
         $this->assertTrue($channel->memberUsers()->where('users.id', $owner->id)->exists());
     }
 
+    public function test_changing_the_owner_attaches_the_new_owner_once_and_keeps_an_existing_members_join_date(): void
+    {
+        $channel = Channel::factory()->create(['owner_id' => User::factory()->create(['status' => 'active'])->id]);
+        $newcomer = User::factory()->create(['status' => 'active']);
+        $member = User::factory()->create(['status' => 'active']);
+        $joined = now()->subDays(10);
+        $channel->memberUsers()->attach($member->id, ['joined_at' => $joined, 'entered_at' => $joined, 'last_read_message_id' => null, 'created_at' => $joined, 'updated_at' => $joined]);
+
+        $channel->update(['owner_id' => $newcomer->id]);
+        $channel->fresh()->update(['owner_id' => $member->id]);
+
+        $rows = fn (int $userId) => DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $userId);
+        $this->assertSame(1, $rows($newcomer->id)->count());
+        $this->assertSame(1, $rows($member->id)->count());
+        $this->assertSame($joined->toDateTimeString(), (string) $rows($member->id)->value('joined_at'));
+    }
+
     public function test_created_channel_without_owner_does_not_attach_member(): void
     {
         $channel = Channel::factory()->create(['owner_id' => null]);

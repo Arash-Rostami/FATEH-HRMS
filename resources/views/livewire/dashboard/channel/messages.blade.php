@@ -47,7 +47,28 @@
         </button>
     </div>
 </div>
+@php $pin = $this->presenter->pinned($this->activeChannel, $this->readers); @endphp
+@if($pin)
+    <div wire:key="channel-pin-banner" class="flex-shrink-0 flex items-center gap-2 px-3 md:px-6 py-2 bg-[var(--md-sys-color-surface)] border-b border-[var(--md-sys-color-outline-variant)]/20">
+        <button type="button" x-on:click="scrollToMessage({{ $pin['id'] }})" title="رفتن به پیام سنجاق‌شده" aria-label="رفتن به پیام سنجاق‌شده"
+                class="flex-1 min-w-0 flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-start cursor-pointer transition-all duration-150 hover:brightness-105 active:scale-[0.99] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border border-[color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] border-r-[3px] border-r-[var(--md-sys-color-primary)] shadow-sm">
+            <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
+                <span class="material-symbols-rounded text-[18px] font-fill">push_pin</span>
+            </span>
+            <span class="min-w-0">
+                <span class="flex items-center gap-1.5 mb-0.5 text-[10px] font-bold">
+                    <span class="truncate">پیام سنجاق‌شده</span>
+                    <span class="opacity-60">·</span>
+                    <span class="truncate opacity-80">{{ $pin['sender'] }}</span>
+                </span>
+                <span dir="auto" class="block text-[11px] truncate opacity-90">{{ $pin['body'] }}</span>
+            </span>
+        </button>
+        <x-ui.modals.close-button size="sm" label="برداشتن سنجاق" close="$wire.$island('messages').toggleGroupPin({{ $pin['id'] }}, true)"/>
+    </div>
+@endif
 <div id="msg-viewport"
+     x-on:scroll.passive="$store.activityReactionPicker.close()"
      class="no-anchor flex flex-col flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
      x-bind:class="{
          'bg-[var(--md-sys-color-primary-container)]/20': isHighlighted,
@@ -176,7 +197,7 @@
                                   'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_1px_6px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent),inset_0_1px_0_color-mix(in_srgb,white_6%,transparent)]' => !$msg['is_mine'],
                                   'ring-2 ring-[var(--md-sys-color-tertiary)]' => $msg['mentions_you']
                               ])
-                             :style="isEmojiOnly(@js($msg['body_html'])) && 'font-size:2rem;background:none;border:none;box-shadow:none;padding:0'"
+                             :style="isEmojiOnly(@js($msg['forwarded_html'] === null ? $msg['body_html'] : '')) && 'font-size:2rem;background:none;border:none;box-shadow:none;padding:0'"
                              :class="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? '!ring-2 !ring-[var(--md-sys-color-primary)]' : ''">
 
                             @if($msg['mentions_you'])
@@ -190,13 +211,15 @@
                             @endif
 
                             @include('livewire.dashboard.messaging.reply-quote', ['msg' => $msg])
-                            @if($msg['body'] !== '')
+                            @include('livewire.dashboard.messaging.forward-quote', ['msg' => $msg])
+                            @if($msg['body_html'] !== '')
                                 <span dir="auto" class="block break-words [unicode-bidi:plaintext]">{!! $msg['body_html'] !!}</span>
                             @endif
                             @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])
                         </div>
 
-                        @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg])
+                        @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'group' => true, 'pinnedId' => $pin['id'] ?? null])
+                        @include('livewire.dashboard.messaging.reactions', ['msg' => $msg])
 
                         @php
                             $viewedAttachments = collect($msg['attachments'] ?? [])->filter(fn($a) => !empty($a['viewers']))->values();

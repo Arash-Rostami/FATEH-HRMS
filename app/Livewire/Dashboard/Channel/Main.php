@@ -17,6 +17,8 @@ use App\Livewire\Dashboard\Channel\Actions\SearchChannelMessagesAction;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SetChannelKeyAction;
 use App\Livewire\Dashboard\Channel\Actions\SyncChannelMembersAction;
+use App\Livewire\Dashboard\Channel\Actions\ToggleChannelMessageReactionAction;
+use App\Livewire\Dashboard\Channel\Actions\ToggleChannelPinAction;
 use App\Livewire\Dashboard\Channel\Actions\UndoDeleteChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Forms\ChannelMessageComposerForm;
 use App\Livewire\Dashboard\Channel\Forms\CreateChannelForm;
@@ -28,6 +30,7 @@ use App\Models\User;
 use App\Services\Messaging\PollDigestService;
 use App\Traits\Livewire\ChatComposer;
 use App\Traits\Livewire\FocusOnRecord;
+use App\Traits\Livewire\ForwardsMessages;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
@@ -49,10 +52,12 @@ use Illuminate\View\View;
 #[Lazy]
 class Main extends Component
 {
-    use ChatComposer, WithFileUploads;
+    use ChatComposer, ForwardsMessages, WithFileUploads;
     use FocusOnRecord {
         clearFocus as baseClearFocus;
     }
+
+    protected function forwardSourceType(): string { return 'channel'; }
 
     public ChannelMessageComposerForm $composer;
     public EditChannelMessageForm $edit;
@@ -109,7 +114,7 @@ class Main extends Component
     public function activeChannel(): ?Channel
     {
         return $this->activeChannelId
-            ? Channel::with('owner')->withCount('members')
+            ? Channel::with('owner')->withCount('members')->withPinnedPreview()
                 ->whereHas('memberUsers', fn($q) => $q->where('users.id', auth()->id()))
                 ->find($this->activeChannelId)
             : null;
@@ -313,6 +318,7 @@ class Main extends Component
             'sender_id' => (int)$m->sender_id,
             'body' => $m->body,
             'attachments' => $m->attachments,
+            'reactions' => $m->reactions ?? [],
             'reply_to_id' => $m->reply_to_id,
             'is_edited' => (bool)$m->is_edited,
             'created_at' => $m->created_at->toISOString(),
@@ -908,6 +914,28 @@ class Main extends Component
         $this->lastDeleted = null;
         unset($this->messages);
         $this->dispatch('show-toast', message: 'پیام بازیابی شد', type: 'success');
+    }
+
+    public function toggleReaction(ToggleChannelMessageReactionAction $action, int $messageId, string $emoji): void
+    {
+        if (!$action->execute($messageId, $emoji, (int) auth()->id())) {
+            $this->dispatch('show-toast', message: 'این پیام دیگر در دسترس نیست.', type: 'error');
+        }
+
+        unset($this->messages);
+    }
+
+    public function toggleGroupPin(ToggleChannelPinAction $action, int $messageId, bool $onlyUnpin = false): void
+    {
+        if (!$this->activeChannelId) {
+            return;
+        }
+
+        if (!$action->execute($this->activeChannelId, $messageId, (int) auth()->id(), $onlyUnpin)) {
+            $this->dispatch('show-toast', message: 'این پیام دیگر در دسترس نیست.', type: 'error');
+        }
+
+        unset($this->activeChannel);
     }
 
     public function joinChannel(JoinChannelAction $action, int $channelId): void

@@ -82,7 +82,7 @@ class Reminder extends Model
             || $this->due_at->isFuture()
             || $this->snoozed_until?->isFuture()
             || tenantOff('reminder')
-            || $this->user?->status !== 'active'
+            || !$this->user?->isActive()
             || $this->hostTrashed()) {
             return;
         }

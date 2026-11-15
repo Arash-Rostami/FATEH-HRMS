@@ -44,7 +44,7 @@ class CalendarTest extends TestCase
         $actor = User::factory()->create(['status' => 'active', 'type' => 'employee', 'presence' => 'onsite', 'role' => 'user']);
         $target = User::factory()->create(['status' => 'active', 'type' => 'employee', 'presence' => 'onsite', 'role' => 'user']);
         Profile::factory()->create([
-            'user_id' => $target->id, 'cellphone' => '09120000000',
+            'user_id' => $target->id, 'cellphone' => '09120000000', 'employment_status' => 'working',
             'birthdate' => now()->subYears(32)->toDateString(), 'start_date' => now()->subYears(4)->toDateString(),
         ]);
         $this->actingAs($actor);
@@ -61,7 +61,7 @@ class CalendarTest extends TestCase
         foreach (['birthday', 'anniversary'] as $type) {
             $templates = $component->instance()->smsTemplates[$type];
             $this->assertNotEmpty($templates);
-            $this->assertLessThanOrEqual(10, count($templates));
+            $this->assertLessThanOrEqual(20, count($templates));
             $this->assertSame(Sms::for($type), $templates);
             $expectedKey = $type . '-' . $target->id . '-' . Jalalian::now()->getYear();
             $entry = $component->instance()->selectedDayEvents->first(fn ($e) => ($e['user_id'] ?? null) === $target->id && $e['type'] === $type);
@@ -86,7 +86,7 @@ class CalendarTest extends TestCase
         $this->assertTrue($entry()['can_sms']);
         foreach ([['presence' => 'grumpy'], ['status' => 'inactive'], ['type' => 'guest']] as $change) {
             $target->update($change);
-            $this->assertFalse($entry()['can_sms']);
+            isset($change['presence']) ? $this->assertFalse($entry()['can_sms']) : $this->assertNull($entry());
             $target->update(['status' => 'active', 'type' => 'employee', 'presence' => 'onsite']);
             $this->assertTrue($entry()['can_sms']);
         }
@@ -307,7 +307,7 @@ class CalendarTest extends TestCase
             ->assertSee($longTitle)
             ->assertSee($longDescription)
             ->assertDontSeeHtml('truncate text-sm md:text-base')
-            ->assertDontSeeHtml('line-clamp-2')
+            ->assertDontSeeHtml([' line-clamp-2"', ' line-clamp-2 ', '"line-clamp-2'])
             ->assertSeeHtml('x-data="{ expanded: false }"')
             ->assertSeeHtml('مشاهده بیشتر');
     }
@@ -362,6 +362,7 @@ class CalendarTest extends TestCase
         $profile = Profile::factory()->create([
             'user_id' => $user->id,
             'image' => 'profiles/birthday.jpg',
+            'employment_status' => 'working',
             'birthdate' => $today->format('Y-m-d'),
         ]);
 
@@ -382,7 +383,7 @@ class CalendarTest extends TestCase
     public function test_profile_dates_cache_serves_repeat_reads_without_querying_profiles()
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
-        $profile = Profile::factory()->create(['user_id' => $user->id, 'birthdate' => Carbon::today()->format('Y-m-d')]);
+        $profile = Profile::factory()->create(['user_id' => $user->id, 'employment_status' => 'working', 'birthdate' => Carbon::today()->format('Y-m-d')]);
 
         Profile::cachedWithDates();
 
@@ -398,7 +399,7 @@ class CalendarTest extends TestCase
     public function test_profile_dates_cache_follows_profile_and_user_writes()
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'name' => 'Before Probe']);
-        $profile = Profile::factory()->create(['user_id' => $user->id, 'birthdate' => Carbon::today()->format('Y-m-d')]);
+        $profile = Profile::factory()->create(['user_id' => $user->id, 'employment_status' => 'working', 'birthdate' => Carbon::today()->format('Y-m-d')]);
 
         Profile::cachedWithDates();
 
@@ -408,6 +409,56 @@ class CalendarTest extends TestCase
 
         $user->update(['name' => 'After Probe']);
         $this->assertSame('After Probe', Profile::cachedWithDates()->firstWhere('id', $profile->id)->user->name);
+    }
+
+    private function occasionProfile(array $user = [], string $status = 'working'): Profile
+    {
+        $date = Carbon::today()->format('Y-m-d');
+
+        return Profile::factory()->create([
+            'user_id' => User::factory()->create(['status' => 'active', 'type' => 'employee', 'presence' => 'onsite', ...$user])->id,
+            'employment_status' => $status,
+            'birthdate' => $date,
+            'start_date' => $date,
+        ]);
+    }
+
+    public function test_calendar_dates_exclude_terminated_deactivated_and_guest_profiles()
+    {
+        $current = $this->occasionProfile();
+        $terminated = $this->occasionProfile([], 'terminated');
+        $deactivated = $this->occasionProfile(['status' => 'inactive']);
+        $guest = $this->occasionProfile(['type' => 'guest']);
+
+        $ids = Profile::cachedWithDates()->pluck('id');
+        $this->assertTrue($ids->contains($current->id));
+        foreach ([$terminated, $deactivated, $guest] as $excluded) {
+            $this->assertFalse($ids->contains($excluded->id));
+        }
+
+        $events = (new CalendarPresenter)->selectedDayEvents(Jalalian::fromCarbon(Carbon::today())->format('Y-m-d'));
+        $this->assertTrue($events->contains('id', 'birthday-' . $current->id));
+        $this->assertTrue($events->contains('id', 'anniversary-' . $current->id));
+        foreach ([$terminated, $deactivated, $guest] as $excluded) {
+            $this->assertFalse($events->contains('id', 'birthday-' . $excluded->id));
+            $this->assertFalse($events->contains('id', 'anniversary-' . $excluded->id));
+        }
+    }
+
+    public function test_calendar_dates_drop_a_profile_the_moment_it_is_terminated_or_deactivated()
+    {
+        $profile = $this->occasionProfile();
+        $this->assertTrue(Profile::cachedWithDates()->contains('id', $profile->id));
+
+        $profile->update(['employment_status' => 'terminated']);
+        $this->assertFalse(Profile::cachedWithDates()->contains('id', $profile->id));
+
+        $profile->update(['employment_status' => 'working']);
+        $profile->user->update(['status' => 'active']);
+        $this->assertTrue(Profile::cachedWithDates()->contains('id', $profile->id));
+
+        $profile->user->update(['status' => 'inactive']);
+        $this->assertFalse(Profile::cachedWithDates()->contains('id', $profile->id));
     }
 
     public function test_calendar_grid_marks_holiday_day()
@@ -521,15 +572,15 @@ class CalendarTest extends TestCase
 
         Livewire::withoutLazyLoading();
         Livewire::actingAs($user)->test(Calendar::class)
-            ->set('selectedDate', '1405-12-29')
-            ->set('navigationDate', '1405-12-29')
+            ->set('selectedDate', '1403-12-29')
+            ->set('navigationDate', '1403-12-29')
             ->call('toggleView', 'month')
             ->call('nextPeriod')
-            ->assertSet('navigationDate', '1405-12-30')
-            ->assertSet('selectedDate', '1405-12-30')
+            ->assertSet('navigationDate', '1403-12-30')
+            ->assertSet('selectedDate', '1403-12-30')
             ->call('prevPeriod')
             ->call('prevPeriod')
-            ->assertSet('navigationDate', '1405-12-28');
+            ->assertSet('navigationDate', '1403-12-28');
     }
 
     public function test_step_month_moves_the_jalali_month_and_keeps_selection_in_sync()

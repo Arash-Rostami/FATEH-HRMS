@@ -50,10 +50,10 @@ Lower `$sort` = higher on the page. Utility widgets occupy the negatives; `Modul
 ## Shared trait — `Concerns/DepartmentAxis`
 
 ```php
-private function topDepartments(int $limit = 10): array
+private function topDepartments(int $limit = 10, bool $everyone = false): array
 ```
 
-Returns `[$codes, $labels, $idx]` — the top-N departments by profile count, with a **deterministic `orderByDesc('cnt')->orderBy('department_id')` tie-breaker** and labels via `COALESCE(NULLIF(description,''), name, code)`. Since the HR-analytics extraction, the actual computation is called from `App\Services\HrAnalyticsService` (`getHrI..MData`, `getHrN..QData`), which `use`s the trait directly — neither `HrUnitHealthChart` nor `HrEngagementChart` `use`s it anymore (both delegate entirely to the Service), and `topDepartments()` coverage lives in `tests/Feature/Services/HrAnalyticsServiceTest.php`, not the widget test files. The tie-breaker matters: without it, equal-count departments return in arbitrary order and the chart bar order flickers between renders.
+Returns `[$codes, $labels, $idx]` — the top-N departments by profile count (current staff; `everyone: true` keeps terminated/inactive people, only guests out, and is used by the employment-status breakdown `rawHrLData`), with a **deterministic `orderByDesc('cnt')->orderBy('department_id')` tie-breaker** and labels via `COALESCE(NULLIF(description,''), name, code)`. Since the HR-analytics extraction, the actual computation is called from `App\Services\HrAnalyticsService` (`getHrI..MData`, `getHrN..QData`), which `use`s the trait directly — neither `HrUnitHealthChart` nor `HrEngagementChart` `use`s it anymore (both delegate entirely to the Service), and `topDepartments()` coverage lives in `tests/Feature/Services/HrAnalyticsServiceTest.php`, not the widget test files. The tie-breaker matters: without it, equal-count departments return in arbitrary order and the chart bar order flickers between renders.
 
 ## Chart-widget shape (shared by all 6 ChartWidgets)
 
@@ -98,9 +98,12 @@ A custom `Widget` (not `StatsOverviewWidget`) rendering `livewire.admin.widgets.
 
 `ModuleAnalyticsWidget::usersData()` returns FIVE stats: total, active, admins, **online** (`last_seen >= User::onlineSince()` — the single `User::ONLINE_MINUTES` window every online check uses, no presence involved) and **available** (online AND `presence NOT IN PresenceStatus::unreachableValues()`, i.e. not on leave/mission). Both bind `User::onlineSince()` and the enum values — never an inline `INTERVAL 15 MINUTE` or presence literal. `HrAnalyticsService::getHrOData()` binds the same `User::onlineSince()` and builds its dataset label from the constant (`آنلاین (۱۰ دقیقه)`). The `PresenceStatus::Angry` chart colour is `#FF3B30` (it used to equal Busy's `#B00000`, so the two were indistinguishable in the presence chart).
 
-## Guest-user exclusion convention
+## Current-staff convention (was "Guest-user exclusion", 2026-11-14)
 
-Every org-wide aggregate touching `users`/`profiles` (both the 4 `Hr*Chart` widgets via `HrAnalyticsService`, `OperationalChart`/`StructuralChart`, `ModuleAnalyticsWidget`, `DepartmentAxis::topDepartments()`, and the user-panel `/analytics` page which rides `HrAnalyticsService`) must exclude `UserType::Guest` — matching `User::scopeVisibleOnBoard()`'s Guest-only rule. **VIP is not excluded** (narrowed from an earlier, inconsistent Guest+VIP pattern in `ModuleAnalyticsWidget` — deliberately unified to Guest-only everywhere). Any new aggregate joining `users`/`profiles` needs `->where('users.type', '!=', UserType::Guest->value)` (or the `whereNot`/`withCount` closure equivalent).
+Every org-wide aggregate touching `users`/`profiles` (the `Hr*Chart` widgets via `HrAnalyticsService`, `OperationalChart`/`StructuralChart`, `ModuleAnalyticsWidget`, `DepartmentAxis::topDepartments()`, `UserCountGroup`, and the user-panel `/analytics` page which rides `HrAnalyticsService`) counts CURRENT STAFF only: active, not guest, profile not terminated — the same rule as `User::scopeVisibleOnBoard()` (modelPattern "Current staff…", four spellings kept in sync). **VIP is not excluded.**
+- Query-builder/raw joins use `->tap(User::currentStaff(...))`, and raw subselects interpolate `User::CURRENT_STAFF_SQL`. It needs the UNALIASED `users` and `profiles` tables joined (the SQL names them literally); never alias either.
+- Eloquent counts use `Department::currentUsers()` (`withCount('currentUsers as users_count')`); `Department::users()` stays unfiltered for the admin RelationManager (users list shows everyone).
+- The employment-status BREAKDOWN charts (`rawHrLData`) deliberately keep terminated people: they call `topDepartments(everyone: true)` (guests still out), so a department whose only people are terminated still appears.
 
 **Ambiguous-column trap when adding the join:** a `profiles`-only query that adds `->join('users', ...)` can silently break any bare (unqualified) `id`/`created_at`/`status` reference, since both tables have those columns — MySQL throws `Column '...' in field list is ambiguous`. Qualify every such column (`profiles.id`, `energy_tests.created_at`, …) at the same time the join is added, not after a test catches it.
 

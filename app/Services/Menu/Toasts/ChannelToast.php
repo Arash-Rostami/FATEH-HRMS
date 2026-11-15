@@ -28,7 +28,7 @@ class ChannelToast implements MenuEdge
 
         $ids = array_unique([...array_keys($this->invited), ...array_keys($this->mentioned)]);
 
-        return $ids === [] ? collect() : User::active()->whereIn('id', $ids)->get();
+        return $ids === [] ? collect() : User::visibleOnBoard()->whereIn('id', $ids)->get();
     }
 
     public function title($subject, User $user): string

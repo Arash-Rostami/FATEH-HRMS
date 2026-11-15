@@ -27,7 +27,7 @@ class AdNudge implements MenuNudge
 
     public function for($subject)
     {
-        return User::active()->get();
+        return User::visibleOnBoard()->get();
     }
 
     public function title($subject, User $user): string

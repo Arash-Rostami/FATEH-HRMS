@@ -39,7 +39,7 @@ App\Services\Menu\
 │   ├── UnreadFeeds.php             key=feeds                 isActive = auth()->user() !== null && Feed::hasUnreadFor($user->id)   (per-user, via HasNudgeTracking)
 │   ├── UnseenAiReports.php         key=ai-report-controller  isActive = AiReport::unseenBy($u)->exists()   (saved + ready + active report shared with the user and not in `seen_by`; cleared by `markSeenBy` when a recipient opens it; `StateService::flush()` on open and on share/unshare; the paired per-report bell is `AiReportNudge`)
 │   ├── UnreadMessages.php          key=contacts-controller   isActive = auth()->user() !== null && Message::hasUnreadFor($user->id)   (hasUnreadFor/totalUnreadFor scoped to senders passing User::visibleOnBoard() as of 2026-09-04 — an unread message from a deactivated/guest sender, invisible in the Contact sidebar and thus unreachable to mark read, no longer lights this dot or the messaging-tab pill forever; see contactPattern.md §2)
-│   ├── SpecialDays.php             key=special-days          isActive = !StateService::viewedToday('calendar') && Profile (non-terminated) whereMonth/whereDay(birthdate|start_date) = today
+│   ├── SpecialDays.php             key=special-days          isActive = !StateService::viewedToday('calendar') && Profile::current() whereMonth/whereDay(birthdate|start_date) = today
 │   ├── TasksTodo.php               key=tasks-controller      isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0   (per-user)
 │   ├── EnergyTestBadge.php         key=energy-controller     isActive = $user !== null && EnergyTest::canSubmit($user->id)
 │   ├── ThsBadge.php                key=ths-controller        isActive = auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)
@@ -117,7 +117,7 @@ all structurally identical (no per-user method, no sub-interface).
 | `UnreadPosts` | `posts-controller` | `Post::hasUnreadFor($user)` (via `HasNudgeTracking`) |
 | `UnreadFeeds` | `feeds` | `auth()->user() !== null && Feed::hasUnreadFor($user->id)` (via `HasNudgeTracking`) |
 | `UnreadMessages` | `contacts-controller` | `auth()->user() !== null && Message::hasUnreadFor($user->id)` |
-| `SpecialDays` | `special-days` | `!StateService::viewedToday('calendar') && Profile non-terminated whereMonth/whereDay(birthdate\|start_date)=today` |
+| `SpecialDays` | `special-days` | `!StateService::viewedToday('calendar') && Profile::current() whereMonth/whereDay(birthdate\|start_date)=today` |
 | `TasksTodo` | `tasks-controller` | `auth()->user() !== null && Task::getTodoCount($user->id) > 0` |
 | `EnergyTestBadge` | `energy-controller` | `$user !== null && EnergyTest::canSubmit($user->id)` |
 | `ThsBadge` | `ths-controller` | `auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)` |
@@ -433,7 +433,7 @@ try { Cache::lock("nudge:k{key}:i{itemId}", 10)->block(3, function () {
 }); } catch (LockTimeoutException) { … }
 ```
 
-**Bulk insert bypasses Eloquent (2026-09-23 fix — was a per-recipient `create()` in a loop).** The genuinely-new rows for a broadcast trigger (`Post`/`Feed`/`Photo`/`Report`/`Ad` → `User::active()->get()`, i.e. every active employee) are now accumulated into one array and written with a single `DatabaseNotification::insert($newRows)` after the loop, mirroring the same pattern `BadgeSyncService::syncBatch()` already uses for this same table (see that section above) — `id` (`Str::uuid()`), `notifiable_type`/`notifiable_id`, `json_encode($data)`, and timestamps are all set manually since raw `insert()` fires no Eloquent events/casts. **This is why the manual `ModelCacheVersion::bump(DatabaseNotification::class)` line is required and NOT optional**: `UnreadNotifications.php`'s per-user badge count (`unread_menu_groups:{userId}`, Tier V versioned on `DatabaseNotification`, see `modelPattern.md`) is normally invalidated by the `saved` model event that a real `create()` fires — a raw `insert()` skips that event entirely, so without the explicit `bump()` every recipient's unread badge would sit stale for the full 15-minute TTL after a broadcast nudge. The existing-row update path (`$existing->update(['data' => $data])`) is untouched and still fires normal Eloquent events. `EdgeService::reconcile()` got the identical create-in-loop → bulk-insert treatment for its own genuinely-new rows, but needs **no** version bump — no cache anywhere is keyed on `Edge` (verified 2026-09-23; `Edge::forUser()` reads live, uncached).
+**Bulk insert bypasses Eloquent (2026-09-23 fix — was a per-recipient `create()` in a loop).** The genuinely-new rows for a broadcast trigger (`Post`/`Feed`/`Photo`/`Report`/`Ad` → `User::visibleOnBoard()`, i.e. every current employee) are now accumulated into one array and written with a single `DatabaseNotification::insert($newRows)` after the loop, mirroring the same pattern `BadgeSyncService::syncBatch()` already uses for this same table (see that section above) — `id` (`Str::uuid()`), `notifiable_type`/`notifiable_id`, `json_encode($data)`, and timestamps are all set manually since raw `insert()` fires no Eloquent events/casts. **This is why the manual `ModelCacheVersion::bump(DatabaseNotification::class)` line is required and NOT optional**: `UnreadNotifications.php`'s per-user badge count (`unread_menu_groups:{userId}`, Tier V versioned on `DatabaseNotification`, see `modelPattern.md`) is normally invalidated by the `saved` model event that a real `create()` fires — a raw `insert()` skips that event entirely, so without the explicit `bump()` every recipient's unread badge would sit stale for the full 15-minute TTL after a broadcast nudge. The existing-row update path (`$existing->update(['data' => $data])`) is untouched and still fires normal Eloquent events. `EdgeService::reconcile()` got the identical create-in-loop → bulk-insert treatment for its own genuinely-new rows, but needs **no** version bump — no cache anywhere is keyed on `Edge` (verified 2026-09-23; `Edge::forUser()` reads live, uncached).
 
 Design choices:
 
@@ -515,15 +515,15 @@ declare several triggers sharing the same key.
 
 | Trigger | `on` | `subject` | `show` | `for` (recipients) |
 |---|---|---|---|---|
-| `Ad` | created, updated, deleted | self | `$ad->active` | `User::active()->get()` |
+| `Ad` | created, updated, deleted | self | `$ad->active` | `User::visibleOnBoard()->get()` |
 | `EventShare` | created, deleted | `$share->event` | owner → `hasShares && date>=now`; recipient → `date>=now` | `[owner] + current share recipients` |
 | `Event` | updated, deleted | self | same `SharedEventsNudge` class | same `SharedEventsNudge` class |
-| `Suggestion` | created, updated, deleted | self | `Suggestion::requiresAttentionFor($s, $user)` | `User::active()->whereHas('profile', department_id ∈ ['MA', 'MG', …$s->departments, …CEO-review referral depts])` + chairman/CEO positions |
+| `Suggestion` | created, updated, deleted | self | `Suggestion::requiresAttentionFor($s, $user)` | `User::visibleOnBoard()->whereHas('profile', department_id ∈ ['MA', 'MG', …$s->departments, …CEO-review referral depts])` + chairman/CEO positions |
 | `Review` | created, updated | `$review->suggestion` | `Suggestion::requiresAttentionFor($s, $user)` | same `SuggestionNudge` class |
-| `Post` | created, updated, deleted | self | `true` | `User::active()->get()` |
-| `Feed` | created, updated, deleted | self | `true` | `User::active()->get()` |
+| `Post` | created, updated, deleted | self | `true` | `audienceUsers()` (`User::visibleOnBoard()`, dept-filtered when audience set) |
+| `Feed` | created, updated, deleted | self | `true` | `audienceUsers()` (`User::visibleOnBoard()`, dept-filtered when audience set) |
 | `Photo` | created, updated, deleted | self | `true` | dept-scoped (`Photo::all_departments` + 'MA', empty→all active) |
-| `Report` | created, updated, deleted | self | `$report->active` | `User::active()->get()` |
+| `Report` | created, updated, deleted | self | `$report->active` and not expired (`expires_at` null or future) | `audienceUsers()` (`User::visibleOnBoard()`) |
 | `Task` (`TaskNudge('activity')`) | created, updated, deleted, restored, forceDeleted | self | per-user plan from the newest non-quiet Reply (actor excluded) — see «Master classes» below | doer + creator + accountable + collaborators + repliers, or the specific people the event names (assigned from/to, helpers added/removed, accountable from/to) |
 | `Reply` (Task) | created | `$reply->repliable` (repliable_type-guarded) | same `TaskNudge` class | same `TaskNudge` class |
 | `Task` (`TaskNudge('overdue')` / `('approval')`) | updated, deleted, restored, forceDeleted | self | overdue: day-granular, not settled/archived/suspended; approval: `isPendingApproval()` | overdue: doer, plus accountable once overdue days >= `charter()->escalationDays()`; approval: project owner (accountable if the owner is inactive) — overdue also swept hourly by `tasks:sweep-overdue` |
@@ -541,6 +541,7 @@ declare several triggers sharing the same key.
 | `Reminder` | created, updated, deleted | self | not completed, not future-snoozed, `due_at <=` now (the due time has passed), `Reminder::channelEnabled($subject->channels, 'nudge')`, and not `Reminder::hostTrashed()` | `[owner]` (`user_id`) — also swept hourly by `reminders:sweep-due`, same shape as `Task` (overdue) |
 | `AiReport` (`AiReportNudge`) | updated (watched columns only), deleted | self | active + ready + saved + shared, and the user not in `seen_by` | active `recipients` minus the owner |
 
+- **Recipient rule (2026-11-14).** Every `for()`/`audienceUsers()` above resolves through `User::visibleOnBoard()` (active, not guest, profile not terminated; modelPattern "Current staff…"), so a guest or a terminated person never gets a bell. Four recipients intentionally keep `User::active()` because a guest owns their own data: `ReminderOverdueNudge`, `ReminderDueTodayEdge`, `SharedEventsNudge`, `TaskDueSoonToast`. `ReportNudge::show()` also hides an expired report; a report that expires naturally keeps its bells until the report is next touched (known lag).
 - Suggestion + Review share `suggestion-controller:nudge`, `item_id = suggestion id`.
 - EventShare + Event share `shared-events:nudge`, `item_id = event id` (EventShare sets
   `subject = $share->event`). Per-event keying: sharing one event with N people creates exactly one
@@ -805,8 +806,9 @@ wrapped in one outer `where(function …)` so the `employment_status` filter AND
 `now()->month/day` (dates are stored Gregorian; Jalali is display-only). The filter must read
 `employment_status` (enum `probational/working/terminated`), NOT `employment_type` (enum
 `fulltime/parttime/contract`) — `employment_type != 'terminated'` is a tautology; the
-`whereNotIn('employment_status', ['terminated'])` form mirrors `ModuleAnalyticsChartsRight.php:205`.
-Excludes terminated employees; includes the auth user's own day (redundant with the `occasion` modal
+filter is now `Profile::scopeCurrent()` (not terminated AND `User::visibleOnBoard()`), the one "current staff" rule shared with
+`Profile::cachedWithDates()` (calendar grid, month/year dots, day list).
+Excludes terminated employees, deactivated accounts and guests; includes the auth user's own day (redundant with the `occasion` modal
 — a separate per-user confetti popup driven by `isSpecialDay()` + its own 8h cache key, no shared
 state). **Leap-year Feb 29** — `whereMonth/whereDay(2,29)` matches only leap years; the calendar grid
 behaves identically, so dot and grid stay in sync. No remap. **Invalidation** — `Profile` uses

@@ -348,6 +348,9 @@ class TaskResource extends Resource
             ])
             ->emptyStateIcon('heroicon-o-clipboard-document-list')
             ->defaultSort('created_at', 'desc')
+            ->recordClasses(fn($record) => ($record->urgency_state['kind'] ?? null) === 'overdue' && !$record->trashed()
+                ? '[&>td]:bg-[color-mix(in_srgb,var(--md-sys-color-error)_8%,transparent)]'
+                : null)
             ->striped();
     }
 }

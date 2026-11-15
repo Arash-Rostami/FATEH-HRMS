@@ -82,7 +82,7 @@ final class TaskAccessPolicy
         if (ProjectAccessPolicy::canManageTasks($project, $user)) return true;
 
         return $task->detail?->responsible_user_id === $user->id
-            && (!$project->owner_id || $project->owner?->status !== 'active');
+            && (!$project->owner_id || !$project->owner?->isVisibleOnBoard());
     }
 
     public static function assignableIds(array $ids, ?Project $project = null): array

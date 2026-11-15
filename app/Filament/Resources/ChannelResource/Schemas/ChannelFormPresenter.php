@@ -56,7 +56,7 @@ class ChannelFormPresenter
     {
         return Select::make('owner_id')
             ->label(__('resources/channel/strings.fields.owner'))
-            ->relationship('owner', 'name')
+            ->relationship('owner', 'name', fn($query, $get) => $query->visibleOnBoardOr($get('owner_id')))
             ->required()
             ->searchable()
             ->preload();

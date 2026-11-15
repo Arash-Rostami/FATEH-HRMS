@@ -32,7 +32,7 @@ class SpecialDays implements MenuBadge
         $now = now();
 
         return Profile::query()
-            ->whereNotIn('employment_status', ['terminated'])
+            ->current()
             ->where(function ($q) use ($now) {
                 $q->where(fn($q1) => $q1->whereMonth('birthdate', $now->month)->whereDay('birthdate', $now->day))
                     ->orWhere(fn($q2) => $q2->whereMonth('start_date', $now->month)->whereDay('start_date', $now->day));

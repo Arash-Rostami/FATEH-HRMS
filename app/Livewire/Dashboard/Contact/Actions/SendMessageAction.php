@@ -68,7 +68,7 @@ class SendMessageAction
                 $stored[] = static::storeAttachment(
                     $file,
                     "messages/{$senderId}",
-                    fn($f) => time() . '_' . Str::random(10) . '.' . $f->getClientOriginalExtension()
+                    fn($f) => time() . '_' . Str::random(10) . '.' . $f->extension()
                 );
             }
         } catch (\Throwable $e) {

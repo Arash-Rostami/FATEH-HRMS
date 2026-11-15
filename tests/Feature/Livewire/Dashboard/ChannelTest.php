@@ -18,7 +18,10 @@ use App\Livewire\Dashboard\Channel\Actions\SaveEditChannelMessageAction;
 use App\Filament\Resources\ChannelResource;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SetChannelKeyAction;
+use App\Livewire\Dashboard\Channel\Actions\ToggleChannelMessageReactionAction;
+use App\Livewire\Dashboard\Channel\Actions\ToggleChannelPinAction;
 use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
+use App\Livewire\Dashboard\Messaging\Actions\ForwardMessageAction;
 use App\Livewire\Dashboard\Tab\Actions\SendSmsAction;
 use App\Livewire\Dashboard\Tab\Presentation\TabPresenter;
 use App\Models\Project;
@@ -31,6 +34,7 @@ use App\Models\ChannelMember;
 use App\Models\ChannelMessage;
 use App\Models\Edge;
 use App\Models\Lock;
+use App\Models\Message;
 use App\Models\User;
 use App\Services\Menu\EdgeService;
 use App\Services\Menu\Toasts\ChannelToast;
@@ -46,11 +50,163 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Mockery;
 use Tests\TestCase;
 
 class ChannelTest extends TestCase
 {
+    public function test_forwarding_from_a_channel_to_a_contact_keeps_the_open_channel_and_draft(): void
+    {
+        [$me, $target] = User::factory()->count(2)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $channel = Channel::factory()->ownedBy($me)->create();
+        $source = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $me->id, 'body' => 'Channel announcement']);
+
+        $component = Livewire::actingAs($me)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->set('composer.body', 'Unfinished channel reply')
+            ->call('openForward', $source->id)
+            ->set('forwardDestinationId', $target->id)
+            ->call('forwardMessage')
+            ->assertHasNoErrors()
+            ->assertDispatched('message-forwarded')
+            ->assertSet('activeChannelId', $channel->id)
+            ->assertSet('composer.body', 'Unfinished channel reply')
+            ->assertSee('مشاهدهٔ گفتگو');
+
+        $forwarded = Message::where('sender_id', $me->id)->where('recipient_id', $target->id)->sole();
+        $this->assertSame(ForwardMessageAction::HEADING . "\n\nChannel announcement", $forwarded->body);
+        $component->assertSet('forwardResultUrl', route('contact', ['open' => $target->id, 'focus_msg' => $forwarded->id]));
+    }
+
+    public function test_forward_picker_only_lists_other_joined_channels_and_rechecks_membership_before_sending(): void
+    {
+        [$me, $owner] = User::factory()->count(2)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $sourceChannel = Channel::factory()->ownedBy($me)->create();
+        $target = Channel::factory()->ownedBy($owner)->create(['name' => 'Forward destination']);
+        $outside = Channel::factory()->ownedBy($owner)->create(['name' => 'Forward outside']);
+        $target->memberUsers()->attach($me->id);
+        $source = ChannelMessage::create(['channel_id' => $sourceChannel->id, 'sender_id' => $me->id, 'body' => 'Announcement']);
+
+        $component = Livewire::actingAs($me)->test(Main::class)
+            ->call('openForward', $source->id)
+            ->call('setForwardDestinationType', 'channel')
+            ->set('forwardSearch', 'Forward');
+        $ids = array_column($component->instance()->forwardCandidates, 'id');
+        $this->assertContains($target->id, $ids);
+        $this->assertNotContains($outside->id, $ids);
+        $this->assertNotContains($sourceChannel->id, $ids);
+
+        $component->set('forwardDestinationId', $target->id);
+        $target->memberUsers()->detach($me->id);
+        $component->call('forwardMessage')->assertHasErrors('forwardMessage')->assertSet('forwardResultUrl', null);
+        $this->assertSame(0, ChannelMessage::where('channel_id', $target->id)->count());
+    }
+
+    public function test_each_member_holds_one_reaction_a_new_emoji_replaces_it_and_outsiders_change_nothing(): void
+    {
+        [$owner, $member, $outsider] = User::factory()->count(3)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $channel = $this->channelWithMembers($owner, [$member]);
+        $message = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'Hello']);
+        $action = app(ToggleChannelMessageReactionAction::class);
+
+        $this->actingAs($member);
+        $this->assertTrue($action->execute($message->id, '👍', $member->id));
+        $this->assertTrue($action->execute($message->id, '❤️', $member->id));
+        $this->assertEquals([['user_id' => $member->id, 'emoji' => '❤️']], $message->fresh()->reactions);
+
+        $this->actingAs($owner);
+        $this->assertTrue($action->execute($message->id, '👍', $owner->id));
+        $this->assertCount(2, $message->fresh()->reactions);
+
+        $this->actingAs($member);
+        $action->execute($message->id, '❤️', $member->id);
+        $this->assertEquals([['user_id' => $owner->id, 'emoji' => '👍']], $message->fresh()->reactions);
+
+        $this->actingAs($outsider);
+        $this->assertFalse($action->execute($message->id, '🔥', $outsider->id));
+        $this->assertCount(1, $message->fresh()->reactions);
+
+        $this->actingAs($member);
+        $this->expectException(HttpException::class);
+        $action->execute($message->id, 'x', $member->id);
+    }
+
+    public function test_reaction_rows_group_by_emoji_with_mine_count_and_names_from_the_members_map(): void
+    {
+        $rows = [[
+            'id' => 1,
+            'sender_id' => 2,
+            'body' => 'x',
+            'created_at' => now()->toISOString(),
+            'attachments' => [],
+            'sender' => ['name' => 'Sender'],
+            'reactions' => [
+                ['user_id' => 3, 'emoji' => '👍'],
+                ['user_id' => 4, 'emoji' => '👍'],
+                ['user_id' => 999999, 'emoji' => '❤️'],
+            ],
+        ]];
+        $readers = [3 => ['name' => 'Ali'], 4 => ['name' => 'Sara']];
+
+        $chips = (new ChannelPresenter())->messages($rows, 3, 600, $readers)[0]['reactions'];
+
+        $this->assertSame([
+            ['emoji' => '👍', 'count' => 2, 'mine' => true, 'names' => 'Ali، Sara'],
+            ['emoji' => '❤️', 'count' => 1, 'mine' => false, 'names' => 'کاربر'],
+        ], $chips);
+    }
+
+    public function test_group_pin_is_single_per_channel_and_a_stale_unpin_never_overwrites_a_newer_pin(): void
+    {
+        [$owner, $member, $outsider] = User::factory()->count(3)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $channel = $this->channelWithMembers($owner, [$member]);
+        $other = $this->channelWithMembers($owner, [$member]);
+        $first = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'First']);
+        $second = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'Second']);
+        $foreign = ChannelMessage::create(['channel_id' => $other->id, 'sender_id' => $owner->id, 'body' => 'Foreign']);
+        $action = app(ToggleChannelPinAction::class);
+
+        $this->actingAs($member);
+        $this->assertTrue($action->execute($channel->id, $first->id, $member->id));
+        $this->assertSame($first->id, $channel->fresh()->pinned_message_id);
+
+        $this->assertTrue($action->execute($channel->id, $second->id, $member->id));
+        $this->assertSame($second->id, $channel->fresh()->pinned_message_id);
+
+        $this->assertTrue($action->execute($channel->id, $first->id, $member->id, true));
+        $this->assertSame($second->id, $channel->fresh()->pinned_message_id);
+
+        $this->assertFalse($action->execute($channel->id, $foreign->id, $member->id));
+        $this->assertSame($second->id, $channel->fresh()->pinned_message_id);
+
+        $this->assertTrue($action->execute($channel->id, $second->id, $member->id));
+        $this->assertNull($channel->fresh()->pinned_message_id);
+
+        $this->actingAs($outsider);
+        $this->assertFalse($action->execute($channel->id, $first->id, $outsider->id));
+        $this->assertNull($channel->fresh()->pinned_message_id);
+    }
+
+    public function test_pinned_banner_data_hides_when_the_message_is_deleted_and_returns_on_restore(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'type' => 'employee']);
+        $channel = $this->channelWithMembers($owner);
+        $message = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'Pinned text']);
+        Channel::whereKey($channel->id)->update(['pinned_message_id' => $message->id]);
+        $presenter = app(ChannelPresenter::class);
+
+        $load = fn() => Channel::withPinnedPreview()->find($channel->id);
+
+        $this->assertSame('Pinned text', $presenter->pinned($load(), [])['body']);
+
+        $message->delete();
+        $this->assertNull($presenter->pinned($load(), []));
+
+        $message->restore();
+        $this->assertSame($message->id, $presenter->pinned($load(), [])['id']);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -2646,7 +2802,7 @@ class ChannelTest extends TestCase
         try {
             app(SendChannelMessageAction::class)->execute($form, $open->id);
             $this->fail('inactive sender must be refused');
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        } catch (HttpException $e) {
             $this->assertSame(403, $e->getStatusCode());
         }
         $this->assertSame(0, ChannelMessage::where('channel_id', $open->id)->count());

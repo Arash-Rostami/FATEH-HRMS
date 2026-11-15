@@ -81,6 +81,19 @@ class SmsChannel implements NotifyChannel
         }
     }
 
+    public function code(string $to, string $code): bool
+    {
+        try {
+            $this->deliver($to, "کد ورود شما: {$code}\n" . self::footer());
+
+            return true;
+        } catch (Throwable $e) {
+            Log::error('Failed to send login code.', ['to' => Str::mask($to, '*', 0, -4), 'error' => $e->getMessage()]);
+
+            return false;
+        }
+    }
+
     private function deliver(string $to, string $body): void
     {
         SmsProviderRegistry::active()->send($to, preg_replace(self::BIDI_PATTERN, '', $body));

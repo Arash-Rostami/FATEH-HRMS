@@ -32,7 +32,7 @@ class SuggestionNudge implements MenuNudge
     {
         $depts = array_merge(['MA', 'MG'], $subject->departments ?? [], SuggestionAccessPolicy::ceoReview($subject)?->referral ?? []);
 
-        return User::active()
+        return User::visibleOnBoard()
             ->whereHas('profile', fn($q) => $q->where(fn($w) => $w->whereIn('department_id', $depts)->orWhereIn('position', ['chairman', 'ceo'])))
             ->get();
     }

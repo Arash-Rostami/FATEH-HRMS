@@ -129,7 +129,7 @@ class Chart extends Component
         $query = User::query()
             ->with(['profile:user_id,department_id,position', 'latestEnergyTest'])
             ->where('id', '!=', $this->user->id)
-            ->where('status', 'active')
+            ->visibleOnBoard()
             ->whereHas('latestEnergyTest');
 
         resolve(TeamData::class)->applyRules($query, $this->user);

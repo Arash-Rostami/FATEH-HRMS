@@ -31,6 +31,7 @@ class SuggestionFormPresenter
             ->downloadable()
             ->previewable()
             ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
+            ->imageEditor()
             ->maxSize(config('file_upload_limits.document'))
             ->getUploadedFileNameForStorageUsing(
                 fn(TemporaryUploadedFile $file): string => FileNamer::stored('suggestion', $file)
@@ -150,7 +151,7 @@ class SuggestionFormPresenter
     {
         return Select::make('user_id')
             ->label(__('resources/suggestion/strings.fields.submitter'))
-            ->relationship('user', 'name')
+            ->relationship('user', 'name', fn($query, $get) => $query->visibleOnBoardOr($get('user_id')))
             ->searchable(['name', 'email'])
             ->afterStateHydrated(fn($state, callable $set) => $set('user_id', $state ?? auth()->id()))
             ->default(fn() => auth()->id())

@@ -221,7 +221,7 @@ class ReservationFormPresenter
     {
         return Select::make('user_id')
             ->label(__('resources/reservation/strings.fields.user'))
-            ->options(fn() => User::orderBy('name')->pluck('name', 'id'))
+            ->options(fn(Get $get) => User::visibleOnBoardOr($get('user_id'))->orderBy('name')->pluck('name', 'id'))
             ->searchable()
             ->preload()
             ->required()

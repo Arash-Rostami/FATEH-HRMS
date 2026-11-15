@@ -59,13 +59,13 @@ trait HasProfileHierarchy
     {
         if ($this->isTopExecutive()) return true;
 
-        $anyTopExecutiveExists = static::active()
+        $anyTopExecutiveExists = static::visibleOnBoard()
             ->whereHas('profile', fn(Builder $q) => $q->whereIn('position', ['chairman', 'ceo']))
             ->exists();
 
         if ($anyTopExecutiveExists) return false;
 
-        $anyActiveMaUserExists = static::active()
+        $anyActiveMaUserExists = static::visibleOnBoard()
             ->whereHas('profile', fn(Builder $q) => $q->where('department_id', 'MA'))
             ->exists();
 
@@ -91,7 +91,7 @@ trait HasProfileHierarchy
 
 
         // Check if ANYONE else in this department holds one of those higher positions
-        $hasSuperior = static::active()
+        $hasSuperior = static::visibleOnBoard()
             ->whereKeyNot($this->id)
             ->whereHas('profile', fn(Builder $q) => $q
                 ->where('department_id', $deptCode)
@@ -109,7 +109,7 @@ trait HasProfileHierarchy
             return new Collection();
         }
 
-        return static::active()->with('profile')
+        return static::visibleOnBoard()->with('profile')
             ->whereHas('profile', fn(Builder $q) => $q
                 ->whereIn('department_id', $departmentCodes)
                 ->whereIn('position', array_keys(static::RANKS))
@@ -122,7 +122,7 @@ trait HasProfileHierarchy
     public static function headsOfDepartment(string $departmentCode): Collection
     {
         return ModelCacheVersion::remember(static::class, "dept_heads:{$departmentCode}", now()->addHour(), function () use ($departmentCode) {
-            $users = static::active()->with('profile')
+            $users = static::visibleOnBoard()->with('profile')
                 ->whereHas('profile', fn(Builder $q) => $q
                     ->where('department_id', $departmentCode)
                     ->whereIn('position', array_keys(static::RANKS))

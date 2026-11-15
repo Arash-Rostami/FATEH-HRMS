@@ -62,6 +62,11 @@ class ReminderResource extends Resource
         return parent::getEloquentQuery()->with(['user:id,name']);
     }
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['title', 'user.name'];
+    }
+
     public static function getModelLabel(): string
     {
         return __('resources/reminder/strings.label');

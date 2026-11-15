@@ -31,7 +31,7 @@ class ChannelNudge implements MenuNudge
         $this->invited = array_flip(Channel::invitedUserIds($subject->id));
         $this->unread = Channel::unreadCountsFor($subject->id);
 
-        return User::active()->whereIn('id', array_unique([...array_keys($this->invited), ...array_keys($this->unread)]))->get();
+        return User::visibleOnBoard()->whereIn('id', array_unique([...array_keys($this->invited), ...array_keys($this->unread)]))->get();
     }
 
     public function getKey(): string

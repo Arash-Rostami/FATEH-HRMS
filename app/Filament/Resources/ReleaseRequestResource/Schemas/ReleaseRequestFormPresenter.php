@@ -32,6 +32,8 @@ class ReleaseRequestFormPresenter
                     ->directory('release_request/attachments')
                     ->maxSize(config('file_upload_limits.document'))
                     ->acceptedFileTypes(self::acceptedMimeTypes())
+                    ->previewable()
+                    ->imageEditor()
                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, callable $set) {
                         $meta = static::storeAttachment($file, 'release_request/attachments', fn($f) => self::fileName($f));
 

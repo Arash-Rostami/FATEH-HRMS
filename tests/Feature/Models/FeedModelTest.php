@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use App\Enums\FeedCategory;
 use App\Models\Comment;
 use App\Models\Department;
 use App\Models\Feed;
@@ -333,6 +334,41 @@ class FeedModelTest extends TestCase
         $this->assertNull(Comment::find($comment->id));
         $this->assertNull(Reaction::find($reaction->id));
         $this->assertNull(Poll::find($poll->id));
+    }
+
+    public function test_assigning_a_backed_enum_category_stores_the_plain_value_and_an_unchanged_one_is_not_dirty(): void
+    {
+        $feed = Feed::factory()->create(['user_id' => User::factory()->create(['status' => 'active'])->id, 'category' => 'Poll']);
+
+        $feed->category = FeedCategory::Poll;
+        $this->assertSame('Poll', $feed->category);
+        $this->assertFalse($feed->isDirty('category'));
+
+        $feed->category = FeedCategory::General;
+        $this->assertSame('General', $feed->category);
+        $this->assertTrue($feed->isDirty('category'));
+    }
+
+    public function test_poll_votes_are_dropped_when_the_choices_change_or_the_feed_leaves_poll_but_kept_for_settings_edits(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $poll = fn (): Feed => Feed::factory()->create(['user_id' => $user->id, 'category' => 'Poll', 'poll_options' => ['single', '1', '1', 'A', 'B']])->fresh();
+        $vote = fn (Feed $feed): Poll => Poll::factory()->create(['feed_id' => $feed->id, 'user_id' => $user->id, 'option_index' => 0]);
+
+        $settingsOnly = $poll();
+        $kept = $vote($settingsOnly);
+        $settingsOnly->update(['poll_options' => ['multiple', '0', '1', 'A', 'B']]);
+        $this->assertNotNull(Poll::find($kept->id));
+
+        $changedChoices = $poll();
+        $dropped = $vote($changedChoices);
+        $changedChoices->update(['poll_options' => ['single', '1', '1', 'A', 'B', 'C']]);
+        $this->assertNull(Poll::find($dropped->id));
+
+        $leftPoll = $poll();
+        $leftVote = $vote($leftPoll);
+        $leftPoll->update(['category' => 'General']);
+        $this->assertNull(Poll::find($leftVote->id));
     }
 
     public function test_deleting_removes_media_files_from_storage(): void

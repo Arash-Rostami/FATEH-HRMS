@@ -210,7 +210,7 @@ class DailyPresenter
     private static function row(Reservation $reservation, int $viewerId, ?ResourceType $type): array
     {
         $user = $reservation->user;
-        $visible = $user && $user->isActive() && $user->type !== UserType::Guest->value;
+        $visible = $user && $user->isVisibleOnBoard();
 
         return [
             'reservation' => $reservation,

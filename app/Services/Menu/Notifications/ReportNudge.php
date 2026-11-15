@@ -30,7 +30,7 @@ class ReportNudge implements MenuNudge
 
     public function show($subject, User $user): bool
     {
-        return (bool) $subject->active;
+        return (bool) $subject->active && ($subject->expires_at === null || $subject->expires_at->isFuture());
     }
 
     public function title($subject, User $user): string

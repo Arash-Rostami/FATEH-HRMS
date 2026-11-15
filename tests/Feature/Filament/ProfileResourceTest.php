@@ -213,6 +213,29 @@ class ProfileResourceTest extends TestCase
         $this->assertSame('Computer Engineering', $profile->fresh()->field);
     }
 
+    public function test_terminating_through_the_edit_form_deactivates_the_user_and_fills_the_end_date_with_today()
+    {
+        $admin = $this->developer();
+        $target = User::factory()->create(['status' => 'active', 'type' => 'employee']);
+        $profile = Profile::factory()->create([
+            'user_id' => $target->id,
+            'position' => 'employee',
+            'image' => null,
+            'employment_status' => 'working',
+            'start_date' => now()->subYears(2)->toDateString(),
+            'end_date' => null,
+        ]);
+
+        Livewire::actingAs($admin)->test(EditProfile::class, ['record' => $profile->getRouteKey()])
+            ->assertSuccessful()
+            ->fillForm(['employment_status' => 'terminated'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('inactive', $target->fresh()->status);
+        $this->assertSame(today()->toDateString(), $profile->fresh()->end_date->toDateString());
+    }
+
     public function test_delete_profile_removes_row()
     {
         $admin = $this->developer();

@@ -25,7 +25,7 @@ class ProjectToast implements MenuEdge
         $this->added = [];
         $ids = $subject->channel_id ? Channel::invitedUserIds($subject->channel_id) : [];
 
-        return $ids === [] ? collect() : User::active()->whereIn('id', $ids)->get();
+        return $ids === [] ? collect() : User::visibleOnBoard()->whereIn('id', $ids)->get();
     }
 
     public function title($subject, User $user): string

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
-use App\Enums\UserType;
 use App\Models\Concerns\HasDailyQuota;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasPublicAssetUrl;
@@ -204,7 +203,7 @@ class Ticket extends Model
     {
         $deptCode = $user->profile?->department_id;
         $isHead = $deptCode && $user->isHeadOfDepartment($deptCode);
-        $isFreeDept = $deptCode && $user->status === 'active' && $user->type !== UserType::Guest->value && Department::freeAssignment($deptCode);
+        $isFreeDept = $deptCode && $user->isVisibleOnBoard() && Department::freeAssignment($deptCode);
 
         return $query->where(function (Builder $q) use ($user, $isHead, $isFreeDept, $deptCode) {
             $q->where(fn(Builder $sq) => $sq->where('assigned_to', $user->id)->where('status', 'in-progress'))

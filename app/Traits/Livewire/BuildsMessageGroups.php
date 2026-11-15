@@ -2,6 +2,8 @@
 
 namespace App\Traits\Livewire;
 
+use App\Livewire\Dashboard\Messaging\Actions\ForwardMessageAction;
+use App\Models\User;
 use Carbon\Carbon;
 
 trait BuildsMessageGroups
@@ -89,7 +91,8 @@ trait BuildsMessageGroups
                 }
             }
 
-            $linked = $this->linkify(e($msg['body'] ?? ''));
+            $parts = ForwardMessageAction::parts($msg['body'] ?? '');
+            $linked = $this->linkify(e($parts['note']));
             $mentionsYou = false;
             if ($mentionPattern !== '') {
                 [$html, $hits] = $this->mentionify($linked, $mentionPattern);
@@ -107,6 +110,8 @@ trait BuildsMessageGroups
                 'id' => (int)($msg['id'] ?? 0),
                 'body' => $msg['body'] ?? '',
                 'body_html' => nl2br($html, false),
+                'forwarded_html' => $parts['forwarded'] === null ? null : nl2br($this->linkify(e($parts['forwarded'])), false),
+                'plain_text' => $parts['forwarded'] === null ? ($msg['body'] ?? '') : ($parts['note'] !== '' ? $parts['note'] : $parts['forwarded']),
                 'created_at' => $msg['created_at'] ?? null,
                 'time' => $createdAt->isToday() ? toJalali($createdAt->toDateTimeString(), 'H:i') : toJalali($createdAt->toDateTimeString(), 'Y/m/d H:i'),
                 'datetime' => $msg['created_at'] ?? '',
@@ -124,6 +129,7 @@ trait BuildsMessageGroups
                 'can_edit' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'attachments' => $attachments,
+                'reactions' => $this->reactionChips($msg['reactions'] ?? [], $authId, $readersMap),
                 'type_flags' => $this->typeFlags($msg),
                 'gap_class' => $isFirst ? 'mt-4' : 'mt-1',
                 'bubble_radius' => $this->bubbleRadius($isMine, $isFirst, $isLast),
@@ -146,6 +152,23 @@ trait BuildsMessageGroups
             'shown' => $shown,
             'extra' => max(0, $msg['read_count'] - count($shown)),
         ];
+    }
+
+    private function reactionChips(array $reactions, int $authId, array $readersMap): array
+    {
+        if (!$reactions) {
+            return [];
+        }
+
+        $fallback = null;
+
+        return collect($reactions)->groupBy('emoji')->map(fn($rows, $emoji) => [
+            'emoji' => $emoji,
+            'count' => $rows->count(),
+            'mine' => $rows->contains(fn($r) => (int) $r['user_id'] === $authId),
+            'names' => $rows->map(fn($r) => $readersMap[(int) $r['user_id']]['name']
+                ?? ($fallback ??= User::getCachedActiveOptions())->get((int) $r['user_id'], 'کاربر'))->implode('، '),
+        ])->values()->all();
     }
 
     private function mentionify(string $linked, string $pattern): array

@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class SkillRequestResource extends Resource
 {
@@ -47,6 +48,29 @@ class SkillRequestResource extends Resource
                 'skill',
                 'approver'
             ]);
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['requested_name', 'skill.name', 'user.name'];
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->setEagerLoads([])->with(['skill:id,name', 'user:id,name']);
+    }
+
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        return $record?->requested_name ?? $record?->skill?->name;
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): ?string
+    {
+        return static::getUrl('index', [
+            'tableSearch' => $record->skill?->name ?? $record->user?->name,
+            'tableFilters' => ['status' => ['value' => $record->status->value]],
+        ]);
     }
 
     public static function getModelLabel(): string

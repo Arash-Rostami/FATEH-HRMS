@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Profile;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use App\Support\TicketAccessPolicy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -234,6 +235,26 @@ class TicketAccessPolicyTest extends TestCase
     public function test_head_check_returns_false_when_no_target_department_resolves(): void
     {
         $this->markTestSkipped('requires a DB with no active ranked users in PS or BS; the live dev DB seeds PS users so defaultTargetDepartment() cannot return null without mutating master data');
+    }
+
+    public function test_a_guest_or_terminated_head_is_no_longer_a_head(): void
+    {
+        $guestHead = $this->departmentHead();
+        $code = $guestHead->profile->department_id;
+        $ticket = $this->makeTicket(['extra' => ['target_department' => $code]]);
+        $this->assertTrue(TicketAccessPolicy::canAssign($ticket, $guestHead));
+
+        $guestHead->update(['type' => 'guest']);
+        $this->assertFalse($guestHead->fresh()->isHeadOfDepartment($code));
+        $this->assertFalse(TicketAccessPolicy::canAssign($ticket, $guestHead->fresh()));
+
+        $terminatedHead = $this->departmentHead();
+        $terminatedCode = $terminatedHead->profile->department_id;
+        $this->assertTrue($terminatedHead->isHeadOfDepartment($terminatedCode));
+
+        Profile::where('user_id', $terminatedHead->id)->update(['employment_status' => 'terminated']);
+        ModelCacheVersion::bump(User::class);
+        $this->assertFalse($terminatedHead->fresh()->isHeadOfDepartment($terminatedCode));
     }
 
     public function test_head_check_returns_false_when_department_has_no_head_without_crashing(): void

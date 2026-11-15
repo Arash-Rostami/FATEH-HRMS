@@ -19,6 +19,7 @@ class LetterheadResource extends Resource
     use AuthorizesByPermission, FilamentActions, FilamentAdminGuide, FilamentFilters, FilamentResourceSwitch, FilamentVisibility;
 
     protected static ?string $model = Letterhead::class;
+    protected static ?string $recordTitleAttribute = 'name';
     protected static ?string $slug = 'correspondence-letterheads';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
@@ -40,6 +41,11 @@ class LetterheadResource extends Resource
         return parent::getEloquentQuery()
             ->with('parent:id,name')
             ->withCount(['correspondences' => fn (Builder $query) => $query->withTrashed(), 'children']);
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name'];
     }
 
     public static function getModelLabel(): string

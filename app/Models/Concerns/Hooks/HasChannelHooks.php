@@ -16,6 +16,7 @@ trait HasChannelHooks
         static::deleting(self::blockProjectLinkedDeleteOnDeleting(...));
         static::forceDeleted(self::deleteMessageDirectoryOnForceDeleted(...));
         static::forceDeleted(self::deleteOwnerKeyOnForceDeleted(...));
+        static::updated(self::attachNewOwnerOnUpdated(...));
         static::updated(self::bumpThreadDigestOnUpdated(...));
         static::deleted(self::bumpThreadDigestOnDeleted(...));
     }
@@ -30,6 +31,13 @@ trait HasChannelHooks
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+        }
+    }
+
+    private static function attachNewOwnerOnUpdated(self $channel)
+    {
+        if ($channel->wasChanged('owner_id') && $channel->owner_id && !$channel->memberUsers()->whereKey($channel->owner_id)->exists()) {
+            self::attachOwnerOnCreated($channel);
         }
     }
 

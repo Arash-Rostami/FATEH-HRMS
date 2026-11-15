@@ -19,6 +19,7 @@ class AiReportResource extends Resource
     use AuthorizesByPermission, FilamentActions, FilamentAdminGuide, FilamentFilters, FilamentVisibility;
 
     protected static ?string $model = AiReport::class;
+    protected static ?string $recordTitleAttribute = 'title';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-chart-bar';
 
     protected static array $guide = [
@@ -40,6 +41,16 @@ class AiReportResource extends Resource
     {
         return parent::getEloquentQuery()
             ->with('user:id,name');
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->select(AiReport::LIST_COLUMNS);
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['title', 'user.name'];
     }
 
     public static function getModelLabel(): string

@@ -65,6 +65,11 @@ class EnergyTestResource extends Resource
         return ['user.name'];
     }
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        return $record?->user?->name;
+    }
+
     public static function getModelLabel(): string
     {
         return __('resources/energy/strings.label');

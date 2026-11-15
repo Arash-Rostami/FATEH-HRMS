@@ -201,7 +201,10 @@ class Workflow extends Component
     {
         return collect($this->steps)->map(function (array $step) {
             $step['reject_to_step'] = $step['reject_to_step'] === '' ? null : $step['reject_to_step'];
-            $step['deadline_days'] = $step['deadline_days'] === '' ? null : $step['deadline_days'];
+            if ($step['reject_to_step'] !== null) {
+                $step['reject_to_step'] = (int) $step['reject_to_step'];
+            }
+            $step['deadline_days'] = in_array($step['deadline_days'], ['', null], true) ? null : (int) $step['deadline_days'];
 
             return $step;
         })->all();

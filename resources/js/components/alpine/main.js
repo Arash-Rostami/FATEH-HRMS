@@ -116,6 +116,5 @@ export default function initAlpine() {
         Alpine.data('status', status)
         Alpine.data('smsModal', smsModal)
         Alpine.data('tabSelector', tabSelector)
-        Alpine.data('tagInput', tagInput)
-    })
+        Alpine.data('tagInput', tagInput)    })
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use App\Enums\EmploymentStatus;
 use App\Enums\ProfileDetailGroup;
 use App\Jobs\ReconcileNudgeJob;
 use App\Models\Department;
@@ -9,6 +10,7 @@ use App\Models\Feed;
 use App\Models\Post;
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -50,6 +52,115 @@ class ProfileModelTest extends TestCase
         }
         DB::purge('mysql');
         config(['database.default' => 'mysql']);
+    }
+
+    private function profileFor(array $profile = [], array $user = []): Profile
+    {
+        $owner = User::factory()->create(['name' => 'zz' . uniqid(), 'status' => 'active', 'type' => 'employee', 'role' => 'user', ...$user]);
+
+        return Profile::factory()->create([
+            'user_id' => $owner->id,
+            'employment_status' => 'working',
+            'start_date' => now()->subYears(2)->toDateString(),
+            'end_date' => null,
+            ...$profile,
+        ]);
+    }
+
+    public function test_terminating_deactivates_the_user_and_fills_the_end_date_unless_one_was_given(): void
+    {
+        $profile = $this->profileFor();
+        $profile->update(['employment_status' => 'terminated']);
+
+        $this->assertSame('inactive', User::find($profile->user_id)->status);
+        $this->assertSame(today()->toDateString(), $profile->fresh()->end_date->toDateString());
+
+        $given = now()->subDays(3)->toDateString();
+        $other = $this->profileFor();
+        $other->update(['employment_status' => 'terminated', 'end_date' => $given]);
+        $this->assertSame($given, $other->fresh()->end_date->toDateString());
+    }
+
+    public function test_rehiring_clears_the_end_date_but_never_reactivates_the_user(): void
+    {
+        $profile = $this->profileFor();
+        $profile->update(['employment_status' => 'terminated']);
+
+        $profile->fresh()->update(['employment_status' => 'working']);
+
+        $this->assertNull($profile->fresh()->end_date);
+        $this->assertSame('inactive', User::find($profile->user_id)->status);
+    }
+
+    public function test_deactivating_a_user_leaves_the_profile_untouched(): void
+    {
+        $profile = $this->profileFor();
+
+        User::find($profile->user_id)->update(['status' => 'inactive']);
+
+        $this->assertSame('working', $profile->fresh()->employment_status);
+        $this->assertNull($profile->fresh()->end_date);
+    }
+
+    public function test_an_end_date_before_the_start_date_is_rejected_and_a_failed_termination_keeps_the_user_active(): void
+    {
+        $profile = $this->profileFor();
+
+        try {
+            $profile->update(['end_date' => now()->subYears(3)->toDateString()]);
+            $this->fail('end before start must throw');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('data.end_date', $e->errors());
+        }
+
+        $future = $this->profileFor(['start_date' => now()->addMonth()->toDateString()]);
+
+        try {
+            $future->update(['employment_status' => 'terminated']);
+            $this->fail('terminating before the start date must throw');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('data.end_date', $e->errors());
+        }
+
+        $this->assertSame('active', User::find($future->user_id)->status);
+        $this->assertSame('working', $future->fresh()->employment_status);
+    }
+
+    public function test_a_terminated_profile_moved_to_another_user_or_created_terminated_deactivates_that_user(): void
+    {
+        $profile = $this->profileFor();
+        Profile::whereKey($profile->id)->update(['employment_status' => 'terminated']);
+        $target = User::factory()->create(['name' => 'zz' . uniqid(), 'status' => 'active', 'type' => 'employee', 'role' => 'user']);
+
+        $profile->fresh()->update(['user_id' => $target->id]);
+        $this->assertSame('inactive', $target->fresh()->status);
+
+        $born = User::factory()->create(['name' => 'zz' . uniqid(), 'status' => 'active', 'type' => 'employee', 'role' => 'user']);
+        Profile::factory()->create(['user_id' => $born->id, 'employment_status' => 'terminated']);
+        $this->assertSame('inactive', $born->fresh()->status);
+    }
+
+    public function test_assigning_a_backed_enum_stores_the_plain_value_and_an_unchanged_one_is_not_dirty(): void
+    {
+        $profile = $this->profileFor();
+
+        $profile->employment_status = EmploymentStatus::Working;
+        $this->assertSame('working', $profile->employment_status);
+        $this->assertFalse($profile->isDirty('employment_status'));
+
+        $profile->employment_status = EmploymentStatus::Terminated;
+        $this->assertSame('terminated', $profile->employment_status);
+        $this->assertTrue($profile->isDirty('employment_status'));
+    }
+
+    public function test_changing_the_employment_status_bumps_the_user_cache_version(): void
+    {
+        $profile = $this->profileFor()->fresh();
+        $before = ModelCacheVersion::version(User::class);
+
+        $profile->update(['employment_status' => 'probational']);
+
+        $this->assertNotSame($before, ModelCacheVersion::version(User::class));
     }
 
     public function test_creating_a_second_profile_for_the_same_user_throws(): void

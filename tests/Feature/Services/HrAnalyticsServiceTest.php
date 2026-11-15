@@ -237,6 +237,47 @@ class HrAnalyticsServiceTest extends TestCase
         $this->assertSame($before, $after['datasets'][0]['data'][$idx], 'a guest-type profile must not be counted');
     }
 
+    public function test_headcount_counts_current_staff_only(): void
+    {
+        $baseline = $this->service()->getHrAData();
+        $idx = array_search(Position::Employee->getLabel(), $baseline['labels']);
+        $before = $baseline['datasets'][0]['data'][$idx];
+
+        $attrs = ['position' => Position::Employee->value, 'gender' => 'male', 'degree' => Degree::Undergraduate->value, 'marital_status' => 'single', 'employment_status' => 'working'];
+        $make = function (array $user = []) use ($attrs): Profile {
+            $owner = User::factory()->create(['status' => 'active', 'type' => 'employee', ...$user]);
+
+            return Profile::factory()->create(['user_id' => $owner->id, ...$attrs]);
+        };
+
+        $make();
+        $make(['status' => 'inactive']);
+        $make(['type' => 'guest']);
+        $terminated = $make();
+        Profile::whereKey($terminated->id)->update(['employment_status' => 'terminated']);
+
+        Cache::forget('hr:hr_a');
+        $after = $this->service()->getHrAData();
+        $this->assertSame($before + 1, $after['datasets'][0]['data'][$idx]);
+    }
+
+    public function test_the_status_breakdown_and_everyone_axis_keep_a_department_of_terminated_people(): void
+    {
+        $dept = $this->makeTopDepartment('SHR-TERM');
+        $person = User::factory()->create(['status' => 'active', 'type' => 'employee']);
+        $rows = $this->fillerProfiles($dept->code, $person->id, ['employment_status' => 'terminated']);
+
+        [$everyone] = $this->invoke($this->service(), 'topDepartments', [10, true]);
+        [$current] = $this->invoke($this->service(), 'topDepartments', [10, false]);
+        $this->assertContains($dept->code, $everyone);
+        $this->assertNotContains($dept->code, $current);
+
+        $result = $this->service()->getHrLData();
+        $i = $this->deptIndex($result['labels'], 'SHR-TERM');
+        $terminated = collect($result['datasets'])->firstWhere('label', 'خاتمه‌یافته');
+        $this->assertSame($rows, (int) $terminated['data'][$i]);
+    }
+
     public function test_get_hr_b_data_tracks_degree_gender_breakdown(): void
     {
         $baseline = $this->service()->getHrBData();
@@ -625,7 +666,7 @@ class HrAnalyticsServiceTest extends TestCase
     public function test_get_hr_n_data_shape_one_dataset_per_presence_status(): void
     {
         $dept = $this->makeTopDepartment('SHRN-SHAPE');
-        $filler = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $filler = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
         $this->fillerProfiles($dept->code, $filler->id, []);
 
         $result = $this->service()->getHrNData();
@@ -649,10 +690,10 @@ class HrAnalyticsServiceTest extends TestCase
     public function test_hr_n_rest_dataset_appears_for_unknown_presence(): void
     {
         $dept = $this->makeTopDepartment('SHRN-REST');
-        $filler = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $filler = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
         $this->fillerProfiles($dept->code, $filler->id, []);
 
-        $unknown = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $unknown = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
         DB::table('users')->where('id', $unknown->id)->update(['presence' => 'unknown_xyz']);
         $this->makeProfileRow($dept->code, $unknown->id, []);
 
@@ -668,8 +709,8 @@ class HrAnalyticsServiceTest extends TestCase
     public function test_get_hr_o_data_counts_active_and_online_separately(): void
     {
         $dept = $this->makeTopDepartment('SHRO-ACT');
-        $filler = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
-        $this->fillerProfiles($dept->code, $filler->id, []);
+        $filler = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $fillerRows = $this->fillerProfiles($dept->code, $filler->id, []);
 
         $online = User::factory()->create(['status' => 'active', 'last_seen' => now()]);
         $this->makeProfileRow($dept->code, $online->id, []);
@@ -686,15 +727,15 @@ class HrAnalyticsServiceTest extends TestCase
         $i = $this->deptIndex($result['labels'], 'SHRO-ACT');
         $active = collect($result['datasets'])->firstWhere('label', 'فعال')['data'];
         $onlineData = collect($result['datasets'])->firstWhere('label', 'آنلاین (' . convertToPersian(User::ONLINE_MINUTES) . ' دقیقه)')['data'];
-        $this->assertSame(2, $active[$i]);
+        $this->assertSame(2 + $fillerRows, $active[$i]);
         $this->assertSame(2, $onlineData[$i]);
     }
 
     public function test_get_hr_o_data_excludes_guest_type_users(): void
     {
         $dept = $this->makeTopDepartment('SHRO-GST');
-        $filler = User::factory()->create(['status' => 'inactive', 'last_seen' => null]);
-        $this->fillerProfiles($dept->code, $filler->id, []);
+        $filler = User::factory()->create(['status' => 'active', 'last_seen' => null]);
+        $fillerRows = $this->fillerProfiles($dept->code, $filler->id, []);
 
         $employee = User::factory()->create(['status' => 'active', 'last_seen' => now()]);
         $this->makeProfileRow($dept->code, $employee->id, []);
@@ -706,25 +747,25 @@ class HrAnalyticsServiceTest extends TestCase
         $i = $this->deptIndex($result['labels'], 'SHRO-GST');
         $active = collect($result['datasets'])->firstWhere('label', 'فعال')['data'];
 
-        $this->assertSame(1, $active[$i], 'the guest-type user must not be counted as active');
+        $this->assertSame(1 + $fillerRows, $active[$i], 'the guest-type user must not be counted as active');
     }
 
     public function test_get_hr_p_data_counts_succession_risk_profiles(): void
     {
         $dept = $this->makeTopDepartment('SHRP-RISK');
-        $filler = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $filler = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
         $this->fillerProfiles($dept->code, $filler->id, [
             'birthdate' => now()->subYears(25)->toDateString(),
             'start_date' => now()->subYears(2)->toDateString(),
         ]);
 
-        $atRisk = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $atRisk = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
         $this->makeProfileRow($dept->code, $atRisk->id, [
             'birthdate' => now()->subYears(60)->toDateString(),
             'start_date' => now()->subYears(11)->toDateString(),
         ]);
 
-        $young = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $young = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
         $this->makeProfileRow($dept->code, $young->id, [
             'birthdate' => now()->subYears(30)->toDateString(),
             'start_date' => now()->subYears(11)->toDateString(),
@@ -740,13 +781,13 @@ class HrAnalyticsServiceTest extends TestCase
     public function test_get_hr_q_data_counts_profiles_without_field(): void
     {
         $dept = $this->makeTopDepartment('SHRQ-NOF');
-        $filler = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $filler = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
         $this->fillerProfiles($dept->code, $filler->id, ['field' => 'Engineering']);
 
-        $nullField = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $nullField = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
         $this->makeProfileRow($dept->code, $nullField->id, ['field' => null]);
 
-        $emptyField = User::factory()->create(['status' => 'inactive', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
+        $emptyField = User::factory()->create(['status' => 'active', 'presence' => PresenceStatus::Onsite->value, 'last_seen' => null]);
         $this->makeProfileRow($dept->code, $emptyField->id, ['field' => '']);
 
         $result = $this->service()->getHrQData();

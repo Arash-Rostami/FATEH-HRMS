@@ -211,9 +211,9 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     #[Computed(seconds: 300, cache: true)]
     public function departmentsData(): array
     {
-        $total = Department::getCachedModels()->count();
-        $ranked = Department::withCount(['users' => fn($query) => $query->where('type', '!=', UserType::Guest->value)])
+        $ranked = Department::withCount('currentUsers as users_count')
             ->orderByDesc('users_count')->orderBy('code')->get();
+        $total = $ranked->count();
         $withUsers = $ranked->where('users_count', '>', 0)->count();
         $mostDense = $ranked->first(fn ($department) => $department->users_count > 0)?->displayLabel() ?? __('resources/dashboard/strings.analytics.departments.unknown');
 
@@ -623,7 +623,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     {
         $stats = DB::table('profiles')
             ->join('users', 'profiles.user_id', '=', 'users.id')
-            ->where('users.type', '!=', UserType::Guest->value)
+            ->tap(User::currentStaff(...))
             ->selectRaw("
             COUNT(*) as total,
             SUM(CASE WHEN employment_status = 'working' THEN 1 ELSE 0 END) as active_employees,

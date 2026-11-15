@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Channel\Presentation;
 
+use App\Livewire\Dashboard\Messaging\Actions\ForwardMessageAction;
 use App\Models\Channel;
 use App\Traits\Livewire\BuildsMessageGroups;
 use Illuminate\Support\Carbon;
@@ -29,6 +30,24 @@ class ChannelPresenter
             'lastActivity' => $lastMsgAt && Carbon::parse($lastMsgAt)->diffInMinutes(now()) >= 5
                 ? toJalaliRelative($lastMsgAt, dateAfterDays: 0)
                 : null,
+        ];
+    }
+
+    public function pinned(?Channel $channel, array $readersMap): ?array
+    {
+        $body = $channel?->pinned_message_id ? $channel->pinned_body : null;
+
+        if ($body === null) {
+            return null;
+        }
+
+        $parts = ForwardMessageAction::parts($body);
+        $text = $parts['forwarded'] === null ? $body : ($parts['note'] !== '' ? $parts['note'] : $parts['forwarded']);
+
+        return [
+            'id' => (int) $channel->pinned_message_id,
+            'sender' => $readersMap[(int) $channel->pinned_sender_id]['name'] ?? 'ناشناس',
+            'body' => $text !== '' ? Str::limit($text, 80) : 'پیوست',
         ];
     }
 

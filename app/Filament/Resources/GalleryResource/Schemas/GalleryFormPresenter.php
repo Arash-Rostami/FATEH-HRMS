@@ -96,6 +96,7 @@ class GalleryFormPresenter
             )
             ->imagePreviewHeight('100')
             ->panelLayout('grid')
+            ->imageEditor()
             ->reorderable()
             ->previewable()
             ->downloadable()

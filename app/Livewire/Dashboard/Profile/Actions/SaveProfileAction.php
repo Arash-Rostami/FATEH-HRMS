@@ -22,15 +22,11 @@ class SaveProfileAction
         $profile->fill($form->getProfileData());
 
         if ($form->birthYear && $form->birthMonth && $form->birthDay) {
-            try {
-                $profile->birthdate = (new Jalalian(
-                    $form->birthYear,
-                    $form->birthMonth,
-                    $form->birthDay
-                ))->toCarbon();
-            } catch (\Throwable) {
-                $profile->birthdate = null;
-            }
+            $profile->birthdate = (new Jalalian(
+                (int) $form->birthYear,
+                (int) $form->birthMonth,
+                (int) $form->birthDay
+            ))->toCarbon();
         } else {
             $profile->birthdate = null;
         }

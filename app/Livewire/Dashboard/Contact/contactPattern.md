@@ -6,6 +6,46 @@ This doc is the **single source of truth** for every file, contract, rule, and g
 
 ---
 
+## Forwarding and focus dismissal (2026-11-16)
+
+Contact and Channel share the forwarding implementation. One message can be forwarded to one other active, colleague-visible contact or joined, non-deleted channel. The current thread and composer draft stay in place. No migration or JavaScript bundle change is required.
+
+### File index
+
+| File | Responsibility |
+| --- | --- |
+| `app/Livewire/Dashboard/Messaging/Actions/ForwardMessageAction.php` | Rechecks source/destination access, creates the independent message, copies attachments, rolls back failed copies. |
+| `app/Traits/Livewire/ForwardsMessages.php` | Shared parent-scope Livewire modal state, destination search/pagination, validation, success URL. |
+| `app/Livewire/Dashboard/{Contact,Channel}/Main.php` | Uses the trait and declares the source module. Contact also aliases/delegates `FocusOnRecord::clearFocus`. |
+| `resources/views/livewire/dashboard/messaging/message-actions.blade.php` | Forward action; uses the existing Material Symbols `reply` icon rotated 180 degrees. |
+| `resources/views/livewire/dashboard/messaging/forward.blade.php` | Shared base modal, preview, single-selection member picker, optional note and success footer. |
+| `resources/views/livewire/dashboard/{contact,channel}.blade.php` | Mounts the modal outside islands and refreshes the sidebar after `message-forwarded`. |
+| `resources/views/livewire/dashboard/messaging/feature-legend.blade.php` | User-facing forwarding instructions. |
+| `tests/Feature/Livewire/Dashboard/{Contact,Channel,Messaging}Test.php` | Modal flows, draft preservation, focus-chip regression, forwarding directions, authorization, attachment lifecycle and destination read cursor. |
+
+### UI and Livewire contract
+
+- `openForward` and `forwardMessage` are parent calls, not messages-island calls. The shared modal must remain outside both islands because its base/search components use `@entangle`.
+- The picker reuses `x-dashboard.member-picker` in single/server mode, with the shared search and tab-selector components. Search changes clear the selected recipient; changing destination type resets selection, search and pagination. Queries use a 30-row limit with a +1 probe and load-more.
+- Source id, preview, pagination limit and result URL are `#[Locked]`. Preview data is display-only: the action reloads the source and rechecks permissions on send.
+- The success footer has one primary link, **«مشاهدهٔ گفتگو»**, using `?open=<destination>&focus_msg=<new message>`. The modal's top × dismisses it. Before success, the usual Cancel/Forward footer remains.
+- A successful forward dispatches `message-forwarded`; the root listener calls the existing `_syncSidebarAfterOwnAction($wire)`. It does not reset the current composer or refetch the current messages island.
+
+### Stored data and failure behavior
+
+- A forward is a new `Message` or `ChannelMessage`, authored by the forwarding user. It copies the body and attachments, without copying the original reply pointer or attachment viewer metadata. The short «➦ بازفرستاده‌شده» heading (`ForwardMessageAction::HEADING`) is ordinary body text, not a separate provenance field, so it is unauthenticated. The optional note precedes it. Re-forwarding keeps one heading and drops the earlier note. At render time `ForwardMessageAction::parts()` splits `[note\n\n]HEADING[\n\ntext]`: `body_html` carries the note and `forwarded_html` the text, drawn by `messaging/forward-quote.blade.php` (reply-quote styling) in the contact, channel and project-chat bubbles; the raw `body` is untouched, so editing and search still see the full text. Both builders also expose `plain_text` (the note, else the forwarded text, else the body) which the reply action and the forward-modal preview use so the raw heading never shows there; the emoji-only bubble style is skipped for forwards.
+- Body plus heading/note must fit the destination limit (Contact 2000, Channel 4000); the note is limited to 500. Excess text is rejected, never truncated.
+- Files are copied on the public disk into the destination's normal message directory using unique names. The destination survives source deletion. Missing/failed attachments abort the transaction and remove copies already made; committed files are retained if an after-commit callback fails.
+- Source access requires an active actor and either participation in the direct conversation or current channel membership. Destination validation rejects self, the source thread, inactive/guest contacts and unjoined/deleted channels.
+- Forwarding into a channel preserves earlier unread history. Its cursor advances only when it was already caught up (or the channel was empty). Model creation/update hooks continue to handle message digests.
+- The completed modal refuses another send from the same hydrated success state; this is not network-level idempotency for concurrent stale requests.
+
+### Contact focus-chip fix
+
+`Main::clearFocus()` now calls the aliased `FocusOnRecord::clearFocus()` **before** its recent-window early return. This clears the URL-bound `$open` property so **«نتیجهٔ جستجو»** disappears even when `focusAnchorId` is already null and the limit is already 10. Channel already uses this pattern. Correction to the historical §13 gotcha 22: Contact now has an override, so the older statement that no alias/delegation was necessary no longer applies.
+
+The automated Livewire harness checks server state and rendered markup; it does not establish real-browser island/teleport behavior. Run the three module suites with `php vendor/phpunit/phpunit/phpunit tests/Feature/Livewire/Dashboard/ContactTest.php tests/Feature/Livewire/Dashboard/ChannelTest.php tests/Feature/Livewire/Dashboard/MessagingTest.php`.
+
 ## 1. Stack & compatibility (verified)
 
 - **Livewire `^4.1`** (NOT v3) — `@island`, `#[Computed]`, `#[Locked]`, `#[Isolate]` (class-level, on `Main` — Channel parity), `#[Lazy]` (class-level, on `Main` — Channel parity; closes the same gap documented in `channelPattern.md` against `app/Livewire/livewirePattern.md:803`'s full-page-route-component rule), `#[Async]` (fire-and-forget; `markRead`), `#[Js]` (pure client-side JS return; `cancelReply`/`cancelEdit`), Livewire `Form` objects, `$wire.$island('name').method()`.
@@ -177,7 +217,7 @@ app/Livewire/Dashboard/Contact/
 ├── Actions/
 │   ├── FetchContactsAction.php                         sidebar list — UNION ALL sent+received → last_message_id; leftJoinSub unread; User::visibleOnBoard()
 │   ├── FetchArchivedContactsAction.php                  'archived' tab — inverse of visibleOnBoard() INNER-joined to "has message history" (§17)
-│   ├── SendMessageAction.php                           DB::transaction send + attachment store + reply-link validation (drops out-of-conversation reply_to)
+│   ├── SendMessageAction.php                           DB::transaction send + attachment store (stored name uses the content-derived `extension()`, never the client's file name, so a PNG sent as `x.html` cannot land as a page on the public disk; Channel parity, 2026-11-15) + reply-link validation (drops out-of-conversation reply_to)
 │   ├── SaveEditAction.php                              edit (sender-scoped + 600s limit)
 │   ├── DeleteMessageAction.php                         soft-delete, returns snapshot for undo
 │   ├── UndoDeleteAction.php                            restore from snapshot

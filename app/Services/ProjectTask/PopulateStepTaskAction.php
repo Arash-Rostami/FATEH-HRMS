@@ -60,7 +60,7 @@ class PopulateStepTaskAction
             return $project?->charter()->defaultDeadline();
         }
 
-        $deadline = now()->addDays($step['deadline_days'])->setTime(12, 0);
+        $deadline = now()->addDays((int) $step['deadline_days'])->setTime(12, 0);
         $deadline = $project?->charter()->clamp($deadline) ?? $deadline;
 
         return $deadline->isBefore(today()) ? null : $deadline;

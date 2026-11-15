@@ -469,6 +469,22 @@ export default function channel() {
             this.$wire.cancelEdit();
         },
 
+        async react(id, emoji) {
+            const wire = this.$wire;
+            await wire.$island('messages').toggleReaction(id, emoji).catch(() => {});
+
+            const fresh = document.querySelector(`[data-reaction-chip="${id}"][data-emoji="${emoji}"]`);
+            if (fresh && fresh.classList.contains('reaction-mine')) this._burstChip(fresh);
+        },
+
+        _burstChip(chip) {
+            chip.classList.remove('burst-now');
+            void chip.offsetWidth;
+            chip.classList.add('burst-now');
+            clearTimeout(chip._burstTimer);
+            chip._burstTimer = setTimeout(() => chip.classList.remove('burst-now'), 1100);
+        },
+
         scrollToMessage(id) {
             if (!id) return;
             const el = document.querySelector(`[data-rf="${DATA_RF_MESSAGE_PREFIX}-${id}"]`);

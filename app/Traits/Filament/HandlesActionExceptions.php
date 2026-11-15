@@ -15,8 +15,23 @@ trait HandlesActionExceptions
     {
         try {
             return parent::callMountedAction($arguments);
-        } catch (ValidationException|Halt|Cancel $e) {
+        } catch (Halt|Cancel $e) {
             throw $e;
+        } catch (ValidationException $e) {
+            $inline = fn(string $key) => str_starts_with($key, 'mountedActions')
+                || (method_exists($this, 'save') && str_starts_with($key, 'data.'));
+
+            if (collect($e->errors())->keys()->contains($inline)) {
+                throw $e;
+            }
+
+            $this->reportActionException($e);
+
+            if ($this->getMountedAction()?->getName() === 'delete') {
+                $this->unmountAction();
+            }
+
+            return null;
         } catch (Throwable $e) {
             $this->reportActionException($e);
 

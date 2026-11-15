@@ -175,7 +175,7 @@ trait HasProjectFollowUps
 
     public function ensureActiveOwner(): void
     {
-        if ($this->owner_id && User::active()->whereKey($this->owner_id)->exists()) {
+        if ($this->owner_id && User::visibleOnBoard()->whereKey($this->owner_id)->exists()) {
             return;
         }
 

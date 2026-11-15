@@ -10,6 +10,7 @@ use App\Enums\UserType;
 use App\Models\User;
 use App\Support\FileNamer;
 use App\Traits\Filament\FilamentFormDivider;
+use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
@@ -158,6 +159,9 @@ class UserFormPresenter
             ->image()
             ->disk('local')
             ->visibility('private')
+            ->downloadable()
+            ->openable()
+            ->previewable()
             ->directory(self::SIGNATURE_DIRECTORY)
             ->maxSize(config('ai.correspondence.upload.image_kb'))
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
@@ -282,6 +286,11 @@ class UserFormPresenter
             ->default(UserStatus::Active->value)
             ->required()
             ->native(false)
+            ->rule(fn($record) => function (string $attribute, mixed $value, Closure $fail) use ($record): void {
+                if ($value === UserStatus::Active->value && $record?->status !== UserStatus::Active->value && $record?->profile?->isTerminated()) {
+                    $fail(__('resources/user/strings.validation.terminated_locked'));
+                }
+            })
             ->helperText(__('resources/user/strings.hints.status'));
     }
 

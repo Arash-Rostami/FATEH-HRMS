@@ -68,6 +68,19 @@ class ReminderModelTest extends TestCase
         ], $overrides));
     }
 
+    public function test_changing_the_due_time_clears_notified_at_but_an_unrelated_edit_keeps_it(): void
+    {
+        $reminder = $this->makeReminder($this->activeUser(), ['due_at' => now()->addDay()]);
+        Reminder::whereKey($reminder->id)->update(['notified_at' => now()]);
+        $reminder = $reminder->fresh();
+
+        $reminder->update(['title' => 'renamed']);
+        $this->assertNotNull($reminder->fresh()->notified_at);
+
+        $reminder->fresh()->update(['due_at' => now()->addDays(2)]);
+        $this->assertNull($reminder->fresh()->notified_at);
+    }
+
     public function test_scope_active_excludes_completed_and_future_snoozed_but_includes_past_snoozed(): void
     {
         $user = $this->activeUser();

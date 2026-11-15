@@ -11,6 +11,7 @@ use App\Models\Concerns\HasUser;
 use App\Models\Concerns\Hooks\HasReservationHooks;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -176,6 +177,13 @@ class Reservation extends Model
             'user_id' => 'user',
             'cancelled_by_id' => 'user',
         ];
+    }
+
+    protected function status(): Attribute
+    {
+        return Attribute::make(
+            set: fn(mixed $value) => $value instanceof BackedEnum ? $value->value : $value,
+        );
     }
 
     protected function casts(): array

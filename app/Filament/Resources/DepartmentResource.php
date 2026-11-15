@@ -80,7 +80,7 @@ class DepartmentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->withCount('users');
+        return parent::getEloquentQuery()->withCount('currentUsers as users_count');
     }
 
     public static function getGlobalSearchResultActions(Model $record): array

@@ -14,12 +14,12 @@ use App\Livewire\Dashboard\Contact\Actions\UndoDeleteAction;
 use App\Livewire\Dashboard\Contact\Forms\EditMessageForm;
 use App\Livewire\Dashboard\Contact\Forms\MessageComposerForm;
 use App\Livewire\Dashboard\Contact\Presentation\ContactPresenter;
-use App\Enums\UserType;
 use App\Models\Message;
 use App\Models\User;
 use App\Services\Messaging\PollDigestService;
 use App\Traits\Livewire\ChatComposer;
 use App\Traits\Livewire\FocusOnRecord;
+use App\Traits\Livewire\ForwardsMessages;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -40,7 +40,12 @@ use Illuminate\View\View;
 #[Lazy]
 class Main extends Component
 {
-    use ChatComposer, FocusOnRecord, WithFileUploads;
+    use ChatComposer, ForwardsMessages, WithFileUploads;
+    use FocusOnRecord {
+        clearFocus as baseClearFocus;
+    }
+
+    protected function forwardSourceType(): string { return 'contact'; }
 
     public MessageComposerForm $composer;
     public EditMessageForm $edit;
@@ -87,7 +92,7 @@ class Main extends Component
     public function activeContactArchived(): bool
     {
         $contact = $this->activeContact;
-        return $contact !== null && ($contact->status !== 'active' || $contact->type === UserType::Guest->value);
+        return $contact !== null && !$contact->isVisibleOnBoard();
     }
 
     public function backToList(): void
@@ -317,6 +322,8 @@ class Main extends Component
 
     public function clearFocus(): void
     {
+        $this->baseClearFocus();
+
         if ($this->focusAnchorId === null && $this->messagesLimit === 10) {
             return;
         }

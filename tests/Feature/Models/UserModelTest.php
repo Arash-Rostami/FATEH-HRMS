@@ -3,10 +3,15 @@
 namespace Tests\Feature\Models;
 
 use App\Enums\PresenceStatus;
+use App\Enums\ReservationStatus;
+use App\Enums\UserStatus;
+use App\Enums\UserType;
 use App\Jobs\ReconcileNudgeJob;
+use App\Models\Channel;
 use App\Models\Department;
 use App\Models\Permission;
 use App\Models\Profile;
+use App\Models\Project;
 use App\Models\Reservation;
 use App\Models\Resource;
 use App\Models\Ticket;
@@ -111,6 +116,135 @@ class UserModelTest extends TestCase
         $this->assertContains($employee->id, $ids);
         $this->assertNotContains($guest->id, $ids);
         $this->assertNotContains($inactiveEmployee->id, $ids);
+    }
+
+    private function staff(array $user = [], ?string $employment = 'working'): User
+    {
+        $staff = User::factory()->create(['name' => 'zz' . uniqid(), 'status' => 'active', 'type' => 'employee', 'role' => 'user', ...$user]);
+
+        if ($employment !== null) {
+            Profile::factory()->create(['user_id' => $staff->id, 'employment_status' => $employment]);
+        }
+
+        return $staff;
+    }
+
+    private function terminateRaw(User $user): void
+    {
+        Profile::where('user_id', $user->id)->update(['employment_status' => 'terminated']);
+        ModelCacheVersion::bump(User::class);
+    }
+
+    public function test_the_current_staff_rule_agrees_across_scope_instance_check_keep_and_raw_sql(): void
+    {
+        $current = $this->staff();
+        $probational = $this->staff([], 'probational');
+        $noProfile = $this->staff([], null);
+        $inactive = $this->staff(['status' => 'inactive']);
+        $guest = $this->staff(['type' => 'guest']);
+        $terminated = $this->staff();
+        $this->terminateRaw($terminated);
+        $all = [$current, $probational, $noProfile, $inactive, $guest, $terminated];
+        $allIds = array_map(fn (User $u): int => $u->id, $all);
+
+        $visible = User::visibleOnBoard()->whereIn('id', $allIds)->pluck('id')->all();
+        $this->assertEqualsCanonicalizing([$current->id, $probational->id, $noProfile->id], $visible);
+
+        foreach ($all as $user) {
+            $this->assertSame(in_array($user->id, $visible, true), User::with('profile')->find($user->id)->isVisibleOnBoard());
+        }
+
+        $kept = User::visibleOnBoardOr($inactive->id)->whereIn('id', $allIds)->pluck('id')->all();
+        $this->assertContains($inactive->id, $kept);
+        $this->assertNotContains($guest->id, $kept);
+        $this->assertNotContains($terminated->id, $kept);
+
+        $joined = User::currentStaff(DB::table('users')->join('profiles', 'profiles.user_id', '=', 'users.id')->whereIn('users.id', $allIds))
+            ->pluck('users.id')->map(fn ($id): int => (int) $id)->all();
+        $this->assertEqualsCanonicalizing([$current->id, $probational->id], $joined);
+    }
+
+    public function test_reactivating_a_user_with_a_terminated_profile_is_blocked_until_the_profile_is_unterminated(): void
+    {
+        $user = $this->staff();
+        $profile = $user->profile;
+        $profile->update(['employment_status' => 'terminated']);
+        $this->assertSame('inactive', $user->fresh()->status);
+
+        try {
+            $user->fresh()->update(['status' => 'active']);
+            $this->fail('a terminated person must not be reactivated');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('data.status', $e->errors());
+        }
+        $this->assertSame('inactive', $user->fresh()->status);
+
+        $profile->fresh()->update(['employment_status' => 'working']);
+        $user->fresh()->update(['status' => 'active']);
+        $this->assertSame('active', $user->fresh()->status);
+    }
+
+    public function test_a_user_owning_a_non_project_channel_cannot_be_deactivated_or_guested(): void
+    {
+        $owner = $this->staff();
+        Channel::factory()->create(['owner_id' => $owner->id]);
+
+        foreach (['status' => 'inactive', 'type' => 'guest'] as $field => $value) {
+            try {
+                $owner->fresh()->update([$field => $value]);
+                $this->fail('a channel owner must not leave the board');
+            } catch (ValidationException $e) {
+                $this->assertArrayHasKey("data.{$field}", $e->errors());
+            }
+        }
+        $this->assertSame('active', $owner->fresh()->status);
+
+        $linkedOwner = $this->staff();
+        $linked = Channel::factory()->create(['owner_id' => $linkedOwner->id]);
+        Project::factory()->create(['owner_id' => $linkedOwner->id, 'member_ids' => [], 'departments' => [], 'channel_id' => $linked->id]);
+        $linkedOwner->fresh()->update(['status' => 'inactive']);
+        $this->assertSame('inactive', $linkedOwner->fresh()->status);
+    }
+
+    public function test_leaving_the_board_cancels_future_active_reservations_only(): void
+    {
+        $admin = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        $this->actingAs($admin);
+
+        foreach (['status' => 'inactive', 'type' => 'guest'] as $field => $value) {
+            $user = $this->staff()->fresh();
+            $future = Reservation::factory()->create([
+                'user_id' => $user->id, 'status' => ReservationStatus::Active->value, 'is_full_day' => false,
+                'start_time' => now()->addDay()->setHour(9), 'end_time' => now()->addDay()->setHour(10),
+            ]);
+            $started = Reservation::factory()->create([
+                'user_id' => $user->id, 'status' => ReservationStatus::Active->value, 'is_full_day' => false,
+                'start_time' => now()->subHour(), 'end_time' => now()->addHour(),
+            ]);
+
+            $user->update([$field => $value]);
+
+            $future = $future->fresh();
+            $this->assertSame(ReservationStatus::CancelledAdmin->value, $future->status);
+            $this->assertSame($admin->id, $future->cancelled_by_id);
+            $this->assertNotNull($future->cancelled_at);
+            $this->assertSame(ReservationStatus::Active->value, $started->fresh()->status);
+        }
+    }
+
+    public function test_assigning_a_backed_enum_stores_the_plain_value_and_an_unchanged_one_is_not_dirty(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'type' => 'employee']);
+
+        $user->status = UserStatus::Active;
+        $user->type = UserType::Employee;
+        $this->assertSame('active', $user->status);
+        $this->assertSame('employee', $user->type);
+        $this->assertFalse($user->isDirty(['status', 'type']));
+
+        $user->type = UserType::Guest;
+        $this->assertSame('guest', $user->type);
+        $this->assertTrue($user->isDirty('type'));
     }
 
     public function test_scope_of_type_filters_by_type_column(): void

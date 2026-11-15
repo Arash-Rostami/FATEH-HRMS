@@ -117,7 +117,7 @@ class FAQFormPresenter
     {
         return Select::make('user_id')
             ->label(__('resources/faq/strings.fields.user'))
-            ->relationship('user', 'name')
+            ->relationship('user', 'name', fn($query, $get) => $query->visibleOnBoardOr($get('user_id')))
             ->afterStateHydrated(fn($state, callable $set) => $set('user_id', $state ?? auth()->id()))
             ->default(fn() => auth()->id())
             ->disabled()

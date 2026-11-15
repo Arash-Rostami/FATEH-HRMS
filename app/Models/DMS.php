@@ -128,9 +128,9 @@ class DMS extends Model
         $owners = collect($this->owners ?? []);
 
         if ($owners->contains('ALL')) {
-            $users = User::active()->whereNotIn('id', $signedIds)->get();
+            $users = User::visibleOnBoard()->whereNotIn('id', $signedIds)->get();
         } else {
-            $users = User::active()
+            $users = User::visibleOnBoard()
                 ->whereNotIn('id', $signedIds)
                 ->whereHas('profile', fn(Builder $q) => $q->whereIn('department_id', $owners->all()))
                 ->get();
@@ -139,7 +139,7 @@ class DMS extends Model
 
             if (!empty($explicit)) {
                 $users = $users->merge(
-                    User::active()->whereNotIn('id', $signedIds)->whereIn('id', $explicit)->get()
+                    User::visibleOnBoard()->whereNotIn('id', $signedIds)->whereIn('id', $explicit)->get()
                 );
             }
         }

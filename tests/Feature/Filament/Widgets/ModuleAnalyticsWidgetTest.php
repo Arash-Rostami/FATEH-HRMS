@@ -230,10 +230,7 @@ class ModuleAnalyticsWidgetTest extends TestCase
         Profile::factory()->create(['user_id' => $employee->id, 'department_id' => $department->code]);
 
         $stats = $this->invoke($this->widget(), 'profilesData');
-        $expected = DB::table('profiles')
-            ->join('users', 'profiles.user_id', '=', 'users.id')
-            ->where('users.type', '!=', 'guest')
-            ->count();
+        $expected = User::currentStaff(DB::table('profiles')->join('users', 'profiles.user_id', '=', 'users.id'))->count();
 
         $this->assertSame($expected, $stats[0]->getValue());
     }
@@ -258,7 +255,7 @@ class ModuleAnalyticsWidgetTest extends TestCase
         Cache::flush();
         Once::flush();
         $baselineTotal = Department::count();
-        $baselineRanked = Department::withCount(['users' => fn ($q) => $q->where('type', '!=', 'guest')])
+        $baselineRanked = Department::withCount('currentUsers as users_count')
             ->orderByDesc('users_count')->orderBy('code')->get();
         $baselineWithUsers = $baselineRanked->where('users_count', '>', 0)->count();
 
@@ -285,7 +282,7 @@ class ModuleAnalyticsWidgetTest extends TestCase
 
         $this->assertSame($baselineTotal + 1, (int) $stats[0]->getValue());
 
-        $afterRanked = Department::withCount(['users' => fn ($q) => $q->where('type', '!=', 'guest')])
+        $afterRanked = Department::withCount('currentUsers as users_count')
             ->orderByDesc('users_count')->orderBy('code')->get();
         $createdRow = $afterRanked->firstWhere('code', $department->code);
         $this->assertNotNull($createdRow);
@@ -314,7 +311,7 @@ class ModuleAnalyticsWidgetTest extends TestCase
 
         $this->invoke($widget, 'departmentsData');
 
-        $ranked = Department::withCount(['users' => fn ($q) => $q->where('type', '!=', 'guest')])
+        $ranked = Department::withCount('currentUsers as users_count')
             ->orderBy('code')->get();
         $createdRow = $ranked->firstWhere('code', $department->code);
 

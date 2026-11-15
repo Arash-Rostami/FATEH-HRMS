@@ -2,6 +2,13 @@
 
 namespace Tests\Feature\Services\Search;
 
+use App\Filament\Resources\AiReportResource;
+use App\Filament\Resources\LetterheadResource;
+use App\Filament\Resources\NotifyRuleResource;
+use App\Filament\Resources\ReleaseRequestResource;
+use App\Filament\Resources\ReminderResource;
+use App\Filament\Resources\SkillRequestResource;
+use App\Filament\Resources\SkillResource;
 use App\Services\Search\FaultTolerantGlobalSearchProvider;
 use Filament\Facades\Filament;
 use Filament\GlobalSearch\GlobalSearchResult;
@@ -65,6 +72,35 @@ class FaultTolerantGlobalSearchProviderTest extends TestCase
         $this->assertTrue($results->getCategories()->has('Working'));
         $this->assertTrue($results->getCategories()->has('ThrowingGlobalSearchSort'));
     }
+
+    public function test_declared_search_attributes_resolve_to_real_columns_and_relations_on_each_model()
+    {
+        $resources = [
+            AiReportResource::class,
+            LetterheadResource::class,
+            NotifyRuleResource::class,
+            ReleaseRequestResource::class,
+            ReminderResource::class,
+            SkillRequestResource::class,
+            SkillResource::class,
+        ];
+
+        foreach ($resources as $resource) {
+            $model = new ($resource::getModel());
+
+            foreach ($resource::getGloballySearchableAttributes() as $attribute) {
+                if (str_contains($attribute, '.')) {
+                    [$relation, $column] = explode('.', $attribute, 2);
+
+                    $this->assertTrue(method_exists($model, $relation), "{$resource}: missing relation {$relation}");
+                    $this->assertContains($column, $model->$relation()->getRelated()->getFillable(), "{$resource}: {$attribute}");
+                } else {
+                    $this->assertContains($attribute, $model->getFillable(), "{$resource}: {$attribute}");
+                }
+            }
+        }
+    }
+
     public function test_it_skips_resources_whose_module_is_off_and_returns_them_when_on()
     {
         $provider = new class extends FaultTolerantGlobalSearchProvider {

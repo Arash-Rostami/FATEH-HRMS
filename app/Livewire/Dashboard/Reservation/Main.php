@@ -84,8 +84,8 @@ class Main extends Component
     public array $facetFilters = [];
     public string $resourceSearch = '';
     public $zoomImageUrl = null;
-    public $resourcesLimit = 6;
-    public $historyLimit = 5;
+    public int $resourcesLimit = 6;
+    public int $historyLimit = 5;
     public $isRecurring = false;
     public $recurPattern = 'daily';
     public $recurCount = 4;
@@ -437,7 +437,7 @@ class Main extends Component
             [$start, $end, $isFullDay] = $this->timeRange();
 
             $recurrence = ($this->isRecurring && $this->allowsRepeat)
-                ? ['pattern' => $this->recurPattern, 'count' => $this->recurCount]
+                ? ['pattern' => $this->recurPattern, 'count' => (int) $this->recurCount]
                 : null;
 
             $action->execute(auth()->user(), Resource::where('type', $this->activeTab)->findOrFail($resourceId), $start, $end, $isFullDay, $recurrence);

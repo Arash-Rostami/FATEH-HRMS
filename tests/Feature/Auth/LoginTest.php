@@ -4,9 +4,11 @@ namespace Tests\Feature\Auth;
 
 use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Login;
+use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -178,6 +180,142 @@ class LoginTest extends TestCase
 
         $this->actingAs($user)->get('/dashboard')->assertRedirect('/login');
         $this->assertGuest();
+    }
+
+    private int $smsStatus = 200;
+
+    private function otpOn(?string &$code = null): void
+    {
+        $this->smsStatus = 200;
+
+        config([
+            'app.off' => [],
+            'services.sms.provider' => 'kavenegar',
+            'services.kavenegar.key' => 'KEY',
+        ]);
+
+        Http::fake(function ($request) use (&$code) {
+            preg_match('/\d{5}/', (string) ($request['message'] ?? ''), $match);
+            $code = $match[0] ?? null;
+
+            return Http::response(['return' => ['status' => $this->smsStatus, 'message' => 'x'], 'entries' => []]);
+        });
+    }
+
+    private function otpUser(string $cellphone = '09190000123', bool $active = true): User
+    {
+        $user = User::factory()->create();
+        Profile::factory()->create(['user_id' => $user->id, 'cellphone' => $cellphone]);
+
+        if (! $active) {
+            $user->forceFill(['status' => 'inactive'])->save();
+        }
+
+        return $user;
+    }
+
+    public function test_sms_code_login_is_hidden_and_refused_when_the_tenant_has_sms_off(): void
+    {
+        $this->otpOn();
+        config(['app.off' => ['notify:sms']]);
+        $this->otpUser();
+
+        Livewire::test(Login::class)
+            ->assertDontSee('ورود با پیامک')
+            ->set('smsLogin', true)
+            ->assertSet('smsLogin', false)
+            ->set('phone', '09190000123')
+            ->call('sendCode')
+            ->assertHasErrors('phone');
+
+        Http::assertNothingSent();
+    }
+
+    public function test_sms_code_logs_in_a_matching_active_user_once_and_accepts_persian_digits(): void
+    {
+        $code = null;
+        $this->otpOn($code);
+        $user = $this->otpUser();
+
+        $component = Livewire::test(Login::class)
+            ->assertSee('ورود با پیامک')
+            ->set('smsLogin', true)
+            ->set('phone', '۰۹۱۹۰۰۰۰۱۲۳')
+            ->call('sendCode')
+            ->assertSet('codeSent', true)
+            ->assertDispatched('login-code-sent', seconds: 60);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'sms/send.json') && str_contains($request['message'], (string) $code));
+
+        $component->set('code', (string) $code)->call('verifyCode')->assertSet('outcome', 'success');
+        $this->assertAuthenticatedAs($user);
+
+        Auth::logout();
+
+        Livewire::test(Login::class)
+            ->set('smsLogin', true)
+            ->set('phone', '09190000123')
+            ->set('code', (string) $code)
+            ->call('verifyCode')
+            ->assertHasErrors('code');
+        $this->assertGuest();
+    }
+
+    public function test_sms_code_is_refused_with_a_clear_message_for_unknown_and_inactive_numbers_without_any_sms(): void
+    {
+        $this->otpOn();
+        $this->otpUser('09127777777', active: false);
+
+        foreach (['09128888888', '09127777777'] as $number) {
+            Livewire::test(Login::class)
+                ->set('smsLogin', true)
+                ->set('phone', $number)
+                ->call('sendCode')
+                ->assertSet('codeSent', false)
+                ->assertHasErrors('phone');
+        }
+
+        Http::assertNothingSent();
+    }
+
+    public function test_failed_sms_sends_do_not_use_up_the_hourly_cap(): void
+    {
+        $code = null;
+        $this->otpOn($code);
+        $this->otpUser();
+        $this->smsStatus = 418;
+
+        $component = Livewire::test(Login::class)->set('smsLogin', true)->set('phone', '09190000123');
+
+        foreach (range(1, 6) as $ignored) {
+            $component->call('sendCode')->assertSet('codeSent', false)->assertHasErrors('phone');
+        }
+
+        $this->smsStatus = 200;
+
+        $component->call('sendCode')->assertSet('codeSent', true);
+    }
+
+    public function test_five_wrong_codes_burn_the_code_and_the_resend_waits_out_the_cooldown(): void
+    {
+        $code = null;
+        $this->otpOn($code);
+        $this->otpUser();
+
+        $component = Livewire::test(Login::class)
+            ->set('smsLogin', true)
+            ->set('phone', '09190000123')
+            ->call('sendCode');
+
+        foreach (range(1, 5) as $ignored) {
+            $component->set('code', '00000')->call('verifyCode')->assertHasErrors('code');
+        }
+
+        $component->set('code', (string) $code)->call('verifyCode')->assertHasErrors('code');
+        $this->assertGuest();
+
+        $component->call('sendCode')->assertHasErrors('phone');
+        Http::assertSentCount(1);
     }
 
     public function test_forgot_password_link_follows_the_tenant_password_reset_switch(): void

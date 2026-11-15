@@ -232,6 +232,59 @@ class ReservationModelTest extends TestCase
         $this->assertInstanceOf(\Carbon\CarbonInterface::class, $reservation->fresh()->end_time);
     }
 
+    private function heldReservation(array $attributes = []): Reservation
+    {
+        return Reservation::factory()->create([
+            'user_id' => User::factory()->create(['status' => 'active', 'type' => 'employee'])->id,
+            'is_full_day' => false,
+            'status' => ReservationStatus::Active->value,
+            'start_time' => now()->addDay()->setHour(9),
+            'end_time' => now()->addDay()->setHour(10),
+            ...$attributes,
+        ]);
+    }
+
+    public function test_status_changes_stamp_and_clear_the_cancellation_columns(): void
+    {
+        $actor = User::factory()->create(['status' => 'active', 'role' => 'admin']);
+        $this->actingAs($actor);
+        $reservation = $this->heldReservation();
+
+        $reservation->update(['status' => ReservationStatus::CancelledUser->value]);
+        $this->assertSame($actor->id, $reservation->fresh()->cancelled_by_id);
+        $this->assertNotNull($reservation->fresh()->cancelled_at);
+
+        $reservation->fresh()->update(['status' => ReservationStatus::Active->value]);
+        $this->assertNull($reservation->fresh()->cancelled_by_id);
+        $this->assertNull($reservation->fresh()->cancelled_at);
+    }
+
+    public function test_assigning_a_backed_enum_stores_the_plain_value_and_an_unchanged_one_is_not_dirty(): void
+    {
+        $reservation = $this->heldReservation();
+
+        $reservation->status = ReservationStatus::Active;
+        $this->assertSame('active', $reservation->status);
+        $this->assertFalse($reservation->isDirty('status'));
+
+        $reservation->status = ReservationStatus::CancelledUser;
+        $this->assertSame('cancelled_user', $reservation->status);
+        $this->assertTrue($reservation->isDirty('status'));
+    }
+
+    public function test_releasing_trims_a_started_range_to_now_and_leaves_an_ended_one_alone(): void
+    {
+        $started = $this->heldReservation(['start_time' => now()->subDays(2), 'end_time' => now()->addDays(3)]);
+        $ended = $this->heldReservation(['start_time' => now()->subDays(5), 'end_time' => now()->subDays(2)]);
+        $endedAt = $ended->end_time->toDateTimeString();
+
+        $started->update(['status' => ReservationStatus::Released->value]);
+        $ended->update(['status' => ReservationStatus::Released->value]);
+
+        $this->assertTrue($started->fresh()->end_time->between(now()->subMinute(), now()->addMinute()));
+        $this->assertSame($endedAt, $ended->fresh()->end_time->toDateTimeString());
+    }
+
     public function test_resource_dropdown_label_includes_resource_name_and_user_name(): void
     {
         $user = User::factory()->create(['status' => 'active', 'name' => 'Alice']);

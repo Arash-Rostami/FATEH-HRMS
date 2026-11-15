@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Contact\Presentation;
 
 use App\Enums\PresenceStatus;
+use App\Livewire\Dashboard\Messaging\Actions\ForwardMessageAction;
 use App\Models\Profile;
 use App\Models\Concerns\HasAvatar;
 use App\Traits\Livewire\BuildsChatBubbles;
@@ -87,10 +88,14 @@ class ContactPresenter
             $isLast   = !$next || (int) ($next['sender_id'] ?? 0) !== $senderId;
             $createdAt = Carbon::parse($msg['created_at'] ?? now())->setTimezone(config('app.timezone'));
 
+            $parts = ForwardMessageAction::parts($msg['body'] ?? '');
+
             return [
                 'id'         => (int) ($msg['id'] ?? 0),
                 'body'       => $msg['body'] ?? '',
-                'body_html'  => nl2br($this->linkify(e($msg['body'] ?? '')), false),
+                'body_html'  => nl2br($this->linkify(e($parts['note'])), false),
+                'forwarded_html' => $parts['forwarded'] === null ? null : nl2br($this->linkify(e($parts['forwarded'])), false),
+                'plain_text' => $parts['forwarded'] === null ? ($msg['body'] ?? '') : ($parts['note'] !== '' ? $parts['note'] : $parts['forwarded']),
                 'time'       => $createdAt->isToday() ? toJalali($createdAt->toDateTimeString(), 'H:i') : toJalali($createdAt->toDateTimeString(), 'Y/m/d H:i'),
                 'datetime'   => $msg['created_at'] ?? '',
                 'is_mine'    => $isMine,

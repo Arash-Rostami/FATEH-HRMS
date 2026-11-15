@@ -17,6 +17,7 @@ use App\Models\Department;
 use App\Models\Skill;
 use App\Services\PersianDateFieldService;
 use App\Services\ProfileDetailCatalog;
+use App\Services\SkillService;
 use App\Support\TopPositionPolicy;
 use App\Traits\Filament\FilamentFormDivider;
 use Closure;
@@ -29,7 +30,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Utilities\Get;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
+use Morilog\Jalali\Jalalian;
 
 class ProfileFormPresenter
 {
@@ -292,6 +295,27 @@ class ProfileFormPresenter
             ->options(EmploymentStatus::class)
             ->required()
             ->native(false)
+            ->live()
+            ->afterStateUpdated(function ($state, $old, callable $set, callable $get, ?Model $record): void {
+                if (($state instanceof BackedEnum ? $state->value : $state) !== EmploymentStatus::Terminated->value) {
+                    if (($old instanceof BackedEnum ? $old->value : $old) === EmploymentStatus::Terminated->value && $record?->end_date === null) {
+                        $set('end_date_year', null);
+                        $set('end_date_month', null);
+                        $set('end_date_day', null);
+                    }
+
+                    return;
+                }
+
+                if (filled($get('end_date_year'))) {
+                    return;
+                }
+
+                $today = Jalalian::now();
+                $set('end_date_year', $today->getYear());
+                $set('end_date_month', $today->getMonth());
+                $set('end_date_day', $today->getDay());
+            })
             ->helperText(__('resources/profile/strings.hints.employment_status'));
     }
 
@@ -404,6 +428,11 @@ class ProfileFormPresenter
             ->previewable()
             ->disk('public')
             ->directory('profiles/images')
+            ->imageEditor()
+            ->imageResizeMode('cover')
+            ->imageResizeTargetWidth('512')
+            ->imageResizeTargetHeight('512')
+            ->imageResizeUpscale(false)
             ->imagePreviewHeight('120')
             ->maxSize(config('file_upload_limits.image'))
             ->columnSpanFull()
@@ -547,7 +576,8 @@ class ProfileFormPresenter
                     return;
                 }
 
-                $existingIds = $user->skillUsers()->pluck('id')->all();
+                $existing = $user->skillUsers()->get()->keyBy('id');
+                $existingIds = $existing->keys()->all();
                 $keptIds = [];
 
                 foreach ($component->getState() ?? [] as $item) {
@@ -575,7 +605,21 @@ class ProfileFormPresenter
                     $id = (int)($item['id'] ?? 0);
 
                     if ($id && in_array($id, $existingIds, true)) {
-                        $user->skillUsers()->whereKey($id)->update($payload);
+                        $row = $existing[$id];
+
+                        if ($row->status?->value === $status) {
+                            $user->skillUsers()->whereKey($id)->update(collect($payload)->except(['approved_at', 'approved_by'])->all());
+                        } elseif ($row->status === SkillRequestStatus::Pending && in_array($status, [SkillRequestStatus::Approved->value, SkillRequestStatus::Rejected->value], true)) {
+                            $user->skillUsers()->whereKey($id)->update(collect($payload)->except(['status', 'approved_at', 'approved_by'])->all());
+                            $isApproved ? app(SkillService::class)->approve($row) : app(SkillService::class)->reject($row);
+                        } else {
+                            $user->skillUsers()->whereKey($id)->update($payload + ['rejected_reason' => null]);
+
+                            if ($isApproved && $row->requested_name !== null) {
+                                $user->skillUsers()->with('skill')->find($id)?->skill?->activate();
+                            }
+                        }
+
                         $keptIds[] = $id;
                         continue;
                     }

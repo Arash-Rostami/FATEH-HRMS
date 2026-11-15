@@ -11,6 +11,7 @@ use App\Livewire\Dashboard\Contact\Actions\SearchMessagesAction;
 use App\Livewire\Dashboard\Contact\Actions\SendMessageAction;
 use App\Livewire\Dashboard\Contact\Main;
 use App\Livewire\Dashboard\Contact\Presentation\ContactPresenter;
+use App\Livewire\Dashboard\Messaging\Actions\ForwardMessageAction;
 use App\Models\Message;
 use App\Models\Profile;
 use App\Models\ProfileDetail;
@@ -27,6 +28,95 @@ use Tests\TestCase;
 
 class ContactTest extends TestCase
 {
+    public function test_forward_preview_of_an_already_forwarded_message_hides_the_heading_and_old_note(): void
+    {
+        [$me, $peer] = User::factory()->count(2)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $source = Message::create(['sender_id' => $peer->id, 'recipient_id' => $me->id, 'body' => "Old note\n\n" . ForwardMessageAction::HEADING . "\n\nOriginal request"]);
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('openForward', $source->id)
+            ->assertSet('forwardPreview.body', 'Original request');
+    }
+
+    public function test_forwarding_to_another_contact_keeps_the_current_draft_and_shows_the_destination_link(): void
+    {
+        [$me, $peer, $target] = User::factory()->count(3)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $source = Message::create(['sender_id' => $peer->id, 'recipient_id' => $me->id, 'body' => 'Forward this request']);
+
+        $component = Livewire::actingAs($me)->test(Main::class)
+            ->call('selectContact', $peer->id)
+            ->set('composer.body', 'Unfinished reply')
+            ->call('openForward', $source->id)
+            ->assertSet('isForwardOpen', true)
+            ->set('forwardDestinationId', $target->id)
+            ->set('forwardNote', 'Please review')
+            ->call('forwardMessage')
+            ->assertHasNoErrors()
+            ->assertDispatched('message-forwarded')
+            ->assertSet('activeUserId', $peer->id)
+            ->assertSet('composer.body', 'Unfinished reply')
+            ->assertSee('مشاهدهٔ گفتگو')
+            ->assertDontSee('رفتن به گفتگو');
+
+        $forwarded = Message::where('sender_id', $me->id)->where('recipient_id', $target->id)->sole();
+        $this->assertSame("Please review\n\n" . ForwardMessageAction::HEADING . "\n\nForward this request", $forwarded->body);
+        $this->assertNull($forwarded->read_at);
+        $component->assertSet('forwardResultUrl', route('contact', ['open' => $target->id, 'focus_msg' => $forwarded->id]));
+
+        $component->call('forwardMessage');
+        $this->assertSame(1, Message::where('sender_id', $me->id)->where('recipient_id', $target->id)->count());
+    }
+
+    public function test_forward_destination_is_required_and_search_clears_an_existing_selection(): void
+    {
+        [$me, $peer, $target] = User::factory()->count(3)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $source = Message::create(['sender_id' => $peer->id, 'recipient_id' => $me->id, 'body' => 'Request']);
+
+        $component = Livewire::actingAs($me)->test(Main::class)
+            ->call('openForward', $source->id)
+            ->call('forwardMessage')
+            ->assertHasErrors(['forwardDestinationId' => 'required'])
+            ->set('forwardDestinationId', $target->id)
+            ->set('forwardSearch', $target->name)
+            ->assertSet('forwardDestinationId', null);
+
+        $ids = array_column($component->instance()->forwardCandidates, 'id');
+        $this->assertContains($target->id, $ids);
+        $this->assertNotContains($me->id, $ids);
+        $this->assertNotContains($peer->id, $ids);
+    }
+
+    public function test_clear_focus_dismisses_the_search_chip_even_when_the_latest_window_needs_no_reset(): void
+    {
+        [$me, $peer] = User::factory()->count(2)->create(['status' => 'active', 'type' => 'employee'])->all();
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('selectContact', $peer->id)
+            ->set('open', $peer->id)
+            ->assertSeeHtml('class="focus-chip"')
+            ->assertSet('focusAnchorId', null)
+            ->assertSet('messagesLimit', 10)
+            ->call('clearFocus')
+            ->assertSet('open', null)
+            ->assertDontSeeHtml('class="focus-chip"');
+    }
+
+    public function test_clear_focus_dismisses_the_search_chip_and_resets_an_older_message_window(): void
+    {
+        [$me, $peer, $ids] = $this->anchorThread(20);
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('selectContact', $peer->id)
+            ->set('open', $peer->id)
+            ->call('focusMessage', $ids[0])
+            ->assertSet('focusAnchorId', $ids[0])
+            ->call('clearFocus')
+            ->assertSet('open', null)
+            ->assertSet('focusAnchorId', null)
+            ->assertSet('messagesLimit', 10)
+            ->assertDontSeeHtml('class="focus-chip"');
+    }
+
     protected function setUp(): void
     {
         parent::setUp();

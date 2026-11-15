@@ -58,6 +58,15 @@ class SkillModelTest extends TestCase
         $this->assertFalse($fresh->is_ghost);
     }
 
+    public function test_a_plain_save_that_activates_a_ghost_skill_un_ghosts_it(): void
+    {
+        $skill = Skill::create(['name' => 'Ghost Hook ' . uniqid(), 'is_active' => false, 'is_ghost' => true]);
+
+        $skill->update(['is_active' => true]);
+
+        $this->assertFalse($skill->fresh()->is_ghost);
+    }
+
     public function test_record_search_increments_search_count_and_sets_last_searched_at(): void
     {
         $skill = Skill::create(['name' => 'Search Tracked Skill ' . uniqid(), 'is_active' => false, 'is_ghost' => true, 'search_count' => 2]);

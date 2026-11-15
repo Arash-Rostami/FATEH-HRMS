@@ -20,7 +20,7 @@ class ProfileFactory extends Factory
             'gender' => fake()->randomElement(['female', 'male']),
             'employment_type' => fake()->randomElement(['fulltime', 'parttime', 'contract']),
             'marital_status' => fake()->randomElement(['married', 'single']),
-            'employment_status' => fake()->randomElement(['probational', 'working', 'terminated']),
+            'employment_status' => fake()->randomElement(['probational', 'working']),
             'degree' => fake()->randomElement(['undergraduate', 'graduate', 'postgraduate']),
             'position' => fake()->jobTitle(),
             'landline' => '0211' . fake()->numerify('#######'),

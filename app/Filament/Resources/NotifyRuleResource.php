@@ -108,6 +108,16 @@ class NotifyRuleResource extends Resource
         return parent::getEloquentQuery()->withCount('logs');
     }
 
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return static::getModel()::query();
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name'];
+    }
+
     public static function getModelLabel(): string
     {
         return __('resources/notify_rule/strings.label');

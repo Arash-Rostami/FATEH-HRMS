@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns\Hooks;
 
+use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,33 @@ trait HasDepartmentHooks
     {
         static::saving(self::normalizeLevelAndGuardCycleOnSaving(...));
         static::saving(self::guardFreeAssignmentOnSaving(...));
+        static::saving(self::lockCodeOnSaving(...));
+        static::deleting(self::blockDeleteWhileReferencedOnDeleting(...));
         static::saved(self::reconcileFreeAssignmentOnSaved(...));
+    }
+
+    private static function lockCodeOnSaving(self $department)
+    {
+        if ($department->exists && $department->isDirty('code')) {
+            throw ValidationException::withMessages(['data.code' => __('resources/department/strings.errors.code_locked')]);
+        }
+    }
+
+    private static function blockDeleteWhileReferencedOnDeleting(self $department)
+    {
+        $referenced = collect(['profiles', 'authorities', 'faqs', 'photos', 'reports', 'reviews', 'task_details'])
+            ->contains(fn(string $table) => DB::table($table)->where('department_id', $department->code)->exists())
+            || collect(['feeds', 'photos', 'posts', 'reports', 'suggestions'])
+                ->contains(fn(string $table) => DB::table($table)->whereJsonContains('departments', $department->code)->exists())
+            || Project::withTrashed()->whereJsonContains('departments', $department->code)->exists()
+            || Ticket::query()->where('extra->target_department', $department->code)->exists()
+            || DB::table('dms')->whereJsonContains('owners', $department->code)->exists()
+            || DB::table('notify_rules')->whereJsonContains('extra->departments', $department->code)->exists()
+            || static::query()->where('subordinate_to', $department->code)->exists();
+
+        if ($referenced) {
+            throw ValidationException::withMessages(['department' => __('resources/department/strings.errors.in_use')]);
+        }
     }
 
     private static function normalizeLevelAndGuardCycleOnSaving(self $department)

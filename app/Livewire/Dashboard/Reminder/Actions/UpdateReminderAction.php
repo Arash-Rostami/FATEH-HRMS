@@ -24,6 +24,6 @@ class UpdateReminderAction
             'due_at' => $dueAt,
             'recurs' => $form->recurs,
             'channels' => $form->toChannels(),
-        ] + ($dueAt?->eq($reminder->due_at) ? [] : ['notified_at' => null]));
+        ]);
     }
 }

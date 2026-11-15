@@ -79,6 +79,7 @@ class OnboardingFormPresenter
                     ->directory('onboarding/guides')
                     ->downloadable()
                     ->openable()
+                    ->previewable()
                     ->acceptedFileTypes([
                         'application/pdf',
                         'application/msword',
@@ -147,7 +148,7 @@ class OnboardingFormPresenter
         return Select::make('user_id')
             ->label(__('resources/onboarding/strings.fields.user_id'))
             ->helperText(__('resources/onboarding/strings.fields.user_id_hint'))
-            ->relationship('user', 'name')
+            ->relationship('user', 'name', fn($query, $get) => $query->visibleOnBoardOr($get('user_id')))
             ->searchable()
             ->preload()
             ->nullable();
@@ -168,6 +169,7 @@ class OnboardingFormPresenter
                     ->disk('public')
                     ->downloadable()
                     ->openable()
+                    ->previewable()
                     ->directory('onboarding/video')
                     ->acceptedFileTypes(['video/*'])
                     ->helperText(__('resources/onboarding/strings.hints.videos_file'))
@@ -182,6 +184,8 @@ class OnboardingFormPresenter
                     ->directory('onboarding/thumbnail')
                     ->downloadable()
                     ->openable()
+                    ->previewable()
+                    ->imageEditor()
                     ->acceptedFileTypes(['image/*'])
                     ->maxSize(config('file_upload_limits.image'))
                     ->image()

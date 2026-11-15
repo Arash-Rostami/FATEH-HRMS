@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\PresenceStatus;
+use BackedEnum;
+use App\Enums\ReservationStatus;
 use App\Enums\UserType;
 use App\Jobs\ReconcileNudgeJob;
 use App\Models\Concerns\HasAvatar as HasImage;
@@ -24,11 +26,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAutomaticCacheVersioning
 {
@@ -47,6 +51,8 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
     public const TOUCH_MINUTES = 3;
 
     public const PRESENCE_VERSION_KEY = 'presence';
+
+    public const CURRENT_STAFF_SQL = "users.status = 'active' AND users.type != 'guest' AND profiles.employment_status != 'terminated'";
 
     public const INDEFINITE_FOCUS_MINUTES = 525600;
 
@@ -219,6 +225,13 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->status === 'active';
     }
 
+    public function isVisibleOnBoard(): bool
+    {
+        return $this->isActive()
+            && $this->type !== UserType::Guest->value
+            && !($this->relationLoaded('profile') && $this->profile?->isTerminated());
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -330,7 +343,19 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
 
     public function scopeVisibleOnBoard(Builder $query): Builder
     {
-        return $query->active()->whereNot('type', UserType::Guest->value);
+        return $query->active()
+            ->whereNot('users.type', UserType::Guest->value)
+            ->whereDoesntHave('profile', fn(Builder $profile) => $profile->where('employment_status', 'terminated'));
+    }
+
+    public function scopeVisibleOnBoardOr(Builder $query, mixed $keep): Builder
+    {
+        return $query->where(fn(Builder $q) => $q->visibleOnBoard()->orWhereIn('users.id', array_filter((array) $keep)));
+    }
+
+    public static function currentStaff(Builder|QueryBuilder $query): Builder|QueryBuilder
+    {
+        return $query->whereRaw(self::CURRENT_STAFF_SQL);
     }
 
     public function scopeOfType(Builder $query, string $type): Builder
@@ -409,6 +434,19 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         }
     }
 
+    protected function cancelFutureReservations(): void
+    {
+        try {
+            Reservation::where('user_id', $this->id)
+                ->where('status', ReservationStatus::Active->value)
+                ->where('start_time', '>', now())
+                ->get()
+                ->each->update(['status' => ReservationStatus::CancelledAdmin->value]);
+        } catch (Throwable $e) {
+            report($e);
+        }
+    }
+
     protected function reconcileDepartmentTickets(): void
     {
         $code = $this->profile()->value('department_id');
@@ -426,6 +464,27 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
     protected static function bumpCacheVersion(): void
     {
         ModelCacheVersion::bump(self::class);
+    }
+
+    protected function status(): Attribute
+    {
+        return Attribute::make(
+            set: fn(mixed $value) => $value instanceof BackedEnum ? $value->value : $value,
+        );
+    }
+
+    protected function role(): Attribute
+    {
+        return Attribute::make(
+            set: fn(mixed $value) => $value instanceof BackedEnum ? $value->value : $value,
+        );
+    }
+
+    protected function type(): Attribute
+    {
+        return Attribute::make(
+            set: fn(mixed $value) => $value instanceof BackedEnum ? $value->value : $value,
+        );
     }
 
     protected function casts(): array

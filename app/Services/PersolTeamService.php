@@ -14,7 +14,7 @@ class PersolTeamService
             return;
         }
 
-        $query->where('status', 'active');
+        $query->visibleOnBoard();
 
         if ($viewer->isTopExecutive()) {
             $query->whereHas('profile', fn(Builder $q) => $q->whereIn(

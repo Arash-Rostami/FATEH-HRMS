@@ -1711,3 +1711,93 @@
         display: none;
     }
 }
+
+@keyframes reactionBurst {
+    0% {
+        transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+        opacity: 0;
+    }
+    15% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(calc(-50% + var(--bx, 0px)), calc(-50% + var(--by, -60px))) scale(var(--bs, 1)) rotate(var(--br, 0deg));
+        opacity: 0;
+    }
+}
+
+.reaction-burst.burst-now::before,
+.reaction-burst.burst-now::after,
+.reaction-burst.burst-now .reaction-emoji::before,
+.reaction-burst.burst-now .reaction-emoji::after,
+.reaction-burst.burst-now .reaction-count::before {
+    content: var(--burst-emoji);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 30;
+    pointer-events: none;
+    line-height: 1;
+    opacity: 0;
+    animation: reactionBurst 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.reaction-burst.burst-now::before {
+    font-size: 15px;
+    --bx: -6px;
+    --by: -84px;
+    --br: -24deg;
+    --bs: 1.15;
+}
+
+.reaction-burst.burst-now::after {
+    font-size: 13px;
+    --bx: 46px;
+    --by: -72px;
+    --br: 22deg;
+    --bs: 0.9;
+    animation-duration: 0.75s;
+    animation-delay: 0.05s;
+}
+
+.reaction-burst.burst-now .reaction-emoji::before {
+    font-size: 16px;
+    --bx: -58px;
+    --by: -60px;
+    --br: -40deg;
+    --bs: 1.05;
+    animation-duration: 0.95s;
+    animation-delay: 0.03s;
+}
+
+.reaction-burst.burst-now .reaction-emoji::after {
+    font-size: 12px;
+    --bx: 72px;
+    --by: -18px;
+    --br: 35deg;
+    --bs: 0.85;
+    animation-duration: 0.7s;
+    animation-delay: 0.08s;
+}
+
+.reaction-burst.burst-now .reaction-count::before {
+    font-size: 14px;
+    --bx: -68px;
+    --by: -12px;
+    --br: -15deg;
+    --bs: 0.95;
+    animation-duration: 0.8s;
+    animation-delay: 0.02s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reaction-burst::before,
+    .reaction-burst::after,
+    .reaction-burst .reaction-emoji::before,
+    .reaction-burst .reaction-emoji::after,
+    .reaction-burst .reaction-count::before {
+        animation: none !important;
+        opacity: 0;
+        display: none;
+    }
+}

@@ -148,6 +148,16 @@ class ResourceResourceTest extends TestCase
         $this->assertSame('0-test-edit-after', $resource->fresh()->name);
     }
 
+    public function test_the_type_field_is_locked_on_edit()
+    {
+        $admin = $this->developer();
+        $resource = Resource::factory()->create(['name' => '0-test-type-lock', 'type' => 'seat', 'status' => 'active', 'metadata' => []]);
+
+        Livewire::actingAs($admin)->test(EditResource::class, ['record' => $resource->getRouteKey()])
+            ->assertSuccessful()
+            ->assertFormFieldDisabled('type');
+    }
+
     public function test_delete_resource_removes_row_from_database()
     {
         $admin = $this->developer();

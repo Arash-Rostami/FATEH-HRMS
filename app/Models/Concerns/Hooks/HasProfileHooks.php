@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns\Hooks;
 
+use App\Enums\UserStatus;
 use App\Jobs\ReconcileNudgeJob;
 use App\Jobs\SyncProjectChannelMembershipJob;
 use App\Models\Feed;
@@ -24,7 +25,58 @@ trait HasProfileHooks
         static::deleting(self::deleteFilesAndBumpUserCacheOnDeleting(...));
         static::creating(self::guardDuplicateProfileOnCreating(...));
         static::saving(self::guardTopPositionOnSaving(...));
+        static::saving(self::defaultTerminationDatesOnSaving(...));
+        static::saving(self::guardEndBeforeStartOnSaving(...));
+        static::saving(self::applyTerminationOnSaving(...));
+        static::created(self::applyTerminationOnSaving(...));
         static::saved(self::reconcileDepartmentMoveOnSaved(...));
+    }
+
+    private static function guardEndBeforeStartOnSaving(self $profile)
+    {
+        if ($profile->isDirty(['start_date', 'end_date']) && $profile->start_date && $profile->end_date && $profile->end_date->lt($profile->start_date)) {
+            throw ValidationException::withMessages(['data.end_date' => __('resources/profile/strings.validation.end_before_start')]);
+        }
+    }
+
+    private static function defaultTerminationDatesOnSaving(self $profile)
+    {
+        if (!$profile->isDirty('employment_status')) {
+            return;
+        }
+
+        if ($profile->isTerminated()) {
+            $profile->end_date ??= today();
+
+            return;
+        }
+
+        if ($profile->getOriginal('employment_status') === 'terminated' && !$profile->isDirty('end_date')) {
+            $profile->end_date = null;
+        }
+    }
+
+    private static function applyTerminationOnSaving(self $profile)
+    {
+        $moved = $profile->exists && $profile->isDirty('user_id');
+
+        if (!$profile->exists || !$profile->isTerminated() || !($moved || $profile->isDirty('employment_status'))) {
+            return;
+        }
+
+        if ($moved) {
+            $profile->unsetRelation('user');
+        }
+
+        if (!$profile->user?->isActive()) {
+            return;
+        }
+
+        try {
+            $profile->user->update(['status' => UserStatus::Inactive->value]);
+        } catch (ValidationException $e) {
+            throw ValidationException::withMessages(['data.employment_status' => collect($e->errors())->flatten()->first()]);
+        }
     }
 
     private static function guardTopPositionOnSaving(self $profile)
@@ -73,11 +125,13 @@ trait HasProfileHooks
     {
         $moved = $profile->wasChanged('department_id');
 
+        if ($profile->wasRecentlyCreated || $profile->wasChanged(['employment_status', 'user_id', 'department_id', 'position'])) {
+            ModelCacheVersion::bump(User::class);
+        }
+
         if (!$moved && !$profile->wasChanged('position')) {
             return;
         }
-
-        ModelCacheVersion::bump(User::class);
 
         $codes = array_filter([$profile->getOriginal('department_id'), $profile->department_id]);
 

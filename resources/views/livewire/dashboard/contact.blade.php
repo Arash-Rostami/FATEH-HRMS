@@ -6,6 +6,7 @@
     data-incoming-sound="{{ asset('build/assets/audio/incoming.mp3') }}"
     x-on:keydown.ctrl.k.window="focusSearch()"
     x-on:keydown.escape.window="closeOverlays(); if(max) toggleMaximize(null)"
+    x-on:message-forwarded="_syncSidebarAfterOwnAction($wire)"
     role="region"
     aria-label="پیام‌رسان"
     class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
@@ -87,4 +88,5 @@
     </div>
 
     @include('livewire.dashboard.messaging.quote-chip')
+    @include('livewire.dashboard.messaging.forward')
 </div>

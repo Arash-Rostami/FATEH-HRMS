@@ -87,6 +87,8 @@ class TicketFormPresenter
                     ->directory('ticket/assignee')
                     ->maxSize(config('file_upload_limits.document'))
                     ->acceptedFileTypes(self::acceptedMimeTypes())
+                    ->previewable()
+                    ->imageEditor()
                     ->getUploadedFileNameForStorageUsing(fn(TemporaryUploadedFile $file) => self::fileName($file))
                     ->openable()
                     ->downloadable(),
@@ -229,6 +231,8 @@ class TicketFormPresenter
                     ->directory('ticket/requester')
                     ->maxSize(config('file_upload_limits.document'))
                     ->acceptedFileTypes(self::acceptedMimeTypes())
+                    ->previewable()
+                    ->imageEditor()
                     ->getUploadedFileNameForStorageUsing(fn(TemporaryUploadedFile $file) => self::fileName($file))
                     ->openable()
                     ->downloadable(),

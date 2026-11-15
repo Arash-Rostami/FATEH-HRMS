@@ -31,7 +31,7 @@ class CorrespondenceNudge implements MenuNudge
 
         return $this->plan === []
             ? collect()
-            : User::active()->whereIn('id', array_keys($this->plan))->get();
+            : User::visibleOnBoard()->whereIn('id', array_keys($this->plan))->get();
     }
 
     public function getKey(): string

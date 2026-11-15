@@ -18,6 +18,7 @@ class CorrespondenceResource extends Resource
     use AuthorizesByPermission, FilamentActions, FilamentAdminGuide, FilamentFilters, FilamentResourceSwitch;
 
     protected static ?string $model = Correspondence::class;
+    protected static ?string $recordTitleAttribute = 'number';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
     protected static array $guide = [
@@ -41,6 +42,16 @@ class CorrespondenceResource extends Resource
     {
         return parent::getEloquentQuery()
             ->with('user:id,name');
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->select(Correspondence::ADMIN_COLUMNS);
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['number', 'subject', 'user.name'];
     }
 
     public static function getModelLabel(): string

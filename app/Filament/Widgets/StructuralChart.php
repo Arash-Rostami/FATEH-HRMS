@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\UserType;
+use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use Carbon\Carbon;
 use Filament\Actions\Action;
@@ -213,7 +214,7 @@ class StructuralChart extends ChartWidget
                 ->leftJoinSub(
                     DB::table('profiles')
                         ->join('users', 'profiles.user_id', '=', 'users.id')
-                        ->where('users.type', '!=', UserType::Guest->value)
+                        ->tap(User::currentStaff(...))
                         ->select('profiles.department_id as code', DB::raw('COUNT(*) as users_count'))
                         ->groupBy('profiles.department_id'),
                     'prof_agg',
@@ -262,9 +263,8 @@ class StructuralChart extends ChartWidget
         return ModelCacheVersion::rememberGlobal("struct:module_i:{$departmentCode}", function () use ($departmentCode) {
             $query = DB::table('profiles')
                 ->join('users', 'profiles.user_id', '=', 'users.id')
-                ->where('users.type', '!=', UserType::Guest->value)
-                ->whereNotNull('start_date')
-                ->where('employment_status', '!=', 'terminated');
+                ->tap(User::currentStaff(...))
+                ->whereNotNull('start_date');
 
             if ($departmentCode) {
                 $query->where('department_id', $departmentCode);

@@ -33,7 +33,7 @@ export default function fancyboxMixin() {
             if (initialized) return;
             initialized = true;
             import("@fancyapps/ui")
-                .then(({ Fancybox }) => Fancybox.bind("[data-fancybox]", options))
+                .then(({ Fancybox }) => Fancybox.bind(document.documentElement, "[data-fancybox]", options))
                 .catch(() => { initialized = false; });
         },
     };

@@ -3,8 +3,12 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Department;
+use App\Models\Profile;
+use App\Models\Report;
+use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -258,6 +262,71 @@ class DepartmentModelTest extends TestCase
         $this->expectException(RuntimeException::class);
 
         $a->save();
+    }
+
+    public function test_the_code_is_locked_after_creation(): void
+    {
+        $dept = Department::create(['code' => 'ZZLK1', 'name' => 'Lock', 'description' => 'Lock']);
+        $dept->code = 'ZZLK2';
+
+        try {
+            $dept->save();
+            $this->fail('a department code must not change');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('data.code', $e->errors());
+        }
+
+        $this->assertNotNull(Department::find('ZZLK1'));
+    }
+
+    public function test_delete_is_blocked_while_a_profile_or_a_json_audience_references_the_code(): void
+    {
+        $blocked = function (Department $dept): bool {
+            try {
+                $dept->delete();
+
+                return false;
+            } catch (ValidationException $e) {
+                return array_key_exists('department', $e->errors());
+            }
+        };
+
+        $withProfile = Department::create(['code' => 'ZZDP1', 'name' => 'P', 'description' => 'P']);
+        $user = User::factory()->create(['status' => 'active']);
+        Profile::factory()->create(['user_id' => $user->id, 'department_id' => 'ZZDP1']);
+        $this->assertTrue($blocked($withProfile));
+
+        $withAudience = Department::create(['code' => 'ZZDP2', 'name' => 'A', 'description' => 'A']);
+        Report::factory()->create(['departments' => ['ZZDP2']]);
+        $this->assertTrue($blocked($withAudience));
+
+        $free = Department::create(['code' => 'ZZDP3', 'name' => 'F', 'description' => 'F']);
+        $this->assertFalse($blocked($free));
+        $this->assertNull(Department::find('ZZDP3'));
+    }
+
+    public function test_users_is_unfiltered_while_current_users_hides_terminated_inactive_and_guest_people(): void
+    {
+        $dept = Department::create(['code' => 'ZZCU1', 'name' => 'C', 'description' => 'C']);
+        $make = function (array $user = [], string $employment = 'working') use ($dept): User {
+            $person = User::factory()->create(['name' => 'zz' . uniqid(), 'status' => 'active', 'type' => 'employee', 'role' => 'user', ...$user]);
+            Profile::factory()->create(['user_id' => $person->id, 'department_id' => $dept->code, 'employment_status' => $employment]);
+
+            return $person;
+        };
+
+        $current = $make();
+        $inactive = $make(['status' => 'inactive']);
+        $guest = $make(['type' => 'guest']);
+        $terminated = $make();
+        Profile::where('user_id', $terminated->id)->update(['employment_status' => 'terminated']);
+
+        $all = $dept->users()->pluck('users.id')->all();
+        $now = $dept->currentUsers()->pluck('users.id')->all();
+
+        $this->assertEqualsCanonicalizing([$current->id, $inactive->id, $guest->id, $terminated->id], $all);
+        $this->assertSame([$current->id], $now);
+        $this->assertSame(1, Department::withCount('currentUsers as users_count')->find('ZZCU1')->users_count);
     }
 
     public function test_would_create_cycle_detects_self_reference(): void

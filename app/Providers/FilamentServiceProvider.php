@@ -7,6 +7,7 @@ use App\Traits\Filament\FilamentViewActionDefaults;
 use Filament\Actions\View\ActionsRenderHook;
 use Filament\Actions\ViewAction;
 use Filament\Auth\Notifications\ResetPassword as FilamentResetPassword;
+use Filament\Forms\Components\Textarea;
 use Filament\Support\Facades\FilamentView;
 use Filament\Tables\Table;
 use Filament\View\PanelsRenderHook;
@@ -87,6 +88,8 @@ class FilamentServiceProvider extends ServiceProvider
                 fn (?Table $table): array => static::viewModalShortcuts($table)
             )
         );
+
+        Textarea::configureUsing(fn (Textarea $textarea) => $textarea->autosize());
     }
 
     private function registerCoreScripts(): void
@@ -109,6 +112,7 @@ class FilamentServiceProvider extends ServiceProvider
                 ->paginationPageOptions([10, 25, 50, 100])
                 ->defaultPaginationPageOption(fn (): int => (int) (Auth::user()?->getPreference('records_per_page', 25) ?? 25))
                 ->reorderableColumns()
+                ->searchDebounce('800ms')
                 ->deferLoading();
         });
     }

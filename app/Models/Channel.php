@@ -6,6 +6,7 @@ use App\Enums\ChannelType;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
 use App\Models\Concerns\HasPrunableStatus;
 use App\Traits\CleansAttachedFiles;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
@@ -73,6 +74,14 @@ class Channel extends Model
             ->groupBy('cm.user_id')
             ->pluck(DB::raw('count(*)'), 'cm.user_id')
             ->toArray();
+    }
+
+    public function scopeWithPinnedPreview(Builder $query): Builder
+    {
+        return $query->addSelect([
+            'pinned_body' => ChannelMessage::select('body')->whereColumn('channel_messages.id', 'channels.pinned_message_id')->limit(1),
+            'pinned_sender_id' => ChannelMessage::select('sender_id')->whereColumn('channel_messages.id', 'channels.pinned_message_id')->limit(1),
+        ]);
     }
 
     public function messages(): HasMany

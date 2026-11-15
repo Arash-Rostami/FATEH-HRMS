@@ -54,8 +54,8 @@ class DepartmentTablePresenter
         return TernaryFilter::make('has_users')
             ->label(__('resources/department/strings.filters.has_users'))
             ->queries(
-                true: fn(Builder $q) => $q->has('users'),
-                false: fn(Builder $q) => $q->doesntHave('users'),
+                true: fn(Builder $q) => $q->has('currentUsers'),
+                false: fn(Builder $q) => $q->doesntHave('currentUsers'),
             );
     }
 
@@ -149,7 +149,7 @@ class DepartmentTablePresenter
     {
         return CountUpColumn::make('users_count')
             ->label(__('resources/department/strings.fields.users_count'))
-            ->counts('users')
+            ->counts('currentUsers as users_count')
             ->badge()
             ->color(fn(int $state): string => match (true) {
                 $state === 0 => 'danger',

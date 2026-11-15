@@ -63,7 +63,7 @@ class TaskNudge implements MenuNudge
             default => $this->activityPlan($subject),
         };
 
-        return $this->plan === [] ? collect() : User::active()->whereIn('id', array_keys($this->plan))->get();
+        return $this->plan === [] ? collect() : User::visibleOnBoard()->whereIn('id', array_keys($this->plan))->get();
     }
 
     public function show($subject, User $user): bool
@@ -143,7 +143,7 @@ class TaskNudge implements MenuNudge
 
         $ownerId = $task->project?->owner_id;
         $accountableId = $task->detail?->responsible_user_id;
-        $active = User::active()->whereIn('id', array_filter([$ownerId, $accountableId]))->pluck('id')->all();
+        $active = User::visibleOnBoard()->whereIn('id', array_filter([$ownerId, $accountableId]))->pluck('id')->all();
         $approverId = in_array($ownerId, $active, true) ? $ownerId : (in_array($accountableId, $active, true) ? $accountableId : null);
 
         if ($approverId === null) {

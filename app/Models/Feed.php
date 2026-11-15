@@ -11,6 +11,7 @@ use App\Models\Concerns\HasPublicAssetUrl;
 use App\Models\Concerns\HasUser;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -132,6 +133,13 @@ class Feed extends Model
             'category' => \App\Enums\FeedCategory::class,
             'user_id' => 'user',
         ];
+    }
+
+    protected function category(): Attribute
+    {
+        return Attribute::make(
+            set: fn(mixed $value) => $value instanceof BackedEnum ? $value->value : $value,
+        );
     }
 
     protected function casts(): array

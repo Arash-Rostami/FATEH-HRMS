@@ -513,6 +513,27 @@ class MenuServiceTest extends TestCase
         $this->assertTrue((new SpecialDays())->isActive());
     }
 
+    public function test_special_days_indicator_ignores_terminated_and_inactive_people(): void
+    {
+        Profile::query()->whereMonth('birthdate', now()->month)->whereDay('birthdate', now()->day)->update(['birthdate' => null]);
+        Profile::query()->whereMonth('start_date', now()->month)->whereDay('start_date', now()->day)->update(['start_date' => null]);
+        $birthdate = now()->subYears(30)->toDateString();
+        $person = function (array $user = []) use ($birthdate): User {
+            $owner = User::factory()->create(['status' => 'active', 'type' => 'employee', 'role' => 'user', ...$user]);
+            Profile::factory()->create(['user_id' => $owner->id, 'employment_status' => 'working', 'birthdate' => $birthdate, 'start_date' => null]);
+
+            return $owner;
+        };
+
+        $terminated = $person();
+        Profile::where('user_id', $terminated->id)->update(['employment_status' => 'terminated']);
+        $person(['status' => 'inactive']);
+        $this->assertFalse((new SpecialDays())->isActive());
+
+        $person();
+        $this->assertTrue((new SpecialDays())->isActive());
+    }
+
     public function test_tasks_todo_indicator_is_false_without_a_todo_task_for_user(): void
     {
         $user = $this->activeUser();
@@ -658,6 +679,19 @@ class MenuServiceTest extends TestCase
         $this->assertTrue($nudge->show($active, $this->activeUser()));
         $this->assertFalse($nudge->show($inactive, $this->activeUser()));
         $this->assertSame('آگهی فعال: Developer', $nudge->title($active, $this->activeUser()));
+    }
+
+    public function test_a_guest_is_not_a_broadcast_recipient_but_still_gets_their_own_reminder_nudge(): void
+    {
+        $employee = $this->activeUser();
+        $guest = User::factory()->create(['role' => 'user', 'status' => 'active', 'type' => 'guest']);
+
+        $audience = (new AdNudge())->for(new Ad())->pluck('id');
+        $this->assertTrue($audience->contains($employee->id));
+        $this->assertFalse($audience->contains($guest->id));
+
+        $reminder = $this->makeReminder($guest, ['due_at' => now()->subDay()]);
+        $this->assertTrue((new ReminderOverdueNudge())->for($reminder)->pluck('id')->contains($guest->id));
     }
 
     public function test_channel_nudge_shape_and_badge_suppresses_create_false(): void

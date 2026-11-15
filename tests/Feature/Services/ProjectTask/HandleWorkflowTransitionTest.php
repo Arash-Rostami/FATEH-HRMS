@@ -204,6 +204,24 @@ class HandleWorkflowTransitionTest extends TestCase
         $this->assertSame($project->id, Task::find($taskId)->project_id);
     }
 
+    public function test_populate_task_accepts_a_deadline_stored_as_text(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $driver = User::factory()->create(['status' => 'active']);
+        $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [$driver->id], 'departments' => []]);
+        $workflow = Workflow::factory()->create([
+            'owner_id' => $owner->id,
+            'project_id' => $project->id,
+            'status' => Workflow::STATUS_DRAFT,
+            'current_step' => null,
+            'steps' => [array_merge($this->populatedStep($driver->id), ['deadline_days' => '1']), ['label' => 'دوم', 'assignee_user_ids' => [$driver->id], 'type' => 'action', 'populate_task' => false]],
+        ]);
+
+        Workflow::find($workflow->id)->update(['status' => Workflow::STATUS_ACTIVE, 'current_step' => 0, 'started_at' => now()]);
+
+        $this->assertNotNull($workflow->fresh()->steps[0]['task_id'] ?? null);
+    }
+
     public function test_reuse_guard_re_points_to_an_existing_open_task_in_the_same_project(): void
     {
         $owner = User::factory()->create(['status' => 'active']);

@@ -1415,3 +1415,81 @@ describe('channel send ghost', () => {
         await pending;
     });
 });
+
+describe('channel() react — burst fires only on giving, once, island-routed (added 2026-11-16)', () => {
+    const makeChip = (mine) => {
+        const chip = document.createElement('button');
+        chip.className = mine ? 'reaction-burst reaction-mine' : 'reaction-burst';
+        chip.dataset.reactionChip = '7';
+        chip.dataset.emoji = '🔥';
+        document.body.appendChild(chip);
+        return chip;
+    };
+
+    test('giving on an existing chip bursts it once after the island lands and toggles island-routed (wire captured pre-await)', async () => {
+        const c = channel();
+        const wire = installWireProbe(c, {}, 1);
+        const chip = makeChip(false);
+        wire._islands.messages = {
+            toggleReaction: vi.fn(() => {
+                chip.classList.add('reaction-mine');
+                return Promise.resolve();
+            }),
+        };
+
+        await c.react(7, '🔥');
+
+        expect(chip.classList.contains('burst-now')).toBe(true);
+        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledWith(7, '🔥');
+        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledTimes(1);
+    });
+
+    test('removing (mine chip) never bursts but still toggles', async () => {
+        const c = channel();
+        const wire = createWireMock();
+        c.$wire = wire;
+        const chip = makeChip(true);
+        wire._islands.messages = {
+            toggleReaction: vi.fn(() => {
+                chip.classList.remove('reaction-mine');
+                return Promise.resolve();
+            }),
+        };
+
+        await c.react(7, '🔥');
+
+        expect(chip.classList.contains('burst-now')).toBe(false);
+        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledWith(7, '🔥');
+    });
+
+    test('a brand-new chip (picker give of an emoji not yet on the message) bursts after the island lands', async () => {
+        const c = channel();
+        const wire = createWireMock();
+        c.$wire = wire;
+        wire._islands.messages = {
+            toggleReaction: vi.fn(() => {
+                makeChip(true);
+                return Promise.resolve();
+            }),
+        };
+
+        await c.react(7, '🔥');
+
+        const fresh = document.querySelector('[data-reaction-chip="7"]');
+        expect(fresh.classList.contains('burst-now')).toBe(true);
+        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledWith(7, '🔥');
+    });
+
+    test('a give that did not land (chip still not mine after the toggle) never bursts', async () => {
+        const c = channel();
+        const wire = createWireMock();
+        c.$wire = wire;
+        const chip = makeChip(false);
+        wire._islands.messages = { toggleReaction: vi.fn(() => Promise.resolve()) };
+
+        await c.react(7, '🔥');
+
+        expect(chip.classList.contains('burst-now')).toBe(false);
+        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledTimes(1);
+    });
+});

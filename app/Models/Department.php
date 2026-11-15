@@ -200,6 +200,11 @@ class Department extends Model
         return $this->hasManyThrough(User::class, Profile::class, 'department_id', 'id', 'code', 'user_id');
     }
 
+    public function currentUsers(): HasManyThrough
+    {
+        return $this->users()->visibleOnBoard();
+    }
+
     public static function notifyFields(): array
     {
         return ['units' => 'list', 'sections' => 'list', 'subordinate_to' => 'department'];

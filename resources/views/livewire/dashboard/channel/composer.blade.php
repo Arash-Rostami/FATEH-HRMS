@@ -116,9 +116,9 @@
             <x-ui.buttons.form x-on:click.prevent="sendMessage"
                     wire:loading.attr="disabled" wire:target="send"
                     loading="send"
-                    class="flex-shrink-0 w-9 h-9 md:w-8 md:h-7 p-0 order-3 md:order-4 rounded-xl md:rounded-lg hover:brightness-110 hover:-translate-y-0.5 disabled:hover:translate-y-0"
+                    class="flex-shrink-0 w-9 h-9 md:w-8 md:h-7 p-0 order-3 md:order-4 rounded-xl md:rounded-lg shadow-none hover:brightness-110 hover:-translate-y-0.5 disabled:hover:translate-y-0"
                     x-bind:class="($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0
-                        ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
+                        ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]'
                         : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] md:bg-transparent'"
                     aria-label="ارسال پیام">
                 <span wire:loading.remove wire:target="send" class="material-symbols-rounded text-[18px] md:text-[14px] font-fill rotate-180">send</span>

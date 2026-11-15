@@ -28,7 +28,7 @@ final class RecipientResolver
         $seen = [];
 
         foreach (array_chunk($this->audienceIds($rule, $picked), (int) config('notify.resolve_chunk', 500)) as $chunk) {
-            $users = User::active()
+            $users = User::visibleOnBoard()
                 ->whereIn('id', $chunk)
                 ->orderBy('id')
                 ->when(isset($channels['sms']), fn ($q) => $q->with('profile:id,user_id,cellphone'))

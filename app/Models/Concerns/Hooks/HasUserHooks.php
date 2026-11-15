@@ -4,7 +4,9 @@ namespace App\Models\Concerns\Hooks;
 
 use App\Enums\UserType;
 use App\Services\Cache\ModelCacheVersion;
+use App\Models\Channel;
 use App\Models\Profile;
+use App\Models\Project;
 use App\Support\TopPositionPolicy;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -15,6 +17,8 @@ trait HasUserHooks
     {
         static::created(self::bumpCacheVersionOnCreated(...));
         static::saving(self::guardHolderAccountOnSaving(...));
+        static::saving(self::guardTerminatedReactivationOnSaving(...));
+        static::saving(self::guardOwnedChannelsOnDeactivating(...));
         static::deleting(self::guardHolderAccountOnDeleting(...));
         static::saved(self::syncCachesAndReleaseWorkOnSaved(...));
         static::deleted(self::bumpCacheVersionOnDeleted(...));
@@ -46,7 +50,7 @@ trait HasUserHooks
 
     private static function guardHolderAccountOnSaving(self $user)
     {
-        if (!$user->isDirty(['email', 'password', 'role', 'status', 'type'])) {
+        if (!$user->isDirty(['email', 'password', 'role', 'status', 'type', 'extra'])) {
             return;
         }
 
@@ -64,8 +68,41 @@ trait HasUserHooks
 
         $isHolder = $user->exists && $actor->id !== $user->id && self::isPersistedHolder($user, $role);
 
-        if ($isHolder && $user->isDirty(['email', 'password', 'role', 'status', 'type'])) {
+        if ($isHolder && $user->isDirty(['email', 'password', 'role', 'status', 'type', 'extra'])) {
             self::rejectHolderChange($user, 'email');
+        }
+    }
+
+    private static function guardTerminatedReactivationOnSaving(self $user)
+    {
+        if (!$user->exists || !$user->isDirty('status') || $user->status !== 'active') {
+            return;
+        }
+
+        if (Profile::query()->where('user_id', $user->getKey())->where('employment_status', 'terminated')->exists()) {
+            $user->setRawAttributes($user->getRawOriginal());
+
+            throw ValidationException::withMessages(['data.status' => __('resources/user/strings.validation.terminated_locked')]);
+        }
+    }
+
+    private static function guardOwnedChannelsOnDeactivating(self $user)
+    {
+        $wasVisible = $user->exists
+            && $user->getOriginal('status') === 'active'
+            && $user->getOriginal('type') !== UserType::Guest->value;
+
+        $leaving = $wasVisible && ($user->status !== 'active' || $user->type === UserType::Guest->value);
+
+        if ($leaving && Channel::query()
+                ->where('owner_id', $user->getKey())
+                ->whereNotIn('id', Project::withTrashed()->whereNotNull('channel_id')->select('channel_id'))
+                ->exists()) {
+            $field = $user->isDirty('status') ? 'status' : 'type';
+
+            $user->setRawAttributes($user->getRawOriginal());
+
+            throw ValidationException::withMessages(["data.{$field}" => __('resources/user/strings.validation.owns_channels')]);
         }
     }
 
@@ -93,9 +130,15 @@ trait HasUserHooks
 
         self::forgetDynamicGroupCache();
 
-        if (!$user->wasRecentlyCreated && $user->wasChanged(['status', 'type'])
-            && $user->getOriginal('status') === 'active' && $user->getOriginal('type') !== UserType::Guest->value
-            && ($user->status !== 'active' || $user->type === UserType::Guest->value)) {
+        $leavingBoard = !$user->wasRecentlyCreated && $user->wasChanged(['status', 'type'])
+            && $user->getOriginal('status') === 'active'
+            && ($user->status !== 'active' || $user->type === UserType::Guest->value);
+
+        if ($leavingBoard) {
+            $user->cancelFutureReservations();
+        }
+
+        if ($leavingBoard && $user->getOriginal('type') !== UserType::Guest->value) {
             $user->releaseFromProjectWork();
             $user->reconcileDepartmentTickets();
         }

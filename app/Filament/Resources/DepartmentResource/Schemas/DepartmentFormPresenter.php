@@ -66,6 +66,7 @@ class DepartmentFormPresenter
             ->maxLength(10)
             ->unique(ignoreRecord: true)
             ->alphaDash()
+            ->disabledOn('edit')
             ->helperText(__('resources/department/strings.hints.code'));
     }
 

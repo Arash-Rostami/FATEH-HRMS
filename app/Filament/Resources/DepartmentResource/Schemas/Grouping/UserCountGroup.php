@@ -2,20 +2,20 @@
 
 namespace App\Filament\Resources\DepartmentResource\Schemas\Grouping;
 
+use App\Models\User;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 
 class UserCountGroup
 {
-    private const SUBQUERY = <<<'SQL'
-(
+    private const SUBQUERY = '(
     SELECT COUNT(*)
     FROM `users`
     INNER JOIN `profiles`
         ON `profiles`.`user_id` = `users`.`id`
     WHERE `profiles`.`department_id` = `departments`.`code`
-)
-SQL;
+        AND ' . User::CURRENT_STAFF_SQL . '
+)';
 
     private const BUCKETS = [
         '0' => ['min' => 0, 'max' => 0, 'label' => 'بدون کاربر'],

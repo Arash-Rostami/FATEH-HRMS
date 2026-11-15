@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Enums\UserType;
 use App\Models\AiReport;
 use App\Models\User;
 use App\Services\AiReport\ReportAiService;
@@ -21,8 +20,7 @@ final class AiReportAccessPolicy
     public static function canGenerate(?User $user): bool
     {
         return $user !== null
-            && $user->isActive()
-            && $user->type !== UserType::Guest->value
+            && $user->isVisibleOnBoard()
             && ReportAiService::isConfigured();
     }
 

@@ -51,7 +51,7 @@ class ProjectNudge implements MenuNudge
     {
         $this->plan = $this->kind === 'step' ? $this->stepPlan($subject) : $this->invitePlan($subject);
 
-        return $this->plan === [] ? collect() : User::active()->whereIn('id', array_keys($this->plan))->get();
+        return $this->plan === [] ? collect() : User::visibleOnBoard()->whereIn('id', array_keys($this->plan))->get();
     }
 
     public function show($subject, User $user): bool

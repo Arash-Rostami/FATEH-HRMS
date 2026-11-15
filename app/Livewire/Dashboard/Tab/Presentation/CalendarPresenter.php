@@ -5,8 +5,6 @@ namespace App\Livewire\Dashboard\Tab\Presentation;
 use App\Models\Event;
 use App\Models\Profile;
 use App\Models\Reminder;
-use App\Enums\UserStatus;
-use App\Enums\UserType;
 use App\Services\HolidayService;
 use App\Services\Reservation\EventSyncService;
 use App\Values\CalendarLayout;
@@ -828,8 +826,7 @@ class CalendarPresenter
                 && $year === Jalalian::now()->getYear()
                 && (int) $profile->user_id !== $this->authId()
                 && filled($profile->cellphone)
-                && $user?->status === UserStatus::Active->value
-                && $user?->type !== UserType::Guest->value
+                && $user?->isVisibleOnBoard()
                 && !presence($user?->presence)->isObscured(),
         ];
     }

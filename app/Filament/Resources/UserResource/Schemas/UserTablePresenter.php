@@ -22,6 +22,7 @@ use Filament\Tables\Grouping\Group;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 
 class UserTablePresenter
 {
@@ -54,12 +55,28 @@ class UserTablePresenter
                     return;
                 }
 
-                $targets->each(fn($record) => $record->forceFill(['status' => UserStatus::Inactive->value])->save());
+                $skipped = [];
+
+                foreach ($targets as $record) {
+                    try {
+                        $record->forceFill(['status' => UserStatus::Inactive->value])->save();
+                    } catch (ValidationException $e) {
+                        $skipped[] = $record->name . ': ' . collect($e->errors())->flatten()->first();
+                    }
+                }
 
                 Notification::make()
-                    ->title('کاربران انتخاب‌شده غیرفعال شدند')
+                    ->title('تعداد غیرفعال‌شده: ' . ($targets->count() - count($skipped)))
                     ->success()
                     ->send();
+
+                if ($skipped) {
+                    Notification::make()
+                        ->title('این کاربران غیرفعال نشدند')
+                        ->body(implode("\n", $skipped))
+                        ->warning()
+                        ->send();
+                }
             });
     }
 
@@ -314,11 +331,20 @@ class UserTablePresenter
                 ? 'کاربر از داشبورد و فهرست‌ها حذف می‌شود و دیگر نمی‌تواند وارد شود؛ سوابقش (پیام‌ها، گزارش‌ها، رزروها) دست‌نخورده می‌ماند.'
                 : 'کاربر دوباره می‌تواند وارد شود و در داشبورد و فهرست‌ها ظاهر می‌شود.')
             ->action(function (User $record) {
-                $record->forceFill([
-                    'status' => $record->status === UserStatus::Active->value
-                        ? UserStatus::Inactive->value
-                        : UserStatus::Active->value,
-                ])->save();
+                try {
+                    $record->forceFill([
+                        'status' => $record->status === UserStatus::Active->value
+                            ? UserStatus::Inactive->value
+                            : UserStatus::Active->value,
+                    ])->save();
+                } catch (ValidationException $e) {
+                    Notification::make()
+                        ->title(collect($e->errors())->flatten()->first())
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
 
                 Notification::make()
                     ->title($record->status === UserStatus::Active->value ? 'کاربر فعال شد' : 'کاربر غیرفعال شد')

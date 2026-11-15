@@ -25,7 +25,7 @@ class ContactNudge implements MenuNudge
             return collect();
         }
 
-        return User::active()
+        return User::visibleOnBoard()
             ->whereIn('id', array_keys($this->unreadCountCache))
             ->get();
     }

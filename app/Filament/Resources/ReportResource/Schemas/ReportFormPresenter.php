@@ -177,7 +177,7 @@ class ReportFormPresenter
     {
         return Select::make('user_id')
             ->label(__('resources/report/strings.fields.user'))
-            ->relationship('user', 'name')
+            ->relationship('user', 'name', fn($query, $get) => $query->visibleOnBoardOr($get('user_id')))
             ->searchable()
             ->preload()
             ->helperText(__('resources/report/strings.hints.user_id'))

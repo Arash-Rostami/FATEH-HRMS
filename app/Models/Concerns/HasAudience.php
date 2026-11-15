@@ -72,7 +72,7 @@ trait HasAudience
     {
         $codes = $this->audienceCodes();
 
-        return User::active()
+        return User::visibleOnBoard()
             ->when($codes, fn($q) => $q->whereHas('profile', fn($p) => $p->whereIn('department_id', $codes)))
             ->get(['users.id']);
     }

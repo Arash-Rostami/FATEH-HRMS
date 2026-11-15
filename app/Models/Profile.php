@@ -14,6 +14,9 @@ use App\Models\Concerns\HasUser;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\ProfileDetailCatalog;
 use App\Traits\CleansAttachedFiles;
+use BackedEnum;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -156,6 +159,11 @@ class Profile extends Model
         return $this->employment_status === 'working';
     }
 
+    public function scopeCurrent(Builder $query): Builder
+    {
+        return $query->whereHas('user', fn($q) => $q->visibleOnBoard());
+    }
+
     public function getPositionLabelAttribute(): string
     {
         return Position::tryFrom($this->position)?->getLabel()
@@ -179,10 +187,25 @@ class Profile extends Model
         return static::cached(
             'with_dates:u' . ModelCacheVersion::version(User::class) . ':p' . ModelCacheVersion::version(User::PRESENCE_VERSION_KEY),
             fn() => static::query()
+                ->current()
                 ->select('id', 'user_id', 'birthdate', 'start_date', 'image', 'cellphone')
                 ->with('user:id,name,status,type,presence')
                 ->where(fn($q) => $q->whereNotNull('birthdate')->orWhereNotNull('start_date'))
                 ->get()
+        );
+    }
+
+    protected function position(): Attribute
+    {
+        return Attribute::make(
+            set: fn(mixed $value) => $value instanceof BackedEnum ? $value->value : $value,
+        );
+    }
+
+    protected function employmentStatus(): Attribute
+    {
+        return Attribute::make(
+            set: fn(mixed $value) => $value instanceof BackedEnum ? $value->value : $value,
         );
     }
 

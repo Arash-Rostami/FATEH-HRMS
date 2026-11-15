@@ -51,6 +51,10 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.icon'))
             ->disk('public')
             ->directory('link/icon')
+            ->downloadable()
+            ->openable()
+            ->previewable()
+            ->imageEditor()
             ->maxSize(config('file_upload_limits.icon'))
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'])
             ->getUploadedFileNameForStorageUsing(
@@ -100,6 +104,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.image'))
             ->disk('public')
             ->directory('link/image')
+            ->imageEditor()
             ->maxSize(config('file_upload_limits.image'))
             ->downloadable()
             ->openable()

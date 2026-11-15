@@ -286,6 +286,23 @@ class DmsModelTest extends TestCase
         $this->assertCount(0, $doc->pendingRecipients());
     }
 
+    public function test_pending_recipients_excludes_inactive_and_guest_users(): void
+    {
+        $current = User::factory()->create(['status' => 'active', 'type' => 'employee']);
+        $inactive = User::factory()->create(['status' => 'inactive', 'type' => 'employee']);
+        $guest = User::factory()->create(['status' => 'active', 'type' => 'guest']);
+
+        $all = DMS::factory()->create(['status' => 'live', 'owners' => ['ALL']])->pendingRecipients()->pluck('id');
+        $this->assertTrue($all->contains($current->id));
+        $this->assertFalse($all->contains($inactive->id));
+        $this->assertFalse($all->contains($guest->id));
+
+        $explicit = DMS::factory()->create(['status' => 'live', 'owners' => ['ZZP'], 'users' => [(string) $current->id, (string) $inactive->id, (string) $guest->id]])->pendingRecipients()->pluck('id');
+        $this->assertTrue($explicit->contains($current->id));
+        $this->assertFalse($explicit->contains($inactive->id));
+        $this->assertFalse($explicit->contains($guest->id));
+    }
+
     public function test_deleting_removes_file_and_extra_files_from_storage(): void
     {
         Storage::fake('public');

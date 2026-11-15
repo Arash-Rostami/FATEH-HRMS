@@ -24,7 +24,7 @@ class GenerateOwnerPreview
             ->select('users.id', 'users.name', 'profiles.department_id')
             ->join('profiles', 'users.id', '=', 'profiles.user_id')
             ->whereIn('profiles.department_id', $state)
-            ->where('users.status', 'active')
+            ->visibleOnBoard()
             ->orderBy('profiles.department_id')
             ->orderBy('users.name')
             ->get()

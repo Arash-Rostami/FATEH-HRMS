@@ -70,6 +70,11 @@ class SkillResource extends Resource
         return parent::getEloquentQuery()->where('is_ghost', false)->withCount('skillUsers');
     }
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'name_en'];
+    }
+
     public static function getModelLabel(): string
     {
         return __('resources/skill/strings.label');

@@ -14,7 +14,7 @@ class DepartmentExporter extends Exporter
 
     public static function modifyQuery(Builder $query): Builder
     {
-        return $query->withCount('users');
+        return $query->withCount('currentUsers as users_count');
     }
 
     public static function getColumns(): array

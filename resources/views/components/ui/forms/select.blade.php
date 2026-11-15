@@ -1,34 +1,40 @@
-@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'emptyText' => 'موردی یافت نشد', 'columnHint' => null])
+@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'emptyText' => 'موردی یافت نشد', 'columnHint' => null, 'pageSize' => 50])
 @php($objectMode = $searchable && filled($options) && !is_string(\Illuminate\Support\Arr::first($options)))
 
 <div
     class="relative group w-full md3-input-group"
     @if($searchable)
         x-data="{
-        open: false, pos: {}, search: '',
+        open: false, pos: {}, search: '', typing: false, pageSize: {{ (int) $pageSize }}, shown: {{ (int) $pageSize }},
         selected: @entangle($attributes->wire('model')->value() ?? ''),
         options: @js($options),
         objectMode: @js($objectMode),
+        norms: [], matches: [],
         norm(v) { return (v ?? '').toString().toLowerCase().replace(/ي/g, 'ی').replace(/ك/g, 'ک'); },
-        get filtered() {
-            const q = this.norm(this.search);
-            const list = !q ? this.options : this.options.filter(o => this.norm(this.objectMode ? o.label : o).includes(q));
-            return list.slice(0, 50);
+        refresh() {
+            const q = this.typing ? this.norm(this.search) : '';
+            this.matches = !q ? this.options : this.options.filter((o, i) => this.norms[i].includes(q));
+            this.shown = this.pageSize;
         },
+        get visible() { return this.matches.slice(0, this.shown); },
+        more() { this.shown += this.pageSize; },
         select(opt) {
             this.selected = this.objectMode ? opt.value : opt;
             this.search = this.objectMode ? opt.label : opt;
+            this.typing = false;
             this.open = false;
             this.$refs.hiddenInput.value = this.selected;
             this.$refs.hiddenInput.dispatchEvent(new Event('input'));
         },
         init() {
+            this.norms = this.options.map(o => this.norm(this.objectMode ? o.label : o));
+            this.matches = this.options;
             if (this.selected) {
                 this.search = this.objectMode
                     ? (this.options.find(o => o.value == this.selected)?.label ?? this.selected)
                     : this.selected;
             }
-            this.$watch('selected', (value) => { if (!value) this.search = ''; });
+            this.$watch('selected', (value) => { if (!value) { this.search = ''; this.typing = false; this.refresh(); } });
         }
     }"
     @endif
@@ -53,17 +59,19 @@
         <input
             type="text"
             x-model="search"
-            @focus="pos = $el.getBoundingClientRect(); open = true"
-            @click.away="open = false"
+            @input="typing = true; refresh()"
+            @focus="typing = false; refresh(); pos = $el.getBoundingClientRect(); open = true"
+            @click.away="if (!$event.target.closest('[data-select-menu]')) open = false"
             placeholder="{{ $label }}"
             autocomplete="off"
-            {!! $attributes->merge(['class' => 'md3-input peer appearance-none transition-all duration-300 ' . ($icon ? 'pr-10' : '')]) !!}
+            {!! $attributes->whereDoesntStartWith('wire:model')->merge(['class' => 'md3-input peer appearance-none transition-all duration-300 ' . ($icon ? 'pr-10' : '')]) !!}
         />
 
         <template x-teleport="body">
             <!-- Glassmorphic Dropdown Menu -->
             <div
-                x-show="open && filtered.length > 0"
+                data-select-menu
+                x-show="open && matches.length > 0"
                 x-cloak
                 x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 translate-y-2 scale-[0.98]"
@@ -75,11 +83,11 @@
                 class="mt-2 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_85%,transparent)] backdrop-blur-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] rounded-2xl shadow-[0_12px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] max-h-64 overflow-y-auto custom-scrollbar text-right overflow-hidden"
             >
                 <div class="flex flex-col p-1.5 gap-0.5">
-                    <template x-for="(opt, index) in filtered" :key="objectMode ? opt.value : opt">
+                    <template x-for="(opt, index) in visible" :key="objectMode ? opt.value : opt">
                         <div>
                             <!-- Sticky Category Header -->
                             <div
-                                x-show="objectMode && opt.category && (index === 0 || filtered[index - 1].category !== opt.category)"
+                                x-show="objectMode && opt.category && (index === 0 || visible[index - 1].category !== opt.category)"
                                 class="sticky top-0 z-10 px-3 pt-3 pb-1.5 text-[11px] font-black text-[var(--md-sys-color-primary)] uppercase tracking-wider bg-[color-mix(in_srgb,var(--md-sys-color-surface)_90%,transparent)] backdrop-blur-md select-none"
                                 x-text="opt.category"
                             ></div>
@@ -97,12 +105,21 @@
                             </div>
                         </div>
                     </template>
+
+                    <x-ui.buttons.load-more
+                        click="more()"
+                        text="نمایش بیشتر"
+                        x-show="matches.length > shown"
+                        x-cloak
+                        class="mx-auto my-1 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"
+                    />
                 </div>
             </div>
 
             <!-- Empty State Dropdown -->
             <div
-                x-show="open && !filtered.length && search.length"
+                data-select-menu
+                x-show="open && !matches.length"
                 x-cloak
                 x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 translate-y-2 scale-[0.98]"

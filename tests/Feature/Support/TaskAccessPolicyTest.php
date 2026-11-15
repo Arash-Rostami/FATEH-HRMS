@@ -272,6 +272,18 @@ class TaskAccessPolicyTest extends TestCase
         $this->assertFalse(TaskAccessPolicy::canApprove(Task::find($task->id), $this->user()));
     }
 
+    public function test_accountable_also_approves_when_the_owner_is_a_guest(): void
+    {
+        $owner = $this->user();
+        $accountable = $this->user();
+        $task = $this->projectTask($owner, [], [], ['responsible_user_id' => $accountable->id]);
+        $this->assertFalse(TaskAccessPolicy::canApprove($task, $accountable));
+
+        $owner->forceFill(['type' => 'guest'])->saveQuietly();
+
+        $this->assertTrue(TaskAccessPolicy::canApprove(Task::find($task->id), $accountable));
+    }
+
     public function test_reassign_by_accountable_only_to_self(): void
     {
         $owner = $this->user();

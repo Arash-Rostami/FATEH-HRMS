@@ -298,6 +298,9 @@ class ThsResource extends Resource
             ->groupedBulkActions(self::bulkActions(ThsExporter::class))
             ->emptyStateIcon('heroicon-o-ticket')
             ->defaultSort('created_at', 'desc')
+            ->recordClasses(fn($record) => $record->status !== 'closed' && !$record->completion_date && $record->completion_deadline && now()->gt($record->completion_deadline)
+                ? '[&>td]:bg-[color-mix(in_srgb,var(--md-sys-color-error)_8%,transparent)]'
+                : null)
             ->striped();
     }
 }

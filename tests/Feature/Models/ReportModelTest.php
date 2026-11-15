@@ -8,8 +8,10 @@ use App\Models\Report;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\ContentSanitizerService;
+use App\Services\Menu\Notifications\ReportNudge;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use ReflectionProperty;
 use Tests\TestCase;
 
@@ -164,6 +166,30 @@ class ReportModelTest extends TestCase
         $report->save();
 
         $this->assertFalse($report->fresh()->active);
+    }
+
+    public function test_an_expiry_before_the_report_date_is_rejected(): void
+    {
+        try {
+            Report::factory()->create(['report_date' => now()->subDays(2)->toDateString(), 'expires_at' => now()->subDays(10)->toDateString()]);
+            $this->fail('an expiry before the report date must throw');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('data.expires_at', $e->errors());
+        }
+    }
+
+    public function test_the_report_nudge_hides_an_expired_report_but_shows_a_live_one(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $expired = Report::factory()->create(['active' => true, 'report_date' => now()->subDays(10)->toDateString(), 'expires_at' => now()->subDay()->toDateString()]);
+        $live = Report::factory()->create(['active' => true, 'report_date' => now()->subDays(10)->toDateString(), 'expires_at' => now()->addDays(5)->toDateString()]);
+        $open = Report::factory()->create(['active' => true, 'expires_at' => null]);
+
+        $nudge = new ReportNudge();
+
+        $this->assertFalse($nudge->show($expired, $user));
+        $this->assertTrue($nudge->show($live, $user));
+        $this->assertTrue($nudge->show($open, $user));
     }
 
     public function test_scope_active_filters_to_active_reports(): void

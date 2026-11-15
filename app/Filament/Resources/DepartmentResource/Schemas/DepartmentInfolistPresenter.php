@@ -117,7 +117,7 @@ class DepartmentInfolistPresenter
     {
         return TextEntry::make('users_count')
             ->label(__('resources/department/strings.fields.users_count'))
-            ->state(fn($record): int => $record->users_count ?? $record->users()->count())
+            ->state(fn($record): int => $record->users_count ?? $record->currentUsers()->count())
             ->badge()
             ->color('info')
             ->icon('heroicon-m-users');

@@ -79,6 +79,7 @@ class FeedFormPresenter
             ->downloadable()
             ->openable()
             ->acceptedFileTypes(['image/*'])
+            ->imageEditor()
             ->getUploadedFileNameForStorageUsing(
                 fn(TemporaryUploadedFile $file): string => FileNamer::stored('feed', $file)
             )
@@ -253,7 +254,7 @@ class FeedFormPresenter
     {
         return Select::make('user_id')
             ->label(__('resources/feed/strings.fields.creator'))
-            ->relationship('user', 'name')
+            ->relationship('user', 'name', fn($query, $get) => $query->visibleOnBoardOr($get('user_id')))
             ->default(auth()->id())
             ->disabledOn('edit')
             ->searchable()

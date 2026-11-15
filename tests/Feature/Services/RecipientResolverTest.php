@@ -151,6 +151,20 @@ class RecipientResolverTest extends TestCase
         $this->assertSame([$inactive->id], array_column($skipped['mail'], 'user_id'));
     }
 
+    public function test_a_picked_guest_or_terminated_person_is_skipped_not_resolved(): void
+    {
+        $guest = $this->user('09127000001');
+        $guest->update(['type' => UserType::Guest->value]);
+        $terminated = $this->user('09127000002');
+        Profile::where('user_id', $terminated->id)->update(['employment_status' => 'terminated']);
+        $rule = $this->rule(['user_ids' => [$guest->id, $terminated->id]]);
+
+        [$resolved, $skipped] = (new RecipientResolver)->resolveWithSkips($rule);
+
+        $this->assertSame([], $resolved['sms']);
+        $this->assertEqualsCanonicalizing([$guest->id, $terminated->id], array_column($skipped['sms'], 'user_id'));
+    }
+
     public function test_resolve_returns_exactly_the_resolved_half_of_resolve_with_skips(): void
     {
         $user = $this->user('09126000001');

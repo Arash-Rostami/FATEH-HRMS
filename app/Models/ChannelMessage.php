@@ -75,6 +75,7 @@ class ChannelMessage extends Model
     {
         return [
             'attachments' => 'array',
+            'reactions' => 'array',
             'is_edited' => 'boolean',
             'deleted_at' => 'datetime',
         ];

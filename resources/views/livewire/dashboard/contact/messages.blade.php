@@ -149,7 +149,7 @@
                     <div x-show="editingMsg?.id !== {{ $msg['id'] }} && deletingId !== {{ $msg['id'] }}">
                         <div class="relative">
                             <div
-                                :style="isEmojiOnly(@js($msg['body_html'])) && 'font-size:2rem;background:none;box-shadow:none;padding:0'"                                @class([
+                                :style="isEmojiOnly(@js($msg['forwarded_html'] === null ? $msg['body_html'] : '')) && 'font-size:2rem;background:none;box-shadow:none;padding:0'"                                @class([
                                       'px-4 py-2.5 text-sm leading-relaxed break-words select-text cursor-default ' . $msg['bubble_radius'],
                                       'bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)]' => $msg['is_mine'],
                                       'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_1px_6px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent),inset_0_1px_0_color-mix(in_srgb,white_6%,transparent)]' => !$msg['is_mine']
@@ -158,7 +158,8 @@
                             >
 
                                 @include('livewire.dashboard.messaging.reply-quote', ['msg' => $msg])
-                                @if($msg['body'] !== '')
+                                @include('livewire.dashboard.messaging.forward-quote', ['msg' => $msg])
+                                @if($msg['body_html'] !== '')
                                     <span dir="auto" class="block break-words [unicode-bidi:plaintext]">{!! $msg['body_html'] !!}</span>
                                 @endif
                                 @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])

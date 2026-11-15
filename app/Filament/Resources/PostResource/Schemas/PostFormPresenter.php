@@ -61,6 +61,10 @@ class PostFormPresenter
             ->label(__('resources/post/strings.fields.image'))
             ->disk('public')
             ->directory('post/image')
+            ->downloadable()
+            ->openable()
+            ->previewable()
+            ->imageEditor()
             ->maxSize(config('file_upload_limits.image'))
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
             ->getUploadedFileNameForStorageUsing(
@@ -109,7 +113,7 @@ class PostFormPresenter
     {
         return Select::make('user_id')
             ->label(__('resources/post/strings.fields.user'))
-            ->relationship('user', 'name')
+            ->relationship('user', 'name', fn($query, $get) => $query->visibleOnBoardOr($get('user_id')))
             ->searchable()
             ->afterStateHydrated(fn($state, callable $set) => $set('user_id', $state ?? auth()->id()))
             ->default(fn() => auth()->id())

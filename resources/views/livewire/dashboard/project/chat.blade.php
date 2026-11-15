@@ -43,7 +43,8 @@
                                     <p class="text-[10px] font-bold mb-1 text-[var(--md-sys-color-primary)] flex items-center gap-1">{{ $msg['sender_name'] }}@if($msg['sender_inactive'])<x-ui.badge class="!px-1.5 !py-0.5 !text-[10px]">غیرفعال</x-ui.badge>@endif</p>
                                 @endif
                                 @include('livewire.dashboard.messaging.reply-quote', ['msg' => $msg])
-                                @if($msg['body'] !== '')
+                                @include('livewire.dashboard.messaging.forward-quote', ['msg' => $msg])
+                                @if($msg['body_html'] !== '')
                                     <span dir="auto" class="block break-words [unicode-bidi:plaintext]">{!! $msg['body_html'] !!}</span>
                                 @endif
                                 @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])

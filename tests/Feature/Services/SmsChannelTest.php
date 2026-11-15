@@ -85,6 +85,23 @@ class SmsChannelTest extends TestCase
         $this->assertSame($keys, array_values(array_unique($keys)));
     }
 
+    public function test_code_sends_a_plain_sms_and_reports_false_on_a_gateway_error(): void
+    {
+        config(['services.sms.provider' => 'kavenegar', 'services.kavenegar.key' => 'SECRETKEY']);
+        $status = 200;
+        Http::fake(function () use (&$status) {
+            return Http::response(['return' => ['status' => $status, 'message' => 'x'], 'entries' => []]);
+        });
+
+        $this->assertTrue((new SmsChannel)->code('09120000000', '12345'));
+        Http::assertSent(fn($request) => str_contains($request->url(), 'sms/send.json')
+            && $request['receptor'] === '09120000000'
+            && str_contains($request['message'], '12345'));
+
+        $status = 418;
+        $this->assertFalse((new SmsChannel)->code('09120000000', '12345'));
+    }
+
     public function test_send_posts_to_kavenegar_with_the_key_in_the_path_and_strips_direction_marks(): void
     {
         config(['services.kavenegar.key' => 'SECRETKEY', 'services.kavenegar.sender' => '10004346']);
