@@ -46,6 +46,7 @@ upload_max_filesize=250M
 post_max_size=250M
 memory_limit=512M
 max_input_vars=5000
+max_file_uploads=60
 max_input_time=300
 max_execution_time=120
 EOF
@@ -102,6 +103,7 @@ find storage bootstrap/cache -type d -exec chmod g+s {} +
 [ -d public/audio ] && find public/audio -type d -exec chmod 755 {} + -o -type f -exec chmod 644 {} +
 [ -L public/storage ] || as 'php artisan storage:link'
 [ -f public/.htaccess ] && { grep -qF 'RewriteRule ^storage/dms/' public/.htaccess || sed -i '/RewriteEngine On/a\    RewriteRule ^storage/dms/(.*)$ https://%{HTTP_HOST}/authorized/dms/$1 [R=302,L,NE]' public/.htaccess; }
+[ -f public/.htaccess ] && { grep -qF 'RewriteRule ^storage/launchpad/' public/.htaccess || sed -i '/RewriteEngine On/a\    RewriteRule ^storage/launchpad/(.*)$ https://%{HTTP_HOST}/launchpad [R=302,L,NE]' public/.htaccess; }
 
 service redis-server restart
 for i in $(seq 1 10); do redis-cli -a "$(grep ^REDIS_PASSWORD .env | cut -d= -f2)" ping 2>/dev/null | grep -q PONG && break; sleep 1; done

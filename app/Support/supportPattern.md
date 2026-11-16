@@ -2,7 +2,7 @@
 
 Static, framework-light rule classes. Every screen, action, bulk path, report, calendar, badge and the admin panel asks THESE, never a hand-rolled check. Authorization lives here; lifecycle lives in model hooks (`Task::booted`, `TaskDetail`, `Project::booted`); metrics live in `App\Services\ProjectTask\TaskMetrics`.
 
-Files: `TaskAccessPolicy`, `ProjectAccessPolicy`, `TicketAccessPolicy`, `SuggestionAccessPolicy` (unchanged, review-stage gate), `AiReportAccessPolicy` (§3b), `CorrespondenceAccessPolicy` (§3d), `LockPolicy` + `TopPositionPolicy` (§3e), `FileNamer` (§5).
+Files: `TaskAccessPolicy`, `ProjectAccessPolicy`, `TicketAccessPolicy`, `SuggestionAccessPolicy` (unchanged, review-stage gate), `AiReportAccessPolicy` (§3b), `CorrespondenceAccessPolicy` (§3d), `LockPolicy` + `TopPositionPolicy` (§3e), `ChannelAccessPolicy` (§3f), `LaunchpadAccessPolicy` (§3g), `FileNamer` (§5).
 
 Moved out (2026-11-10): `CorrespondencePdf` + `CorrespondenceFonts` -> `app/Services/Correspondence/` (`servicePattern.md` §4d); `ProjectCharter` -> `app/Services/ProjectTask/` (`servicePattern.md` §4e); `FaultTolerantGlobalSearchProvider` -> `app/Services/Search/` (`filamentPattern.md` rule 65); `FilamentPanelCustomizer` -> `app/Providers/Filament/` (`providersPattern.md`).
 
@@ -47,6 +47,10 @@ Cycle lock (`Task::isCycleLocked()`): the CURRENT step task of an ACTIVE cycle c
 ## 3f. `ChannelAccessPolicy` (final, all static, user nullable -> false; 2026-11-17)
 
 `role(?Channel, ?User)` (`owner` via `owner_id` first, else the `viewer_role` attribute when the channel was loaded through `withViewerRole`, else one `channel_members` PK lookup), `isOwner`, `isAdmin`, `canManageMembers` (owner or admin), `canChangeType` (manage + not project-linked), `canManageAdmins` (owner + not project-linked), `canSetKey`, `canDelete`, `canLeave` (everyone but the owner), `abilities()` for views. Every membership/type/admin/delete/leave Action re-checks it; Blade only displays (the channel key keeps `Lock::ownsRecord`, so `canSetKey` is display-only). See channelPattern §26.
+
+## 3g. `LaunchpadAccessPolicy` (final, all static, user nullable -> false; 2026-11-17)
+
+`canView` (active user + row not trashed; the owner and elevated roles always, an audience member only while `status()` is `live`/`soon`), `canCreateIn` (`isVisibleOnBoard()` user; elevated, or the given department is their own), `canManage` (owner or elevated — the replace and delete levers), `workspaceBlock` (null only for a viewable row that is not `inactive`/`scheduled`/`expired`), `token(Launchpad, User)` / `tokenUser(int, string)` (the `{uid}-{exp}-{sig}` HMAC-SHA256 path token the outside-auth file route accepts — anchored-regex parse, `hash_equals`, TTL `launchpad.token_ttl_minutes`; why a path token and not a session route: `app/Livewire/Dashboard/Launchpad/launchpadPattern.md` §3). `Main`, the create/delete Actions, the hero-deck slide and `LaunchpadFileController` all ask here; the file route re-checks `canView` on every request (no cache, instant revocation). See `app/Livewire/Dashboard/Launchpad/launchpadPattern.md`.
 
 ## 5. `FileNamer` (2026-10-14) — the one upload-naming standard
 

@@ -11,6 +11,7 @@ use App\Models\Ticket;
 use App\Services\Menu\Indicators\CorrespondenceBadge;
 use App\Services\Menu\Indicators\ThsBadge;
 use App\Services\Menu\Indicators\UnseenAiReports;
+use App\Services\Menu\Indicators\UnseenLaunchpads;
 use App\Services\Menu\StateService;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
@@ -251,8 +252,10 @@ class StateServiceTest extends TestCase
 
         $this->assertArrayHasKey('ths-controller', $state);
         $this->assertArrayHasKey('ai-report-controller', $state);
+        $this->assertArrayHasKey('launchpad-controller', $state);
         $this->assertSame('ths-controller', (new ThsBadge())->getKey());
         $this->assertSame('ai-report-controller', (new UnseenAiReports())->getKey());
+        $this->assertSame('launchpad-controller', (new UnseenLaunchpads())->getKey());
     }
 
     public function test_ths_badge_lights_for_a_requester_awaiting_rating_and_clears_once_rated(): void

@@ -19,6 +19,7 @@ use App\Services\Menu\Indicators\DmsBadge;
 use App\Services\Menu\Indicators\UnreadMessages;
 use App\Services\Menu\Indicators\CorrespondenceBadge;
 use App\Services\Menu\Indicators\UnseenAiReports;
+use App\Services\Menu\Indicators\UnseenLaunchpads;
 use Illuminate\Support\Facades\Cache;
 
 class StateService
@@ -43,6 +44,7 @@ class StateService
         ReminderBadge::class,
         UnseenAiReports::class,
         CorrespondenceBadge::class,
+        UnseenLaunchpads::class,
     ];
 
     public function __construct(

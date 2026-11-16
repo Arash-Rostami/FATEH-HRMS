@@ -13,6 +13,7 @@ use App\Livewire\Dashboard\Channel\Main as Channel;
 use App\Livewire\Dashboard\Correspondence\Main as Correspondence;
 use App\Livewire\Dashboard\Dms\Main as Dms;
 use App\Livewire\Dashboard\Energy\Main as Energy;
+use App\Livewire\Dashboard\Launchpad\Main as Launchpad;
 use App\Livewire\Dashboard\Profile\Main as Profile;
 use App\Livewire\Dashboard\AiReport\Main as AiReport;
 use App\Livewire\Dashboard\Project\Main as Project;
@@ -26,6 +27,7 @@ use App\Http\Controllers\CorrespondenceLinkController;
 use App\Http\Controllers\CorrespondenceAttachmentController;
 use App\Http\Controllers\CorrespondencePdfController;
 use App\Http\Controllers\IconMissController;
+use App\Http\Controllers\LaunchpadFileController;
 use App\Http\Middleware\UpdateLastSeen;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -67,6 +69,19 @@ Route::middleware(['letter.link', 'throttle:letter-link'])
         Route::get('/c/{id}-{token}/pdf', 'pdf')->name('correspondence.link.pdf');
     });
 
+Route::middleware('throttle:launchpad-file')
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        ValidateCsrfToken::class,
+        UpdateLastSeen::class,
+    ])
+    ->where(['launchpad' => '[1-9][0-9]{0,9}', 'token' => '[A-Za-z0-9_-]{20,80}', 'file' => '[^/]+'])
+    ->get('/launchpad/{launchpad}/{token}/{file}', LaunchpadFileController::class)
+    ->name('launchpad.file');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
     Route::get('/register', Register::class)->name('register');
@@ -86,6 +101,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/projects', Project::class)->name('projects');
     Route::get('/tasksheet', Tasksheet::class)->name('tasksheet');
     Route::get('/tasksheet/shared/{subject}', Tasksheet::class)->middleware('signed')->name('tasksheet.shared');
+    Route::get('/launchpad', Launchpad::class)->name('launchpad');
     Route::get('/ai-report', AiReport::class)->name('ai-report');
     Route::get('/ai-report/shared/{report}', AiReport::class)->middleware('signed')->name('ai-report.shared');
     Route::get('/correspondence', Correspondence::class)->name('correspondence');

@@ -15,4 +15,6 @@ return [
     'image' => 5120,
     'document' => 10240,
     'video' => 97280,
+    'launchpad' => 10240,
+    'launchpad_total' => 51200,
 ];

@@ -38,6 +38,7 @@ App\Services\Menu\
 │   ├── UnreadPosts.php             key=posts-controller      isActive = Post::hasUnreadFor($u)
 │   ├── UnreadFeeds.php             key=feeds                 isActive = auth()->user() !== null && Feed::hasUnreadFor($user->id)   (per-user, via HasNudgeTracking)
 │   ├── UnseenAiReports.php         key=ai-report-controller  isActive = AiReport::unseenBy($u)->exists()   (saved + ready + active report shared with the user and not in `seen_by`; cleared by `markSeenBy` when a recipient opens it; `StateService::flush()` on open and on share/unshare; the paired per-report bell is `AiReportNudge`)
+│   ├── UnseenLaunchpads.php        key=launchpad-controller  isActive = Launchpad::unseenBy($u)->exists()   (live launchpad shared with the user, never the owner, not yet in `seen_by`; cleared by `markSeenBy` on open, unlit by deactivation/expiry/unshare/delete because `scopeUnseenBy` rides `scopeLive` + audience; flushed by `HasLaunchpadHooks` and after `markSeenBy`; badge-only, no nudge)
 │   ├── UnreadMessages.php          key=contacts-controller   isActive = auth()->user() !== null && Message::hasUnreadFor($user->id)   (hasUnreadFor/totalUnreadFor scoped to senders passing User::visibleOnBoard() as of 2026-09-04 — an unread message from a deactivated/guest sender, invisible in the Contact sidebar and thus unreachable to mark read, no longer lights this dot or the messaging-tab pill forever; see contactPattern.md §2)
 │   ├── SpecialDays.php             key=special-days          isActive = !StateService::viewedToday('calendar') && Profile::current() whereMonth/whereDay(birthdate|start_date) = today
 │   ├── TasksTodo.php               key=tasks-controller      isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0   (per-user)
@@ -105,7 +106,7 @@ interface MenuBadge {
 ```
 
 An indicator is a **stateless, read-only** object: `isActive()` reads the DB (or `auth()->user()`)
-fresh and returns a bool. It owns no row and writes nothing. **All 14 indicators implement it**,
+fresh and returns a bool. It owns no row and writes nothing. **All 17 indicators implement it**,
 all structurally identical (no per-user method, no sub-interface).
 
 | Indicator | `getKey()` | `isActive()` |
@@ -117,6 +118,8 @@ all structurally identical (no per-user method, no sub-interface).
 | `UnreadPosts` | `posts-controller` | `Post::hasUnreadFor($user)` (via `HasNudgeTracking`) |
 | `UnreadFeeds` | `feeds` | `auth()->user() !== null && Feed::hasUnreadFor($user->id)` (via `HasNudgeTracking`) |
 | `UnreadMessages` | `contacts-controller` | `auth()->user() !== null && Message::hasUnreadFor($user->id)` |
+| `UnseenAiReports` | `ai-report-controller` | `auth()->user() !== null && AiReport::unseenBy($user->id)->exists()` (a saved + ready + active report shared with the user and not in `seen_by`; legend rows `ai-report-controller` + `:nudge` in `BadgeLegendCatalog` (`compliance` group, `ai-report` subgroup)) |
+| `UnseenLaunchpads` | `launchpad-controller` | `auth()->user() !== null && Launchpad::unseenBy($user->id)->exists()` (a live launchpad shared with the user, never the owner, not yet in `seen_by`; legend row `launchpad-controller` in `BadgeLegendCatalog` (`compliance` group, `launchpad` subgroup); badge-only, no nudge — see `app/Livewire/Dashboard/Launchpad/launchpadPattern.md`) |
 | `SpecialDays` | `special-days` | `!StateService::viewedToday('calendar') && Profile::current() whereMonth/whereDay(birthdate\|start_date)=today` |
 | `TasksTodo` | `tasks-controller` | `auth()->user() !== null && Task::getTodoCount($user->id) > 0` |
 | `EnergyTestBadge` | `energy-controller` | `$user !== null && EnergyTest::canSubmit($user->id)` |
@@ -127,7 +130,8 @@ all structurally identical (no per-user method, no sub-interface).
 | `ReminderBadge` | `reminders-controller` | `auth()->user() !== null` and a `forUser().active()` reminder with `due_at <=` now (the due time has passed) exists whose `channels` pass `Reminder::channelEnabled(..., 'badge')` and whose host record (if any) is not soft-deleted (`Reminder::hostTrashed()`) — the `badge` channel is scoped-only (2026-10-01: `Reminder\Main` strips it from unscoped reminders, so in practice only record-attached reminders light this; see `reminderPattern.md` §6) |
 
 `SharedEvents`, `TasksTodo`, `TasksImminent`, `UnreadPosts`, `UnreadFeeds`, `UnreadMessages`,
-`EnergyTestBadge`, `ThsBadge`, `DmsBadge` read the logged-in user **explicitly** inside `isActive()`.
+`UnseenAiReports`, `UnseenLaunchpads`, `EnergyTestBadge`, `ThsBadge`, `DmsBadge` read the logged-in
+user **explicitly** inside `isActive()`.
 `PendingSuggestions`
 calls `Suggestion::attentionRequired()->exists()` with no `$user` argument — but
 `scopeAttentionRequired()` (`HasSuggestionAlert::scopeAttentionRequired`) defaults `$user ??= auth()->user()`

@@ -30,10 +30,36 @@ return new class extends Migration {
                 $table->string('role', 20)->default('member')->after('user_id');
             });
         }
+
+        if (!Schema::hasTable('launchpads')) {
+            Schema::create('launchpads', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->restrictOnDelete();
+                $table->string('department_id', 10)->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
+                $table->foreign('department_id')->references('code')->on('departments')->cascadeOnUpdate();
+                $table->string('kind', 10)->default('static');
+                $table->string('title', 150);
+                $table->string('description', 500)->nullable();
+                $table->char('folder', 26)->nullable();
+                $table->boolean('active')->default(true);
+                $table->json('audience')->nullable();
+                $table->json('seen_by')->nullable();
+                $table->date('accessible_from')->nullable();
+                $table->date('accessible_to')->nullable();
+                $table->date('expire_at')->nullable();
+                $table->json('settings')->nullable();
+                $table->string('title_key', 150)->nullable()->virtualAs('IF(deleted_at IS NULL, title, NULL)');
+                $table->softDeletes();
+                $table->timestamps();
+                $table->unique(['department_id', 'title_key'], 'launchpads_department_title_unique');
+            });
+        }
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('launchpads');
+
         if (Schema::hasColumn('channel_members', 'role')) {
             Schema::table('channel_members', function (Blueprint $table) {
                 $table->dropColumn('role');

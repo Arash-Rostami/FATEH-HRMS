@@ -154,6 +154,18 @@ class NavigationService
                 ],
             ],
             [
+                'id' => 'launchpad',
+                'title' => 'پیشخوان برنامه‌ها',
+                'subtitle' => 'برنامه‌های تعاملی HTML سازمان',
+                'icon' => 'rocket_launch',
+                'action' => 'route:launchpad',
+                'keywords' => [
+                    'launchpad', 'app', 'apps', 'html', 'static app', 'interactive', 'mini app',
+                    'پیشخوان', 'پیشخوان برنامه‌ها', 'برنامه', 'برنامه‌ها', 'اپ', 'برنامه تعاملی', 'برنامه‌های سازمانی',
+                    'برنامه های سازمانی', 'استاتیک', 'اچ تی ام ال', 'ابزار سازمانی',
+                ],
+            ],
+            [
                 'id' => 'links',
                 'title' => 'لینک‌ها و مسیرهای دیجیتال سازمان',
                 'subtitle' => 'دسترسی متمرکز به سامانه‌های داخلی و خارجی',

@@ -46,6 +46,11 @@ class FortifyServiceProvider extends ServiceProvider
             Limit::perMinute(60),
         ]);
 
+        RateLimiter::for('launchpad-file', fn (Request $request) => [
+            Limit::perMinute(600)->by((string) $request->route('token')),
+            Limit::perMinute(6000)->by($request->ip()),
+        ]);
+
         RateLimiter::for('letter-link', fn (Request $request) => [
             Limit::perMinute(20)->by($request->ip()),
             Limit::perMinute(120),

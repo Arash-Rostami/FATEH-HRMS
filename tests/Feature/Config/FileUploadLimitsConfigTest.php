@@ -32,4 +32,12 @@ class FileUploadLimitsConfigTest extends TestCase
 
         $this->assertLessThan($globalCeilingKb, config('file_upload_limits.video'));
     }
+
+    public function test_launchpad_per_file_tier_fits_inside_its_total_and_livewires_ceiling(): void
+    {
+        $globalCeilingKb = (int) (string) str(config('livewire.temporary_file_upload.rules')[0])->after('max:');
+
+        $this->assertLessThanOrEqual(config('file_upload_limits.launchpad_total'), config('file_upload_limits.launchpad'));
+        $this->assertLessThanOrEqual($globalCeilingKb, config('file_upload_limits.launchpad'));
+    }
 }

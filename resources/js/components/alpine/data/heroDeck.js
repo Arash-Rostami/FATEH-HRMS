@@ -6,6 +6,42 @@ const MAX_PANES = 6;
 const NEW_PANE = '__new__';
 const MAX_WIDGET_CLOSE_MS = 350;
 
+export function addDeckModule(mod) {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const saved = raw ? JSON.parse(raw) : {};
+    const panes = Array.isArray(saved.panes) ? saved.panes : [];
+    const modules = saved.modules && typeof saved.modules === 'object' ? saved.modules : {};
+    if (panes.some((id) => modules[id]?.src === mod.src)) return 'exists';
+    if (panes.length >= MAX_PANES) return 'full';
+    let id = 'p_' + Date.now();
+    while (Object.hasOwn(modules, id)) id += '_';
+    panes.push(id);
+    modules[id] = mod;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...saved, panes, modules, slide: id }));
+    return 'added';
+}
+
+export function launchpadPage() {
+    return {
+        add(el) {
+            try {
+                const result = addDeckModule({ title: el.dataset.title, icon: el.dataset.icon, src: el.dataset.src });
+                this.$dispatch('toast', { message: el.dataset[result], type: result === 'added' ? 'success' : 'warning' });
+            } catch (e) {
+                this.$dispatch('toast', { message: 'ذخیره فضای کاری ناموفق بود.', type: 'error' });
+            }
+        },
+        limit(event) {
+            const input = event.target;
+            if (input.files && input.files.length > Number(input.dataset.max)) {
+                input.value = '';
+                event.stopPropagation();
+                this.$dispatch('toast', { message: input.dataset.over, type: 'warning' });
+            }
+        },
+    };
+}
+
 export default function heroDeck() {
     return {
         ...maximizeMixin('hero'),
@@ -43,6 +79,16 @@ export default function heroDeck() {
                     this.loaded[id] = true;
                 }
                 this.persist();
+            });
+
+            window.addEventListener('storage', (e) => {
+                if (e.key !== STORAGE_KEY) return;
+                try {
+                    const saved = JSON.parse(e.newValue);
+                    if (!saved || typeof saved !== 'object') return;
+                    this.panes = Array.isArray(saved.panes) ? saved.panes : [];
+                    this.modules = saved.modules && typeof saved.modules === 'object' ? saved.modules : {};
+                } catch (err) {}
             });
 
             this.initMaximize();

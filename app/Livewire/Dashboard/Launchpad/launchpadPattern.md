@@ -1,0 +1,54 @@
+# Launchpad Module Pattern Guide
+
+Flat HTML file sets (index.html + sibling html/css/js/images/fonts/json, selected together, no zip, PHP never) uploaded as «پیشخوان برنامه‌ها» tiles (`/launchpad`), opened by viewers in a sandboxed iframe or added as a hero-deck slide. Create and delete only (no edit); creating under a live title in the same department REPLACES it (owner/elevated). Admin panel is monitoring-only (Filament). Grade 2 "private by Apache" on the public disk. Livewire v4, Filament v5, Laravel 12. General rules live in `app/Livewire/livewirePattern.md`.
+
+## 1. Files
+
+```
+app/Livewire/Dashboard/Launchpad/
+  Main.php                             component; the route class (aliased `Launchpad` in routes/web.php)
+  Forms/LaunchpadForm.php              title/description/department/files/audience/dates + precheck(); static maxFiles()
+  Actions/{Create,Delete}LaunchpadAction.php
+  Presentation/LaunchpadPresenter.php  listRow()/capMeter()/precheck() view shaping
+app/Models/Launchpad.php + Concerns/Hooks/HasLaunchpadHooks.php
+app/Support/LaunchpadAccessPolicy.php  canView/canCreateIn/canManage/workspaceBlock/token/tokenUser (supportPattern.md §3g)
+app/Http/Controllers/LaunchpadFileController.php   the outside-auth token file route
+app/Services/Menu/Indicators/UnseenLaunchpads.php   key launchpad-controller (statePattern.md)
+app/Filament/Resources/LaunchpadResource.php (+ Pages, Schemas/LaunchpadTablePresenter)   monitoring-only
+config/launchpad.php                   max_per_department/max_files/max_name_length/max_audience/entry/types/denied/token_ttl_minutes/expiring_soon_days — NO size values
+resources/views/livewire/dashboard/launchpad.blade.php (+ launchpad/{list,create,legend,placeholder})
+```
+
+Routes: `GET /launchpad` (`launchpad`, auth group); `GET /launchpad/{launchpad}/{token}/{file}` (`launchpad.file`, OUTSIDE auth, `throttle:launchpad-file` (named limiter in `FortifyServiceProvider`: 600/min per token + 6000/min per IP, so one shared office IP is not starved), the letter-link group's `withoutMiddleware` list; named so the tenant `off` switch 404s it).
+
+Names: model `Launchpad`, table `launchpads`, module/route/tenant slot `launchpad`, menu key `launchpad-controller`, label «پیشخوان برنامه‌ها». Admin slug `launchpads` normalizes to the module slot on its own.
+
+## 2. Storage
+
+`Storage::disk('public')` (grade 2): `launchpad/files/{ulid}/{sha1(mb_strtolower(name))}.{ext}` only. `storedName()` hashes `mb_strtolower($name)` — case-insensitive so `a.html` + `A.HTML` collide as one file, and the extension must be a key of `config('launchpad.types')` or the name is rejected. The folder ulid is never in any user-visible URL (the iframe URL carries the row id + token). `directory()` re-validates the 26-char ulid before any disk touch. Every folder removal (model `deleted` hook, failed create, replaced folder) goes through the shared `CleansAttachedFiles::deleteStoredDirectory()` — path-traversal guard, failures logged and never thrown, so a disk error cannot break a delete, a prune run or mask the original exception.
+
+## 3. Grade 2 "private by Apache" + the path token (the core)
+
+- The same public-disk code, PLUS one Apache rewrite line redirecting `/storage/launchpad/…` to the login-gated module page (never to a file route), PLUS the token route that reads the disk directly — the rewrite never affects it.
+- Why plain grade 2 (session-cookie route) cannot work: the program opens in `<iframe sandbox="allow-scripts">`, which sends no login cookie, and the frame's relative CSS/JS sub-requests cannot carry a signed query string. So the authorized route sits OUTSIDE auth and carries an HMAC path token `{uid}-{exp}-{sig}` (sha256 of `launchpad|{id}|{uid}|{exp}` keyed by `app.key`, anchored-regex parse + `hash_equals`, TTL `config('launchpad.token_ttl_minutes')`): the token rides the PATH, which every relative sub-request inherits from the iframe `src` base. Token issued ONCE into a `#[Locked]` property on open, never in render. Lifetime (`token_ttl_minutes`, 240): the expiry is bucketed (`(intdiv(now, window) + 2) * window`), so the same viewer gets the SAME URL for a whole window and the browser can reuse files through ETag/304 instead of re-downloading the app on every open; a token is therefore valid between one and two windows (4-8 h). Trade-offs, accepted knowingly: the token sits in the URL path, so it shows in web-server access logs while valid; a viewer or workspace slide left open past it loses its sub-requests (blank frame) until reload, since a fresh module load issues a fresh token; the frame can navigate itself to an external site (CSP cannot restrict navigation from the artifact response) — risk is limited to phishing inside the sandbox by an authenticated uploader; a hard crash between file write and commit can orphan a folder (no sweeper). Lower the config value when log exposure matters more than long-lived slides. Never `temporaryUrl()`.
+- `LaunchpadFileController`: every miss is the SAME empty 404 (`nosniff` + `no-store`), order: `Sec-Fetch-Dest: document` → token invalid/expired → row missing/not static/no directory → user missing or `!canView` → `storedName` null or file absent. Then ETag `hmac(folder|lowercased file)` keyed by `app.key` (so the response never reveals the storage folder name; 304 only here) and `response()->file()` with the type from `config('launchpad.types')` and CSP `sandbox allow-scripts; … {base}` where `{base}` = `{origin}/launchpad/{id}/{token}/` — never `'self'`. Access is re-checked on EVERY file request (two PK reads, no cache, instant revocation on deactivate/unshare/delete).
+- Apache guard lines: `scripts/setup-container.sh` inserts idempotently `RewriteRule ^storage/launchpad/(.*)$ https://%{HTTP_HOST}/launchpad [R=302,L,NE]` next to the DMS line; `scripts/verify-health.sh` checks the rule is present and `curl`s the first stored folder expecting 302. The repo's own `public/.htaccess` carries no such rule — never upload it blindly (httpPattern.md §7, `temp/winterra/paas-setup.md` §5).
+
+## 4. Limits
+
+- Sizes live ONLY in `config/file_upload_limits.php`: per-file tier `launchpad` (10240 KB), whole-upload tier `launchpad_total` (51200 KB). Never a size value in `config/launchpad.php` or anywhere else.
+- `config('launchpad.max_files')` must stay <= php.ini `max_file_uploads`; `LaunchpadForm::maxFiles()` clamps with `min()` at runtime. Ops: `upload_max_filesize = 10M`, `post_max_size = 56M`, `max_file_uploads = 60` — `scripts/setup-container.sh` writes `max_file_uploads=60` into `99-tuning.ini` beside the existing 250M upload sizes (PHP's default 20 would silently clamp the cap) and `scripts/verify-health.sh` prints the live value. Production creates the `launchpads` table by hand from the SQL in `temp/winterra/paas-setup.md` (a recorded migration skips the guarded block).
+- `Prunable` on expired rows: `prunable()` = `expire_at < today`, swept by the existing nightly `model:prune` (no new command); `prunable()`/`prune()` stay inline in the model (framework-trait collision).
+
+## 5. Badge
+
+`UnseenLaunchpads` (`launchpad-controller`): lights for an audience member on a live row not in `seen_by`, never the owner; cleared by `markSeenBy` on open (raw update + explicit `StateService::flush()` after commit), unlit automatically by deactivation/expiry/unshare/delete because `scopeUnseenBy` rides `scopeLive` + audience. `HasLaunchpadHooks` flushes on created / `active` flips / deleted, only when `audience` is filled, and deletes `directory()` on delete. Badge-only — no nudge, no bell. Legend row in `BadgeLegendCatalog` (`compliance` group, `launchpad` subgroup).
+
+## 6. View / Livewire nuggets
+
+- `Main` is `#[Lazy]` with a `placeholder()` skeleton (`launchpad/placeholder.blade.php`); BOTH roots carry the byte-identical constant `x-data="launchpadPage"` (the lazy-morph transplant rule, livewirePattern.md "Morph-safety…"). Module state: `#[Url] activeTab/filter/search` (+ `#[Locked] openId/viewToken/embed/listLimit/precheck`); `openId`/`embed` ride the `?a=`/`?embed=` query params, and `mount()` replays `open()` — so a workspace slide or a shared link lands straight in the viewer.
+- Morph-safety: every branch root carries a static `wire:key` prefixed `launchpad-` (unavailable/viewer/module/embed-empty at the root; `launchpad-list`/`launchpad-create` tabs; `launchpad-load-more`; the precheck panels `launchpad-precheck-empty/-ok/-blocked`); branch keys never carry row ids — row roots do (`launchpad-row-{id}`) and per-rejection lines use the loop index (`launchpad-rejected-{i}`).
+- Iframe: the token is issued ONCE by `open()` into `#[Locked] $viewToken` (`LaunchpadAccessPolicy::token`), never rendered anywhere else; the frame is `sandbox="allow-scripts"` (never `allow-same-origin`) with `src` = `route('launchpad.file', [$openId, $viewToken, 'index.html'])` (the entry name, `config('launchpad.entry')`). A miss clears the token and shows the `x-ui.empty` unavailable branch plus a toast — except under `?embed`, which only shows the empty branch (no toast noise inside a hero-deck slide).
+- Upload: `_finishUpload` is overridden so a `form.files` selection always REPLACES the previous one (Livewire appends multi inputs by default); `x-on:change.capture="limit($event)"` clears an over-`maxFiles()` selection in the browser with a warning toast before Livewire ever sees the upload; `updatedFormFiles` feeds `precheck` through the Presenter, and `precheck` is `#[Locked]` so the client cannot inject a forged report into `save()` (which re-runs `precheck()` server-side anyway).
+- Workspace button: `listRow()`'s `block` mirrors `LaunchpadAccessPolicy::workspaceBlock()` (null = live + viewable; else the status word) and `data-src` is `route('launchpad', ['a' => id, 'embed' => 1])` — the slide embeds the module page itself, so every open re-authenticates through the viewer's session, never through a stored token. `heroDeck.js`'s `addDeckModule` dedupes by `src`, caps at 6 panes and answers added/exists/full; the button toasts the matching `data-added/exists/full` copy.
+- Replace flow: `save()` finds a same-department live title; `canManage` → `replaceOpen` confirm modal (`<x-ui.modals.action>`), `confirmReplace()` → `persist(true)`; a non-manager goes straight through, and the Action itself refuses with a `form.title` error — the UI gate is never the only guard.

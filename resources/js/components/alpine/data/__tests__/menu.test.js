@@ -404,6 +404,19 @@ describe('menu correspondence entry', () => {
     })
 })
 
+describe('menu launchpad entry', () => {
+    test('uses the launchpad route, services group and its own tenant key', () => {
+        withBootedMenu({}, (m) => {
+            const entry = m.items.find((i) => i.id === 'launchpad-controller')
+            expect(entry).toMatchObject({ module: 'launchpad', href: '/launchpad', icon: 'rocket_launch', title: 'پیشخوان برنامه‌ها', group: 'خدمات' })
+        })
+
+        withBootedMenu({ off: ['launchpad'] }, (m) => {
+            expect(m.items.map((i) => i.id)).not.toContain('launchpad-controller')
+        })
+    })
+})
+
 describe('menu.handleItemClick', () => {
     test('a disabled item prevents default and records nothing', () => {
         const m = menu()

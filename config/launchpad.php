@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'max_per_department' => 20,
+    'max_files' => 50,
+    'max_name_length' => 120,
+    'max_audience' => 200,
+    'entry' => 'index.html',
+    'types' => [
+        'html' => 'text/html; charset=utf-8',
+        'htm' => 'text/html; charset=utf-8',
+        'css' => 'text/css; charset=utf-8',
+        'js' => 'text/javascript; charset=utf-8',
+        'mjs' => 'text/javascript; charset=utf-8',
+        'json' => 'application/json; charset=utf-8',
+        'txt' => 'text/plain; charset=utf-8',
+        'svg' => 'image/svg+xml',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'avif' => 'image/avif',
+        'ico' => 'image/x-icon',
+        'woff' => 'font/woff',
+        'woff2' => 'font/woff2',
+        'ttf' => 'font/ttf',
+        'otf' => 'font/otf',
+    ],
+    'denied' => ['.php', '.phtml', '.phar', '.htaccess', '.user.ini', '.cgi', '.sh', '.asp', '.jsp'],
+    'token_ttl_minutes' => 240,
+    'expiring_soon_days' => 7,
+];

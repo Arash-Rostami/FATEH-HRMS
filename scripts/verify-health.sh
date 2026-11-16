@@ -27,7 +27,7 @@ echo "== PHP-FPM / OPCACHE (effective config) =="
 php-fpm$PHPV -tt 2>&1 | grep -E 'pm\.(max_children|start_servers|min_spare_servers|max_spare_servers|max_requests)|request_terminate_timeout' | sed 's/.*NOTICE: *//'
 LOGF=$(ls /var/log/php$PHPV-fpm.log 2>/dev/null)
 [ -n "$LOGF" ] && { c=$(grep -c 'reached pm.max_children setting' $LOGF); [ "$c" = 0 ] && ok "max_children never reached" || bad "max_children reached $c times: raise it or check slow requests"; }
-php-fpm$PHPV -i 2>/dev/null | grep -E '^(opcache\.(enable|memory_consumption|validate_timestamps|max_accelerated_files|jit) |upload_max_filesize|post_max_size|memory_limit|max_execution_time)'
+php-fpm$PHPV -i 2>/dev/null | grep -E '^(opcache\.(enable|memory_consumption|validate_timestamps|max_accelerated_files|jit) |upload_max_filesize|post_max_size|max_file_uploads|memory_limit|max_execution_time)'
 
 echo "== OPCACHE (live FPM memory usage — self-deleting probe, not the static config above) =="
 cat > public/_opcache-probe.php << 'EOF'
@@ -67,13 +67,16 @@ find storage bootstrap/cache public/build ! -user $U 2>/dev/null | head -3 | sed
 grep -qF 'RewriteRule ^storage/dms/' public/.htaccess 2>/dev/null && ok "DMS guard rule present in public/.htaccess" || bad "DMS guard rule MISSING in public/.htaccess: direct /storage/dms/ links are open (run scripts/setup-container.sh, see paas-setup.md section 5)"
 DMSF=$(ls public/storage/dms 2>/dev/null | head -1)
 [ -n "$DMSF" ] && { c=$(curl -s -o /dev/null -w '%{http_code}' -H "Host: ${DOMAIN#https://}" "http://localhost/storage/dms/$DMSF"); [ "$c" = 302 ] && ok "direct /storage/dms/ URL is redirected (302)" || bad "direct /storage/dms/ URL returned $c (expect 302): the DMS guard is not working"; }
+grep -qF 'RewriteRule ^storage/launchpad/' public/.htaccess 2>/dev/null && ok "Launchpad guard rule present in public/.htaccess" || bad "Launchpad guard rule MISSING in public/.htaccess: direct /storage/launchpad/ links are open (run scripts/setup-container.sh, see paas-setup.md section 5)"
+LPF=$(ls public/storage/launchpad/files 2>/dev/null | head -1)
+LPN=$(ls "public/storage/launchpad/files/$LPF" 2>/dev/null | head -1)
+[ -n "$LPF" ] && [ -n "$LPN" ] && { c=$(curl -s -o /dev/null -w '%{http_code}' -H "Host: ${DOMAIN#https://}" "http://localhost/storage/launchpad/files/$LPF/$LPN"); [ "$c" = 302 ] && ok "direct /storage/launchpad/ URL is redirected (302)" || bad "direct /storage/launchpad/ URL returned $c (expect 302): the Launchpad guard is not working"; }
 
 echo "== APP =="
 echo "local HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://localhost)  (expect 302 - / always redirects to dashboard)"
 grep -E '^(APP_ENV|APP_DEBUG|LOG_LEVEL)=' .env | tr '\n' ' '; echo
 echo "shell env APP_DEBUG: ${APP_DEBUG}  (must be blank or false)"
-as 'php artisan about' | grep -i debug
-CSS=$(ls public/build/assets/app-*.css 2>/dev/null | head -1 | xargs -r basename)
+as 'php artisan about' | grep -i debugCSS=$(ls public/build/assets/app-*.css 2>/dev/null | head -1 | xargs -r basename)
 [ -n "$CSS" ] && curl -s -o /dev/null -D - -H 'Accept-Encoding: gzip' -w 'size: %{size_download}\n' "$DOMAIN/build/assets/$CSS" | grep -iE '^HTTP|content-encoding|cache-control|^size' | tr -d '\r'
 echo "sw.js: $(curl -sI $DOMAIN/sw.js | grep -i cache-control | tr -d '\r')"
 echo "errors in laravel.log (last 200 lines): $(tail -n 200 storage/logs/laravel.log 2>/dev/null | grep -c '\.ERROR')"
