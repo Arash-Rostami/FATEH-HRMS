@@ -79,8 +79,8 @@ class LaunchpadTablePresenter
         return TextColumn::make('kind')
             ->label('نوع')
             ->formatStateUsing(fn (string $state): string => match ($state) {
-                'static' => 'استاتیک',
-                'link' => 'پیوند',
+                'static' => 'بارگذاری فایل',
+                'link' => 'پیوند به سامانه',
                 default => $state,
             })
             ->toggleable(isToggledHiddenByDefault: false);

@@ -5,7 +5,20 @@
         <option value="">انتخاب بخش</option>
         @foreach($departments as $code => $label)<option value="{{ $code }}">{{ $label }}</option>@endforeach
     </x-ui.forms.select>
-    <x-ui.forms.radio label="نوع برنامه" name="form.kind" wire:model.live="form.kind" :options="['static' => 'پوشهٔ فایل‌ها', 'link' => 'پیوند']"/>
+    <div class="flex items-center justify-between bg-[var(--md-sys-color-surface-container)] p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/20">
+        <div class="flex items-center gap-3 text-[var(--md-sys-color-on-surface)]">
+            <div class="p-2 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] rounded-lg">
+                <span class="material-symbols-rounded">{{ $this->form->kind === 'link' ? 'link' : 'upload_file' }}</span>
+            </div>
+            <div>
+                <p class="font-bold text-sm">فقط پیوند به سامانهٔ دیگر</p>
+                <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">{{ $this->form->kind === 'link' ? 'بدون فایل؛ برنامه یک میان‌بر به یکی از سامانه‌های سازمان است.' : 'فایل‌های برنامه (index.html و فایل‌های کنار آن) را بارگذاری می‌کنید.' }}</p>
+            </div>
+        </div>
+        <label class="cursor-pointer">
+            <x-ui.forms.switch x-bind:checked="$wire.form.kind === 'link'" x-on:change="$wire.$set('form.kind', $event.target.checked ? 'link' : 'static')"/>
+        </label>
+    </div>
     @if($this->form->kind === 'link')
         <div wire:key="launchpad-kind-link" class="flex flex-col gap-3">
             <x-ui.forms.select label="سایت" name="form.site" wire:model="form.site" icon="language">
