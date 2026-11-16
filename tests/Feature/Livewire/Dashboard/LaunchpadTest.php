@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
+use App\Livewire\Dashboard\Launchpad\Forms\LaunchpadForm;
 use App\Livewire\Dashboard\Launchpad\Main;
 use App\Livewire\Dashboard\Launchpad\Presentation\LaunchpadPresenter;
 use App\Models\Department;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
+use Morilog\Jalali\Jalalian;
 use Tests\TestCase;
 
 class LaunchpadTest extends TestCase
@@ -1058,5 +1060,62 @@ class LaunchpadTest extends TestCase
         $this->assertNotNull($back->folder);
         $this->assertTrue(Storage::disk('public')->exists('launchpad/files/' . $back->folder . '/' . Launchpad::storedName('index.html')));
         $this->assertSame('index.html', $back->settings['entry']);
+    }
+
+    public function test_jalali_date_fields_are_converted_to_gregorian_before_the_action_runs(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $owner = $this->deptUser($dept);
+        $expectedFrom = (new Jalalian(1405, 9, 1))->toCarbon()->toDateString();
+        $expectedTo = (new Jalalian(1405, 9, 10))->toCarbon()->toDateString();
+        $expectedExpiry = (new Jalalian(1406, 1, 15))->toCarbon()->toDateString();
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($owner)->test(Main::class)
+            ->call('switchTab', 'create')
+            ->set('form.title', 'LP-jalali-dates')
+            ->set('form.audience', [])
+            ->set('fromYear', '1405')->set('fromMonth', '9')->set('fromDay', '1')
+            ->set('toYear', '1405')->set('toMonth', '9')->set('toDay', '10')
+            ->set('expiryYear', '1406')->set('expiryMonth', '1')->set('expiryDay', '15')
+            ->set('form.files', $this->validFiles())
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $row = Launchpad::query()->where('title', 'LP-jalali-dates')->firstOrFail();
+        $this->assertSame($expectedFrom, $row->accessible_from->toDateString());
+        $this->assertSame($expectedTo, $row->accessible_to->toDateString());
+        $this->assertSame($expectedExpiry, $row->expire_at->toDateString());
+    }
+
+    public function test_max_files_clamps_the_configured_cap_against_the_ini_limit(): void
+    {
+        $original = (int) config('launchpad.max_files');
+        $ini = (int) (ini_get('max_file_uploads') ?: 20);
+
+        try {
+            config(['launchpad.max_files' => 3]);
+            $this->assertSame(3, LaunchpadForm::maxFiles());
+            config(['launchpad.max_files' => 100]);
+            $this->assertSame($ini, LaunchpadForm::maxFiles());
+        } finally {
+            config(['launchpad.max_files' => $original]);
+        }
+    }
+
+    public function test_load_more_reveals_rows_beyond_the_first_page(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $owner = $this->deptUser($dept);
+        for ($i = 1; $i <= 31; $i++) {
+            $this->fileRow($dept, $owner, ['title' => 'LP-page-' . str_pad((string) $i, 2, '0', STR_PAD_LEFT)]);
+        }
+
+        Livewire::actingAs($owner)->test(Main::class)
+            ->assertSee('LP-page-31')->assertDontSee('LP-page-01')
+            ->call('loadMore')
+            ->assertSee('LP-page-01');
     }
 }

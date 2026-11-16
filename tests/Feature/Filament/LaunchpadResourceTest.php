@@ -9,6 +9,7 @@ use App\Models\Launchpad;
 use App\Models\Permission;
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\Menu\Indicators\UnseenLaunchpads;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -174,5 +175,36 @@ class LaunchpadResourceTest extends TestCase
         $this->assertNotNull(Launchpad::withTrashed()->find($a->id));
         Storage::disk('public')->assertMissing('launchpad/files/' . $a->folder . '/' . Launchpad::storedName('index.html'));
         Storage::disk('public')->assertMissing('launchpad/files/' . $b->folder . '/' . Launchpad::storedName('index.html'));
+    }
+
+    public function test_bulk_visibility_actions_toggle_rows_and_the_audience_badge(): void
+    {
+        Storage::fake('public');
+        $admin = $this->developer();
+        $dept = $this->dept('LPRV');
+        $owner = $this->deptUser($dept);
+        $viewer = $this->deptUser($dept);
+        $badge = app(UnseenLaunchpads::class);
+        $a = $this->row($owner, $dept, ['title' => 'LP-visibility-a', 'audience' => [$viewer->id]]);
+        $b = $this->row($owner, $dept, ['title' => 'LP-visibility-b', 'audience' => [$viewer->id]]);
+
+        $this->actingAs($viewer);
+        $this->assertTrue($badge->isActive());
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->callTableBulkAction('bulk_deactivate', [$a, $b]);
+
+        $this->assertFalse((bool) $a->fresh()->active);
+        $this->assertFalse((bool) $b->fresh()->active);
+        $this->actingAs($viewer);
+        $this->assertFalse($badge->isActive());
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->callTableBulkAction('bulk_activate', [$a, $b]);
+
+        $this->assertTrue((bool) $a->fresh()->active);
+        $this->assertTrue((bool) $b->fresh()->active);
+        $this->actingAs($viewer);
+        $this->assertTrue($badge->isActive());
     }
 }
