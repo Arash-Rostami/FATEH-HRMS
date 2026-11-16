@@ -33,8 +33,10 @@
             <td data-col="audience" class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-start hidden md:table-cell">{{ $row['audience'] }}</td>
             <td data-col="status" class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-start"><x-ui.badge :variant="$row['variant']">{{ $row['status'] }}</x-ui.badge></td>
             <td class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center"><div class="inline-flex gap-1">
-                @if($item->kind === 'link')
+                @if($item->kind === 'link' && $row['block'] === null)
                     <x-ui.buttons.form wire:key="launchpad-open-link" variant="tonal" size="icon" icon="open_in_new" title="باز کردن" href="{{ route('launchpad.go', $row['id']) }}" target="_blank" rel="noopener"/>
+                @elseif($item->kind === 'link')
+                    <x-ui.buttons.form wire:key="launchpad-open-link-off" variant="tonal" size="icon" icon="open_in_new" title="برنامه در حال حاضر قابل باز شدن نیست" disabled/>
                 @else
                     <x-ui.buttons.form wire:key="launchpad-open-static" variant="tonal" size="icon" icon="open_in_new" title="باز کردن" wire:click="open({{ $row['id'] }})"/>
                 @endif

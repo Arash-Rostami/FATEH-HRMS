@@ -92,6 +92,7 @@ export default function heroDeck() {
                 this.persist();
             });
 
+            this.storageAbort = new AbortController();
             window.addEventListener('storage', (e) => {
                 if (e.key !== STORAGE_KEY) return;
                 try {
@@ -99,10 +100,15 @@ export default function heroDeck() {
                     if (!saved || typeof saved !== 'object') return;
                     this.panes = Array.isArray(saved.panes) ? saved.panes : [];
                     this.modules = saved.modules && typeof saved.modules === 'object' ? saved.modules : {};
+                    if (this.slide !== 0 && !this.panes.includes(this.slide)) this.slide = 0;
                 } catch (err) {}
-            });
+            }, { signal: this.storageAbort.signal });
 
             this.initMaximize();
+        },
+
+        destroy() {
+            this.storageAbort?.abort();
         },
 
         goto(target) {

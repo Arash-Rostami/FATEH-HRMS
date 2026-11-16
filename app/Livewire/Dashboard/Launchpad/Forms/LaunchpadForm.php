@@ -20,7 +20,7 @@ class LaunchpadForm extends Form
 
     public string $path = '';
 
-    public const PATH_PATTERN = '/^(?!\/)(?!.*\.\.)[A-Za-z0-9\-._~%?=&#\/]{0,200}$/';
+    public const PATH_PATTERN = '/^(?!\/)(?!.*\.\.)[A-Za-z0-9\-._~%?=&#\/]{0,200}$/D';
 
     public array $files = [];
 

@@ -5,7 +5,8 @@
         <option value="">انتخاب بخش</option>
         @foreach($departments as $code => $label)<option value="{{ $code }}">{{ $label }}</option>@endforeach
     </x-ui.forms.select>
-    <div class="flex items-center justify-between bg-[var(--md-sys-color-surface-container)] p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/20">
+    @if(filled(config('app.siblings')))
+    <div wire:key="launchpad-kind-switch" class="flex items-center justify-between bg-[var(--md-sys-color-surface-container)] p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/20">
         <div class="flex items-center gap-3 text-[var(--md-sys-color-on-surface)]">
             <div class="p-2 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] rounded-lg">
                 <span class="material-symbols-rounded">{{ $this->form->kind === 'link' ? 'link' : 'upload_file' }}</span>
@@ -19,6 +20,7 @@
             <x-ui.forms.switch x-bind:checked="$wire.form.kind === 'link'" x-on:change="$wire.$set('form.kind', $event.target.checked ? 'link' : 'static')"/>
         </label>
     </div>
+    @endif
     @if($this->form->kind === 'link')
         <div wire:key="launchpad-kind-link" class="flex flex-col gap-3">
             <x-ui.forms.select label="سایت" name="form.site" wire:model="form.site" icon="language">
@@ -65,5 +67,5 @@
     @error('form.accessible_to')<p wire:key="launchpad-access-to-error" class="flex items-center gap-1 mt-1 text-[12px] font-medium text-[var(--md-sys-color-error)] animate-toast-in"><span class="material-symbols-rounded text-[14px]">error</span>{{ $message }}</p>@enderror
     @error('form.expire_at')<p wire:key="launchpad-expire-error" class="flex items-center gap-1 mt-1 text-[12px] font-medium text-[var(--md-sys-color-error)] animate-toast-in"><span class="material-symbols-rounded text-[14px]">error</span>{{ $message }}</p>@enderror
     <x-ui.buttons.form loading="save" wire:click="save" wire:loading.attr="disabled" wire:target="form.files">ذخیره برنامه</x-ui.buttons.form>
-    <x-ui.modals.action wire:model="replaceOpen" title="جایگزینی برنامه" action="confirmReplace" confirm-text="جایگزینی" cancel-text="انصراف">برنامه‌ای با این عنوان وجود دارد. {{ $this->form->kind === 'link' ? 'پیوند آن جایگزین شود؟' : 'فایل‌های آن جایگزین شوند؟' }} مخاطبان و تاریخ‌های اعتبار بدون تغییر باقی می‌مانند.</x-ui.modals.action>
+    <x-ui.modals.action wire:model="replaceOpen" title="جایگزینی برنامه" action="confirmReplace" confirm-text="جایگزینی" cancel-text="انصراف">برنامه‌ای با این عنوان وجود دارد. محتوای فعلی آن (فایل‌ها یا پیوند) جایگزین می‌شود و اگر نوع آن با انتخاب شما فرق کند، نوع برنامه هم عوض می‌شود؛ فایل‌های قبلی برای همیشه پاک می‌شوند. مخاطبان و تاریخ‌های اعتبار بدون تغییر باقی می‌مانند.</x-ui.modals.action>
 </x-ui.forms.card>

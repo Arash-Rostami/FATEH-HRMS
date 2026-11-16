@@ -129,7 +129,7 @@ class LaunchpadResourceTest extends TestCase
 
         Livewire::actingAs($admin)->test(ListLaunchpads::class)
             ->assertSee('LP-admin-link')
-            ->assertSee('پیوند');
+            ->assertSee('پیوند به سامانه');
 
         $this->assertFalse(LaunchpadResource::canCreate());
 

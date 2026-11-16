@@ -64,7 +64,7 @@ class CreateLaunchpadAction
                 }
             }
 
-            [$row, $oldDirectory] = DB::transaction(function () use ($form, $user, $title, $dept, $replace, $kind, $folder, $settings) {
+            [$row, $oldDirectory, $replaced] = DB::transaction(function () use ($form, $user, $title, $dept, $replace, $kind, $folder, $settings) {
                 Department::query()->whereKey($dept)->lockForUpdate()->first(['code']);
 
                 $existing = Launchpad::query()->where('department_id', $dept)->where('title', $title)->lockForUpdate()->first();
@@ -76,7 +76,7 @@ class CreateLaunchpadAction
                     $oldDirectory = $existing->directory();
                     $existing->update(['kind' => $kind, 'folder' => $folder, 'description' => filled($form->description) ? $form->description : null, 'settings' => $settings]);
 
-                    return [$existing, $oldDirectory];
+                    return [$existing, $oldDirectory, true];
                 }
 
                 if (Launchpad::query()->where('department_id', $dept)->count() >= (int) config('launchpad.max_per_department')) {
@@ -106,7 +106,7 @@ class CreateLaunchpadAction
                     'settings' => $settings,
                 ]);
 
-                return [$row, null];
+                return [$row, null, false];
             });
         } catch (Throwable $e) {
             if ($base !== null) {
@@ -120,10 +120,12 @@ class CreateLaunchpadAction
 
         if ($oldDirectory !== null) {
             self::deleteStoredDirectory($oldDirectory);
-        } elseif (filled($row->audience)) {
+        }
+
+        if (!$replaced && filled($row->audience)) {
             StateService::flush();
         }
 
-        return ['launchpad' => $row, 'replaced' => $oldDirectory !== null];
+        return ['launchpad' => $row, 'replaced' => $replaced];
     }
 }

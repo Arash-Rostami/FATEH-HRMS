@@ -11,10 +11,16 @@ class DeleteLaunchpadAction
 {
     public function execute(Launchpad $row, User $user): void
     {
-        if (!LaunchpadAccessPolicy::canManage($row, $user)) {
+        $fresh = Launchpad::query()->find($row->id);
+
+        if ($fresh === null) {
+            return;
+        }
+
+        if (!LaunchpadAccessPolicy::canManage($fresh, $user)) {
             throw new RuntimeException('این عملیات مجاز نیست.');
         }
 
-        $row->delete();
+        $fresh->delete();
     }
 }
