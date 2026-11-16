@@ -84,7 +84,7 @@ describe('settings table panel', () => {
     })
 
     test('resetTables resets every module, density and declutter', () => {
-        ;['dms', 'ths', 'reservation', 'taskboard', 'ai-report', 'correspondence'].forEach(id => {
+        ;['dms', 'ths', 'reservation', 'taskboard', 'ai-report', 'correspondence', 'launchpad'].forEach(id => {
             localStorage.setItem(`table-tools:${id}`, 'true')
             localStorage.setItem(`max:${id}:7`, 'true')
         })
@@ -93,7 +93,7 @@ describe('settings table panel', () => {
         s.resetTables()
         expect(localStorage.length).toBe(1)
         expect(localStorage.getItem('menu_declutter')).toBe('false')
-        expect(s.$store.colVisibility.reset.mock.calls.map(c => c[0])).toEqual(['dms', 'ths', 'reservation', 'taskboard', 'ai-report', 'correspondence'])
+        expect(s.$store.colVisibility.reset.mock.calls.map(c => c[0])).toEqual(['dms', 'ths', 'reservation', 'taskboard', 'ai-report', 'correspondence', 'launchpad'])
         expect(s.$store.density.toggle).toHaveBeenCalledTimes(1)
     })
 
@@ -102,7 +102,7 @@ describe('settings table panel', () => {
         s.$store.colVisibility.maps['ai-report'] = ['owner', 'state']
         localStorage.setItem('table-tools:ai-report', 'true')
         s.refreshTableState()
-        expect(s.tableModules.map(m => m.id)).toEqual(['dms', 'ths', 'reservation', 'taskboard', 'ai-report', 'correspondence'])
+        expect(s.tableModules.map(m => m.id)).toEqual(['dms', 'ths', 'reservation', 'taskboard', 'ai-report', 'correspondence', 'launchpad'])
         expect(s.tableState.modules['ai-report']).toEqual({ hiddenCols: 2, toolbarCollapsed: true, maximized: false })
 
         s.resetTableModule('ai-report')

@@ -78,7 +78,11 @@ class LaunchpadTablePresenter
     {
         return TextColumn::make('kind')
             ->label('نوع')
-            ->formatStateUsing(fn (string $state): string => $state === 'static' ? 'استاتیک' : $state)
+            ->formatStateUsing(fn (string $state): string => match ($state) {
+                'static' => 'استاتیک',
+                'link' => 'پیوند',
+                default => $state,
+            })
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

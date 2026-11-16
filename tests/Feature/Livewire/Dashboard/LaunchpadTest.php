@@ -113,6 +113,42 @@ class LaunchpadTest extends TestCase
             ->call('save');
     }
 
+    private function fakeSiblings(): string
+    {
+        config(['app.siblings' => [
+            ['name' => 'lps', 'title' => 'LP Sibling', 'url' => 'https://lp-sibling.example.com/'],
+        ]]);
+
+        return 'lps';
+    }
+
+    private function linkRow(string $dept, User $owner, array $overrides = []): Launchpad
+    {
+        return Launchpad::create(array_replace([
+            'user_id' => $owner->id,
+            'department_id' => $dept,
+            'kind' => 'link',
+            'active' => true,
+            'title' => 'LP-' . Str::random(8),
+            'audience' => [],
+            'settings' => ['site' => $this->fakeSiblings(), 'path' => 'reports/q1'],
+        ], $overrides));
+    }
+
+    private function saveLink(User $user, string $title, string $site = 'lps', string $path = '', array $audience = [])
+    {
+        Livewire::withoutLazyLoading();
+
+        return Livewire::actingAs($user)->test(Main::class)
+            ->call('switchTab', 'create')
+            ->set('form.title', $title)
+            ->set('form.kind', 'link')
+            ->set('form.site', $site)
+            ->set('form.path', $path)
+            ->set('form.audience', $audience)
+            ->call('save');
+    }
+
     private function body($response): string
     {
         return (string) file_get_contents($response->baseResponse->getFile()->getPathname());
@@ -739,7 +775,7 @@ class LaunchpadTest extends TestCase
         $this->get($url)->assertNotFound();
         $this->actingAs($viewer)->get(route('launchpad'))->assertNotFound();
 
-        foreach (['launchpad', 'launchpad.file', 'dashboard.launchpad.main', 'filament.admin.resources.launchpads.index', 'launchpad-controller'] as $name) {
+        foreach (['launchpad', 'launchpad.file', 'launchpad.go', 'dashboard.launchpad.main', 'filament.admin.resources.launchpads.index', 'launchpad-controller'] as $name) {
             $this->assertTrue(tenantOffName($name), $name);
         }
     }
@@ -796,6 +832,33 @@ class LaunchpadTest extends TestCase
             ->assertSee('LP-gamma')->assertDontSee('LP-alpha')->assertDontSee('LP-omega');
     }
 
+    public function test_list_sort_orders_by_title_toggles_direction_ignores_unknown_columns_and_resets(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPS');
+        $viewer = $this->deptUser($dept);
+        $this->fileRow($dept, $viewer, ['title' => 'LP-b']);
+        $this->fileRow($dept, $viewer, ['title' => 'LP-c']);
+        $this->fileRow($dept, $viewer, ['title' => 'LP-a']);
+
+        $titles = fn ($component) => $component->instance()->rows->pluck('title')->all();
+
+        $component = Livewire::actingAs($viewer)->test(Main::class);
+        $this->assertSame(['LP-a', 'LP-c', 'LP-b'], $titles($component));
+
+        $component->call('sortBy', 'title');
+        $this->assertSame(['LP-a', 'LP-b', 'LP-c'], $titles($component));
+
+        $component->call('sortBy', 'title');
+        $this->assertSame(['LP-c', 'LP-b', 'LP-a'], $titles($component));
+
+        $component->call('sortBy', 'bogus');
+        $this->assertSame(['LP-c', 'LP-b', 'LP-a'], $titles($component));
+
+        $component->call('resetSort');
+        $this->assertSame(['LP-a', 'LP-c', 'LP-b'], $titles($component));
+    }
+
     public function test_cap_meter_counts_live_rows_and_matches_the_refusal_boundary(): void
     {
         Storage::fake('public');
@@ -822,5 +885,178 @@ class LaunchpadTest extends TestCase
         } finally {
             config(['launchpad.max_per_department' => $orig]);
         }
+    }
+
+    public function test_link_kind_creates_without_files_and_stores_site_and_path(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $owner = $this->deptUser($dept);
+        $viewer = $this->deptUser($dept);
+        $site = $this->fakeSiblings();
+
+        $this->saveLink($owner, 'LP-link-basic', $site, 'reports/q1', [$viewer->id])->assertHasNoErrors();
+        $row = Launchpad::query()->where('title', 'LP-link-basic')->firstOrFail();
+
+        $this->assertSame('link', $row->kind);
+        $this->assertNull($row->folder);
+        $this->assertEquals(['site' => $site, 'path' => 'reports/q1'], $row->settings);
+        $this->assertSame([$viewer->id], $row->audience);
+        $this->assertNull($row->accessible_from);
+        $this->assertNull($row->accessible_to);
+        $this->assertNull($row->expire_at);
+        $this->assertSame([], Storage::disk('public')->directories('launchpad/files'));
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($owner)->test(Main::class)
+            ->call('switchTab', 'create')
+            ->set('form.title', 'LP-link-expiry')
+            ->set('form.kind', 'link')
+            ->set('form.site', $site)
+            ->set('form.path', '')
+            ->set('expiryYear', '1406')->set('expiryMonth', '1')->set('expiryDay', '1')
+            ->call('save')
+            ->assertHasNoErrors();
+        $dated = Launchpad::query()->where('title', 'LP-link-expiry')->firstOrFail();
+        $this->assertSame('link', $dated->kind);
+        $this->assertNotNull($dated->expire_at);
+        $this->assertTrue($dated->expire_at->isFuture());
+        $this->assertSame([], Storage::disk('public')->directories('launchpad/files'));
+    }
+
+    public function test_link_path_and_site_validation_rejects_schemes_traversal_and_unknown_sites(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $owner = $this->deptUser($dept);
+        $site = $this->fakeSiblings();
+
+        $cases = [
+            'scheme' => [$site, 'http://x/y', 'form.path'],
+            'traversal' => [$site, '../secret', 'form.path'],
+            'leading-slash' => [$site, '/abs', 'form.path'],
+            'too-long' => [$site, str_repeat('a', 201), 'form.path'],
+            'empty-site' => ['', 'reports/q1', 'form.site'],
+            'unknown-site' => ['ghost', 'reports/q1', 'form.site'],
+        ];
+        foreach ($cases as $key => [$caseSite, $path, $errorKey]) {
+            $title = 'LP-link-reject-' . $key;
+            $this->saveLink($owner, $title, $caseSite, $path)->assertHasErrors($errorKey);
+            $this->assertDatabaseMissing('launchpads', ['title' => $title]);
+        }
+    }
+
+    public function test_link_go_redirects_audience_members_and_marks_them_seen(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $owner = $this->deptUser($dept);
+        $viewer = $this->deptUser($dept);
+        $this->fakeSiblings();
+        $badge = app(UnseenLaunchpads::class);
+        $row = $this->linkRow($dept, $owner, ['title' => 'LP-go-link', 'audience' => [$viewer->id]]);
+
+        $this->actingAs($viewer);
+        $this->assertTrue($badge->isActive());
+
+        $response = $this->get(route('launchpad.go', $row->id));
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('https://lp-sibling.example.com/reports/q1', $response->headers->get('Location'));
+
+        $this->assertFalse($badge->isActive());
+        $this->assertContains($viewer->id, Launchpad::query()->whereKey($row->id)->firstOrFail()->seen_by);
+
+        $this->actingAs($owner);
+        $this->assertFalse($badge->isActive());
+
+        $rootRow = $this->linkRow($dept, $owner, ['title' => 'LP-go-root', 'audience' => [$viewer->id], 'settings' => ['site' => 'lps', 'path' => '']]);
+        $this->actingAs($viewer);
+        $rootResponse = $this->get(route('launchpad.go', $rootRow->id));
+        $this->assertSame('https://lp-sibling.example.com/', $rootResponse->headers->get('Location'));
+    }
+
+    public function test_link_go_denies_strangers_expired_scheduled_and_inactive_rows(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $owner = $this->deptUser($dept);
+        $viewer = $this->deptUser($dept);
+        $stranger = $this->deptUser($dept);
+        $this->fakeSiblings();
+
+        $live = $this->linkRow($dept, $owner, ['title' => 'LP-deny-live', 'audience' => [$viewer->id]]);
+        $expired = $this->linkRow($dept, $owner, ['title' => 'LP-deny-expired', 'audience' => [$viewer->id], 'accessible_to' => today()->subDay()->toDateString()]);
+        $scheduled = $this->linkRow($dept, $owner, ['title' => 'LP-deny-scheduled', 'audience' => [$viewer->id], 'accessible_from' => today()->addDay()->toDateString()]);
+        $inactive = $this->linkRow($dept, $owner, ['title' => 'LP-deny-inactive', 'active' => false, 'audience' => [$viewer->id]]);
+        $ghostSite = $this->linkRow($dept, $owner, ['title' => 'LP-deny-ghost', 'audience' => [$viewer->id], 'settings' => ['site' => 'ghost', 'path' => 'x']]);
+
+        $this->get(route('launchpad.go', $live->id))->assertRedirect(route('login'));
+
+        $this->actingAs($stranger);
+        $this->assertEmpty404($this->get(route('launchpad.go', $live->id)));
+
+        $this->actingAs($viewer);
+        $this->assertEmpty404($this->get(route('launchpad.go', $expired->id)));
+        $this->assertEmpty404($this->get(route('launchpad.go', $scheduled->id)));
+        $this->assertEmpty404($this->get(route('launchpad.go', $inactive->id)));
+        $this->assertEmpty404($this->get(route('launchpad.go', $ghostSite->id)));
+        $this->assertNull(Launchpad::query()->whereKey($ghostSite->id)->value('seen_by'));
+
+        $this->actingAs($owner);
+        $this->assertEmpty404($this->get(route('launchpad.go', $expired->id)));
+    }
+
+    public function test_link_rows_share_title_cap_and_replace_rules_with_static(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $owner = $this->deptUser($dept);
+        $other = $this->deptUser($dept);
+        $viewer = $this->deptUser($dept);
+        $site = $this->fakeSiblings();
+
+        $this->saveLink($owner, 'LP-link-title', $site, 'a')->assertHasNoErrors();
+        $this->saveLink($other, 'LP-link-title', $site, 'b')->assertHasErrors('form.title');
+        $this->assertSame(1, Launchpad::query()->where('title', 'LP-link-title')->count());
+
+        $static = $this->fileRow($dept, $owner, ['title' => 'LP-kind-clash']);
+        $this->saveLink($other, 'LP-kind-clash', $site, 'c')->assertHasErrors('form.title');
+        $this->assertSame(1, Launchpad::query()->where('title', 'LP-kind-clash')->count());
+
+        $original = config('launchpad.max_per_department');
+        try {
+            config(['launchpad.max_per_department' => 2]);
+            $this->saveLink($owner, 'LP-link-capped', $site)->assertHasErrors('form.site');
+            $this->assertDatabaseMissing('launchpads', ['title' => 'LP-link-capped']);
+        } finally {
+            config(['launchpad.max_per_department' => $original]);
+        }
+
+        $row = $this->linkRow($dept, $owner, ['title' => 'LP-link-replace', 'audience' => [$viewer->id]]);
+        $this->actingAs($viewer)->get(route('launchpad.go', $row->id))->assertStatus(302);
+        $this->assertContains($viewer->id, Launchpad::query()->whereKey($row->id)->firstOrFail()->seen_by);
+
+        $this->saveLink($owner, 'LP-link-replace', $site, 'new/path')
+            ->assertSet('replaceOpen', true)->call('confirmReplace')->assertHasNoErrors();
+        $fresh = Launchpad::query()->whereKey($row->id)->firstOrFail();
+        $this->assertSame($row->id, $fresh->id);
+        $this->assertSame([$viewer->id], $fresh->audience);
+        $this->assertContains($viewer->id, $fresh->seen_by);
+        $this->assertEquals(['site' => $site, 'path' => 'new/path'], $fresh->settings);
+
+        $this->saveLink($owner, 'LP-kind-clash', $site, 'd')
+            ->assertSet('replaceOpen', true)->call('confirmReplace')->assertHasNoErrors();
+        $flipped = Launchpad::query()->whereKey($static->id)->firstOrFail();
+        $this->assertSame('link', $flipped->kind);
+        $this->assertNull($flipped->folder);
+        $this->assertSame([], Storage::disk('public')->files('launchpad/files/' . $static->folder));
+
+        $this->saveLaunch($owner, 'LP-kind-clash')
+            ->assertSet('replaceOpen', true)->call('confirmReplace')->assertHasNoErrors();
+        $back = Launchpad::query()->whereKey($static->id)->firstOrFail();
+        $this->assertSame('static', $back->kind);
+        $this->assertNotNull($back->folder);
+        $this->assertTrue(Storage::disk('public')->exists('launchpad/files/' . $back->folder . '/' . Launchpad::storedName('index.html')));
+        $this->assertSame('index.html', $back->settings['entry']);
     }
 }

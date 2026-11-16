@@ -108,6 +108,37 @@ class LaunchpadResourceTest extends TestCase
         $this->assertFalse(LaunchpadResource::canCreate());
     }
 
+    public function test_link_rows_appear_with_their_kind_and_monitoring_stays_read_only(): void
+    {
+        Storage::fake('public');
+        $admin = $this->developer();
+        $dept = $this->dept('LPRK');
+        $oldOwner = $this->deptUser($dept);
+        $newOwner = $this->deptUser($dept);
+        $row = Launchpad::create([
+            'user_id' => $oldOwner->id,
+            'department_id' => $dept,
+            'kind' => 'link',
+            'active' => true,
+            'title' => 'LP-admin-link',
+            'folder' => null,
+            'audience' => [],
+            'settings' => ['site' => 'lps', 'path' => 'reports'],
+        ]);
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->assertSee('LP-admin-link')
+            ->assertSee('پیوند');
+
+        $this->assertFalse(LaunchpadResource::canCreate());
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->callTableAction('reassignOwner', $row, ['user_id' => (string) $newOwner->id]);
+
+        $this->assertSame($newOwner->id, $row->fresh()->user_id);
+        $this->assertSame('link', $row->fresh()->kind);
+    }
+
     public function test_reassign_owner_moves_ownership_and_drops_the_new_owner_from_the_audience(): void
     {
         Storage::fake('public');

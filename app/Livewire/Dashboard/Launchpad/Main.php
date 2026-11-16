@@ -66,6 +66,12 @@ class Main extends Component
     public int $listLimit = 30;
 
     #[Locked]
+    public string $sort = 'id';
+
+    #[Locked]
+    public string $sortDir = 'desc';
+
+    #[Locked]
     public array $precheck = [];
 
     public bool $replaceOpen = false;
@@ -85,7 +91,9 @@ class Main extends Component
         $this->activeTab = in_array($this->activeTab, ['list', 'create'], true) ? $this->activeTab : 'list';
         $this->filter = in_array($this->filter, ['all', 'mine', 'shared', 'department'], true) ? $this->filter : 'all';
         $this->search = mb_substr(trim($this->search), 0, 100);
-        $this->form->department_id = (string) auth()->user()->profile?->department_id;
+        if (!$this->embed) {
+            $this->form->department_id = (string) auth()->user()->profile?->department_id;
+        }
         if ($this->openId !== null) {
             $this->open($this->openId);
         }
@@ -113,6 +121,26 @@ class Main extends Component
         $this->listLimit = 30;
     }
 
+    public function sortBy(string $column): void
+    {
+        if (!in_array($column, ['id', 'title'], true)) {
+            return;
+        }
+
+        $this->sortDir = $this->sort === $column
+            ? ($this->sortDir === 'asc' ? 'desc' : 'asc')
+            : ($column === 'title' ? 'asc' : 'desc');
+        $this->sort = $column;
+        $this->listLimit = 30;
+    }
+
+    public function resetSort(): void
+    {
+        $this->sort = 'id';
+        $this->sortDir = 'desc';
+        $this->listLimit = 30;
+    }
+
     public function loadMore(): void
     {
         $this->listLimit += 30;
@@ -122,7 +150,7 @@ class Main extends Component
     {
         $row = Launchpad::query()->find($id);
         $user = auth()->user();
-        if ($row === null || !LaunchpadAccessPolicy::canView($row, $user)) {
+        if ($row === null || $row->kind !== 'static' || !LaunchpadAccessPolicy::canView($row, $user)) {
             $this->openId = null;
             $this->viewToken = null;
             $this->unavailable = 'این برنامه در دسترس نیست.';
@@ -163,7 +191,7 @@ class Main extends Component
         $this->form->expire_at = $this->date('expiry');
         $this->form->title = $this->form->normalizedTitle();
         $this->form->validate();
-        if (($this->precheck['ok'] ?? false) !== true) {
+        if ($this->form->kind === 'static' && ($this->precheck['ok'] ?? false) !== true) {
             throw ValidationException::withMessages(['form.files' => 'فایل‌های انتخاب‌شده معتبر نیستند.']);
         }
         $title = $this->form->title;
@@ -201,12 +229,13 @@ class Main extends Component
     {
         $user = auth()->user();
         $dept = (string) $user->profile?->department_id;
-        return Launchpad::query()->visibleTo($user)->select(['id', 'title', 'department_id', 'user_id', 'active', 'audience', 'accessible_from', 'accessible_to', 'expire_at'])->with('user:id,name')
+        return Launchpad::query()->visibleTo($user)->select(['id', 'title', 'department_id', 'user_id', 'kind', 'active', 'audience', 'accessible_from', 'accessible_to', 'expire_at'])->with('user:id,name')
             ->when($this->filter === 'mine', fn (Builder $q) => $q->where('user_id', $user->id))
             ->when($this->filter === 'shared', fn (Builder $q) => $q->where('user_id', '!=', $user->id)->whereJsonContains('audience', (int) $user->id))
             ->when($this->filter === 'department', fn (Builder $q) => $q->where('department_id', $dept))
             ->when($this->search !== '', fn (Builder $q) => $q->whereRaw('INSTR(title, ?) > 0', [$this->search]))
-            ->latest('id')->limit($this->listLimit + 1)->get();
+            ->when($this->sort === 'title', fn (Builder $q) => $q->orderBy('title', $this->sortDir)->orderByDesc('id'), fn (Builder $q) => $q->orderBy('id', $this->sortDir))
+            ->limit($this->listLimit + 1)->get();
     }
 
     #[Computed]

@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Launchpad\Forms\LaunchpadForm;
 use App\Models\Department;
 use App\Models\Launchpad;
 use App\Models\User;
+use App\Services\Menu\StateService;
 use App\Support\LaunchpadAccessPolicy;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\QueryException;
@@ -30,28 +31,40 @@ class CreateLaunchpadAction
             throw new RuntimeException('این عملیات مجاز نیست.');
         }
 
-        $report = $form->precheck();
-        if (!$report['ok']) {
-            throw ValidationException::withMessages(['form.files' => 'فایل‌های انتخاب‌شده معتبر نیستند.']);
+        $kind = $form->kind === 'link' ? 'link' : 'static';
+        $items = [];
+        $disk = null;
+        $folder = null;
+        $base = null;
+
+        if ($kind === 'static') {
+            $report = $form->precheck();
+            if (!$report['ok']) {
+                throw ValidationException::withMessages(['form.files' => 'فایل‌های انتخاب‌شده معتبر نیستند.']);
+            }
+
+            $items = array_map(fn ($file) => [$file, (string) $file->getClientOriginalName()], array_values($form->files));
+            $settings = ['entry' => (string) config('launchpad.entry'), 'files_count' => $report['count'], 'size' => $report['bytes']];
+            $disk = Storage::disk('public');
+            $folder = (string) Str::ulid();
+            $base = "launchpad/files/{$folder}";
+        } else {
+            $settings = ['site' => $form->site, 'path' => $form->path];
         }
 
-        $items = array_map(fn ($file) => [$file, (string) $file->getClientOriginalName()], array_values($form->files));
-        $settings = ['entry' => (string) config('launchpad.entry'), 'files_count' => $report['count'], 'size' => $report['bytes']];
-        $disk = Storage::disk('public');
-        $folder = (string) Str::ulid();
-        $base = "launchpad/files/{$folder}";
-
         try {
-            foreach ($items as [$file, $name]) {
-                $stream = $file->readStream();
-                $written = is_resource($stream) && $disk->writeStream($base . '/' . Launchpad::storedName($name), $stream);
-                is_resource($stream) && fclose($stream);
-                if (!$written) {
-                    throw new RuntimeException('ذخیره فایل ناموفق بود.');
+            if ($disk !== null) {
+                foreach ($items as [$file, $name]) {
+                    $stream = $file->readStream();
+                    $written = is_resource($stream) && $disk->writeStream($base . '/' . Launchpad::storedName($name), $stream);
+                    is_resource($stream) && fclose($stream);
+                    if (!$written) {
+                        throw new RuntimeException('ذخیره فایل ناموفق بود.');
+                    }
                 }
             }
 
-            [$row, $oldDirectory] = DB::transaction(function () use ($form, $user, $title, $dept, $replace, $folder, $settings) {
+            [$row, $oldDirectory] = DB::transaction(function () use ($form, $user, $title, $dept, $replace, $kind, $folder, $settings) {
                 Department::query()->whereKey($dept)->lockForUpdate()->first(['code']);
 
                 $existing = Launchpad::query()->where('department_id', $dept)->where('title', $title)->lockForUpdate()->first();
@@ -61,13 +74,13 @@ class CreateLaunchpadAction
                         throw ValidationException::withMessages(['form.title' => 'این عنوان در این بخش قبلاً ثبت شده است.']);
                     }
                     $oldDirectory = $existing->directory();
-                    $existing->update(['folder' => $folder, 'description' => filled($form->description) ? $form->description : null, 'settings' => $settings]);
+                    $existing->update(['kind' => $kind, 'folder' => $folder, 'description' => filled($form->description) ? $form->description : null, 'settings' => $settings]);
 
                     return [$existing, $oldDirectory];
                 }
 
                 if (Launchpad::query()->where('department_id', $dept)->count() >= (int) config('launchpad.max_per_department')) {
-                    throw ValidationException::withMessages(['form.files' => 'سقف تعداد برنامه‌ها برای این بخش پر شده است.']);
+                    throw ValidationException::withMessages([$kind === 'link' ? 'form.site' : 'form.files' => 'سقف تعداد برنامه‌ها برای این بخش پر شده است.']);
                 }
 
                 $audience = User::query()->visibleOnBoard()
@@ -82,7 +95,7 @@ class CreateLaunchpadAction
                 $row = Launchpad::query()->create([
                     'user_id' => $user->id,
                     'department_id' => $dept,
-                    'kind' => 'static',
+                    'kind' => $kind,
                     'title' => $title,
                     'description' => filled($form->description) ? $form->description : null,
                     'folder' => $folder,
@@ -96,7 +109,9 @@ class CreateLaunchpadAction
                 return [$row, null];
             });
         } catch (Throwable $e) {
-            self::deleteStoredDirectory($base);
+            if ($base !== null) {
+                self::deleteStoredDirectory($base);
+            }
 
             throw $e instanceof QueryException && ($e->errorInfo[1] ?? null) === 1062
                 ? ValidationException::withMessages(['form.title' => 'این عنوان در این بخش قبلاً ثبت شده است.'])
@@ -105,6 +120,8 @@ class CreateLaunchpadAction
 
         if ($oldDirectory !== null) {
             self::deleteStoredDirectory($oldDirectory);
+        } elseif (filled($row->audience)) {
+            StateService::flush();
         }
 
         return ['launchpad' => $row, 'replaced' => $oldDirectory !== null];

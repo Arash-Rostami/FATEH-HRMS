@@ -7,6 +7,12 @@ beforeEach(() => {
     localStorage.clear()
 })
 
+describe('launchpadPage table tools', () => {
+    test('exposes the shared header declutter toggle', () => {
+        expect(typeof launchpadPage().toggleHeaderDeclutter).toBe('function')
+    })
+})
+
 describe('launchpadPage.limit', () => {
     const OVER = 'تعداد فایل‌ها بیش از حد مجاز است.'
 

@@ -22,8 +22,8 @@
             document.documentElement.classList.toggle('max-restore', ls.getItem(`max:${maxScope}:${uid}`) !== null);
         }
 
-        const keys = ['dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden', 'ai-report-col-hidden', 'correspondence-col-hidden'];
-        const tables = ['.dms-doc-table', '.ths-ticket-table', '.reservation-command-table', '.taskboard-card', '.ai-report-table', '.correspondence-table'];
+        const keys = ['dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden', 'ai-report-col-hidden', 'correspondence-col-hidden', 'launchpad-col-hidden'];
+        const tables = ['.dms-doc-table', '.ths-ticket-table', '.reservation-command-table', '.taskboard-card', '.ai-report-table', '.correspondence-table', '.launchpad-table'];
         let css = '';
 
         for (let i = 0; i < keys.length; i++) {

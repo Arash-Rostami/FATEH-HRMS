@@ -1,4 +1,5 @@
 import maximizeMixin from "../mixins/maximize.js";
+import tableToolsMixin from "../mixins/tableTools.js";
 import { mountFrame, drop } from "../../../core/workspace.js";
 
 const STORAGE_KEY = 'hero_gadgets';
@@ -23,6 +24,16 @@ export function addDeckModule(mod) {
 
 export function launchpadPage() {
     return {
+        ...tableToolsMixin('launchpad'),
+
+        init() {
+            this.initTableTools();
+        },
+
+        destroy() {
+            this.destroyTableTools();
+        },
+
         add(el) {
             try {
                 const result = addDeckModule({ title: el.dataset.title, icon: el.dataset.icon, src: el.dataset.src });

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Launchpad\Forms;
 
+use Illuminate\Validation\Rule;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Form;
 
@@ -12,6 +13,14 @@ class LaunchpadForm extends Form
     public string $description = '';
 
     public string $department_id = '';
+
+    public string $kind = 'static';
+
+    public string $site = '';
+
+    public string $path = '';
+
+    public const PATH_PATTERN = '/^(?!\/)(?!.*\.\.)[A-Za-z0-9\-._~%?=&#\/]{0,200}$/';
 
     public array $files = [];
 
@@ -30,18 +39,27 @@ class LaunchpadForm extends Form
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'title' => 'required|string|min:3|max:120',
             'description' => 'nullable|string|max:500',
             'department_id' => 'required|string|exists:departments,code',
-            'files' => 'required|array|min:1|max:' . self::maxFiles(),
-            'files.*' => 'file|max:' . (int) config('file_upload_limits.launchpad'),
+            'kind' => 'required|string|in:static,link',
             'audience' => 'array|max:' . (int) config('launchpad.max_audience'),
             'audience.*' => 'integer',
             'accessible_from' => 'nullable|date',
             'accessible_to' => ['nullable', 'date', 'after_or_equal:today', ...(filled($this->accessible_from) ? ['after_or_equal:accessible_from'] : [])],
             'expire_at' => ['nullable', 'date', 'after_or_equal:today', ...(filled($this->accessible_from) ? ['after_or_equal:accessible_from'] : [])],
         ];
+
+        if ($this->kind === 'link') {
+            $rules['site'] = ['required', 'string', Rule::in(array_column((array) config('app.siblings'), 'name'))];
+            $rules['path'] = ['nullable', 'max:200', 'regex:' . self::PATH_PATTERN];
+        } else {
+            $rules['files'] = 'required|array|min:1|max:' . self::maxFiles();
+            $rules['files.*'] = 'file|max:' . (int) config('file_upload_limits.launchpad');
+        }
+
+        return $rules;
     }
 
     public static function maxFiles(): int

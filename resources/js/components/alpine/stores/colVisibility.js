@@ -1,13 +1,13 @@
 const STYLE_ID = 'dms-col-visibility-style';
-const DOMAINS = ['dms', 'ths', 'reservation', 'taskboard', 'ai-report', 'correspondence'];
-const KEYS = { dms: 'dms-col-hidden', ths: 'ths-col-hidden', reservation: 'reservation-col-hidden', taskboard: 'taskboard-col-hidden', 'ai-report': 'ai-report-col-hidden', correspondence: 'correspondence-col-hidden' };
-const SCOPES = { dms: '.dms-doc-table', ths: '.ths-ticket-table', reservation: '.reservation-command-table', taskboard: '.taskboard-card', 'ai-report': '.ai-report-table', correspondence: '.correspondence-table' };
+const DOMAINS = ['dms', 'ths', 'reservation', 'taskboard', 'ai-report', 'correspondence', 'launchpad'];
+const KEYS = { dms: 'dms-col-hidden', ths: 'ths-col-hidden', reservation: 'reservation-col-hidden', taskboard: 'taskboard-col-hidden', 'ai-report': 'ai-report-col-hidden', correspondence: 'correspondence-col-hidden', launchpad: 'launchpad-col-hidden' };
+const SCOPES = { dms: '.dms-doc-table', ths: '.ths-ticket-table', reservation: '.reservation-command-table', taskboard: '.taskboard-card', 'ai-report': '.ai-report-table', correspondence: '.correspondence-table', launchpad: '.launchpad-table' };
 
 let styleEl = null;
 
 export default function colVisibility(Alpine) {
     Alpine.store('colVisibility', {
-        maps: { dms: [], ths: [], reservation: [], taskboard: [], 'ai-report': [], correspondence: [] },
+        maps: { dms: [], ths: [], reservation: [], taskboard: [], 'ai-report': [], correspondence: [], launchpad: [] },
         _renderRaf: null,
 
         init() {

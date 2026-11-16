@@ -5,6 +5,18 @@
         <option value="">انتخاب بخش</option>
         @foreach($departments as $code => $label)<option value="{{ $code }}">{{ $label }}</option>@endforeach
     </x-ui.forms.select>
+    <x-ui.forms.radio label="نوع برنامه" name="form.kind" wire:model.live="form.kind" :options="['static' => 'پوشهٔ فایل‌ها', 'link' => 'پیوند']"/>
+    @if($this->form->kind === 'link')
+        <div wire:key="launchpad-kind-link" class="flex flex-col gap-3">
+            <x-ui.forms.select label="سایت" name="form.site" wire:model="form.site" icon="language">
+                <option value="">انتخاب سایت</option>
+                @foreach((array) config('app.siblings') as $sibling)<option value="{{ $sibling['name'] }}">{{ $sibling['title'] }}</option>@endforeach
+            </x-ui.forms.select>
+            <x-ui.forms.input label="مسیر (اختیاری)" name="form.path" wire:model="form.path"/>
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">مسیر نسبی و بدون اسلش ابتدایی است؛ نمونه: <bdi>reports/q1</bdi> — خالی بماند تا صفحهٔ اصلی سایت باز شود.</p>
+        </div>
+    @else
+        <div wire:key="launchpad-kind-static" class="flex flex-col gap-3">
     <div x-on:change.capture="limit($event)">
         <input id="launchpad-files" type="file" multiple wire:model="form.files" data-max="{{ $this->limits['max_files'] }}" data-over="تعداد فایل‌ها بیش از حد مجاز است." class="hidden"/>
         <label for="launchpad-files" tabindex="0" role="button" x-on:keydown.enter.prevent="$el.control?.click()" x-on:keydown.space.prevent="$el.control?.click()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] text-[11.5px] font-bold hover:bg-[var(--md-sys-color-surface-container-highest)] transition-colors cursor-pointer"><span class="material-symbols-rounded text-[16px]">attach_file</span>انتخاب فایل‌ها</label>
@@ -29,6 +41,8 @@
             @foreach($precheck['messages'] as $message)<p wire:key="launchpad-precheck-error-{{ $loop->index }}" class="text-sm text-[var(--md-sys-color-error)]">{{ $message }}</p>@endforeach
         </div>
     @endif
+    </div>
+    @endif
     <x-dashboard.member-picker model="form.audience" :candidates="$this->candidates" mode="multi"/>
     <x-ui.buttons.form variant="tonal" icon="group_add" wire:click="addDepartment">افزودن اعضای بخش</x-ui.buttons.form>
     <x-ui.forms.date label="شروع دسترسی" prefix="from"/>
@@ -38,5 +52,5 @@
     @error('form.accessible_to')<p wire:key="launchpad-access-to-error" class="flex items-center gap-1 mt-1 text-[12px] font-medium text-[var(--md-sys-color-error)] animate-toast-in"><span class="material-symbols-rounded text-[14px]">error</span>{{ $message }}</p>@enderror
     @error('form.expire_at')<p wire:key="launchpad-expire-error" class="flex items-center gap-1 mt-1 text-[12px] font-medium text-[var(--md-sys-color-error)] animate-toast-in"><span class="material-symbols-rounded text-[14px]">error</span>{{ $message }}</p>@enderror
     <x-ui.buttons.form loading="save" wire:click="save" wire:loading.attr="disabled" wire:target="form.files">ذخیره برنامه</x-ui.buttons.form>
-    <x-ui.modals.action wire:model="replaceOpen" title="جایگزینی برنامه" action="confirmReplace" confirm-text="جایگزینی" cancel-text="انصراف">برنامه‌ای با این عنوان وجود دارد. فایل‌های آن جایگزین شوند؟ مخاطبان و تاریخ‌های اعتبار بدون تغییر باقی می‌مانند.</x-ui.modals.action>
+    <x-ui.modals.action wire:model="replaceOpen" title="جایگزینی برنامه" action="confirmReplace" confirm-text="جایگزینی" cancel-text="انصراف">برنامه‌ای با این عنوان وجود دارد. {{ $this->form->kind === 'link' ? 'پیوند آن جایگزین شود؟' : 'فایل‌های آن جایگزین شوند؟' }} مخاطبان و تاریخ‌های اعتبار بدون تغییر باقی می‌مانند.</x-ui.modals.action>
 </x-ui.forms.card>

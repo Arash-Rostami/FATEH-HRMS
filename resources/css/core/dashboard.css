@@ -1065,6 +1065,10 @@
         @apply !py-0
     }
 
+    .app-density-compact .launchpad-table tbody td {
+        @apply !py-0
+    }
+
     .app-density-compact .correspondence-table tbody td {
         @apply !py-0
     }

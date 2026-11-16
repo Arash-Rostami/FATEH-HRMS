@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'max_per_department' => 20,
+    'max_per_department' => 3,
     'max_files' => 50,
     'max_name_length' => 120,
     'max_audience' => 200,

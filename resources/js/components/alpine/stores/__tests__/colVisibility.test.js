@@ -159,6 +159,28 @@ describe('colVisibility ai-report scope', () => {
     })
 })
 
+describe('colVisibility launchpad scope', () => {
+    test('restores, persists to launchpad-col-hidden, renders the table rule and resets', async () => {
+        localStorage.setItem('launchpad-col-hidden', JSON.stringify(['owner']))
+        const s = fresh()
+        s.init()
+        expect(s.maps.launchpad).toEqual(['owner'])
+
+        s.toggle('audience', 'launchpad')
+        await flushMicrotask()
+        expect(JSON.parse(localStorage.getItem('launchpad-col-hidden'))).toEqual(['owner', 'audience'])
+
+        await flushRaf()
+        expect(document.getElementById('dms-col-visibility-style').textContent)
+            .toContain('.launchpad-table [data-col="audience"]{display:none!important}')
+
+        s.reset('launchpad')
+        await flushMicrotask()
+        expect(JSON.parse(localStorage.getItem('launchpad-col-hidden'))).toEqual([])
+        expect(s.maps['ai-report']).toEqual([])
+    })
+})
+
 describe('colVisibility.render — multi-domain rule building', () => {
     test('builds one display:none rule per hidden column across all three scoped tables, skipping empty domains', async () => {
         const s = fresh()

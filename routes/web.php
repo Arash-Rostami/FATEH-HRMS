@@ -28,6 +28,7 @@ use App\Http\Controllers\CorrespondenceAttachmentController;
 use App\Http\Controllers\CorrespondencePdfController;
 use App\Http\Controllers\IconMissController;
 use App\Http\Controllers\LaunchpadFileController;
+use App\Http\Controllers\LaunchpadGoController;
 use App\Http\Middleware\UpdateLastSeen;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -102,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tasksheet', Tasksheet::class)->name('tasksheet');
     Route::get('/tasksheet/shared/{subject}', Tasksheet::class)->middleware('signed')->name('tasksheet.shared');
     Route::get('/launchpad', Launchpad::class)->name('launchpad');
+    Route::get('/launchpad/{launchpad}/go', LaunchpadGoController::class)->middleware('throttle:30,1')->where('launchpad', '[1-9][0-9]{0,9}')->name('launchpad.go');
     Route::get('/ai-report', AiReport::class)->name('ai-report');
     Route::get('/ai-report/shared/{report}', AiReport::class)->middleware('signed')->name('ai-report.shared');
     Route::get('/correspondence', Correspondence::class)->name('correspondence');
