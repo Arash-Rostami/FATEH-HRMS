@@ -766,4 +766,61 @@ class LaunchpadTest extends TestCase
         $this->assertSame([], Storage::disk('public')->files('launchpad/files/' . $folder));
         $this->assertSame([], Storage::disk('public')->directories('launchpad/files/' . $folder));
     }
+
+    public function test_list_filters_and_search_narrow_the_visible_rows(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $otherDept = $this->dept('LPB');
+        $viewer = $this->deptUser($dept);
+        $stranger = $this->deptUser($otherDept);
+        $this->fileRow($dept, $viewer, ['title' => 'LP-alpha']);
+        $this->fileRow($dept, $viewer, ['title' => 'LP-beta']);
+        $this->fileRow($otherDept, $stranger, ['title' => 'LP-gamma', 'audience' => [$viewer->id]]);
+        $this->fileRow($otherDept, $stranger, ['title' => 'LP-omega']);
+        $this->fileRow($dept, $this->deptUser($dept), ['title' => 'LP-delta', 'audience' => [$viewer->id]]);
+
+        Livewire::actingAs($viewer)->test(Main::class)
+            ->assertSee('LP-alpha')->assertSee('LP-beta')->assertSee('LP-gamma')->assertSee('LP-delta')->assertDontSee('LP-omega');
+
+        Livewire::actingAs($viewer)->test(Main::class)->call('setFilter', 'mine')
+            ->assertSee('LP-alpha')->assertSee('LP-beta')->assertDontSee('LP-gamma')->assertDontSee('LP-delta');
+
+        Livewire::actingAs($viewer)->test(Main::class)->call('setFilter', 'shared')
+            ->assertSee('LP-gamma')->assertSee('LP-delta')->assertDontSee('LP-alpha')->assertDontSee('LP-omega');
+
+        Livewire::actingAs($viewer)->test(Main::class)->call('setFilter', 'department')
+            ->assertSee('LP-alpha')->assertSee('LP-beta')->assertSee('LP-delta')->assertDontSee('LP-gamma');
+
+        Livewire::actingAs($viewer)->test(Main::class)->set('search', 'amm')
+            ->assertSee('LP-gamma')->assertDontSee('LP-alpha')->assertDontSee('LP-omega');
+    }
+
+    public function test_cap_meter_counts_live_rows_and_matches_the_refusal_boundary(): void
+    {
+        Storage::fake('public');
+        $orig = (int) config('launchpad.max_per_department');
+        $dept = $this->dept('LPC');
+        $owner = $this->deptUser($dept);
+
+        try {
+            config(['launchpad.max_per_department' => 3]);
+            $this->fileRow($dept, $owner, ['title' => 'LP-cap-1']);
+            $this->fileRow($dept, $owner, ['title' => 'LP-cap-2']);
+            $this->fileRow($dept, $owner, ['title' => 'LP-cap-3', 'active' => false]);
+            $trashed = $this->fileRow($dept, $owner, ['title' => 'LP-cap-gone']);
+            $trashed->delete();
+
+            $meter = app(LaunchpadPresenter::class)->capMeter($dept);
+            $this->assertSame(3, $meter['used']);
+            $this->assertSame(3, $meter['cap']);
+            $this->assertSame(100, $meter['pct']);
+            $this->assertSame('text-[var(--md-sys-color-error)]', $meter['tone']['text']);
+
+            $this->saveLaunch($owner, 'LP-cap-refused')->assertHasErrors('form.files');
+            $this->assertNull(Launchpad::query()->where('title', 'LP-cap-refused')->first());
+        } finally {
+            config(['launchpad.max_per_department' => $orig]);
+        }
+    }
 }
