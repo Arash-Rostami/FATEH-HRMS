@@ -301,10 +301,7 @@
                                       x-text="modules[pane]?.icon"></span>
                             <x-ui.loaders.spin-badge/>
                         </div>
-                        <template x-if="loaded[pane]">
-                            <iframe x-bind:src="modules[pane].src" class="w-full h-full border-0"
-                                    title="ماژول پین‌شده" @load="onFrameLoad(pane)"></iframe>
-                        </template>
+                        <div wire:ignore class="w-full h-full" x-effect="loaded[pane] && mountFrame(pane, $el)"></div>
                     </div>
                 </div>
             </div>

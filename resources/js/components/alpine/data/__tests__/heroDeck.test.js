@@ -65,6 +65,32 @@ describe('heroDeck.pick', () => {
         expect(c.pickerFor).toBeNull()
     })
 
+    test('picking a module that is already pinned switches to its pane instead of adding a second one', () => {
+        const c = heroDeck()
+        c.panes = ['a']
+        c.modules = { a: { title: 'News', icon: 'n', src: '/n' } }
+        c.pickerFor = '__new__'
+
+        c.pick({ title: 'News', icon: 'n', src: '/n' })
+
+        expect(c.panes).toEqual(['a'])
+        expect(c.slide).toBe('a')
+        expect(c.pickerFor).toBeNull()
+    })
+
+    test('re-picking an existing pane with a module already pinned elsewhere switches to that pane', () => {
+        const c = heroDeck()
+        c.panes = ['a', 'b']
+        c.modules = { a: { title: 'A', icon: 'a', src: '/a' }, b: { title: 'B', icon: 'b', src: '/b' } }
+        c.pickerFor = 'a'
+
+        c.pick({ title: 'B', icon: 'b', src: '/b' })
+
+        expect(c.modules.a.src).toBe('/a')
+        expect(c.slide).toBe('b')
+        expect(c.pickerFor).toBeNull()
+    })
+
     test('persists panes/modules to localStorage after picking', () => {
         const c = heroDeck()
         c.pickerFor = '__new__'
@@ -260,7 +286,46 @@ describe('heroDeck.persist', () => {
         c.panes = ['a']
         c.modules = { a: { title: 't' } }
         c.persist()
-        expect(JSON.parse(localStorage.getItem(STORAGE_KEY))).toEqual({ panes: ['a'], modules: { a: { title: 't' } } })
+        expect(JSON.parse(localStorage.getItem(STORAGE_KEY))).toEqual({ panes: ['a'], modules: { a: { title: 't' } }, slide: 0 })
+    })
+
+    test('persists the open slide and restores it on init only when its pane and module entry still exist', () => {
+        const c = heroDeck()
+        c.panes = ['a']
+        c.modules = { a: { src: '/a' } }
+        c.slide = 'a'
+        c.persist()
+        expect(JSON.parse(localStorage.getItem(STORAGE_KEY)).slide).toBe('a')
+
+        const d = heroDeck()
+        d.$watch = vi.fn()
+        d.init()
+        expect(d.slide).toBe('a')
+        expect(d.loaded.a).toBe(true)
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ panes: ['a'], modules: {}, slide: 'gone' }))
+        const e = heroDeck()
+        e.$watch = vi.fn()
+        e.init()
+        expect(e.slide).toBe(0)
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ panes: ['a'], modules: {}, slide: 'a' }))
+        const f = heroDeck()
+        f.$watch = vi.fn()
+        f.init()
+        expect(f.slide).toBe(0)
+        expect(f.loaded.a).toBeUndefined()
+    })
+
+    test('remove drops the pooled iframe of that pane', () => {
+        const slot = document.createElement('div')
+        const c = heroDeck()
+        c.panes = ['a']
+        c.modules = { a: { src: '/a' } }
+        c.mountFrame('a', slot)
+        expect(slot.querySelector('iframe')).not.toBeNull()
+        c.remove('a')
+        expect(slot.querySelector('iframe')).toBeNull()
     })
 
     test('a storage write failure is swallowed, not thrown', () => {

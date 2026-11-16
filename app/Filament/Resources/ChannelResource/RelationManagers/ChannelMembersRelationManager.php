@@ -2,7 +2,11 @@
 
 namespace App\Filament\Resources\ChannelResource\RelationManagers;
 
+use App\Enums\ChannelRole;
+use App\Filament\Resources\ChannelResource;
 use App\Models\ChannelMessage;
+use App\Services\Messaging\PollDigestService;
+use Filament\Actions\Action;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
 use App\Filament\RelationManagers\RelationManager;
@@ -46,6 +50,7 @@ class ChannelMembersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         $ownerId = (int)$this->getOwnerRecord()->owner_id;
+        $canToggleRole = ChannelResource::canEdit($this->getOwnerRecord()) && !$this->getOwnerRecord()->isProjectLinked();
 
         return $table
             ->modifyQueryUsing(fn(Builder $query) => $query->addSelect([
@@ -59,6 +64,14 @@ class ChannelMembersRelationManager extends RelationManager
                     ->label(__('resources/channel/strings.fields.user'))
                     ->searchable()
                     ->placeholder('—'),
+
+                TextColumn::make('pivot.role')
+                    ->label(__('resources/channel/strings.fields.role'))
+                    ->badge()
+                    ->state(fn(Model $record): string => (int)$record->id === $ownerId ? 'owner' : (string)$record->pivot->role)
+                    ->formatStateUsing(fn(string $state): string => $state === 'owner' ? 'مالک' : (ChannelRole::tryFrom($state) ?? ChannelRole::Member)->getLabel())
+                    ->color(fn(string $state): string => $state === 'owner' ? 'primary' : (ChannelRole::tryFrom($state) ?? ChannelRole::Member)->getColor())
+                    ->alignCenter(),
 
                 TextColumn::make('joined_at')
                     ->label(__('resources/channel/strings.fields.joined_at'))
@@ -104,6 +117,25 @@ class ChannelMembersRelationManager extends RelationManager
                     ]))
             ])
             ->recordActions([
+                Action::make('toggleRole')
+                    ->label(fn(Model $record): string => $record->pivot->role === ChannelRole::Admin->value ? 'عضو' : 'مدیر')
+                    ->icon(fn(Model $record): string => $record->pivot->role === ChannelRole::Admin->value ? 'heroicon-o-user' : 'heroicon-o-shield-check')
+                    ->iconButton()
+                    ->visible(fn(Model $record): bool => (int)$record->id !== $ownerId
+                        && $canToggleRole
+                        && ($record->pivot->role === ChannelRole::Admin->value || ($record->pivot->entered_at !== null && $record->isActive())))
+                    ->action(function (Model $record): void {
+                        $channel = $this->getOwnerRecord();
+                        $demote = $record->pivot->role === ChannelRole::Admin->value;
+
+                        if (!ChannelResource::canEdit($channel) || (!$demote && ($record->pivot->entered_at === null || !$record->isActive()))) {
+                            return;
+                        }
+
+                        $role = $demote ? ChannelRole::Member : ChannelRole::Admin;
+                        $channel->memberUsers()->updateExistingPivot($record->id, ['role' => $role->value]);
+                        PollDigestService::bump("ch:rv:{$channel->id}");
+                    }),
                 DetachAction::make()
                     ->label('حذف عضو')
                     ->icon('heroicon-o-x-mark')

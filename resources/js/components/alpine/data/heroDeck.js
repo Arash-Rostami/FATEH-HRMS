@@ -1,4 +1,5 @@
 import maximizeMixin from "../mixins/maximize.js";
+import { mountFrame, drop } from "../../../core/workspace.js";
 
 const STORAGE_KEY = 'hero_gadgets';
 const MAX_PANES = 6;
@@ -27,6 +28,11 @@ export default function heroDeck() {
 
                     this.panes = Array.isArray(savedPanes) ? savedPanes : [];
                     this.modules = saved.modules || {};
+
+                    if (this.panes.includes(saved.slide) && this.modules[saved.slide]) {
+                        this.slide = saved.slide;
+                        this.loaded[saved.slide] = true;
+                    }
                 }
             } catch (e) {
                 try { localStorage.removeItem(STORAGE_KEY); } catch (e2) {}
@@ -36,6 +42,7 @@ export default function heroDeck() {
                 if (id !== 0 && this.modules[id] !== undefined) {
                     this.loaded[id] = true;
                 }
+                this.persist();
             });
 
             this.initMaximize();
@@ -58,6 +65,14 @@ export default function heroDeck() {
             if (picker === null) return;
 
             const isNew = picker === NEW_PANE;
+            const dup = this.panes.find((p) => p !== picker && this.modules[p]?.src === mod.src);
+
+            if (dup) {
+                this.slide = dup;
+                this.pickerFor = null;
+                return;
+            }
+
             const id = isNew ? 'p_' + Date.now() : picker;
 
             if (isNew) {
@@ -87,6 +102,7 @@ export default function heroDeck() {
             Reflect.deleteProperty(this.modules, pane);
             Reflect.deleteProperty(this.loaded, pane);
             Reflect.deleteProperty(this.frameReady, pane);
+            drop(pane);
 
             if (this.maximizedPane === pane) {
                 this.maximizedPane = null;
@@ -97,6 +113,10 @@ export default function heroDeck() {
             if (this.slide === pane) this.slide = 0;
 
             this.persist();
+        },
+
+        mountFrame(pane, slot) {
+            mountFrame(pane, slot, this.modules[pane], () => this.onFrameLoad(pane));
         },
 
         onFrameLoad(pane) {
@@ -134,7 +154,8 @@ export default function heroDeck() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({
                     panes: this.panes,
-                    modules: this.modules
+                    modules: this.modules,
+                    slide: this.slide
                 }));
             } catch (e) {}
         }

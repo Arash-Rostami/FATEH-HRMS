@@ -58,7 +58,7 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
 
     test('saveEdit makes exactly 3 known $wire reads (capture, the internal _isl() helper, and cancelEdit()\'s post-await call — safe because the edit textarea is x-show-toggled, never morphed away) and never a 4th', async () => {
         const c = contact();
-        const wire = installWireProbe(c, {}, 3);
+        const wire = installWireProbe(c, { edit: { editingBody: 'y' } }, 3);
         c._syncSidebarAfterOwnAction = vi.fn();
         c.editingMsg = { id: 7, body: 'x' };
 
@@ -67,6 +67,47 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
         expect(wire._islands.messages.saveEdit).toHaveBeenCalledWith(7);
         expect(c.editingMsg).toBeNull();
         expect(c._syncSidebarAfterOwnAction).toHaveBeenCalledWith(wire);
+    });
+
+    test('saveEdit on unchanged text just cancels the editor without calling the server', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ edit: { editingBody: 'x' } });
+        c.editingMsg = { id: 7, body: 'x' };
+
+        await c.saveEdit(7);
+
+        expect(c.$wire.$island).not.toHaveBeenCalled();
+        expect(c.editingMsg).toBeNull();
+        expect(c.$wire.cancelEdit).toHaveBeenCalledOnce();
+    });
+
+    test('saveEdit on empty text toasts and keeps the editor open', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ edit: { editingBody: '   ' } });
+        c.toast = vi.fn();
+        c.editingMsg = { id: 7, body: 'x' };
+
+        await c.saveEdit(7);
+
+        expect(c.toast).toHaveBeenCalledWith('متن پیام نباید خالی باشد.', 'warning');
+        expect(c.$wire.$island).not.toHaveBeenCalled();
+        expect(c.editingMsg).toEqual({ id: 7, body: 'x' });
+    });
+
+    test('saveEdit ignores a second call while the first save is in flight', async () => {
+        const c = contact();
+        let resolveSave;
+        c.$wire = createWireMock({ edit: { editingBody: 'y' } });
+        c.$wire._islands.messages = { saveEdit: vi.fn(() => new Promise((r) => { resolveSave = r; })) };
+        c._syncSidebarAfterOwnAction = vi.fn();
+        c.editingMsg = { id: 7, body: 'x' };
+
+        const first = c.saveEdit(7);
+        await c.saveEdit(7);
+        resolveSave();
+        await first;
+
+        expect(c.$wire._islands.messages.saveEdit).toHaveBeenCalledOnce();
     });
 
     test('saveEdit guards a stale id and never touches $wire', async () => {
@@ -81,7 +122,7 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
 
     test('saveEdit toasts a generic error and leaves editingMsg untouched if the island call rejects', async () => {
         const c = contact();
-        c.$wire = createWireMock();
+        c.$wire = createWireMock({ edit: { editingBody: 'y' } });
         c.$wire._islands.messages = { saveEdit: vi.fn(() => Promise.reject(new Error('boom'))) };
         c.toast = vi.fn();
         c.editingMsg = { id: 7, body: 'x' };
@@ -95,7 +136,7 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
     test('saveEdit does not clobber a NEW edit started mid-flight (race guard: only clears editingMsg if it still matches id)', async () => {
         const c = contact();
         let resolveSave;
-        c.$wire = createWireMock();
+        c.$wire = createWireMock({ edit: { editingBody: 'changed' } });
         c.$wire._islands.messages = { saveEdit: vi.fn(() => new Promise((r) => { resolveSave = r; })) };
         c._syncSidebarAfterOwnAction = vi.fn();
         c.editingMsg = { id: 7, body: 'first' };

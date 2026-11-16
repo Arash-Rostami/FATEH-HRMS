@@ -16,44 +16,43 @@ class MarkChannelReadAction
     public function execute(int $channelId, int $userId): void
     {
         $channel = Channel::withoutTrashed()
-            ->whereHas('memberUsers', fn($q) => $q->where('users.id', $userId))
+            ->whereHas('memberUsers', fn ($q) => $q->whereKey($userId))
             ->find($channelId);
 
-        if (!$channel) {
+        if (! $channel) {
             return;
         }
 
         $changed = DB::transaction(function () use ($channel, $channelId, $userId): bool {
-            $enteredNow = $channel->memberUsers()->newPivotStatementForId($userId)
+            $now = now();
+            $pivot = fn () => $channel->memberUsers()->newPivotStatementForId($userId);
+
+            $entered = $pivot()
                 ->whereNull('entered_at')
-                ->update(['entered_at' => now(), 'updated_at' => now()]);
+                ->update(['entered_at' => $now, 'updated_at' => $now]);
 
             $lastId = ChannelMessage::lastIdForChannel($channelId);
-            $markedRead = 0;
 
-            if ($lastId !== null) {
-                $markedRead = $channel->memberUsers()->newPivotStatementForId($userId)
-                    ->where(function ($q) use ($lastId) {
-                        $q->whereNull('last_read_message_id')
-                            ->orWhere('last_read_message_id', '<', $lastId);
-                    })
-                    ->update(['last_read_message_id' => $lastId, 'updated_at' => now()]);
-            }
+            $read = $lastId === null ? 0 : $pivot()
+                ->where(fn ($q) => $q->whereNull('last_read_message_id')->orWhere('last_read_message_id', '<', $lastId))
+                ->update(['last_read_message_id' => $lastId, 'updated_at' => $now]);
 
-            return $enteredNow > 0 || $markedRead > 0;
+            return $entered > 0 || $read > 0;
         });
 
-        if ($changed) {
-            ModelCacheVersion::bump("channel-read:{$userId}");
-            NudgeService::refreshBell();
-
-            DB::afterCommit(function () use ($channelId, $userId) {
-                PollDigestService::bump("ch:me:{$userId}");
-                PollDigestService::bump("ch:rv:{$channelId}");
-            });
-
-            dispatch(new ReconcileNudgeJob('channels-controller:nudge', Channel::class, $channelId))->afterCommit();
-            dispatch(new ReconcileEdgeJob('channels-controller:edge', Channel::class, $channelId))->afterCommit();
+        if (! $changed) {
+            return;
         }
+
+        ModelCacheVersion::bump("channel-read:{$userId}");
+        NudgeService::refreshBell();
+
+        DB::afterCommit(function () use ($channelId, $userId) {
+            PollDigestService::bump("ch:me:{$userId}");
+            PollDigestService::bump("ch:rv:{$channelId}");
+        });
+
+        dispatch(new ReconcileNudgeJob('channels-controller:nudge', Channel::class, $channelId))->afterCommit();
+        dispatch(new ReconcileEdgeJob('channels-controller:edge', Channel::class, $channelId))->afterCommit();
     }
 }

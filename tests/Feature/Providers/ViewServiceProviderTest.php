@@ -93,6 +93,16 @@ class ViewServiceProviderTest extends TestCase
         $this->assertStringContainsString('data-max-scope="calendar"', $calendar);
     }
 
+    public function test_the_chat_font_picker_gets_the_registry_fonts_and_their_font_face_css_from_its_composer(): void
+    {
+        $html = view('livewire.dashboard.messaging.font-picker')->render();
+
+        $this->assertStringContainsString('@font-face', $html);
+        $this->assertStringContainsString("setMessageFont('vazirmatn')", $html);
+        $this->assertStringNotContainsString("setMessageFont('btitr')", $html);
+        $this->assertStringNotContainsString("setMessageFont('iranyekan')", $html);
+    }
+
     public function test_dashboard_route_never_loads_a_lazy_module_chunk(): void
     {
         $user = User::factory()->create(['status' => 'active']);

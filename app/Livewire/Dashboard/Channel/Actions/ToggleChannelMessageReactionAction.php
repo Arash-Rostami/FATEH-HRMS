@@ -17,30 +17,13 @@ class ToggleChannelMessageReactionAction
         $channelId = DB::transaction(function () use ($messageId, $emoji, $userId): ?int {
             $message = ChannelMessage::withoutTrashed()
                 ->whereKey($messageId)
-                ->whereHas('channel.memberUsers', fn($q) => $q->where('users.id', $userId))
+                ->whereHas('channel.memberUsers', fn ($q) => $q->whereKey($userId))
                 ->lockForUpdate()
                 ->first();
 
-            if (!$message) {
-                return null;
-            }
+            $message?->toggleReaction($userId, $emoji);
 
-            $reactions = collect($message->reactions ?? []);
-            $same = $reactions->contains(
-                fn(array $r) => (int) ($r['user_id'] ?? 0) === $userId && ($r['emoji'] ?? null) === $emoji
-            );
-
-            $reactions = $reactions->reject(fn(array $r) => (int) ($r['user_id'] ?? 0) === $userId);
-
-            if (!$same) {
-                $reactions->push(['user_id' => $userId, 'emoji' => $emoji]);
-            }
-
-            DB::table('channel_messages')->where('id', $messageId)->update([
-                'reactions' => json_encode($reactions->values()->all(), JSON_UNESCAPED_UNICODE),
-            ]);
-
-            return (int) $message->channel_id;
+            return $message ? (int) $message->channel_id : null;
         });
 
         if ($channelId === null) {

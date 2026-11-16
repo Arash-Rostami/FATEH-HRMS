@@ -25,13 +25,13 @@ describe('lastOpenMixin — storage key scoping', () => {
         expect(m._lastOpenStorageKey).toBeNull();
     });
 
-    test('framed window (window.self !== window.top) yields a null storage key', () => {
+    test('framed window (window.self !== window.top) yields a separate ":f" storage key', () => {
         withUid('42');
         const originalTop = window.top;
         Object.defineProperty(window, 'top', { value: {}, configurable: true });
 
         const m = lastOpenMixin('channel');
-        expect(m._lastOpenStorageKey).toBeNull();
+        expect(m._lastOpenStorageKey).toBe('last:channel:42:f');
 
         Object.defineProperty(window, 'top', { value: originalTop, configurable: true });
     });

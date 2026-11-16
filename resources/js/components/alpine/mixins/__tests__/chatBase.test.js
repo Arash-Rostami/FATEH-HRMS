@@ -89,6 +89,245 @@ describe('chatBase pure-logic helpers (resources/js/scriptPattern.md: no JS test
     });
 });
 
+describe('chatBase per-message font size — hover +/- buttons, saved with the module chat settings', () => {
+    test('a message with no saved step has the default size and no inline style', () => {
+        const c = chatBase('contact');
+        expect(c.fontStep(5)).toBe(0);
+        expect(c.fontStyle(5)).toBe('');
+    });
+
+    test('bumpFont moves one step at a time and the style follows the text scale', () => {
+        const c = chatBase('contact');
+        c.bumpFont(5, 1);
+        expect(c.fontStyle(5)).toBe('font-size:1rem');
+        c.bumpFont(5, 1);
+        expect(c.fontStyle(5)).toBe('font-size:1.125rem');
+        c.bumpFont(5, -2);
+        expect(c.fontStyle(5)).toBe('');
+        c.bumpFont(5, -1);
+        expect(c.fontStyle(5)).toBe('font-size:0.75rem');
+    });
+
+    test('steps are clamped and fontAtMin and fontAtMax report the limits', () => {
+        const c = chatBase('channel');
+        for (let i = 0; i < 10; i++) c.bumpFont(1, 1);
+        expect(c.fontAtMax(1)).toBe(true);
+        expect(c.fontStyle(1)).toBe('font-size:1.25rem');
+        for (let i = 0; i < 10; i++) c.bumpFont(1, -1);
+        expect(c.fontAtMin(1)).toBe(true);
+        expect(c.fontStyle(1)).toBe('font-size:0.75rem');
+    });
+
+    test('only non-default steps are saved under the module key, restored on load, and a return to default removes the entry', async () => {
+        const c = chatBase('contact');
+        c.bumpFont(3, 1);
+        c.bumpFont(4, -1);
+        await Promise.resolve();
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).fontSteps).toEqual({ 3: 1, 4: -1 });
+
+        const again = chatBase('contact');
+        again._loadChatSettings();
+        expect(again.fontStep(3)).toBe(1);
+        expect(again.fontStep(4)).toBe(-1);
+
+        again.bumpFont(3, -1);
+        await Promise.resolve();
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).fontSteps).toEqual({ 4: -1 });
+    });
+
+    test('the contact and channel modules keep separate sizes for the same message id', async () => {
+        const dm = chatBase('contact');
+        dm.bumpFont(7, 1);
+        await Promise.resolve();
+        const ch = chatBase('channel');
+        ch._loadChatSettings();
+        expect(dm.fontStep(7)).toBe(1);
+        expect(ch.fontStep(7)).toBe(0);
+    });
+
+    test('corrupt or out-of-range saved steps are ignored and the saved map is capped', () => {
+        localStorage.setItem('chat-settings:contact', JSON.stringify({ fontSteps: { 1: 99, 2: 'x', 3: 2 } }));
+        const c = chatBase('contact');
+        c._loadChatSettings();
+        expect(c.fontStep(1)).toBe(0);
+        expect(c.fontStep(2)).toBe(0);
+        expect(c.fontStep(3)).toBe(2);
+
+        const big = chatBase('contact');
+        for (let i = 1; i <= 320; i++) big.bumpFont(i, 1);
+        expect(Object.keys(big.fontSteps).length).toBeLessThanOrEqual(300);
+        expect(big.fontStep(320)).toBe(1);
+        expect(big.fontStep(1)).toBe(0);
+    });
+});
+
+describe('chatBase message font family — one module-wide choice from the correspondence font registry', () => {
+    test('the default adds no font-family and a chosen font joins the size style', () => {
+        const c = chatBase('contact');
+        expect(c.messageFont).toBe('default');
+        expect(c.fontFamilyStyle()).toBe('');
+        c.setMessageFont('vazirmatn');
+        expect(c.fontFamilyStyle()).toBe('font-family:"vazirmatn",Yekan,IranYekan,sans-serif');
+        c.bumpFont(9, 1);
+        expect(c.fontStyle(9)).toBe('font-size:1rem;font-family:"vazirmatn",Yekan,IranYekan,sans-serif');
+        expect(c.fontStyle(10)).toBe('font-family:"vazirmatn",Yekan,IranYekan,sans-serif');
+    });
+
+    test('an invalid key falls back to the default instead of reaching a style string', () => {
+        const c = chatBase('contact');
+        c.setMessageFont('x";color:red');
+        expect(c.messageFont).toBe('default');
+        c.setMessageFont(undefined);
+        expect(c.messageFont).toBe('default');
+    });
+
+    test('the choice is saved with the module chat settings, restored, and kept per module', async () => {
+        const dm = chatBase('contact');
+        dm.setMessageFont('parastoo');
+        await Promise.resolve();
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).messageFont).toBe('parastoo');
+
+        const again = chatBase('contact');
+        again._loadChatSettings();
+        expect(again.messageFont).toBe('parastoo');
+
+        const ch = chatBase('channel');
+        ch._loadChatSettings();
+        expect(ch.messageFont).toBe('default');
+    });
+
+    test('a corrupt saved value is ignored on load', () => {
+        localStorage.setItem('chat-settings:contact', JSON.stringify({ messageFont: '<script>' }));
+        const c = chatBase('contact');
+        c._loadChatSettings();
+        expect(c.messageFont).toBe('default');
+    });
+});
+
+describe('chatBase fitEdit — the inline edit box is sized to its content, capped at 320px', () => {
+    const ta = (scrollHeight) => {
+        const el = document.createElement('textarea');
+        Object.defineProperty(el, 'scrollHeight', { value: scrollHeight, configurable: true });
+        return el;
+    };
+
+    test('sizes the box to its scroll height at once', () => {
+        const el = ta(180);
+        chatBase('contact').fitEdit(el);
+        expect(el.style.height).toBe('180px');
+    });
+
+    test('on open it also scrolls the box back to the top, while typing it leaves the scroll alone', () => {
+        const el = ta(500);
+        el.scrollTop = 120;
+        const c = chatBase('contact');
+        c.fitEdit(el);
+        expect(el.scrollTop).toBe(120);
+        c.fitEdit(el, true);
+        expect(el.scrollTop).toBe(0);
+    });
+
+    test('on open it also scrolls the whole box into view so it never sits under the composer', async () => {
+        const wrap = document.createElement('div');
+        wrap.scrollIntoView = vi.fn();
+        const el = ta(200);
+        wrap.appendChild(el);
+        chatBase('channel').fitEdit(el, true);
+        await new Promise((r) => setTimeout(r, 5));
+        expect(wrap.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+
+        const typing = document.createElement('div');
+        typing.scrollIntoView = vi.fn();
+        const el2 = ta(200);
+        typing.appendChild(el2);
+        chatBase('channel').fitEdit(el2);
+        await new Promise((r) => setTimeout(r, 5));
+        expect(typing.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+    });
+
+    test('regrowing the box keeps the viewport scroll and flags it programmatic', () => {
+        const vp = document.createElement('div');
+        vp.id = 'msg-viewport';
+        document.body.appendChild(vp);
+        let top = 300;
+        Object.defineProperty(vp, 'scrollTop', { get: () => top, set: (v) => { top = v; }, configurable: true });
+        const el = ta(200);
+        Object.defineProperty(el.style, 'height', {
+            get: () => '',
+            set: (v) => { if (v === 'auto') top = 0; },
+            configurable: true,
+        });
+        const c = chatBase('contact');
+        c.fitEdit(el);
+        expect(top).toBe(300);
+        expect(c._programmaticScroll).toBe(true);
+        vp.remove();
+    });
+
+    test('openEdit focuses with the caret at the end and fits once visible, retrying while hidden', async () => {
+        const el = ta(150);
+        el.value = 'hello';
+        document.body.appendChild(el);
+        const c = chatBase('contact');
+        const focus = vi.spyOn(el, 'focus');
+        const fit = vi.spyOn(c, 'fitEdit');
+        let visible = 0;
+        el.getClientRects = () => (visible ? [1] : []);
+        c.openEdit(el);
+        await new Promise((r) => setTimeout(r, 40));
+        expect(focus).not.toHaveBeenCalled();
+        visible = 1;
+        c.openEdit(el);
+        await new Promise((r) => setTimeout(r, 40));
+        expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+        expect(el.selectionStart).toBe(5);
+        expect(fit).toHaveBeenCalledWith(el, true);
+        el.remove();
+    });
+
+    test('caps tall content at 320px and ignores a missing element', () => {
+        const el = ta(900);
+        const c = chatBase('channel');
+        c.fitEdit(el);
+        expect(el.style.height).toBe('320px');
+        expect(() => c.fitEdit(null)).not.toThrow();
+    });
+});
+
+describe('chatBase react — shared by channel and contact, island-routed, bursts only when the give lands', () => {
+    const chipEl = (mine) => {
+        const chip = document.createElement('button');
+        chip.className = mine ? 'reaction-burst reaction-mine' : 'reaction-burst';
+        chip.dataset.reactionChip = '7';
+        chip.dataset.emoji = 'x';
+        document.body.appendChild(chip);
+        return chip;
+    };
+
+    test.each(['contact', 'channel'])('%s: bursts the chip once the island call lands and it is now mine', async (scope) => {
+        const c = chatBase(scope);
+        const chip = chipEl(true);
+        const toggleReaction = vi.fn().mockResolvedValue(undefined);
+        c.$wire = { $island: vi.fn(() => ({ toggleReaction })) };
+
+        await c.react(7, 'x');
+
+        expect(c.$wire.$island).toHaveBeenCalledWith('messages');
+        expect(toggleReaction).toHaveBeenCalledWith(7, 'x');
+        expect(chip.classList.contains('burst-now')).toBe(true);
+    });
+
+    test('never bursts a chip that is not mine', async () => {
+        const c = chatBase('contact');
+        const chip = chipEl(false);
+        c.$wire = { $island: () => ({ toggleReaction: vi.fn().mockResolvedValue(undefined) }) };
+
+        await c.react(7, 'x');
+
+        expect(chip.classList.contains('burst-now')).toBe(false);
+    });
+});
+
 describe('chatBase pingTyping — leading-edge throttle', () => {
     beforeEach(() => vi.useFakeTimers());
     afterEach(() => vi.useRealTimers());
@@ -262,7 +501,7 @@ describe('chatBase localStorage persistence', () => {
         c._persistChatSettings();
 
         const saved = JSON.parse(localStorage.getItem('chat-settings:contact'));
-        expect(saved).toEqual({ isHighlighted: true, backgroundPattern: 'on', backgroundPatternType: 'mesh', headerDeclutter: true });
+        expect(saved).toEqual({ isHighlighted: true, backgroundPattern: 'on', backgroundPatternType: 'mesh', headerDeclutter: true, fontSteps: {}, messageFont: 'default' });
     });
 
     test('_loadChatSettings restores every persisted key including headerDeclutter, and tolerates a corrupt payload', () => {

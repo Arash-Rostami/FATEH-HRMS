@@ -9,6 +9,8 @@ use App\Livewire\Dashboard\Contact\Actions\ForceDeleteMessageAction;
 use App\Livewire\Dashboard\Contact\Actions\MarkMessagesAsReadAction;
 use App\Livewire\Dashboard\Contact\Actions\SearchMessagesAction;
 use App\Livewire\Dashboard\Contact\Actions\SendMessageAction;
+use App\Livewire\Dashboard\Contact\Actions\ToggleMessagePinAction;
+use App\Livewire\Dashboard\Contact\Actions\ToggleMessageReactionAction;
 use App\Livewire\Dashboard\Contact\Main;
 use App\Livewire\Dashboard\Contact\Presentation\ContactPresenter;
 use App\Livewire\Dashboard\Messaging\Actions\ForwardMessageAction;
@@ -222,6 +224,132 @@ class ContactTest extends TestCase
         $trashedReply = Message::withTrashed()->find($reply->id);
         app(ForceDeleteMessageAction::class)->execute($trashedReply);
         $this->assertNull(Message::withTrashed()->find($reply->id));
+    }
+
+    public function test_contact_presenter_pinned_is_null_without_a_pin_and_carries_id_and_body_with_one()
+    {
+        $presenter = new ContactPresenter();
+        $this->assertNull($presenter->pinned(null, []));
+        $this->assertNull($presenter->pinned((object) ['pinned_message_id' => null, 'pinned_body' => null, 'pinned_sender_id' => null], []));
+
+        $pinned = $presenter->pinned((object) ['pinned_message_id' => 5, 'pinned_body' => 'Hi', 'pinned_sender_id' => 2], [2 => ['name' => 'Ali']]);
+        $this->assertSame(5, $pinned['id']);
+        $this->assertSame('Hi', $pinned['body']);
+    }
+
+    public function test_dm_reaction_is_one_per_participant_and_outsiders_change_nothing(): void
+    {
+        [$a, $b, $outsider] = User::factory()->count(3)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $message = Message::create(['sender_id' => $a->id, 'recipient_id' => $b->id, 'body' => 'Hello']);
+        $action = app(ToggleMessageReactionAction::class);
+
+        $this->actingAs($b);
+        $this->assertTrue($action->execute($message->id, '👍', $b->id));
+        $this->assertTrue($action->execute($message->id, '❤️', $b->id));
+        $this->assertEquals([['user_id' => $b->id, 'emoji' => '❤️']], $message->fresh()->reactions);
+
+        $this->actingAs($a);
+        $this->assertTrue($action->execute($message->id, '👍', $a->id));
+        $this->assertCount(2, $message->fresh()->reactions);
+
+        $this->actingAs($outsider);
+        $this->assertFalse($action->execute($message->id, '🔥', $outsider->id));
+        $this->assertCount(2, $message->fresh()->reactions);
+    }
+
+    public function test_dm_pin_is_single_per_pair_a_stale_unpin_keeps_the_newer_pin_and_foreign_messages_are_rejected(): void
+    {
+        [$a, $b, $c] = User::factory()->count(3)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $first = Message::create(['sender_id' => $a->id, 'recipient_id' => $b->id, 'body' => 'First']);
+        $second = Message::create(['sender_id' => $b->id, 'recipient_id' => $a->id, 'body' => 'Second']);
+        $foreign = Message::create(['sender_id' => $a->id, 'recipient_id' => $c->id, 'body' => 'Foreign']);
+        $action = app(ToggleMessagePinAction::class);
+        $pinned = fn () => DB::table('message_pins')
+            ->where('user_low_id', min($a->id, $b->id))
+            ->where('user_high_id', max($a->id, $b->id))
+            ->value('message_id');
+
+        $this->actingAs($a);
+        $this->assertTrue($action->execute($b->id, $first->id, $a->id));
+        $this->assertSame($first->id, (int) $pinned());
+
+        $this->actingAs($b);
+        $this->assertTrue($action->execute($a->id, $second->id, $b->id));
+        $this->assertSame($second->id, (int) $pinned());
+
+        $this->assertTrue($action->execute($a->id, $first->id, $b->id, true));
+        $this->assertSame($second->id, (int) $pinned());
+
+        $this->assertFalse($action->execute($a->id, $foreign->id, $b->id));
+        $this->assertSame($second->id, (int) $pinned());
+
+        $this->assertTrue($action->execute($a->id, $second->id, $b->id));
+        $this->assertNull($pinned());
+    }
+
+    public function test_dm_pin_banner_data_hides_when_the_message_is_deleted_and_returns_with_its_reactions_on_restore(): void
+    {
+        [$a, $b] = User::factory()->count(2)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $message = Message::create(['sender_id' => $a->id, 'recipient_id' => $b->id, 'body' => 'Pin me']);
+        $this->actingAs($a);
+        app(ToggleMessagePinAction::class)->execute($b->id, $message->id, $a->id);
+        app(ToggleMessageReactionAction::class)->execute($message->id, '👍', $a->id);
+        $row = fn () => User::query()->select('users.id')->addSelect(Message::pinSelects($a->id, $b->id))->whereKey($b->id)->first();
+
+        $this->assertSame($message->id, (int) $row()->pinned_message_id);
+
+        $message->delete();
+        $this->assertNull($row()->pinned_message_id);
+
+        $message->restore();
+        $this->assertSame($message->id, (int) $row()->pinned_message_id);
+        $this->assertCount(1, $message->fresh()->reactions);
+    }
+
+    public function test_reaction_and_pin_toggles_bump_the_pair_poll_version(): void
+    {
+        [$a, $b] = User::factory()->count(2)->create(['status' => 'active', 'type' => 'employee'])->all();
+        $message = Message::create(['sender_id' => $a->id, 'recipient_id' => $b->id, 'body' => 'Hello']);
+        $key = Message::pairVersionKey($a->id, $b->id);
+
+        $this->assertSame('0', PollDigestService::version($key));
+
+        $this->actingAs($a);
+        app(ToggleMessageReactionAction::class)->execute($message->id, '👍', $a->id);
+        $this->assertNotSame('0', PollDigestService::version($key));
+
+        $before = PollDigestService::version($key);
+        app(ToggleMessagePinAction::class)->execute($b->id, $message->id, $a->id);
+        $this->assertNotSame($before, PollDigestService::version($key));
+    }
+
+    public function test_archived_contact_blocks_reactions_and_pins_but_still_allows_unpin(): void
+    {
+        $me = User::factory()->create(['status' => 'active', 'type' => 'employee']);
+        $archived = User::factory()->create(['status' => 'inactive', 'type' => 'employee']);
+        $first = Message::create(['sender_id' => $me->id, 'recipient_id' => $archived->id, 'body' => 'First']);
+        $second = Message::create(['sender_id' => $archived->id, 'recipient_id' => $me->id, 'body' => 'Second']);
+
+        $this->actingAs($me);
+        DB::table('message_pins')->insert([
+            'user_low_id' => min($me->id, $archived->id),
+            'user_high_id' => max($me->id, $archived->id),
+            'message_id' => $first->id,
+        ]);
+
+        $component = Livewire::test(Main::class)->call('selectContact', $archived->id);
+        $key = Message::pairVersionKey($me->id, $archived->id);
+        $this->assertSame('0', PollDigestService::version($key));
+
+        $component->call('toggleReaction', $second->id, '👍');
+        $component->call('toggleGroupPin', $second->id);
+        $this->assertEmpty($second->fresh()->reactions);
+        $this->assertSame($first->id, (int) Message::pinPair($me->id, $archived->id)->value('message_id'));
+        $this->assertSame('0', PollDigestService::version($key));
+
+        $component->call('toggleGroupPin', $first->id, true);
+        $this->assertNull(Message::pinPair($me->id, $archived->id)->value('message_id'));
+        $this->assertNotSame('0', PollDigestService::version($key));
     }
 
     public function test_conversation_header_reflects_real_online_status_not_mood()

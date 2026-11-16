@@ -3,7 +3,7 @@
     $channel = $this->activeChannel;
     $header = $p->channelHeader($channel);
     [
-        'isOwner' => $isOwner, 'typingMembers' => $typingMembers, 'typingCount' => $typingCount,
+        'canLeave' => $canLeave, 'typingMembers' => $typingMembers, 'typingCount' => $typingCount,
         'channelIdJs' => $channelIdJs, 'onlineCount' => $onlineCount, 'lastActivity' => $lastActivity,
     ] = $p->headerState($channel, $header, $this->typingMembers, $this->channelMembers, $this->channels);
 @endphp
@@ -144,6 +144,9 @@
                                 @if($member['is_owner'])
                                     <span
                                         class="flex-shrink-0 text-[9px] font-bold px-1 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">مالک</span>
+                                @elseif($member['is_admin'])
+                                    <span
+                                        class="flex-shrink-0 text-[9px] font-bold px-1 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">مدیر</span>
                                 @endif
                                 @if($member['inactive'])
                                     <x-ui.badge class="flex-shrink-0 !px-1.5 !py-0.5 !text-[10px]">غیرفعال</x-ui.badge>
@@ -187,7 +190,7 @@
                     <span
                         x-text="$store.sound.isMuted({{ $channelIdJs }}) ? 'باصدا کردن گروه' : 'بی‌صدا کردن گروه'"></span>
                 </button>
-                @if(!$isOwner)
+                @if($canLeave)
                     <button type="button"
                             x-on:click="open = false; {{ confirmDialog('leaveChannel', 'خروج از گروه', 'از این گروه خارج می‌شوید؟', $header['id'], 'dispatch', 'danger') }}"
                             class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--md-sys-color-error)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)]">
@@ -198,7 +201,7 @@
             @endslot
         @endcomponent
 
-        @if(!$isOwner)
+        @if($canLeave)
             <button type="button"
                     x-on:click="{{ confirmDialog('leaveChannel', 'خروج از گروه', 'از این گروه خارج می‌شوید؟', $header['id'], 'dispatch', 'danger') }}"
                     aria-label="خروج از گروه"

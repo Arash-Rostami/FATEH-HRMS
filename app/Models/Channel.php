@@ -44,12 +44,14 @@ class Channel extends Model
     public function memberUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'channel_members')
-            ->withPivot(['joined_at', 'entered_at', 'last_read_message_id', 'created_at', 'updated_at']);
+            ->withPivot(['joined_at', 'entered_at', 'last_read_message_id', 'role', 'created_at', 'updated_at']);
     }
 
     public function isProjectLinked(): bool
     {
-        return Project::idForChannel($this->id) !== null;
+        return array_key_exists('project_link_id', $this->attributes)
+            ? $this->attributes['project_link_id'] !== null
+            : Project::idForChannel($this->id) !== null;
     }
 
     public static function invitedUserIds(int $channelId): array
@@ -81,6 +83,14 @@ class Channel extends Model
         return $query->addSelect([
             'pinned_body' => ChannelMessage::select('body')->whereColumn('channel_messages.id', 'channels.pinned_message_id')->limit(1),
             'pinned_sender_id' => ChannelMessage::select('sender_id')->whereColumn('channel_messages.id', 'channels.pinned_message_id')->limit(1),
+        ]);
+    }
+
+    public function scopeWithViewerRole(Builder $query, int $userId): Builder
+    {
+        return $query->addSelect([
+            'viewer_role' => ChannelMember::select('role')->whereColumn('channel_members.channel_id', 'channels.id')->where('channel_members.user_id', $userId)->limit(1),
+            'project_link_id' => Project::withTrashed()->select('id')->whereColumn('projects.channel_id', 'channels.id')->limit(1),
         ]);
     }
 

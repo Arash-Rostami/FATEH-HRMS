@@ -61,6 +61,7 @@ export default function channel() {
         editingBody: '',
         quoteChip: { visible: false, x: 0, y: 0, id: 0, sender: '', snippet: '' },
         confirmingDeleteChannel: false,
+        confirmingTypeChange: false,
         keyOpen: false,
         channelKey: '',
         activeSender: null,
@@ -450,6 +451,12 @@ export default function channel() {
             this.$wire.openManageMembers(id).catch(() => {});
         },
 
+        openManageAdmins(id) {
+            if (!id) return;
+            if (this.max) this.toggleMaximize(null);
+            this.$wire.openManageAdmins(id).catch(() => {});
+        },
+
         closeOverlays() {
             this.showInfo = false;
             this.searchMessages = false;
@@ -462,27 +469,12 @@ export default function channel() {
             this.quoteChip.visible = false;
             this.activeSender = null;
             this.confirmingDeleteChannel = false;
+            this.confirmingTypeChange = false;
             this.closeChannelKey();
             if (this.$wire.createMode) this.closeCreate();
             if (this.$wire.browseMode) this.toggleBrowse();
             this.$wire.cancelReply();
             this.$wire.cancelEdit();
-        },
-
-        async react(id, emoji) {
-            const wire = this.$wire;
-            await wire.$island('messages').toggleReaction(id, emoji).catch(() => {});
-
-            const fresh = document.querySelector(`[data-reaction-chip="${id}"][data-emoji="${emoji}"]`);
-            if (fresh && fresh.classList.contains('reaction-mine')) this._burstChip(fresh);
-        },
-
-        _burstChip(chip) {
-            chip.classList.remove('burst-now');
-            void chip.offsetWidth;
-            chip.classList.add('burst-now');
-            clearTimeout(chip._burstTimer);
-            chip._burstTimer = setTimeout(() => chip.classList.remove('burst-now'), 1100);
         },
 
         scrollToMessage(id) {
@@ -543,6 +535,7 @@ export default function channel() {
             this.bookmarksOpen = false;
             this.daysOpen = false;
             this.confirmingDeleteChannel = false;
+            this.confirmingTypeChange = false;
             this.closeChannelKey();
             this._clearEdit();
 
@@ -654,16 +647,20 @@ export default function channel() {
         },
 
         async saveEdit(id) {
-            if (!id || id !== this.editingMsgId) return;
+            if (!id || id !== this.editingMsgId || this._savingEdit) return;
             const body = this.editingBody || '';
-            if (body === this.editingOriginal || this._overLimit(body)) return;
+            if (body === this.editingOriginal) return this.cancelEdit();
+            if (this._overLimit(body)) return;
 
             const wire = this.$wire;
+            this._savingEdit = true;
             try {
                 await this._isl().saveEdit(id, body);
                 this._syncSidebarAfterOwnAction(wire);
             } catch {
                 this.toast('خطا در ارتباط با سرور.', 'error');
+            } finally {
+                this._savingEdit = false;
             }
         },
 
@@ -694,6 +691,27 @@ export default function channel() {
 
         cancelDeleteChannel() {
             this.confirmingDeleteChannel = false;
+        },
+
+        confirmTypeChange() {
+            this.confirmingTypeChange = true;
+        },
+
+        cancelTypeChange() {
+            this.confirmingTypeChange = false;
+        },
+
+        async doChangeType(id, type) {
+            if (!id) return;
+            const wire = this.$wire;
+            try {
+                await wire.$island('messages').changeChannelType(id, type);
+                wire.$island('sidebar').refreshUnread();
+            } catch {
+                this.toast('خطا در تغییر نوع گروه.', 'error');
+            } finally {
+                this.confirmingTypeChange = false;
+            }
         },
 
         openChannelKey() {

@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Channel\Actions;
 use App\Enums\ChannelType;
 use App\Models\Channel;
 use App\Models\ChannelMessage;
+use Illuminate\Support\Facades\DB;
 
 class JoinChannelAction
 {
@@ -14,22 +15,24 @@ class JoinChannelAction
             return false;
         }
 
-        $channel = Channel::withoutTrashed()->find($channelId);
+        return DB::transaction(function () use ($channelId, $userId): bool {
+            $channel = Channel::withoutTrashed()->lockForUpdate()->find($channelId);
 
-        if (!$channel || $channel->type !== ChannelType::Open) {
-            return false;
-        }
+            if (!$channel || $channel->type !== ChannelType::Open) {
+                return false;
+            }
 
-        $channel->memberUsers()->newPivotStatement()->insertOrIgnore([
-            'channel_id'           => $channelId,
-            'user_id'              => $userId,
-            'joined_at'            => now(),
-            'entered_at'           => now(),
-            'last_read_message_id' => ChannelMessage::lastIdForChannel($channelId),
-            'created_at'           => now(),
-            'updated_at'           => now(),
-        ]);
+            $channel->memberUsers()->newPivotStatement()->insertOrIgnore([
+                'channel_id'           => $channelId,
+                'user_id'              => $userId,
+                'joined_at'            => now(),
+                'entered_at'           => now(),
+                'last_read_message_id' => ChannelMessage::lastIdForChannel($channelId),
+                'created_at'           => now(),
+                'updated_at'           => now(),
+            ]);
 
-        return true;
+            return true;
+        });
     }
 }

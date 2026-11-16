@@ -182,6 +182,28 @@ class ChannelResourceTest extends TestCase
         }
     }
 
+    public function test_members_relation_manager_toggle_role_flips_pivot_roles_and_is_hidden_for_the_owner_row()
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $channel = Channel::factory()->ownedBy($owner)->create(['name' => '0-test-rm-roles']);
+        $member = User::factory()->create(['status' => 'active']);
+        $channel->memberUsers()->attach($owner->id, ['joined_at' => now()]);
+        $channel->memberUsers()->attach($member->id, ['joined_at' => now(), 'entered_at' => now()]);
+
+        $admin = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'admin']);
+        Permission::create(['user_id' => $admin->id, 'is_super_admin' => false, 'abilities' => [['module' => 'channel', 'actions' => ['view', 'update']]]]);
+        $props = ['ownerRecord' => $channel, 'pageClass' => EditChannel::class];
+
+        $component = Livewire::actingAs($admin)->test(ChannelMembersRelationManager::class, $props);
+        $component->assertTableActionHidden('toggleRole', $owner)->assertTableActionVisible('toggleRole', $member);
+
+        $component->callTableAction('toggleRole', $member);
+        $this->assertSame('admin', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $member->id)->value('role'));
+
+        $component->callTableAction('toggleRole', $member);
+        $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $member->id)->value('role'));
+    }
+
     public function test_type_filter_scopes_list_to_matching_channels()
     {
         $admin = $this->developer();

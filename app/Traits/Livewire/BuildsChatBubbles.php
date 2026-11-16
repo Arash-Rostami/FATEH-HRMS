@@ -2,7 +2,9 @@
 
 namespace App\Traits\Livewire;
 
+use App\Livewire\Dashboard\Messaging\Actions\ForwardMessageAction;
 use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\User;
 use Illuminate\Support\Str;
 
 trait BuildsChatBubbles
@@ -62,6 +64,39 @@ trait BuildsChatBubbles
             '<a href="$1" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 opacity-90 hover:opacity-100 transition-opacity">$1</a>',
             $text
         );
+    }
+
+    private function reactionChips(array $reactions, int $authId, array $readersMap): array
+    {
+        if (!$reactions) {
+            return [];
+        }
+
+        $fallback = null;
+
+        return collect($reactions)->groupBy('emoji')->map(fn($rows, $emoji) => [
+            'emoji' => $emoji,
+            'count' => $rows->count(),
+            'mine' => $rows->contains(fn($r) => (int) $r['user_id'] === $authId),
+            'names' => $rows->map(fn($r) => $readersMap[(int) $r['user_id']]['name']
+                ?? ($fallback ??= User::getCachedActiveOptions())->get((int) $r['user_id'], 'کاربر'))->implode('، '),
+        ])->values()->all();
+    }
+
+    public function pinPreview(?int $id, ?string $body, string $sender): ?array
+    {
+        if (!$id || $body === null) {
+            return null;
+        }
+
+        $parts = ForwardMessageAction::parts($body);
+        $text = $parts['forwarded'] === null ? $body : ($parts['note'] !== '' ? $parts['note'] : $parts['forwarded']);
+
+        return [
+            'id' => $id,
+            'sender' => $sender,
+            'body' => $text !== '' ? Str::limit($text, 80) : 'پیوست',
+        ];
     }
 
     public function replyPreview(?array $replyTo): ?array

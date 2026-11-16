@@ -2,11 +2,8 @@
     $p = $this->presenter;
     $channel = $this->activeChannel;
     $header = $p->channelHeader($channel);
-    $isOwner = $channel
-        && $channel->owner_id !== null
-        && auth()->check()
-        && (int) $channel->owner_id === (int) auth()->id();
-    $pendingInvitees = $isOwner ? $this->pendingInvitees : [];
+    $can = $this->abilities;
+    $pendingInvitees = $can['manageMembers'] ? $this->pendingInvitees : [];
 @endphp
 
 <div x-show="showInfo"
@@ -74,7 +71,7 @@
                         <span class="material-symbols-rounded text-base" aria-hidden="true">person</span>
                     </div>
                     <div class="min-w-0">
-                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">مدیر گروه</p>
+                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">مالک گروه</p>
                         <p class="truncate text-xs font-bold text-[var(--md-sys-color-on-surface)]" title="{{ $header['owner_name'] }}">{{ $header['owner_name'] }}</p>
                     </div>
                 </div>
@@ -87,9 +84,9 @@
                 </div>
             @endif
 
-            @if($isOwner && $pendingInvitees)
-                <div class="flex min-h-0 flex-1 flex-col rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] bg-[var(--md-sys-color-surface-container-low)] p-2.5 overflow-hidden">
-                    <div class="mb-2 flex flex-shrink-0 items-center justify-between gap-1" title="کاربرانی که توسط شما دعوت شده‌اند اما هنوز یک‌بار وارد گروه نشده‌اند">
+            @if($pendingInvitees)
+                <div wire:key="channel-info-pending" class="flex min-h-0 flex-1 flex-col rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] bg-[var(--md-sys-color-surface-container-low)] p-2.5 overflow-hidden">
+                    <div class="mb-2 flex flex-shrink-0 items-center justify-between gap-1" title="کاربرانی که دعوت شده‌اند اما هنوز یک‌بار وارد گروه نشده‌اند">
                         <span class="flex items-center gap-1 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
                             <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]" aria-hidden="true">hourglass_top</span>
                             <span>در انتظار ورود ({{ convertToPersian((string) count($pendingInvitees)) }})</span>
@@ -151,8 +148,8 @@
             @endif
         </div>
 
-        @if($isOwner)
-            <div class="flex flex-shrink-0 flex-col gap-2 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] pt-3">
+        @if($can['manageMembers'])
+            <div wire:key="channel-info-tools" class="flex flex-shrink-0 flex-col gap-2 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] pt-3">
                 <button x-on:click="openManageMembers({{ $header['id'] }})"
                         type="button"
                         class="flex w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-2 text-xs font-bold text-[var(--md-sys-color-on-surface)] transition-all hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-[0.98]">
@@ -160,6 +157,62 @@
                     <span>مدیریت اعضا</span>
                 </button>
 
+                @if($can['manageAdmins'])
+                    <button wire:key="channel-info-admins"
+                            x-on:click="openManageAdmins({{ $header['id'] }})"
+                            type="button"
+                            class="flex w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-2 text-xs font-bold text-[var(--md-sys-color-on-surface)] transition-all hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-[0.98]">
+                        <span class="material-symbols-rounded text-[17px]">shield_person</span>
+                        <span>مدیران گروه</span>
+                    </button>
+                @endif
+
+                @if($can['changeType'])
+                    <div wire:key="channel-info-type">
+                        @if($header['type'] === 'open')
+                            <button wire:key="channel-info-type-private"
+                                    type="button"
+                                    x-on:click="doChangeType({{ $header['id'] }}, 'private')"
+                                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-2 text-xs font-bold text-[var(--md-sys-color-on-surface)] transition-all hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-[0.98]">
+                                <span class="material-symbols-rounded text-[17px]">lock</span>
+                                <span>تبدیل به گروه خصوصی</span>
+                            </button>
+                        @else
+                            <div wire:key="channel-info-type-open" class="contents">
+                            <div x-show="!confirmingTypeChange" style="display: none;">
+                                <button type="button"
+                                        x-on:click="confirmTypeChange()"
+                                        class="flex w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-2 text-xs font-bold text-[var(--md-sys-color-on-surface)] transition-all hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-[0.98]">
+                                    <span class="material-symbols-rounded text-[17px]">campaign</span>
+                                    <span>تبدیل به گروه عمومی</span>
+                                </button>
+                            </div>
+
+                            <div x-show="confirmingTypeChange"
+                                 style="display: none;"
+                                 class="flex flex-col gap-2 rounded-xl bg-[var(--md-sys-color-error-container)] p-2.5 text-[var(--md-sys-color-on-error-container)]">
+                                <p class="text-[11px] font-bold">با عمومی‌شدن، همهٔ کاربران می‌توانند عضو شوند و همهٔ پیام‌های قبلی را ببینند. ادامه می‌دهید؟</p>
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <button type="button"
+                                            x-on:click="cancelTypeChange()"
+                                            class="rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-error-container)_12%,transparent)] px-3 py-1 text-[11px] font-semibold transition-all hover:brightness-90 active:scale-95">
+                                        انصراف
+                                    </button>
+                                    <x-ui.buttons.form x-on:click.prevent="doChangeType({{ $header['id'] }}, 'open')"
+                                                       wire:loading.attr="disabled"
+                                                       wire:target="changeChannelType"
+                                                       loading="changeChannelType"
+                                                       class="h-auto rounded-lg bg-[var(--md-sys-color-error)] px-3 py-1 text-[11px] font-bold text-[var(--md-sys-color-on-error)] transition-all hover:brightness-110">
+                                        عمومی شود
+                                    </x-ui.buttons.form>
+                                </div>
+                            </div>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                @if($can['setKey'])
                 <div wire:key="channel-info-key" class="flex flex-col gap-2">
                     <button x-show="!keyOpen"
                             x-on:click="openChannelKey()"
@@ -200,12 +253,13 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
-                @if((int) $header['members_count'] === 1 && $channel->isProjectLinked())
+                @if($can['delete'] && (int) $header['members_count'] === 1 && $channel->isProjectLinked())
                     <p wire:key="channel-info-project-linked" class="text-center text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-80">
                         گفتگوی پروژه است و با حذف پروژه حذف می‌شود.
                     </p>
-                @elseif((int) $header['members_count'] === 1)
+                @elseif($can['delete'] && (int) $header['members_count'] === 1)
                     <div wire:key="channel-info-delete-group">
                         <div x-show="!confirmingDeleteChannel" style="display: none;">
                             <button type="button"

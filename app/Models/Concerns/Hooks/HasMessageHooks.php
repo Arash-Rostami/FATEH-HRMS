@@ -10,7 +10,7 @@ trait HasMessageHooks
     protected static function bootHasMessageHooks(): void
     {
         static::forceDeleted(self::deleteAttachmentsOnForceDeleted(...));
-        static::created(self::bumpDmThreadDigestAfterCommit(...));
+        static::created(fn(self $message) => self::bumpDmThreadDigestAfterCommit($message, false));
         static::updated(self::bumpDmThreadDigestAfterCommit(...));
         static::deleted(self::bumpDmThreadDigestAfterCommit(...));
     }
@@ -20,11 +20,15 @@ trait HasMessageHooks
         return static::deleteStoredFiles($message->attachments);
     }
 
-    private static function bumpDmThreadDigestAfterCommit(self $message)
+    private static function bumpDmThreadDigestAfterCommit(self $message, bool $pairVersion = true)
     {
-        return DB::afterCommit(function () use ($message) {
+        return DB::afterCommit(function () use ($message, $pairVersion) {
             PollDigestService::bump("dm:sv:{$message->sender_id}");
             PollDigestService::bump("dm:sv:{$message->recipient_id}");
+
+            if ($pairVersion) {
+                PollDigestService::bump(self::pairVersionKey($message->sender_id, $message->recipient_id));
+            }
         });
     }
 }

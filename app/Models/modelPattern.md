@@ -15,7 +15,7 @@ Cross-model duplicates live as traits in `app/Models/Concerns/`. Composition is 
 | Trait | Consumers | Owns |
 |---|---|---|
 | `HasUrgencyState` | Task, Ticket | `urgencyState` pipeline (deadline → floor → idle → round) |
-| `HasThreadMessages` | Message, ChannelMessage | `attachmentUrls()`, sanitizer `body()` attribute, `sender`/`replyTo`/`replies` thread relations (`static::class` resolves to the using model) |
+| `HasThreadMessages` | Message, ChannelMessage | `attachmentUrls()`, `toggleReaction()` (one reaction per user, raw update — shared by the Channel and DM reaction actions since 2026-11-17), sanitizer `body()` attribute, `sender`/`replyTo`/`replies` thread relations (`static::class` resolves to the using model) |
 | `HasBoardRanking` | Task | `nextRank`/`rankForPriority`/`bulkAssignRanks`/`scopeInRankColumn`/`rerankIfMoved` |
 | `HasTaskApproval` | Task | approval predicates (`isPendingApproval`, `isFrozenFor`, `isGenuinelyDone`), save-guards (`guardTicketLock`, `guardApprovedFreeze`, `guardPastDeadline`), status/archive/approval side effects, `canChangeStatus`/`isFrozen`/`canReopen`/`canDelete` attributes |
 | `HasCycleStep` | Task | `cycleLink` per-instance memo, `setCycleLink`/`cycleStep()`/`isCycleLocked()` |

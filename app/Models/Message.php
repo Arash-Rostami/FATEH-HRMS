@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 class Message extends Model
 {
@@ -76,6 +78,29 @@ class Message extends Model
             ->count();
     }
 
+    public static function pairVersionKey(int $a, int $b): string
+    {
+        return 'dm:rv:' . min($a, $b) . ':' . max($a, $b);
+    }
+
+    public static function pinPair(int $a, int $b): QueryBuilder
+    {
+        return DB::table('message_pins')
+            ->where('user_low_id', min($a, $b))
+            ->where('user_high_id', max($a, $b));
+    }
+
+    public static function pinSelects(int $a, int $b): array
+    {
+        $pin = fn() => static::pinPair($a, $b)->select('message_id');
+
+        return [
+            'pinned_message_id' => static::select('id')->whereIn('id', $pin())->limit(1),
+            'pinned_body' => static::select('body')->whereIn('id', $pin())->limit(1),
+            'pinned_sender_id' => static::select('sender_id')->whereIn('id', $pin())->limit(1),
+        ];
+    }
+
     public function prunable()
     {
         return static::where('deleted_at', '<=', now()->subDays($this->getPruneDays()));
@@ -95,6 +120,7 @@ class Message extends Model
     {
         return [
             'attachments' => 'array',
+            'reactions' => 'array',
             'is_edited' => 'boolean',
             'read_at' => 'datetime',
         ];

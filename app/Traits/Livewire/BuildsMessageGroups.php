@@ -3,7 +3,6 @@
 namespace App\Traits\Livewire;
 
 use App\Livewire\Dashboard\Messaging\Actions\ForwardMessageAction;
-use App\Models\User;
 use Carbon\Carbon;
 
 trait BuildsMessageGroups
@@ -152,23 +151,6 @@ trait BuildsMessageGroups
             'shown' => $shown,
             'extra' => max(0, $msg['read_count'] - count($shown)),
         ];
-    }
-
-    private function reactionChips(array $reactions, int $authId, array $readersMap): array
-    {
-        if (!$reactions) {
-            return [];
-        }
-
-        $fallback = null;
-
-        return collect($reactions)->groupBy('emoji')->map(fn($rows, $emoji) => [
-            'emoji' => $emoji,
-            'count' => $rows->count(),
-            'mine' => $rows->contains(fn($r) => (int) $r['user_id'] === $authId),
-            'names' => $rows->map(fn($r) => $readersMap[(int) $r['user_id']]['name']
-                ?? ($fallback ??= User::getCachedActiveOptions())->get((int) $r['user_id'], 'کاربر'))->implode('، '),
-        ])->values()->all();
     }
 
     private function mentionify(string $linked, string $pattern): array

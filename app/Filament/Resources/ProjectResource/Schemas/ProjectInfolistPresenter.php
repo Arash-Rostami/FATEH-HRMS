@@ -35,7 +35,7 @@ class ProjectInfolistPresenter
     {
         return TextEntry::make('member_ids')
             ->label(__('resources/project/strings.fields.member_ids'))
-            ->formatStateUsing(fn($state) => User::whereIn('id', $state ?? [])->pluck('name')->implode('، ') ?: '—')
+            ->formatStateUsing(fn($state) => User::whereIn('id', (array) $state)->pluck('name')->implode('، ') ?: '—')
             ->columnSpanFull();
     }
 

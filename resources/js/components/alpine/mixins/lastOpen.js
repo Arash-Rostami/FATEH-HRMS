@@ -1,9 +1,8 @@
 function lastOpenStorageKey(scope) {
     if (!scope) return null;
-    if (window.self !== window.top) return null;
     const uid = document.documentElement.dataset.uid;
     if (!uid) return null;
-    return `last:${scope}:${uid}`;
+    return `last:${scope}:${uid}${window.self !== window.top ? ':f' : ''}`;
 }
 
 export default function lastOpenMixin(scope) {

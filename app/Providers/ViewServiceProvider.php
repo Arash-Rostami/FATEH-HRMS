@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\View\Composers\AccountOnboardingComposer;
 use App\View\Composers\AiAssistantComposer;
 use App\View\Composers\AuthShellComposer;
+use App\View\Composers\ChatFontComposer;
 use App\View\Composers\ErrorTraceComposer;
 use App\View\Composers\LeftNavComposer;
 use App\View\Composers\MenuStateComposer;
@@ -32,6 +33,7 @@ class ViewServiceProvider extends ServiceProvider
         ReleaseModulesComposer::class => 'components.dashboard.modal.release',
         AuthShellComposer::class => ['layouts.auth', 'layouts::auth', 'components.auth.card-no-signup'],
         NavUnreadComposer::class => ['components.dashboard.navbars.top', 'components.dashboard.navbars.top.notification',],
+        ChatFontComposer::class => 'livewire.dashboard.messaging.font-picker',
     ];
 
     public function boot(): void

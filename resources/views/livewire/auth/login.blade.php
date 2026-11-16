@@ -164,8 +164,8 @@
                 @endif
             </div>
 
-            <div class="flex flex-nowrap items-center justify-between gap-x-3 px-1 whitespace-nowrap">
-                <div class="flex flex-nowrap items-center gap-x-3">
+            <div class="flex flex-wrap md:flex-nowrap items-center justify-between gap-x-3 gap-y-2 px-1 whitespace-nowrap">
+                <div class="flex flex-wrap md:flex-nowrap items-center gap-x-3 max-md:w-full">
                     <label class="flex items-center gap-2.5 cursor-pointer group select-none py-1">
                         <x-ui.forms.switch x-model="remember"/>
                         <span
@@ -200,7 +200,7 @@
                         wire:key="login-forgot-password"
                         variant="tonal"
                         :href="route('password.request')"
-                        :class="($otp ? 'invisible ' : '') . '!h-8 !px-3 rounded-lg text-xs font-bold'">
+                        :class="($otp ? 'invisible max-md:hidden ' : '') . '!h-8 !px-3 rounded-lg text-xs font-bold'">
                         <span class="material-symbols-rounded text-[18px] leading-none">lock_reset</span>
                         <span>فراموشی رمز عبور؟</span>
                     </x-ui.buttons.form>

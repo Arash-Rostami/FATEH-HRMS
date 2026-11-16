@@ -6,7 +6,12 @@ use App\Enums\ChannelType;
 use App\Enums\PresenceStatus;
 use App\Jobs\ReconcileEdgeJob;
 use App\Jobs\ReconcileNudgeJob;
+use App\Livewire\Dashboard\Channel\Actions\ChangeChannelTypeAction;
 use App\Livewire\Dashboard\Channel\Actions\DeleteChannelAction;
+use App\Livewire\Dashboard\Channel\Actions\LeaveChannelAction;
+use App\Livewire\Dashboard\Channel\Actions\SyncChannelAdminsAction;
+use App\Support\ChannelAccessPolicy;
+use App\Livewire\Dashboard\Channel\Actions\SyncChannelMembersAction;
 use App\Livewire\Dashboard\Channel\Actions\DeleteChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\DownloadChannelAttachmentAction;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
@@ -2855,5 +2860,257 @@ class ChannelTest extends TestCase
         $this->assertFalse(app(SaveEditChannelMessageAction::class)->execute($form, $older->id));
         $this->assertFalse(app(DeleteChannelMessageAction::class)->execute($older->id, 600));
         $this->assertSame('older own', ChannelMessage::find($older->id)->body);
+    }
+
+    private function promote(Channel $channel, User ...$users): void
+    {
+        DB::table('channel_members')->where('channel_id', $channel->id)->whereIn('user_id', collect($users)->pluck('id'))->update(['role' => 'admin']);
+    }
+
+    private function memberIds(Channel $channel): array
+    {
+        return $channel->memberUsers()->pluck('users.id')->sort()->values()->all();
+    }
+
+    private function activeUsers(int $count): array
+    {
+        return User::factory()->count($count)->create(['status' => 'active', 'presence' => 'onsite'])->all();
+    }
+
+    public function test_an_admin_adds_and_removes_plain_members_but_never_the_owner_an_admin_or_himself(): void
+    {
+        [$owner, $admin, $peer, $plain, $newcomer] = $this->activeUsers(5);
+        $channel = $this->channelWithMembers($owner, [$admin, $peer, $plain]);
+        $this->promote($channel, $admin, $peer);
+
+        Livewire::actingAs($admin)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('openManageMembers', $channel->id)
+            ->assertSet('isManageMembersOpen', true)
+            ->set('memberRecipientIds', [$newcomer->id])
+            ->call('saveManageMembers');
+
+        $this->assertSame(collect([$owner, $admin, $peer, $newcomer])->pluck('id')->sort()->values()->all(), $this->memberIds($channel));
+
+        $result = app(SyncChannelMembersAction::class)->execute($channel->id, $admin->id, []);
+        $this->assertSame(1, $result['removed']);
+        $this->assertSame(collect([$owner, $admin, $peer])->pluck('id')->sort()->values()->all(), $this->memberIds($channel));
+    }
+
+    public function test_a_plain_member_is_refused_on_every_admin_capability(): void
+    {
+        [$owner, $member, $target] = $this->activeUsers(3);
+        $channel = $this->channelWithMembers($owner, [$member, $target]);
+
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('openManageMembers', $channel->id)
+            ->assertSet('isManageMembersOpen', false)
+            ->call('openManageAdmins', $channel->id)
+            ->assertSet('isManageAdminsOpen', false)
+            ->set('adminRecipientIds', [$target->id])
+            ->call('saveManageAdmins')
+            ->call('changeChannelType', $channel->id, 'open')
+            ->call('saveChannelKey', $channel->id, 'member-key-123');
+
+        $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $target->id)->value('role'));
+        $this->assertSame(ChannelType::Private, $channel->fresh()->type);
+        $this->assertSame(0, Lock::where('lockable_type', 'channel')->where('lockable_id', $channel->id)->count());
+    }
+
+    public function test_owner_and_admin_flip_the_group_type_both_ways_and_the_joinable_list_follows(): void
+    {
+        [$owner, $admin, $outsider] = $this->activeUsers(3);
+        $channel = $this->channelWithMembers($owner, [$admin]);
+        $this->promote($channel, $admin);
+
+        $asOutsider = fn() => Livewire::actingAs($outsider)->test(Main::class)->instance()->joinableChannels();
+
+        $this->assertNotContains($channel->id, array_column($asOutsider(), 'id'));
+
+        Livewire::actingAs($owner)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('changeChannelType', $channel->id, 'open')
+            ->assertDispatched('show-toast');
+        $this->assertSame(ChannelType::Open, $channel->fresh()->type);
+        $this->assertContains($channel->id, array_column($asOutsider(), 'id'));
+
+        Livewire::actingAs($admin)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('changeChannelType', $channel->id, 'private');
+        $this->assertSame(ChannelType::Private, $channel->fresh()->type);
+        $this->assertNotContains($channel->id, array_column($asOutsider(), 'id'));
+        $this->assertContains($admin->id, $this->memberIds($channel));
+
+        $action = app(ChangeChannelTypeAction::class);
+        $this->assertFalse($action->execute($channel->id, $admin->id, 'private'));
+        $this->assertFalse($action->execute($channel->id, $admin->id, 'bogus'));
+    }
+
+    public function test_a_project_linked_group_takes_no_admins_and_no_type_change(): void
+    {
+        [$owner, $member] = $this->activeUsers(2);
+        $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [$member->id], 'departments' => []]);
+        $channel = app(ChannelProvisioner::class)->resolve($project->fresh());
+        $channel->memberUsers()->syncWithoutDetaching([$member->id => ['joined_at' => now(), 'entered_at' => now()]]);
+
+        $this->assertFalse(app(ChangeChannelTypeAction::class)->execute($channel->id, $owner->id, 'open'));
+        $this->assertSame(['promoted' => 0, 'demoted' => 0], app(SyncChannelAdminsAction::class)->execute($channel->id, $owner->id, [$member->id]));
+        $this->assertSame(0, DB::table('channel_members')->where('channel_id', $channel->id)->where('role', 'admin')->count());
+    }
+
+    public function test_only_the_owner_syncs_admins_and_a_non_member_id_is_ignored(): void
+    {
+        [$owner, $admin, $member, $outsider] = $this->activeUsers(4);
+        $channel = $this->channelWithMembers($owner, [$admin, $member]);
+        $this->promote($channel, $admin);
+        $action = app(SyncChannelAdminsAction::class);
+
+        $this->assertSame(['promoted' => 0, 'demoted' => 0], $action->execute($channel->id, $admin->id, [$member->id]));
+
+        $result = $action->execute($channel->id, $owner->id, [$admin->id, $member->id, $outsider->id, $owner->id]);
+        $this->assertSame(['promoted' => 1, 'demoted' => 0], $result);
+        $this->assertSame(0, DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $outsider->id)->count());
+        $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $owner->id)->value('role'));
+
+        Livewire::actingAs($owner)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('openManageAdmins', $channel->id)
+            ->assertSet('isManageAdminsOpen', true)
+            ->assertSet('adminRecipientIds', fn(array $ids) => collect($ids)->sort()->values()->all() === collect([$admin->id, $member->id])->sort()->values()->all())
+            ->set('adminRecipientIds', [$member->id])
+            ->call('saveManageAdmins')
+            ->assertSet('isManageAdminsOpen', false);
+
+        $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $admin->id)->value('role'));
+        $this->assertSame('admin', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $member->id)->value('role'));
+    }
+
+    public function test_a_demoted_admin_loses_manage_rights_and_a_re_added_user_is_a_plain_member(): void
+    {
+        [$owner, $admin, $extra] = $this->activeUsers(3);
+        $channel = $this->channelWithMembers($owner, [$admin]);
+        $this->promote($channel, $admin);
+
+        $component = Livewire::actingAs($admin)->test(Main::class)->call('selectChannel', $channel->id);
+
+        app(SyncChannelAdminsAction::class)->execute($channel->id, $owner->id, []);
+
+        $component->set('memberRecipientIds', [$extra->id])->call('saveManageMembers');
+        $this->assertSame(collect([$owner, $admin])->pluck('id')->sort()->values()->all(), $this->memberIds($channel));
+
+        $this->promote($channel, $admin);
+        app(SyncChannelMembersAction::class)->execute($channel->id, $owner->id, []);
+        app(SyncChannelMembersAction::class)->execute($channel->id, $owner->id, [$admin->id]);
+
+        $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $admin->id)->value('role'));
+    }
+
+    public function test_an_admin_can_leave_but_the_owner_still_cannot(): void
+    {
+        [$owner, $admin] = $this->activeUsers(2);
+        $channel = $this->channelWithMembers($owner, [$admin]);
+        $this->promote($channel, $admin);
+
+        $this->assertFalse(app(LeaveChannelAction::class)->execute($channel->id, $owner->id));
+        $this->assertTrue(app(LeaveChannelAction::class)->execute($channel->id, $admin->id));
+        $this->assertSame([$owner->id], $this->memberIds($channel));
+    }
+
+    public function test_the_policy_returns_the_viewer_abilities_per_role_and_the_header_only_needs_can_leave(): void
+    {
+        [$owner, $admin, $member] = $this->activeUsers(3);
+        $channel = $this->channelWithMembers($owner, [$admin, $member]);
+        $this->promote($channel, $admin);
+        $presenter = new ChannelPresenter();
+        $header = $presenter->channelHeader($channel);
+
+        $can = fn() => ChannelAccessPolicy::abilities($channel, auth()->user());
+
+        $this->actingAs($owner);
+        $this->assertFalse($presenter->headerState($channel, $header, [], [], [])['canLeave']);
+        $this->actingAs($admin);
+        $this->assertTrue($presenter->headerState($channel, $header, [], [], [])['canLeave']);
+
+        $this->actingAs($owner);
+        $this->assertSame(['manageMembers' => true, 'changeType' => true, 'manageAdmins' => true, 'setKey' => true, 'delete' => true, 'leave' => false], $can());
+
+        $this->actingAs($admin);
+        $this->assertSame(['manageMembers' => true, 'changeType' => true, 'manageAdmins' => false, 'setKey' => false, 'delete' => false, 'leave' => true], $can());
+
+        $this->actingAs($member);
+        $this->assertSame(['manageMembers' => false, 'changeType' => false, 'manageAdmins' => false, 'setKey' => false, 'delete' => false, 'leave' => true], $can());
+    }
+
+    public function test_the_policy_trusts_a_loaded_viewer_role_and_the_project_link_attribute_without_extra_queries(): void
+    {
+        [$owner, $admin] = $this->activeUsers(2);
+        $channel = $this->channelWithMembers($owner, [$admin]);
+        $this->promote($channel, $admin);
+
+        $loaded = Channel::withViewerRole($admin->id)->find($channel->id);
+        $this->assertSame('admin', $loaded->getAttributes()['viewer_role']);
+        $this->assertNull($loaded->getAttributes()['project_link_id']);
+
+        DB::enableQueryLog();
+        $this->assertTrue(ChannelAccessPolicy::canChangeType($loaded, $admin));
+        $this->assertFalse(ChannelAccessPolicy::canManageAdmins($loaded, $admin));
+        $this->assertCount(0, DB::getQueryLog());
+        DB::disableQueryLog();
+    }
+
+    public function test_becoming_owner_resets_a_stored_admin_role_and_bumps_the_room_version(): void
+    {
+        [$owner, $admin] = $this->activeUsers(2);
+        $channel = $this->channelWithMembers($owner, [$admin]);
+        $this->promote($channel, $admin);
+
+        $channel->update(['owner_id' => $admin->id]);
+
+        $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $admin->id)->value('role'));
+        $this->assertNotSame('0', PollDigestService::version("ch:rv:{$channel->id}"));
+    }
+
+    public function test_the_owner_cannot_promote_a_pending_invitee_by_crafting_ids(): void
+    {
+        [$owner, $invitee] = $this->activeUsers(2);
+        $channel = $this->channelWithMembers($owner, [$invitee]);
+        DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $invitee->id)->update(['entered_at' => null]);
+
+        $this->actingAs($owner);
+        app(SyncChannelAdminsAction::class)->execute($channel->id, $owner->id, [$invitee->id]);
+
+        $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $invitee->id)->value('role'));
+    }
+
+    public function test_the_channel_key_and_group_deletion_stay_owner_only_for_admins(): void
+    {
+        [$owner, $admin] = $this->activeUsers(2);
+        $channel = $this->channelWithMembers($owner, [$admin]);
+        $this->promote($channel, $admin);
+
+        Livewire::actingAs($admin)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('saveChannelKey', $channel->id, 'admin-key-1234');
+
+        Livewire::actingAs($admin)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('deleteChannel', $channel->id);
+
+        $this->assertSame(0, Lock::where('lockable_type', 'channel')->where('lockable_id', $channel->id)->count());
+        $this->assertNotNull(Channel::find($channel->id));
+    }
+
+    public function test_a_deactivated_member_is_never_promoted_to_admin(): void
+    {
+        [$owner] = $this->activeUsers(1);
+        $inactive = User::factory()->create(['status' => 'inactive', 'presence' => 'onsite']);
+        $channel = $this->channelWithMembers($owner, [$inactive]);
+
+        $this->actingAs($owner);
+        $result = app(SyncChannelAdminsAction::class)->execute($channel->id, $owner->id, [$inactive->id]);
+
+        $this->assertSame(['promoted' => 0, 'demoted' => 0], $result);
+        $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $inactive->id)->value('role'));
     }
 }

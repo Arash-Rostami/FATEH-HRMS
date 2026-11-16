@@ -44,10 +44,11 @@ describe('livewire-errors — registration gating', () => {
 
     test('a second livewire:init dispatch does not re-register the hook', () => {
         const hook = mockLivewire()
+        const requestHooks = () => hook.mock.calls.filter(([event]) => event === 'request').length
         dispatchInit()
-        expect(hook).toHaveBeenCalledTimes(1)
+        expect(requestHooks()).toBe(1)
         dispatchInit()
-        expect(hook).toHaveBeenCalledTimes(1)
+        expect(requestHooks()).toBe(1)
     })
 })
 
@@ -70,10 +71,51 @@ describe('livewire-errors — the fail handler', () => {
         window.removeEventListener('toast', toastSpy)
     })
 
-    test('on expired session (419) prevents default, toasts once, and schedules exactly one reload', () => {
+    test('on expired session (419) with a refreshed token toasts a retry hint and does not reload', async () => {
+        arm()
+        document.body.innerHTML = '<script data-csrf="old"></script>'
+        const reload = vi.fn()
+        vi.stubGlobal('location', { reload, href: '/x' })
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, redirected: false, text: async () => '<script data-csrf="fresh"></script>' }))
+        const toastSpy = vi.fn()
+        window.addEventListener('toast', toastSpy)
+
+        hookFailCallback({ status: 419, content: {}, preventDefault: vi.fn() })
+        await vi.waitFor(() => expect(toastSpy).toHaveBeenCalledTimes(1))
+
+        expect(toastSpy.mock.calls[0][0].detail.message).toBe('دوباره تلاش کنید')
+        expect(document.querySelector('[data-csrf]').getAttribute('data-csrf')).toBe('fresh')
+        expect(reload).not.toHaveBeenCalled()
+        vi.unstubAllGlobals()
+        window.removeEventListener('toast', toastSpy)
+    })
+
+    test('a 419 for a request sent with an old token, after the token was already refreshed, toasts a retry without fetching or reloading', async () => {
+        document.body.innerHTML = '<script data-csrf="old"></script>'
+        arm()
+        document.querySelector('[data-csrf]').setAttribute('data-csrf', 'fresh')
+        const reload = vi.fn()
+        const fetchMock = vi.fn()
+        vi.stubGlobal('location', { reload, href: '/x' })
+        vi.stubGlobal('fetch', fetchMock)
+        const toastSpy = vi.fn()
+        window.addEventListener('toast', toastSpy)
+
+        hookFailCallback({ status: 419, content: {}, preventDefault: vi.fn() })
+
+        expect(toastSpy).toHaveBeenCalledTimes(1)
+        expect(toastSpy.mock.calls[0][0].detail.message).toBe('دوباره تلاش کنید')
+        expect(fetchMock).not.toHaveBeenCalled()
+        expect(reload).not.toHaveBeenCalled()
+        vi.unstubAllGlobals()
+        window.removeEventListener('toast', toastSpy)
+    })
+
+    test('on expired session (419) prevents default, toasts once, and schedules exactly one reload', async () => {
         arm()
         const reload = vi.fn()
         vi.stubGlobal('location', { reload })
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, redirected: true, url: '/login' }))
         const preventDefault = vi.fn()
         const toastSpy = vi.fn()
         window.addEventListener('toast', toastSpy)
@@ -81,6 +123,7 @@ describe('livewire-errors — the fail handler', () => {
         vi.useFakeTimers()
         hookFailCallback({ status: 419, content: {}, preventDefault })
         hookFailCallback({ status: 419, content: {}, preventDefault })
+        await vi.waitFor(() => expect(toastSpy).toHaveBeenCalledTimes(1))
 
         expect(preventDefault).toHaveBeenCalledTimes(2)
         expect(toastSpy).toHaveBeenCalledTimes(1)

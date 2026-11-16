@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\TaskResource\Schemas;
 
-use App\Enums\TaskPriority;
 use App\Enums\TaskState;
 use App\Enums\TaskStatus;
 use App\Traits\Filament\FilamentFormDivider;
@@ -265,7 +264,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('priority')
             ->label(__('resources/task/strings.fields.priority'))
-            ->getStateUsing(fn($record) => TaskPriority::tryFrom($record->priority ?? ''))
+            ->getStateUsing(fn($record) => $record->priority)
             ->badge()
             ->placeholder('—');
     }

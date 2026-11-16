@@ -3,31 +3,24 @@
             'left-0 -translate-x-[calc(100%+6px)]' => $msg['is_mine'],
             'right-0 translate-x-[calc(100%+6px)]' => !$msg['is_mine']
         ])
-     :class="openActionsId === {{ $msg['id'] }} ? 'opacity-100 scale-100' : ''">
-    <button x-on:click="$store.pinned.togglePin(@js($msg['id']), @js('message'))"
-            :aria-pressed="$store.pinned.isPinned(@js($msg['id']), @js('message'))"
-            :aria-label="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? @js('برداشتن نشان پیام') : @js('نشان کردن پیام')"
-            :title="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? @js('برداشتن نشان پیام') : @js('نشان کردن پیام')"
-            class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-90"
-            :class="$store.pinned.isPinned(@js($msg['id']), @js('message'))
-                      ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
-                      : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)]'">
-        <span class="material-symbols-rounded text-[15px]"
-              :class="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? 'font-fill' : ''">bookmark</span>
-    </button>
+     x-data="{ open: false, pos: {} }"
+     :class="openActionsId === {{ $msg['id'] }} || open ? 'opacity-100 scale-100' : ''">
+    @if($canReact ?? false)
+        <div wire:key="messaging-react-tools" class="contents">
+            <button type="button"
+                    x-on:click.prevent="if (max) toggleMaximize(null); $store.activityReactionPicker.open('ch{{ $msg['id'] }}', $el)"
+                    class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
+                    title="افزودن واکنش" aria-label="افزودن واکنش">
+                <span class="material-symbols-rounded text-[15px]">add_reaction</span>
+            </button>
+        </div>
+    @endif
     <button x-on:click="copyMessage($el.dataset.text)"
             data-text="{{ strip_tags($msg['body_html'] . (($msg['forwarded_html'] ?? '') !== '' ? "\n" . $msg['forwarded_html'] : '')) }}"
             class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
             title="کپی" aria-label="کپی">
         <span class="material-symbols-rounded text-[15px]">content_copy</span>
     </button>
-    @if(count($msg['attachments'] ?? []) === 1)
-        <button type="button" wire:click="downloadAttachment({{ $msg['id'] }}, 0)"
-                class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
-                title="دانلود پیوست" aria-label="دانلود پیوست">
-            <span class="material-symbols-rounded text-[15px]">download</span>
-        </button>
-    @endif
     <button x-on:click.prevent="startReply({{ $msg['id'] }}, $el.dataset.sender, $el.dataset.body)"
             data-sender="{{ $msg['sender_name'] }}"
             data-body="{{ strip_tags($msg['plain_text'] ?? $msg['body']) }}"
@@ -35,50 +28,105 @@
             title="پاسخ" aria-label="پاسخ">
         <span class="material-symbols-rounded text-[15px]">reply</span>
     </button>
-    @if($group ?? false)
-        <button type="button"
-                x-on:click.prevent="if (max) toggleMaximize(null); $store.activityReactionPicker.open('ch{{ $msg['id'] }}', $el)"
-                class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
-                title="افزودن واکنش" aria-label="افزودن واکنش">
-            <span class="material-symbols-rounded text-[15px]">add_reaction</span>
-        </button>
-        <button type="button"
-                wire:click="toggleGroupPin({{ $msg['id'] }})"
-                wire:island="messages"
-                wire:loading.attr="disabled" wire:target="toggleGroupPin"
-                @class([
-                    'w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-90 disabled:opacity-50',
-                    'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => ($pinnedId ?? null) === $msg['id'],
-                    'hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface-variant)]' => ($pinnedId ?? null) !== $msg['id'],
-                ])
-                title="سنجاق گروه" aria-label="سنجاق گروه">
-            <span @class(['material-symbols-rounded text-[15px]', 'font-fill' => ($pinnedId ?? null) === $msg['id']])>push_pin</span>
-        </button>
-    @endif
-    <button type="button"
-            x-on:click.prevent="openActionsId = null; if (max) toggleMaximize(null); $wire.openForward({{ $msg['id'] }})"
-            wire:loading.attr="disabled" wire:target="openForward"
-            class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)] disabled:opacity-50"
-            title="بازفرستادن" aria-label="بازفرستادن پیام">
-        <span class="material-symbols-rounded text-[15px] rotate-180">reply</span>
+    <button type="button" data-msg-menu-trigger="{{ $msg['id'] }}"
+            x-on:click.prevent="pos = $el.getBoundingClientRect().toJSON(); open = !open; if (open) requestAnimationFrame(() => document.querySelector('[data-msg-menu=&quot;{{ $msg['id'] }}&quot;] [role=menuitem]')?.focus())"
+            :aria-expanded="open" aria-haspopup="menu"
+            class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
+            title="بیشتر" aria-label="بیشتر">
+        <span class="material-symbols-rounded text-[15px]">more_horiz</span>
     </button>
-    @if($msg['can_edit'])
-        <button x-on:click.prevent="startEdit({{ $msg['id'] }}, $el.dataset.body)"
-                data-body="{{ $msg['body'] }}"
-                class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-secondary)_10%,transparent)] hover:text-[var(--md-sys-color-secondary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
-                title="ویرایش" aria-label="ویرایش">
-            <span class="material-symbols-rounded text-[15px]">edit</span>
-        </button>
-    @endif
-    @if($msg['can_delete'])
-        <button x-on:click.prevent="confirmDelete({{ $msg['id'] }})"
-                :disabled="showUndo"
-                :class="showUndo ? 'opacity-40 pointer-events-none' : ''"
-                class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)] hover:scale-110 active:scale-90 text-[color-mix(in_srgb,var(--md-sys-color-error)_80%,var(--md-sys-color-on-surface-variant))]"
-                title="حذف" aria-label="حذف">
-            <span class="material-symbols-rounded text-[15px]">delete</span>
-        </button>
-    @endif
+    <template x-if="open"><template x-teleport="body">
+        <div dir="rtl" data-msg-menu="{{ $msg['id'] }}"
+             x-on:click.away="if (!$event.target.closest('[data-msg-menu-trigger=&quot;{{ $msg['id'] }}&quot;]')) open = false"
+             x-on:keydown.escape.window="open = false; document.querySelector('[data-msg-menu-trigger=&quot;{{ $msg['id'] }}&quot;]')?.focus()"
+             x-on:wheel.window.passive="open = false"
+             x-on:touchmove.window.passive="open = false"
+             :style="{ position: 'fixed', ...(pos.top > window.innerHeight / 2 ? { bottom: (window.innerHeight - pos.top + 8) + 'px' } : { top: (pos.bottom + 8) + 'px' }), ...(pos.left > window.innerWidth / 2 ? { right: (window.innerWidth - pos.right) + 'px' } : { left: pos.left + 'px' }) }"
+             class="p-1.5 rounded-xl z-40 max-h-[70vh] overflow-y-auto bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]"
+             role="menu" aria-label="بیشتر">
+            @if($msg['can_edit'])
+                <button type="button" role="menuitem" x-on:click.prevent="open = false; startEdit({{ $msg['id'] }}, $el.dataset.body)"
+                        data-body="{{ $msg['body'] }}"
+                        class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
+                    <span class="material-symbols-rounded text-[16px]">edit</span>
+                    <span>ویرایش</span>
+                </button>
+            @endif
+            @if($canReact ?? false)
+                <div wire:key="messaging-pin-row" class="contents">
+                    <button type="button" role="menuitem"
+                            wire:click="toggleGroupPin({{ $msg['id'] }})"
+                            wire:island="messages"
+                            wire:loading.attr="disabled" wire:target="toggleGroupPin"
+                            x-on:click="open = false"
+                            @class([
+                                'w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50',
+                                'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => ($pinnedId ?? null) === $msg['id'],
+                                'hover:bg-[var(--md-sys-color-surface-container-high)]/50' => ($pinnedId ?? null) !== $msg['id'],
+                            ])>
+                        <span @class(['material-symbols-rounded text-[16px]', 'font-fill' => ($pinnedId ?? null) === $msg['id']])>push_pin</span>
+                        <span>{{ $pinLabel ?? 'سنجاق گروه' }}</span>
+                    </button>
+                </div>
+            @endif
+            <button type="button" role="menuitemcheckbox"
+                    x-on:click.prevent="open = false; $store.pinned.togglePin(@js($msg['id']), @js('message'))"
+                    :aria-checked="$store.pinned.isPinned(@js($msg['id']), @js('message'))"
+                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50"
+                    :class="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : ''">
+                <span class="material-symbols-rounded text-[16px]"
+                      :class="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? 'font-fill' : ''">bookmark</span>
+                <span x-text="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? @js('برداشتن نشان پیام') : @js('نشان کردن پیام')"></span>
+            </button>
+            <button type="button" role="menuitem"
+                    x-on:click.prevent="open = false; openActionsId = null; if (max) toggleMaximize(null); $wire.openForward({{ $msg['id'] }})"
+                    wire:loading.attr="disabled" wire:target="openForward"
+                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50 disabled:opacity-50">
+                <span class="material-symbols-rounded text-[16px] rotate-180">reply</span>
+                <span>بازفرستادن</span>
+            </button>
+            @if(count($msg['attachments'] ?? []) === 1)
+                <button type="button" role="menuitem" wire:click="downloadAttachment({{ $msg['id'] }}, 0)"
+                        wire:island="messages"
+                        x-on:click="open = false"
+                        class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
+                    <span class="material-symbols-rounded text-[16px]">download</span>
+                    <span>دانلود پیوست</span>
+                </button>
+            @endif
+            <div class="h-px my-1 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]" aria-hidden="true"></div>
+            <div class="flex items-center justify-between gap-3 px-2 py-1 text-xs font-medium" role="group" aria-label="اندازهٔ متن">
+                <span class="flex items-center gap-2">
+                    <span class="material-symbols-rounded text-[16px]">format_size</span>
+                    <span>اندازهٔ متن</span>
+                </span>
+                <span dir="ltr" class="flex items-center gap-0.5">
+                    <button type="button" x-on:click.prevent="bumpFont({{ $msg['id'] }}, -1); requestAnimationFrame(() => pos = document.querySelector('[data-msg-menu-trigger=&quot;{{ $msg['id'] }}&quot;]').getBoundingClientRect().toJSON())"
+                            :disabled="fontAtMin({{ $msg['id'] }})"
+                            class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] active:scale-90 text-[var(--md-sys-color-on-surface-variant)] disabled:opacity-40 disabled:pointer-events-none"
+                            title="کوچک‌تر کردن متن" aria-label="کوچک‌تر کردن متن">
+                        <span class="material-symbols-rounded text-[15px]">remove</span>
+                    </button>
+                    <button type="button" x-on:click.prevent="bumpFont({{ $msg['id'] }}, 1); requestAnimationFrame(() => pos = document.querySelector('[data-msg-menu-trigger=&quot;{{ $msg['id'] }}&quot;]').getBoundingClientRect().toJSON())"
+                            :disabled="fontAtMax({{ $msg['id'] }})"
+                            class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] active:scale-90 text-[var(--md-sys-color-on-surface-variant)] disabled:opacity-40 disabled:pointer-events-none"
+                            title="بزرگ‌تر کردن متن" aria-label="بزرگ‌تر کردن متن">
+                        <span class="material-symbols-rounded text-[15px]">add</span>
+                    </button>
+                </span>
+            </div>
+            @if($msg['can_delete'])
+                <div class="h-px my-1 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]" aria-hidden="true"></div>
+                <button type="button" role="menuitem" x-on:click.prevent="open = false; confirmDelete({{ $msg['id'] }})"
+                        :disabled="showUndo"
+                        :class="showUndo ? 'opacity-40 pointer-events-none' : ''"
+                        class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)] text-[color-mix(in_srgb,var(--md-sys-color-error)_80%,var(--md-sys-color-on-surface-variant))]">
+                    <span class="material-symbols-rounded text-[16px]">delete</span>
+                    <span>حذف</span>
+                </button>
+            @endif
+        </div>
+    </template></template>
 </div>
 
 <div x-show="$store.pinned.isPinned(@js($msg['id']), @js('message'))" x-cloak

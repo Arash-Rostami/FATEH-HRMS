@@ -19,6 +19,7 @@ return [
         'user'              => 'کاربر',
         'member'              => 'اعضا',
         'is_edited'         => 'ویرایش‌شده',
+        'role'              => 'نقش',
         'joined_at'         => 'تاریخ عضویت',
         'entered_at'        => 'تاریخ ورود به گروه',
         'last_read_message' => 'آخرین پیام خوانده‌شده',

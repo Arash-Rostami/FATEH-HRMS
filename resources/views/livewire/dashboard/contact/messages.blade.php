@@ -3,6 +3,10 @@
     $hasOlder = $this->hasOlder;
     $hasNewer = $this->hasNewer;
     $firstUnreadId = $this->newMessagesAnchorId;
+    $contact = $this->activeContact;
+    $names = [auth()->id() => ['name' => auth()->user()->name], $contact?->id => ['name' => $contact?->name]];
+    $pin = $p->pinned($contact, $names);
+    $canReact = !$this->activeContactArchived;
 @endphp
 
 <div x-show="typeFilterOpen || typeFilter" x-cloak x-transition
@@ -17,7 +21,11 @@
     </div>
 </div>
 
+@if($pin)
+    @include('livewire.dashboard.messaging.pin-banner')
+@endif
 <div id="msg-viewport"
+     x-on:scroll.passive="$store.activityReactionPicker.close()"
      class="no-anchor flex flex-col flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
      x-bind:class="{
          'bg-[var(--md-sys-color-primary-container)]/20': isHighlighted,
@@ -43,7 +51,7 @@
 
     @forelse($this->groupedMessages as $date => $rawMessages)
         @php
-            $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit, $firstUnreadId);
+            $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit, $firstUnreadId, $names);
         @endphp
 
         <div wire:key="date-{{ $date }}" data-day="{{ $date }}" class="flex items-center gap-3 py-4" role="separator" aria-label="{{ $group['label'] }}">
@@ -92,19 +100,23 @@
                     <div wire:key="contact-msg-spacer" class="flex-shrink-0 w-7" aria-hidden="true"></div>
                 @endif
 
-                <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative">
+                <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative"
+                     :class="editingMsg?.id === {{ $msg['id'] }} ? 'w-full !max-w-[80%] md:!max-w-[68%] lg:!max-w-[62%]' : ''">
 
+                    @if($msg['is_mine'])
                     <div x-show="editingMsg?.id === {{ $msg['id'] }}" style="display: none;"
-                        class="rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
+                        class="scroll-my-6 rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
                         <textarea dir="auto" wire:ignore.self wire:model="edit.editingBody"
-                                  x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();saveEdit({{ $msg['id'] }})}"
-                                  x-on:keydown.escape="cancelEdit"
-                                  x-effect="if (editingMsg?.id === {{ $msg['id'] }}) $nextTick(() => { $el.focus(); $el.selectionStart = $el.selectionEnd = $el.value.length })"
-                                  x-on:input="if ($el.scrollHeight > $el.clientHeight) $el.style.height = Math.min($el.scrollHeight, 320) + 'px'"
+                                  aria-label="ویرایش پیام"
+                                  x-on:keydown.enter="if(!$event.shiftKey && !$event.isComposing){$event.preventDefault();saveEdit({{ $msg['id'] }})}"
+                                  x-on:keydown.escape.stop="cancelEdit"
+                                  x-effect="if (editingMsg?.id === {{ $msg['id'] }}) openEdit($el)"
+                                  x-on:input="fitEdit($el)"
+                                  :style="{ fontFamily: fontFamilyValue() }"
                                   rows="1"
-                                  class="w-full bg-transparent px-4 py-3 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[320px] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]"></textarea>
+                                  class="w-full bg-transparent px-4 py-2.5 text-sm resize-none [unicode-bidi:plaintext] focus:outline-none leading-relaxed min-h-[40px] max-h-[320px] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]"></textarea>
                         @error('edit.editingBody')
-                        <p class="px-4 pb-1 text-[10px] text-[var(--md-sys-color-error)] flex items-center gap-1">
+                        <p wire:key="contact-edit-error" class="px-4 pb-1 text-[10px] text-[var(--md-sys-color-error)] flex items-center gap-1">
                             <span class="material-symbols-rounded text-[10px]">error</span>{{ $message }}
                         </p>
                         @enderror
@@ -112,7 +124,7 @@
                             class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
                             <span
                                 class="hidden md:inline text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-70">Enter ذخیره · Esc انصراف</span>
-                            <div class="flex items-center gap-1.5">
+                            <div class="flex items-center gap-1.5 ms-auto">
                                 <button x-on:click.prevent="cancelEdit"
                                         class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
                                     انصراف
@@ -126,6 +138,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     <div x-show="deletingId === {{ $msg['id'] }}" style="display: none;"
                         class="flex flex-col gap-2.5 px-4 py-3.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-error)_15%,transparent)]">
@@ -160,12 +173,13 @@
                                 @include('livewire.dashboard.messaging.reply-quote', ['msg' => $msg])
                                 @include('livewire.dashboard.messaging.forward-quote', ['msg' => $msg])
                                 @if($msg['body_html'] !== '')
-                                    <span dir="auto" class="block break-words [unicode-bidi:plaintext]">{!! $msg['body_html'] !!}</span>
+                                    <span dir="auto" class="block break-words [unicode-bidi:plaintext]" :style="fontStyle({{ $msg['id'] }})">{!! $msg['body_html'] !!}</span>
                                 @endif
                                 @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])
                             </div>
 
-                                @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg])
+                                @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'canReact' => $canReact, 'pinnedId' => $pin['id'] ?? null, 'pinLabel' => 'سنجاق پیام'])
+                                @include('livewire.dashboard.messaging.reactions', ['msg' => $msg, 'canReact' => $canReact])
 
                             @if($msg['is_last'])
                                 <div

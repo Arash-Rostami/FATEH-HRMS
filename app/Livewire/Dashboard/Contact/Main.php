@@ -10,6 +10,8 @@ use App\Livewire\Dashboard\Contact\Actions\MarkMessagesAsReadAction;
 use App\Livewire\Dashboard\Contact\Actions\SaveEditAction;
 use App\Livewire\Dashboard\Contact\Actions\SearchMessagesAction;
 use App\Livewire\Dashboard\Contact\Actions\SendMessageAction;
+use App\Livewire\Dashboard\Contact\Actions\ToggleMessagePinAction;
+use App\Livewire\Dashboard\Contact\Actions\ToggleMessageReactionAction;
 use App\Livewire\Dashboard\Contact\Actions\UndoDeleteAction;
 use App\Livewire\Dashboard\Contact\Forms\EditMessageForm;
 use App\Livewire\Dashboard\Contact\Forms\MessageComposerForm;
@@ -84,7 +86,9 @@ class Main extends Component
     public function activeContact(): ?User
     {
         return $this->activeUserId
-            ? User::with(['profile.department', 'profile.details'])->find($this->activeUserId)
+            ? User::with(['profile.department', 'profile.details'])
+                ->addSelect(Message::pinSelects((int) auth()->id(), (int) $this->activeUserId))
+                ->find($this->activeUserId)
             : null;
     }
 
@@ -186,6 +190,33 @@ class Main extends Component
         $this->invalidateMessageCache();
         unset($this->contacts);
         $this->dispatch('show-undo-toast', message: 'پیام حذف شد', type: 'warning');
+    }
+
+    public function toggleReaction(ToggleMessageReactionAction $action, int $messageId, string $emoji): void
+    {
+        if (!$this->activeUserId || $this->activeContactArchived) {
+            return;
+        }
+
+        if (!$action->execute($messageId, $emoji, (int) auth()->id())) {
+            $this->dispatch('show-toast', message: 'این پیام دیگر در دسترس نیست.', type: 'error');
+            return;
+        }
+
+        $this->invalidateMessageCache();
+    }
+
+    public function toggleGroupPin(ToggleMessagePinAction $action, int $messageId, bool $onlyUnpin = false): void
+    {
+        if (!$this->activeUserId || (!$onlyUnpin && $this->activeContactArchived)) {
+            return;
+        }
+
+        if (!$action->execute((int) $this->activeUserId, $messageId, (int) auth()->id(), $onlyUnpin)) {
+            $this->dispatch('show-toast', message: 'این پیام دیگر در دسترس نیست.', type: 'error');
+        }
+
+        unset($this->activeContact);
     }
 
     public function downloadAttachment(int $messageId, int $index): ?Response
@@ -409,9 +440,14 @@ class Main extends Component
             $direction($peer, $me)->latest('id')->first(['id', 'updated_at', 'deleted_at']),
         ])->filter()->sortByDesc('id')->first();
 
-        $typing = Cache::get("typing:dm:{$peer}:{$me}") ? '1' : '0';
+        $typingKey = "typing:dm:{$peer}:{$me}";
+        $rvKey = Message::pairVersionKey($me, $peer);
+        $cached = Cache::many([$typingKey, $rvKey]);
 
-        return ($latest ? "{$latest->id}:{$latest->updated_at}:{$latest->deleted_at}" : 'none') . ":{$typing}";
+        $typing = $cached[$typingKey] ? '1' : '0';
+        $rv = (string) ($cached[$rvKey] ?? '0');
+
+        return ($latest ? "{$latest->id}:{$latest->updated_at}:{$latest->deleted_at}" : 'none') . ":{$typing}:{$rv}";
     }
 
     #[Computed]
@@ -458,6 +494,7 @@ class Main extends Component
                 'sender_id' => (int)$m->sender_id,
                 'body' => $m->body,
                 'attachments' => $m->attachments,
+                'reactions' => $m->reactions ?? [],
                 'is_edited' => (bool)$m->is_edited,
                 'read_at' => $m->read_at?->toISOString(),
                 'created_at' => $m->created_at->toISOString(),

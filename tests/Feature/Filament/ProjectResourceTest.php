@@ -872,4 +872,18 @@ class ProjectResourceTest extends TestCase
 
         $this->assertSame([$member->id], array_map('intval', $workflow->fresh()->steps[0]['assignee_user_ids']));
     }
+
+    public function test_view_modal_renders_a_project_with_members(): void
+    {
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $owner->id, 'name' => '0-test-view-members', 'member_ids' => [$member->id], 'departments' => []]);
+
+        $component = Livewire::actingAs($this->developer())
+            ->test(ListProjects::class)
+            ->mountTableAction('view', $project)
+            ->assertSuccessful();
+
+        $this->assertNotNull($component->instance()->getMountedAction());
+    }
 }

@@ -1,3 +1,5 @@
+import { currentCsrf, refreshCsrf } from './workspace.js'
+
 let booted = false
 let reloading419 = false
 
@@ -6,15 +8,30 @@ function register() {
     booted = true
 
     window.Livewire.hook('request', ({ fail }) => {
+        const sent = currentCsrf()
         fail(({ status, content, preventDefault }) => {
             if (status === 419) {
                 preventDefault()
                 if (reloading419) return
-                reloading419 = true
-                window.dispatchEvent(new CustomEvent('toast', {
-                    detail: { message: 'نشست شما به پایان رسید؛ در حال بارگذاری مجدد…', type: 'error' },
+                const retry = () => window.dispatchEvent(new CustomEvent('toast', {
+                    detail: { message: 'دوباره تلاش کنید', type: 'error' },
                 }))
-                setTimeout(() => window.location.reload(), 1200)
+                if (sent && currentCsrf() !== sent) {
+                    retry()
+                    return
+                }
+                refreshCsrf().then((ok) => {
+                    if (ok) {
+                        retry()
+                        return
+                    }
+                    if (reloading419) return
+                    reloading419 = true
+                    window.dispatchEvent(new CustomEvent('toast', {
+                        detail: { message: 'نشست شما به پایان رسید؛ در حال بارگذاری مجدد…', type: 'error' },
+                    }))
+                    setTimeout(() => window.location.reload(), 1200)
+                })
                 return
             }
             if (status === 422) return

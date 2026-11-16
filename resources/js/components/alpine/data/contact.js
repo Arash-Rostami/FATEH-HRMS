@@ -447,15 +447,23 @@ export default function contact() {
         },
 
         async saveEdit(id) {
-            if (!id || id !== this.editingMsg?.id) return;
+            if (!id || id !== this.editingMsg?.id || this._savingEdit) return;
 
             const wire = this.$wire;
+            const body = wire.edit?.editingBody || '';
+            if (body === this.editingMsg.body) return this.cancelEdit();
+            if (!body.trim()) return this.toast('متن پیام نباید خالی باشد.', 'warning');
+            if (this._overLimit(body)) return;
+
+            this._savingEdit = true;
             try {
                 await this._isl().saveEdit(id);
                 if (this.editingMsg?.id === id) this.cancelEdit();
                 this._syncSidebarAfterOwnAction(wire);
             } catch {
                 this.toast('خطا در ذخیره ویرایش پیام.', 'error');
+            } finally {
+                this._savingEdit = false;
             }
         },
 

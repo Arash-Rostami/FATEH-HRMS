@@ -22,6 +22,7 @@ class DeleteMessageAction
             'recipient_id' => $message->recipient_id,
             'body'         => $message->body,
             'attachments'  => $message->attachments ?? [],
+            'reactions'    => $message->reactions,
             'is_edited'    => (bool) $message->is_edited,
             'reply_to_id'  => $message->reply_to_id,
             'read_at'      => $message->read_at?->toDateTimeString(),

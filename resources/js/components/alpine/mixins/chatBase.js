@@ -62,12 +62,18 @@ function computeEmojiOnly(text) {
     return true;
 }
 
+const FONT_SIZES = [0.75, null, 1, 1.125, 1.25];
+const FONT_MAX_ENTRIES = 300;
+const FONT_KEY_RE = /^[a-z][a-z0-9-]{0,40}$/;
+
 export default function chatBase(scope) {
     const settingsKey = 'chat-settings:' + scope;
 
     return {
         ...highlightMatchMixin(),
         ...headerDeclutterMixin(),
+        fontSteps: {},
+        messageFont: 'default',
         _lastIncomingAt: 0,
         _ringPending: null,
         _muteEval: null,
@@ -146,6 +152,7 @@ export default function chatBase(scope) {
         showScrollFab: false,
         newBelow: 0,
         _programmaticScroll: false,
+        _savingEdit: false,
         _scrollSettleTimer: null,
         showInfo: false,
         searchMessages: false,
@@ -285,6 +292,30 @@ export default function chatBase(scope) {
 
                 el._setAutoHeight('auto');
                 el._setAutoHeight(Math.min(el.scrollHeight, maxPx) + 'px');
+            });
+        },
+
+        fitEdit(el, top = false) {
+            if (!el) return;
+            const vp = byId(ID_VIEWPORT);
+            const st = vp?.scrollTop;
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 320) + 'px';
+            if (vp && vp.scrollTop !== st) this.programmaticScroll(() => { vp.scrollTop = st; });
+            if (top) el.scrollTop = 0;
+            requestAnimationFrame(() => this.programmaticScroll(() => el.parentElement?.scrollIntoView?.({ block: 'nearest' })));
+        },
+
+        openEdit(el, tries = 3) {
+            requestAnimationFrame(() => {
+                if (!el?.isConnected) return;
+                if (!el.getClientRects().length) {
+                    if (tries) this.openEdit(el, tries - 1);
+                    return;
+                }
+                el.focus({ preventScroll: true });
+                el.selectionStart = el.selectionEnd = el.value.length;
+                this.fitEdit(el, true);
             });
         },
 
@@ -467,13 +498,59 @@ export default function chatBase(scope) {
             queueMicrotask(() => this._persistChatSettings());
         },
 
+        fontStep(id) {
+            return this.fontSteps[id] || 0;
+        },
+
+        fontAtMin(id) {
+            return this.fontStep(id) <= -1;
+        },
+
+        fontAtMax(id) {
+            return this.fontStep(id) >= FONT_SIZES.length - 2;
+        },
+
+        fontFamilyValue() {
+            return this.messageFont === 'default' ? '' : '"' + this.messageFont + '",Yekan,IranYekan,sans-serif';
+        },
+
+        fontFamilyStyle() {
+            const family = this.fontFamilyValue();
+            return family ? 'font-family:' + family : '';
+        },
+
+        fontStyle(id) {
+            const size = FONT_SIZES[this.fontStep(id) + 1];
+            return [size ? 'font-size:' + size + 'rem' : '', this.fontFamilyStyle()].filter(Boolean).join(';');
+        },
+
+        setMessageFont(key) {
+            this.messageFont = typeof key === 'string' && FONT_KEY_RE.test(key) ? key : 'default';
+            queueMicrotask(() => this._persistChatSettings());
+        },
+
+        bumpFont(id, delta) {
+            const next = Math.max(-1, Math.min(FONT_SIZES.length - 2, this.fontStep(id) + delta));
+            const copy = { ...this.fontSteps };
+            delete copy[id];
+            if (next !== 0) copy[id] = next;
+
+            const keys = Object.keys(copy);
+            for (let i = 0; i < keys.length - FONT_MAX_ENTRIES; i++) delete copy[keys[i]];
+
+            this.fontSteps = copy;
+            queueMicrotask(() => this._persistChatSettings());
+        },
+
         _persistChatSettings() {
             try {
                 localStorage.setItem(settingsKey, JSON.stringify({
                     isHighlighted: this.isHighlighted,
                     backgroundPattern: this.backgroundPattern,
                     backgroundPatternType: this.backgroundPatternType,
-                    headerDeclutter: this.headerDeclutter && !this._menuForced
+                    headerDeclutter: this.headerDeclutter && !this._menuForced,
+                    fontSteps: this.fontSteps,
+                    messageFont: this.messageFont
                 }));
             } catch {}
         },
@@ -487,6 +564,13 @@ export default function chatBase(scope) {
                 this.backgroundPattern = d.backgroundPattern ?? 'off';
                 this.backgroundPatternType = d.backgroundPatternType ?? 'mesh';
                 this.headerDeclutter = d.headerDeclutter ?? false;
+
+                const steps = {};
+                for (const [id, v] of Object.entries(d.fontSteps || {})) {
+                    if (Number.isInteger(v) && v >= -1 && v <= FONT_SIZES.length - 2 && v !== 0) steps[id] = v;
+                }
+                this.fontSteps = steps;
+                this.messageFont = typeof d.messageFont === 'string' && FONT_KEY_RE.test(d.messageFont) ? d.messageFont : 'default';
             } catch {}
         },
 
@@ -609,6 +693,22 @@ export default function chatBase(scope) {
                 })
                 .catch(() => {})
                 .finally(() => { if (token === this._daysToken) this.daysLoading = false; });
+        },
+
+        async react(id, emoji) {
+            const wire = this.$wire;
+            await wire.$island('messages').toggleReaction(id, emoji).catch(() => {});
+
+            const fresh = document.querySelector(`[data-reaction-chip="${id}"][data-emoji="${emoji}"]`);
+            if (fresh && fresh.classList.contains('reaction-mine')) this._burstChip(fresh);
+        },
+
+        _burstChip(chip) {
+            chip.classList.remove('burst-now');
+            void chip.offsetWidth;
+            chip.classList.add('burst-now');
+            clearTimeout(chip._burstTimer);
+            chip._burstTimer = setTimeout(() => chip.classList.remove('burst-now'), 1100);
         },
 
         jumpToDay(item) {

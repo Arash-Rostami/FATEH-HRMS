@@ -17,6 +17,7 @@
         <x-ui.title icon="campaign" title="گروه‌ها">
             <x-slot:actions>
                 <x-ui.buttons.chat-scale/>
+                @include('livewire.dashboard.messaging.font-picker')
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'messaging-badge-legend' })"
@@ -45,6 +46,7 @@
         <livewire:dashboard.messaging.switch-tabs active="channels"/>
         <x-ui.modals.max-backdrop/>
         @include('livewire.dashboard.channel.manage-members')
+        @include('livewire.dashboard.channel.manage-admins')
 
         <div class="chat-widget flex-1 min-h-0" :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }">
 

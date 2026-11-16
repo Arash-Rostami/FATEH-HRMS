@@ -349,6 +349,7 @@ class NotifyRuleFormPresenter
                     'placeholders' => $items->map(fn ($label, $n) => '<bdi>{'.e($label).'}</bdi>')->implode(' ، '),
                 ]));
             })
+            ->extraFieldWrapperAttributes(['class' => 'helper-flow'])
             ->columnSpanFull();
     }
 

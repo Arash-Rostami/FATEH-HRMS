@@ -23,6 +23,7 @@ export function createWireMock(props = {}) {
         pollDigest: vi.fn(() => Promise.resolve('digest-1')),
         editMessage: vi.fn(),
         openManageMembers: vi.fn(() => Promise.resolve()),
+        openManageAdmins: vi.fn(() => Promise.resolve()),
         loadMentionMemberNames: vi.fn(() => Promise.resolve()),
         composer: { attachments: [], body: '' },
         $island: vi.fn((name) => {

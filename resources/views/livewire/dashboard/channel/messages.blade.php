@@ -49,23 +49,7 @@
 </div>
 @php $pin = $this->presenter->pinned($this->activeChannel, $this->readers); @endphp
 @if($pin)
-    <div wire:key="channel-pin-banner" class="flex-shrink-0 flex items-center gap-2 px-3 md:px-6 py-2 bg-[var(--md-sys-color-surface)] border-b border-[var(--md-sys-color-outline-variant)]/20">
-        <button type="button" x-on:click="scrollToMessage({{ $pin['id'] }})" title="رفتن به پیام سنجاق‌شده" aria-label="رفتن به پیام سنجاق‌شده"
-                class="flex-1 min-w-0 flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-start cursor-pointer transition-all duration-150 hover:brightness-105 active:scale-[0.99] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border border-[color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] border-r-[3px] border-r-[var(--md-sys-color-primary)] shadow-sm">
-            <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-                <span class="material-symbols-rounded text-[18px] font-fill">push_pin</span>
-            </span>
-            <span class="min-w-0">
-                <span class="flex items-center gap-1.5 mb-0.5 text-[10px] font-bold">
-                    <span class="truncate">پیام سنجاق‌شده</span>
-                    <span class="opacity-60">·</span>
-                    <span class="truncate opacity-80">{{ $pin['sender'] }}</span>
-                </span>
-                <span dir="auto" class="block text-[11px] truncate opacity-90">{{ $pin['body'] }}</span>
-            </span>
-        </button>
-        <x-ui.modals.close-button size="sm" label="برداشتن سنجاق" close="$wire.$island('messages').toggleGroupPin({{ $pin['id'] }}, true)"/>
-    </div>
+    @include('livewire.dashboard.messaging.pin-banner')
 @endif
 <div id="msg-viewport"
      x-on:scroll.passive="$store.activityReactionPicker.close()"
@@ -138,25 +122,29 @@
                     <div wire:key="channel-msg-spacer" class="flex-shrink-0 w-7" aria-hidden="true"></div>
                 @endif
 
-                <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative">
+                <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative"
+                     :class="isEditing && editingMsgId === {{ $msg['id'] }} ? 'w-full !max-w-[80%] md:!max-w-[68%] lg:!max-w-[62%]' : ''">
 
+                    @if($msg['is_mine'])
                     <div x-show="isEditing && editingMsgId === {{ $msg['id'] }}" style="display: none;"
-                         class="rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
+                         class="scroll-my-6 rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
                         <textarea dir="auto" wire:ignore.self x-model="editingBody"
-                                  x-on:keydown.enter="if(!$event.shiftKey){$event.preventDefault();saveEdit({{ $msg['id'] }})}"
-                                  x-on:keydown.escape="cancelEdit"
-                                  x-effect="if (isEditing && editingMsgId === {{ $msg['id'] }}) $nextTick(() => { $el.focus(); $el.selectionStart = $el.selectionEnd = $el.value.length })"
-                                  x-on:input="if ($el.scrollHeight > $el.clientHeight) $el.style.height = Math.min($el.scrollHeight, 320) + 'px'"
+                                  aria-label="ویرایش پیام"
+                                  x-on:keydown.enter="if(!$event.shiftKey && !$event.isComposing){$event.preventDefault();saveEdit({{ $msg['id'] }})}"
+                                  x-on:keydown.escape.stop="cancelEdit"
+                                  x-effect="if (isEditing && editingMsgId === {{ $msg['id'] }}) openEdit($el)"
+                                  x-on:input="fitEdit($el)"
+                                  :style="{ fontFamily: fontFamilyValue() }"
                                   rows="1"
-                                  class="w-full bg-transparent px-4 py-3 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[320px] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]"></textarea>
+                                  class="w-full bg-transparent px-4 py-2.5 text-sm resize-none [unicode-bidi:plaintext] focus:outline-none leading-relaxed min-h-[40px] max-h-[320px] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]"></textarea>
                         @error('edit.editingBody')
-                        <p class="px-4 pb-1 text-[10px] text-[var(--md-sys-color-error)] flex items-center gap-1">
+                        <p wire:key="channel-edit-error" class="px-4 pb-1 text-[10px] text-[var(--md-sys-color-error)] flex items-center gap-1">
                             <span class="material-symbols-rounded text-[10px]">error</span>{{ $message }}
                         </p>
                         @enderror
                         <div class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
                             <span class="hidden md:inline text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-70">Enter ذخیره · Esc انصراف</span>
-                            <div class="flex items-center gap-1.5">
+                            <div class="flex items-center gap-1.5 ms-auto">
                                 <button x-on:click.prevent="cancelEdit"
                                         class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
                                     انصراف
@@ -170,6 +158,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     <div x-show="deletingId === {{ $msg['id'] }}" style="display: none;"
                          class="flex flex-col gap-2.5 px-4 py-3.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-error)_15%,transparent)]">
@@ -213,12 +202,12 @@
                             @include('livewire.dashboard.messaging.reply-quote', ['msg' => $msg])
                             @include('livewire.dashboard.messaging.forward-quote', ['msg' => $msg])
                             @if($msg['body_html'] !== '')
-                                <span dir="auto" class="block break-words [unicode-bidi:plaintext]">{!! $msg['body_html'] !!}</span>
+                                <span dir="auto" class="block break-words [unicode-bidi:plaintext]" :style="fontStyle({{ $msg['id'] }})">{!! $msg['body_html'] !!}</span>
                             @endif
                             @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])
                         </div>
 
-                        @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'group' => true, 'pinnedId' => $pin['id'] ?? null])
+                        @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'canReact' => true, 'pinnedId' => $pin['id'] ?? null])
                         @include('livewire.dashboard.messaging.reactions', ['msg' => $msg])
 
                         @php

@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns\Hooks;
 
+use App\Enums\ChannelRole;
 use App\Enums\ChannelType;
 use App\Models\Lock;
 use App\Services\Messaging\PollDigestService;
@@ -36,9 +37,18 @@ trait HasChannelHooks
 
     private static function attachNewOwnerOnUpdated(self $channel)
     {
-        if ($channel->wasChanged('owner_id') && $channel->owner_id && !$channel->memberUsers()->whereKey($channel->owner_id)->exists()) {
-            self::attachOwnerOnCreated($channel);
+        if (!$channel->wasChanged('owner_id') || !$channel->owner_id) {
+            return;
         }
+
+        if ($channel->memberUsers()->whereKey($channel->owner_id)->exists()) {
+            DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $channel->owner_id)->update(['role' => ChannelRole::Member->value]);
+            PollDigestService::bump("ch:rv:{$channel->id}");
+            return;
+        }
+
+        self::attachOwnerOnCreated($channel);
+        PollDigestService::bump("ch:rv:{$channel->id}");
     }
 
     private static function privatizeProjectLinkedOnSaving(self $channel)

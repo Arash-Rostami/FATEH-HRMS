@@ -1228,4 +1228,16 @@ class TaskResourceTest extends TestCase
             ->call('save');
         $this->assertSame($original, Task::find($stale->id)->deadline->toDateString());
     }
+
+    public function test_view_modal_renders_a_task_that_has_a_priority(): void
+    {
+        $task = Task::factory()->create(['title' => '0-test-view-priority', 'priority' => 'high']);
+
+        $component = Livewire::actingAs($this->developer())
+            ->test(ListTasks::class)
+            ->mountTableAction('view', $task)
+            ->assertSuccessful();
+
+        $this->assertNotNull($component->instance()->getMountedAction());
+    }
 }

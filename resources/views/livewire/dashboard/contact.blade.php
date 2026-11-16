@@ -21,6 +21,7 @@
             countLabel="نفر">
             <x-slot:actions>
                 <x-ui.buttons.chat-scale/>
+                @include('livewire.dashboard.messaging.font-picker')
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'messaging-badge-legend' })"
@@ -88,5 +89,6 @@
     </div>
 
     @include('livewire.dashboard.messaging.quote-chip')
+    @include('livewire.dashboard.messaging.reaction-picker')
     @include('livewire.dashboard.messaging.forward')
 </div>

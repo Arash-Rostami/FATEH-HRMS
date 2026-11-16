@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Channel;
 
+use App\Livewire\Dashboard\Channel\Actions\ChangeChannelTypeAction;
 use App\Livewire\Dashboard\Channel\Actions\CreateChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\DeleteChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\DeleteChannelMessageAction;
@@ -16,6 +17,7 @@ use App\Livewire\Dashboard\Channel\Actions\SaveEditChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SearchChannelMessagesAction;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SetChannelKeyAction;
+use App\Livewire\Dashboard\Channel\Actions\SyncChannelAdminsAction;
 use App\Livewire\Dashboard\Channel\Actions\SyncChannelMembersAction;
 use App\Livewire\Dashboard\Channel\Actions\ToggleChannelMessageReactionAction;
 use App\Livewire\Dashboard\Channel\Actions\ToggleChannelPinAction;
@@ -24,10 +26,13 @@ use App\Livewire\Dashboard\Channel\Forms\ChannelMessageComposerForm;
 use App\Livewire\Dashboard\Channel\Forms\CreateChannelForm;
 use App\Livewire\Dashboard\Channel\Forms\EditChannelMessageForm;
 use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
+use App\Enums\ChannelRole;
+use App\Enums\ChannelType;
 use App\Models\Channel;
 use App\Models\ChannelMessage;
 use App\Models\User;
 use App\Services\Messaging\PollDigestService;
+use App\Support\ChannelAccessPolicy;
 use App\Traits\Livewire\ChatComposer;
 use App\Traits\Livewire\FocusOnRecord;
 use App\Traits\Livewire\ForwardsMessages;
@@ -100,6 +105,8 @@ class Main extends Component
     public bool $isManageMembersOpen = false;
     public array $memberRecipientIds = [];
     public array $createRecipientIds = [];
+    public bool $isManageAdminsOpen = false;
+    public array $adminRecipientIds = [];
 
     public array $mentionMemberNames = [];
 
@@ -114,7 +121,7 @@ class Main extends Component
     public function activeChannel(): ?Channel
     {
         return $this->activeChannelId
-            ? Channel::with('owner')->withCount('members')->withPinnedPreview()
+            ? Channel::with('owner')->withCount('members')->withPinnedPreview()->withViewerRole((int) auth()->id())
                 ->whereHas('memberUsers', fn($q) => $q->where('users.id', auth()->id()))
                 ->find($this->activeChannelId)
             : null;
@@ -216,10 +223,16 @@ class Main extends Component
     }
 
     #[Computed]
+    public function abilities(): array
+    {
+        return ChannelAccessPolicy::abilities($this->activeChannel, auth()->user());
+    }
+
+    #[Computed]
     public function pendingInvitees(): array
     {
         $channel = $this->activeChannel;
-        if (!$channel || (int) $channel->owner_id !== (int) auth()->id()) {
+        if (!$channel || !ChannelAccessPolicy::canManageMembers($channel, auth()->user())) {
             return [];
         }
 
@@ -266,7 +279,7 @@ class Main extends Component
     public function memberCandidates(): array
     {
         return User::getCachedActiveOptions()
-            ->except(auth()->id())
+            ->except(array_merge([auth()->id()], $this->lockedMemberIds($this->activeChannel)))
             ->map(fn($name, $id) => ['id' => (int)$id, 'name' => $name])
             ->values()
             ->all();
@@ -393,6 +406,7 @@ class Main extends Component
                 'name' => $user->name,
                 'avatar_url' => $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl(),
                 'is_owner' => $ownerId !== null && $user->id === $ownerId,
+                'is_admin' => $user->pivot->role === ChannelRole::Admin->value,
                 'presence_label' => $user->presence?->label(),
                 'presence_class' => $user->presence?->activeClass(),
                 'presence' => $user->presence,
@@ -400,7 +414,7 @@ class Main extends Component
                 'is_online' => $user->isOnline(),
                 'inactive' => !$user->isActive(),
             ])
-            ->sortByDesc('is_owner')
+            ->sortByDesc(fn(array $m) => $m['is_owner'] ? 2 : (int) $m['is_admin'])
             ->values()
             ->all();
     }
@@ -765,6 +779,7 @@ class Main extends Component
             return;
         }
 
+        $this->resetErrorBag('edit.editingBody');
         $this->editingMsg = ['id' => $messageId, 'body' => $msg->body];
         $this->edit->editingBody = $msg->body;
         $this->composer->replyToId = null;
@@ -991,12 +1006,13 @@ class Main extends Component
     public function openManageMembers(int $channelId): void
     {
         $channel = Channel::withoutTrashed()->find($channelId);
-        if (!$channel || $channel->owner_id !== auth()->id()) {
+        if (!$channel || $channelId !== (int) $this->activeChannelId || !ChannelAccessPolicy::canManageMembers($channel, auth()->user())) {
             return;
         }
 
         $this->memberRecipientIds = $channel->memberUsers()
             ->wherePivot('user_id', '!=', auth()->id())
+            ->whereNotIn('users.id', $this->lockedMemberIds($this->activeChannel))
             ->pluck('users.id')
             ->all();
 
@@ -1010,7 +1026,7 @@ class Main extends Component
             ? Channel::withoutTrashed()->find($this->activeChannelId)
             : null;
 
-        if (!$channel || $channel->owner_id !== auth()->id()) {
+        if (!$channel || !ChannelAccessPolicy::canManageMembers($channel, auth()->user())) {
             $this->isManageMembersOpen = false;
             $this->memberRecipientIds = [];
             return;
@@ -1025,6 +1041,83 @@ class Main extends Component
         if (($result['added'] ?? 0) || ($result['removed'] ?? 0)) {
             $this->dispatch('channel-members-updated')->self();
             $this->dispatch('show-toast', message: 'اعضای گروه به‌روزرسانی شد', type: 'success');
+        }
+    }
+
+    private function lockedMemberIds(?Channel $channel): array
+    {
+        if (!$channel || ChannelAccessPolicy::isOwner($channel, auth()->user()) || !ChannelAccessPolicy::canManageMembers($channel, auth()->user())) {
+            return [];
+        }
+
+        return $this->activeChannelMemberUsers
+            ->filter(fn(User $user) => $user->pivot->role === ChannelRole::Admin->value)
+            ->pluck('id')
+            ->push($channel->owner_id)
+            ->map(fn($id) => (int) $id)
+            ->all();
+    }
+
+    public function changeChannelType(ChangeChannelTypeAction $action, int $channelId, string $type): void
+    {
+        if ($channelId !== $this->activeChannelId || $this->activeChannel?->type?->value === $type) {
+            return;
+        }
+
+        if (!$action->execute($channelId, (int) auth()->id(), $type)) {
+            $this->dispatch('show-toast', message: 'تغییر نوع گروه برای شما مجاز نیست.', type: 'error');
+            return;
+        }
+
+        unset($this->activeChannel, $this->channels, $this->joinableChannels, $this->myChannelMemberships);
+        $this->dispatch('show-toast', message: $type === ChannelType::Private->value ? 'گروه خصوصی شد' : 'گروه عمومی شد', type: 'success');
+    }
+
+    #[Computed]
+    public function adminCandidates(): array
+    {
+        if (!$this->isManageAdminsOpen) {
+            return [];
+        }
+
+        $ownerId = (int) $this->activeChannel?->owner_id;
+
+        return $this->activeChannelMemberUsers
+            ->filter(fn(User $user) => (int) $user->id !== $ownerId && $user->isActive() && $user->pivot->entered_at !== null)
+            ->sortBy('name')
+            ->map(fn(User $user) => ['id' => (int) $user->id, 'name' => $user->name])
+            ->values()
+            ->all();
+    }
+
+    public function openManageAdmins(int $channelId): void
+    {
+        $channel = $this->activeChannel;
+        if (!$channel || $channelId !== (int) $channel->id || !ChannelAccessPolicy::canManageAdmins($channel, auth()->user())) {
+            return;
+        }
+
+        $this->adminRecipientIds = $this->activeChannelMemberUsers
+            ->filter(fn(User $user) => $user->pivot->role === ChannelRole::Admin->value)
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        $this->isManageAdminsOpen = true;
+        unset($this->adminCandidates);
+    }
+
+    public function saveManageAdmins(SyncChannelAdminsAction $action): void
+    {
+        $channelId = (int) $this->activeChannelId;
+        $result = $channelId ? $action->execute($channelId, (int) auth()->id(), $this->adminRecipientIds) : [];
+
+        $this->isManageAdminsOpen = false;
+        $this->adminRecipientIds = [];
+        unset($this->adminCandidates, $this->activeChannelMemberUsers, $this->channelMembers);
+
+        if (($result['promoted'] ?? 0) || ($result['demoted'] ?? 0)) {
+            $this->dispatch('show-toast', message: 'مدیران گروه به‌روزرسانی شد', type: 'success');
         }
     }
 

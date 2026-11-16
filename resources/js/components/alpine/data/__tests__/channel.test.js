@@ -382,7 +382,40 @@ describe('channel() edit flow', () => {
         expect(c.$wire.cancelEdit).toHaveBeenCalledOnce();
     });
 
-    test('saveEdit no-ops for a stale id, an unchanged body, or an over-limit body', async () => {
+    test('saveEdit on an unchanged body cancels the editor without calling the server', async () => {
+        const c = channel();
+        c.$wire = createWireMock();
+        c.editingMsgId = 7;
+        c.isEditing = true;
+        c.editingOriginal = 'same';
+        c.editingBody = 'same';
+
+        await c.saveEdit(7);
+
+        expect(c.$wire.$island).not.toHaveBeenCalled();
+        expect(c.isEditing).toBe(false);
+        expect(c.$wire.cancelEdit).toHaveBeenCalledOnce();
+    });
+
+    test('saveEdit ignores a second call while the first save is in flight', async () => {
+        const c = channel();
+        let resolveSave;
+        c.$wire = createWireMock();
+        c.$wire._islands.messages = { saveEdit: vi.fn(() => new Promise((r) => { resolveSave = r; })) };
+        c._syncSidebarAfterOwnAction = vi.fn();
+        c.editingMsgId = 7;
+        c.editingOriginal = 'old';
+        c.editingBody = 'new';
+
+        const first = c.saveEdit(7);
+        await c.saveEdit(7);
+        resolveSave();
+        await first;
+
+        expect(c.$wire._islands.messages.saveEdit).toHaveBeenCalledOnce();
+    });
+
+    test('saveEdit no-ops for a stale id or an over-limit body', async () => {
         const c = channel();
         c.$wire = createWireMock();
         c.editingMsgId = 7;
@@ -390,7 +423,6 @@ describe('channel() edit flow', () => {
         c.editingBody = 'same';
 
         await c.saveEdit(999); // stale id
-        await c.saveEdit(7);   // unchanged body
         expect(c.$wire.$island).not.toHaveBeenCalled();
 
         c.editingBody = 'x'.repeat(4001);
@@ -1491,5 +1523,66 @@ describe('channel() react — burst fires only on giving, once, island-routed (a
 
         expect(chip.classList.contains('burst-now')).toBe(false);
         expect(wire._islands.messages.toggleReaction).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('channel() type change — confirm flag and island-routed call', () => {
+    test('confirmTypeChange and cancelTypeChange toggle the confirm flag', () => {
+        const c = channel();
+        c.confirmTypeChange();
+        expect(c.confirmingTypeChange).toBe(true);
+        c.cancelTypeChange();
+        expect(c.confirmingTypeChange).toBe(false);
+    });
+
+    test('doChangeType calls the messages island, refreshes the sidebar and resets the flag', async () => {
+        const c = channel();
+        const wire = createWireMock();
+        c.$wire = wire;
+        c.confirmingTypeChange = true;
+        wire._islands.messages = { changeChannelType: vi.fn(() => Promise.resolve()) };
+        wire._islands.sidebar = { refreshUnread: vi.fn() };
+
+        await c.doChangeType(5, 'open');
+
+        expect(wire._islands.messages.changeChannelType).toHaveBeenCalledWith(5, 'open');
+        expect(wire._islands.sidebar.refreshUnread).toHaveBeenCalledTimes(1);
+        expect(c.confirmingTypeChange).toBe(false);
+    });
+
+    test('doChangeType toasts an error on failure and still resets the flag', async () => {
+        const c = channel();
+        const wire = createWireMock();
+        c.$wire = wire;
+        c.toast = vi.fn();
+        c.confirmingTypeChange = true;
+        wire._islands.messages = { changeChannelType: vi.fn(() => Promise.reject(new Error('x'))) };
+
+        await c.doChangeType(5, 'private');
+
+        expect(c.toast).toHaveBeenCalledWith('خطا در تغییر نوع گروه.', 'error');
+        expect(c.confirmingTypeChange).toBe(false);
+    });
+
+    test('doChangeType does nothing without a channel id', async () => {
+        const c = channel();
+        const wire = createWireMock();
+        c.$wire = wire;
+        wire._islands.messages = { changeChannelType: vi.fn() };
+
+        await c.doChangeType(0, 'open');
+
+        expect(wire._islands.messages.changeChannelType).not.toHaveBeenCalled();
+    });
+
+    test('openManageAdmins reads $wire only ONCE, calls the parent method and is a no-op without an id', async () => {
+        const c = channel();
+        const wire = installWireProbe(c);
+
+        await c.openManageAdmins(0);
+        expect(wire.openManageAdmins).not.toHaveBeenCalled();
+
+        await c.openManageAdmins(7);
+        expect(wire.openManageAdmins).toHaveBeenCalledWith(7);
     });
 });

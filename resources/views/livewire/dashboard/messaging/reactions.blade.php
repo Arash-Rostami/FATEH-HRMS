@@ -3,6 +3,7 @@
         @foreach($msg['reactions'] as $r)
             <button type="button" wire:key="messaging-reaction-{{ $msg['id'] }}-{{ $r['emoji'] }}"
                     x-on:click.prevent="react({{ $msg['id'] }}, '{{ $r['emoji'] }}')"
+                    @disabled(!($canReact ?? true))
                     data-reaction-chip="{{ $msg['id'] }}" data-emoji="{{ $r['emoji'] }}"
                     title="{{ $r['names'] }}"
                     style="--burst-emoji: '{{ $r['emoji'] }}'"
