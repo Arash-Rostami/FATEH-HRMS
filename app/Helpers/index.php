@@ -626,6 +626,13 @@ if (!function_exists('correspondenceAiOn')) {
     }
 }
 
+if (!function_exists('channelAiOn')) {
+    function channelAiOn(): bool
+    {
+        return !tenantOff('channel:ai') && \App\Services\Ai\AiClient::isConfigured() && filled(config('ai.channel.modes'));
+    }
+}
+
 if (!function_exists('correspondenceMailOn')) {
     function correspondenceMailOn(): bool
     {

@@ -17,6 +17,7 @@ use App\Livewire\Dashboard\Channel\Actions\SaveEditChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SearchChannelMessagesAction;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SetChannelKeyAction;
+use App\Livewire\Dashboard\Channel\Actions\SummarizeChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\SyncChannelAdminsAction;
 use App\Livewire\Dashboard\Channel\Actions\SyncChannelMembersAction;
 use App\Livewire\Dashboard\Channel\Actions\ToggleChannelMessageReactionAction;
@@ -1166,6 +1167,24 @@ class Main extends Component
         if (($result['promoted'] ?? 0) || ($result['demoted'] ?? 0)) {
             $this->dispatch('show-toast', message: 'مدیران گروه به‌روزرسانی شد', type: 'success');
         }
+    }
+
+    #[Renderless]
+    #[Async]
+    public function aiQuota(SummarizeChannelAction $action): string
+    {
+        abort_unless(channelAiOn(), 404);
+
+        return $action->meter((int) auth()->id());
+    }
+
+    #[Renderless]
+    #[Async]
+    public function askAi(SummarizeChannelAction $action, string $mode, string $question = ''): array
+    {
+        abort_unless($this->activeChannelId, 404);
+
+        return $action->execute((int) $this->activeChannelId, (int) auth()->id(), $mode, mb_substr(trim($question), 0, (int) config('ai.channel.question_max')));
     }
 
     public function downloadAttachment(int $messageId, int $index): ?Response

@@ -85,6 +85,7 @@ class ViewConventionTest extends TestCase
         'components/ui/forms/ai-trigger.blade.php',
         'livewire/dashboard/ai-report.blade.php',
         'livewire/dashboard/launchpad.blade.php',
+        'livewire/dashboard/channel/info.blade.php',
     ];
 
     private const ALLOWED_SMART_SPARKLE = [

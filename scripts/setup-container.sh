@@ -3,12 +3,26 @@ APP=/var/www/html
 U=office-bms
 PHPV=8.4
 cd $APP
+[ -f .env ] || { echo "FATAL: .env missing in $APP - create it first"; exit 1; }
+sed -i 's/\r$//' .env
+[ -n "$(tail -c1 .env)" ] && echo >> .env
 as() { su -s /bin/bash $U -c "$*"; }
 setkv() { grep -qE "^#? ?$2 " "$1" && sed -i -E "s|^#? ?$2 .*|$2 $3|" "$1" || echo "$2 $3" >> "$1"; }
 
 for p in redis-server supervisor cron; do dpkg -s $p >/dev/null 2>&1 || { apt-get update -qq; apt-get install -y -qq $p; }; done
 
-RP=$(grep ^REDIS_PASSWORD .env | cut -d= -f2)
+if [ -n "$REDIS_PASSWORD" ]; then
+  sed -i '/^REDIS_PASSWORD=/d' .env
+  echo "REDIS_PASSWORD=$REDIS_PASSWORD" >> .env
+  echo "REDIS_PASSWORD found in the container environment: .env now follows it"
+fi
+RP=$(grep -E '^REDIS_PASSWORD=' .env | head -1 | cut -d= -f2- | tr -d '"')
+if [ -z "$RP" ] || [ "$RP" = null ]; then
+  RP=$(openssl rand -hex 16)
+  sed -i '/^REDIS_PASSWORD=/d' .env
+  echo "REDIS_PASSWORD=$RP" >> .env
+  echo "REDIS_PASSWORD was blank or missing: generated a new one in .env"
+fi
 setkv /etc/redis/redis.conf requirepass "$RP"
 setkv /etc/redis/redis.conf maxmemory 2500mb
 setkv /etc/redis/redis.conf maxmemory-policy volatile-lru
@@ -105,8 +119,8 @@ find storage bootstrap/cache -type d -exec chmod g+s {} +
 [ -f public/.htaccess ] && { grep -qF 'RewriteRule ^storage/dms/' public/.htaccess || sed -i '/RewriteEngine On/a\    RewriteRule ^storage/dms/(.*)$ https://%{HTTP_HOST}/authorized/dms/$1 [R=302,L,NE]' public/.htaccess; }
 [ -f public/.htaccess ] && { grep -qF 'RewriteRule ^storage/launchpad/' public/.htaccess || sed -i '/RewriteEngine On/a\    RewriteRule ^storage/launchpad/(.*)$ https://%{HTTP_HOST}/launchpad [R=302,L,NE]' public/.htaccess; }
 
-service redis-server restart
-for i in $(seq 1 10); do redis-cli -a "$(grep ^REDIS_PASSWORD .env | cut -d= -f2)" ping 2>/dev/null | grep -q PONG && break; sleep 1; done
+service redis-server stop; pkill -x redis-server; sleep 1; service redis-server start
+for i in $(seq 1 10); do redis-cli -a "$RP" ping 2>/dev/null | grep -q PONG && break; sleep 1; done
 
 as 'php artisan optimize:clear && php artisan optimize'
 
@@ -118,9 +132,17 @@ apache2ctl configtest && service apache2 reload
 supervisorctl reread >/dev/null; supervisorctl update >/dev/null; supervisorctl restart all
 
 echo "=== VERIFY ==="
-redis-cli -a "$(grep ^REDIS_PASSWORD .env | cut -d= -f2)" config get maxmemory-policy 2>/dev/null | tail -1
+redis-cli -a "$RP" config get maxmemory-policy 2>/dev/null | tail -1
 supervisorctl status
 crontab -u $U -l | grep schedule:run
 as 'touch storage/logs/t && rm storage/logs/t' && echo WRITE_OK
 as 'touch storage/app/mpdf-tmp/t && rm storage/app/mpdf-tmp/t' && echo MPDF_TMP_OK || echo "MPDF_TMP_FAIL: storage/app/mpdf-tmp must be writable by $U (web and queue workers)"
-curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost
+CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost)
+echo "HTTP $CODE"
+if [ "$CODE" != 302 ] || ! supervisorctl status | grep -q RUNNING; then
+  echo "=== FAILURE REPORT (paste this block) ==="
+  echo "-- last app errors"; grep "production.ERROR" storage/logs/laravel.log | tail -3 | cut -c1-300 | sed -E 's/(PASSWORD|password)=[^ ]*/\1=<hidden>/g'
+  echo "-- worker log"; tail -n 8 storage/logs/worker.log | cut -c1-300 | sed -E 's/(PASSWORD|password)=[^ ]*/\1=<hidden>/g'
+  echo "-- redis"; redis-cli -a "$RP" ping 2>/dev/null
+  echo "-- database"; as "php artisan tinker --execute='echo DB::table(\"users\")->count();'" 2>&1 | tail -2 | cut -c1-300
+fi

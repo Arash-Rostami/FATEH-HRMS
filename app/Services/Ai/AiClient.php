@@ -71,6 +71,17 @@ class AiClient
         }
     }
 
+    public static function cleanText(string $text, bool $multiline, int $max, bool $bullets = false): string
+    {
+        $markers = $bullets ? '#{1,6}' : '#{1,6}|[*\-•]|\d{1,2}[.)]';
+        $text = preg_replace(['/[\x{200B}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}\x{061C}\x{2060}\x{00AD}\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '/^[ \t]*(?:' . $markers . ')[ \t]+/mu', '/\*\*|`+/u'], '', $text);
+        $text = preg_replace('/[ \t]+/u', ' ', $text);
+        $text = $bullets ? preg_replace('/ ?•[ \t]*/u', "\n• ", $text) : $text;
+        $text = $multiline ? preg_replace('/ ?\R\s*/u', "\n", $text) : preg_replace('/\s+/u', ' ', $text);
+
+        return mb_substr(convertToPersian(trim($text)) ?? '', 0, $max);
+    }
+
     public static function setting(string $feature, string $key): mixed
     {
         return config("ai.{$feature}.{$key}") ?? config("ai.gateway.{$key}")

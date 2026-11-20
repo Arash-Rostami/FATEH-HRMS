@@ -302,12 +302,21 @@ describe('channel() island-scoped action wiring — wire-capture correctness', (
         c.replyingTo = { id: 1 };
         c.activeSender = 'Ali';
         c.isEditing = true;
+        c.aiAnswer = 'خلاصه';
+        c.aiQuestion = 'کی؟';
+        c.aiNote = 'ناقص';
+        c.aiMessage = 'خطا';
+        c.aiMeter = '<b>۱ / ۵</b>';
+        c.aiSoft = true;
+        c.aiBusy = true;
 
         await c.selectChannel(5);
 
         expect(c.replyingTo).toBeNull();
         expect(c.activeSender).toBeNull();
         expect(c.isEditing).toBe(false);
+        expect(c).toMatchObject({ aiAnswer: '', aiQuestion: '', aiNote: '', aiMessage: '', aiSoft: false, aiBusy: false });
+        expect(c.aiMeter).toBe('<b>۱ / ۵</b>');
         expect(c.$wire.cancelReply).toHaveBeenCalledOnce();
         expect(c.$wire._islands.messages.selectChannel).toHaveBeenCalledWith(5);
         expect(c.$wire._islands.sidebar.refreshUnread).toHaveBeenCalledOnce();
@@ -1583,5 +1592,104 @@ describe('channel() type change — island-routed call', () => {
 
         await c.openManageAdmins(7);
         expect(wire.openManageAdmins).toHaveBeenCalledWith(7);
+    });
+});
+
+describe('channel() AI assistant tab — state lives in Alpine, one renderless $wire call', () => {
+    const reply = (over = {}) => ({ answer: 'خلاصه', error: null, message: null, soft: false, note: null, meter: '<i>۱ / ۵</i>', ...over });
+
+    const withAi = (askAi, aiQuota = vi.fn(() => Promise.resolve('<i>۰ / ۵</i>'))) => {
+        const c = channel();
+        c.$wire = { askAi, aiQuota };
+        c.toggleFiles = vi.fn();
+        return c;
+    };
+
+    test('openAiPanel closes the files tab, opens the assistant view in the info panel and loads the usage bar', async () => {
+        const c = withAi(vi.fn());
+        c.filesOpen = true;
+
+        c.openAiPanel();
+        await Promise.resolve();
+
+        expect(c.toggleFiles).toHaveBeenCalledTimes(1);
+        expect(c.aiOpen).toBe(true);
+        expect(c.showInfo).toBe(true);
+        expect(c.$wire.aiQuota).toHaveBeenCalledTimes(1);
+        expect(c.aiMeter).toBe('<i>۰ / ۵</i>');
+    });
+
+    test('a failed usage-bar load clears the bar instead of keeping a stale one', async () => {
+        const c = withAi(vi.fn(), vi.fn(() => Promise.reject(new Error('x'))));
+        c.aiMeter = '<i>قدیمی</i>';
+
+        c.openAiPanel();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(c.aiMeter).toBe('');
+    });
+
+    test('askAi sends the mode and the question and stores the answer, note and remaining count', async () => {
+        const askAi = vi.fn(() => Promise.resolve(reply({ note: 'ناقص' })));
+        const c = withAi(askAi);
+        c.aiQuestion = 'کی؟';
+
+        await c.askAi('ask');
+
+        expect(askAi).toHaveBeenCalledWith('ask', 'کی؟');
+        expect(c).toMatchObject({ aiAnswer: 'خلاصه', aiNote: 'ناقص', aiMeter: '<i>۱ / ۵</i>', aiMessage: '', aiBusy: false });
+    });
+
+    test('a non-busy error replaces the previous answer and shows the server notice', async () => {
+        const c = withAi(vi.fn(() => Promise.resolve(reply({ answer: '', error: 'quota', message: 'سهمیه تمام شد', soft: true }))));
+        c.aiAnswer = 'قبلی';
+        c.aiNote = 'ناقص';
+
+        await c.askAi('day');
+
+        expect(c).toMatchObject({ aiAnswer: '', aiNote: '', aiMessage: 'سهمیه تمام شد', aiSoft: true, aiBusy: false });
+    });
+
+    test('a busy reply keeps the previous answer and shows a soft notice', async () => {
+        const c = withAi(vi.fn(() => Promise.resolve(reply({ answer: '', error: 'busy', message: 'صبر کنید', soft: true }))));
+        c.aiAnswer = 'قبلی';
+
+        await c.askAi('day');
+
+        expect(c.aiAnswer).toBe('قبلی');
+        expect(c).toMatchObject({ aiMessage: 'صبر کنید', aiSoft: true, aiBusy: false });
+    });
+
+    test('a second click while one ask is running is ignored', async () => {
+        const askAi = vi.fn(() => new Promise(() => {}));
+        const c = withAi(askAi);
+
+        c.askAi('day');
+        c.askAi('week');
+
+        expect(askAi).toHaveBeenCalledTimes(1);
+        expect(c.aiBusy).toBe(true);
+    });
+
+    test('a failed call shows the generic error and frees the controls', async () => {
+        const c = withAi(vi.fn(() => Promise.reject(new Error('x'))));
+
+        await c.askAi('day');
+
+        expect(c.aiMessage).not.toBe('');
+        expect(c).toMatchObject({ aiSoft: false, aiBusy: false });
+    });
+
+    test('a response that lands after aiReset (group switch) is dropped', async () => {
+        let resolve;
+        const c = withAi(vi.fn(() => new Promise((r) => { resolve = r; })));
+
+        const pending = c.askAi('day');
+        c.aiReset();
+        resolve(reply());
+        await pending;
+
+        expect(c).toMatchObject({ aiAnswer: '', aiMessage: '', aiMeter: '', aiBusy: false });
     });
 });

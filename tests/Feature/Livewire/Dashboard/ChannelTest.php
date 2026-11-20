@@ -23,6 +23,7 @@ use App\Livewire\Dashboard\Channel\Actions\SaveEditChannelMessageAction;
 use App\Filament\Resources\ChannelResource;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SetChannelKeyAction;
+use App\Livewire\Dashboard\Channel\Actions\SummarizeChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\ToggleChannelMessageReactionAction;
 use App\Livewire\Dashboard\Channel\Actions\ToggleChannelPinAction;
 use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
@@ -49,9 +50,12 @@ use App\Services\Messaging\PollDigestService;
 use App\Services\Notify\Channels\SmsChannel;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Factory as HttpClientFactory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Js;
@@ -1372,7 +1376,7 @@ class ChannelTest extends TestCase
             ->set('create.type', 'open')
             ->call('createChannel')
             ->assertHasErrors(['create.name'])
-            ->assertDispatched('show-toast', message: 'نام گروه الزامی است.', type: 'error');
+            ->assertDispatched('show-toast', message: 'نام گروه را وارد کنید.', type: 'error');
 
         $this->assertSame(0, Channel::where('name', '')->count());
     }
@@ -1873,7 +1877,7 @@ class ChannelTest extends TestCase
             ->assertSee('ویرایش و پاسخ')
             ->assertSee('سنجاق و نمایش')
             ->assertSee('رنگ‌آمیزی ردیف')
-            ->assertSee('نشان پیام')
+            ->assertSee('نشان کردن پیام')
             ->assertSee('صدا و اعلان')
             ->assertSee('مالک گروه')
             ->assertSee('عضو عادی')
@@ -3186,5 +3190,269 @@ class ChannelTest extends TestCase
         $component->call('bulkSelectPeople', 'memberRecipientIds', 'all');
 
         $this->assertSame([], $component->get('memberRecipientIds'));
+    }
+
+    private function aiMember(): array
+    {
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'ai.gateway.model' => 'Gemini-3-Flash-Preview', 'ai.channel.cooldown' => 0, 'app.off' => []]);
+        Http::swap(new HttpClientFactory);
+
+        [$owner, $member] = $this->activeUsers(2);
+        $channel = $this->channelWithMembers($owner, [$member]);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'قرار شد گزارش فردا ارسال شود']);
+
+        $forget = function () use ($member): void {
+            Cache::forget(Channel::quotaKey($member->id));
+            Cache::forget("channel:ai:busy:{$member->id}");
+            Cache::forget("channel:ai:cooldown:{$member->id}");
+            Cache::forget('channel:ai:down');
+        };
+        $forget();
+        $this->beforeApplicationDestroyed($forget);
+
+        return [$member, $channel];
+    }
+
+    private function aiReply(mixed $answer): array
+    {
+        return [
+            'choices' => [['finish_reason' => 'stop', 'message' => ['content' => json_encode(['answer' => $answer], JSON_UNESCAPED_UNICODE)]]],
+            'usage' => ['total_tokens' => 10],
+        ];
+    }
+
+    public function test_channel_assistant_answers_from_the_messages_and_charges_one_quota_unit(): void
+    {
+        [$member, $channel] = $this->aiMember();
+        Http::fake(['*' => Http::response($this->aiReply('• گزارش **فردا** 12'))]);
+        $first = ChannelMessage::where('channel_id', $channel->id)->first();
+        $channel->forceFill(['pinned_message_id' => $first->id])->saveQuietly();
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $member->id, 'body' => 'a < b and c > d &amp; ok', 'reply_to_id' => $first->id]);
+
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('askAi', 'day', 'leftover')
+            ->assertReturned(fn (array $r) => $r['error'] === null
+                && $r['answer'] === '• گزارش فردا ۱۲'
+                && $r['note'] === null
+                && $r['soft'] === false
+                && str_contains($r['meter'], 'role="progressbar"')
+                && str_contains($r['meter'], '۱ / ' . convertToPersian(Channel::quotaCap())));
+
+        Http::assertSentCount(1);
+        Http::assertSent(fn ($request) => $request['response_format']['json_schema']['name'] === 'channel'
+            && str_contains($request['messages'][1]['content'], 'قرار شد گزارش فردا ارسال شود')
+            && str_contains($request['messages'][1]['content'], 'a < b and c > d &amp; ok')
+            && str_contains($request['messages'][1]['content'], "(↪#{$first->id})")
+            && str_contains($request['messages'][1]['content'], "#{$first->id} [PINNED]")
+            && !str_contains($request['messages'][1]['content'], 'leftover'));
+        $this->assertSame(1, Channel::quotaUsed($member->id));
+    }
+
+    public function test_channel_assistant_sends_the_question_only_in_ask_mode_and_refuses_a_second_run_while_busy(): void
+    {
+        [$member, $channel] = $this->aiMember();
+        Http::fake(['*' => Http::response($this->aiReply('ok'))]);
+        $component = Livewire::actingAs($member)->test(Main::class)->call('selectChannel', $channel->id);
+        $question = 'کی گزارش را می‌فرستد؟';
+
+        $lock = Cache::lock("channel:ai:busy:{$member->id}", 60);
+        $this->assertTrue($lock->get());
+        $component->call('askAi', 'ask', $question)->assertReturned(fn (array $r) => $r['error'] === 'busy' && $r['soft'] === true && $r['answer'] === '');
+        $this->assertSame(0, Channel::quotaUsed($member->id));
+        $lock->release();
+
+        config(['ai.channel.cooldown' => 60]);
+        $component->call('askAi', 'ask', $question)->assertReturned(fn (array $r) => $r['answer'] === 'ok');
+        $component->call('askAi', 'day')->assertReturned(fn (array $r) => $r['error'] === 'busy');
+        $this->assertSame(1, Channel::quotaUsed($member->id));
+        Cache::forget("channel:ai:cooldown:{$member->id}");
+        Channel::refundQuota($member->id);
+        config(['ai.channel.cooldown' => 0]);
+
+        $component->call('askAi', 'ask', '')->assertReturned(fn (array $r) => $r['error'] === 'question' && $r['soft'] === true);
+
+        $component->call('askAi', 'ask', $question)->assertReturned(fn (array $r) => $r['error'] === null);
+        Http::assertSent(fn ($request) => str_contains($request['messages'][1]['content'], 'QUESTION: ' . $question)
+            && strpos($request['messages'][1]['content'], 'QUESTION: ') > strpos($request['messages'][1]['content'], '<<<MESSAGES:'));
+
+        $component->call('askAi', 'day', 'leftover');
+        Http::assertSent(fn ($request) => !str_contains($request['messages'][1]['content'], 'QUESTION:') && !str_contains($request['messages'][1]['content'], 'leftover'));
+    }
+
+    public function test_channel_assistant_puts_every_bullet_on_its_own_line_even_when_the_model_runs_them_together(): void
+    {
+        [$member, $channel] = $this->aiMember();
+        Http::fake(['*' => Http::response($this->aiReply('• الف انجام شد. • ب هم انجام شد.' . "\n" . '• ج'))]);
+
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('askAi', 'day')
+            ->assertReturned(fn (array $r) => $r['answer'] === "• الف انجام شد.\n• ب هم انجام شد.\n• ج");
+    }
+
+    public function test_channel_assistant_usage_bar_uses_the_shared_meter_with_a_five_a_day_cap_and_turns_red_when_spent(): void
+    {
+        [$member, $channel] = $this->aiMember();
+        $component = Livewire::actingAs($member)->test(Main::class)->call('selectChannel', $channel->id);
+
+        $this->assertSame(5, Channel::quotaCap());
+        $component->call('aiQuota')->assertReturned(fn (string $html) => str_contains($html, '۰ / ۵') && str_contains($html, 'role="progressbar"') && !str_contains($html, 'فقط'));
+
+        for ($i = 0; $i < 4; $i++) {
+            Channel::consumeQuota($member->id);
+        }
+
+        $component->call('aiQuota')->assertReturned(fn (string $html) => str_contains($html, '۴ / ۵') && str_contains($html, 'فقط ۱ بار دیگر'));
+
+        Channel::consumeQuota($member->id);
+
+        $component->call('aiQuota')->assertReturned(fn (string $html) => str_contains($html, '۵ / ۵') && str_contains($html, 'bg-[var(--md-sys-color-error)]'));
+    }
+
+    public function test_channel_assistant_tells_the_user_when_older_messages_were_left_out(): void
+    {
+        [$member, $channel] = $this->aiMember();
+        Http::fake(['*' => Http::response($this->aiReply('ok'))]);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $member->id, 'body' => 'second message']);
+        config(['ai.channel.max_messages' => 1]);
+
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('askAi', 'day')
+            ->assertReturned(fn (array $r) => $r['note'] === config('ai.channel.truncated_note'));
+
+        Http::assertSent(fn ($request) => str_contains($request['messages'][1]['content'], 'second message')
+            && !str_contains($request['messages'][1]['content'], 'قرار شد'));
+
+        config(['ai.channel.cooldown' => 60]);
+        $empty = $this->channelWithMembers(User::factory()->create(['status' => 'active']), [$member]);
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('selectChannel', $empty->id)
+            ->call('askAi', 'day')
+            ->assertReturned(fn (array $r) => $r['error'] === 'none' && $r['soft'] === true)
+            ->call('askAi', 'week')
+            ->assertReturned(fn (array $r) => $r['error'] === 'none');
+        $this->assertSame(1, Channel::quotaUsed($member->id));
+    }
+
+    public function test_channel_assistant_refunds_a_failed_or_unusable_call_and_stops_at_the_daily_cap(): void
+    {
+        [$member, $channel] = $this->aiMember();
+        $component = Livewire::actingAs($member)->test(Main::class)->call('selectChannel', $channel->id);
+
+        Http::fake(fn () => throw new ConnectionException('down'));
+        $component->call('askAi', 'day')->assertReturned(fn (array $r) => $r['answer'] === '' && $r['error'] === 'unreachable' && $r['soft'] === false && filled($r['message']));
+        $this->assertSame(0, Channel::quotaUsed($member->id));
+        $this->assertTrue(Cache::has('channel:ai:down'));
+
+        Http::swap(new HttpClientFactory);
+        Http::fake(['*' => Http::response($this->aiReply('ok'))]);
+        $component->call('askAi', 'day')->assertReturned(fn (array $r) => $r['error'] === 'down');
+        $this->assertSame(0, Channel::quotaUsed($member->id));
+        Cache::forget('channel:ai:down');
+
+        Http::swap(new HttpClientFactory);
+        Http::fake(['*' => Http::response($this->aiReply(['not', 'text']))]);
+        $component->call('askAi', 'day')->assertReturned(fn (array $r) => $r['answer'] === '' && $r['error'] === 'empty');
+        $this->assertSame(0, Channel::quotaUsed($member->id));
+
+        for ($i = 0; $i < Channel::quotaCap(); $i++) {
+            Channel::consumeQuota($member->id);
+        }
+
+        $component->call('askAi', 'day')->assertReturned(fn (array $r) => $r['error'] === 'quota' && $r['soft'] === true);
+        $this->assertSame(Channel::quotaCap(), Channel::quotaUsed($member->id));
+    }
+
+    public function test_channel_assistant_refuses_outsiders_unknown_modes_and_a_tenant_that_switched_it_off(): void
+    {
+        [$member, $channel] = $this->aiMember();
+        [$outsider, $inactive] = $this->activeUsers(2);
+        $channel->memberUsers()->attach($inactive->id, ['joined_at' => now(), 'entered_at' => now()]);
+        $inactive->forceFill(['status' => 'inactive'])->saveQuietly();
+        $action = app(SummarizeChannelAction::class);
+        $status = function (callable $call): int {
+            try {
+                $call();
+            } catch (HttpException $e) {
+                return $e->getStatusCode();
+            }
+
+            return 200;
+        };
+
+        $this->actingAs($outsider);
+        $this->assertSame(403, $status(fn () => $action->execute($channel->id, $outsider->id, 'day', '')));
+        $this->actingAs($inactive);
+        $this->assertSame(403, $status(fn () => $action->execute($channel->id, $inactive->id, 'day', '')));
+        $this->actingAs($member);
+        $this->assertSame(422, $status(fn () => $action->execute($channel->id, $member->id, 'nope', '')));
+
+        config(['app.off' => ['channel:ai']]);
+        $this->assertSame(404, $status(fn () => $action->execute($channel->id, $member->id, 'day', '')));
+        $this->assertSame(0, Channel::quotaUsed($member->id));
+    }
+
+    public function test_channel_assistant_entry_and_panel_sit_behind_the_tenant_helper_in_the_island_partials(): void
+    {
+        $header = file_get_contents(resource_path('views/livewire/dashboard/channel/header.blade.php'));
+        $info = file_get_contents(resource_path('views/livewire/dashboard/channel/info.blade.php'));
+
+        $this->assertMatchesRegularExpression('/@if\(channelAiOn\(\)\)\s*<div wire:key="channel-ai-entry" x-show="!headerDeclutter".{0,900}openAiPanel\(\)/s', $header);
+        $this->assertMatchesRegularExpression('/@if\(channelAiOn\(\)\)\s*<div x-show="aiOpen"/', $info);
+        $this->assertStringNotContainsString("'id' => 'ai'", $info);
+        $this->assertMatchesRegularExpression('/<div x-show="!aiAnswer"[^>]*>\s*@foreach\(config\(\'ai\.channel\.modes\'\)/', $info);
+        $this->assertStringContainsString('x-on:click="aiReset()"', $info);
+    }
+
+    public function test_channel_assistant_gate_helper_follows_the_tenant_switch(): void
+    {
+        $this->aiMember();
+
+        $this->assertTrue(channelAiOn());
+
+        config(['app.off' => ['channel:ai']]);
+        $this->assertFalse(channelAiOn());
+
+        config(['app.off' => [], 'ai.channel.modes' => []]);
+        $this->assertFalse(channelAiOn());
+    }
+
+    public function test_channel_assistant_keeps_a_recent_pin_in_chronological_order(): void
+    {
+        [$member, $channel] = $this->aiMember();
+        $first = ChannelMessage::where('channel_id', $channel->id)->first();
+        $first->forceFill(['created_at' => now()->subMinutes(2)])->saveQuietly();
+        $pin = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $member->id, 'body' => 'recent pinned decision']);
+        $channel->forceFill(['pinned_message_id' => $pin->id])->saveQuietly();
+        Http::fake(['*' => Http::response($this->aiReply('ok'))]);
+
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('askAi', 'day')
+            ->assertReturned(fn (array $r) => $r['error'] === null);
+
+        Http::assertSent(fn ($request) => str_contains($request['messages'][1]['content'], "#{$pin->id} [PINNED]")
+            && strpos($request['messages'][1]['content'], 'قرار شد') < strpos($request['messages'][1]['content'], 'recent pinned decision'));
+    }
+
+    public function test_channel_assistant_sends_an_old_pinned_message_and_flags_a_shortened_answer(): void
+    {
+        [$member, $channel] = $this->aiMember();
+        $old = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $member->id, 'body' => 'old pinned decision']);
+        $old->forceFill(['created_at' => now()->subDays(10)])->saveQuietly();
+        $channel->forceFill(['pinned_message_id' => $old->id])->saveQuietly();
+        config(['ai.channel.answer_max' => 10]);
+        Http::fake(['*' => Http::response($this->aiReply(str_repeat('الف ', 20)))]);
+
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('askAi', 'day')
+            ->assertReturned(fn (array $r) => str_ends_with($r['answer'], '…') && $r['note'] === config('ai.channel.cut_note'));
+
+        Http::assertSent(fn ($request) => str_contains($request['messages'][1]['content'], "#{$old->id} [PINNED, OUTSIDE PERIOD]")
+            && str_contains($request['messages'][1]['content'], 'old pinned decision')
+            && strpos($request['messages'][1]['content'], 'old pinned decision') < strpos($request['messages'][1]['content'], 'قرار شد'));
     }
 }

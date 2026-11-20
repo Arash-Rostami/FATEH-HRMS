@@ -166,6 +166,17 @@
         </div>
     </div>
 
+    @if(channelAiOn())
+        <div wire:key="channel-ai-entry" x-show="!headerDeclutter" class="flex flex-shrink-0 items-center">
+            <x-ui.buttons.form type="button"
+                               variant="ai"
+                               class="!h-8 !gap-1.5 !px-3 !text-xs"
+                               x-on:click="openAiPanel()"
+                               aria-label="دستیار هوشمند"
+                               title="برای گفتگوهای خصوصی یا محرمانه از دستیار استفاده نکنید. متن پیام‌ها به سرویس هوش مصنوعی فرستاده می‌شود."><span class="hidden sm:inline">دستیار هوشمند</span></x-ui.buttons.form>
+        </div>
+    @endif
+
     <div
         class="flex flex-shrink-0 items-center gap-1">
         @component('livewire.dashboard.messaging.header-actions', ['closeLabel' => 'بازگشت (بستن گروه)'])

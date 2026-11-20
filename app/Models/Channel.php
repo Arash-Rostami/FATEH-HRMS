@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use App\Models\Concerns\HasDailyQuota;
 use App\Models\Concerns\HasNotifyEvents;
 use App\Models\Concerns\Hooks\HasChannelHooks;
 
@@ -25,6 +26,7 @@ class Channel extends Model
         Prunable,
         HasPrunableStatus,
         CleansAttachedFiles,
+        HasDailyQuota,
         HasNotifyEvents,
         HasChannelHooks;
 
@@ -35,6 +37,11 @@ class Channel extends Model
         'type',
         'owner_id',
     ];
+
+    protected static function quotaFeature(): string
+    {
+        return 'channel';
+    }
 
     public function members(): HasMany
     {

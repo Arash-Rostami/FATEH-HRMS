@@ -54,6 +54,7 @@ class ModelHooksTest extends TestCase
             'App\\Models\\AiReport' => ['HasActive', 'HasSharedRecipients', 'HasVersionHistory', 'HasDailyQuota', 'HasGenerationLifecycle'],
             'App\\Models\\Correspondence' => ['HasDailyQuota', 'HasGenerationLifecycle', 'HasSharedRecipients', 'HasVersionHistory'],
             'App\\Models\\Letterhead' => ['HasActive', 'HasLetterheadNumbering'],
+            'App\\Models\\Channel' => ['HasDailyQuota'],
         ];
 
         $relationTraits = [

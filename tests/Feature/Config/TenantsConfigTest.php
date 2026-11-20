@@ -266,6 +266,7 @@ class TenantsConfigTest extends TestCase
         $modules = config('tenants.fateh.modules');
 
         $this->assertFalse($modules['ths:ai'] ?? true);
+        $this->assertFalse($modules['channel:ai'] ?? true);
         $this->assertFalse($modules['ai-report'] ?? true);
     }
 }

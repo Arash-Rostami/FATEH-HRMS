@@ -111,7 +111,7 @@ class SuggestTicketTextAction
 
         $blanks = $this->apply($form, $draft['subject'], $draft['description']);
         $question = $form->priority === 'high' && is_string($draft['question'] ?? null)
-            ? ($this->clean($draft['question'], false, (int) config('ai.ticket.subject_max')) ?: null)
+            ? (AiClient::cleanText($draft['question'], false, (int) config('ai.ticket.subject_max')) ?: null)
             : null;
         $this->log('ok');
 
@@ -158,8 +158,8 @@ class SuggestTicketTextAction
                     throw new \InvalidArgumentException('subject and description must be strings');
                 }
 
-                $subject = $this->clean($data['subject'], false, (int) config('ai.ticket.subject_max'));
-                $description = $this->clean($data['description'], true, (int) config('ai.ticket.description_max'));
+                $subject = AiClient::cleanText($data['subject'], false, (int) config('ai.ticket.subject_max'));
+                $description = AiClient::cleanText($data['description'], true, (int) config('ai.ticket.description_max'));
 
                 if ($subject === '' || $description === '') {
                     throw new \InvalidArgumentException('subject and description must not be empty');
@@ -175,15 +175,6 @@ class SuggestTicketTextAction
         }
 
         throw new \DomainException('empty');
-    }
-
-    private function clean(string $text, bool $multiline, int $max): string
-    {
-        $text = preg_replace(['/[\x{200B}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}\x{061C}\x{2060}\x{00AD}\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '/^[ \t]*(?:#{1,6}|[*\-•]|\d{1,2}[.)])[ \t]+/mu', '/\*\*|`+/u'], '', $text);
-        $text = preg_replace('/[ \t]+/u', ' ', $text);
-        $text = $multiline ? preg_replace('/ ?\R\s*/u', "\n", $text) : preg_replace('/\s+/u', ' ', $text);
-
-        return mb_substr(convertToPersian(trim($text)) ?? '', 0, $max);
     }
 
     private function skeleton(TicketForm $form, array $labels, int $userId, ?string $error, string $outcome): array

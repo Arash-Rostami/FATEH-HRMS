@@ -279,6 +279,7 @@ return [
         'id' => 'channel',
         'icon' => 'campaign',
         'nav' => ['key' => 'channels', 'type' => 'route', 'target' => 'channels'],
+        'views' => ['groups', 'ai'],
         'with' => ['projects', 'tasksheet'],
         'title' => 'گروه‌ها',
         'nav_category' => 'عملیات سازمان',

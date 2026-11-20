@@ -9,7 +9,7 @@
 <div x-show="showInfo"
      x-transition:enter="animate-slide-fade-from-left"
      x-transition:leave="animate-slide-fade-to-left"
-     x-on:click.outside="if (!$event.target.closest('.custom-modal, .fancybox__dialog, .fancybox__container')) showInfo = false"
+     x-on:click.outside="if (!$event.target.closest('.custom-modal, .fancybox__dialog, .fancybox__container, [wire\\:key=channel-ai-entry]')) showInfo = false"
      class="absolute inset-y-0 left-0 z-30 flex w-72 md:w-80 flex-col overflow-hidden rounded-xl border-r border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] shadow-[0_16px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_24%,transparent)] bg-[var(--md-sys-color-primary-container)] "
      role="dialog"
      aria-label="اطلاعات گروه">
@@ -17,15 +17,17 @@
     <div class="flex flex-shrink-0 flex-col gap-3 border-b border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_60%,transparent)] px-4 pt-3.5 pb-3">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
-                    <span class="material-symbols-rounded text-[15px]">tag</span>
+                <span class="flex h-6 w-6 items-center justify-center rounded-lg"
+                      :class="aiOpen ? 'bg-[var(--ai-bg)] text-[var(--ai-text)]' : 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'">
+                    <span class="material-symbols-rounded text-[15px]" x-text="aiOpen ? 'auto_awesome' : 'tag'">tag</span>
                 </span>
-                <h3 class="text-xs font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">اطلاعات گروه</h3>
+                <h3 class="text-xs font-bold tracking-tight text-[var(--md-sys-color-on-surface)]" x-text="aiOpen ? 'دستیار هوشمند' : 'اطلاعات گروه'">اطلاعات گروه</h3>
             </div>
             <x-ui.modals.close-button close="showInfo = false"/>
         </div>
 
         <x-ui.buttons.tab-selector
+            x-show="!aiOpen"
             hasA11y
             :activeTab="''"
             :buttonBaseClass="'flex-1 justify-center px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-150'"
@@ -33,13 +35,13 @@
             class="!mb-0 !w-full"
             :tabs="[
                 ['id' => 'info', 'icon' => 'info', 'label' => 'مشخصات', 'description' => 'اطلاعات گروه',
-                 'alpine' => 'if (filesOpen) toggleFiles()', 'activeExpr' => '!filesOpen'],
+                 'alpine' => 'aiOpen = false; if (filesOpen) toggleFiles()', 'activeExpr' => '!filesOpen && !aiOpen'],
                 ['id' => 'files', 'icon' => 'folder_open', 'label' => 'پیوست‌ها', 'description' => 'همهٔ فایل‌های ردوبدل‌شدهٔ این گفتگو',
-                 'alpine' => 'if (!filesOpen) toggleFiles()', 'activeExpr' => 'filesOpen', 'countExpr' => 'filesList.length'],
+                 'alpine' => 'aiOpen = false; if (!filesOpen) toggleFiles()', 'activeExpr' => 'filesOpen', 'countExpr' => 'filesList.length'],
             ]"/>
     </div>
 
-    <div x-show="!filesOpen" class="flex flex-1 min-h-0 flex-col justify-between p-4 gap-3 overflow-hidden">
+    <div x-show="!filesOpen && !aiOpen" class="flex flex-1 min-h-0 flex-col justify-between p-4 gap-3 overflow-hidden">
         <div class="flex flex-col gap-2.5 min-h-0 overflow-y-auto contact-scrollbar">
             <div class="flex items-center gap-3 rounded-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[var(--md-sys-color-surface-container-low)] p-3">
                 <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl shadow-sm bg-[linear-gradient(135deg,var(--md-sys-color-primary),var(--md-sys-color-secondary))] text-[var(--md-sys-color-on-primary)]">
@@ -231,6 +233,51 @@
             </div>
         @endif
     </div>
+
+    @if(channelAiOn())
+        <div x-show="aiOpen" x-cloak class="flex flex-1 min-h-0 flex-col overflow-hidden bg-[var(--md-sys-color-surface)]" role="tabpanel" aria-label="دستیار هوشمند">
+            <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto contact-scrollbar p-4">
+                <div x-show="aiMeter" x-cloak x-html="aiMeter" aria-live="polite"></div>
+                <p x-show="!aiMeter" x-cloak class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">سهمیه نمایش داده نشد.</p>
+
+                <div class="flex items-start gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-warning)_35%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-warning)_12%,transparent)] px-3 py-2">
+                    <span class="material-symbols-rounded mt-0.5 text-[15px] text-[var(--md-sys-color-warning)]" aria-hidden="true">shield_person</span>
+                    <p class="text-[11px] leading-5 text-[var(--md-sys-color-on-surface)]"><strong>برای گفتگوهای خصوصی یا محرمانه از دستیار استفاده نکنید.</strong> متن پیام‌ها، از جمله پیام سنجاق‌شده، به سرویس هوش مصنوعی فرستاده می‌شود.</p>
+                </div>
+
+                <div x-show="!aiAnswer" x-cloak class="flex flex-col gap-2">
+                    @foreach(config('ai.channel.modes') as $key => $mode)
+                        @continue($key === 'ask')
+                        <x-ui.buttons.form wire:key="channel-ai-mode-{{ $key }}" variant="ai" class="w-full !justify-start" x-on:click="askAi('{{ $key }}')" x-bind:disabled="aiBusy">{{ $mode['label'] }}</x-ui.buttons.form>
+                    @endforeach
+                </div>
+
+                <x-ui.buttons.form x-show="aiAnswer" x-cloak variant="ghost" icon="restart_alt" class="w-full !justify-start" x-on:click="aiReset()" x-bind:disabled="aiBusy">گزینهٔ دیگر</x-ui.buttons.form>
+
+                <div class="flex flex-col gap-2" role="status" aria-live="polite">
+                    <div x-show="aiBusy" x-cloak class="relative overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--ai-color)_40%,transparent)] bg-[var(--md-sys-color-surface)] px-3 py-2.5">
+                        <x-ui.loaders.ai-shimmer class="rounded-xl"/>
+                        <p class="relative text-[11px] leading-5 text-[var(--ai-text)]">در حال پاسخ‌گویی… تا حدود ۲ دقیقه. درخواست پس از بستن پنل هم ادامه دارد.</p>
+                    </div>
+
+                    <div x-show="aiAnswer" x-cloak class="flex flex-col gap-1.5" :class="aiBusy ? 'opacity-50' : ''">
+                        <div class="whitespace-pre-line rounded-xl border border-[color-mix(in_srgb,var(--ai-color)_40%,transparent)] bg-[var(--ai-bg)] px-3 py-2.5 text-xs leading-6 text-[var(--ai-text)]" x-text="aiAnswer"></div>
+                        <p x-show="aiNote" x-cloak class="px-1 text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]" x-text="aiNote"></p>
+                    </div>
+
+                    <p x-show="aiMessage && !aiBusy" x-cloak
+                       class="rounded-xl px-3 py-2 text-[11px] leading-5"
+                       :class="aiSoft ? 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' : 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'"
+                       x-text="aiMessage"></p>
+                </div>
+            </div>
+
+            <div class="flex flex-shrink-0 flex-col gap-2 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[var(--md-sys-color-surface-container-low)] p-3">
+                <x-ui.forms.input name="channel_ai_question" label="پرسش دربارهٔ ۷ روز اخیر" x-model="aiQuestion" x-on:keydown.enter="askAi('ask')" x-bind:disabled="aiBusy" maxlength="{{ config('ai.channel.question_max') }}"/>
+                <x-ui.buttons.form variant="ai" class="w-full" x-on:click="askAi('ask')" x-bind:disabled="aiBusy">بپرس</x-ui.buttons.form>
+            </div>
+        </div>
+    @endif
 
     @include('livewire.dashboard.messaging.files')
 </div>

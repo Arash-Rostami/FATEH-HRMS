@@ -26,6 +26,7 @@ const DATA_RF_MESSAGE_PREFIX = 'channel-message';
 const POLL_FALLBACK_EVERY = 10;
 const MENTION_LIMIT = 8;
 const TOO_LONG_MSG = 'متن پیام نباید بیشتر از ۴۰۰۰ کاراکتر باشد.';
+const AI_FAILED_MSG = 'درخواست انجام نشد. کمی بعد دوباره امتحان کنید.';
 
 const RF_ID_OFFSET = DATA_RF_MESSAGE_PREFIX.length + 1;
 const ROW_SEL = `[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`;
@@ -42,7 +43,7 @@ const rowId = (row) => parseInt(row.getAttribute('data-rf').substring(RF_ID_OFFS
 const lastAt = (v, pos) => pos ? v.lastIndexOf('@', pos - 1) : -1;
 
 export default function channel() {
-    let ac, vpAc, vpRo, scrollRaf, selRaf, unreadObs, fadeTimer, digest, ticks = 0, selectSeq = 0;
+    let ac, vpAc, vpRo, scrollRaf, selRaf, unreadObs, fadeTimer, digest, ticks = 0, selectSeq = 0, aiSeq = 0;
 
     return {
         ...maximizeMixin('channel'),
@@ -61,6 +62,14 @@ export default function channel() {
         quoteChip: { visible: false, x: 0, y: 0, id: 0, sender: '', snippet: '' },
         keyOpen: false,
         channelKey: '',
+        aiOpen: false,
+        aiBusy: false,
+        aiQuestion: '',
+        aiAnswer: '',
+        aiNote: '',
+        aiMessage: '',
+        aiSoft: false,
+        aiMeter: '',
         activeSender: null,
         chipsVisible: true,
         mentionOpen: false,
@@ -72,6 +81,7 @@ export default function channel() {
             this.initFancybox();
             this._loadChatSettings();
             this.headerDeclutterMenuBridge();
+            this.$watch('showInfo', (open) => { if (!open) this.aiOpen = false; });
 
             this.syncChannelCount();
             this.syncPushNotify();
@@ -88,6 +98,7 @@ export default function channel() {
                 if (!document.hidden) {
                     this._flushPendingRing();
                     this._repollNow();
+                    if (this.aiOpen && !this.aiBusy) this.aiLoadMeter();
                 } else if (!this.$store.push.isEnabled(SCOPE)) this.stopPolling();
             }, { signal });
 
@@ -530,6 +541,7 @@ export default function channel() {
             this.bookmarksOpen = false;
             this.daysOpen = false;
             this.closeChannelKey();
+            this.aiReset();
             this._clearEdit();
 
             this.$wire.cancelReply();
@@ -549,6 +561,53 @@ export default function channel() {
                 .then(() => {
                     if (seq !== selectSeq) return;
                     if (innerWidth < MOBILE_BREAKPOINT && el) this.$nextTick(() => el.focus());
+                });
+        },
+
+        openAiPanel() {
+            if (this.filesOpen) this.toggleFiles();
+            this.aiOpen = true;
+            this.showInfo = true;
+            this.aiLoadMeter();
+        },
+
+        aiLoadMeter() {
+            return this.$wire.aiQuota().then((html) => { this.aiMeter = html; }).catch(() => { this.aiMeter = ''; });
+        },
+
+        aiReset() {
+            aiSeq++;
+            this.aiBusy = false;
+            this.aiQuestion = '';
+            this.aiAnswer = '';
+            this.aiNote = '';
+            this.aiMessage = '';
+            this.aiSoft = false;
+        },
+
+        askAi(mode) {
+            if (this.aiBusy) return;
+            const seq = ++aiSeq;
+            this.aiBusy = true;
+            this.aiMessage = '';
+
+            return this.$wire.askAi(mode, this.aiQuestion)
+                .then((r) => {
+                    if (seq !== aiSeq) return;
+                    this.aiMeter = r.meter;
+                    this.aiMessage = r.message || '';
+                    this.aiSoft = r.soft;
+                    if (r.error === 'busy') return;
+                    this.aiAnswer = r.answer;
+                    this.aiNote = r.note || '';
+                })
+                .catch(() => {
+                    if (seq !== aiSeq) return;
+                    this.aiMessage = AI_FAILED_MSG;
+                    this.aiSoft = false;
+                })
+                .finally(() => {
+                    if (seq === aiSeq) this.aiBusy = false;
                 });
         },
 

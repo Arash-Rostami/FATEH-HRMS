@@ -149,7 +149,8 @@ $tenants = [
         //     'taskboard' => false,            // also hides projects + tasksheet + ths (its 'with' list in config/modules.php)
             'status:chart' => false,
             'ths:ai' => false,
-            'ai-report' => false,            // hides the AI report module: route 404, menu, admin resource, badges
+            'channel:ai' => false,
+            'ai-report' => false,         // hides the AI report module: route 404, menu, admin resource, badges
             'launchpad' => false,
             'correspondence' => false,       // letters module off for this tenant: route 404, menu, admin, badges, search (also off through notify 'with', kept explicit)
          ],                                   // see everything hidden: php artisan tenant:hidden   |  all keys: php artisan tenant:hidden --all
