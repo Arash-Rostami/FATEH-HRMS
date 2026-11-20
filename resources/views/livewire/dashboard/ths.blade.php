@@ -3,7 +3,7 @@
    
     dir="rtl"
     x-data="ths()"
-    @keydown.escape.window="if(max) toggleMaximize(null)"
+    @keydown.escape.window="onEscape($event)"
 >
     <div
         class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">

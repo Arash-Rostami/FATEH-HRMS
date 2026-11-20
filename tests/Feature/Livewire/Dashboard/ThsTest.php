@@ -494,7 +494,7 @@ class ThsTest extends TestCase
             ->set('assigneeId', (string) $outsider->id)
             ->call('assign')
             ->assertHasNoErrors()
-            ->assertDispatched('toast', message: 'کاربر انتخاب‌شده متعلق به این واحد سازمانی نیست.', type: 'error');
+            ->assertDispatched('toast', message: 'مسئول را از اعضای فعال این واحد انتخاب کنید.', type: 'error');
 
         $this->assertNull($ticket->fresh()->assigned_to);
     }
@@ -1739,7 +1739,7 @@ class ThsTest extends TestCase
             ->set('assigneeId', (string) $first->id)->call('assign');
 
         $late->set('assigneeId', (string) $second->id)->call('assign')
-            ->assertDispatched('toast', message: 'این تیکت قبلاً محول شده است.', type: 'error');
+            ->assertDispatched('toast', message: 'مسئول این تیکت قبلاً تعیین شده است. صفحه را تازه کنید.', type: 'error');
 
         $this->assertSame($first->id, Ticket::find($ticket->id)->assigned_to);
     }
@@ -1783,7 +1783,7 @@ class ThsTest extends TestCase
         Livewire::actingAs($staff)->test(Workspace::class, ['ticketId' => $ticket->id])
             ->set('replyForm.body', 'cannot handle this')
             ->call('releaseTicket')
-            ->assertDispatched('toast', message: 'تیکت به صف بازگردانده شد.', type: 'success');
+            ->assertDispatched('toast', message: 'تیکت برای تعیین مسئول جدید به صف همین واحد برگشت.', type: 'success');
 
         $fresh = Ticket::find($ticket->id);
         $this->assertNull($fresh->assigned_to);
@@ -1806,7 +1806,7 @@ class ThsTest extends TestCase
             ->set('rerouteTo', $targetCode)
             ->set('replyForm.body', 'wrong team')
             ->call('rerouteTicket')
-            ->assertDispatched('toast', message: 'تیکت ارجاع داده شد.', type: 'success');
+            ->assertDispatched('toast', message: 'تیکت به واحد انتخاب‌شده فرستاده شد.', type: 'success');
 
         $fresh = Ticket::find($ticket->id);
         $this->assertSame($targetCode, $fresh->targetDepartmentId);
@@ -2136,7 +2136,7 @@ class ThsTest extends TestCase
         $this->assertFalse($workspace->instance()->departmentOptions->has($headless));
 
         $workspace->set('rerouteTo', $headless)->set('replyForm.body', 'move')->call('rerouteTicket')
-            ->assertDispatched('toast', message: 'واحد انتخاب‌شده مسئولی ندارد و امکان ارجاع به آن وجود ندارد.', type: 'error');
+            ->assertDispatched('toast', message: 'این واحد فعلاً امکان دریافت تیکت ندارد. واحد دیگری را انتخاب کنید.', type: 'error');
 
         $fresh = Ticket::find($ticket->id);
         $this->assertSame($code, $fresh->targetDepartmentId);
@@ -2313,7 +2313,7 @@ class ThsTest extends TestCase
         Livewire::actingAs($head)->test(Workspace::class, ['ticketId' => $ticket->id])
             ->set('replyForm.body', 'head returns it')
             ->call('releaseTicket')
-            ->assertDispatched('toast', message: 'تیکت به صف بازگردانده شد.', type: 'success');
+            ->assertDispatched('toast', message: 'تیکت برای تعیین مسئول جدید به صف همین واحد برگشت.', type: 'success');
 
         $fresh = Ticket::find($ticket->id);
         $this->assertNull($fresh->assigned_to);
@@ -2401,16 +2401,16 @@ class ThsTest extends TestCase
         $presenter = new TicketPresenter();
 
         $open = $this->ticketArray(['requester_id' => $requester->id, 'target_department_code' => $code]);
-        $this->assertSame('در انتظار تخصیص توسط سرپرست واحد', $presenter->ballState($open, $requester)['title']);
+        $this->assertSame('در انتظار تعیین مسئول توسط مدیر واحد', $presenter->ballState($open, $requester)['title']);
         $this->assertSame('معمولاً حدود ۲ روز', $presenter->ballState($open, $requester)['sub']);
         $headBall = $presenter->ballState($open, $head);
-        $this->assertSame('نوبت شماست — کارشناس را تخصیص دهید', $headBall['title']);
-        $this->assertSame(['تخصیص', 'response'], $headBall['cta']);
+        $this->assertSame('مسئول رسیدگی را انتخاب کنید', $headBall['title']);
+        $this->assertSame(['تعیین مسئول', 'response'], $headBall['cta']);
 
         $progress = $this->ticketArray(['status' => 'in-progress', 'requester_id' => $requester->id, 'assigned_to' => $assignee->id, 'assignee' => ['name' => $assignee->name], 'target_department_code' => $code]);
         $this->assertSame('نوبت شماست — پاسخ دهید یا ببندید', $presenter->ballState($progress, $assignee)['title']);
-        $this->assertSame('در دست کارشناس آزمون', $presenter->ballState($progress, $requester)['title']);
-        $this->assertSame('در دست کارشناس آزمون', $presenter->ballState($progress, $head)['title']);
+        $this->assertSame('در حال رسیدگی توسط کارشناس آزمون', $presenter->ballState($progress, $requester)['title']);
+        $this->assertSame('در حال رسیدگی توسط کارشناس آزمون', $presenter->ballState($progress, $head)['title']);
 
         $closed = $this->ticketArray(['status' => 'closed', 'requester_id' => $requester->id, 'assigned_to' => $assignee->id, 'completion_date' => now()->toDateTimeString()]);
         $rate = $presenter->ballState($closed, $requester);
@@ -2524,7 +2524,7 @@ class ThsTest extends TestCase
             ->assertSeeHtml('wire:key="ths-modal-ball"')
             ->assertSeeHtml('wire:key="ths-info-ring"')
             ->assertSeeHtml('wire:key="ths-modal-strip"')
-            ->assertSee('در انتظار تخصیص توسط سرپرست واحد')
+            ->assertSee('در انتظار تعیین مسئول توسط مدیر واحد')
             ->assertSee('توضیحات تیکت')
             ->assertSee('مشخصات')
             ->assertSee('پیوست‌ها');
@@ -2631,7 +2631,9 @@ class ThsTest extends TestCase
         $open = Livewire::actingAs($assignee)->test(Workspace::class, ['ticketId' => $ticket->id])->html();
         $this->assertMatchesRegularExpression('/wire:key="ths-workspace-outcome".*wire:key="ths-workspace-effectiveness".*wire:key="ths-workspace-effect-form".*wire:key="ths-close-ticket".*wire:key="ths-reply-composer"/su', $open);
         $this->assertStringContainsString("wire:click=\"setEffectiveness('4')\"", $open);
-        $this->assertStringContainsString('wire:confirm="این تیکت بسته شود؟"', $open);
+        $this->assertStringContainsString('open-confirmation', $open);
+        $this->assertStringContainsString('&quot;method&quot;:&quot;closeTicket&quot;', $open);
+        $this->assertStringNotContainsString('wire:confirm', $open);
         $this->assertStringNotContainsString('wire:key="ths-modal-rating"', $open);
 
         $ticket->update(['effectiveness' => '3']);
@@ -4023,8 +4025,8 @@ class ThsTest extends TestCase
             ->assertSee('aiJumpBlank()', false)
             ->assertSee('پیش‌نویس هوش مصنوعی')
             ->assertSee('الگوی آماده')
-            ->assertSee('نسخهٔ دیگر')
-            ->assertSee('آماده ارسال')
+            ->assertSee('پیشنهاد دیگر')
+            ->assertSee('جاهای خالی تکمیل شد')
             ->assertSee('aiAgain()', false)
             ->assertSee('بار دیگر امروز');
     }
@@ -4058,8 +4060,8 @@ class ThsTest extends TestCase
             ->assertDontSee('data-ai-need', false)
             ->assertDontSee('data-ai-blank-text', false)
             ->assertDontSee('aiGuardSubmit', false)
-            ->assertDontSee('نسخهٔ دیگر')
-            ->assertDontSee('آماده ارسال')
+            ->assertDontSee('پیشنهاد دیگر')
+            ->assertDontSee('جاهای خالی تکمیل شد')
             ->assertDontSee('x-bind:inert="aiLoading"', false)
             ->assertDontSee('data-ai-blank', false)
             ->assertDontSee('data-ai-chips', false)
@@ -4078,8 +4080,8 @@ class ThsTest extends TestCase
             ->assertDontSee('data-ai-need', false)
             ->assertDontSee('data-ai-blank-text', false)
             ->assertDontSee('aiGuardSubmit', false)
-            ->assertDontSee('نسخهٔ دیگر')
-            ->assertDontSee('آماده ارسال')
+            ->assertDontSee('پیشنهاد دیگر')
+            ->assertDontSee('جاهای خالی تکمیل شد')
             ->assertDontSee('x-bind:inert="aiLoading"', false)
             ->assertDontSee('data-ai-blank', false)
             ->assertDontSee('data-ai-chips', false)

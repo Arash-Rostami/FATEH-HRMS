@@ -4,7 +4,7 @@
 
         <x-ui.title
             icon="format_list_bulleted"
-            title="لیست"
+            title="فهرست پیشنهادها"
             count="{{ $this->suggestions->total() }}"
         />
 
@@ -21,7 +21,7 @@
         <x-ui.forms.search
             name="search"
             model="search"
-            placeholder="جستجو در پیشنهادات ..."
+            placeholder="جستجو با عنوان یا شناسهٔ پیشنهاد…"
             debounce="400"
             icon="manage_search"
             :clearable="true"

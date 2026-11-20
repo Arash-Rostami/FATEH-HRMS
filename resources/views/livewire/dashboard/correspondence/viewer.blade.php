@@ -115,7 +115,7 @@
                         <div wire:key="correspondence-version-{{ $index }}" class="flex items-center justify-between gap-2 text-xs">
                             <span>نسخه {{ convertToPersian($index + 1) }} · <bdi>{{ $presenter->name($version['user_id'] ?? null) }}</bdi> · {{ isset($version['at']) ? toJalali($version['at'], 'Y/m/d H:i') : '' }}</span>
                             @unless($readOnly)
-                                <x-ui.buttons.form wire:key="correspondence-version-restore-{{ $index }}" type="button" variant="ghost" loading="restoreVersion" wire:click="restoreVersion({{ (int) $index }})" wire:confirm="این نسخه جایگزین متن فعلی شود؟ در مسیر امضا، امضاهای ثبت‌شده پاک می‌شود.">بازگشت</x-ui.buttons.form>
+                                <x-ui.buttons.form wire:key="correspondence-version-restore-{{ $index }}" type="button" variant="ghost" loading="restoreVersion" x-on:click="{{ confirmDialog('restoreVersion', 'بازگشت', 'این نسخه جایگزین متن فعلی شود؟ در مسیر امضا، امضاهای ثبت‌شده پاک می‌شود.', (int) $index) }}">بازگشت</x-ui.buttons.form>
                             @endunless
                         </div>
                     @endforeach
@@ -145,6 +145,8 @@
 
             @if($v['delivery'] !== [] || $v['manual'])
                 <div wire:key="correspondence-delivery" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] p-3 flex flex-col gap-2">
+                    <p class="text-sm font-bold">تحویل به گیرنده پس از تأیید</p>
+                    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">تأیید نهایی به معنی تحویل نامه نیست. برای هر گیرنده، ارسال را انجام دهید یا تحویل خارج از سامانه را ثبت کنید. هر کسی که پیوند مشاهده را داشته باشد، تا پایان اعتبار یا لغو آن بدون ورود به سامانه می‌تواند نامه را باز کند؛ ایمیل گیرنده هویت بازکنندهٔ پیوند را بررسی نمی‌کند.</p>
                     @foreach($v['delivery'] as $item)
                         <div wire:key="correspondence-delivery-{{ $item['index'] }}" class="flex flex-wrap items-center justify-between gap-2">
                             <div class="min-w-0 flex flex-col gap-0.5">
@@ -159,13 +161,13 @@
                             @if($v['close'])
                                 <div wire:key="correspondence-delivery-actions-{{ $item['index'] }}" class="flex flex-wrap gap-1 shrink-0">
                                     @if($item['can_send'])
-                                        <x-ui.buttons.form wire:key="correspondence-delivery-send-{{ $item['index'] }}" type="button" variant="tonal" icon="send" loading="sendLink" wire:click="sendLink({{ (int) $letter->id }}, {{ (int) $item['index'] }})" wire:confirm="نامه برای این گیرنده ارسال شود؟">ارسال</x-ui.buttons.form>
+                                        <x-ui.buttons.form wire:key="correspondence-delivery-send-{{ $item['index'] }}" type="button" variant="tonal" icon="send" loading="sendLink" x-on:click="{{ confirmDialog('sendLink', 'ارسال', 'نامه برای این گیرنده ارسال شود؟', [(int) $letter->id, (int) $item['index']]) }}">ارسال</x-ui.buttons.form>
                                     @endif
                                     @if($item['can_remind'])
-                                        <x-ui.buttons.form wire:key="correspondence-delivery-remind-{{ $item['index'] }}" type="button" variant="tonal" icon="forward_to_inbox" loading="remindLink" wire:click="remindLink({{ (int) $letter->id }}, {{ (int) $item['index'] }})" wire:confirm="نامه دوباره برای این گیرنده ارسال شود؟">ارسال مجدد</x-ui.buttons.form>
+                                        <x-ui.buttons.form wire:key="correspondence-delivery-remind-{{ $item['index'] }}" type="button" variant="tonal" icon="forward_to_inbox" loading="remindLink" x-on:click="{{ confirmDialog('remindLink', 'ارسال مجدد', 'نامه دوباره برای این گیرنده ارسال شود؟', [(int) $letter->id, (int) $item['index']]) }}">ارسال مجدد</x-ui.buttons.form>
                                     @endif
                                     @if($item['can_revoke'])
-                                        <x-ui.buttons.form wire:key="correspondence-delivery-revoke-{{ $item['index'] }}" type="button" variant="ghost" loading="revokeLink" wire:click="revokeLink({{ (int) $letter->id }}, {{ (int) $item['index'] }})" wire:confirm="پیوند این گیرنده لغو شود؟">لغو پیوند</x-ui.buttons.form>
+                                        <x-ui.buttons.form wire:key="correspondence-delivery-revoke-{{ $item['index'] }}" type="button" variant="ghost" loading="revokeLink" x-on:click="{{ confirmDialog('revokeLink', 'لغو پیوند', 'دسترسی از پیوند این گیرنده بسته شود؟ فایل‌هایی که قبلاً دریافت کرده، پس گرفته نمی‌شوند.', [(int) $letter->id, (int) $item['index']], 'dispatch', 'danger') }}">لغو پیوند</x-ui.buttons.form>
                                     @endif
                                 </div>
                             @endif
@@ -179,6 +181,7 @@
                             <p class="text-sm font-bold text-[var(--md-sys-color-tertiary)]">متن ایمیل ارسالی</p>
                             <x-ui.forms.input label="عنوان ایمیل (خالی = پیش‌فرض)" name="mailSubject" maxlength="150" wire:model="mailSubject"/>
                             <x-ui.forms.textarea label="متن ایمیل (خالی = پیش‌فرض)" name="mailBody" maxlength="1500" wire:model="mailBody"/>
+                            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">این متن فقط همراه ایمیل می‌رود و متن خود نامه را عوض نمی‌کند. اگر خالی بگذارید، متن آمادهٔ سامانه استفاده می‌شود. پس از ذخیره، برای ارسال ایمیل باید دکمهٔ ارسال گیرنده را بزنید.</p>
                             <x-ui.buttons.form type="button" variant="tonal" icon="mail" loading="saveMailText" wire:click="saveMailText">ذخیره متن ایمیل</x-ui.buttons.form>
                         </div>
                     @endif
@@ -186,6 +189,7 @@
                         <div wire:key="correspondence-manual" class="flex flex-col gap-2">
                             <p class="text-sm font-bold text-[var(--md-sys-color-tertiary)]">{{ __('resources/correspondence/strings.delivery.manual') }}</p>
                             <x-ui.forms.textarea label="ثبت تحویل یا پیگیری خارج از سامانه" name="deliveryNote" wire:model="deliveryNote"/>
+                            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">بنویسید چه چیزی، به چه کسی و از چه راهی تحویل داده یا پیگیری شده است؛ مثلاً «نسخهٔ کاغذی به دبیرخانهٔ شرکت تحویل شد». ثبت این توضیح، ایمیل ارسال نمی‌کند.</p>
                             <x-ui.buttons.form type="button" variant="tonal" icon="local_shipping" loading="markDeliveredManually" wire:click="markDeliveredManually">ثبت</x-ui.buttons.form>
                         </div>
                     @endif
@@ -195,6 +199,7 @@
             @if($state['canSave'] && $state['smartOn'] && $v['refineBlocks'] !== [])
                 <div wire:key="correspondence-refine" class="rounded-2xl border border-[color-mix(in_srgb,var(--ai-color)_40%,transparent)] bg-[var(--ai-bg)] p-3 flex flex-col gap-2">
                     <x-ui.forms.textarea label="{{ __('resources/correspondence/strings.viewer.refine_prompt') }}" name="refineText" wire:model="refineText"/>
+                    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">تغییر موردنظر را بنویسید و دکمهٔ همان بخش را بزنید؛ مثلاً «این بند کوتاه‌تر شود و مبلغ تغییر نکند». بازنویسی از سهمیهٔ هوش مصنوعی استفاده می‌کند؛ نتیجه را پیش از امضا بررسی کنید.</p>
                     <div class="flex flex-wrap gap-2">
                         @foreach($v['refineBlocks'] as $block)
                             <x-ui.buttons.form wire:key="correspondence-refine-{{ $block['index'] }}" type="button" variant="ai" loading="refine" wire:click="refine({{ (int) $block['index'] }}, '{{ $block['hash'] }}')">{{ __('resources/correspondence/strings.viewer.refine') }} <bdi>{{ $block['label'] }}</bdi></x-ui.buttons.form>
@@ -218,23 +223,23 @@
                     <x-ui.buttons.form wire:key="correspondence-reject" type="button" variant="ghost" x-on:click="openReject()">رد</x-ui.buttons.form>
                 @endif
                 @if($v['manage'])
-                    <x-ui.buttons.form wire:key="correspondence-withdraw" type="button" variant="ghost" data-title="پس گرفتن" data-message="نامه از مسیر امضا پس گرفته شود؟" data-method="withdrawLetter" x-on:click="confirmAction($el)">پس گرفتن</x-ui.buttons.form>
+                    <x-ui.buttons.form wire:key="correspondence-withdraw" type="button" variant="ghost" x-on:click="{{ confirmDialog('withdrawLetter', 'پس گرفتن', 'نامه به پیش‌نویس برگردد؟ امضاهای ثبت‌شده پاک می‌شوند و برای ادامه باید دوباره آن را برای امضا ارسال کنید.') }}">پس گرفتن</x-ui.buttons.form>
                     <x-ui.buttons.form wire:key="correspondence-reroute" type="button" variant="tonal" icon="alt_route" x-on:click="openModal('correspondence-reroute')">تغییر مسیر</x-ui.buttons.form>
                 @endif
                 @if($v['close'])
-                    <x-ui.buttons.form wire:key="correspondence-void" type="button" variant="ghost" data-title="باطل کردن" data-message="این نامه باطل شود؟" data-method="voidLetter" x-on:click="confirmAction($el)">باطل کردن</x-ui.buttons.form>
+                    <x-ui.buttons.form wire:key="correspondence-void" type="button" variant="ghost" x-on:click="{{ confirmDialog('voidLetter', 'باطل کردن', 'این نامه باطل شود؟ شماره و سابقهٔ آن باقی می‌ماند، اما پیوند مشاهدهٔ متن نامه دیگر باز نمی‌شود. این کار برگشت‌پذیر نیست.', null, 'dispatch', 'danger') }}">باطل کردن</x-ui.buttons.form>
                     <x-ui.buttons.form wire:key="correspondence-correct" type="button" variant="tonal" icon="edit_note" loading="correctLetter" wire:click="correctLetter">ایجاد نامه اصلاحی</x-ui.buttons.form>
                 @endif
                 @if($v['replace'])
-                    <x-ui.buttons.form wire:key="correspondence-supersede-original" type="button" variant="primary" icon="task_alt" loading="supersedeOriginal" wire:click="supersedeOriginal" wire:confirm="نامهٔ اصلی با این نامه جایگزین شود؟">جایگزین کردن نامهٔ اصلی</x-ui.buttons.form>
+                    <x-ui.buttons.form wire:key="correspondence-supersede-original" type="button" variant="primary" icon="task_alt" loading="supersedeOriginal" x-on:click="{{ confirmDialog('supersedeOriginal', 'جایگزین کردن نامهٔ اصلی', 'نامهٔ اصلی با این نامه جایگزین شود؟') }}">جایگزین کردن نامهٔ اصلی</x-ui.buttons.form>
                 @endif
                 @if($v['receive'])
                     <x-ui.buttons.form wire:key="correspondence-receive" type="button" variant="primary" icon="move_to_inbox" loading="receiveLetter" wire:click="receiveLetter">ثبت وصول</x-ui.buttons.form>
                 @endif
                 @if($v['route'])
                     <x-ui.buttons.form wire:key="correspondence-route-open" type="button" variant="primary" icon="forward_to_inbox" x-on:click="openModal('correspondence-route')">ارجاع</x-ui.buttons.form>
-                    <x-ui.buttons.form wire:key="correspondence-close-incoming" type="button" variant="tonal" icon="task_alt" loading="closeLetter" wire:click="closeLetter" wire:confirm="این نامه بسته شود؟">بستن</x-ui.buttons.form>
-                    <x-ui.buttons.form wire:key="correspondence-void-incoming" type="button" variant="ghost" loading="voidLetter" wire:click="voidLetter" wire:confirm="این نامه باطل شود؟ شمارهٔ آن محفوظ می‌ماند.">ابطال</x-ui.buttons.form>
+                    <x-ui.buttons.form wire:key="correspondence-close-incoming" type="button" variant="tonal" icon="task_alt" loading="closeLetter" x-on:click="{{ confirmDialog('closeLetter', 'بستن', 'رسیدگی به نامه تمام شده و بسته شود؟ پس از بستن، ویرایش و ارجاع دوبارهٔ آن ممکن نیست.') }}">بستن</x-ui.buttons.form>
+                    <x-ui.buttons.form wire:key="correspondence-void-incoming" type="button" variant="ghost" loading="voidLetter" x-on:click="{{ confirmDialog('voidLetter', 'ابطال', 'این نامه باطل شود؟ شمارهٔ آن محفوظ می‌ماند.', null, 'dispatch', 'danger') }}">ابطال</x-ui.buttons.form>
                 @endif
                 @if($v['correct'] && !$correcting)
                     <x-ui.buttons.form wire:key="correspondence-registration-open" type="button" variant="tonal" icon="edit_note" loading="startCorrection" wire:click="startCorrection">اصلاح مشخصات ثبت</x-ui.buttons.form>
@@ -259,6 +264,7 @@
             @if($v['wet'])
                 <div wire:key="correspondence-wet-steps" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] p-3 flex flex-wrap items-center gap-2">
                     <p class="text-sm font-bold w-full">امضای دستی</p>
+                    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] w-full">پس از چاپ واقعی و گرفتن امضا روی کاغذ، انجام هر مرحله را ثبت کنید. این دکمه‌ها فقط سابقه ثبت می‌کنند؛ چاپ یا امضا را انجام نمی‌دهند.</p>
                     <x-ui.buttons.form type="button" variant="tonal" icon="{{ $v['printed'] ? 'task_alt' : 'print' }}" loading="markPrinted" wire:click="markPrinted" :disabled="$v['printed']">۱. چاپ شد</x-ui.buttons.form>
                     <x-ui.buttons.form type="button" variant="tonal" icon="{{ $v['wet_signed'] ? 'task_alt' : 'ink_pen' }}" loading="markWetSigned" wire:click="markWetSigned" :disabled="$v['wet_signed'] || !$v['printed']">۲. امضای دستی ثبت شد</x-ui.buttons.form>
                 </div>
@@ -275,7 +281,8 @@
                             @if($v['instead'])
                                 <div wire:key="correspondence-sign-instead" class="flex flex-col gap-3">
                                     <p class="text-sm">به‌جای <bdi>{{ $v['instead_name'] }}</bdi></p>
-                                    <x-ui.forms.input label="کد مخفی {{ $v['instead_name'] }}" name="signCode" type="password" wire:model="signCode" autocomplete="new-password"/>
+                                    <x-ui.forms.input label="کد امضای {{ $v['instead_name'] }}" name="signCode" type="password" wire:model="signCode" autocomplete="new-password"/>
+                                    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">کد امضای همین شخص لازم است؛ رمز ورود حساب خودتان را اینجا ننویسید.</p>
                                 </div>
                             @endif
                             @if($v['targets'] !== [])
@@ -288,12 +295,13 @@
                                     </x-ui.forms.select>
                                     @if($signTarget > 0)
                                         <div wire:key="correspondence-sign-target-code" class="contents">
-                                            <x-ui.forms.input label="کد مخفی فرد انتخاب‌شده" name="signCode" type="password" wire:model="signCode" autocomplete="new-password"/>
+                                            <x-ui.forms.input label="کد امضای فرد انتخاب‌شده" name="signCode" type="password" wire:model="signCode" autocomplete="new-password"/>
+                                            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">کد امضای فرد انتخاب‌شده لازم است؛ رمز ورود حساب خودتان را اینجا ننویسید.</p>
                                         </div>
                                     @endif
                                 </div>
                             @endif
-                            <x-ui.buttons.form type="button" variant="primary" icon="draw" loading="approveLetter" wire:click="approveLetter">{{ $v['final'] ? 'تأیید و بستن نامه' : 'تأیید' }}</x-ui.buttons.form>
+                            <x-ui.buttons.form type="button" variant="primary" icon="draw" loading="approveLetter" wire:click="approveLetter">{{ $v['final'] ? 'تأیید نهایی و ثبت شماره' : 'تأیید' }}</x-ui.buttons.form>
                         </div>
                     </x-ui.modals.dialog>
                 </div>
@@ -306,8 +314,9 @@
                             <x-ui.forms.textarea label="دلیل رد (الزامی)" name="rejectReason" wire:model="rejectReason"/>
                             <label class="flex items-center gap-2 text-sm">
                                 <x-ui.forms.checkbox name="resumeRoute"/>
-                                مسیر را از همین‌جا ادامه بده
+                                حفظ امضاهای قبلی در صورت تغییر نکردن متن
                             </label>
+                            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">اگر این گزینه روشن باشد و نویسنده نامه را بدون تغییر محتوا دوباره بفرستد، امضاهای دیگران حفظ می‌شود و بررسی از همین مرحله ادامه می‌یابد. هر تغییر در محتوا، امضاهای قبلی را پاک می‌کند.</p>
                             <x-ui.buttons.form type="button" variant="primary" loading="rejectLetter" wire:click="rejectLetter">رد</x-ui.buttons.form>
                         </div>
                     </x-ui.modals.dialog>
@@ -321,7 +330,7 @@
                             <div class="flex flex-col gap-3">
                                 @if($kind === 'reroute')
                                     <div wire:key="correspondence-reroute-mode" class="contents">
-                                        <x-ui.forms.select label="حالت مسیر" name="routeMode" wire:model="routeMode">
+                                        <x-ui.forms.select label="ترتیب گرفتن امضاها" name="routeMode" wire:model="routeMode">
                                             @foreach($presenter->routeModeLabels() as $key => $label)
                                                 <option value="{{ $key }}">{{ $label }}</option>
                                             @endforeach
@@ -329,7 +338,8 @@
                                     </div>
                                 @else
                                     <div wire:key="correspondence-route-instruction" class="contents">
-                                        <x-ui.forms.textarea label="دستور ارجاع" name="instruction" wire:model="instruction"/>
+                                        <x-ui.forms.textarea label="از گیرندگان چه اقدامی می‌خواهید؟" name="instruction" wire:model="instruction"/>
+                                        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">ارجاع، دسترسی دیدن نامه و متن این درخواست را به افراد انتخاب‌شده می‌دهد؛ برای آن‌ها نوبت امضا ایجاد نمی‌کند.</p>
                                     </div>
                                 @endif
                                 <div class="flex items-center justify-between gap-2">

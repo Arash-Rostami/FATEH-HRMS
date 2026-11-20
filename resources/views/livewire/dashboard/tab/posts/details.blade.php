@@ -1,12 +1,12 @@
-<x-ui.modals.slideover show="panelOpen" class="w-screen max-w-none h-screen rounded-none">
+<x-ui.modals.slideover show="panelOpen">
     @if($this->selectedPost)
         <div
             wire:key="pane-post-details"
-            x-data="{ imageViewer: false }"
+            x-data
             class="flex h-full min-h-0 flex-col overflow-hidden bg-transparent"
         >
             <div
-                @click="imageViewer = true"
+                @click="if (!$event.target.closest('a')) $refs.zoom.click()"
                 class="relative w-full shrink-0 overflow-hidden group cursor-zoom-in h-[42vh]"
             >
                 <img
@@ -24,12 +24,16 @@
                     <span class="material-symbols-rounded font-bold">close</span>
                 </button>
 
-                <button
-                    @click.stop="imageViewer = true"
+                <a
+                    x-ref="zoom"
+                    href="{{ $selectedPost->image_url }}"
+                    data-type="image"
+                    data-fancybox="post-{{ $selectedPost->id }}"
+                    data-caption="{{ html_entity_decode(strip_tags($selectedPost->title), ENT_QUOTES | ENT_HTML5, 'UTF-8') }}"
                     class="absolute right-6 top-6 z-20 flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/90 shadow-lg transition-all hover:bg-black/50 hover:text-white"
                 >
                     <span class="material-symbols-rounded text-[20px]">open_in_full</span>
-                </button>
+                </a>
 
                 <div class="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-8">
                     <div class="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -101,14 +105,6 @@
                     </button>
                 </div>
             </div>
-
-            <x-ui.modals.lightbox>
-                <img
-                    src="{{ $selectedPost->image_url }}"
-                    alt="{{ html_entity_decode(strip_tags($selectedPost->title), ENT_QUOTES | ENT_HTML5, 'UTF-8') }}"
-                    class="max-h-[92vh] w-full select-none object-contain rounded-xl"
-                >
-            </x-ui.modals.lightbox>
         </div>
     @else
         <x-ui.loaders.spin-badge text="در حال بارگذاری..."/>

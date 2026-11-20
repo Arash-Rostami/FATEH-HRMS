@@ -11,14 +11,14 @@ class DeleteLaunchpadAction
 {
     public function execute(Launchpad $row, User $user): void
     {
-        $fresh = Launchpad::query()->find($row->id);
+        $fresh = Launchpad::query()->find($row->id, ['id', 'user_id', 'folder', 'audience']);
 
         if ($fresh === null) {
             return;
         }
 
         if (!LaunchpadAccessPolicy::canManage($fresh, $user)) {
-            throw new RuntimeException('این عملیات مجاز نیست.');
+            throw new RuntimeException('شما اجازهٔ حذف این برنامه را ندارید.');
         }
 
         $fresh->delete();

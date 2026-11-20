@@ -36,6 +36,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $user->forceFill([
                 'name' => $input['name'],
                 'email' => $input['email'],
+                'email_verified_at' => $input['email'] === $user->email ? $user->email_verified_at : null,
             ])->save();
         }
     }

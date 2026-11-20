@@ -19,6 +19,15 @@ class ActionExceptionsParentStub
     {
         return ($this->mounted)($arguments);
     }
+
+    public function getMountedAction(): ?object
+    {
+        return null;
+    }
+
+    public function unmountAction(): void
+    {
+    }
 }
 
 class HandlesActionExceptionsTest extends TestCase
@@ -72,7 +81,7 @@ class HandlesActionExceptionsTest extends TestCase
         $control = [
             Halt::class => new Halt,
             Cancel::class => new Cancel,
-            ValidationException::class => ValidationException::withMessages(['field' => 'invalid']),
+            ValidationException::class => ValidationException::withMessages(['mountedActions.0.data.field' => 'invalid']),
         ];
 
         foreach ($control as $class => $exception) {

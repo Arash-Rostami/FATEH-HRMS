@@ -43,7 +43,7 @@ class TasksheetShareService
             return [
                 'success' => false,
                 'manager' => null,
-                'message' => 'مدیر این کاربر به‌طور خودکار شناسایی نشد.',
+                'message' => 'مدیر سازمانی پیدا نشد. گیرنده را خودتان انتخاب کنید.',
             ];
         }
 
@@ -51,7 +51,7 @@ class TasksheetShareService
             return [
                 'success' => false,
                 'manager' => null,
-                'message' => 'گیرنده نمی‌تواند خود کاربر باشد.',
+                'message' => 'گزارش را برای فرد دیگری بفرستید؛ گیرنده همان صاحب گزارش است.',
             ];
         }
 
@@ -62,11 +62,11 @@ class TasksheetShareService
         );
 
         $body = $requestedBy && $requestedBy->id !== $subject->id
-            ? "گزارش تسک‌شیت {$subject->name} توسط مدیریت با شما به اشتراک گذاشته شد."
-            : "{$subject->name} یک گزارش تسک‌شیت با شما به اشتراک گذاشت.";
+            ? "مدیریت گزارش کار {$subject->name} را برای شما فرستاد. پیوند گزارش تا ۷ روز معتبر است."
+            : "{$subject->name} گزارش کار خود را برای شما فرستاد. پیوند گزارش تا ۷ روز معتبر است.";
 
         Notification::make()
-            ->title('گزارش تسک‌شیت به اشتراک گذاشته شد')
+            ->title('گزارش تسک‌شیت دریافت کردید')
             ->body($body)
             ->actions([
                 Action::make('view')->label('مشاهده')->url($signedUrl)->openUrlInNewTab(),
@@ -77,8 +77,8 @@ class TasksheetShareService
             'success' => true,
             'manager' => $manager,
             'message' => $recipient
-                ? 'گزارش برای گیرندهٔ انتخاب‌شده ارسال شد.'
-                : 'گزارش برای مدیرِ همین کاربر ارسال شد.',
+                ? 'پیوند گزارش در اعلان‌های گیرندهٔ انتخاب‌شده ثبت شد.'
+                : 'پیوند گزارش در اعلان‌های مدیر سازمانی ثبت شد.',
         ];
     }
 }

@@ -19,8 +19,8 @@ class DecisionForm extends Form
     public function messages(): array
     {
         return [
-            'decision.required' => 'تصمیم معتبر انتخاب کنید.',
-            'decision.in' => 'تصمیم معتبر انتخاب کنید.',
+            'decision.required' => 'پذیرش، رد یا نیاز به تکمیل را انتخاب کنید.',
+            'decision.in' => 'تصمیم را از گزینه‌های فرم انتخاب کنید.',
         ];
     }
 
@@ -33,6 +33,9 @@ class DecisionForm extends Form
     {
         return [
             'decision' => 'تصمیم',
+            'decisionComment' => 'توضیح تصمیم',
+            'referralDepts' => 'واحدهای مسئول اجرا',
+            'referralActions' => 'کارهای لازم برای اجرا',
         ];
     }
 }

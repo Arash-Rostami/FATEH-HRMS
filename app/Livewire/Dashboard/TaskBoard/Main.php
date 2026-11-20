@@ -21,10 +21,12 @@ use App\Livewire\Dashboard\Dms\Presentation\DmsPresenter;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Models\Task;
 use App\Models\TaskDetail;
+use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\ProjectTask\ReportingService;
 use App\Services\ProjectTask\TaskMetrics;
 use App\Support\TaskAccessPolicy;
+use App\Traits\Livewire\BulkSelectsPeople;
 use App\Traits\Livewire\FocusOnRecord;
 use App\Traits\Livewire\HasDateSpan;
 use App\Traits\Livewire\ManagesTaskModal;
@@ -41,6 +43,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Lazy]
 class Main extends Component
 {
+    use BulkSelectsPeople;
     use FocusOnRecord;
     use HasDateSpan;
     use ManagesTaskModal;
@@ -139,7 +142,7 @@ class Main extends Component
             $this->loadTasks();
         }
 
-        $this->dispatch('toast', message: 'وظیفه با موفقیت ارجاع داده شد.', type: 'success');
+        $this->dispatch('toast', message: 'مسئول انجام وظیفه تغییر کرد.', type: 'success');
     }
 
     public function bulkAssign(BulkAssignTasksAction $action, ?int $userId): void
@@ -171,7 +174,7 @@ class Main extends Component
             : 'هیچ وظیفه‌ای تغییر نکرد.';
 
         if ($noState > 0) {
-            $message .= ' ' . convertToPersian($noState) . ' مورد انجام نشد (بدون تعیین تکلیف یا تأییدشده و قفل).';
+            $message .= ' ' . convertToPersian($noState) . ' مورد جابه‌جا نشد؛ نتیجهٔ کار انتخاب نشده یا وظیفه پس از تأیید قفل شده است.';
         }
 
         $this->dispatch('toast', message: $message, type: $count > 0 && $noState === 0 ? 'success' : 'error');
@@ -292,7 +295,7 @@ class Main extends Component
         }
 
         $this->loadTasks();
-        $this->dispatch('toast', message: 'وظیفه با موفقیت حذف شد.', type: 'success');
+        $this->dispatch('toast', message: 'وظیفه حذف شد.', type: 'success');
     }
 
     public function exportTasks(ExportTasksAction $action): StreamedResponse
@@ -359,6 +362,21 @@ class Main extends Component
             'u' . auth()->id(),
             $this->actionSourceDomainFilter !== '' ? $this->actionSourceDomainFilter : null
         );
+    }
+
+    protected function bulkSelectTargets(): array
+    {
+        return ['form.collaborators'];
+    }
+
+    protected function canBulkSelect(string $property): bool
+    {
+        return !$this->isReadOnly;
+    }
+
+    protected function bulkPeoplePool(string $property, ?string $dept = null): array
+    {
+        return $this->taskModalPeoplePool($dept);
     }
 
     public function loadTasks(): void
@@ -499,7 +517,7 @@ class Main extends Component
         }
 
         if (!$action->execute($task, $beforeTaskId, $targetStatus)) {
-            $this->dispatch('toast', message: 'برای جابه‌جایی ابتدا تعیین تکلیف را مشخص کنید.', type: 'error');
+            $this->dispatch('toast', message: 'پیش از انتقال به «انجام‌شده»، در «اقدام و پیگیری» نتیجهٔ کار را انتخاب و ذخیره کنید.', type: 'error');
             return;
         }
 
@@ -576,7 +594,7 @@ class Main extends Component
     public function updateTaskStatus(UpdateTaskStatusAction $action, int $taskId, string $newColumn, ?string $version = null): void
     {
         if ($newColumn === TaskStatus::Done->value && empty(TaskDetail::where('task_id', $taskId)->value('state'))) {
-            $this->dispatch('toast', message: 'برای انتقال به «انجام‌شده» ابتدا تعیین تکلیف را مشخص کنید.', type: 'error');
+            $this->dispatch('toast', message: 'پیش از انتقال به «انجام‌شده»، در «اقدام و پیگیری» نتیجهٔ کار را انتخاب و ذخیره کنید.', type: 'error');
             return;
         }
 

@@ -10,6 +10,7 @@ use App\Livewire\Dashboard\AiReport\Actions\UpdateReportAction;
 use App\Livewire\Dashboard\AiReport\Forms\ComposerForm;
 use App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter;
 use App\Models\AiReport;
+use App\Models\Department;
 use App\Models\User;
 use App\Services\AiReport\BlockCatalog;
 use App\Support\AiReportAccessPolicy;
@@ -23,11 +24,13 @@ use Throwable;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
+use App\Traits\Livewire\BulkSelectsPeople;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class Main extends Component
 {
+    use BulkSelectsPeople;
     use WithFileUploads;
 
     private const GUARDED_WHEN_READ_ONLY = ['form', 'shareRecipients', 'titleDraft', 'blockDraft'];
@@ -598,13 +601,36 @@ class Main extends Component
     }
 
     #[Computed]
+    public function deptOptions(): array
+    {
+        return Department::getCachedOptions()->toArray();
+    }
+
+    #[Computed]
     public function recipientCandidates(): array
     {
+        $depts = User::getCachedActiveDeptMap();
+
         return User::getCachedActiveOptions()
             ->except(auth()->id())
-            ->map(fn($name, $id) => ['id' => (int) $id, 'name' => $name])
+            ->map(fn($name, $id) => ['id' => (int) $id, 'name' => $name, 'dept' => $depts[(int) $id] ?? ''])
             ->values()
             ->all();
+    }
+
+    protected function bulkSelectTargets(): array
+    {
+        return ['shareRecipients'];
+    }
+
+    protected function canBulkSelect(string $property): bool
+    {
+        return !$this->readOnly;
+    }
+
+    protected function bulkSelectLimit(string $property): ?int
+    {
+        return (int) config('ai.report.max_recipients');
     }
 
     #[Computed]

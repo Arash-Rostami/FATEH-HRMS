@@ -108,7 +108,7 @@ export default function radio(id) {
             };
 
             this._windowKeydownListener = (e) => {
-                if (e.key === 'Escape' && this.open) this.minimize();
+                if (e.key === 'Escape' && this.open && !e.defaultPrevented) { e.preventDefault(); this.minimize(); }
             };
 
             window.addEventListener('radio', this._windowRadioListener);

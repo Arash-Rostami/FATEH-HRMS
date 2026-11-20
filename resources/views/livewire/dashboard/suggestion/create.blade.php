@@ -14,12 +14,12 @@
                     ثبت پیشنهاد جدید
                 </h2>
                 <p class="text-[11px] mt-0.5" style="color: color-mix(in srgb, var(--md-sys-color-on-primary-container) 65%, transparent)">
-                    فرم ثبت پیشنهاد بهبود سازمانی
+                    مشکل فعلی، راه‌حل و فایدهٔ پیشنهادتان را توضیح دهید.
                 </p>
             </div>
 
             <div class="scale-70">
-                <x-ui.buttons.form wire:click="$set('showWorkflowModal', true)" title="راهنما">
+                <x-ui.buttons.form :href="asset('build/assets/img/suggestion.png')" data-type="image" data-fancybox="suggestion-flowchart" data-caption="نمودار روند بررسی پیشنهاد" title="راهنما">
                     <span class="material-symbols-rounded text-base relative top-1">schema</span>
                     <span class="relative bottom-1">راهنما</span>
                 </x-ui.buttons.form>
@@ -29,15 +29,6 @@
                 </x-ui.buttons.form>
             </div>
         </div>
-
-        <x-ui.modals.base wire:model="showWorkflowModal" title="فلوچارت روند بررسی پیشنهاد" contentClass="max-w-[95vw] w-full">
-            <div class="w-full"
-                 x-data="{ ready: false }"
-                 x-effect="if (show && !ready) { setTimeout(() => { if (show) ready = true }, 1000) } else if (!show) { ready = false }"
-                 x-show="ready">
-                <img src="{{ asset('build/assets/img/suggestion.png') }}" alt="Flowchart" class="w-full h-auto rounded-xl shadow-sm">
-            </div>
-        </x-ui.modals.base>
     </div>
 
     <div class="bg-[var(--md-sys-color-surface)]">
@@ -47,18 +38,19 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div class="md:col-span-2 space-y-4">
                     <x-ui.forms.input label="عنوان پیشنهاد" name="form.title" icon="label" wire:model="form.title"/>
-                    <x-ui.forms.textarea label="شرح پیشنهاد، استدلال‌ها و محاسبات" name="form.descriptionSelf" icon="edit" :rows="5" wire:model="form.descriptionSelf" :maximizable="true"/>
+                    <x-ui.forms.textarea label="شرح پیشنهاد" name="form.descriptionSelf" icon="edit" :rows="5" wire:model="form.descriptionSelf" :maximizable="true"/>
+                    <p class="text-[11px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">مشکل فعلی چیست؟ چه راه‌حلی پیشنهاد می‌کنید و چه فایده‌ای دارد؟ اگر هزینه یا زمان را برآورد کرده‌اید، اینجا بنویسید.</p>
                 </div>
 
                 <div>
-                    <x-ui.forms.select class="text-xs pb-3 h-[14rem]" label="واحدهای ذی‌نفع" name="form.departments" icon="corporate_fare" multiple wire:model="form.departments">
+                    <x-ui.forms.select class="text-xs pb-3 h-[14rem]" label="واحدهای مرتبط" name="form.departments" icon="corporate_fare" multiple wire:model="form.departments">
                         @foreach($this->availableDepartments as $code => $name)
                             <option value="{{ $code }}">{{ $name }}</option>
                         @endforeach
                     </x-ui.forms.select>
 
                     <p class="mt-1.5 text-[11px]" style="color: var(--md-sys-color-on-surface-variant)">
-                        Ctrl + کلیک برای انتخاب چندتایی
+                        فقط واحدهایی را انتخاب کنید که باید نظر بدهند. واحد خودتان خودکار اضافه می‌شود. در رایانه، برای انتخاب چند مورد Ctrl را نگه دارید.
                     </p>
                 </div>
             </div>
@@ -74,10 +66,10 @@
                 <div>
                     <p class="text-sm font-bold mb-3 flex items-center gap-2 text-[var(--md-sys-color-on-surface)]">
                         <span class="material-symbols-rounded text-base text-[var(--md-sys-color-secondary)]">lightbulb</span>
-                        این پیشنهاد در راستای کدام قاعده سازمان است؟
+                        پیشنهاد با کدام اصل سازمان هماهنگ است؟
                     </p>
 
-                    <x-ui.forms.select label="قواعد سازمان" name="form.rule" wire:model="form.rule" multiple class="min-h-[140px]">
+                    <x-ui.forms.select label="اصول سازمان" name="form.rule" wire:model="form.rule" multiple class="min-h-[140px]">
                         @foreach($rules as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
@@ -140,7 +132,7 @@
                         <div class="flex items-center gap-4 overflow-hidden">
                             @if(in_array(strtolower($this->form->attachment->extension()), ['png', 'jpg', 'jpeg', 'webp']))
                                 <a wire:key="suggestion-attachment-image" href="{{ $this->form->attachment->temporaryUrl() }}" target="_blank" class="shrink-0 w-16 h-16 rounded-lg border border-[var(--md-sys-color-outline-variant)] overflow-hidden shadow-sm hover:brightness-90 transition-all cursor-zoom-in">
-                                    <img src="{{ $this->form->attachment->temporaryUrl() }}" class="w-full h-full object-cover" alt="Preview">
+                                    <img src="{{ $this->form->attachment->temporaryUrl() }}" class="w-full h-full object-cover" alt="پیش‌نمایش پیوست">
                                 </a>
                             @else
                                 <div wire:key="suggestion-attachment-file" class="shrink-0 w-16 h-16 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center shadow-sm">
@@ -182,7 +174,7 @@
                         </div>
 
                         <div x-show="uploading" class="w-1/2 flex flex-col items-center gap-2">
-                            <span class="text-sm font-bold text-[var(--md-sys-color-primary)]">در حال آپلود...</span>
+                            <span class="text-sm font-bold text-[var(--md-sys-color-primary)]">در حال بارگذاری…</span>
                             <progress :value="progress" max="100" class="w-full rounded-xl h-1.5 overflow-hidden accent-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-outline-variant)]"></progress>
                         </div>
 
@@ -200,7 +192,7 @@
     <div class="bg-[var(--md-sys-color-surface)]">
         <x-ui.forms.card class="!p-0">
 
-            <x-ui.buttons.toggle wire:click="$toggle('form.selfFill')" :checked="$this->form->selfFill" icon="group" title="بازخورد سایر اعضا" description="با فعال کردن این گزینه، می‌توانید نظرات ذی‌نفعان را خودتان ثبت کنید." name="form.selfFill" bordered="true"/>
+            <x-ui.buttons.toggle wire:click="$toggle('form.selfFill')" :checked="$this->form->selfFill" icon="group" title="ثبت نظر واحدها توسط من" description="اگر نظر واحدها را از قبل گرفته‌اید، این گزینه را روشن کنید. نظرهای واردشده، در روند بررسی پاسخ همان واحدها حساب می‌شوند." name="form.selfFill" bordered="true"/>
 
             @if($this->form->selfFill)
                 <div wire:key="suggestion-selffill-block" style="border-top: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent)">
@@ -208,7 +200,7 @@
                     <div class="p-5">
                         <p class="text-sm font-bold mb-3 flex items-center gap-2 text-[var(--md-sys-color-on-surface)]">
                             <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">group</span>
-                            نظر هم‌تیمی‌ها/مدیر واحد
+                            نظر واحد خودتان
                         </p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-2">
@@ -219,7 +211,7 @@
                                     </label>
                                 @endforeach
                             </div>
-                            <x-ui.forms.textarea label="توضیحات تیم" name="descriptionTeam" :rows="4" wire:model="form.descriptionTeam" :maximizable="true"/>
+                            <x-ui.forms.textarea label="توضیح نظر واحد شما" name="descriptionTeam" :rows="4" wire:model="form.descriptionTeam" :maximizable="true"/>
                         </div>
                     </div>
 

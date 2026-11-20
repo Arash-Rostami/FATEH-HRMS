@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Dashboard\Launchpad\Actions\RefreshLaunchpadAction;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
@@ -68,3 +69,11 @@ Schedule::command('storage:prune-tmp')
     ->at('04:35')
     ->withoutOverlapping()
     ->onFailure(fn () => Log::error('schedule failed: storage:prune-tmp'));
+
+Schedule::call(fn () => app(RefreshLaunchpadAction::class)->plan())
+    ->name('launchpad:refresh-plan')
+    ->when(fn () => !tenantOff('launchpad'))
+    ->daily()
+    ->at((string) config('launchpad.refresh.at'))
+    ->withoutOverlapping()
+    ->onFailure(fn () => Log::error('schedule failed: launchpad:refresh-plan'));

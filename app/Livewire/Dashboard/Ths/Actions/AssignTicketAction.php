@@ -27,10 +27,10 @@ class AssignTicketAction
             $locked = Ticket::lockForUpdate()->findOrFail($ticket->id);
 
             abort_unless($locked->status !== 'closed', 422, 'امکان تغییر مسئول تیکت بسته‌شده وجود ندارد.');
-            abort_if(($seenStatus ?? $ticket->status) === 'open' && $locked->status !== 'open', 422, 'این تیکت قبلاً محول شده است.');
+            abort_if(($seenStatus ?? $ticket->status) === 'open' && $locked->status !== 'open', 422, 'مسئول این تیکت قبلاً تعیین شده است. صفحه را تازه کنید.');
             abort_unless(TicketAccessPolicy::canAssign($locked, $actor), 403);
             $assigneeName = $locked->assignableUsers()->whereKey($assigneeId)->value('name');
-            abort_if($assigneeName === null, 422, 'کاربر انتخاب‌شده متعلق به این واحد سازمانی نیست.');
+            abort_if($assigneeName === null, 422, 'مسئول را از اعضای فعال این واحد انتخاب کنید.');
 
             $locked->update(['assigned_to' => $assigneeId]);
             $locked->addReply($actor, self::REPLY_PREFIX . $assigneeName);

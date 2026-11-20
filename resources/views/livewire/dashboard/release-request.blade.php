@@ -14,7 +14,6 @@
         confirm-text="ثبت درخواست"
         cancel-text="انصراف"
         :readonly="$activeTab === 'history'"
-        class="!max-w-2xl !w-full"
     >
         <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6 space-y-5" dir="rtl">
 

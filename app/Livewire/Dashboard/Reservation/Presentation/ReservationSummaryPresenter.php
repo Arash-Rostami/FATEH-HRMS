@@ -44,8 +44,8 @@ class ReservationSummaryPresenter
         if ($c->isRecurring && $c->allowsRepeat) {
             $times = self::repeatCount($c, $resource, $start);
             $lines[] = $times <= 1
-                ? 'تکرار: فقط همین یک‌بار (بقیهٔ تکرارها خارج از قوانین رزرو است)'
-                : 'تکرار: ' . ($c->recurPattern === 'weekly' ? 'هفتگی' : 'روزانه') . '، تا ' . $times . ' بار (تکرارهای مغایر با قوانین یا تداخل‌دار ثبت نمی‌شوند)';
+                ? 'پیش‌بینی تکرار: فقط همین یک‌بار؛ بقیه با قواعد فعلی سازگار نیستند.'
+                : 'پیش‌بینی تکرار: ' . ($c->recurPattern === 'weekly' ? 'هفتگی' : 'روزانه') . '، حداکثر ' . $times . ' بار با احتساب نوبت اول؛ تاریخ‌های دارای تداخل یا مانع ثبت نمی‌شوند.';
         }
 
         if ($c->activeTab === 'meeting' && self::invitesColleague($resource)) {

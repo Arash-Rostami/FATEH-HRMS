@@ -89,7 +89,7 @@ final class SuggestionAccessPolicy
             'department_id' => $homeDept,
             'feedback'      => $homeFeedback !== '' ? $homeFeedback : ($submitterIsManager ? 'agree' : 'unknown'),
             'comments'      => $homeComment !== '' ? $homeComment : ($submitterIsManager
-                ? 'توجه به اینکه پیشنهاد دهنده هستم، نیاز به بررسی و اعلام نظر از سمت مدیریت'
+                ? 'این پیشنهاد را مدیر واحد ثبت کرده است. نظر واحد در همین ردیف آمده است.'
                 : null),
         ])] : [];
 

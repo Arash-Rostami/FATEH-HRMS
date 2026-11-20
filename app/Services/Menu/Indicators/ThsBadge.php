@@ -9,7 +9,7 @@ class ThsBadge implements MenuBadge
 {
     public function getBody(): string
     {
-        return 'تیکت باز یا در حال بررسیِ مربوط به شما وجود دارد؛ برای مشاهده به بخش تیکتینگ مراجعه کنید.';
+        return 'درخواستی منتظر تعیین مسئول، رسیدگی یا امتیاز شماست. برای پیگیری، بخش تیکتینگ را باز کنید.';
     }
 
     public function getKey(): string
@@ -19,7 +19,7 @@ class ThsBadge implements MenuBadge
 
     public function getTitle(): string
     {
-        return 'تیکت نیازمند اقدام';
+        return 'درخواستی منتظر اقدام شماست';
     }
 
     public function isActive(): bool

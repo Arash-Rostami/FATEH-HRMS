@@ -25,7 +25,7 @@ export default function stopwatch(mp3) {
             if (this.modal) {
                 this._windowStopwatchListener = () => this.mounted();
                 this._windowKeydownListener = (event) => {
-                    if (event.key === "Escape" && this.modal.classList.contains('flex')) this.minimize();
+                    if (event.key === "Escape" && !event.defaultPrevented && this.modal.classList.contains('flex')) { event.preventDefault(); this.minimize(); }
                 };
                 window.addEventListener('stopwatch', this._windowStopwatchListener);
                 window.addEventListener('keydown', this._windowKeydownListener);

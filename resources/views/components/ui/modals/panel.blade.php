@@ -12,7 +12,7 @@
     <div x-show="{!! $state !!}" x-cloak
          x-transition:enter="animate-slide-down"
          x-transition:leave="animate-slide-down-out"
-         x-on:keydown.escape.window="{!! $close !!}"
+         x-on:keydown.escape.window.capture="if ({!! $state !!} && $onTop) { $event.stopImmediatePropagation(); {!! $close !!} }"
          x-on:click.self="{!! $close !!}"
          class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-[var(--md-sys-color-primary)]/60"
          role="dialog" aria-modal="true" aria-label="{{ $title }}">

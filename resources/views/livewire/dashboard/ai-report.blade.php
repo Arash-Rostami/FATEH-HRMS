@@ -91,10 +91,11 @@
                     <div wire:key="ai-report-share-picker" class="flex flex-col gap-3">
                         @if($shareOpen)
                             <div wire:key="ai-report-share-members" class="contents">
-                                <x-dashboard.member-picker model="shareRecipients" :candidates="$this->recipientCandidates" mode="multi"/>
+                                <x-dashboard.member-picker model="shareRecipients" :candidates="$this->recipientCandidates" mode="multi" bulk :dept-options="$this->deptOptions"/>
                             </div>
                         @endif
-                        <p class="text-[10.5px] text-[var(--md-sys-color-on-surface-variant)]">حداکثر {{ $limits['recipients'] }} گیرنده؛ برای حذف یک گیرنده، تیک او را بردارید و ارسال کنید.</p>
+                        <p class="text-[10.5px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">تا {{ $limits['recipients'] }} همکار را انتخاب کنید و «ارسال» را بزنید. این انتخاب‌ها دسترسی همکاران را تعیین می‌کنند؛ برداشتن تیک و زدن «ارسال»، دسترسی اشتراکی فرد را قطع می‌کند. با برداشتن همهٔ تیک‌ها، اشتراک پایان می‌یابد. مالک و مدیران بر اساس دسترسی مدیریتی همچنان امکان مشاهده دارند. اشتراک‌گذاری، گزارش را هم ذخیره می‌کند.</p>
+                        <p class="text-[10.5px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">تا وقتی گزارش گیرنده دارد، عنوان، ویرایش دستی و بازگشت به نسخهٔ قبل قفل‌اند. اصلاح با هوش مصنوعی، گزارشی تازه و خصوصی برای شما می‌سازد و گزارش همکاران را تغییر نمی‌دهد.</p>
                         <x-ui.buttons.form loading="share" wire:click="share">ارسال</x-ui.buttons.form>
                     </div>
                 </x-ui.modals.dialog>

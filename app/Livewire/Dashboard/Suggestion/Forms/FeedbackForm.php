@@ -17,15 +17,16 @@ class FeedbackForm extends Form
     public function messages(): array
     {
         return [
-            'feedback.required' => 'بازخورد معتبر انتخاب کنید.',
-            'feedback.in' => 'بازخورد معتبر انتخاب کنید.',
+            'feedback.required' => 'نظر واحدتان را انتخاب کنید.',
+            'feedback.in' => 'نظر واحدتان را از گزینه‌های فرم انتخاب کنید.',
         ];
     }
 
     public function validationAttributes(): array
     {
         return [
-            'feedback' => 'بازخورد',
+            'feedback' => 'نظر واحد',
+            'comment' => 'توضیح نظر',
         ];
     }
 

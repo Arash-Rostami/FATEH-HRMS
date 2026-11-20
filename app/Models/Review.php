@@ -17,7 +17,7 @@ class Review extends Model
 
     public const FEEDBACKS = [
         'agree' => 'موافق',
-        'neutral' => 'نیمه موافق',
+        'neutral' => 'بدون نظر قطعی',
         'disagree' => 'مخالف',
         'incomplete' => 'ناقص',
         'unknown' => 'نامشخص',

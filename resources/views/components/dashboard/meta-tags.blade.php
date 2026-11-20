@@ -14,7 +14,7 @@
 <link rel="canonical" href="{{ request()->url() }}">
 
 <link rel="icon" href="{{ asset(config('app.favicon')) }}">
-<link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+<link rel="apple-touch-icon" href="{{ asset(tenantAsset(config('app.tenant'), 'img', 'apple-touch-icon', config('app.favicon'))) }}">
 <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
 <meta name="csrf-token" content="{{ csrf_token() }}">

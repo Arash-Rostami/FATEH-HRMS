@@ -25,6 +25,12 @@ class ReservationResource extends SearchResource
 
     protected function scope(Builder $query): void
     {
+        $booking = auth()->user()?->booking ?? [];
+
         $query->where('status', 'active');
+
+        if (($booking['all'] ?? false) !== true) {
+            $query->whereIn('type', array_keys(array_filter($booking, fn ($allowed) => $allowed === true)));
+        }
     }
 }

@@ -30,7 +30,7 @@ class UpdateTaskAction
         $form->validateAttachments();
 
         if ($task->status === 'done' && empty($form->state) && !empty($task->detail?->state)) {
-            throw ValidationException::withMessages(['form.state' => 'برای تغییر تعیین تکلیف ابتدا وظیفه را بازگشایی کنید.']);
+            throw ValidationException::withMessages(['form.state' => 'برای تغییر نتیجهٔ کار، ابتدا وظیفه باید دوباره باز شود.']);
         }
 
         $project =$this->guardProjectVisibility($task, $form);

@@ -30,9 +30,12 @@
         @unless($readonly)
             @php
                 $clickExpr = $confirmWhen
-                    ? "(!({$confirmWhen}) || confirm(" . \Illuminate\Support\Js::from($confirmPrompt) . ")) && \$wire.{$action}()"
+                    ? "!({$confirmWhen}) ? \$wire.{$action}() : (" . confirmDialog($action, $title, (string) $confirmPrompt, null, 'dispatch', 'danger') . ')'
                     : "\$wire.{$action}()";
             @endphp
+            @if($confirmWhen)
+                <span class="hidden" x-on:confirmation-confirmed.window="if ($event.detail.method === '{{ $action }}') { show = false; $wire.{{ $action }}() }"></span>
+            @endif
             <x-ui.buttons.form
                 variant="none"
                 class="modal-btn modal-btn-confirm"

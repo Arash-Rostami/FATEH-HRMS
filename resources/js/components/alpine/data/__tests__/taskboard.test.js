@@ -141,6 +141,17 @@ describe('taskboard.restoreMaximize', () => {
     })
 })
 
+describe('taskboard.closeOverlays', () => {
+    test('clears an active spotlight and reports it, otherwise reports nothing', () => {
+        const c = taskboard()
+        expect(c.closeOverlays()).toBe(false)
+
+        c.toggleSpotlight('done')
+        expect(c.closeOverlays()).toBe(true)
+        expect(c.spotlightColumn).toBeNull()
+    })
+})
+
 describe('taskboard.afterSpotlightChange — maximize/spotlight mutual exclusion', () => {
     test('spotlighting a column while another is maximized forces the maximize to close', () => {
         const c = taskboard()

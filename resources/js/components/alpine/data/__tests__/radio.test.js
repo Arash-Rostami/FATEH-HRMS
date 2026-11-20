@@ -695,8 +695,10 @@ describe('radio.init / destroy', () => {
         expect(c.minimize).not.toHaveBeenCalled()
 
         c.open = true
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+        const esc = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+        window.dispatchEvent(esc)
         expect(c.minimize).toHaveBeenCalled()
+        expect(esc.defaultPrevented).toBe(true)
 
         c.destroy()
     })

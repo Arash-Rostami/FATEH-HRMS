@@ -1,14 +1,14 @@
 <div @class([
-            'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] scale-90 group-hover:scale-100 group-focus-within:scale-100',
-            'left-0 -translate-x-[calc(100%+6px)]' => $msg['is_mine'],
-            'right-0 translate-x-[calc(100%+6px)]' => !$msg['is_mine']
+            'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] scale-90 group-hover:scale-100 group-focus-within:scale-100 max-md:top-auto max-md:bottom-full max-md:mb-1.5 max-md:translate-y-0 max-md:translate-x-0',
+            'left-0 -translate-x-[calc(100%+6px)] max-md:left-auto max-md:right-0' => $msg['is_mine'],
+            'right-0 translate-x-[calc(100%+6px)] max-md:right-auto max-md:left-0' => !$msg['is_mine']
         ])
      x-data="{ open: false, pos: {} }"
      :class="openActionsId === {{ $msg['id'] }} || open ? 'opacity-100 scale-100' : ''">
     @if($canReact ?? false)
         <div wire:key="messaging-react-tools" class="contents">
             <button type="button"
-                    x-on:click.prevent="if (max) toggleMaximize(null); $store.activityReactionPicker.open('ch{{ $msg['id'] }}', $el)"
+                    x-on:click.prevent="$store.activityReactionPicker.open('ch{{ $msg['id'] }}', $el)"
                     class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
                     title="افزودن واکنش" aria-label="افزودن واکنش">
                 <span class="material-symbols-rounded text-[15px]">add_reaction</span>
@@ -76,14 +76,14 @@
                     :class="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : ''">
                 <span class="material-symbols-rounded text-[16px]"
                       :class="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? 'font-fill' : ''">bookmark</span>
-                <span x-text="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? @js('برداشتن نشان پیام') : @js('نشان کردن پیام')"></span>
+                <span x-text="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? @js('برداشتن نشان') : @js('نشان کردن')"></span>
             </button>
             <button type="button" role="menuitem"
-                    x-on:click.prevent="open = false; openActionsId = null; if (max) toggleMaximize(null); $wire.openForward({{ $msg['id'] }})"
+                    x-on:click.prevent="open = false; openActionsId = null; $wire.openForward({{ $msg['id'] }})"
                     wire:loading.attr="disabled" wire:target="openForward"
                     class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50 disabled:opacity-50">
                 <span class="material-symbols-rounded text-[16px] rotate-180">reply</span>
-                <span>بازفرستادن</span>
+                <span>بازارسال</span>
             </button>
             @if(count($msg['attachments'] ?? []) === 1)
                 <button type="button" role="menuitem" wire:click="downloadAttachment({{ $msg['id'] }}, 0)"

@@ -11,7 +11,7 @@
                     <div class="flex items-center gap-2 print:hidden">
                         <x-ui.hover-popover width="w-72" alignment="top-full left-0 mt-2 origin-top-left">
                             <x-slot:trigger>
-                                <div title="ارسال برای مدیر"
+                                <div title="اشتراک‌گذاری گزارش"
                                      class="flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-colors">
                                     <span class="material-symbols-rounded text-[20px]">forward_to_inbox</span>
                                 </div>
@@ -20,10 +20,10 @@
                             <x-slot:body>
                                 <div class="p-3 flex flex-col gap-3">
                                     <x-ui.forms.radio label="گیرنده" name="shareTarget" wire:model.live="shareTarget"
-                                                      :options="['boss' => 'مدیر این کاربر', 'other' => 'کاربر دیگر']"/>
+                                                      :options="['boss' => 'مدیر سازمانی', 'other' => 'کاربر دیگر']"/>
                                     @if($shareTarget === 'other')
                                         <div wire:key="tasksheet-share-recipient" class="contents">
-                                            <x-ui.forms.select label="کاربر" name="shareRecipientId" wire:model="shareRecipientId"
+                                            <x-ui.forms.select label="گیرندهٔ گزارش" name="shareRecipientId" wire:model="shareRecipientId"
                                                                 icon="person" x-on:change="rememberRecipient($event.target.value)">
                                                 <option value="">انتخاب کنید</option>
                                                 @foreach($this->shareRecipientOptions as $id => $name)
@@ -32,6 +32,7 @@
                                             </x-ui.forms.select>
                                         </div>
                                     @endif
+                                    <p class="text-[11px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">پیوند گزارش با اعتبار ۷ روز در اعلان‌های گیرنده ثبت می‌شود. برای فرستادن تاریخ‌های دقیق، ابتدا بازهٔ دلخواه را انتخاب کنید.</p>
                                     <button type="button" wire:click="shareWithManager" @click="open = false"
                                             wire:loading.attr="disabled" wire:target="shareWithManager"
                                             class="inline-flex items-center justify-center h-9 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-xs font-medium">
@@ -75,6 +76,7 @@
             @include('livewire.dashboard.tasksheet.legend')
         </x-ui.modals.dialog>
 
+        <p class="text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">گزارش کار {{ $this->subject->name }} از برد وظایف و پروژه‌ها؛ شامل کارهای انجام‌شده و کارهای در حال پیگیری.</p>
         @include('livewire.dashboard.tasksheet.header', ['report' => $report, 'presenter' => $presenter, 'windowStart' => $windowStart, 'windowEnd' => $windowEnd])
         @include('livewire.dashboard.tasksheet.scorecard', ['report' => $report, 'presenter' => $presenter, 'windowStart' => $windowStart, 'windowEnd' => $windowEnd])
         @include('livewire.dashboard.tasksheet.highlights', ['report' => $report])

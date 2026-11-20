@@ -43,17 +43,19 @@
                     />
 
                     <div
-                        x-data="{ imageViewer: false }"
                         class="group relative z-20 h-full w-full rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-500 flex flex-col hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]"
-                        @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type', 'thumbnail']) + ['created_at_formatted' => toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; showModal = true; recordOpen(activeReport)"
+                        @click="if (!$event.target.closest('[data-fancybox]')) { activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type', 'thumbnail']) + ['created_at_formatted' => toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; showModal = true; recordOpen(activeReport) }"
                     >
                     {{-- Top accent bar --}}
                     <div class="absolute top-0 left-0 right-0 h-[3px] bg-[var(--md-sys-color-primary)] z-20 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_60%,transparent)]"></div>
 
                     {{-- Image: top 60% --}}
-                    <div
-                        class="relative w-full h-[60%] overflow-hidden cursor-zoom-in"
-                        @click.stop="imageViewer = true"
+                    <a
+                        href="{{ $report->thumbnail }}"
+                        data-type="image"
+                        data-fancybox="reports-card-{{ $report->id }}"
+                        data-caption="{{ $report->title }}"
+                        class="relative block w-full h-[60%] overflow-hidden cursor-zoom-in"
                     >
                         <img
                             src="{{ $report->thumbnail }}"
@@ -69,13 +71,10 @@
                         </div>
 
                         {{-- Zoom button --}}
-                        <button
-                            @click.stop="imageViewer = true"
-                            class="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/90 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 hover:text-white"
-                        >
+                        <span class="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/90 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 hover:text-white">
                             <span class="material-symbols-rounded text-[18px]">open_in_full</span>
-                        </button>
-                    </div>
+                        </span>
+                    </a>
 
                     {{-- Solid info panel: bottom 40% --}}
                     <div class="flex flex-col justify-between flex-1 px-5 py-4 bg-[var(--md-sys-color-surface)] text-right border-t border-[var(--md-sys-color-outline-variant)]/30">
@@ -118,15 +117,6 @@
                             </div>
                         </div>
                     </div>
-
-                    {{-- Fullscreen image viewer --}}
-                    <x-ui.modals.lightbox>
-                        <img
-                            src="{{ $report->thumbnail }}"
-                            alt="{{ $report->title }}"
-                            class="max-h-[92vh] w-full select-none object-contain rounded-xl"
-                        >
-                    </x-ui.modals.lightbox>
                     </div>
                 </div>
             @endforeach

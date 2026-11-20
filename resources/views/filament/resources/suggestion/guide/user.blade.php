@@ -3,37 +3,37 @@
         [
             'icon' => 'format_list_bulleted',
             'label' => 'فهرست پیشنهادها',
-            'hint' => 'نوار کناری فهرست پیشنهادها را با جستجو (در عنوان و شناسهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">SN-</code>) و دکمهٔ «بارگذاری بیشتر» نشان می‌دهد. هر کارت شمارش موافق/نیمه‌موافق/مخالف، نام ثبت‌کننده و واحدهای ذی‌نفع را نمایش می‌دهد. کارتِ پیشنهادی که از واحدِ شما انتظار پاسخ دارد، با یک نشان اعلان و حاشیهٔ قرمز مشخص می‌شود (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">attentionIds</code>).',
+            'hint' => 'کاربر می‌تواند با عنوان یا شناسه جستجو کند. «فقط نیازمند اقدام من» مواردی را نشان می‌دهد که باید برایشان نظر، تصمیم یا تکمیل اجرا ثبت کند.',
         ],
         [
             'icon' => 'add_circle',
             'label' => 'ثبت پیشنهاد',
-            'hint' => 'دکمهٔ «ایجاد» فقط برای کاربران غیرِ واحد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">MA</code> ظاهر می‌شود. فرم شامل عنوان، شرح، اهداف، قواعد، واحدهای ذی‌نفع، پیوست و پرچم «تکمیل شخصی» است. واحد ثبت‌کننده خودکار به فهرست ذی‌نفعان اضافه و واحد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">MA</code> از آن حذف می‌شود. در حالت «تکمیل شخصی»، ثبت‌کننده می‌تواند پیش‌فرض بازخورد همهٔ واحدها را هم پر کند.',
+            'hint' => 'کاربر عنوان، شرح، هدف، اصول سازمان و واحدهای مرتبط را انتخاب می‌کند. واحد خودش خودکار اضافه می‌شود. یک پیوست اختیاری است. ثبت پیشنهاد برای کاربران واحدهای MA و MG فعال نیست.',
         ],
         [
             'icon' => 'account_tree',
             'label' => 'صفحهٔ جزئیات',
-            'hint' => 'تایم‌لاین هفت‌مرحله‌ای روند بررسی، اطلاعات تکمیلی (ثبت‌کننده، واحد، مهلت بررسی با ⚠، تکمیل شخصی، پاسخ‌های دریافتی، ارجاع به مدیریت ارشد و ارجاع برای اقدام)، شرح، اهداف، قواعد، وضعیت هر واحد ذی‌نفع و فهرست بازخوردها. بازخوردهای خودکار با برچسب «تولید خودکار» مشخص می‌شوند.',
+            'hint' => 'مرحلهٔ فعلی، نظر واحدها، تصمیم و مسئولان اجرا دیده می‌شوند. نظرهای پرشده به دلیل پایان مهلت، برچسب «ثبت خودکار» دارند؛ این‌ها موافقت واحد نیستند.',
         ],
         [
             'icon' => 'rate_review',
-            'label' => 'ثبت بازخورد (سرپرست واحد)',
-            'hint' => 'اگر واحد شما در مرحلهٔ بازخورد باشد، کارت «ثبت بازخورد» با گزینه‌های موافق، نیمه‌موافق و مخالف و بخش توضیحات نمایش داده می‌شود. با ثبت بازخورد، مرحله به‌روز می‌شود.',
+            'label' => 'ثبت نظر (سرپرست واحد)',
+            'hint' => 'وقتی نوبت واحد باشد، مدیر آن واحد موافق، مخالف یا بدون نظر قطعی را انتخاب می‌کند و دلیل می‌نویسد. برای پیشنهاد نیازمند تکمیل، مدیر واحد پیشنهاددهنده در همان پیشنهاد دوباره پاسخ می‌دهد.',
         ],
         [
             'icon' => 'gavel',
             'label' => 'تصمیم نهایی (مدیریت ارشد)',
-            'hint' => 'تصمیم‌گیرندهٔ ارشد در مرحلهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">awaiting_decision</code> کارت «تصمیم نهایی» را می‌بیند: پذیرش (با ارجاع اختیاری واحدها و دستورالعمل اجرا)، رد یا درخواست تکمیل مجدد. <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">under_review</code> یعنی «نیازمند تکمیل» — نه رد شدن.',
+            'hint' => 'فرد دارای اختیار تصمیم نهایی، پذیرش، رد یا نیاز به تکمیل را انتخاب می‌کند. همراه پذیرش می‌تواند واحدهای مسئول اجرا و کار آن‌ها را مشخص کند.',
         ],
         [
             'icon' => 'task_alt',
             'label' => 'تکمیل اقدام (واحد ارجاع‌شده)',
-            'hint' => 'وقتی پیشنهاد پذیرفته شود و واحد شما برای اجرای اقدام ارجاع داده شود، کارت «تکمیل اقدام واحد» ظاهر می‌شود. با کلیک روی «ثبت تکمیل اقدام»، ردیف بررسیِ واحد شما <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">complete</code> می‌شود. وقتی همهٔ واحدهای ارجاع‌شده تکمیل کنند، مرحله به <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">closed</code> می‌رود.',
+            'hint' => 'مدیر واحد مسئول اجرا، پس از انجام واقعی کار «ثبت تکمیل اقدام» را می‌زند. با ثبت همهٔ واحدهای مسئول، پیشنهاد «پایان‌یافته» می‌شود.',
         ],
         [
             'icon' => 'leaderboard',
             'label' => 'جدول برترین‌ها',
-            'hint' => 'بالای صفحه، سه کاربر برتر بر اساس تعداد پیشنهادهای پذیرفته‌شده نمایش داده می‌شوند — انگیزهٔ مشارکت.',
+            'hint' => 'سه نفر بر اساس تعداد پیشنهادهای پذیرفته‌شده نمایش داده می‌شوند. این تعداد، به معنی تعداد کارهای اجراشده نیست.',
         ],
     ];
 @endphp
@@ -42,7 +42,7 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">visibility</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کاربر در صفحهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">/suggestion</code> چه می‌بیند؟</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کاربر در صفحهٔ پیشنهادات چه می‌بیند؟</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
         در صفحهٔ پیشنهاد، کاربر فهرست، فرم ثبت و جزئیات را کنار هم می‌بیند. کارت‌های قابل نمایش به دسترسی کاربر بستگی دارند.
@@ -71,7 +71,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">tips_and_updates</span>
-                اگر کاربر می‌گوید «دکمهٔ بازخورد/تصمیم را نمی‌بینم»، احتمالاً پیشنهاد در مرحلهٔ مناسب نیست یا نقش او اجازهٔ این کار را نمی‌دهد؛ خطای سیستم نیست. همان قواعد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">SuggestionAccessPolicy</code> برای ادمین و کاربر اجرا می‌شود.
+                اگر دکمهٔ نظر یا تصمیم دیده نمی‌شود، اول مرحلهٔ پیشنهاد و نقش فرد را بررسی کنید. اختیار کارها در هر دو پنل یکسان بررسی می‌شود.
             </p>
         </div>
     </div>

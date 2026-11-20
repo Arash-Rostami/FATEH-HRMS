@@ -21,6 +21,11 @@ class PeopleResource extends SearchResource
         return $this->route('contact', $row->getKey());
     }
 
+    protected function selectList(): string
+    {
+        return '`id`, `name`, `email`';
+    }
+
     protected function scope(Builder $query): void
     {
         $query->visibleOnBoard()->whereKeyNot($this->me());

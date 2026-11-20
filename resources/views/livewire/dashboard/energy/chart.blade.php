@@ -1,6 +1,6 @@
 <section class="w-full h-full flex flex-col gap-5 lg:gap-6" dir="rtl"
          x-data="energyChart(@js($history), @js($companyAverages), @js($sections), @js($latestTest ?? []))"
-         @keydown.escape.window="if(maximizedWidget) toggleMaximize(null)">
+         @keydown.escape.window="onEscape($event)">
     @if(empty($latestTest))
         <div wire:key="energy-chart-empty"
             class="flex flex-col items-center justify-center min-h-[400px] rounded-2xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)] p-8 text-center shadow-sm"

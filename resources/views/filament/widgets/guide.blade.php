@@ -8,10 +8,7 @@
     >
     <div dir="rtl">
         <p class="text-sm leading-8 text-[var(--md-sys-color-on-surface-variant)] mb-5 text-justify">
-            این بستر مدیریتی بر پایه معماری قدرتمند ماژولار (مبتنی بر دامنه - Domain Driven) توسعه یافته است تا
-            چابکی و دقت را در فرآیندهای مدیریت داده‌های سازمان به ارمغان آورد. ماژول‌ها در ۴ قلمرو اصلی دسته‌بندی
-            شده‌اند تا مدیران سیستم بتوانند با دیدگاهی فرآیند‌محور، پایداری جریان اطلاعات و یکپارچگی محتوا (CMS) را
-            تضمین کنند. این راهنما منطق عملیاتی و بهترین شیوه‌های راهبری هر زیرسیستم را ارائه می‌دهد.
+            نام هر بخش را باز کنید تا کاربرد آن و نکته‌های مربوط به مدیریت آن را ببینید.
         </p>
 
         <div class="relative overflow-hidden rounded-3xl mb-8 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm">
@@ -31,15 +28,8 @@
                     </p>
 
                     <p class="text-[13px] leading-[2.2] text-[var(--md-sys-color-on-surface-variant)] text-justify mb-6">
-                        هسته این پلتفرم ابزارهای قدرتمندی را برای مدیریت حجم کلان داده‌ها ارائه می‌دهد. یکپارچه‌سازی
-                        ابزارهای پایه‌ای نظیر <strong>جداول اطلاعات پایه (Table)</strong>، <strong>فرم‌های قابل ویرایش
-                            (Form)</strong> و <strong>نمای ساختاریافته (Info List)</strong> در کنار قابلیت‌های
-                        پیشرفته‌ای چون <strong>مدیریت روابط (Relation Managers)</strong>، <strong>فیلترینگ مرکب
-                            (Filters)</strong> و <strong>جستجوی سراسری و اختصاصی (Search)</strong>، دستیابی به اطلاعات
-                        را سرعت می‌بخشد. همچنین با اضافه شدن زیرساخت‌های هوشمندی مانند <strong>مدیریت تو در تو (Nested
-                            Resources)</strong>، <strong>خلاصه‌سازی ستون‌ها (Table Summaries)</strong> و <strong>بارگذاری
-                            تدریجی بخش‌های تحلیلی (Deferred Analytics)</strong>، کنترل داده‌ها در سطح استاندارد
-                        انترپرایز تضمین شده است.
+                        برای پیدا کردن یک مورد در همان صفحه، از جست‌وجوی جدول استفاده کنید. اگر نمی‌دانید مورد
+                        در کدام بخش است، از جست‌وجوی سراسری در نوار بالا کمک بگیرید.
                     </p>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -112,7 +102,7 @@
                                                 <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">{{ __('resources/dashboard/strings.guide.strategy_heading') }}</span>
                                             </div>
                                             <p class="text-[12px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)] text-justify pr-6">
-                                                {{ $module['admin_tip'] ?? 'مدیریت پیوسته جریان داده‌ها و اعتبارسنجی دوره‌ای با استفاده از ابزارهای بومی پنل.' }}
+                                                {{ $module['admin_tip'] ?? 'برای این بخش نکته‌ای ثبت نشده است.' }}
                                             </p>
                                         </div>
                                     </div>

@@ -60,8 +60,12 @@ class AuthValidationRulesTest extends TestCase
 
         $result = $this->invokeProtected($proxy, 'validationMessages');
 
-        $this->assertCount(9, $result);
+        $this->assertCount(13, $result);
 
+        $this->assertArrayHasKey('phone.required', $result);
+        $this->assertArrayHasKey('phone.regex', $result);
+        $this->assertArrayHasKey('code.required', $result);
+        $this->assertArrayHasKey('code.digits', $result);
         $this->assertArrayHasKey('email.required', $result);
         $this->assertArrayHasKey('email.email', $result);
         $this->assertArrayHasKey('email.unique', $result);

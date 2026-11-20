@@ -150,6 +150,7 @@ $tenants = [
             'status:chart' => false,
             'ths:ai' => false,
             'ai-report' => false,            // hides the AI report module: route 404, menu, admin resource, badges
+            'launchpad' => false,
             'correspondence' => false,       // letters module off for this tenant: route 404, menu, admin, badges, search (also off through notify 'with', kept explicit)
          ],                                   // see everything hidden: php artisan tenant:hidden   |  all keys: php artisan tenant:hidden --all
 
@@ -228,10 +229,10 @@ $tenants = [
         'modules' => [],
 
         'sibling' => tenantSiblings('persol', [
-            ['name' => 'ai', 'title' => 'AI Assistant', 'url' => 'https://ai.bmsflow.org/'],
-            ['name' => 'bms', 'title' => 'Export BMS', 'url' => 'https://export.bmsflow.org/'],
-            ['name' => 'crm', 'title' => 'Mini CRM', 'url' => 'https://mcrm.bmsflow.org/'],
-            ['name' => 'porterra', 'title' => 'PorterrA', 'url' => 'https://import.bmsflow.org/'],
+            ['name' => 'ai', 'title' => 'AI Assistant', 'url' => 'https://ai.bmsflow.org/', 'sso' => ['on' => true, 'receiver' => 'https://ai.bmsflow.org/sso/receive', 'aud' => 'ai']],
+            ['name' => 'bms', 'title' => 'Export BMS', 'url' => 'https://export.bmsflow.org/', 'sso' => ['on' => true, 'receiver' => 'https://export.bmsflow.org/sso/receive', 'aud' => 'bms']],
+            ['name' => 'crm', 'title' => 'Mini CRM', 'url' => 'https://mcrm.bmsflow.org/', 'sso' => ['on' => true, 'receiver' => 'https://mcrm.bmsflow.org/sso/receive', 'aud' => 'crm']],
+            ['name' => 'porterra', 'title' => 'PorterrA', 'url' => 'https://import.bmsflow.org/', 'sso' => ['on' => true, 'receiver' => 'https://import.bmsflow.org/sso/receive', 'aud' => 'porterra']],
         ]),
     ],
 

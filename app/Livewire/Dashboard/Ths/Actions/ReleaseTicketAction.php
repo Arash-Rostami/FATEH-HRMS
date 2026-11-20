@@ -14,7 +14,7 @@ class ReleaseTicketAction
 
     public function execute(ReplyForm $form, Ticket $ticket, User $actor): void
     {
-        abort_if(blank(trim($form->body)), 422, 'توضیح رهاسازی را بنویسید.');
+        abort_if(blank(trim($form->body)), 422, 'دلیل بازگشت به صف را در کادر پاسخ بنویسید.');
 
         DB::transaction(function () use ($form, $ticket, $actor) {
             $locked = Ticket::lockForUpdate()->find($ticket->id);

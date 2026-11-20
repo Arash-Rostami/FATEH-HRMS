@@ -226,11 +226,6 @@ const dialogs = {
     openModal(name) {
         emit('open-modal', { name: String(name ?? '') });
     },
-
-    confirmAction(el) {
-        const { title = '', message = '', method = '' } = el?.dataset ?? {};
-        emit('open-confirmation', { title, message, method });
-    },
 };
 
 export function correspondencePage() {

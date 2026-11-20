@@ -2490,12 +2490,36 @@ class ProfileTest extends TestCase
             ->test(Credentials::class)
             ->assertSee(__('resources/correspondence/strings.profile.sign_code_set'))
             ->assertDontSee($hash)
-            ->set('signCodeForm.current_password', 'account-password')
             ->call('clearSignCode')
             ->assertHasNoErrors();
 
         $this->assertNull($fresh->fresh()->getExtraValue('admin.sign_code_hash'));
         $this->assertSame('keep-me', $fresh->fresh()->getExtraValue('admin.custom'));
+
+        Livewire::actingAs($fresh->fresh())
+            ->test(Credentials::class)
+            ->set('signCodeForm.current_password', 'wrong-password')
+            ->set('signCodeForm.code', 'private-code-123')
+            ->call('saveSignCode')
+            ->assertHasErrors(['signCodeForm.current_password']);
+
+        $this->assertNull($fresh->fresh()->getExtraValue('admin.sign_code_hash'));
+    }
+
+    public function test_clear_sign_code_aborts_with_403_when_correspondence_is_tenant_off(): void
+    {
+        config(['app.off' => []]);
+        $user = User::factory()->create([
+            'role' => 'user',
+            'status' => 'active',
+            'password' => Hash::make('account-password'),
+        ]);
+
+        $component = Livewire::actingAs($user)->test(Credentials::class);
+
+        config(['app.off' => ['correspondence']]);
+
+        $component->call('clearSignCode')->assertStatus(403);
     }
 
     public function test_sign_code_form_rejects_short_codes_and_bcrypt_unsafe_utf8_byte_lengths(): void
@@ -2540,10 +2564,11 @@ class ProfileTest extends TestCase
             ->assertHasNoErrors();
 
         Livewire::actingAs($user->fresh())->test(Credentials::class)
+            ->assertSeeHtml('signCodeMask')
             ->call('clearSignCode')
-            ->assertHasErrors(['signCodeForm.current_password' => 'required']);
+            ->assertHasNoErrors();
 
-        $this->assertNotEmpty($user->fresh()->getExtraValue('admin.sign_code_hash'));
+        $this->assertNull($user->fresh()->getExtraValue('admin.sign_code_hash'));
         RateLimiter::clear("sign-code:profile:{$user->id}");
     }
 
@@ -2609,14 +2634,18 @@ class ProfileTest extends TestCase
         ]);
 
         Livewire::actingAs($user)->test(Credentials::class)
-            ->assertSeeHtml('wire:key="profile-sign-code-clear"')
-            ->assertSeeHtml('wire:confirm="'.e(__('resources/correspondence/strings.profile.sign_code_clear_confirm')).'"');
+            ->assertSeeHtml('wire:key="profile-sign-code-set"')
+            ->assertSeeHtml('open-confirmation')
+            ->assertSeeHtml('clearSignCode')
+            ->assertDontSeeHtml('wire:confirm')
+            ->assertDontSeeHtml('wire:key="profile-sign-code-save"');
 
         $plain = User::factory()->create(['role' => 'user', 'status' => 'active']);
 
         Livewire::actingAs($plain)->test(Credentials::class)
             ->assertSeeHtml('wire:key="profile-sign-code"')
-            ->assertDontSeeHtml('wire:key="profile-sign-code-clear"');
+            ->assertSeeHtml('wire:key="profile-sign-code-save"')
+            ->assertDontSeeHtml('wire:key="profile-sign-code-set"');
     }
 
     public function test_sign_code_card_is_hidden_and_inert_when_the_correspondence_module_is_off(): void

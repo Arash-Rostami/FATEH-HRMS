@@ -1,7 +1,13 @@
 import { describe, expect, test, vi, beforeEach } from 'vitest'
-import heroDeck, { launchpadPage, addDeckModule } from '../heroDeck.js'
+import heroDeck, { launchpadPage, matchesQuery, splitMatches } from '../heroDeck.js'
 
 const STORAGE_KEY = 'hero_gadgets'
+
+const rows = [
+    { g: 'module', s: '/a', f: 'تقویم' },
+    { g: 'program', s: '/b', f: 'گزارش فروش مالی' },
+    { g: 'sso', s: '/c', f: 'سامانه فروش crm' },
+]
 
 beforeEach(() => {
     localStorage.clear()
@@ -10,6 +16,17 @@ beforeEach(() => {
 describe('launchpadPage table tools', () => {
     test('exposes the shared header declutter toggle', () => {
         expect(typeof launchpadPage().toggleHeaderDeclutter).toBe('function')
+    })
+
+    test('exposes the maximize state and init restores it through initMaximize', () => {
+        const c = launchpadPage()
+        expect(c.max).toBe(false)
+        expect(typeof c.toggleMaximize).toBe('function')
+        c.initMaximize = vi.fn()
+        c.initTableTools = vi.fn()
+        c.init()
+        expect(c.initMaximize).toHaveBeenCalledTimes(1)
+        expect(c.initTableTools).toHaveBeenCalledTimes(1)
     })
 })
 
@@ -42,33 +59,24 @@ describe('launchpadPage.limit', () => {
     })
 })
 
-describe('addDeckModule', () => {
-    test('adds a new module, appends its pane, slides to it, and persists the snapshot', () => {
-        vi.spyOn(Date, 'now').mockReturnValue(9)
-        expect(addDeckModule({ title: 'برنامه', icon: 'apps', src: '/launchpad?a=1&embed=1' })).toBe('added')
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
-        expect(saved.panes).toEqual(['p_9'])
-        expect(saved.modules.p_9).toEqual({ title: 'برنامه', icon: 'apps', src: '/launchpad?a=1&embed=1' })
-        expect(saved.slide).toBe('p_9')
-        vi.restoreAllMocks()
+describe('launchpadPage workspace option', () => {
+    test('the row button no longer pins a slide on the client', () => {
+        expect(launchpadPage().add).toBeUndefined()
+        expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
     })
 
-    test('the same src already pinned returns "exists" and writes nothing', () => {
-        const src = '/launchpad?a=2&embed=1'
-        addDeckModule({ title: 'A', icon: 'apps', src })
-        const before = localStorage.getItem(STORAGE_KEY)
-        expect(addDeckModule({ title: 'B', icon: 'apps', src })).toBe('exists')
-        expect(localStorage.getItem(STORAGE_KEY)).toBe(before)
-    })
-
-    test('a full deck (MAX_PANES 6) returns "full" and writes nothing', () => {
-        const panes = ['p_1', 'p_2', 'p_3', 'p_4', 'p_5', 'p_6']
-        const modules = {}
-        panes.forEach((id, i) => { modules[id] = { title: `M${i}`, icon: 'apps', src: `/src/${i}` } })
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ panes, modules, slide: 'p_1' }))
-        const before = localStorage.getItem(STORAGE_KEY)
-        expect(addDeckModule({ title: 'New', icon: 'apps', src: '/new' })).toBe('full')
-        expect(localStorage.getItem(STORAGE_KEY)).toBe(before)
+    test('the maximize toggle flips max with the leaving flag, used by the viewer wrapper', () => {
+        vi.useFakeTimers()
+        const c = launchpadPage()
+        c.applyMaximize = vi.fn()
+        c.toggleMaximize()
+        expect(c.max).toBe(true)
+        c.toggleMaximize()
+        expect(c.maxLeaving).toBe(true)
+        vi.advanceTimersByTime(400)
+        expect(c.max).toBe(false)
+        expect(c.maxLeaving).toBe(false)
+        vi.useRealTimers()
     })
 })
 
@@ -267,6 +275,28 @@ describe('heroDeck.toggleMaximize — graceful close', () => {
         vi.useRealTimers()
     })
 
+    test('toggleMaximize(null) closes the pane that is currently maximized', () => {
+        const c = heroDeck()
+        c.maximizedPane = 'a'
+        const spy = vi.spyOn(c, 'applyMaximize')
+
+        c.toggleMaximize(null)
+
+        expect(spy).toHaveBeenCalledWith(false)
+        expect(c.maxLeaving).toBe(true)
+        vi.useRealTimers()
+    })
+
+    test('closeOverlays closes the picker and reports it, otherwise reports nothing', () => {
+        const c = heroDeck()
+        expect(c.closeOverlays()).toBe(false)
+
+        c.pickerFor = 'a'
+        expect(c.closeOverlays()).toBe(true)
+        expect(c.pickerFor).toBeNull()
+        vi.useRealTimers()
+    })
+
     test('opening persists the pane id via _persistMaximize', () => {
         const c = heroDeck()
         const spy = vi.spyOn(c, '_persistMaximize')
@@ -411,21 +441,119 @@ describe('heroDeck.init', () => {
     })
 
     test('restores panes/modules from a valid saved snapshot', () => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ panes: ['a'], modules: { a: { title: 't' } } }))
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ panes: ['a'], modules: { a: { title: 't', icon: 'i', src: '/a' } } }))
         const c = heroDeck()
         c.$watch = vi.fn()
         c.init()
         expect(c.panes).toEqual(['a'])
-        expect(c.modules).toEqual({ a: { title: 't' } })
+        expect(c.modules).toEqual({ a: { title: 't', icon: 'i', src: '/a' } })
     })
 
-    test('a non-array saved "panes" value falls back to an empty array', () => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ panes: 'not-an-array', modules: { a: {} } }))
+    test('a non-array saved "panes" value falls back to an empty deck and drops the orphan modules', () => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ panes: 'not-an-array', modules: { a: { src: '/a' } } }))
         const c = heroDeck()
         c.$watch = vi.fn()
         c.init()
         expect(c.panes).toEqual([])
-        expect(c.modules).toEqual({ a: {} })
+        expect(c.modules).toEqual({})
+    })
+
+    test('a corrupt or partial snapshot self-heals: only unique string panes with a module and an http(s) frame address survive, capped at MAX_PANES (6)', () => {
+        const mod = (src) => ({ title: 't', icon: 'i', src })
+        const modules = { ok: mod('/ok'), script: mod('javascript:alert(1)'), data: mod('data:text/html,x'), empty: mod(''), nosrc: { title: 't' } }
+        for (let i = 1; i <= 7; i++) modules['p' + i] = mod('/p' + i)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            panes: ['ok', 'ok', 'ghost', 'script', 'data', 'empty', 'nosrc', 7, null, { id: 'x' }, '__proto__', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'],
+            modules,
+            slide: 'script',
+        }))
+        const c = heroDeck()
+        c.$watch = vi.fn()
+        c.init()
+
+        expect(c.panes).toEqual(['ok', 'p1', 'p2', 'p3', 'p4', 'p5'])
+        expect(Object.keys(c.modules)).toEqual(c.panes)
+        expect(c.slide).toBe(0)
+        expect(c.loaded).toEqual({})
+    })
+
+    test('a saved value that is not an object (null, a number, a string, an array) yields the empty home deck without throwing', () => {
+        ['null', '5', '"x"', '[1,2]', '{"panes":null,"modules":[],"slide":{}}'].forEach((raw) => {
+            localStorage.setItem(STORAGE_KEY, raw)
+            const c = heroDeck()
+            c.$watch = vi.fn()
+            expect(() => c.init()).not.toThrow()
+            expect(c.panes).toEqual([])
+            expect(c.modules).toEqual({})
+            expect(c.slide).toBe(0)
+        })
+    })
+
+    test('a stored maximize id whose pane did not survive the restore is cleared and never maximizes', () => {
+        document.documentElement.dataset.uid = '7'
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ panes: ['a'], modules: {}, slide: 'a' }))
+        localStorage.setItem('max:hero:7', 'a')
+        const c = heroDeck()
+        c.$watch = vi.fn()
+        const spy = vi.spyOn(c, 'applyMaximize')
+        c.init()
+
+        expect(c.maximizedPane).toBeNull()
+        expect(c.slide).toBe(0)
+        expect(spy).not.toHaveBeenCalled()
+        expect(localStorage.getItem('max:hero:7')).toBeNull()
+        delete document.documentElement.dataset.uid
+    })
+
+    test('a storage event that drops the maximized pane releases the full-screen state instead of leaving its backdrop over an empty deck', () => {
+        const c = heroDeck()
+        c.$watch = vi.fn()
+        c.init()
+        c.panes = ['a']
+        c.modules = { a: { title: 't', icon: 'i', src: '/a' } }
+        c.slide = 'a'
+        c.maximizedPane = 'a'
+        const applySpy = vi.spyOn(c, 'applyMaximize')
+        const persistSpy = vi.spyOn(c, '_persistMaximize')
+
+        window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY, newValue: JSON.stringify({ panes: [], modules: {}, slide: 0 }) }))
+
+        expect(c.slide).toBe(0)
+        expect(c.maximizedPane).toBeNull()
+        expect(applySpy).toHaveBeenCalledWith(false)
+        expect(persistSpy).toHaveBeenCalledWith(null)
+    })
+
+    test('destroy gives the page chrome back when the deck goes away while a pane is maximized, and keeps the stored choice', () => {
+        const c = heroDeck()
+        c.$watch = vi.fn()
+        c.init()
+        c.maximizedPane = 'a'
+        const applySpy = vi.spyOn(c, 'applyMaximize')
+        const persistSpy = vi.spyOn(c, '_persistMaximize')
+
+        c.destroy()
+
+        expect(applySpy).toHaveBeenCalledWith(false)
+        expect(persistSpy).not.toHaveBeenCalled()
+    })
+
+    test('destroy leaves the layout alone when nothing is maximized', () => {
+        const c = heroDeck()
+        c.$watch = vi.fn()
+        c.init()
+        const applySpy = vi.spyOn(c, 'applyMaximize')
+
+        c.destroy()
+
+        expect(applySpy).not.toHaveBeenCalled()
+    })
+
+    test('mountFrame for a pane whose module is gone mounts nothing and does not throw', () => {
+        const slot = document.createElement('div')
+        const c = heroDeck()
+        expect(() => c.mountFrame('gone', slot)).not.toThrow()
+        expect(slot.querySelector('iframe')).toBeNull()
     })
 
     test('corrupt JSON is caught and the stale key is removed, without throwing', () => {
@@ -441,7 +569,7 @@ describe('heroDeck.init', () => {
         c.$watch = vi.fn()
         c.init()
         c.slide = 'a'
-        const next = { panes: ['a', 'b'], modules: { a: { src: '/a' }, b: { src: '/b' } }, slide: 'b' }
+        const next = { panes: ['a', 'b'], modules: { a: { title: 'A', icon: 'a', src: '/a' }, b: { title: 'B', icon: 'b', src: '/b' } }, slide: 'b' }
 
         window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY, newValue: JSON.stringify(next) }))
 
@@ -466,9 +594,10 @@ describe('heroDeck.init', () => {
 
     test('registers a "slide" watcher that lazily marks a target pane as loaded once its module exists, but ignores slide 0', () => {
         const c = heroDeck()
-        let watchCb
-        c.$watch = vi.fn((key, cb) => { watchCb = cb })
+        const watchers = {}
+        c.$watch = vi.fn((key, cb) => { watchers[key] = cb })
         c.init()
+        const watchCb = watchers.slide
 
         c.modules = { a: {} }
         c.loaded = {}
@@ -481,5 +610,130 @@ describe('heroDeck.init', () => {
 
         watchCb('unknown')
         expect(c.loaded.unknown).toBeUndefined()
+    })
+})
+
+describe('splitMatches', () => {
+    test('wraps matches as plain text parts and never as markup', () => {
+        expect(splitMatches('گزارش فروش', 'فروش')).toEqual([{ t: 'گزارش ', hit: false }, { t: 'فروش', hit: true }])
+        expect(splitMatches('<b>x</b>', 'b')).toEqual([
+            { t: '<', hit: false }, { t: 'b', hit: true }, { t: '>x</', hit: false }, { t: 'b', hit: true }, { t: '>', hit: false },
+        ])
+    })
+
+    test('an empty query or regex metacharacters never break the split', () => {
+        expect(splitMatches('abc', '  ')).toEqual([{ t: 'abc', hit: false }])
+        expect(splitMatches('a.c', '.')).toEqual([{ t: 'a', hit: false }, { t: '.', hit: true }, { t: 'c', hit: false }])
+    })
+})
+
+describe('matchesQuery', () => {
+    test('every word must be present, case-insensitively', () => {
+        expect(matchesQuery('گزارش فروش مالی', 'فروش مالی')).toBe(true)
+        expect(matchesQuery('سامانه CRM', 'crm')).toBe(true)
+        expect(matchesQuery('تقویم', 'فروش')).toBe(false)
+    })
+})
+
+describe('heroDeck picker counts and visibility', () => {
+    const open = (c) => {
+        const watchers = {}
+        c.$watch = vi.fn((key, cb) => { watchers[key] = cb })
+        c.init()
+        c.rows = rows
+        return watchers
+    }
+
+    test('counts follow the search per group and the active tab filters tiles', () => {
+        const c = heroDeck()
+        c.rows = rows
+        expect(c.count('module')).toBe(1)
+        expect(c.count('program')).toBe(1)
+
+        c.q = 'فروش'
+        expect(c.count('program')).toBe(1)
+        expect(c.count('module')).toBe(0)
+
+        c.tab = 'sso'
+        expect(c.show(1)).toBe(false)
+        expect(c.show(2)).toBe(true)
+    })
+
+    test('opening the picker selects the first group that has items and never an all tab', () => {
+        const c = heroDeck()
+        const watchers = open(c)
+        expect(c.tab).toBe('')
+
+        watchers.pickerFor('__new__')
+        expect(c.tab).toBe('module')
+
+        const d = heroDeck()
+        const dw = open(d)
+        d.rows = rows.slice(1)
+        dw.pickerFor('__new__')
+        expect(d.tab).toBe('program')
+    })
+
+    test('typing switches to the first tab with matches only when the active tab has none', () => {
+        const c = heroDeck()
+        const watchers = open(c)
+        watchers.pickerFor('__new__')
+
+        c.q = 'فروش'
+        watchers.q()
+        expect(c.tab).toBe('program')
+
+        c.q = 'crm'
+        watchers.q()
+        expect(c.tab).toBe('sso')
+
+        c.tab = 'program'
+        c.q = 'فروش'
+        watchers.q()
+        expect(c.tab).toBe('program')
+    })
+
+    test('clearing the search keeps the current tab and no match anywhere keeps it too', () => {
+        const c = heroDeck()
+        const watchers = open(c)
+        watchers.pickerFor('__new__')
+
+        c.q = 'crm'
+        watchers.q()
+        c.q = ''
+        watchers.q()
+        expect(c.tab).toBe('sso')
+
+        c.q = 'zzz'
+        watchers.q()
+        expect(c.tab).toBe('sso')
+        expect(c.count(c.tab)).toBe(0)
+    })
+
+    test('closing the picker resets the query and the tab', () => {
+        const c = heroDeck()
+        const watchers = open(c)
+        watchers.pickerFor('__new__')
+        c.q = 'crm'
+        watchers.q()
+
+        watchers.pickerFor(null)
+        expect(c.q).toBe('')
+        expect(c.tab).toBe('')
+    })
+})
+
+describe('heroDeck.usedSrc', () => {
+    test('a src open in another pane is in use; the pane being replaced does not block itself', () => {
+        const d = heroDeck()
+        d.panes = ['p1', 'p2']
+        d.modules = { p1: { src: '/a' }, p2: { src: '/b' } }
+        d.pickerFor = '__new__'
+        expect(d.usedSrc('/a')).toBe(true)
+        expect(d.usedSrc('/z')).toBe(false)
+
+        d.pickerFor = 'p1'
+        expect(d.usedSrc('/a')).toBe(false)
+        expect(d.usedSrc('/b')).toBe(true)
     })
 })

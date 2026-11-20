@@ -96,7 +96,7 @@
                           x-on:input="len = $el.value.length; autoGrow($el, 160); autoDirection($el); detectMention($event)"
                           x-on:paste="pasteImage($event, 'composer-cattachments')"
                           rows="1" placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
-                          class="w-full bg-transparent px-3 py-2.5 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[280px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)] [unicode-bidi:plaintext]"></textarea>
+                          class="w-full bg-transparent px-3 py-2.5 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[280px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]"></textarea>
                 <span x-show="len === 0" dir="rtl"
                       class="hidden lg:flex absolute inset-0 items-center justify-center gap-1.5 text-[10px] pointer-events-none text-[var(--md-sys-color-on-surface-variant)] opacity-50"
                       aria-hidden="true">

@@ -80,7 +80,7 @@ class PostsTest extends TestCase
             ->assertSeeHtml("togglePin({$post->id}, 'post')")
             ->assertSeeHtml('onlySaved')
             ->assertSeeHtml("isEmpty('post')")
-            ->assertSee('موردی نشان نشده است');
+            ->assertSee('هنوز موردی نشان نکرده‌اید');
     }
 
     public function test_pins_returns_only_pinned_posts()

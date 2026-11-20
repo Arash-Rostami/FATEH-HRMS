@@ -97,7 +97,7 @@ trait ForwardsMessages
             'forwardDestinationId' => 'required|integer|min:1',
             'forwardNote' => 'nullable|string|max:500',
         ], [
-            'forwardDestinationId.required' => 'مقصد بازفرستادن پیام را انتخاب کنید.',
+            'forwardDestinationId.required' => 'مخاطب یا گروهی را برای بازارسال انتخاب کنید.',
             'forwardNote.max' => 'یادداشت نباید بیشتر از ۵۰۰ کاراکتر باشد.',
         ]);
 
@@ -114,7 +114,7 @@ trait ForwardsMessages
             $this->addError('forwardMessage', 'پیام یا مقصد دیگر در دسترس شما نیست؛ مقصد دیگری انتخاب کنید یا پنجره را دوباره باز کنید.');
         } catch (Throwable $e) {
             report($e);
-            $this->addError('forwardMessage', 'بازفرستادن پیام انجام نشد. دوباره تلاش کنید.');
+            $this->addError('forwardMessage', 'بازارسال پیام انجام نشد. دوباره تلاش کنید.');
         }
     }
 }

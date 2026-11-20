@@ -119,7 +119,7 @@
                         : 'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]'"
                     class="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-xs font-medium border transition-colors">
                 <span class="material-symbols-rounded text-[14px]" :class="activityPinnedOnly ? 'font-fill' : ''">bookmark</span>
-                <span>نشان‌شده‌ها</span>
+                <span>فقط نشان‌شده‌ها</span>
             </button>
             <div class="inline-flex items-center gap-1">
                 @foreach([
@@ -281,7 +281,7 @@
                                                 <button type="button"
                                                         @click="$store.activityReactionPicker.open({{ $entry['id'] }}, $event.currentTarget)"
                                                         class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60 hover:text-[var(--md-sys-color-primary)] active:scale-95 transition"
-                                                        title="افزودن واکنش">
+                                                        title="افزودن ریاکشن">
                                                     <span class="material-symbols-rounded text-[15px]">add_reaction</span>
                                                 </button>
                                             </div>
@@ -317,7 +317,8 @@
                                                             : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60 hover:text-[var(--md-sys-color-on-surface)]'"
                                                         class="flex items-center justify-center w-7 h-7 rounded-lg active:scale-90 transition"
                                                         :aria-pressed="$store.pinned.isPinned(@js($entry['id']), @js('activity')) ? 'true' : 'false'"
-                                                        title="نشان‌کردن">
+                                                        :aria-label="$store.pinned.isPinned(@js($entry['id']), @js('activity')) ? 'برداشتن نشان' : 'نشان کردن'"
+                                                        :title="$store.pinned.isPinned(@js($entry['id']), @js('activity')) ? 'برداشتن نشان' : 'نشان کردن'">
                                                     <span class="material-symbols-rounded text-[15px]"
                                                           :class="$store.pinned.isPinned(@js($entry['id']), @js('activity')) ? 'font-fill' : ''">bookmark</span>
                                                 </button>

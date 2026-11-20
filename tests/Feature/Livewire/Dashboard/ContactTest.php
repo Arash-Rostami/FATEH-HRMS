@@ -609,7 +609,7 @@ class ContactTest extends TestCase
             ->call('selectContact', $contact->id)
             ->set('composer.body', '')
             ->call('send')
-            ->assertDispatched('show-toast', message: 'وارد کردن متن پیام یا افزودن فایل ضمیمه الزامی است.', type: 'error');
+            ->assertDispatched('show-toast', message: 'متن پیام را بنویسید یا یک فایل پیوست کنید.', type: 'error');
 
         $this->assertSame(0, Message::where('sender_id', $me->id)->where('recipient_id', $contact->id)->count());
     }
@@ -1621,8 +1621,8 @@ class ContactTest extends TestCase
         $this->assertStringContainsString('>bookmark<', $html);
         $this->assertStringContainsString('font-fill', $html);
         $this->assertStringContainsString('-translate-y-1/2 -translate-x-1/2', $html);
-        $this->assertStringContainsString(trim(json_encode('نشان کردن پیام'), '"'), $html);
-        $this->assertStringContainsString(trim(json_encode('برداشتن نشان پیام'), '"'), $html);
+        $this->assertStringContainsString(trim(json_encode('نشان کردن'), '"'), $html);
+        $this->assertStringContainsString(trim(json_encode('برداشتن نشان'), '"'), $html);
 
         $blade = file_get_contents(base_path('resources/views/livewire/dashboard/contact/messages.blade.php'));
         $this->assertStringContainsString("!ring-2 !ring-[var(--md-sys-color-primary)]", $blade);

@@ -3,8 +3,7 @@
     contentClass="!w-full md:!w-[64rem] !max-w-[96vw] bg-[var(--md-sys-color-surface)] rounded-2xl shadow-2xl overflow-x-hidden h-[88vh] !p-0 border border-[var(--md-sys-color-outline-variant)]/30 text-right"
 >
     <div dir="rtl"
-         x-data="{ ready: false, viewer: false, src: '', caption: '' }"
-         x-on:keydown.escape.window.capture="if (viewer) { viewer = false; $event.stopPropagation() }"
+         x-data="{ ready: false }"
          x-effect="if (show && !ready) { setTimeout(() => { if (show) ready = true }, 1000) } else if (!show) { ready = false }"
          x-show="ready">
 
@@ -14,6 +13,7 @@
                 <div class="[&>div]:!mb-0">
                     <x-ui.title icon="groups" title="رزروهای همکاران" />
                 </div>
+                <p class="text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">از منوی «ارتباط» برای هماهنگی با همکار استفاده کنید. فرستادن درخواست، رزرو او را تغییر نمی‌دهد.</p>
 
                 <div class="overflow-x-auto custom-scrollbar">
                     <x-ui.buttons.tab-selector :tabs="$dailyQuickTabs" class="!mb-0" />
@@ -31,13 +31,13 @@
                         </div>
                     @endif
                     <span class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ $data['label'] }}</span>
-                    <x-ui.badge variant="info">{{ convertToPersian((string) $data['total']) }} رزرو · {{ convertToPersian((string) $data['resources']) }} منبع</x-ui.badge>
+                    <x-ui.badge variant="info">{{ convertToPersian((string) $data['total']) }} رزرو · {{ convertToPersian((string) $data['resources']) }} مورد رزرو</x-ui.badge>
                 </div>
 
                 <div class="flex flex-col gap-3">
-                    <x-ui.forms.search name="dailySearch" model="daily.search" placeholder="جستجوی منبع، مشخصات (طبقه، داخلی…) یا نام همکار" />
-                    <x-ui.forms.select label="نوع منبع" name="dailyType" wire:model.live="daily.type" icon="category">
-                        <option value="all">همه منابع</option>
+                    <x-ui.forms.search name="dailySearch" model="daily.search" placeholder="جستجو با نام مورد رزرو، مشخصات یا نام همکار" />
+                    <x-ui.forms.select label="نوع مورد رزرو" name="dailyType" wire:model.live="daily.type" icon="category">
+                        <option value="all">همهٔ موارد</option>
                         @foreach($this->bookableTabs as $type)
                             <option value="{{ $type['id'] }}">{{ $type['label'] }}</option>
                         @endforeach
@@ -68,12 +68,5 @@
                 </div>
             @endif
         @endif
-
-        <x-ui.modals.lightbox state="viewer">
-            <div class="flex flex-col items-center gap-3">
-                <img :src="src" :alt="caption" class="max-h-[80vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl">
-                <x-ui.badge variant="info" x-text="caption"></x-ui.badge>
-            </div>
-        </x-ui.modals.lightbox>
     </div>
 </x-ui.modals.base>

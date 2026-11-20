@@ -10,6 +10,46 @@ const make = () => {
 beforeEach(() => vi.useFakeTimers())
 afterEach(() => vi.useRealTimers())
 
+describe('aiAssistant() handleEscape', () => {
+    test('a press with the chat closed is left alone', () => {
+        const c = make()
+        c.open = false
+        c.maximized = false
+        const event = { preventDefault: vi.fn() }
+
+        c.handleEscape(event)
+
+        expect(event.preventDefault).not.toHaveBeenCalled()
+    })
+
+    test('a maximized chat is restored first and the press is consumed', () => {
+        const c = make()
+        c.open = true
+        c.maximized = true
+        c.close = vi.fn()
+        const event = { preventDefault: vi.fn() }
+
+        c.handleEscape(event)
+
+        expect(event.preventDefault).toHaveBeenCalledOnce()
+        expect(c.maximized).toBe(false)
+        expect(c.close).not.toHaveBeenCalled()
+    })
+
+    test('an open chat closes and the press is consumed', () => {
+        const c = make()
+        c.open = true
+        c.maximized = false
+        c.close = vi.fn()
+        const event = { preventDefault: vi.fn() }
+
+        c.handleEscape(event)
+
+        expect(event.preventDefault).toHaveBeenCalledOnce()
+        expect(c.close).toHaveBeenCalledOnce()
+    })
+})
+
 describe('aiAssistant() auto-hiding header', () => {
     test('opening the chat shows the header for a moment, then hides it', () => {
         const c = make()

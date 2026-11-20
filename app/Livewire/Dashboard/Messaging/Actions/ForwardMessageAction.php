@@ -18,11 +18,15 @@ class ForwardMessageAction
 {
     use CleansAttachedFiles;
 
-    public const HEADING = '➦ بازفرستاده‌شده';
+    public const HEADING = '➦ باز ارسال‌شده';
+
+    public const LEGACY_HEADING = '➦ بازفرستاده‌شده';
 
     public static function parts(string $body): array
     {
-        if (!preg_match('/\A(?:(.*?)\n\n)?' . preg_quote(self::HEADING, '/') . '(?:\n\n(.*))?\z/su', $body, $m)) {
+        $markers = preg_quote(self::HEADING, '/') . '|' . preg_quote(self::LEGACY_HEADING, '/');
+
+        if (!preg_match('/\A(?:(.*?)\n\n)?(?:' . $markers . ')(?:\n\n(.*))?\z/su', $body, $m)) {
             return ['note' => $body, 'forwarded' => null];
         }
 
@@ -94,7 +98,7 @@ class ForwardMessageAction
                 foreach ($source->attachments ?? [] as $attachment) {
                     $path = $attachment['path'] ?? '';
                     if (!is_string($path) || !static::isSafeStoredPath($path) || !$disk->exists($path)) {
-                        throw ValidationException::withMessages(['forwardMessage' => 'یکی از پیوست‌های پیام در دسترس نیست؛ پیام بازفرستاده نشد.']);
+                        throw ValidationException::withMessages(['forwardMessage' => 'بازارسال انجام نشد. یکی از پیوست‌های پیام دیگر در دسترس نیست.']);
                     }
 
                     $extension = pathinfo($path, PATHINFO_EXTENSION);

@@ -421,7 +421,7 @@ class TasksheetTest extends TestCase
             ->call('scopeToProject', $project->id)
             ->assertSet('scopeProjectId', $project->id)
             ->assertSee('نمایش همهٔ پروژه‌ها')
-            ->assertSee('در این بازه، فعالیتی برای این پروژه ثبت نشده است.')
+            ->assertSee('کاری از این پروژه در جزئیات این گزارش نیست. این پیام به معنی خالی بودن کل پروژه نیست.')
             ->assertSeeHtml('wire:key="tasksheet-projects-scoped-empty"');
     }
 
@@ -497,10 +497,10 @@ class TasksheetTest extends TestCase
 
         $tiles = (new TasksheetPresenter())->scorecardBlocks($report)['tiles'];
 
-        $this->assertSame('قبلی: ۸', $tiles[0]['chip']['text']);
-        $this->assertStringStartsWith('قبلی: ۶۰%', $tiles[1]['chip']['text']);
-        $this->assertSame('قبلی: ۳ روز', $tiles[2]['chip']['text']);
-        $this->assertSame('قبلی: ۲', $tiles[3]['chip']['text']);
+        $this->assertSame('بازهٔ قبل: ۸', $tiles[0]['chip']['text']);
+        $this->assertStringStartsWith('بازهٔ قبل: ۶۰%', $tiles[1]['chip']['text']);
+        $this->assertSame('بازهٔ قبل: ۳ روز', $tiles[2]['chip']['text']);
+        $this->assertSame('بازهٔ قبل: ۲', $tiles[3]['chip']['text']);
     }
 
     public function test_cycle_time_chip_tone_is_inverted_while_the_arrow_keeps_its_true_direction(): void

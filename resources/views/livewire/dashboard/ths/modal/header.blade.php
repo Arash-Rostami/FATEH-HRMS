@@ -17,41 +17,42 @@
     <span class="w-10 h-1 rounded-full bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_90%,transparent)]"></span>
 </div>
 
-<div class="flex items-start gap-3 px-4 sm:px-6 py-3.5 border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] shrink-0">
-    <div class="flex items-start gap-3 flex-1 min-w-0">
-        <div class="w-10 h-10 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center shadow-sm shrink-0">
-            <span class="material-symbols-rounded text-xl">confirmation_number</span>
-        </div>
-        <div class="flex-1 min-w-0 flex flex-col gap-1">
-            <div class="flex items-center gap-2 flex-wrap">
-                <p title="📆 {{ $createdRelative }}" dir="ltr"
-                   class="cursor-help font-bold text-[var(--md-sys-color-on-surface)] text-[13px] tracking-wide font-mono">{{ $fId }}</p>
-                <x-ui.buttons.copy :text="$fId" message="شناسهٔ تیکت کپی شد." aria-label="کپی شناسه" class="!p-0 w-6 h-6 [&_span]:!text-[14px]"/>
-                @if($sm)
-                    <x-ui.decor.status-pill :title="$sm['title']" :color="$presenter->statusTone($selectedTicket['status'])" class="hidden sm:inline-flex"/>
-                @endif
-                @if($pm)
-                    <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold {{ $pm['bg'] }}">
-                        <span class="material-symbols-rounded text-[12px]">{{ $pm['icon'] }}</span>
-                        {{ $pm['title'] }}
-                    </span>
-                @endif
-            </div>
-            <h2 id="ths-modal-title" class="text-[15px] font-bold leading-relaxed line-clamp-2 [overflow-wrap:anywhere] text-[var(--md-sys-color-on-surface)]">{{ $selectedTicket['request_subject'] }}</h2>
-            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5 flex-wrap">
+<div class="px-4 sm:px-6 py-2.5 sm:py-4 bg-gradient-to-l from-[var(--md-sys-color-primary)] to-[color-mix(in_srgb,var(--md-sys-color-primary)_85%,transparent)] text-[var(--md-sys-color-on-primary)] border-b border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] shrink-0 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+        <span class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_25%,transparent)] flex items-center justify-center shadow-md shrink-0">
+            <span class="material-symbols-rounded text-lg sm:text-xl">confirmation_number</span>
+        </span>
+        <div class="flex flex-col flex-1 min-w-0">
+            <h2 id="ths-modal-title" class="text-[15px] sm:text-base font-bold leading-tight truncate" title="{{ $selectedTicket['request_subject'] }}">{{ $selectedTicket['request_subject'] }}</h2>
+            <p class="text-[11px] sm:text-xs text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_80%,transparent)] truncate mt-0.5">
                 <span>ایجاد شده {{ $createdRelative }}</span>
-                <span class="w-[3px] h-[3px] rounded-full bg-current opacity-50"></span>
+                <span class="w-[3px] h-[3px] rounded-full bg-current opacity-50 inline-block align-middle mx-1"></span>
                 <span>{{ $requesterName }}</span>
-                <span class="w-[3px] h-[3px] rounded-full bg-current opacity-50"></span>
+                <span class="w-[3px] h-[3px] rounded-full bg-current opacity-50 inline-block align-middle mx-1"></span>
                 <span>{{ $presenter->departmentLabel($selectedTicket['target_department_code'] ?? null) }}</span>
             </p>
         </div>
     </div>
 
-    <div class="flex items-center gap-1.5 shrink-0">
-        <x-ui.modals.maximize-button size="lg" class="hidden sm:inline-flex"/>
-        <x-ui.modals.close-button close="closeModal()" size="lg" data-ths-close class="max-sm:w-11 max-sm:h-11"/>
+    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <x-ui.modals.maximize-button tone="on-primary" size="sm" class="hidden sm:inline-flex"/>
+        <x-ui.modals.close-button close="closeModal()" label="بستن پنجره" tone="on-primary" size="sm" data-ths-close class="max-sm:w-11 max-sm:h-11"/>
     </div>
+</div>
+
+<div class="flex items-center gap-2 flex-wrap px-4 sm:px-6 py-2.5 border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] shrink-0">
+    <p title="📆 {{ $createdRelative }}" dir="ltr"
+       class="cursor-help font-bold text-[var(--md-sys-color-on-surface)] text-[13px] tracking-wide font-mono">{{ $fId }}</p>
+    <x-ui.buttons.copy :text="$fId" message="شناسهٔ تیکت کپی شد." aria-label="کپی شناسه" class="!p-0 w-6 h-6 [&_span]:!text-[14px]"/>
+    @if($sm)
+        <x-ui.decor.status-pill :title="$sm['title']" :color="$presenter->statusTone($selectedTicket['status'])" class="hidden sm:inline-flex"/>
+    @endif
+    @if($pm)
+        <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold {{ $pm['bg'] }}">
+            <span class="material-symbols-rounded text-[12px]">{{ $pm['icon'] }}</span>
+            {{ $pm['title'] }}
+        </span>
+    @endif
 </div>
 
 <div class="flex items-center justify-between flex-nowrap gap-3 px-4 sm:px-6 py-3 border-b border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-container-lowest)] shrink-0">

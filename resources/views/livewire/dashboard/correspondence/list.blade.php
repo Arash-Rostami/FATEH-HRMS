@@ -3,7 +3,7 @@
     $chips = $listTab === 'templates' ? [] : $this->recentTemplates;
 @endphp
 
-<div x-data="correspondenceList()" class="print:hidden flex flex-col gap-3">
+<div x-data="correspondenceList()" x-on:confirmation-confirmed.window="{{ confirmDialogListener(['shareBatch' => false]) }}" class="print:hidden flex flex-col gap-3">
     <div wire:key="correspondence-list-tabs" class="w-fit max-w-full mx-auto md:mx-0">
         <x-ui.buttons.tab-selector :active-tab="$listTab" class="!mb-0" :tabs="$listTabs"/>
     </div>
@@ -49,7 +49,7 @@
                         <x-ui.buttons.form type="button" variant="tonal" loading="createBatch" wire:click="createBatch({{ (int) $item['id'] }})">ایجاد</x-ui.buttons.form>
                         @if($batchIds !== [])
                             <div wire:key="correspondence-batch-share" class="contents">
-                                <x-ui.buttons.form type="button" variant="primary" loading="shareBatch" wire:click="shareBatch" wire:confirm="{{ convertToPersian(count($batchIds)) }} نامه برای امضا ارسال شود؟">ارسال همین‌ها برای امضا</x-ui.buttons.form>
+                                <x-ui.buttons.form type="button" variant="primary" loading="shareBatch" x-on:click="{{ confirmDialog('shareBatch', 'ارسال همین‌ها برای امضا', convertToPersian(count($batchIds)) . ' نامه برای امضا ارسال شود؟') }}">ارسال همین‌ها برای امضا</x-ui.buttons.form>
                             </div>
                         @endif
                     </div>

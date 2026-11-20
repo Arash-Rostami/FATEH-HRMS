@@ -25,13 +25,14 @@
             show = true;
             firing = false;
             title = payload.title || '';
-            message = payload.message || '';
+            message = String(payload.message ?? '');
             confirmMethod = payload.method || '';
             confirmParams = payload.params;
             type = payload.type || 'livewire';
             tone = payload.tone || '';
         "
-        @keydown.escape.window="show = false"
+        @keydown.escape.window.capture="if (show) { $event.stopImmediatePropagation(); show = false }"
+        @click.stop
         x-init="
             if (show) setTimeout(() => active = show, 50);
             $watch('show', value => {
@@ -42,7 +43,7 @@
                 }
             })
         "
-        class="custom-modal"
+        class="custom-modal !z-[1000002]"
         :class="{ 'active': active }"
         style="display: none;"
         x-show="show"

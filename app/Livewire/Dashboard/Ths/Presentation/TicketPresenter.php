@@ -271,10 +271,10 @@ class TicketPresenter
                 $this->deadlineChip($ticket['completion_deadline'] ?? null, $ticket['completion_date'] ?? null, $status)['text'] ?? null,
             ]))),
             $status === 'in-progress' && $isAssignee => $this->ball('mine', 'sports_score', 'نوبت شماست — پاسخ دهید یا ببندید', $timeline['response'] ?? null, ['پاسخ', 'response']),
-            $status === 'in-progress' => $this->ball('wait', 'person', 'در دست ' . ($ticket['assignee']['name'] ?? '—'), $timeline['response'] ?? null),
-            $canAssign => $this->ball('mine', 'person_add', 'نوبت شماست — کارشناس را تخصیص دهید', 'تا زمان تخصیص، درخواست در صف واحد می‌ماند.', ['تخصیص', 'response']),
-            $freeQueue => $this->ball('wait', 'hourglass_top', 'در صف واحد — هر عضوی می‌تواند آن را بردارد', $timeline['typical'] ?? null),
-            default => $this->ball('wait', 'hourglass_top', 'در انتظار تخصیص توسط سرپرست واحد', $timeline['typical'] ?? null),
+            $status === 'in-progress' => $this->ball('wait', 'person', 'در حال رسیدگی توسط ' . ($ticket['assignee']['name'] ?? '—'), $timeline['response'] ?? null),
+            $canAssign => $this->ball('mine', 'person_add', 'مسئول رسیدگی را انتخاب کنید', 'تا تعیین مسئول، تیکت در صف این واحد می‌ماند.', ['تعیین مسئول', 'response']),
+            $freeQueue => $this->ball('wait', 'hourglass_top', 'در صف واحد؛ اعضای این واحد می‌توانند رسیدگی را به عهده بگیرند', $timeline['typical'] ?? null),
+            default => $this->ball('wait', 'hourglass_top', 'در انتظار تعیین مسئول توسط مدیر واحد', $timeline['typical'] ?? null),
         };
     }
 

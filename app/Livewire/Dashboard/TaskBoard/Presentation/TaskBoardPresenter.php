@@ -112,7 +112,7 @@ class TaskBoardPresenter
             [
                 'key' => 'reply',
                 'label' => 'نظرات',
-                'description' => 'فقط بین ایجادکننده، مسئول انجام و همکاران این وظیفه',
+                'description' => 'گفتگو با افرادی که به این وظیفه دسترسی دارند',
                 'icon' => 'forum',
                 'errors' => ['taskReplyForm.body', 'taskReplyForm.files'],
             ],
@@ -124,7 +124,7 @@ class TaskBoardPresenter
             ],
             [
                 'key' => 'meta',
-                'label' => 'دیتای سفارشی',
+                'label' => 'اطلاعات دلخواه',
                 'icon' => 'sell',
                 'errors' => ['form.meta'],
             ],
@@ -182,7 +182,7 @@ class TaskBoardPresenter
             'people' => 'افراد',
             'labels' => 'برچسب‌ها',
             'checklist' => 'چک‌لیست',
-            'context' => 'دپارتمان و منبع',
+            'context' => 'بخش سازمانی و منبع درخواست',
             'collaborators' => 'همکاران',
         ];
     }
@@ -379,7 +379,7 @@ class TaskBoardPresenter
             ['k' => 'palette', 'show' => !($card['isUrgent'] || $card['isPending'] || $isArchived)],
             ['k' => 'fav', 'show' => $isPersonalBoard],
             $canEdit && !$ticketId
-                ? ['duplicate', $isPersonalBoard ? 'wire:click' : 'x-on:click', $isPersonalBoard ? "duplicateTask($taskId)" : "Livewire.dispatch('project-duplicate-task', { taskId: $taskId })", 'تکثیر', 'copy_all', 'neu']
+                ? ['duplicate', $isPersonalBoard ? 'wire:click' : 'x-on:click', $isPersonalBoard ? "duplicateTask($taskId)" : "Livewire.dispatch('project-duplicate-task', { taskId: $taskId })", 'ساخت کپی', 'copy_all', 'neu']
                 : null,
             ['k' => 'copy', 'show' => true],
             $canArchive && $task['status'] === 'done' && !$isArchived && !$card['isPendingApproval'] ? ['archive', 'wire:click', "archiveTask($taskId)", 'آرشیو', 'archive', 'neu'] : null,

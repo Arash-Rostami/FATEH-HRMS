@@ -252,15 +252,16 @@ class UserTablePresenter
                         ->label('گیرنده')
                         ->options([
                             'boss' => $boss && $boss->id === $record->id
-                                ? 'مدیر این کاربر (خودتان هستید — «کاربر دیگر» را انتخاب کنید)'
-                                : 'مدیر این کاربر',
+                                ? 'مدیر سازمانی (همان فرد است؛ «کاربر دیگر» را انتخاب کنید)'
+                                : 'مدیر سازمانی',
                             'other' => 'کاربر دیگر',
                         ])
+                        ->helperText('گزارش این ماه با پیوند ۷روزه در اعلان‌های گیرنده ثبت می‌شود. مدیر سازمانی بر اساس ساختار واحدها انتخاب می‌شود.')
                         ->default('boss')
                         ->live()
                         ->columnSpanFull(),
                     Select::make('recipient')
-                        ->label('کاربر')
+                        ->label('گیرندهٔ گزارش')
                         ->options(fn () => User::getCachedActiveOptions()
                             ->except($record?->id ?? 0)
                             ->except($boss?->id ?? 0)
@@ -277,7 +278,7 @@ class UserTablePresenter
 
                     if (!$recipient) {
                         Notification::make()
-                            ->title('مدیری برای این کاربر شناسایی نشد؛ «کاربر دیگر» را انتخاب کنید.')
+                            ->title('مدیر سازمانی پیدا نشد. «کاربر دیگر» را انتخاب کنید.')
                             ->warning()
                             ->send();
 
@@ -286,7 +287,7 @@ class UserTablePresenter
 
                     if ($recipient->is($record)) {
                         Notification::make()
-                            ->title('خودتان بالاترین رتبهٔ بخش هستید؛ گیرندهٔ دیگری انتخاب کنید.')
+                            ->title('گیرنده همان صاحب گزارش است. فرد دیگری را انتخاب کنید.')
                             ->warning()
                             ->send();
 

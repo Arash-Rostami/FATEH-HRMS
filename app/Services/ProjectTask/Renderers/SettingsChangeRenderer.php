@@ -10,9 +10,9 @@ class SettingsChangeRenderer implements ActivityLogRenderer
 {
     private const KEY_LABELS = [
         'requires_approval' => 'نیازمند تأیید مدیر',
-        'sla' => 'SLA',
-        'deadline' => 'سقف مهلت',
-        'custom_schema' => 'فیلدهای سفارشی',
+        'sla' => 'مهلت پیش‌فرض وظیفه',
+        'deadline' => 'آخرین مهلت پروژه',
+        'custom_schema' => 'اطلاعات دلخواه وظیفه',
         'labels' => 'برچسب‌های مجاز وظایف',
         'auto_archive_days' => 'آرشیو خودکار',
     ];
@@ -36,7 +36,7 @@ class SettingsChangeRenderer implements ActivityLogRenderer
         $ownerId = $reply->payload['owner_id'] ?? null;
 
         if ($ownerId) {
-            return 'مالک پروژه به ' . ($reply->payload['owner_name'] ?? User::whereKey($ownerId)->value('name') ?? 'کاربر') . ' منتقل شد.';
+            return 'مالکیت پروژه به ' . ($reply->payload['owner_name'] ?? User::whereKey($ownerId)->value('name') ?? 'کاربر') . ' منتقل شد.';
         }
 
         $keys = $reply->payload['changed'] ?? [];

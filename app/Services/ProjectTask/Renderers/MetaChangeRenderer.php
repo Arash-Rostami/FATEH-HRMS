@@ -14,7 +14,7 @@ class MetaChangeRenderer implements ActivityLogRenderer
 
     public function getLabel(): string
     {
-        return 'تغییر دیتای سفارشی';
+        return 'تغییر اطلاعات دلخواه';
     }
 
     public function getBody(Reply $reply): string
@@ -32,6 +32,6 @@ class MetaChangeRenderer implements ActivityLogRenderer
             $parts[] = 'به‌روزرسانی: ' . implode('، ', $payload['changed']);
         }
 
-        return $parts === [] ? 'دیتای سفارشی وظیفه تغییر کرد.' : implode(' — ', $parts);
+        return $parts === [] ? 'اطلاعات دلخواه وظیفه تغییر کرد.' : implode(' — ', $parts);
     }
 }

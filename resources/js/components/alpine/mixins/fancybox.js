@@ -6,7 +6,6 @@ const FANCYBOX_OPTIONS = {
     hideClass: "f-fadeOut",
     Image: { zoom: true },
     backdrop: true,
-    keyboard: true,
     dragToClose: true,
     infinite: true,
     Carousel: {
@@ -18,14 +17,24 @@ const FANCYBOX_OPTIONS = {
                 right: ["counter", "zoomIn", "zoomOut", "toggle1to1", "rotateCCW", "rotateCW", "flipX", "flipY", "reset", "autoplay", "fullscreen", "download", "thumbs", "close"],
             },
         },
-    },
-    formatCaption: (fancybox, slide) => {
-        if (!slide.caption) return "";
-        const el = document.createElement("span");
-        el.textContent = slide.caption;
-        return el;
+        formatCaption: (carousel, slide) => {
+            if (!slide.caption) return "";
+            const el = document.createElement("span");
+            el.textContent = slide.caption;
+            return el;
+        },
     },
 };
+
+function closeAll(Fancybox) {
+    for (let box = Fancybox.getInstance(); box; box = Fancybox.getInstance()) box.destroy();
+}
+
+function bind(Fancybox, options) {
+    Reflect.deleteProperty(Fancybox.Plugins, "Hash");
+    Fancybox.bind(document.documentElement, "[data-fancybox]", options);
+    document.addEventListener("livewire:navigating", () => closeAll(Fancybox));
+}
 
 export default function fancyboxMixin() {
     return {
@@ -33,7 +42,7 @@ export default function fancyboxMixin() {
             if (initialized) return;
             initialized = true;
             import("@fancyapps/ui")
-                .then(({ Fancybox }) => Fancybox.bind(document.documentElement, "[data-fancybox]", options))
+                .then(({ Fancybox }) => bind(Fancybox, options))
                 .catch(() => { initialized = false; });
         },
     };

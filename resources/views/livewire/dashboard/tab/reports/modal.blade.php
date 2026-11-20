@@ -1,19 +1,21 @@
 <x-ui.modals.slideover show="showModal">
     <template x-if="activeReport">
-        <div
-            x-data="{ imageViewer: false }"
-            class="flex h-full min-h-0 flex-col overflow-hidden bg-transparent"
-        >
+        <div class="flex h-full min-h-0 flex-col overflow-hidden bg-transparent">
             {{-- Hero Image --}}
-            <div
-                @click="imageViewer = true"
-                class="relative w-full shrink-0 overflow-hidden group cursor-zoom-in h-[42vh]"
-            >
-                <img
-                    :src="activeReport.thumbnail"
-                    :alt="activeReport.title"
-                    class="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+            <div class="relative w-full shrink-0 overflow-hidden group cursor-zoom-in h-[42vh]">
+                <a
+                    :href="activeReport.thumbnail"
+                    data-type="image"
+                    data-fancybox="reports-modal"
+                    :data-caption="activeReport.title"
+                    class="block h-full w-full"
                 >
+                    <img
+                        :src="activeReport.thumbnail"
+                        :alt="activeReport.title"
+                        class="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                    >
+                </a>
 
                 {{-- Close --}}
                 <button
@@ -24,15 +26,12 @@
                 </button>
 
                 {{-- Expand --}}
-                <button
-                    @click.stop="imageViewer = true"
-                    class="absolute right-6 top-6 z-20 flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/90 shadow-lg transition-all hover:bg-black/50 hover:text-white"
-                >
+                <span class="pointer-events-none absolute right-6 top-6 z-20 flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/90 shadow-lg">
                     <span class="material-symbols-rounded text-[20px]">open_in_full</span>
-                </button>
+                </span>
 
                 {{-- Badges + title --}}
-                <div class="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-8" dir="rtl">
+                <div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 p-6 sm:p-8" dir="rtl">
                     <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                         <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-[var(--md-sys-color-secondary-container)]/80 px-3 py-1 text-xs font-bold text-[var(--md-sys-color-on-secondary-container)] shadow-sm">
                             <span class="material-symbols-rounded text-[14px]">description</span>
@@ -71,15 +70,6 @@
                     </button>
                 </div>
             </div>
-
-            {{-- Fullscreen viewer --}}
-            <x-ui.modals.lightbox>
-                <img
-                    :src="activeReport.thumbnail"
-                    :alt="activeReport.title"
-                    class="max-h-[92vh] w-full select-none object-contain rounded-xl"
-                >
-            </x-ui.modals.lightbox>
         </div>
     </template>
 </x-ui.modals.slideover>

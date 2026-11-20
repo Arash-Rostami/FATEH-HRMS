@@ -42,7 +42,7 @@ class AssignmentRenderer implements ActivityLogRenderer
         $to = $payload['to'] ?? null;
 
         return $to && (int) $to !== (int) $reply->user_id && ($name = $this->userName($to))
-            ? "{$body} و آن را به {$name} محول کرد"
+            ? "{$body} و انجام آن را به {$name} سپرد"
             : $body;
     }
 
@@ -52,7 +52,7 @@ class AssignmentRenderer implements ActivityLogRenderer
 
         return $to !== null
             ? "مسئولیت وظیفه به «{$to}» واگذار شد."
-            : 'مسئول وظیفه حذف شد.';
+            : 'مسئول انجام وظیفه برداشته شد.';
     }
 
     private function audienceBody(array $payload): string
@@ -70,10 +70,10 @@ class AssignmentRenderer implements ActivityLogRenderer
             $parts[] = 'عضو حذف شد: ' . $removed->implode('، ');
         }
         if ($addedDepartments->isNotEmpty()) {
-            $parts[] = 'دپارتمان افزوده شد: ' . $addedDepartments->implode('، ');
+            $parts[] = 'واحد دارای دسترسی افزوده شد: ' . $addedDepartments->implode('، ');
         }
         if ($removedDepartments->isNotEmpty()) {
-            $parts[] = 'دپارتمان حذف شد: ' . $removedDepartments->implode('، ');
+            $parts[] = 'دسترسی واحد برداشته شد: ' . $removedDepartments->implode('، ');
         }
 
         return $parts === [] ? 'دسترسی پروژه تغییر کرد.' : implode(' — ', $parts);

@@ -19,6 +19,7 @@ trait HasUserHooks
         static::saving(self::guardHolderAccountOnSaving(...));
         static::saving(self::guardTerminatedReactivationOnSaving(...));
         static::saving(self::guardOwnedChannelsOnDeactivating(...));
+        static::saving(self::clearEmailTrustOnEmailChange(...));
         static::deleting(self::guardHolderAccountOnDeleting(...));
         static::saved(self::syncCachesAndReleaseWorkOnSaved(...));
         static::deleted(self::bumpCacheVersionOnDeleted(...));
@@ -103,6 +104,13 @@ trait HasUserHooks
             $user->setRawAttributes($user->getRawOriginal());
 
             throw ValidationException::withMessages(["data.{$field}" => __('resources/user/strings.validation.owns_channels')]);
+        }
+    }
+
+    private static function clearEmailTrustOnEmailChange(self $user)
+    {
+        if ($user->exists && $user->isDirty('email') && !$user->isDirty('email_verified_at')) {
+            $user->email_verified_at = null;
         }
     }
 

@@ -79,23 +79,36 @@ export default class ThemeManager {
         root.classList.toggle('dark', mode === 'dark');
     }
 
+    static crossfade(apply) {
+        if (typeof document.startViewTransition !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            apply();
+            return;
+        }
+
+        root.classList.add('theme-switching');
+        document.startViewTransition(apply).finished.finally(() => root.classList.remove('theme-switching'));
+    }
+
     static setTheme(theme) {
-        this.applyThemeDOM(theme);
-        localStorage.setItem(THEME_KEY, theme);
-        this.syncStore(theme);
-        this.syncThemeColorMeta();
-        this.dispatchSyncEvent();
+        this.crossfade(() => {
+            this.applyThemeDOM(theme);
+            localStorage.setItem(THEME_KEY, theme);
+            this.syncStore(theme);
+            this.syncThemeColorMeta();
+            this.dispatchSyncEvent();
+        });
     }
 
     static toggleMode() {
         const newMode = this.getUserMode() === 'dark' ? 'light' : 'dark';
 
-        this.applyModeDOM(newMode);
-        localStorage.setItem(MODE_KEY, newMode);
-
-        this.syncStore(null, newMode);
-        this.syncThemeColorMeta();
-        this.dispatchSyncEvent();
+        this.crossfade(() => {
+            this.applyModeDOM(newMode);
+            localStorage.setItem(MODE_KEY, newMode);
+            this.syncStore(null, newMode);
+            this.syncThemeColorMeta();
+            this.dispatchSyncEvent();
+        });
     }
 
     static syncThemeColorMeta() {

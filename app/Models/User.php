@@ -171,6 +171,15 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         );
     }
 
+    public static function getCachedActiveDeptMap(): Collection
+    {
+        return Cache::remember(ModelCacheVersion::key(self::class, 'user_active_dept_map'),
+            now()->addHour(),
+            fn() => self::visibleOnBoard()->with('profile:user_id,department_id')->get(['id'])
+                ->mapWithKeys(fn (self $user) => [(int) $user->id => $user->profile?->department_id])
+        );
+    }
+
     public static function getCachedAdminOptions(): Collection
     {
         return Cache::remember(ModelCacheVersion::key(self::class, 'user_admin_options'),

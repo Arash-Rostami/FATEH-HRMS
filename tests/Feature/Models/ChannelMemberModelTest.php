@@ -56,7 +56,7 @@ class ChannelMemberModelTest extends TestCase
     public function test_fillable_lists_the_pivot_columns(): void
     {
         $this->assertSame(
-            ['channel_id', 'user_id', 'last_read_message_id', 'joined_at', 'entered_at'],
+            ['channel_id', 'user_id', 'last_read_message_id', 'joined_at', 'entered_at', 'role'],
             (new ChannelMember())->getFillable()
         );
     }

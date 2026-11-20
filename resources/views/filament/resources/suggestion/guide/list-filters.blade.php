@@ -4,15 +4,15 @@
     ];
     $filters = [
         ['icon' => 'person', 'label' => 'ثبت‌کننده', 'hint' => 'پیشنهادهای یک پیشنهاددهندهٔ مشخص را نشان می‌دهد.'],
-        ['icon' => 'corporate_fare', 'label' => 'واحد ذی‌نفع', 'hint' => 'فیلتر با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">whereJsonContains(departments, code)</code> — پیشنهادهایی که واحد انتخاب‌شده در فهرست ذی‌نفعان آن‌هاست.'],
-        ['icon' => 'edit_note', 'label' => 'تکمیل شخصی', 'hint' => 'فیلتر سه‌حالته برای «تکمیل شخصی»؛ فقط بله، فقط خیر، یا همه. <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">self_fill</code> — بله/خیر/هر دو.'],
-        ['icon' => 'attach_file', 'label' => 'دارای پیوست', 'hint' => 'فیلتر سه‌حالتی روی وجود فایل پیوست (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">attachment</code> پر یا خالی).'],
+        ['icon' => 'corporate_fare', 'label' => 'واحد مرتبط', 'hint' => 'پیشنهادهایی را نشان می‌دهد که واحد انتخاب‌شده در فهرست واحدهای مرتبط آن‌هاست.'],
+        ['icon' => 'edit_note', 'label' => 'ثبت نظر توسط پیشنهاددهنده', 'hint' => 'با بله، خیر یا همه مشخص کنید نظرها هنگام ثبت توسط پیشنهاددهنده وارد شده‌اند یا بعداً از واحدها گرفته شده‌اند.'],
+        ['icon' => 'attach_file', 'label' => 'دارای پیوست', 'hint' => 'پیشنهادهای دارای فایل، بدون فایل یا هر دو را ببینید.'],
         ['icon' => 'schedule', 'label' => 'تاریخ ثبت', 'hint' => 'فیلتر بازهٔ تاریخ ثبت پیشنهاد.'],
-        ['icon' => 'forward_to_inbox', 'label' => 'دارای ارجاع', 'hint' => 'فیلتر روشن/خاموش — پیشنهادهایی که برای واحد مدیریت ارشد حداقل یک مورد ارجاع دارند. <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">MA</code> با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">referral</code> پر دارند.'],
+        ['icon' => 'forward_to_inbox', 'label' => 'دارای ارجاع', 'hint' => 'پیشنهادهایی را ببینید که برای اجرای کار به یک یا چند واحد سپرده شده‌اند.'],
     ];
     $groups = [
-        ['icon' => 'route', 'label' => 'گروه‌بندی بر اساس مرحله', 'hint' => 'پیشنهادها را بر اساس مرحله دسته می‌کند — برای دیدن توزیع کارهای در‌جریان.'],
-        ['icon' => 'person', 'label' => 'گروه‌بندی بر اساس ثبت‌کننده', 'hint' => 'پیشنهادها را بر اساس کاربر ثبت‌کننده دسته می‌کند.'],
+        ['icon' => 'route', 'label' => 'گروه‌بندی بر اساس مرحله', 'hint' => 'پیشنهادهای هر مرحله را کنار هم ببینید تا موارد منتظر نظر، تصمیم یا اجرا را پیدا کنید.'],
+        ['icon' => 'person', 'label' => 'گروه‌بندی بر اساس ثبت‌کننده', 'hint' => 'پیشنهادهای هر فرد را کنار هم ببینید.'],
     ];
 @endphp
 
@@ -23,7 +23,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">فهرست، زبانه‌ها و فیلترها</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        زبانه‌های بالای فهرست، پیشنهادها را بر اساس مرحله جدا می‌کنند و شمارش زنده نشان می‌دهند. شش فیلتر و دو گروه‌بندی هم برای تحلیل دقیق‌تر در دسترس‌اند. زبانه‌ها با ترجیح کاربر قابل پنهان‌شدن‌اند.
+        با زبانهٔ مرحله شروع کنید. سپس ثبت‌کننده، واحد، تاریخ یا وجود پیوست را مشخص کنید تا فهرست کوتاه‌تر شود. گروه‌بندی، موارد مشابه را کنار هم می‌آورد.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

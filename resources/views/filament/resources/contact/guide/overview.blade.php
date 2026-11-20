@@ -2,10 +2,10 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">info</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«پیام‌رسان داخلی» گفتگوهای خصوصی یک‌به‌یک بین کاربران است</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">پیام‌رسان داخلی برای گفتگوی دونفره است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر ردیف یک پیام مستقیم بین دو همکار است: یک <strong class="font-bold text-[var(--md-sys-color-on-surface)]">فرستنده</strong> و یک <strong class="font-bold text-[var(--md-sys-color-on-surface)]">گیرنده</strong>. کاربران پیام‌ها را در پنل کاربری ارسال می‌کنند؛ ساخت پیام در پنل مدیریت امکان‌پذیر نیست. در این صفحه می‌توانید پیام‌های سازمان را ببینید، متن را ویرایش کنید، پیام را حذف یا بازیابی کنید و خروجی اکسل بگیرید.
+        هر ردیف یک پیام با فرستنده و گیرندهٔ مشخص است. کاربران پیام تازه را از پنل کاربری می‌فرستند. در این صفحه، با دسترسی لازم می‌توانید پیام‌ها را ببینید، متنشان را ویرایش کنید، آن‌ها را حذف یا بازیابی کنید و فایل اکسل بگیرید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

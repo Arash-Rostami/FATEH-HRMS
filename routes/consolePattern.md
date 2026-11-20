@@ -8,8 +8,8 @@ Every scheduled task in this app lives in `routes/console.php` (no Kernel, no pr
 2. **Hourly tasks sit at :00 / :15 / :45** so no two fire on the same minute, and the business-hour sweeps stay inside their windows.
 3. **DB prunes run first, file-IO last.** The row deletions (01:10 → 03:15) finish before the file sweeps (03:35, 04:05, 04:35), and everything lands before business hours (06:00+). No daily task shares a minute with the hourly :00/:15/:45 tasks.
 4. **`->withoutOverlapping()` on every task** — a slow run never doubles up with the next tick.
-5. **`->onFailure(fn () => Log::error('schedule failed: <command>'))` on the five DB prunes plus `storage:prune-tmp`** — the six destructive tasks. A silent failure of a prune otherwise goes unnoticed until the table/disk grows; this writes one error line per failed run to the log (`grep "schedule failed"` next morning). The other tasks either self-report (the temp pruner prints counts and exits non-zero) or are non-destructive.
-6. **`->when(fn () => !tenantOff(...))`** — the two taskboard/reminder sweeps skip entirely on tenants with that module off; nothing else is tenant-gated (prunes must clean data of any tenant state, and `livewire-tmp` is global).
+5. **`->onFailure(fn () => Log::error('schedule failed: <command>'))` on the five DB prunes plus `storage:prune-tmp`** — the six destructive tasks (the launchpad planner is not one: it deletes nothing). A silent failure of a prune otherwise goes unnoticed until the table/disk grows; this writes one error line per failed run to the log (`grep "schedule failed"` next morning). The other tasks either self-report (the temp pruner prints counts and exits non-zero) or are non-destructive.
+6. **`->when(fn () => !tenantOff(...))`** — the two taskboard/reminder sweeps and the `launchpad:refresh-plan` planner skip entirely on tenants with that module off; nothing else is tenant-gated (prunes must clean data of any tenant state, and `livewire-tmp` is global).
 7. **Known hygiene gaps, left deliberately:** no `onOneServer()` anywhere (matters only the day a second scheduler host appears — add it then, not before); no `runInBackground()` (only if `model:prune` ever exceeds a minute); and before this rebalance NO task had failure alerting, which was the real gap — a nightly prune could fail silently until the table/disk grew. The six destructive tasks now log; if a log aggregation/alerting channel ever lands, those `schedule failed:` lines are the hook to wire it to. `reminders:sweep-due` staying at :00 is hour-aligned by its due-today/last-hour logic but was never re-verified against its tests — if it ever moves inside the hour, re-check `ConsoleCommandsTest`'s due-timing tests first.
 
 ## Times (2026-11-06 rebalance)
@@ -28,6 +28,9 @@ Every scheduled task in this app lives in `routes/console.php` (no Kernel, no pr
 | 03:35 daily | `exports:prune-old` | file prune (Filament exports) | — (prints own counts) |
 | 04:05 daily | `presence:reset-stale` | presence reset | — |
 | 04:35 daily | `storage:prune-tmp` | file prune (temp uploads; see below) | yes |
+| 05:01 daily | `launchpad:refresh-plan` (`Schedule::call`, `RefreshLaunchpadAction::plan()`, `when` tenant `launchpad`) | job planner: one query, queues one delayed `RefreshLaunchpadJob` per due Launchpad item, never calls an API itself | yes |
+
+`launchpad:refresh-plan` sits at 05:01 because 05:00 collides with the hourly :00 task; the jobs it queues run delayed 1, 2, 3… minutes (limit 43), so the window 05:02-05:44 lies between the :00 and :45 hourly tasks and one item runs per minute on the default worker. `config('launchpad.refresh.at')` drives the time and `limit` must stay at 43 or lower to keep the window closed before :45.
 
 Kept at :00 on purpose: `reminders:sweep-due` — its due-today/last-hour logic is hour-aligned, so moving it inside the hour would change which reminders fire when.
 

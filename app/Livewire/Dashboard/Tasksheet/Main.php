@@ -188,7 +188,7 @@ class Main extends Component
         $parsed = $this->parseCustomRange();
 
         if ($parsed === null) {
-            $this->dispatch('toast', message: 'بازهٔ انتخاب‌شده نامعتبر است.', type: 'warning');
+            $this->dispatch('toast', message: 'تاریخ شروع و پایان را کامل و به شمسی وارد کنید. پایان نباید پیش از شروع باشد.', type: 'warning');
             return;
         }
 
@@ -202,7 +202,7 @@ class Main extends Component
             $this->toYear = $endJalali->getYear();
             $this->toMonth = $endJalali->getMonth();
             $this->toDay = $endJalali->getDay();
-            $this->dispatch('toast', message: 'بازهٔ انتخابی حداکثر یک سال است؛ تاریخ پایان اصلاح شد.', type: 'warning');
+            $this->dispatch('toast', message: 'گزارش حداکثر ۳۶۵ روز را نشان می‌دهد؛ تاریخ پایان کوتاه‌تر شد.', type: 'warning');
         }
 
         $this->preset = 'custom';
@@ -265,14 +265,14 @@ class Main extends Component
             $recipient = TasksheetShareService::managerFor($this->subject);
 
             if (!$recipient) {
-                $this->dispatch('toast', message: 'مدیری برای این کاربر شناسایی نشد؛ «کاربر دیگر» را انتخاب کنید.', type: 'warning');
+                $this->dispatch('toast', message: 'مدیر سازمانی پیدا نشد. «کاربر دیگر» را انتخاب کنید و گیرنده را مشخص کنید.', type: 'warning');
                 return;
             }
         } else {
             $recipient = User::visibleOnBoard()->find($this->shareRecipientId);
 
             if (!$recipient || $recipient->is($this->subject)) {
-                $this->dispatch('toast', message: 'یک گیرنده انتخاب کنید.', type: 'warning');
+                $this->dispatch('toast', message: 'گیرنده را از کاربران فعال انتخاب کنید. گزارش را نمی‌توانید برای خود فرد بفرستید.', type: 'warning');
                 return;
             }
         }

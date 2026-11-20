@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SuggestionResource\RelationManagers;
 
 use App\Traits\Filament\FilamentActions;
+use App\Models\Review;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use App\Filament\RelationManagers\RelationManager;
@@ -49,7 +50,7 @@ class ReviewsRelationManager extends RelationManager
                     IconEntry::make('complete')
                         ->label('تکمیل شده')
                         ->boolean(),
-                    TextEntry::make('comments')->label('توضیحات')->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])->columnSpanFull(),
+                    TextEntry::make('comments')->label('توضیحات')->formatStateUsing(fn (?string $state): ?string => $state === Review::AUTO_RESOLVE_COMMENT ? 'این واحد در مهلت بررسی پاسخ نداد؛ سامانه «بدون نظر قطعی» ثبت کرد. این نظر به معنی موافقت نیست.' : $state)->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])->columnSpanFull(),
                     TextEntry::make('actions')->label('اقدامات')->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])->columnSpanFull(),
                     TextEntry::make('created_at')->label('تاریخ')->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—'),
                 ])

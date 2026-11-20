@@ -59,6 +59,7 @@ class UserResource extends Resource
                 ->schema([
                     UserFormPresenter::name(),
                     UserFormPresenter::email(),
+                    UserFormPresenter::emailTrusted(),
                     UserFormPresenter::divider(),
                     UserFormPresenter::password(),
                     UserFormPresenter::passwordConfirmation(),
@@ -100,6 +101,13 @@ class UserResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with(['profile']);
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        $actor = auth()->user();
+
+        return static::permits('update', $record) && (!$record->isDeveloper() || $actor?->isDeveloper() || $actor?->is($record));
     }
 
     public static function getGlobalSearchResultActions(Model $record): array

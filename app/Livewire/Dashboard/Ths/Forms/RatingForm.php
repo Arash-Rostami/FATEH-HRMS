@@ -13,10 +13,15 @@ class RatingForm extends Form
     #[Validate('nullable|string|max:1000')]
     public ?string $comment = null;
 
+    public function validationAttributes(): array
+    {
+        return ['score' => 'امتیاز رضایت', 'comment' => 'توضیح رضایت'];
+    }
+
     protected function messages(): array
     {
         return [
-            'score.required' => 'لطفا امتیاز رضایت را انتخاب کنید.',
+            'score.required' => 'لطفاً امتیاز رضایت را انتخاب کنید.',
             'score.integer' => 'امتیاز باید یک عدد صحیح باشد.',
             'score.min' => 'امتیاز باید حداقل ۱ باشد.',
             'score.max' => 'امتیاز نمی‌تواند بیشتر از ۵ باشد.',

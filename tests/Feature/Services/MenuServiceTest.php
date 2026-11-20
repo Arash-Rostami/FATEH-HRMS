@@ -1236,8 +1236,8 @@ class MenuServiceTest extends TestCase
         $recipients = $nudge->for($ticket);
 
         $this->assertContains($assignee->id, $recipients->pluck('id')->all());
-        $this->assertStringContainsString('تیکت محول‌شده به شما', $nudge->title($ticket, $assignee));
-        $this->assertStringContainsString('محول شده است', $nudge->body($ticket, $assignee));
+        $this->assertStringContainsString('مسئول رسیدگی به درخواست شدید', $nudge->title($ticket, $assignee));
+        $this->assertStringContainsString('شما مسئول رسیدگی', $nudge->body($ticket, $assignee));
         $this->assertTrue($nudge->show($ticket, $assignee));
     }
 

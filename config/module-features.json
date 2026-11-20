@@ -83,25 +83,25 @@
             },
             {
                 "en": "Administrative moderation interface providing robust filtering, grouping, and export capabilities for comments, poll responses, and user reactions.",
-                "fa": "رابط نظارتی مدیریت مجهز به ابزارهای فیلتر، گروه‌بندی ساختاریافته و استخراج داده‌های مرتبط با دیدگاه‌ها، نتایج نظرسنجی‌ها و واکنش‌های کاربران."
+                "fa": "رابط نظارتی مدیریت مجهز به ابزارهای فیلتر، گروه‌بندی ساختاریافته و استخراج داده‌های مرتبط با دیدگاه‌ها، نتایج نظرسنجی‌ها و ریاکشن‌های کاربران."
             },
             {
                 "en": "Employee-facing portal equipped with real-time search, category filter pills, infinite feed loading, threaded discussion management on author-owned feeds, emoji reactions, poll participation, and automatic read acknowledgment on tab focus.",
-                "fa": "درگاه تعاملی کارکنان مجهز به جستجوی بلادرنگ، تراشه‌های فیلتر دسته‌بندی، بارگذاری ادامه‌دار فید، مدیریت پاسخ‌های تو در تو در پست‌های خود کاربر، واکنش‌های تعاملی، شرکت در نظرسنجی و ثبت خودکار وضعیت مطالعه به محض ورود به زبانه."
+                "fa": "درگاه تعاملی کارکنان مجهز به جستجوی بلادرنگ، تراشه‌های فیلتر دسته‌بندی، بارگذاری ادامه‌دار فید، مدیریت پاسخ‌های تو در تو در پست‌های خود کاربر، ریاکشن‌های تعاملی، شرکت در نظرسنجی و ثبت خودکار وضعیت مطالعه به محض ورود به زبانه."
             },
             {
                 "en": "Consolidated and eager data hydration fetching all relational entities (comments, nested replies, user reactions, and poll metrics) within a single optimized database transaction.",
-                "fa": "فراخوانی بهینه‌سازی‌شده داده‌ها با معماری Eager Loading جهت بارگذاری یکپارچه تمامی موجودیت‌های وابسته (دیدگاه‌ها، پاسخ‌ها، واکنش‌ها و آمار نظرسنجی) در قالب یک کوئری تجمیعی."
+                "fa": "فراخوانی بهینه‌سازی‌شده داده‌ها با معماری Eager Loading جهت بارگذاری یکپارچه تمامی موجودیت‌های وابسته (دیدگاه‌ها، پاسخ‌ها، ریاکشن‌ها و آمار نظرسنجی) در قالب یک کوئری تجمیعی."
             }
         ],
         "unique": [
             {
                 "en": "Advanced polling engine supporting both single-choice (selection replacement) and multi-choice (toggle) modes, enforcing post-vote result visibility and granular per-poll toggles for comments and reactions.",
-                "fa": "موتور پیشرفته نظرسنجی سازمانی با پشتیبانی از حالت‌های تک‌انتخابی (جایگزینی رأی) و چندانتخابی (سوئیچ)، نمایش نتایج صرفاً پس از ثبت رأی، و کنترل مستقل فعال‌سازی بخش دیدگاه‌ها و واکنش‌ها."
+                "fa": "موتور پیشرفته نظرسنجی سازمانی با پشتیبانی از حالت‌های تک‌انتخابی (جایگزینی رأی) و چندانتخابی (سوئیچ)، نمایش نتایج صرفاً پس از ثبت رأی، و کنترل مستقل فعال‌سازی بخش دیدگاه‌ها و ریاکشن‌ها."
             },
             {
                 "en": "Strict single-reaction policy per employee: selecting a new emoji atomically supersedes the former, re-selecting cancels the reaction, and hover reveals full participant telemetry.",
-                "fa": "خط‌مشی ثبت انحصاری یک واکنش به ازای هر کاربر: انتخاب ایموجی جدید جایگزین واکنش قبلی شده، انتخاب مجدد موجب لغو واکنش گردیده و نگه‌داشتن ماوس فهرست کامل مشارکت‌کنندگان را آشکار می‌سازد."
+                "fa": "خط‌مشی ثبت انحصاری یک ریاکشن به ازای هر کاربر: انتخاب ایموجی جدید جایگزین ریاکشن قبلی شده، انتخاب مجدد موجب لغو ریاکشن گردیده و نگه‌داشتن ماوس فهرست کامل مشارکت‌کنندگان را آشکار می‌سازد."
             },
             {
                 "en": "Conversational integrity preservation: deleting a parent comment re-parents nested child replies to the preceding ancestor rather than cascading deletion through the discussion tree.",
@@ -139,7 +139,7 @@
             },
             {
                 "en": "Paginated reaction carousel; auto-expanding comment inputs equipped with real-time coworker presence indicators, collapsible recursive threads, shortcut legends, and integrated emoji selection.",
-                "fa": "نوار صفحه‌بندی‌شده واکنش‌ها؛ ورودی دیدگاه با قابلیت افزایش خودکار ارتفاع، نشانگر وضعیت آنلاین کاربران، پاسخ‌های ساختاریافته جمع‌شونده، راهنمای کلیدهای میانبر و انتخاب‌گر ایموجی."
+                "fa": "نوار صفحه‌بندی‌شده ریاکشن‌ها؛ ورودی دیدگاه با قابلیت افزایش خودکار ارتفاع، نشانگر وضعیت آنلاین کاربران، پاسخ‌های ساختاریافته جمع‌شونده، راهنمای کلیدهای میانبر و انتخاب‌گر ایموجی."
             },
             {
                 "en": "Dedicated, situation-aware empty and skeleton states tailored to distinct network and content conditions.",
@@ -1351,7 +1351,7 @@
             },
             {
                 "en": "Audit activity timeline: discussions and system logs with @mentions, reactions, pinning, copy, search, and filtered exports; team channels hydrate automatically from active membership rosters.",
-                "fa": "خط زمانی فعالیت‌ها: دیدگاه‌ها و گزارش‌های سیستمی با امکان منشن (@)، واکنش‌ها، پین، کپی، جستجو و خروجی فیلترشده؛ ساخت خودکار کانال گفتگوی تیمی بر پایه اعضای پروژه."
+                "fa": "خط زمانی فعالیت‌ها: دیدگاه‌ها و گزارش‌های سیستمی با امکان منشن (@)، ریاکشن‌ها، پین، کپی، جستجو و خروجی فیلترشده؛ ساخت خودکار کانال گفتگوی تیمی بر پایه اعضای پروژه."
             },
             {
                 "en": "Interactive report tab featuring expandable detail rows and filter-enabled summary chips; analytics tab delivering workflow progression, risk exposure, and team participation charts.",

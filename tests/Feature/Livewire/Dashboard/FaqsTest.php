@@ -456,7 +456,7 @@ class FaqsTest extends TestCase
             ->assertSeeHtml("togglePin({$faq->id}, 'faq')")
             ->assertSeeHtml('onlySaved')
             ->assertSeeHtml("isEmpty('faq')")
-            ->assertSee('موردی نشان نشده است');
+            ->assertSee('هنوز موردی نشان نکرده‌اید');
     }
 
     public function test_card_view_answer_is_wired_to_the_same_toggle_accordion(): void

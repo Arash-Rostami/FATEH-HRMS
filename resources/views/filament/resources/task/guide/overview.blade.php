@@ -4,25 +4,25 @@
             'icon' => 'view_column',
             'label' => 'یک وظیفهٔ فعال',
             'tag' => 'اصلی',
-            'hint' => 'هر ردیف یک وظیفه است با عنوان، توضیحات، وضعیت (انجام‌نشده / در حال انجام / در انتظار / انجام‌شده)، ضرب‌الاجل و دو نفرِ کلیدی: <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">user_id</code> (ایجادکننده) و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">assigned_to</code> (مسئول انجام). وقتی <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">assigned_to</code> پر باشد و با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">user_id</code> متفاوت باشد، وظیفه «محول‌شده» است (ستون <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">is_delegated</code> روشن می‌شود).',
+            'hint' => 'هر ردیف یک کار قابل پیگیری است. ایجادکننده آن را ثبت می‌کند و مسئول انجام آن را انجام می‌دهد. اگر مسئول انتخاب نشود، کار با ایجادکننده است. سپردن کار به فردی دیگر، آن را واگذارشده به دیگری می‌کند.',
         ],
         [
             'icon' => 'bar_chart',
             'label' => 'زبانهٔ اطلاعات تکمیلی',
             'tag' => 'جزئیات وظیفه',
-            'hint' => 'واحد، بخش، پروژه، طرح، منشأ اقدام، همکاران، جوابگو، تعیین تکلیف و پیوست‌ها را در اطلاعات تکمیلی ثبت کنید. این اطلاعات در زبانهٔ «اطلاعات سازمانی» فرم و صفحهٔ جزئیات نمایش داده می‌شود.',
+            'hint' => 'بخش سازمانی، زیرواحد، منبع درخواست، همکاران و مسئول پیگیری را در اطلاعات تکمیلی ثبت کنید. نام نمایشی پروژه فقط یک متن است؛ اتصال به پروژهٔ ثبت‌شده از گزینهٔ جداگانهٔ پروژه انجام می‌شود.',
         ],
         [
             'icon' => 'archive',
             'label' => 'وظیفهٔ آرشیو‌شده',
-            'tag' => 'archived_at',
-            'hint' => 'وقتی یک وظیفهٔ انجام‌شده آرشیو می‌شود، <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">archived_at</code> پر می‌شود (بدون حذف). ستون <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">is_archived</code> و فیلتر سه‌حالتهٔ «آرشیو» همین فیلد را نمایش/فیلتر می‌کنند. باز کردن دوبارهٔ یک وظیفهٔ آرشیو‌شده (تغییر وضعیت به غیر از انجام) خودکار <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">archived_at</code> را پاک می‌کند.',
+            'tag' => 'آرشیو',
+            'hint' => 'آرشیو، کارت انجام‌شده را از فهرست فعال کنار می‌گذارد و اطلاعات آن را نگه می‌دارد. با فیلتر آرشیو آن را پیدا کنید. تغییر وضعیت از انجام‌شده، کارت را از آرشیو خارج می‌کند.',
         ],
         [
             'icon' => 'delete',
-            'label' => 'وظیفهٔ حذف‌شدهٔ نرم',
-            'tag' => 'deleted_at',
-            'hint' => 'وظیفه با حذف موقت پاک نمی‌شود و در این صفحه با دکمهٔ «بازیابی» دیده می‌شود. پس از ' . convertToPersian('30') . ' روز، وظیفه و پیوست‌هایش برای همیشه حذف می‌شوند. شمارندهٔ «سررسید گذشته» در این صفحه، داشبورد و پنل کاربر یک تعریف دارد: مهلت پیش از امروز، به‌جز وظایف انجام‌شده، در انتظار، آرشیوشده، حذف‌شده و متوقف.',
+            'label' => 'وظیفهٔ حذف‌شده و قابل بازیابی',
+            'tag' => 'حذف موقت',
+            'hint' => 'وظیفهٔ حذف‌شده تا پیش از حذف دائمی از پنل مدیریت قابل بازیابی است. وظیفهٔ بدون پروژه پس از ۳۰ روز از حذف، خودکار برای همیشه پاک می‌شود. شمارندهٔ مهلت‌گذشته، کارهای انجام‌شده، در انتظار، متوقف، آرشیوشده و حذف‌شده را حساب نمی‌کند.',
         ],
     ];
 @endphp
@@ -34,7 +34,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«وظیفه» یک کار قابل پیگیری است؛ عناصر اصلی‌اش دو نفر (ایجادکننده و مسئول انجام) و یک سررسید است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر ردیف در این صفحه یک وظیفه است که یک ایجادکننده و یک مسئول انجام دارد و در یکی از چهار وضعیت قرار می‌گیرد. متادیتای سازمانی در رابطهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">detail</code> می‌نشیند. این ماژول دو طرف دارد: پنل ادمین (همین صفحه، نظارت کل‌سازمان) و پنل کاربری (برد وظایف در <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/taskboard</code>) — زبانهٔ «تجربهٔ کاربر» را ببینید.
+        در پنل مدیریت، وظایف و افراد مسئول آن‌ها را بررسی کنید. برای آشنایی با آنچه کارکنان در برد خود می‌بینند، زبانهٔ «تجربهٔ کاربر» را بخوانید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -63,7 +63,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                وضعیت یک منبع واحد است: <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]">TaskStatus</code> رنگ/آیکون/برچسب جدول، صفحهٔ جزئیات و خروجی اکسل را هم‌زمان تغذیه می‌کند.
+                نام و رنگ وضعیت در فهرست، جزئیات و فایل Excel هماهنگ است؛ برای پیگیری، وضعیت و مهلت کار را کنار هم بخوانید.
             </p>
         </div>
     </div>

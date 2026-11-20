@@ -14,8 +14,7 @@
          @sms-committed.window="committed()"
          @open-sms.window="open($event.detail)">
         <x-ui.modals.action wire:model="showSmsModal" wire:key="{{ $scope }}-sms-modal"
-                            title="ارسال پیامک" action="submitSms" confirm-text="ارسال پیامک" cancel-text="انصراف"
-                            class="!max-w-lg !w-full">
+                            title="ارسال پیامک" action="submitSms" confirm-text="ارسال پیامک" cancel-text="انصراف">
             <div wire:key="{{ $scope }}-sms-body" dir="rtl" class="modal-inner-card !w-full !max-w-none !p-5 space-y-4">
                 <div class="flex items-center gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
                     <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">sms</span>

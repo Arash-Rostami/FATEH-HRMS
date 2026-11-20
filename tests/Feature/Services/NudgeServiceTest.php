@@ -484,7 +484,7 @@ class NudgeServiceTest extends TestCase
 
         $this->assertSame([$requester->id], $nudge->for($ticket)->pluck('id')->all());
         $this->assertTrue($nudge->show($ticket, $requester));
-        $this->assertSame('پاسخ تیکت ثبت شد', $nudge->title($ticket, $requester));
+        $this->assertSame('درخواست شما بسته شد', $nudge->title($ticket, $requester));
         $this->assertSame(route('ths', ['open' => $ticket->id]), $nudge->url($ticket));
     }
 

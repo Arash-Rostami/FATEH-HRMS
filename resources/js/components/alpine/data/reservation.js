@@ -25,6 +25,11 @@ export default function reservation() {
         _clockInterval: null,
         _timeCache: { tick: -1, date: '', now: 0, dayStart: 0, serverWall: '', skew: 0 },
 
+        closeOverlays() {
+            if (!this.maxOn) this.$wire.clearFocus();
+            return false;
+        },
+
         init() {
             this.view = this.$wire.get('view') || 'classic';
             this.initMaximize();

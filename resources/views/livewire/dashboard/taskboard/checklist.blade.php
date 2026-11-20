@@ -36,7 +36,7 @@
             @unless($isReadOnly)
                 <div wire:key="taskboard-checklist-composer" class="contents">
                 <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)] px-0.5">
-                    اگر فقط می‌خواهید بگویید چه کاری انجام داده‌اید، همین‌جا یک مورد کافی است. برای گزارش دقیق‌تر، کار را به چند بخش تقسیم کنید و با کشیدن روی هر ردیف، سهم (٪) هرکدام را مشخص کنید.
+                    مراحل کار را بنویسید و هر مرحله را پس از انجام تیک بزنید؛ برای یک کار ساده، یک مورد کافی است. سهم هر مرحله از پیشرفت را با کشیدن روی ردیف یا تغییر درصد تعیین کنید. تیک زدن همهٔ مراحل، کارت را به «انجام‌شده» منتقل نمی‌کند.
                 </p>
 
                 <div
@@ -256,12 +256,13 @@
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
 
         <div class="md:col-span-2">
-            <x-ui.forms.select label="تعیین تکلیف" name="form.state" wire:model="form.state" :disabled="$isReadOnly">
+            <x-ui.forms.select label="نتیجهٔ کار" name="form.state" wire:model="form.state" :disabled="$isReadOnly">
                 <option value="">انتخاب کنید</option>
                 @foreach(\App\Enums\TaskState::cases() as $stateCase)
                     <option value="{{ $stateCase->value }}">{{ $stateCase->getLabel() }}</option>
                 @endforeach
             </x-ui.forms.select>
+            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mt-1">پیش از بردن کارت به «انجام‌شده»، نتیجه را انتخاب و ذخیره کنید: تمدید، توقف یا تکمیل. انتخاب نتیجه به‌تنهایی ستون کارت را عوض نمی‌کند. با «توقف»، هشدارهای تأخیر و فوریت این وظیفه خاموش می‌شوند.</p>
         </div>
 
         <div class="md:col-span-2">
@@ -270,6 +271,7 @@
                 wire:key="taskboard-collaborators-picker"
                 model="form.collaborators"
                 server
+                bulk
                 :candidates="$this->userPickerResults['candidates']"
                 :hasMore="$this->userPickerResults['hasMore']"
                 :deptOptions="$departmentOptions"
@@ -278,6 +280,7 @@
                 :disabled="$isReadOnly"
                 :emptyTitle="$userSearch !== '' || $userDept !== '' ? 'کاربری با این جست‌وجو یافت نشد.' : 'کاربر فعال دیگری برای افزودن وجود ندارد.'"
             />
+            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mt-1">همکاران می‌توانند وظیفه را ببینند، پیام بدهند و متن یا وضعیت کار را تغییر دهند. انتخاب همکار، مسئول انجام را عوض نمی‌کند.</p>
             @if($this->formProject)
                 <p wire:key="taskboard-collaborators-roster-hint" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mt-1">فقط اعضای پروژه نمایش داده می‌شوند.</p>
             @endif
@@ -328,9 +331,10 @@
                        multiple
                        wire:model="form.attachments"
                        class="w-full p-2.5 text-xs border rounded-xl border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] file:ml-2 file:px-3 file:py-1.5 file:border-0 file:rounded-lg file:text-xs file:font-bold file:bg-[var(--md-sys-color-primary-container)] file:text-[var(--md-sys-color-on-primary-container)]">
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mt-1">حداکثر ۵ فایل، با احتساب فایل‌های قبلی؛ هر فایل تا {{ convertToPersian((string) (config('file_upload_limits.document') / 1024)) }} مگابایت. تصویر، PDF، Word و Excel پذیرفته می‌شوند. حذف فایل قبلی با ذخیرهٔ تغییرات انجام می‌شود.</p>
 
                 <div wire:loading wire:target="form.attachments" class="mt-2 text-xs text-[var(--md-sys-color-primary)]">
-                    در حال آپلود...
+                    در حال بارگذاری…
                 </div>
 
                 @if(!empty($form->attachments))

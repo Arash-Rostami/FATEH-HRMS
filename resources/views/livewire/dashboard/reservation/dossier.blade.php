@@ -7,7 +7,7 @@
 
     @if($this->resources->isEmpty())
         <div wire:key="reservation-avantgarde-empty" class="contents">
-            <x-ui.empty icon="search_off" title="هیچ موردی یافت نشد" description="برای تاریخ و فیلترهای انتخاب شده، هیچ موردی جهت رزرو وجود ندارد. لطفاً تاریخ دیگری را امتحان کنید." variant="list" watermark="event_busy" />
+            <x-ui.empty icon="search_off" title="هیچ موردی یافت نشد" description="در این تاریخ و با این فیلترها، موردی برای رزرو پیدا نشد. تاریخ یا فیلترها را عوض کنید." variant="list" watermark="event_busy" />
         </div>
     @else
         <div wire:key="reservation-dossier-branch" class="contents">
@@ -23,7 +23,7 @@
                     data-rf="resource-{{ $resource->id }}"
                     data-resource-id="{{ $resource->id }}"
                     tabindex="0"
-                    x-on:click="deckOpen({{ $resource->id }})"
+                    x-on:click="$event.target.closest('[data-fancybox]') || deckOpen({{ $resource->id }})"
                     x-on:keydown.enter.self="deckOpen({{ $resource->id }})"
                     x-on:keydown.space.self.prevent="deckOpen({{ $resource->id }})"
                     x-on:keydown.arrow-left.prevent="deckCycleAndOpen(1)"
@@ -38,14 +38,15 @@
                             <div class="relative flex-1 min-h-0">
                                 @if($resource->display_image_url)
                                     <img src="{{ $resource->display_image_url }}" alt="{{ $resource->name }}" class="absolute inset-0 w-full h-full object-cover">
-                                    <button type="button"
-                                        wire:click="$set('zoomImageUrl', '{{ $resource->display_image_url }}')"
-                                        x-on:click.stop
+                                    <a href="{{ $resource->display_image_url }}"
+                                        data-type="image"
+                                        data-fancybox="reservation-dossier-{{ $resource->id }}"
+                                        data-caption="{{ $resource->name }}"
                                         class="absolute top-3 left-3 w-10 h-10 rounded-xl bg-black/30 hover:bg-black/50 border border-white/10 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 shadow-xl"
                                         title="بزرگنمایی"
                                     >
                                         <span class="material-symbols-rounded text-[22px]">zoom_in</span>
-                                    </button>
+                                    </a>
                                 @else
                                     <div
                                         class="absolute inset-0 w-full h-full flex items-center justify-center bg-[var(--md-sys-color-surface-variant)]"
@@ -111,13 +112,13 @@
                                 @if($isBlocked)
                                     <div wire:key="dossier-block-note" class="flex items-center gap-1.5 mb-2">
                                         <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-error)]">block</span>
-                                        <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason ?? 'ساعت مجاز این منبع: '.convertToPersian($slot['start']).' تا '.convertToPersian($slot['end']) }}</span>
+                                        <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason ?? 'ساعت مجاز این مورد رزرو: '.convertToPersian($slot['start']).' تا '.convertToPersian($slot['end']) }}</span>
                                     </div>
                                 @endif
 
                                 <span @click.stop>
                                     <x-ui.buttons.submit
-                                        x-on:click="{{ confirmDialog('book', 'تأیید رزرو', 'منبع: ' . $resource->name . chr(10) . \App\Livewire\Dashboard\Reservation\Presentation\ReservationSummaryPresenter::summary($this, $resource), $resource->id) }}"
+                                        x-on:click="{{ confirmDialog('book', 'تأیید رزرو', 'مورد رزرو: ' . $resource->name . chr(10) . \App\Livewire\Dashboard\Reservation\Presentation\ReservationSummaryPresenter::summary($this, $resource), $resource->id) }}"
                                         :disabled="$isBlocked"
                                         :target="'book('.$resource->id.')'"
                                         :text="!$isFullDayTab ? 'ثبت زمان ('.convertToPersian($startTime).' - '.convertToPersian($endTime).')' : 'ثبت رزرو کامل'"
@@ -163,21 +164,6 @@
                 </div>
             @endforeach
         </div>
-
-        <x-ui.modals.base
-            wire:model="zoomImageUrl" :title="null"
-            contentClass="!p-0 !w-screen !max-w-none !bg-transparent !border-none !shadow-none md:!w-auto md:!max-w-7xl"
-        >
-            <div class="relative flex flex-col items-center gap-6 w-full px-4 md:px-0">
-                <img :src="$wire.zoomImageUrl"
-                     class="w-full h-auto max-h-[85vh] object-contain rounded-lg md:rounded-2xl shadow-xl">
-                <div @click="$wire.zoomImageUrl = null"
-                     class="px-6 md:px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-white/80 text-sm font-bold flex items-center gap-2 animate-slide-up text-center max-w-full">
-                    <span class="material-symbols-rounded text-lg">info</span>
-                    برای بازگشت به صفحه کلیک کنید
-                </div>
-            </div>
-        </x-ui.modals.base>
 
         @if($this->totalResources > count($this->resources))
             <div wire:key="reservation-avantgarde-load-more" class="mt-8 flex justify-center relative z-1">

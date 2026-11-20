@@ -1,4 +1,4 @@
-<div wire:key="profile-sign-code" x-data="signCodeCard()" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] shadow-sm w-full overflow-hidden">
+<div wire:key="profile-sign-code" x-data="signCodeCard()" x-on:confirmation-confirmed.window="{{ confirmDialogListener(['clearSignCode' => false]) }}" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] shadow-sm w-full overflow-hidden">
     <button type="button" x-on:click="toggle()" x-bind:aria-expanded="open"
             class="group w-full flex items-center justify-between gap-2 px-4 py-3 text-right hover:bg-[var(--md-sys-color-surface-variant)]/30 transition-colors">
         <span class="flex items-center gap-2 text-sm font-bold text-[var(--md-sys-color-on-surface)]">
@@ -16,7 +16,32 @@
             {{ __('resources/correspondence/strings.profile.sign_code_hint', ['min' => convertToPersian(config('ai.correspondence.sign_code_min_length', 6))]) }}
         </p>
 
-        <form wire:submit.prevent="saveSignCode" class="space-y-4">
+        @if($this->hasSignCode)
+            <div wire:key="profile-sign-code-set" class="space-y-4">
+                <x-ui.forms.input
+                    type="password"
+                    name="signCodeMask"
+                    value="••••••••••••"
+                    disabled
+                    label="{{ __('resources/correspondence/strings.profile.sign_code_label') }}"
+                    icon="key_vertical"
+                />
+
+                <div class="flex justify-end pt-2">
+                    <x-ui.buttons.form
+                        type="button"
+                        variant="danger"
+                        icon="delete"
+                        loading="clearSignCode"
+                        x-on:click="{{ confirmDialog('clearSignCode', __('resources/correspondence/strings.profile.sign_code_clear'), __('resources/correspondence/strings.profile.sign_code_clear_confirm'), null, 'dispatch', 'danger') }}"
+                        class="rounded-xl text-sm"
+                    >
+                        {{ __('resources/correspondence/strings.profile.sign_code_clear') }}
+                    </x-ui.buttons.form>
+                </div>
+            </div>
+        @else
+        <form wire:key="profile-sign-code-form" wire:submit.prevent="saveSignCode" class="space-y-4">
             <x-ui.forms.input
                 type="password"
                 wire:model="signCodeForm.current_password"
@@ -36,22 +61,6 @@
             />
 
             <div class="flex items-center justify-between gap-2 pt-2">
-                @if($this->hasSignCode)
-                    <div wire:key="profile-sign-code-clear">
-                        <x-ui.buttons.form
-                            type="button"
-                            variant="danger"
-                            icon="delete"
-                            loading="clearSignCode"
-                            wire:click="clearSignCode"
-                            wire:confirm="{{ __('resources/correspondence/strings.profile.sign_code_clear_confirm') }}"
-                            class="rounded-xl text-sm"
-                        >
-                            {{ __('resources/correspondence/strings.profile.sign_code_clear') }}
-                        </x-ui.buttons.form>
-                    </div>
-                @endif
-
                 <div wire:key="profile-sign-code-save" class="ms-auto">
                     <x-ui.buttons.form
                         type="submit"
@@ -65,5 +74,6 @@
                 </div>
             </div>
         </form>
+        @endif
     </div>
 </div>

@@ -100,29 +100,22 @@ class FeedPresenter
     public function mediaGrid(array $media): array
     {
         $items  = array_values(array_filter($media ?? [], fn ($p) => !empty($p)));
-        $images = array_values(array_filter($items, fn ($p) => !isVideo($p)));
         $count  = count($items);
         $cols   = $count > 1 ? 2 : 1;
 
         return [
             'items'  => $items,
-            'images' => $images,
             'cols'   => $cols,
             'rows'   => (int) ceil($count / $cols),
         ];
     }
 
-    public function mediaCellData(string $url, int &$imgIndex): array
+    public function mediaCellData(string $url): array
     {
         $isImage = !isVideo($url);
-        $myIndex = $isImage ? $imgIndex : null;
-        if ($isImage) {
-            $imgIndex++;
-        }
 
         return [
             'isImage'  => $isImage,
-            'myIndex'  => $myIndex,
             'cellClass' => 'relative group overflow-hidden w-full h-full' . ($isImage ? ' cursor-zoom-in' : ''),
         ];
     }

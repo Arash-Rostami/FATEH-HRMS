@@ -64,7 +64,7 @@ class ReportsTest extends TestCase
             ->assertSeeHtml("togglePin({$report->id}, 'report')")
             ->assertSeeHtml('onlySaved')
             ->assertSeeHtml("isEmpty('report')")
-            ->assertSee('موردی نشان نشده است');
+            ->assertSee('هنوز موردی نشان نکرده‌اید');
     }
 
     public function test_admin_pinned_report_badge_uses_the_keep_icon_not_the_bookmark(): void

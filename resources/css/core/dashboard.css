@@ -24,10 +24,12 @@
         color: var(--md-sys-color-on-surface);
     }
 
-    select option:hover,
-    select option:checked {
-        box-shadow: 0 0 0 100px var(--md-sys-color-primary-container) inset !important;
-        color: var(--md-sys-color-on-primary-container) !important;
+    @supports not (appearance: base-select) {
+        select option:hover,
+        select option:checked {
+            box-shadow: 0 0 0 100px var(--md-sys-color-primary-container) inset !important;
+            color: var(--md-sys-color-on-primary-container) !important;
+        }
     }
 
     input[type="radio"],
@@ -1568,6 +1570,18 @@
     animation: slideScaleOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
 }
 
+.view-maximized .custom-modal,
+.view-maximized .reaction-picker,
+.view-maximized .hover-popover,
+.view-maximized .z-\[100\],
+.view-maximized .z-\[110\] {
+    z-index: 1000000;
+}
+
+.view-maximized .z-\[9999\] {
+    z-index: 1000001;
+}
+
 @media (width < 48rem) {
     .max-widget {
         inset: 0.5rem !important;
@@ -2887,4 +2901,42 @@ html.declutter .right-rail:hover button:not(.rail-home) {
   .ai-report-keep { break-inside: avoid; }
   .ai-report-doc table { break-inside: auto; } .ai-report-doc tr { break-inside: avoid; } .ai-report-doc thead { display: table-header-group; }
   .ai-report-print-head { color: #000; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+}
+
+@supports (appearance: base-select) {
+    select:not([multiple]):not([size]) {
+        appearance: base-select;
+    }
+
+    select:not([multiple]):not([size]) option,
+    .dark select:not([multiple]):not([size]) option {
+        background-color: transparent;
+        color: var(--md-sys-color-on-surface);
+        box-shadow: none !important;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    select:not([multiple]):not([size]) option:hover {
+        background-color: var(--md-sys-color-primary-container);
+        color: var(--md-sys-color-on-primary-container) !important;
+    }
+
+    select:not([multiple]):not([size]) option:checked {
+        background-color: var(--md-sys-color-secondary-container);
+        color: var(--md-sys-color-on-secondary-container) !important;
+    }
+
+    select:not([multiple]):not([size])::picker(select) {
+        appearance: base-select;
+        background-color: var(--md-sys-color-surface-container);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 16px;
+        padding: 6px;
+    }
+
+    select.appearance-none:not([multiple]):not([size])::picker-icon {
+        display: none;
+    }
 }

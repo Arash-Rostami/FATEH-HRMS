@@ -19,6 +19,7 @@
 
     @if($isRecurring)
         <div wire:key="reservation-recurring-options" class="contents">
+        <p class="text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">تعداد شامل نوبت اول است؛ مثلاً ۴ یعنی همین تاریخ و سه نوبت بعدی. هر نوبت جداگانه بررسی می‌شود؛ نتیجهٔ قطعی را پس از ثبت در تاریخچه ببینید.</p>
         <div class="flex flex-wrap gap-6 animate-slide-up-fade">
 
             <div class="flex flex-col gap-2">
@@ -44,7 +45,7 @@
             <div class="flex flex-col gap-2">
                 <label class="text-[11px] uppercase tracking-widest font-bold text-[var(--md-sys-color-primary)] flex items-center gap-2">
                     <span class="material-symbols-rounded text-[16px]">format_list_numbered</span>
-                    تعداد تکرار: <span class="normal-case text-[var(--md-sys-color-on-surface)] mr-1">{{ convertToPersian($recurCount) }} بار</span>
+                    تعداد کل رزروها: <span class="normal-case text-[var(--md-sys-color-on-surface)] mr-1">{{ convertToPersian($recurCount) }} بار</span>
                 </label>
                 <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                     @foreach(range(2, 10) as $n)
@@ -68,7 +69,7 @@
             <div wire:key="reservation-recur-preview" class="flex flex-col gap-2 animate-slide-up-fade">
                 <div class="flex items-center gap-1.5">
                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]">event_repeat</span>
-                    <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">تاریخ‌های برنامه‌ریزی‌شده</span>
+                    <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">تاریخ‌های پیشنهادی برای تکرار</span>
                 </div>
                 <div class="flex flex-wrap gap-1.5">
                     @foreach($this->recurPreview as $i => $occ)
@@ -79,7 +80,7 @@
                                 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-transparent' => $occ['ok'],
                                 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/40 line-through opacity-60' => !$occ['ok'],
                             ])
-                            title="{{ $occ['ok'] ? 'ایجاد می‌شود' : 'در این تاریخ ایجاد نمی‌شود (روز/بازه مجاز نیست)' }}"
+                            title="{{ $occ['ok'] ? 'از نظر تقویم مجاز است؛ ثبت قطعی پس از بررسی انجام می‌شود' : 'روز یا بازهٔ مجاز نیست؛ ثبت نمی‌شود' }}"
                         >
                             @if(!$occ['ok'])
                                 <span wire:key="reservation-recur-blocked" class="material-symbols-rounded text-[12px]">block</span>

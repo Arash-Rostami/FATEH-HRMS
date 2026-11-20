@@ -369,7 +369,7 @@ class SuggestionAccessPolicyTest extends TestCase
         $this->assertCount(1, $rows);
         $this->assertSame('TST', $rows[0]['department_id']);
         $this->assertSame('agree', $rows[0]['feedback']);
-        $this->assertSame('توجه به اینکه پیشنهاد دهنده هستم، نیاز به بررسی و اعلام نظر از سمت مدیریت', $rows[0]['comments']);
+        $this->assertSame('این پیشنهاد را مدیر واحد ثبت کرده است. نظر واحد در همین ردیف آمده است.', $rows[0]['comments']);
         $this->assertSame(5, $rows[0]['user_id']);
         $this->assertSame(10, $rows[0]['suggestion_id']);
         $this->assertFalse($rows[0]['complete']);

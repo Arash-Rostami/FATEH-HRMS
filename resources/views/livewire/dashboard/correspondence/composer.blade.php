@@ -33,7 +33,7 @@
                     </x-ui.forms.select>
                 </div>
             @endif
-            <x-ui.forms.select label="نقش" name="{{ $at }}.role" wire:model.live="{{ $at }}.role" :disabled="$partyLock">
+            <x-ui.forms.select label="وظیفهٔ فرد" name="{{ $at }}.role" wire:model.live="{{ $at }}.role" :disabled="$partyLock">
                 @foreach($roles as $key => $label)
                     <option value="{{ $key }}">{{ $label }}</option>
                 @endforeach
@@ -56,7 +56,7 @@
                         <x-ui.forms.input label="نشانی" name="{{ $at }}.address" wire:model="{{ $at }}.address" :disabled="$partyLock"/>
                         @if($mailOn)
                             <div wire:key="correspondence-{{ $partyKey }}-party-delivery-{{ $index }}" class="contents">
-                                <x-ui.forms.select label="ارسال" name="{{ $at }}.delivery" wire:model="{{ $at }}.delivery" :disabled="$partyLock">
+                                <x-ui.forms.select label="روش تحویل پس از تأیید" name="{{ $at }}.delivery" wire:model="{{ $at }}.delivery" :disabled="$partyLock">
                                     @foreach($deliveries as $key => $label)
                                         <option value="{{ $key }}">{{ $label }}</option>
                                     @endforeach
@@ -152,12 +152,12 @@
                 <option value="{{ $key }}">{{ __('resources/correspondence/strings.sign_mode.'.$key) }}</option>
             @endforeach
         </x-ui.forms.select>
-        <x-ui.forms.select label="حالت مسیر" name="form.routeMode" wire:model="form.routeMode" :disabled="$lockHead">
+        <x-ui.forms.select label="ترتیب گرفتن امضاها" name="form.routeMode" wire:model="form.routeMode" :disabled="$lockHead">
             @foreach($presenter->routeModeLabels() as $key => $label)
                 <option value="{{ $key }}">{{ $label }}</option>
             @endforeach
         </x-ui.forms.select>
-        @foreach(array_filter(['deadline' => 'مهلت', 'theirDate' => $incoming ? 'تاریخ نامهٔ فرستنده' : null]) as $field => $label)
+        @foreach(array_filter(['deadline' => 'مهلت پیگیری (اختیاری)', 'theirDate' => $incoming ? 'تاریخ نامهٔ فرستنده' : null]) as $field => $label)
             <div wire:key="correspondence-date-{{ $field }}-{{ $form->{$field} }}"
                  data-field="{{ $field }}"
                  x-data="jalaliField()"
@@ -194,15 +194,19 @@
                 @endforeach
             </x-ui.forms.select>
             <x-ui.forms.input label="شناسهٔ مورد مرتبط" name="form.relatedId" type="number" dir="ltr" wire:model="form.relatedId" :disabled="$lockHead"/>
+            <p class="col-span-2 text-xs text-[var(--md-sys-color-on-surface-variant)]">اختیاری است؛ برای ارتباط نامه با یک پروژه، تیکت یا مخاطب، نوع آن و شناسهٔ ثبت‌شده در همان بخش را وارد کنید.</p>
         </div>
         <x-ui.forms.tags label="برچسب‌ها" name="form.tags" prefix="correspondence-tag" :tags="$form->tags" :max="12" :max-length="32" :disabled="$lockHead" class="md:col-span-2"/>
     </div>
+
+    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">مهلت، آخرین روز پیگیری نامه است و نامه را خودکار حذف یا بسته نمی‌کند. برای نامهٔ محرمانه و فوق‌محرمانه، نوشتن هوشمند و ارسال ایمیل در دسترس نیست. در امضای دستی هم تأییدهای سامانه انجام می‌شود؛ امضای روی کاغذ را پس از تأیید نهایی می‌گیرید.</p>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <x-ui.forms.input label="سازمان گیرنده" name="form.recipientOrg" wire:model="form.recipientOrg" :disabled="$lockHead"/>
         <x-ui.forms.input label="شخص گیرنده" name="form.recipientPerson" wire:model="form.recipientPerson" :disabled="$lockHead"/>
         <x-ui.forms.input label="سمت گیرنده" name="form.recipientTitle" wire:model="form.recipientTitle" :disabled="$lockHead"/>
     </div>
+    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">این مشخصات در متن بالای نامه چاپ می‌شود. برای دسترسی همکاران یا ارسال به گیرندهٔ بیرونی، افراد را در بخش «افراد و ترتیب امضا» هم اضافه کنید.</p>
 
     <x-ui.forms.input label="{{ __('resources/correspondence/strings.fields.subject') }}" name="form.subject" wire:model="form.subject" :disabled="$lockAll"
                       data-private="{{ $private ? 1 : 0 }}" data-fresh="{{ $letter ? 0 : 1 }}"
@@ -211,7 +215,8 @@
 
     @if($incoming)
         <div wire:key="correspondence-incoming" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] p-3 flex flex-col gap-3">
-            <p class="text-sm font-bold">ثبت وارده</p>
+            <p class="text-sm font-bold">ثبت نامهٔ دریافتی</p>
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">شماره و تاریخ را از نامهٔ اصلی فرستنده بردارید. با «ثبت وصول»، سامانه شمارهٔ ثبت داخلی می‌دهد؛ ارجاع نامه برای اقدام، مرحلهٔ جداگانه‌ای است.</p>
             @if($this->incomingDuplicate)
                 <p wire:key="correspondence-duplicate" class="text-sm text-[var(--md-sys-color-error)]">نامه‌ای با همین شماره و تاریخ فرستنده قبلاً ثبت شده است.</p>
             @endif
@@ -230,7 +235,7 @@
     <div class="flex flex-wrap items-center gap-2">
         <span class="text-sm font-bold {{ $estimate['warn'] ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">{{ $estimate['label'] }}</span>
         <span class="text-xs text-[var(--md-sys-color-on-surface-variant)]">پیشنهاد {{ $estimate['suggest_label'] }}</span>
-        <x-ui.buttons.form type="button" variant="ghost" icon="add" wire:click="addBlock" :disabled="$lockHead">بخش</x-ui.buttons.form>
+        <x-ui.buttons.form type="button" variant="ghost" icon="add" wire:click="addBlock" :disabled="$lockHead">افزودن بخش به متن</x-ui.buttons.form>
     </div>
     @error('form.blocks')
         <p wire:key="correspondence-blocks-error" class="text-xs text-[var(--md-sys-color-error)] animate-pulse">{{ $message }}</p>
@@ -247,12 +252,12 @@
                 @else
                     <div wire:key="correspondence-block-heading-type-{{ $index }}" class="contents">
                         <x-ui.forms.select label="نوع بخش" name="form.blocks.{{ $index }}.type" wire:model.live="form.blocks.{{ $index }}.type" :disabled="$lockHead">
-                            <option value="html">متن غنی</option>
+                            <option value="html">متن با ابزار ویرایش</option>
                             <option value="text">متن ساده</option>
                         </x-ui.forms.select>
                     </div>
                 @endif
-                <x-ui.buttons.form type="button" variant="ghost" size="icon" icon="close" title="حذف بخش" aria-label="حذف بخش" class="!h-8 !w-8 !p-0 !rounded-lg" wire:click="removeBlock({{ (int) $index }})" wire:confirm="این بخش حذف شود؟" :disabled="$lockHead"/>
+                <x-ui.buttons.form type="button" variant="ghost" size="icon" icon="close" title="حذف بخش" aria-label="حذف بخش" class="!h-8 !w-8 !p-0 !rounded-lg" x-on:click="{{ confirmDialog('removeBlock', 'حذف بخش', 'این بخش حذف شود؟', (int) $index, 'dispatch', 'danger') }}" :disabled="$lockHead"/>
             </div>
             <x-ui.forms.input label="عنوان بخش (اختیاری)" name="form.blocks.{{ $index }}.heading" wire:model="form.blocks.{{ $index }}.heading" :disabled="$lockAll"/>
             @if(($block['type'] ?? '') === 'image')
@@ -287,8 +292,8 @@
                      data-value="{{ $block['html'] ?? '' }}"
                      data-dir="{{ $presenter->editorDir($block['html'] ?? '') }}"
                      data-tokens="{{ json_encode($tools['tokens'], JSON_UNESCAPED_UNICODE) }}"
-                     data-link-error="نشانی پیوند معتبر نیست (فقط http، https یا mailto)"
-                     data-paste-warning="محتوای جای‌گذاری‌شده حجیم است و متن ساده درج شد"
+                     data-link-error="نشانی پیوند را کامل وارد کنید؛ فقط نشانی سایت با http یا https و پیوند ایمیل با mailto پذیرفته می‌شود."
+                     data-paste-warning="متن کپی‌شده خیلی حجیم بود؛ فقط متن آن بدون قالب‌بندی درج شد."
                      data-unit="بایت"
                      wire:ignore.self
                      x-bind:data-fullscreen="fullscreen"
@@ -437,12 +442,12 @@
     <div class="flex flex-wrap items-center gap-2">
         <label for="correspondence-image" class="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-bold bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface-variant)] cursor-pointer">
             <span class="material-symbols-rounded !text-[20px]">image</span>
-            بارگذاری تصویر
+            افزودن تصویر داخل متن
         </label>
         <input id="correspondence-image" type="file" wire:model="form.image" accept="image/jpeg,image/png,image/webp" class="hidden" @disabled($lockHead)>
         <label for="correspondence-files" class="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-bold bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] cursor-pointer">
             <span class="material-symbols-rounded !text-[20px]">attach_file</span>
-            پیوست
+            انتخاب فایل پیوست
         </label>
         <input id="correspondence-files" type="file" wire:model="form.files" multiple class="hidden" @disabled($lockAll)>
         @if($form->image)
@@ -455,6 +460,7 @@
             <x-ui.loaders.bar/>
         </div>
     </div>
+    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">تصویر داخل متن در خود نامه نمایش داده می‌شود؛ پیوست، فایل جداگانهٔ همراه نامه است. پس از انتخاب، «ذخیره» را بزنید تا فایل‌ها ثبت شوند. {{ $state['rules']['فایل‌ها'] }}</p>
     @if($form->image)
         <div wire:key="correspondence-image-options" class="grid grid-cols-1 md:grid-cols-3 gap-2">
             <x-ui.forms.input label="شرح تصویر تازه" name="form.imageCaption" wire:model="form.imageCaption" :disabled="$lockAll"/>
@@ -483,55 +489,59 @@
             @else
                 <span wire:key="correspondence-file-name" class="min-w-0 truncate"><bdi>{{ $file['name'] ?? '' }}</bdi></span>
             @endif
-            <x-ui.buttons.form type="button" variant="ghost" size="icon" icon="close" title="حذف پیوست" aria-label="حذف پیوست" class="!h-8 !w-8 !p-0 !rounded-lg" wire:click="removeAttachment({{ (int) $fileIndex }})" wire:confirm="این پیوست حذف شود؟" :disabled="$lockAll"/>
+            <x-ui.buttons.form type="button" variant="ghost" size="icon" icon="close" title="حذف پیوست" aria-label="حذف پیوست" class="!h-8 !w-8 !p-0 !rounded-lg" x-on:click="{{ confirmDialog('removeAttachment', 'حذف پیوست', 'این پیوست حذف شود؟', (int) $fileIndex, 'dispatch', 'danger') }}" :disabled="$lockAll"/>
         </div>
     @endforeach
 
     <div class="flex items-center justify-between gap-2">
-        <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">مسیر</p>
+        <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">افراد و ترتیب امضا</p>
         @unless($lockHead)
             <div wire:key="correspondence-form-party-tools" class="flex gap-1">
-                <x-ui.buttons.form type="button" variant="ghost" icon="add" wire:click="addParty">نفر</x-ui.buttons.form>
-                <x-ui.buttons.form type="button" variant="ghost" wire:click="applySuggestions">پیشنهاد</x-ui.buttons.form>
+                <x-ui.buttons.form type="button" variant="ghost" icon="add" wire:click="addParty">افزودن فرد</x-ui.buttons.form>
+                <x-ui.buttons.form type="button" variant="ghost" wire:click="applySuggestions">افزودن افراد پیشنهادی</x-ui.buttons.form>
             </div>
         @endunless
     </div>
+    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">نقش «تأیید و امضا» برای همکاران امضاکننده است و نقش «فقط خواندن و ثبت نظر» برای افراد مطلع. در روش ترتیبی، امضا از بالای فهرست شروع می‌شود؛ نام آخرین تأییدکنندهٔ فهرست روی نسخهٔ چاپی می‌آید. برای گیرندهٔ بیرونی، شخص داخلی را خالی بگذارید و مشخصات او را در نقش «فقط خواندن و ثبت نظر» وارد کنید.</p>
     @include('livewire.dashboard.correspondence.composer', ['partyRows' => $form->parties, 'partyModel' => 'form.parties', 'partyKey' => 'form', 'partyLock' => $lockHead, 'partyMove' => true, 'partyRemove' => 'removeParty'])
 
     @if($state['smartBlocked'])
         <p wire:key="correspondence-smart-blocked" class="text-sm text-[var(--md-sys-color-on-surface-variant)]">{{ __('resources/correspondence/strings.errors.confidential_smart') }}</p>
     @elseif($state['smartOn'])
         <div wire:key="correspondence-smart" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] p-3 flex flex-col gap-3">
-            <x-ui.forms.textarea label="درخواست" name="form.prompt" wire:model="form.prompt" :disabled="$lockAll"/>
+            <x-ui.forms.textarea label="از هوش مصنوعی چه نامه‌ای می‌خواهید؟" name="form.prompt" wire:model="form.prompt" :disabled="$lockAll"/>
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">هدف نامه، مخاطب و اطلاعات قطعی مثل نام‌ها، مبلغ و تاریخ را بنویسید. فایل پیوست به‌عنوان منبع به هوش مصنوعی فرستاده نمی‌شود. نتیجه را خودتان بررسی کنید و همهٔ «[…]»ها را پیش از ارسال برای امضا کامل کنید.</p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <x-ui.forms.select label="مخاطب" name="form.audience" wire:model="form.audience" :disabled="$lockAll">
+                <x-ui.forms.select label="گروه مخاطب نامه" name="form.audience" wire:model="form.audience" :disabled="$lockAll">
                     <option value="management">مدیریت</option>
                     <option value="internal">داخلی</option>
                     <option value="external">بیرون سازمان</option>
                 </x-ui.forms.select>
                 <x-ui.forms.select label="لحن" name="form.tone" wire:model="form.tone" :disabled="$lockAll">
                     <option value="formal">رسمی</option>
-                    <option value="neutral">خنثی</option>
+                    <option value="neutral">معمول و بی‌طرف</option>
                     <option value="firm">قاطع</option>
                 </x-ui.forms.select>
-                <x-ui.forms.select label="بلندی" name="form.length" wire:model="form.length" :disabled="$lockAll">
+                <x-ui.forms.select label="طول متن" name="form.length" wire:model="form.length" :disabled="$lockAll">
                     <option value="short">کوتاه</option>
                     <option value="standard">معمول</option>
-                    <option value="long">بلند</option>
+                    <option value="long">مفصل</option>
                 </x-ui.forms.select>
             </div>
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">گروه مخاطب، لحن و طول متن فقط شیوهٔ نوشتن را تغییر می‌دهند و به کسی دسترسی نمی‌دهند. دسترسی افراد را در فهرست افراد نامه تعیین کنید.</p>
         </div>
     @endif
 
     @if($letter && CorrespondenceAccessPolicy::isAuthor(auth()->user(), $letter))
         <div wire:key="correspondence-template-save" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
             <x-ui.forms.input label="نام الگو" name="templateName" wire:model="templateName" :disabled="$lockAll"/>
-            <x-ui.forms.select label="محدودهٔ الگو" name="templateScope" wire:model="templateScope" :disabled="$lockAll">
+            <x-ui.forms.select label="استفاده‌کنندگان الگو" name="templateScope" wire:model="templateScope" :disabled="$lockAll">
                 @foreach($presenter->scopeLabels() as $key => $label)
                     <option value="{{ $key }}">{{ $label }}</option>
                 @endforeach
             </x-ui.forms.select>
             <x-ui.buttons.form type="button" variant="tonal" icon="content_copy" loading="saveAsTemplate" wire:click="saveAsTemplate" :disabled="$lockAll">ذخیره به‌عنوان الگو</x-ui.buttons.form>
+            <p class="md:col-span-3 text-xs text-[var(--md-sys-color-on-surface-variant)]">همین نامه در فهرست الگوها قرار می‌گیرد. استفاده از آن بعداً پیش‌نویس جداگانه‌ای می‌سازد؛ ذخیرهٔ الگو، نامه را برای امضا یا گیرنده ارسال نمی‌کند.</p>
         </div>
     @endif
 
@@ -540,8 +550,9 @@
         @if($state['structural'])
             <div wire:key="correspondence-share-actions" class="contents">
                 <x-ui.buttons.form wire:key="correspondence-share-open" type="button" variant="primary" icon="send" x-bind:disabled="blocked" x-on:click="openShare()">ارسال برای امضا</x-ui.buttons.form>
-                <x-ui.modals.dialog name="correspondence-share" title="بررسی مسیر">
+                <x-ui.modals.dialog name="correspondence-share" title="بررسی افراد پیش از ارسال برای امضا">
                     <div class="flex flex-col gap-2 text-sm">
+                        <p>با این کار نامه برای افراد تعیین‌شده در دسترس قرار می‌گیرد و مسیر امضا شروع می‌شود. ایمیل گیرندگان بیرونی را پس از تأیید نهایی، جداگانه ارسال کنید.</p>
                         <p>امضاکنندگان: <bdi>{{ $route['approvers'] === [] ? '—' : implode('، ', $route['approvers']) }}</bdi></p>
                         <p>امضای پایانی: <bdi>{{ $route['signer'] !== '' ? $route['signer'] : '—' }}</bdi></p>
                         <p>اطلاع: <bdi>{{ $route['fyi'] === [] ? '—' : implode('، ', $route['fyi']) }}</bdi></p>
@@ -557,7 +568,7 @@
             <x-ui.buttons.form wire:key="correspondence-generate" type="button" variant="ai" icon="auto_awesome" loading="generate" :disabled="!$state['canSubmit']" x-on:click="generate()">نوشتن هوشمند</x-ui.buttons.form>
         @endif
         @if($letter && in_array($letter->status, Correspondence::DRAFT_LIKE, true))
-            <x-ui.buttons.form wire:key="correspondence-delete-draft" type="button" variant="ghost" data-title="حذف پیش‌نویس" data-message="این پیش‌نویس حذف شود؟" data-method="deleteDraft" x-on:click="confirmAction($el)">حذف پیش‌نویس</x-ui.buttons.form>
+            <x-ui.buttons.form wire:key="correspondence-delete-draft" type="button" variant="ghost" x-on:click="{{ confirmDialog('deleteDraft', 'حذف پیش‌نویس', 'این پیش‌نویس حذف شود؟', null, 'dispatch', 'danger') }}">حذف پیش‌نویس</x-ui.buttons.form>
         @endif
     </div>
 

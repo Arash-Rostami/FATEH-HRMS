@@ -12,6 +12,7 @@ use App\Filament\Pages\EditRecord;
 use Filament\Actions\CreateAction;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -69,13 +70,32 @@ class EditUser extends EditRecord
             $value === null ? Arr::forget($extra, $key) : Arr::set($extra, $key, $value);
         }
 
-        unset($data['signature_image'], $data['registry_permission'], $data['sign_code'], $data['clear_sign_code']);
+        $record = $this->getRecord();
+        $actor = auth()->user();
+
+        if (
+            $actor?->hasElevatedRole()
+            && array_key_exists('email_trusted', $data)
+            && ($data['email'] ?? $record->email) === $record->email
+        ) {
+            $trusted = (bool) $data['email_trusted'];
+
+            if ($trusted !== filled($record->email_verified_at)) {
+                $record->email_verified_at = $trusted ? now() : null;
+
+                Log::info('email trust', ['actor' => $actor->getKey(), 'user' => $record->getKey(), 'trusted' => $trusted]);
+            }
+        }
+
+        unset($data['signature_image'], $data['registry_permission'], $data['sign_code'], $data['clear_sign_code'], $data['email_trusted']);
 
         return [...$data, 'extra' => $extra];
     }
 
     protected function afterSave(): void
     {
+        $this->data['email_trusted'] = filled($this->getRecord()->email_verified_at);
+
         $previous = $this->previousSignature;
 
         if ($previous === null || $previous === $this->storedSignature() || ! self::isSignaturePath($previous)) {

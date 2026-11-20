@@ -458,7 +458,7 @@ class Kanban extends Component
         }
 
         if (!$action->execute($task, $beforeTaskId, $targetStatus)) {
-            $this->dispatch('toast', message: 'برای جابه‌جایی ابتدا تعیین تکلیف را مشخص کنید.', type: 'error');
+            $this->dispatch('toast', message: 'وظیفه را باز کنید و ابتدا «نتیجهٔ کار» را مشخص کنید.', type: 'error');
             return;
         }
 
@@ -472,7 +472,7 @@ class Kanban extends Component
         if (!$task) return;
 
         if ($newColumn === TaskStatus::Done->value && empty($task->detail?->state)) {
-            $this->dispatch('toast', message: 'برای انتقال به «انجام‌شده» ابتدا تعیین تکلیف را مشخص کنید.', type: 'error');
+            $this->dispatch('toast', message: 'پیش از انتقال به «انجام‌شده»، وظیفه را باز کنید و «نتیجهٔ کار» را مشخص کنید.', type: 'error');
             return;
         }
 

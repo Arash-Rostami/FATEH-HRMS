@@ -5,7 +5,7 @@
     @sms-sent.window="rememberSms($event.detail)"
     x-cloak
     @refresh-calendar.window="$wire.$refresh"
-    @keydown.escape.window="if(max) toggleMaximize()"
+    @keydown.escape.window="onEscape($event)"
     @confirmation-confirmed.window="if (($event.detail || {}).method === 'deleteEvent') $wire.call('deleteEvent', $event.detail.params)">
 
     <x-ui.title icon="calendar_month" title="تقویم کاری">

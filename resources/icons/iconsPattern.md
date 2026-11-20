@@ -8,6 +8,7 @@ Everything about the Material Symbols icon font lives in this one folder.
 resources/icons/
 ├── build.mjs        # build step: scans the repo, cuts the font, writes generated/
 ├── logos.mjs        # tenant sibling-app logos -> identical 160x160 WebP in img/<tenant>/sibling/optimized/ (see config/tenantPattern.md)
+├── tenant-icons.mjs # automatic in every build: img/<tenant>/logo.* -> any MISSING icon-512/icon-192/apple-touch-icon.png (below)
 ├── guard.js         # tiny browser safety net (started by app.js, auth.js, core/filament.js)
 ├── safelist.json    # icons that must always be included (generic UI + DB-stored names)
 ├── __tests__/       # guard.test.js (browser safety net + report) + logos.test.js (logo build, real sharp)
@@ -34,6 +35,10 @@ The server serves `/build/assets/` with `max-age=31536000, immutable` (`perf.con
 ## The safety net (`guard.js`)
 
 Does nothing at load. Once the browser is idle and `document.fonts.ready` has settled it checks `.material-symbols-rounded` elements and marks ONLY an element whose text looks like an icon name and is visibly raw (the width of its TEXT (measured with a Range, not the element box, so a stretched watermark icon is not fooled) > 2.2× its font size) with `ms-full` — that element alone switches to the full font, which the browser then downloads and caches by itself (`font-display: block`). Never the whole page (it would make every correct icon wait on 5 MB). **Reporting (2026-11-03):** the first time it marks a name on a page it also `POST`s it once to `/icon-miss` (`IconMissController`, public so login/auth pages can use it; `throttle:20,1`; CSRF header from the `csrf-token` meta; `fetch` with `keepalive`), and the server validates `^[a-z0-9_]{1,60}$` (422 otherwise), dedupes per name for a day (`Cache::add`) and writes ONE `laravel.log` WARNING «Icon missing from the font subset» with the icon and the page path — so a miss is never silent in production. Fix it by adding the name to `safelist.json` (if it only lives in the DB / is built dynamically) or by rebuilding after a new name was added to code. Tests: `tests/Feature/Http/IconMissTest.php` + the two report tests in `guard.test.js`. It re-checks only after a throttled click or `livewire:navigated`, skips elements already marked, ships no data, warns in dev, and `watchIcons()` returns a teardown. Expected to fire "once in a million" — if it fires on normal pages the scan missed something; add the name to `safelist.json`.
+
+## Tenant install icons (`tenant-icons.mjs`, 2026-11-17)
+
+Automatic: `build.mjs` (so `npm run build` and `npm run icons`) calls `buildTenantIcons` right after `buildLogos`. For every `resources/assets/img/<tenant>/logo.*` it creates ONLY the missing files of `icon-512.png`, `icon-192.png` and `apple-touch-icon.png` (180) beside it: the mark centred in about 80% of a white 512 square. A logo wider than 1.2:1 is first cut to its left square (the mark side; the rest of the wordmark is dropped), then trimmed of white margin. An existing file is never overwritten, so a hand-made icon wins: drop your own `icon-512.*` there and the build leaves it. Because it writes into the source folder, commit the generated PNGs (a server build creates them too if they were not uploaded). Every build then copies them to `public/build/assets/img/<tenant>/`, where the `/site.webmanifest` route (`components/manifest.blade.php`) and the apple-touch link (`meta-tags.blade.php`) pick them up; a tenant without a `logo.*` just gets no PNG install icons. A logo whose mark sits on the right, or is a lettermark, needs a hand-made icon: look at the result once.
 
 ## Deploy
 

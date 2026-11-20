@@ -156,7 +156,7 @@ class Workspace extends Component
         $this->assigneeId = '';
         unset($this->ticket);
         $this->seenStatus = $this->ticket->status;
-        $this->notify('تیکت با موفقیت تخصیص داده شد.', 'success');
+        $this->notify('مسئول رسیدگی تعیین شد.', 'success');
         $this->dispatch('ths-ticket-updated');
     }
 
@@ -199,12 +199,12 @@ class Workspace extends Component
 
     public function releaseTicket(ReleaseTicketAction $action): void
     {
-        $this->finishAction(fn () => $action->execute($this->replyForm, $this->ticket, auth()->user()), 'تیکت به صف بازگردانده شد.');
+        $this->finishAction(fn () => $action->execute($this->replyForm, $this->ticket, auth()->user()), 'تیکت برای تعیین مسئول جدید به صف همین واحد برگشت.');
     }
 
     public function rerouteTicket(RerouteTicketAction $action): void
     {
-        $this->finishAction(fn () => $action->execute($this->replyForm, $this->ticket, $this->rerouteTo, auth()->user()), 'تیکت ارجاع داده شد.');
+        $this->finishAction(fn () => $action->execute($this->replyForm, $this->ticket, $this->rerouteTo, auth()->user()), 'تیکت به واحد انتخاب‌شده فرستاده شد.');
     }
 
     private function finishAction(callable $fn, string $message): void

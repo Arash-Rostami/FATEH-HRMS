@@ -11,11 +11,13 @@ use App\Livewire\Dashboard\Project\Actions\SaveWorkflowAction;
 use App\Livewire\Dashboard\Project\Actions\StartWorkflowAction;
 use App\Livewire\Dashboard\Project\Presentation\WorkflowPresenter;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
+use App\Models\Department;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Workflow as WorkflowModel;
 use App\Support\ProjectAccessPolicy;
+use App\Traits\Livewire\BulkSelectsPeople;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -27,6 +29,8 @@ use Livewire\Component;
 #[Defer]
 class Workflow extends Component
 {
+    use BulkSelectsPeople;
+
     #[Locked]
     public ?int $activeProjectId = null;
 
@@ -120,12 +124,44 @@ class Workflow extends Component
     }
 
     #[Computed]
+    public function deptOptions(): array
+    {
+        return Department::getCachedOptions()->toArray();
+    }
+
+    #[Computed]
     public function memberCandidates(): array
     {
+        $depts = User::getCachedActiveDeptMap();
+
         return collect($this->project?->charter()->rosterOptions() ?? [])
-            ->map(fn ($name, $id) => ['id' => (int) $id, 'name' => $name])
+            ->map(fn ($name, $id) => ['id' => (int) $id, 'name' => $name, 'dept' => $depts[(int) $id] ?? ''])
             ->values()
             ->all();
+    }
+
+    protected function bulkSelectTargets(): array
+    {
+        return collect($this->steps)
+            ->keys()
+            ->map(fn ($i) => "steps.$i.assignee_user_ids")
+            ->merge(collect($this->reassignSelection)->keys()->map(fn ($id) => "reassignSelection.$id"))
+            ->values()
+            ->all();
+    }
+
+    protected function bulkPeoplePool(string $property, ?string $dept = null): array
+    {
+        return collect($this->memberCandidates)
+            ->when($dept !== null, fn ($rows) => $rows->filter(fn ($row) => $row['dept'] === $dept))
+            ->map(fn ($row) => (int) $row['id'])
+            ->values()
+            ->all();
+    }
+
+    protected function bulkSelectLimit(string $property): ?int
+    {
+        return str_starts_with($property, 'steps.') ? SaveWorkflowAction::MAX_ASSIGNEES : null;
     }
 
     #[Computed]
@@ -194,7 +230,7 @@ class Workflow extends Component
 
     private function firstError(ValidationException $e): string
     {
-        return collect($e->errors())->flatten()->first() ?? 'خطا در اعتبارسنجی.';
+        return collect($e->errors())->flatten()->first() ?? 'اطلاعات فرم کامل یا درست نیست؛ قسمت‌های مشخص‌شده را بررسی کنید.';
     }
 
     private function normalizedSteps(): array
@@ -332,7 +368,7 @@ class Workflow extends Component
             unset($this->stepNotes[$workflowId]);
             $this->dispatch('toast', message: $approved ? 'مرحله تکمیل شد.' : 'مرحله رد شد و بازگشت داده شد.', type: 'success');
         } else {
-            $this->dispatch('toast', message: 'موردی برای تغییر یافت نشد یا وضعیت تغییر کرده است.', type: 'info');
+            $this->dispatch('toast', message: 'وضعیت چرخه تغییر کرده یا کار این مرحله هنوز تکمیل و تأیید نشده است. صفحه را دوباره باز کنید.', type: 'info');
         }
     }
 
@@ -343,9 +379,9 @@ class Workflow extends Component
         $advanced = $action->execute($workflowId, (int) auth()->id(), $expectedStep, true, true);
 
         if ($advanced) {
-            $this->dispatch('toast', message: 'پیشروی اجباری انجام شد.', type: 'success');
+            $this->dispatch('toast', message: 'از مرحلهٔ فعلی عبور شد.', type: 'success');
         } else {
-            $this->dispatch('toast', message: 'موردی برای تغییر یافت نشد یا وضعیت تغییر کرده است.', type: 'info');
+            $this->dispatch('toast', message: 'وضعیت چرخه تغییر کرده یا دیگر مرحله‌ای برای ادامه وجود ندارد. صفحه را دوباره باز کنید.', type: 'info');
         }
     }
 
@@ -382,7 +418,7 @@ class Workflow extends Component
 
         $action->execute($template, $project);
         $this->selectedTemplateId = '';
-        $this->dispatch('toast', message: 'الگو اعمال شد.', type: 'success');
+        $this->dispatch('toast', message: 'یک پیش‌نویس از الگو ساخته شد. مراحل را بررسی کنید و سپس چرخه را شروع کنید.', type: 'success');
     }
 
     public function runAgain(SaveAsTemplateAction $saveAsTemplate, ApplyTemplateAction $applyTemplate, int $workflowId): void
@@ -409,7 +445,7 @@ class Workflow extends Component
             $template->delete();
         }
 
-        $this->dispatch('toast', message: 'چرخه دوباره ایجاد شد.', type: 'success');
+        $this->dispatch('toast', message: 'یک پیش‌نویس تازه از این چرخه ساخته شد؛ برای اجرا، آن را شروع کنید.', type: 'success');
     }
 
     public function openReassign(int $workflowId): void
@@ -447,7 +483,7 @@ class Workflow extends Component
         }
 
         $this->reassigningWorkflowId = null;
-        $this->dispatch('toast', message: 'واگذاری انجام شد.', type: 'success');
+        $this->dispatch('toast', message: 'مسئولان این مرحله ثبت شدند.', type: 'success');
     }
 
     public function refreshWorkflow(): void

@@ -16,6 +16,14 @@
       "sizes": "any",
       "type": "image/x-icon",
       "purpose": "any"
-    }
+    }@foreach ([192, 512] as $size)
+    @if ($icon = tenantAsset(config('app.tenant'), 'img', "icon-{$size}")),
+    {
+      "src": @json(asset($icon)),
+      "sizes": "{{ $size }}x{{ $size }}",
+      "type": "image/png",
+      "purpose": "any"
+    }@endif
+    @endforeach
   ]
 }

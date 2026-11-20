@@ -7,6 +7,7 @@ use Filament\Facades\Filament;
 use App\Enums\TaskPriority;
 use App\Enums\TaskState;
 use App\Enums\TaskStatus;
+use App\Enums\UserType;
 use App\Jobs\ReconcileNudgeJob;
 use App\Livewire\Dashboard\Project\Actions\AdvanceWorkflowStepAction;
 use App\Livewire\Dashboard\Project\Actions\ApplyTemplateAction;
@@ -32,6 +33,7 @@ use App\Livewire\Dashboard\TaskBoard\Main as TaskBoardMain;
 use App\Models\ChannelMember;
 use App\Models\ChannelMessage;
 use App\Models\Department;
+use App\Models\Profile;
 use App\Models\Project;
 use App\Models\Reply;
 use App\Models\Task;
@@ -1272,7 +1274,7 @@ class ProjectTest extends TestCase
 
         $this->assertSame(['schedule', 'warning', 'event_busy'], array_column($chips, 'icon'));
         $this->assertSame('۳ دیرکرد', $chips[0]['text']);
-        $this->assertSame('۲ نقض SLA یا مهلت', $chips[1]['text']);
+        $this->assertSame('۲ عبور از مهلت', $chips[1]['text']);
         $this->assertSame('۱۰ روز تا مهلت پروژه', $chips[2]['text']);
     }
 
@@ -3694,7 +3696,7 @@ class ProjectTest extends TestCase
         $this->assertSame('cost_center', $chips['cost_center']['label']);
         $this->assertSame('CC-9', $chips['cost_center']['value']);
 
-        $component->assertSeeHtml('دیتای سفارشی')
+        $component->assertSeeHtml('اطلاعات دلخواه')
             ->assertSeeHtml('تأمین‌کننده')
             ->assertSeeHtml('cost_center')
             ->assertSeeHtml('CC-9');
@@ -5644,5 +5646,78 @@ class ProjectTest extends TestCase
 
         $this->assertSame($last->id, (int) $pivot()->last_read_message_id);
         $this->assertNotNull($pivot()->entered_at);
+    }
+
+    public function test_bulk_selection_covers_project_members_and_task_modal_collaborators(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($owner)->test(Main::class);
+        $component->call('bulkSelectPeople', 'projectForm.memberIds', 'all');
+        $expected = array_map('intval', array_column($component->instance()->memberCandidates, 'id'));
+        $this->assertEqualsCanonicalizing($expected, array_map('intval', $component->get('projectForm.memberIds')));
+
+        $component->call('bulkSelectPeople', 'form.collaborators', 'all');
+        $this->assertEqualsCanonicalizing([...$expected, $owner->id], array_map('intval', $component->get('form.collaborators')), 'the task modal bulk bar must not silently no-op on the Project host');
+
+        $component->call('bulkSelectPeople', 'form.collaborators', 'none');
+        $this->assertSame([], $component->get('form.collaborators'));
+
+        $component->set('projectForm.name', 'untouched')->call('bulkSelectPeople', 'projectForm.name', 'all');
+        $this->assertSame('untouched', $component->get('projectForm.name'), 'a forged target property is a no-op');
+        $this->assertSame([], $component->get('form.collaborators'));
+    }
+
+    public function test_bulk_selection_department_kind_filters_the_pool_and_skips_inactive_and_guest_users(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $inactive = User::factory()->create(['status' => 'inactive']);
+        $guest = User::factory()->create(['status' => 'active', 'type' => UserType::Guest->value]);
+        Department::firstOrCreate(['code' => 'BLK'], ['name' => 'BLK', 'description' => 'BLK']);
+        $colleague = User::factory()->create(['status' => 'active']);
+        Profile::factory()->create(['user_id' => $colleague->id, 'department_id' => 'BLK']);
+        $other = User::factory()->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($owner)->test(Main::class);
+        $component->call('bulkSelectPeople', 'projectForm.memberIds', 'all');
+        $all = array_map('intval', $component->get('projectForm.memberIds'));
+        $this->assertContains($colleague->id, $all);
+        $this->assertNotContains($inactive->id, $all);
+        $this->assertNotContains($guest->id, $all);
+
+        $component->call('bulkSelectPeople', 'projectForm.memberIds', 'none')->call('bulkSelectPeople', 'projectForm.memberIds', 'department', 'BLK');
+        $this->assertSame([$colleague->id], array_map('intval', $component->get('projectForm.memberIds')));
+
+        $component->call('bulkSelectPeople', 'projectForm.memberIds', 'all')->call('bulkSelectPeople', 'projectForm.memberIds', 'none', 'BLK');
+        $this->assertNotContains($colleague->id, array_map('intval', $component->get('projectForm.memberIds')));
+        $this->assertContains($other->id, array_map('intval', $component->get('projectForm.memberIds')));
+    }
+
+    public function test_workflow_bulk_selection_covers_the_roster_including_the_owner_and_respects_the_step_cap(): void
+    {
+        $member = User::factory()->create(['status' => 'active']);
+        $outsider = User::factory()->create(['status' => 'active']);
+        [$owner, $project] = $this->ownerWithProject([$member->id]);
+
+        $component = Livewire::actingAs($owner)->test(WorkflowTab::class, ['activeProjectId' => $project->id]);
+        $component->call('bulkSelectPeople', 'steps.0.assignee_user_ids', 'all');
+        $selected = array_map('intval', $component->get('steps.0.assignee_user_ids'));
+        $candidates = array_map('intval', array_column($component->instance()->memberCandidates, 'id'));
+
+        $this->assertEqualsCanonicalizing([$owner->id, $member->id], $selected);
+        $this->assertEqualsCanonicalizing($candidates, $selected);
+        $this->assertNotContains($outsider->id, $selected);
+
+        $component->call('bulkSelectPeople', 'steps.0.assignee_user_ids', 'none');
+        $this->assertSame([], $component->get('steps.0.assignee_user_ids'));
+
+        $crowd = User::factory()->count(SaveWorkflowAction::MAX_ASSIGNEES + 1)->create(['status' => 'active'])->pluck('id')->all();
+        $project->update(['member_ids' => $crowd]);
+        Livewire::withoutLazyLoading();
+        $capped = Livewire::actingAs($owner)->test(WorkflowTab::class, ['activeProjectId' => $project->id]);
+        $capped->call('bulkSelectPeople', 'steps.0.assignee_user_ids', 'all');
+
+        $this->assertCount(SaveWorkflowAction::MAX_ASSIGNEES, $capped->get('steps.0.assignee_user_ids'));
+        $capped->assertDispatched('toast', type: 'info');
     }
 }

@@ -1,13 +1,13 @@
 <x-ui.modals.base
     wire:model="isForwardOpen"
-    title="بازفرستادن پیام"
+    title="بازارسال پیام"
 >
     <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6 space-y-4" dir="rtl">
         @if($isForwardOpen)
             @if($forwardResultUrl)
                 <div wire:key="forward-success" class="space-y-4 text-center" role="status">
                     <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-success)]">check_circle</span>
-                    <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">پیام بازفرستاده شد.</p>
+                    <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">پیام بازارسال شد.</p>
                 </div>
             @else
                 <div wire:key="forward-form" class="space-y-4">
@@ -75,7 +75,7 @@
             <x-ui.buttons.form variant="none" class="modal-btn modal-btn-confirm"
                                x-on:click="$wire.forwardMessage()"
                                loading="forwardMessage" loading-text="در حال پردازش...">
-                بازفرستادن
+                بازارسال
             </x-ui.buttons.form>
         @endif
     </x-slot:actions>

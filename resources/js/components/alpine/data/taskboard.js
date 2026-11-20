@@ -105,6 +105,12 @@ export default function taskboard() {
             try { localStorage.setItem(SWIPE_HINT_STORAGE_KEY, "1"); } catch {}
         },
 
+        closeOverlays() {
+            if (!this.spotlightColumn) return false;
+            this.clearSpotlight();
+            return true;
+        },
+
         toggleMaximize(name) {
             if (this.maximizedColumn === name) {
                 this.maximizedColumn = null;

@@ -979,23 +979,17 @@ class FeedsTest extends TestCase
         $this->assertSame($openBefore, $component->instance()->open);
     }
 
-    public function test_media_cell_data_increments_image_index_and_assigns_my_index()
+    public function test_media_cell_data_flags_images_and_videos()
     {
         $p = new FeedPresenter();
-        $imgIndex = 0;
-        $cell = $p->mediaCellData('http://x/y.png', $imgIndex);
-        $this->assertTrue($cell['isImage']);
-        $this->assertSame(0, $cell['myIndex']);
-        $this->assertSame(1, $imgIndex);
 
-        $cell2 = $p->mediaCellData('http://x/y.mp4', $imgIndex);
-        $this->assertFalse($cell2['isImage']);
-        $this->assertNull($cell2['myIndex']);
-        $this->assertSame(1, $imgIndex);
+        $image = $p->mediaCellData('http://x/y.png');
+        $this->assertTrue($image['isImage']);
+        $this->assertStringContainsString('cursor-zoom-in', $image['cellClass']);
+        $this->assertArrayNotHasKey('myIndex', $image);
 
-        $cell3 = $p->mediaCellData('http://x/z.png', $imgIndex);
-        $this->assertTrue($cell3['isImage']);
-        $this->assertSame(1, $cell3['myIndex']);
-        $this->assertSame(2, $imgIndex);
+        $video = $p->mediaCellData('http://x/y.mp4');
+        $this->assertFalse($video['isImage']);
+        $this->assertStringNotContainsString('cursor-zoom-in', $video['cellClass']);
     }
 }

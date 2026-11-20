@@ -126,7 +126,7 @@
             </div>
         @empty
             <div wire:key="reservation-history-empty" class="contents">
-                <x-ui.empty icon="{{ match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', 'cancelled' => 'block', 'released' => 'autorenew', default => 'done_all' } }}" title="صندوق خالی است" description="موردی برای نمایش وجود ندارد." variant="list" />
+                <x-ui.empty icon="{{ match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', 'cancelled' => 'block', 'released' => 'autorenew', default => 'done_all' } }}" title="رزروی برای نمایش نیست" description="موردی برای نمایش وجود ندارد." variant="list" />
             </div>
         @endforelse
 

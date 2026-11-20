@@ -21,7 +21,7 @@
                     @else
                         <span wire:key="ths-assignee-placeholder" class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)]">person_search</span>
                     @endif
-                    <span class="truncate">{{ $selectedAssignee?->name ?? 'انتخاب کارشناس...' }}</span>
+                    <span class="truncate">{{ $selectedAssignee?->name ?? 'انتخاب مسئول رسیدگی...' }}</span>
                     @if($selectedAssignee)<x-ui.presence-tag wire:key="ths-assignee-tag" :status="$selectedAssignee->presence"/>@endif
                     <span class="material-symbols-rounded text-[16px] mr-auto text-[var(--md-sys-color-on-surface-variant)]">expand_more</span>
                 </button>
@@ -51,7 +51,7 @@
             <x-ui.buttons.form type="button" wire:click="assign" loading="assign" icon="person_add"
                     x-bind:disabled="!$wire.assigneeId"
                     class="!h-auto max-sm:min-h-[44px] !px-3 !py-2 rounded-xl text-xs font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110">
-                تخصیص
+                تعیین مسئول
             </x-ui.buttons.form>
         </div>
     @endif
@@ -69,7 +69,7 @@
                         </x-ui.forms.select>
                     </div>
                     <x-ui.buttons.form type="button" loading="rerouteTicket" variant="tonal" icon="alt_route"
-                            wire:click="rerouteTicket" wire:confirm="این تیکت به واحد انتخاب‌شده ارجاع شود؟"
+                            x-on:click="{{ confirmDialog('rerouteTicket', 'ارجاع به واحد دیگر', 'تیکت به واحد انتخاب‌شده فرستاده و بدون مسئول می‌شود. ادامه می‌دهید؟') }}"
                             x-bind:disabled="!$wire.rerouteTo || !$wire.replyForm.body.trim()"
                             class="!h-auto max-sm:min-h-[44px] !px-4 !py-2 rounded-xl text-xs font-bold">
                         ارجاع به واحد دیگر
@@ -83,7 +83,7 @@
 
             @if($this->canRelease)
                 <x-ui.buttons.form wire:key="ths-release-ticket" type="button" loading="releaseTicket" variant="tonal" icon="undo"
-                        wire:click="releaseTicket" wire:confirm="این تیکت به صف بازگردانده شود؟"
+                        x-on:click="{{ confirmDialog('releaseTicket', 'بازگشت به صف', 'مسئول فعلی برداشته می‌شود و تیکت برای تعیین مسئول جدید به صف همین واحد برمی‌گردد. ادامه می‌دهید؟') }}"
                         x-bind:disabled="!$wire.replyForm.body.trim()"
                         class="!h-auto max-sm:min-h-[44px] !px-4 !py-2 rounded-xl text-xs font-bold">
                     بازگشت به صف
@@ -92,7 +92,7 @@
 
             @if($this->canWithdraw)
                 <x-ui.buttons.form wire:key="ths-withdraw-ticket" type="button" loading="withdrawTicket" variant="none" icon="cancel"
-                        wire:click="withdrawTicket" wire:confirm="درخواست شما لغو شود؟"
+                        x-on:click="{{ confirmDialog('withdrawTicket', 'لغو درخواست', 'درخواست شما برای همیشه بسته می‌شود و دیگر نمی‌توانید در آن پیام بدهید. درخواست را لغو می‌کنید؟', null, 'dispatch', 'danger') }}"
                         class="sm:mr-auto !h-auto max-sm:min-h-[44px] !px-4 !py-2 gap-1.5 rounded-xl text-xs font-bold border border-[color-mix(in_srgb,var(--md-sys-color-error)_45%,transparent)] text-[var(--md-sys-color-error)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)] transition-all duration-200 active:scale-95 disabled:opacity-50">
                     لغو درخواست
                 </x-ui.buttons.form>
@@ -101,7 +101,7 @@
             @if($this->canReroute || $this->canRelease)
                 <p wire:key="ths-workspace-actions-hint" class="w-full flex items-center gap-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
                     <span class="material-symbols-rounded text-[14px]">info</span>
-                    توضیح را در کادر «گفتگو» بنویسید.
+                    برای ارجاع یا بازگشت به صف، دلیل را در کادر پاسخ پایین بنویسید و سپس دکمهٔ مربوط را بزنید؛ نیازی به ارسال جداگانهٔ پاسخ نیست.
                 </p>
             @endif
         </div>

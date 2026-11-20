@@ -7,7 +7,7 @@ let styleEl = null;
 
 export default function colVisibility(Alpine) {
     Alpine.store('colVisibility', {
-        maps: { dms: [], ths: [], reservation: [], taskboard: [], 'ai-report': [], correspondence: [], launchpad: [] },
+        maps: { dms: [], ths: [], reservation: [], taskboard: [], 'ai-report': [], correspondence: [], launchpad: ['description', 'dates'] },
         _renderRaf: null,
 
         init() {

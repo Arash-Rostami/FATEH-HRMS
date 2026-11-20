@@ -341,3 +341,17 @@ describe('reservation.scrollNext / scrollPrev', () => {
         expect(() => r.scrollPrev({ nextElementSibling: null })).not.toThrow()
     })
 })
+
+describe('reservation.closeOverlays', () => {
+    test('clears the focus only while the view is not maximized and never reports a closed layer', () => {
+        const r = reservation()
+        r.$wire = { clearFocus: vi.fn() }
+
+        expect(r.closeOverlays()).toBe(false)
+        expect(r.$wire.clearFocus).toHaveBeenCalledOnce()
+
+        r.maxOn = true
+        expect(r.closeOverlays()).toBe(false)
+        expect(r.$wire.clearFocus).toHaveBeenCalledOnce()
+    })
+})

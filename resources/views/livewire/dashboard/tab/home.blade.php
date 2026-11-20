@@ -8,7 +8,7 @@
 
     {{-- ═══════════════════════ HERO DECK (MULTI-PANE) ═══════════════════════ --}}
     <div x-data="heroDeck()"
-         x-on:keydown.escape.window="if (maximizedPane) toggleMaximize(maximizedPane); if (pickerFor) pickerFor = null"
+         x-on:keydown.escape.window="onEscape($event)"
          :style="deckH ? 'height:' + deckH + 'px' : null"
          class="relative mb-8 min-h-min select-none-subtle">
 
@@ -354,8 +354,12 @@
 
     {{-- ═══════════════════════ PANES ═══════════════════════ --}}
     <x-ui.modals.max-backdrop state="maximizedPane" close="toggleMaximize(maximizedPane)"/>
-    <div wire:key="hero-gadget-picker" x-data="{ gadgetSearch: '', gadgetTitles: @js(collect($gadgetCatalog)->pluck('title')->values()) }">
-        <x-ui.modals.panel state="pickerFor" close="pickerFor = null; gadgetSearch = ''"
+    @use('App\Livewire\Dashboard\Tab\Presentation\TabPresenter')
+    @php($gadgetCounts = collect($gadgetCatalog)->countBy('group'))
+    @php($gadgetRows = collect($gadgetCatalog)->map(fn ($i) => ['g' => $i['group'], 's' => $i['src'], 'f' => mb_strtolower(trim($i['title'] . ' ' . $i['subtitle'] . ' ' . $i['badge']))])->all())
+    @php($gadgetTabs = collect(TabPresenter::GADGET_GROUPS)->filter(fn ($g, $key) => $gadgetCounts->has($key))->map(fn ($g, $key) => ['id' => $key, 'icon' => $g['icon'], 'label' => $g['tab'], 'description' => $g['label'], 'alpine' => "tab = '{$key}'", 'activeExpr' => "tab === '{$key}'", 'countExpr' => "count('{$key}')"])->values()->all())
+    <div wire:key="hero-gadget-picker" x-init="rows = @js($gadgetRows)">
+        <x-ui.modals.panel state="pickerFor" close="pickerFor = null"
                             icon="widgets" title="فهرست ماژول‌های فعال"
                             subtitle="جهت استقرار در میز کار شناور، ماژول را انتخاب فرمایید"
                             max-width="max-w-2xl" height="h-[85dvh] sm:h-[680px]">
@@ -363,41 +367,71 @@
                 <div class="relative group w-full">
                     <span
                         class="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-[var(--md-sys-color-on-surface-variant)] group-focus-within:text-[var(--md-sys-color-primary)] transition-colors pointer-events-none">search</span>
-                    <input type="text" x-model="gadgetSearch" placeholder="جستجوی عنوان ماژول..."
+                    <input type="text" data-gadget-search x-model="q" x-on:keydown="onSearch($event)" placeholder="جستجو در عنوان، دپارتمان یا سامانه..."
                            class="md3-input w-full h-10 pr-10 pl-10 rounded-xl text-sm outline-none transition-all focus:ring-2 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
-                    <button x-show="gadgetSearch" type="button" x-on:click="gadgetSearch = ''"
+                    <button x-show="q" type="button" x-on:click="q = ''"
                             class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors">
                         <span class="material-symbols-rounded text-[18px]">close</span>
                     </button>
                 </div>
+                <p class="hidden md:block mt-2 text-[10px] text-[var(--md-sys-color-on-surface-variant)]">با کلیدهای جهت‌دار جابه‌جا شوید، Enter برای انتخاب، Esc برای بستن</p>
+                @if($gadgetCounts->count() > 1)
+                    <div wire:key="hero-gadget-tabs" class="mt-3">
+                        <x-ui.buttons.tab-selector :has-a11y="true" class="!mb-0" :tabs="$gadgetTabs"/>
+                    </div>
+                @endif
             </x-slot:search>
 
-            <div class="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                @foreach($gadgetCatalog as $item)
-                    <button type="button"
-                            data-title="{{ $item['title'] }}"
-                            data-icon="{{ $item['icon'] }}"
-                            data-src="{{ $item['src'] }}"
-                            x-show="!gadgetSearch || $el.dataset.title.toLowerCase().includes(gadgetSearch.toLowerCase())"
-                            x-on:click="pick({ title: $el.dataset.title, icon: $el.dataset.icon, src: $el.dataset.src }); gadgetSearch = ''"
-                            class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/25
-                           hover:border-[var(--md-sys-color-primary)]/50 hover:bg-[var(--md-sys-color-primary-container)]/25 hover:-translate-y-0.5
-                           hover:shadow-sm transition-all duration-200 group active:scale-95 text-center">
+            <div class="p-4 sm:p-6 space-y-4">
+                <div data-gadget-grid x-on:keydown="onGrid($event)" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                    @foreach($gadgetCatalog as $item)
+                        <button type="button" data-gadget-tile
+                                data-title="{{ $item['title'] }}"
+                                data-icon="{{ $item['icon'] }}"
+                                data-src="{{ $item['src'] }}"
+                                x-show="show({{ $loop->index }})"
+                                :disabled="usedSrc(rows[{{ $loop->index }}].s)"
+                                x-on:click="pick({ title: $el.dataset.title, icon: $el.dataset.icon, src: $el.dataset.src })"
+                                class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/25 outline-none
+                           enabled:hover:border-[var(--md-sys-color-primary)]/50 enabled:hover:bg-[var(--md-sys-color-primary-container)]/25 enabled:hover:-translate-y-0.5
+                           focus-visible:border-[var(--md-sys-color-primary)]/50 focus-visible:bg-[var(--md-sys-color-primary-container)]/25
+                           enabled:hover:shadow-sm transition-all duration-200 group enabled:active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-center">
 
                             <span
-                                class="flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-variant)]/70 text-[var(--md-sys-color-primary)] group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary-container)] transition-all shadow-xs">
+                                class="flex items-center justify-center w-12 h-12 rounded-xl {{ match($item['group']) {
+                                    'program' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]',
+                                    'sso' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
+                                    default => 'bg-[var(--md-sys-color-surface-variant)]/70 text-[var(--md-sys-color-primary)] group-hover:bg-[var(--md-sys-color-primary-container)]',
+                                } }} group-hover:scale-110 transition-all shadow-xs">
                                 <span class="material-symbols-rounded text-2xl"
                                       aria-hidden="true">{{ $item['icon'] }}</span>
                             </span>
-                        <span
-                            class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)] leading-tight">{{ $item['title'] }}</span>
-                    </button>
-                @endforeach
+                            <span data-t="{{ $item['title'] }}"
+                                  class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)] leading-tight">
+                                <span x-show="!q">{{ $item['title'] }}</span>
+                                <span x-cloak x-show="q"><template x-for="(part, n) in parts($el.closest('[data-t]').dataset.t)" :key="n"><span x-text="part.t" :data-hit="part.hit" class="data-[hit=true]:bg-[var(--tool-gold-bg)] data-[hit=true]:text-[var(--tool-gold-text)] data-[hit=true]:rounded-sm"></span></template></span>
+                            </span>
+                            @if(filled($item['subtitle']) && $item['subtitle'] !== $item['badge'])
+                                <span class="max-w-full truncate text-[10px] text-[var(--md-sys-color-on-surface-variant)]">{{ $item['subtitle'] }}</span>
+                            @endif
+                            <span class="flex flex-wrap items-center justify-center gap-1">
+                                @if($item['badge'])
+                                    <x-ui.badge variant="info">{{ $item['badge'] }}</x-ui.badge>
+                                @endif
+                                @if($item['new'])
+                                    <x-ui.badge variant="success">جدید</x-ui.badge>
+                                @endif
+                                @if($item['expiring'])
+                                    <x-ui.badge variant="warning">در حال انقضا</x-ui.badge>
+                                @endif
+                                <x-ui.badge x-cloak x-show="usedSrc(rows[{{ $loop->index }}].s)">در حال استفاده</x-ui.badge>
+                            </span>
+                        </button>
+                    @endforeach
+                </div>
 
-                <div x-cloak
-                     x-show="gadgetSearch && !gadgetTitles.some(t => t.toLowerCase().includes(gadgetSearch.toLowerCase()))"
-                     class="col-span-full py-8">
-                    <x-ui.empty icon="search_off" title="ماژولی با این عنوان یافت نشد"/>
+                <div wire:key="hero-gadget-empty" x-cloak x-show="count(tab) === 0" class="py-8">
+                    <x-ui.empty icon="search_off" title="موردی با این عبارت یافت نشد"/>
                 </div>
             </div>
         </x-ui.modals.panel>
@@ -762,7 +796,7 @@
         <div class="relative mb-3">
                 <span
                     class="material-symbols-rounded absolute top-1/2 -translate-y-1/2 right-3 text-[18px] text-[var(--md-sys-color-on-surface-variant)]/60">search</span>
-            <input type="text" x-model="q" placeholder="جست‌وجوی ماژول…"
+            <input type="text" x-model="q" placeholder="نام ماژول را جست‌وجو کنید…"
                    class="w-full h-11 rounded-xl bg-[var(--md-sys-color-surface-variant)]/40 border border-[var(--md-sys-color-outline-variant)]/40 pr-10 pl-4 text-sm text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-primary)]/40 focus:border-[var(--md-sys-color-primary)]/40 transition-colors"/>
         </div>
     @endif
@@ -791,7 +825,7 @@
                             <span
                                 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] block">{{ $module['title'] }}</span>
                         <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5 block"
-                              x-show="active !== {{ $index }}">کلیک کنید برای اطلاعات بیشتر</span>
+                              x-show="active !== {{ $index }}">نمایش توضیحات</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">

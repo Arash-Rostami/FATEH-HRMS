@@ -121,7 +121,7 @@
                                                         </button>
                                                     @endif
                                                 @endunless
-                                                <button wire:click="delete({{ $reminder->id }})" wire:confirm="یادآوری حذف شود؟" title="حذف" class="{{ $iconBtn }} text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]">
+                                                <button x-on:click="{{ confirmDialog('delete-' . $this->getId(), 'حذف', 'یادآوری حذف شود؟', $reminder->id, 'dispatch', 'danger') }}" title="حذف" class="{{ $iconBtn }} text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]">
                                                     <span class="material-symbols-rounded text-[16px]">delete</span>
                                                 </button>
                                             </div>

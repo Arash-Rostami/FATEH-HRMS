@@ -19,6 +19,7 @@ use App\Models\Concerns\HasTaskActivityLog;
 use App\Models\Concerns\HasTaskApproval;
 use App\Models\Concerns\HasUrgencyState;
 use App\Models\Concerns\Hooks\HasTaskHooks;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Support\TaskAccessPolicy;
 use App\Traits\CleansAttachedFiles;
 use BackedEnum;
@@ -406,7 +407,7 @@ class Task extends Model
         if ($sla !== null && $this->deadline === null && $this->created_at->diffInHours(now()) > (int)$sla) {
             $urgency['score'] = max($urgency['score'], 0.9);
             $urgency['kind'] ??= 'sla';
-            $urgency['label'] ??= 'نقض SLA';
+            $urgency['label'] ??= TaskMetrics::LABEL_BREACH;
         }
 
         if ($this->project->deadlineCapExceeded($this->deadline)) {

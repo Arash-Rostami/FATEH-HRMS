@@ -127,7 +127,7 @@ abstract class SearchResource implements Searchable
         foreach ($tokens as $token) {
             $builder->where(function (Builder $query) use ($token) {
                 foreach ($this->columns as $column) {
-                    $query->orWhere($column, 'like', '%' . $token . '%');
+                    $query->orWhere($column, 'like', '%' . $this->like($token) . '%');
                 }
             });
         }
@@ -151,19 +151,26 @@ abstract class SearchResource implements Searchable
         $bindings[] = $context->query;
 
         $parts[] = "CASE WHEN {$title} LIKE ? THEN 40 ELSE 0 END";
-        $bindings[] = $context->query . '%';
+        $bindings[] = $this->like($context->query) . '%';
 
         foreach ($context->tokens as $token) {
+            $like = '%' . $this->like($token) . '%';
+
             $parts[] = "CASE WHEN {$title} LIKE ? THEN 40 ELSE 0 END";
-            $bindings[] = '%' . $token . '%';
+            $bindings[] = $like;
 
             foreach ($this->columns as $column) {
                 $parts[] = 'CASE WHEN ' . $norm($column) . ' LIKE ? THEN 8 ELSE 0 END';
-                $bindings[] = '%' . $token . '%';
+                $bindings[] = $like;
             }
         }
 
         return [implode(' + ', $parts), $bindings];
+    }
+
+    protected function like(string $token): string
+    {
+        return addcslashes($token, '\\%_');
     }
 
     protected function shapeRow($row): array

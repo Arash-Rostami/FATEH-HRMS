@@ -122,7 +122,7 @@
                 @foreach($feed->reactions->groupBy('emoji') as $emoji => $reactions)
                     <button
                         wire:click="toggleReaction({{ $feed->id }}, '{{ $emoji }}')"
-                        title="کسانی که واکنش دادند: {{ $reactions->pluck('user.name')->filter()->implode('، ') ?: '—' }}"
+                        title="کسانی که ریاکشن دادند: {{ $reactions->pluck('user.name')->filter()->implode('، ') ?: '—' }}"
                         class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--md-sys-color-surface-variant)]/50 border border-[var(--md-sys-color-outline-variant)]/20 text-xs transition-all cursor-help hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]"
                     >
                         <span>{!! superClean($emoji) !!}</span>

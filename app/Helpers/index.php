@@ -480,7 +480,11 @@ if (!function_exists('confirmDialogListener')) {
     function confirmDialogListener(array $methods): string
     {
         return implode('; ', array_map(
-            fn (string $method, bool $takesParams) => "if (\$event.detail.method === '{$method}') \$wire.call('{$method}'" . ($takesParams ? ", \$event.detail.params" : '') . ')',
+            fn (string $method, bool|string $params) => "if (\$event.detail.method === '{$method}') \$wire.call('{$method}'" . match (true) {
+                $params === 'spread' => ", ...\$event.detail.params",
+                (bool) $params => ", \$event.detail.params",
+                default => '',
+            } . ')',
             array_keys($methods),
             $methods,
         ));

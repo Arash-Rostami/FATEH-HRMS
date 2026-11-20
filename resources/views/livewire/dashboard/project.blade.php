@@ -1,5 +1,5 @@
 <div dir="rtl" x-data="project()"
-     x-on:keydown.escape.window="if(max) toggleMaximize()"
+     x-on:keydown.escape.window="onEscape($event)"
      x-on:project-open-task.window="$wire.openProjectTask($event.detail.taskId)"
      x-on:project-open-task-create.window="$wire.openCreateModal()"
      x-on:project-duplicate-task.window="$wire.duplicateTask($event.detail.taskId)"

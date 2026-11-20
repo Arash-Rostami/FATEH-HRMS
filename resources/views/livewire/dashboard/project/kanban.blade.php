@@ -179,8 +179,8 @@
         @endif
 
         <div class="w-full sm:w-36 shrink-0">
-            <x-ui.forms.select label="جوابگو" name="kanbanResponsibleFilter" wire:model.live="kanbanResponsibleFilter" icon="support_agent">
-                <option value="">همه جوابگوها</option>
+            <x-ui.forms.select label="مسئول پیگیری" name="kanbanResponsibleFilter" wire:model.live="kanbanResponsibleFilter" icon="support_agent">
+                <option value="">همهٔ مسئولان پیگیری</option>
                 @foreach($staffMembers as $staff)
                     <option value="{{ $staff['id'] }}">{{ $staff['full_name'] }}</option>
                 @endforeach
@@ -188,8 +188,8 @@
         </div>
 
         <div class="w-full sm:w-36 shrink-0">
-            <x-ui.forms.select label="دپارتمان" name="kanbanDepartmentFilter" wire:model.live="kanbanDepartmentFilter" icon="corporate_fare">
-                <option value="">همه دپارتمان‌ها</option>
+            <x-ui.forms.select label="بخش سازمانی" name="kanbanDepartmentFilter" wire:model.live="kanbanDepartmentFilter" icon="corporate_fare">
+                <option value="">همهٔ بخش‌های سازمانی</option>
                 @foreach($departmentOptions as $code => $label)
                     <option value="{{ $code }}">{{ $label }}</option>
                 @endforeach

@@ -4,7 +4,7 @@
         ساختار سازمانی و پروژه
     </div>
 
-    <x-ui.forms.select label="دپارتمان" name="form.departmentId" column-hint="department_id" wire:model.live="form.departmentId" :disabled="$isReadOnly">
+    <x-ui.forms.select label="بخش سازمانی" name="form.departmentId" column-hint="department_id" wire:model.live="form.departmentId" :disabled="$isReadOnly">
         <option value="">انتخاب کنید</option>
         @foreach($departmentOptions as $code => $name)
             <option value="{{ $code }}">{{ $name }}</option>
@@ -26,13 +26,13 @@
     </x-ui.forms.select>
 
     <div class="space-y-1.5">
-        <label class="{{ $labelClass }}">جوابگو</label>
+        <label class="{{ $labelClass }}">مسئول پیگیری</label>
         <x-dashboard.member-picker
             wire:key="taskboard-responsible-picker"
             model="form.responsibleUserId"
             mode="single"
             server
-            noneLabel="بدون جوابگو"
+            noneLabel="بدون مسئول پیگیری"
             :candidates="$this->userPickerResults['candidates']"
             :hasMore="$this->userPickerResults['hasMore']"
             :deptOptions="$departmentOptions"
@@ -40,6 +40,7 @@
             height="max-h-32"
             :disabled="$isReadOnly"
         />
+        <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">فردی که نتیجهٔ کار را پیگیری می‌کند؛ انتخاب او، مسئول انجام کار را عوض نمی‌کند. به وظیفه و گفتگوی آن هم دسترسی خواهد داشت.</p>
         @if($this->formProject)
             <p wire:key="taskboard-responsible-roster-hint" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">فقط اعضای پروژه نمایش داده می‌شوند.</p>
         @endif
@@ -47,19 +48,19 @@
 
     <div class="w-full space-y-1.5">
         <x-ui.forms.input
-            label="برچسب پروژه (متن آزاد، بدون اتصال)"
+            label="نام نمایشی پروژه (اختیاری)"
             name="form.project"
             column-hint="project"
             wire:model="form.project"
             icon="folder"
-            placeholder="نام سفارشی یا برچسب یکتا را وارد کنید (اختیاری)…"
+            placeholder="نامی برای نمایش و دسته‌بندی…"
             :disabled="$isReadOnly"
         />
 
         <div class="flex items-start gap-1.5 px-1 text-[11px] leading-relaxed text-right text-[var(--md-sys-color-on-surface-variant)]">
             <span class="shrink-0 mt-0.5 text-[15px] text-[var(--md-sys-color-primary)] material-symbols-rounded">info</span>
             <span>
-                شناسه سیستمی به‌صورت خودکار تخصیص می‌یابد؛ با این حال می‌توانید برای دسته‌بندی بهتر، ثبت عنوان جدید یا یکپارچه‌سازی وظایف آزاد قبلی، یک <strong>نام یا برچسب یکتا</strong> وارد کنید.
+                این قسمت فقط یک نام است و پروژه نمی‌سازد. برای اتصال وظیفه به یک پروژهٔ ثبت‌شده، از گزینهٔ «پروژه» در زبانهٔ «جزئیات وظیفه» استفاده کنید.
             </span>
         </div>
     </div>
@@ -68,12 +69,13 @@
 
     <div class="{{ $sectionHeaderClass }}">
         <span class="text-lg material-symbols-rounded">hub</span>
-        منشاء اقدام
+        این کار از کجا درخواست شده؟
     </div>
 
-    <x-ui.forms.textarea label="حوزه منشاء اقدام" name="form.actionSourceDomain" wire:model="form.actionSourceDomain" icon="hub" rows="2" :disabled="$isReadOnly" />
+    <x-ui.forms.textarea label="دستهٔ منبع درخواست" name="form.actionSourceDomain" wire:model="form.actionSourceDomain" icon="hub" rows="2" :disabled="$isReadOnly" />
 
-    <x-ui.forms.textarea label="منشاء اقدام" name="form.actionSource" wire:model="form.actionSource" icon="hub" rows="2" :disabled="$isReadOnly" />
+    <x-ui.forms.textarea label="منبع درخواست" name="form.actionSource" wire:model="form.actionSource" icon="hub" rows="2" :disabled="$isReadOnly" />
+    <p class="md:col-span-2 text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">این دو قسمت اختیاری‌اند. مثلاً دسته را «جلسه» و منبع را «جلسهٔ برنامه‌ریزی ۲۰ آبان» بنویسید تا بعداً کارهای آن جلسه را پیدا کنید.</p>
 
     <div class="md:col-span-2">
         <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] transition-all overflow-hidden">

@@ -30,9 +30,11 @@ use App\Enums\ChannelRole;
 use App\Enums\ChannelType;
 use App\Models\Channel;
 use App\Models\ChannelMessage;
+use App\Models\Department;
 use App\Models\User;
 use App\Services\Messaging\PollDigestService;
 use App\Support\ChannelAccessPolicy;
+use App\Traits\Livewire\BulkSelectsPeople;
 use App\Traits\Livewire\ChatComposer;
 use App\Traits\Livewire\FocusOnRecord;
 use App\Traits\Livewire\ForwardsMessages;
@@ -57,6 +59,7 @@ use Illuminate\View\View;
 #[Lazy]
 class Main extends Component
 {
+    use BulkSelectsPeople;
     use ChatComposer, ForwardsMessages, WithFileUploads;
     use FocusOnRecord {
         clearFocus as baseClearFocus;
@@ -276,13 +279,55 @@ class Main extends Component
     }
 
     #[Computed]
+    public function deptOptions(): array
+    {
+        return Department::getCachedOptions()->toArray();
+    }
+
+    #[Computed]
     public function memberCandidates(): array
     {
+        $depts = User::getCachedActiveDeptMap();
+
         return User::getCachedActiveOptions()
             ->except(array_merge([auth()->id()], $this->lockedMemberIds($this->activeChannel)))
-            ->map(fn($name, $id) => ['id' => (int)$id, 'name' => $name])
+            ->map(fn($name, $id) => ['id' => (int)$id, 'name' => $name, 'dept' => $depts[(int)$id] ?? ''])
             ->values()
             ->all();
+    }
+
+    protected function bulkSelectTargets(): array
+    {
+        return ['memberRecipientIds', 'adminRecipientIds', 'createRecipientIds'];
+    }
+
+    protected function canBulkSelect(string $property): bool
+    {
+        $channel = $this->activeChannel;
+        $user = auth()->user();
+
+        return match ($property) {
+            'createRecipientIds' => $this->createMode,
+            'memberRecipientIds' => $this->isManageMembersOpen && $channel && ChannelAccessPolicy::canManageMembers($channel, $user),
+            'adminRecipientIds' => $this->isManageAdminsOpen && $channel && ChannelAccessPolicy::canManageAdmins($channel, $user),
+            default => false,
+        };
+    }
+
+    protected function bulkPeoplePool(string $property, ?string $dept = null): array
+    {
+        if ($property === 'adminRecipientIds') {
+            $ownerId = (int) $this->activeChannel?->owner_id;
+            $depts = User::getCachedActiveDeptMap();
+
+            return $this->activeChannelMemberUsers
+                ->filter(fn (User $user) => (int) $user->id !== $ownerId && $user->isActive() && $user->pivot->entered_at !== null)
+                ->when($dept !== null, fn ($users) => $users->filter(fn (User $user) => ($depts[(int) $user->id] ?? '') === $dept))
+                ->map(fn (User $user) => (int) $user->id)
+                ->values()->all();
+        }
+
+        return array_values(array_diff($this->bulkDefaultPeoplePool($dept), $this->lockedMemberIds($this->activeChannel)));
     }
 
     #[Computed]
@@ -1082,10 +1127,12 @@ class Main extends Component
 
         $ownerId = (int) $this->activeChannel?->owner_id;
 
+        $depts = User::getCachedActiveDeptMap();
+
         return $this->activeChannelMemberUsers
             ->filter(fn(User $user) => (int) $user->id !== $ownerId && $user->isActive() && $user->pivot->entered_at !== null)
             ->sortBy('name')
-            ->map(fn(User $user) => ['id' => (int) $user->id, 'name' => $user->name])
+            ->map(fn(User $user) => ['id' => (int) $user->id, 'name' => $user->name, 'dept' => $depts[(int) $user->id] ?? ''])
             ->values()
             ->all();
     }

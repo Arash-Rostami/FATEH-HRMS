@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import * as fontkit from 'fontkit';
 import subsetFont from 'subset-font';
 import {buildLogos} from './logos.mjs';
+import {buildTenantIcons} from './tenant-icons.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..', '..');
@@ -94,6 +95,7 @@ if (missingSentinel.length) {
 if (report) process.exit(0);
 
 await buildLogos(root);
+await buildTenantIcons(root);
 
 const stamp = createHash('sha1')
     .update(names.join(','))

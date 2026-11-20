@@ -23,12 +23,17 @@ class TicketResource extends SearchResource
         return $this->route('ths', $row->getKey());
     }
 
+    protected function selectList(): string
+    {
+        return '`id`, `request_subject`, `description`';
+    }
+
     protected function applyTokenFilter(Builder $builder, array $tokens): void
     {
         foreach ($tokens as $token) {
             $builder->where(function (Builder $query) use ($token) {
                 foreach ($this->columns as $column) {
-                    $query->orWhere($column, 'like', '%' . $token . '%');
+                    $query->orWhere($column, 'like', '%' . $this->like($token) . '%');
                 }
 
                 $query->orWhereIn('request_type', Ticket::searchRequestKeys('request_type', $token))

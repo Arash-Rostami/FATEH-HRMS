@@ -18,6 +18,8 @@ trait HasLaunchpadHooks
 
     private static function deleteFilesAndFlush(self $row): void
     {
+        $row->newQueryWithoutScopes()->whereKey($row->getKey())->toBase()->update(['source' => null, 'refresh_due_at' => null]);
+
         if (($directory = $row->directory()) !== null) {
             self::deleteStoredDirectory($directory);
         }

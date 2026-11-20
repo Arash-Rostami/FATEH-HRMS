@@ -16,7 +16,7 @@
                             <span x-show="b.time" dir="ltr" x-text="b.time"></span>
                         </span>
                     </button>
-                    <button type="button" x-on:click="removeBookmark(b.id)" aria-label="برداشتن نشان پیام" title="برداشتن نشان پیام"
+                    <button type="button" x-on:click="removeBookmark(b.id)" aria-label="برداشتن نشان" title="برداشتن نشان"
                             class="w-9 shrink-0 flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-error)] transition-colors">
                         <span class="material-symbols-rounded text-[16px]">bookmark_remove</span>
                     </button>

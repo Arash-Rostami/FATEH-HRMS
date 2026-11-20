@@ -164,6 +164,10 @@ Each resource then runs, in MySQL:
 
 - Rows ordered by `search_relevance DESC`, then `$orderBy DESC`, capped at `$groupLimit` (5). Groups sorted by their top score, then flattened into one list.
 
+**Query bounds and literal matching (2026-11-20).** `SearchContext::for()` cuts the raw query to 100 characters, drops repeated tokens and keeps at most 5, so one request can never fan out into hundreds of `LIKE`/`CASE` terms. `SearchResource::like()` escapes `\`, `%` and `_` in every token (filter, prefix and token score bindings, and `TicketResource`'s own filter), so typing `%` or `_` matches that character, not everything; `CorrespondenceResource` keeps its own `escapeToken()` with the 64-character token cap. `CommandPalette::updatedQuery()` allows 60 searches per user per minute (`RateLimiter` key `cmd-search:{id}`); over the limit it returns an empty list.
+
+**Scopes tightened the same day.** `ReservationResource` shows only active resources of the types the user may book (`User::booking`: `all` or a `true` type), the same rule as `Reservation\Main::userCanBook`. `EventResource` mirrors `CalendarPresenter`: own, non-private, or shared with me, with `withoutOffModuleSyncs()`; ownerless private events are no longer searchable. `LinkResource` scans `url_title` and `url_description` only (the `link` column is the internal/external kind). `PeopleResource`, `CredentialResource` and `TicketResource` override `selectList()` so password hashes, 2FA secrets and encrypted credential passwords are never loaded.
+
 ---
 
 ## 5. Action strings & URL navigation types

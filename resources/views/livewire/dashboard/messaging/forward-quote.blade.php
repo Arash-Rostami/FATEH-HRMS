@@ -14,7 +14,7 @@
                     'text-[10px] font-bold mb-0.5 truncate',
                     'text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_85%,transparent)]' => $msg['is_mine'],
                     'text-[var(--md-sys-color-primary)]' => !$msg['is_mine']
-                ])>بازفرستاده‌شده</p>
+                ])>بازارسال‌شده</p>
             @if($msg['forwarded_html'] !== '')
                 <span dir="auto" class="block break-words text-sm [unicode-bidi:plaintext]">{!! $msg['forwarded_html'] !!}</span>
             @endif

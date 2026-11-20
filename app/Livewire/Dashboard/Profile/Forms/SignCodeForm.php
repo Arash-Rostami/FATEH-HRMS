@@ -13,6 +13,14 @@ class SignCodeForm extends Form
 
     public string $code = '';
 
+    protected function validationAttributes(): array
+    {
+        return [
+            'current_password' => __('resources/correspondence/strings.profile.sign_code_password_label'),
+            'code' => __('resources/correspondence/strings.profile.sign_code_label'),
+        ];
+    }
+
     protected function rules(): array
     {
         return [

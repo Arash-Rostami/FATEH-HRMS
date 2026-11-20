@@ -4,7 +4,7 @@
    
     dir="rtl"
     x-data="reservation()"
-    @confirmation-confirmed.window="$wire.call($event.detail.method, $event.detail.params)"
+    @confirmation-confirmed.window="{{ confirmDialogListener(['book' => true, 'cancel' => true]) }}"
 >
     <div class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">
 
@@ -28,7 +28,7 @@
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'reservation-legend' })"
-                    title="راهنمای وضعیت رزرو"
+                    title="راهنمای رزرو"
                     class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
                 >
                     <span class="material-symbols-rounded text-lg">help</span>
@@ -36,7 +36,8 @@
             </x-slot:actions>
         </x-ui.title>
 
-        <x-ui.modals.dialog name="reservation-legend" title="راهنمای وضعیت رزرو">
+        <p class="mb-4 text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">نوع مورد و تاریخ را انتخاب کنید. برای رزرو ساعتی، شروع و پایان را هم مشخص کنید؛ سپس مورد دلخواه را انتخاب و خلاصهٔ رزرو را تأیید کنید.</p>
+        <x-ui.modals.dialog name="reservation-legend" title="راهنمای رزرو">
             @include('livewire.dashboard.reservation.legend')
         </x-ui.modals.dialog>
 
@@ -53,7 +54,7 @@
             <div wire:key="reservation-view-classic" class="contents">
                 @if(empty($tabs))
                     <div wire:key="reservation-classic-no-permission" class="contents">
-                        <x-ui.empty icon="lock" title="دسترسی رزرو ندارید" description="مجوز رزرو هیچ نوع منبعی برای شما فعال نشده است. با مدیر سیستم تماس بگیرید." variant="list" />
+                        <x-ui.empty icon="lock" title="دسترسی رزرو ندارید" description="برای شما اجازهٔ رزرو فعال نشده است. از مدیر سامانه کمک بگیرید." variant="list" />
                     </div>
                 @else
                 <div wire:key="reservation-classic-booking" class="contents">
@@ -85,9 +86,9 @@
                     @if(count($this->facets) > 0)
                         <div wire:key="resv-facets-panel-classic" class="contents">
                             <x-ui.forms.filters
-                                placeholder="جستجوی منابع..."
+                                placeholder="جستجو با نام مورد رزرو…"
                                 searchModel="resourceSearch"
-                                filterTitle="فیلتر منابع"
+                                filterTitle="پیدا کردن مورد رزرو"
                                 activeCondition="Object.keys(this.$wire.get('facetFilters') || {}).length > 0"
                                 clearAction="this.$wire.call('resetFilters', true)"
                             >

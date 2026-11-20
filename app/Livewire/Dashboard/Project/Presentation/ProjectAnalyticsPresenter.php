@@ -46,7 +46,7 @@ class ProjectAnalyticsPresenter
                 'charts' => ['atRiskByPriority', 'horizon'],
             ],
             'people' => [
-                'label' => 'بار افراد',
+                'label' => 'کارهای اعضا',
                 'icon' => 'group',
                 'charts' => ['perAssignee', 'doneByAssignee', 'labelsDistribution', 'departmentCompletion'],
             ],
@@ -58,8 +58,8 @@ class ProjectAnalyticsPresenter
         return match ($chartKey) {
             'throughput' => [
                 'type' => 'line',
-                'label' => 'ریتم تکمیل هفتگی',
-                'description' => 'تعداد وظایف تکمیل‌شده در هر هفته — نوسان ریتم پروژه را نشان می‌دهد.',
+                'label' => 'کارهای انجام‌شده در هر هفته',
+                'description' => 'نشان می‌دهد در هر هفته چند وظیفه انجام شده است.',
                 'options' => [
                     'plugins' => ['legend' => ['display' => false]],
                     'scales' => ['x' => [], 'y' => ['beginAtZero' => true]],
@@ -67,8 +67,8 @@ class ProjectAnalyticsPresenter
             ],
             'staleDistribution' => [
                 'type' => 'bar',
-                'label' => 'توزیع رکود کار',
-                'description' => 'کارهای ناتمام بر اساس آخرین تغییر — میزان چسبیدن و رهاشدن کارها در جریان.',
+                'label' => 'مدت بی‌تغییر ماندن کارها',
+                'description' => 'نشان می‌دهد از آخرین تغییر هر وظیفهٔ ناتمام چقدر گذشته است؛ برای پیدا کردن کارهای نیازمند پیگیری.',
                 'options' => [
                     'plugins' => ['legend' => ['display' => false]],
                     'scales' => ['x' => ['beginAtZero' => true], 'y' => []],
@@ -77,7 +77,7 @@ class ProjectAnalyticsPresenter
             'cycleDistribution' => [
                 'type' => 'bar',
                 'label' => 'توزیع مدت انجام',
-                'description' => 'وظایف تکمیل‌شده بر اساس مدت از ایجاد تا انجام (میانه، نه میانگین) — دنبالهٔ سنگین یعنی گلوگاه در جریان.',
+                'description' => 'وظایف انجام‌شده را بر اساس زمان بین ثبت و انجام دسته‌بندی می‌کند؛ ستون‌های زمان طولانی‌تر، کارهای زمان‌بر را نشان می‌دهند.',
                 'options' => [
                     'plugins' => ['legend' => ['display' => false]],
                     'scales' => ['x' => ['beginAtZero' => true], 'y' => []],
@@ -91,8 +91,8 @@ class ProjectAnalyticsPresenter
             ],
             'horizon' => [
                 'type' => 'bar',
-                'label' => 'افق مهلت‌ها',
-                'description' => 'توزیع وظایف ناتمام بر اساس فاصلهٔ مهلت — بخش «بدون مهلت» شکاف برنامه‌ریزی است.',
+                'label' => 'چقدر تا مهلت کارها مانده؟',
+                'description' => 'کارهای ناتمام را بر اساس زمان باقی‌مانده تا مهلت جدا می‌کند. «بدون مهلت» یعنی تاریخی برای انجام کار ثبت نشده است.',
                 'options' => [
                     'plugins' => ['legend' => ['display' => false]],
                     'scales' => ['x' => ['beginAtZero' => true], 'y' => []],
@@ -100,8 +100,8 @@ class ProjectAnalyticsPresenter
             ],
             'perAssignee' => [
                 'type' => 'bar',
-                'label' => 'بار کار روی هر مسئول',
-                'description' => 'وظایف باز هر فرد، تجمیعی بر اساس وضعیت — توزیع فشار کار در تیم.',
+                'label' => 'کارهای ناتمام هر مسئول',
+                'description' => 'تعداد کارهای هر مسئول را به تفکیک وضعیت نشان می‌دهد؛ این تعداد، زمان یا دشواری کارها را اندازه نمی‌گیرد.',
                 'options' => [
                     'plugins' => ['legend' => ['display' => true]],
                     'scales' => ['x' => ['stacked' => true], 'y' => ['stacked' => true, 'beginAtZero' => true]],
@@ -109,8 +109,8 @@ class ProjectAnalyticsPresenter
             ],
             'doneByAssignee' => [
                 'type' => 'bar',
-                'label' => 'تکمیل به نام مسئول',
-                'description' => 'تعداد وظایف انجام‌شدهٔ هر مسئول — مکمل بار باز؛ خالی‌بودنِ بار لزوماً بیکاری نیست.',
+                'label' => 'کارهای انجام‌شدهٔ هر مسئول',
+                'description' => 'تعداد کارهای انجام‌شدهٔ هر مسئول را نشان می‌دهد. کم بودن کارهای باز به‌تنهایی به معنی کم‌کاری نیست.',
                 'options' => [
                     'plugins' => ['legend' => ['display' => false]],
                     'scales' => ['x' => ['beginAtZero' => true], 'y' => []],
@@ -119,13 +119,13 @@ class ProjectAnalyticsPresenter
             'labelsDistribution' => [
                 'type' => 'doughnut',
                 'label' => 'پراکندگی برچسب‌ها',
-                'description' => 'تکراربرترین برچسب‌های روی وظایف پروژه.',
+                'description' => 'برچسب‌هایی که بیشتر روی وظایف این پروژه استفاده شده‌اند.',
                 'options' => ['plugins' => ['legend' => ['display' => true]]],
             ],
             'departmentCompletion' => [
                 'type' => 'bar',
-                'label' => 'پیشرفت بر اساس دپارتمان',
-                'description' => 'نسبت وظایف انجام‌شده به باقی‌مانده در هر دپارتمان.',
+                'label' => 'پیشرفت هر بخش سازمانی',
+                'description' => 'تعداد کارهای انجام‌شده و باقی‌ماندهٔ هر بخش سازمانی را مقایسه می‌کند.',
                 'options' => [
                     'plugins' => ['legend' => ['display' => true]],
                     'scales' => ['x' => ['stacked' => true], 'y' => ['stacked' => true, 'beginAtZero' => true]],
@@ -246,11 +246,11 @@ class ProjectAnalyticsPresenter
 
         $flowVerdict = [];
         if (($flow['medianCycle'] ?? null) !== null) {
-            $flowVerdict[] = 'میانهٔ چرخهٔ انجام ' . $flow['medianCycle'] . ' روز است.';
+            $flowVerdict[] = 'زمان معمول انجام کارها ' . $flow['medianCycle'] . ' روز است.';
         }
         $idle = (int) ($flow['stale']['idle_30_plus'] ?? 0);
         if ($idle > 0) {
-            $flowVerdict[] = $idle . ' کار بیش از ۳۰ روز بی‌تغیر مانده‌اند.';
+            $flowVerdict[] = $idle . ' کار بیش از ۳۰ روز بی‌تغییر مانده‌اند.';
         }
 
         $riskVerdict = [];
@@ -259,22 +259,22 @@ class ProjectAnalyticsPresenter
         }
         $fire = (int) ($risk['matrix']['fireCount'] ?? 0);
         if ($fire > 0) {
-            $riskVerdict[] = $fire . ' کار فوری هنوز شروع/در حال انجام است.';
+            $riskVerdict[] = $fire . ' کار فوری هنوز انجام نشده است.';
         }
         $adherence = $risk['adherence'] ?? null;
         if ($adherence !== null) {
-            $riskVerdict[] = 'الزام به مهلت: ' . $adherence['onTime'] . ' از ' . $adherence['total'] . '.';
+            $riskVerdict[] = 'انجام به‌موقع: ' . $adherence['onTime'] . ' از ' . $adherence['total'] . '.';
         }
 
         $peopleVerdict = [];
         if (($people['orphanCount'] ?? 0) > 0) {
-            $peopleVerdict[] = $people['orphanCount'] . ' کار بی‌مسئول رها شده‌اند.';
+            $peopleVerdict[] = $people['orphanCount'] . ' کار هنوز مسئول انجام ندارند.';
         }
-        $peopleVerdict[] = round($people['delegationRatio'] ?? 0) . '٪ کارها محول‌شده به غیر هستند.';
+        $peopleVerdict[] = round($people['delegationRatio'] ?? 0) . '٪ کارها به فردی غیر از ثبت‌کننده سپرده شده‌اند.';
 
         return [
-            'flow' => implode(' ', $flowVerdict) ?: 'پروژه در جریان است.',
-            'risk' => implode(' ', $riskVerdict) ?: 'هیچ ریسک سررسید فعالی نیست.',
+            'flow' => implode(' ', $flowVerdict) ?: 'هنوز دادهٔ کافی برای این جمع‌بندی ثبت نشده است.',
+            'risk' => implode(' ', $riskVerdict) ?: 'در این بررسی، کار فوریِ ناتمام یا مهلت نزدیک دیده نمی‌شود.',
             'people' => implode(' ', $peopleVerdict),
         ];
     }
@@ -283,13 +283,13 @@ class ProjectAnalyticsPresenter
     {
         $kpis = [];
         if (($flow['medianCycle'] ?? null) !== null) {
-            $kpis[] = ['label' => 'میانهٔ چرخه', 'value' => $flow['medianCycle'] . ' روز', 'icon' => 'timer', 'tone' => 'primary'];
+            $kpis[] = ['label' => 'زمان معمول انجام', 'value' => $flow['medianCycle'] . ' روز', 'icon' => 'timer', 'tone' => 'primary'];
         }
         $kpis[] = ['label' => 'تکمیل این هفته', 'value' => (string) ($flow['doneThisWeek'] ?? 0), 'icon' => 'check_circle', 'tone' => 'tertiary'];
         $stale = $flow['stale'] ?? ['active' => 0, 'idle_7_14' => 0, 'idle_14_30' => 0, 'idle_30_plus' => 0];
         $kpis[] = ['label' => 'فعال (۷ روز)', 'value' => (string) $stale['active'], 'icon' => 'bolt', 'tone' => 'secondary'];
         if ($stale['idle_30_plus'] > 0) {
-            $kpis[] = ['label' => 'بی‌تغیر +۳۰ روز', 'value' => (string) $stale['idle_30_plus'], 'icon' => 'pause_circle', 'tone' => 'error'];
+            $kpis[] = ['label' => 'بی‌تغییر +۳۰ روز', 'value' => (string) $stale['idle_30_plus'], 'icon' => 'pause_circle', 'tone' => 'error'];
         }
 
         return $kpis;

@@ -23,7 +23,7 @@
         :warn="! $exhausted && $quotaPct >= 80 ? 'فقط '.convertToPersian((string) $quotaLeft).' بار دیگر امروز می‌توانید گزارش بسازید یا اصلاح کنید.' : null" />
     <div wire:key="ai-report-rules" x-data="{ open: false }" class="print:hidden">
         <x-ui.buttons.form variant="ghost" icon="rule" x-on:click="open = !open" x-bind:aria-expanded="open" class="!h-8 !px-2 text-[11px] font-bold">
-            قوانین
+            محدودیت‌ها و نکته‌های مهم
             <x-ui.badge class="!px-1.5 !py-0 !text-[10px]">{{ convertToPersian((string) count($rules)) }}</x-ui.badge>
             <span class="material-symbols-rounded text-[16px] transition-transform duration-200" :class="open ? 'rotate-180' : ''">expand_more</span>
         </x-ui.buttons.form>
@@ -50,7 +50,7 @@
         <div wire:key="ai-report-inactive-composer" class="contents">
             <x-ui.notice-card icon="visibility_off" :actions="[['label' => 'فعال‌سازی دوباره', 'onClick' => '$wire.toggleActive()', 'variant' => 'secondary']]">
                 <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">این گزارش غیرفعال است.</p>
-                <p class="text-[11px] leading-6 mt-1 text-[var(--md-sys-color-on-surface-variant)]">تا دوباره فعال نشود، نمی‌توانید آن را اصلاح کنید و درخواست تازه‌ای هم جای آن ساخته نمی‌شود؛ برای بازگشت، فعالش کنید.</p>
+                <p class="text-[11px] leading-6 mt-1 text-[var(--md-sys-color-on-surface-variant)]">برای اصلاح این گزارش، ابتدا آن را دوباره فعال کنید. برای ساخت گزارشی جدا، دکمهٔ «گزارش جدید» بالای صفحه را بزنید.</p>
             </x-ui.notice-card>
         </div>
     @else
@@ -61,19 +61,20 @@
                 <option value="{{ $key }}">{{ $type['label'] }}</option>
             @endforeach
         </x-ui.forms.select>
-        <x-ui.forms.select label="حجم گزارش" name="form.length" wire:model="form.length" icon="straighten" :disabled="$sectionRefine">
+        <x-ui.forms.select label="میزان توضیحات گزارش" name="form.length" wire:model="form.length" icon="straighten" :disabled="$sectionRefine">
             @foreach(config('ai.report.lengths') as $key => $length)
                 <option value="{{ $key }}">{{ $length['label'] }}</option>
             @endforeach
         </x-ui.forms.select>
-        <x-ui.forms.select label="مخاطب" name="form.audience" wire:model="form.audience" icon="groups">
+        <x-ui.forms.select label="گروه مخاطب گزارش" name="form.audience" wire:model="form.audience" icon="groups">
             @foreach(config('ai.report.audiences') as $key => $audience)
                 <option value="{{ $key }}">{{ $audience['label'] }}</option>
             @endforeach
         </x-ui.forms.select>
     </div>
+    <p class="text-[10.5px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">نوع گزارش، قالب پیشنهادی آن را تعیین می‌کند. میزان توضیحات، کوتاه یا مفصل بودن متن را مشخص می‌کند؛ تعداد صفحهٔ چاپی ممکن است فرق کند. انتخاب گروه مخاطب فقط شیوهٔ نوشتن را تغییر می‌دهد و به کسی دسترسی نمی‌دهد؛ اشتراک‌گذاری جداگانه انجام می‌شود.</p>
     @if($sectionRefine)
-        <p wire:key="ai-report-section-refine-hint" class="text-[10.5px] text-[var(--md-sys-color-on-surface-variant)]">نوع و حجم گزارش برای اصلاح یک بخش اثری ندارند؛ فقط مخاطب اعمال می‌شود.</p>
+        <p wire:key="ai-report-section-refine-hint" class="text-[10.5px] text-[var(--md-sys-color-on-surface-variant)]">در اصلاح یک بخش، نوع و میزان توضیحات گزارش تغییر نمی‌کند؛ فقط گروه مخاطب و درخواست شما برای همان بخش در نظر گرفته می‌شود.</p>
     @endif
     @php($originalPrompt =$refining ? $presenter->originalPrompt($report) : null)
     @if($originalPrompt !== null)
@@ -84,10 +85,10 @@
                          x-on:input="count($event)"
                          x-on:keydown.ctrl.enter.prevent="submit()"
                          x-on:keydown.meta.enter.prevent="submit()"/>
-    <p wire:key="ai-report-prompt-hint" class="text-[10.5px] text-[var(--md-sys-color-on-surface-variant)]">طول درخواست از {{ $limits['prompt_min'] }} تا {{ $limits['prompt_max'] }} حرف است.</p>
+    <p wire:key="ai-report-prompt-hint" class="text-[10.5px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">موضوع، بازهٔ زمانی و نتیجه‌ای را که می‌خواهید بنویسید؛ مثلاً «فروش مهر را از فایل پیوست خلاصه کن و با شهریور مقایسه کن». اطلاعات لازم را در متن یا فایل بدهید. درخواست باید {{ $limits['prompt_min'] }} تا {{ $limits['prompt_max'] }} حرف داشته باشد.</p>
     <p wire:key="ai-report-prompt-count" class="text-[10.5px] text-[var(--md-sys-color-on-surface-variant)]"><span class="tabular-nums" x-text="faCount()">{{ convertToPersian(mb_strlen((string) ($this->form->prompt ?? ''))) }}</span> / {{ $limits['prompt_max'] }} حرف</p>
     @if($refining)
-        <p wire:key="ai-report-refine-hint" class="text-[10.5px] text-[var(--md-sys-color-on-surface-variant)]">این متن فقط تغییر مورد نظر را توضیح می‌دهد؛ نیازی به نوشتن دوبارهٔ کل درخواست نیست. فایل‌های پیوست نگه داشته نمی‌شوند؛ اگر به آن‌ها نیاز دارید، دوباره پیوست کنید.</p>
+        <p wire:key="ai-report-refine-hint" class="text-[10.5px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">فقط بگویید چه چیزی عوض شود؛ مثلاً «جمع‌بندی را کوتاه‌تر کن». لازم نیست درخواست قبلی را دوباره بنویسید. فایل‌های قبلی نگه داشته نمی‌شوند؛ اگر اصلاح به آن‌ها نیاز دارد، دوباره پیوست کنید. هر اصلاح با هوش مصنوعی، حتی اصلاح یک بخش، یک نوبت از سهمیهٔ امروز مصرف می‌کند.</p>
     @endif
     @if($blockLabel !== null)
         <div wire:key="ai-report-block-chip" class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
@@ -103,7 +104,7 @@
     @endif
 
     <x-ui.notice-card icon="shield">
-        <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">متن و فایل‌های پیوست برای تولید گزارش به سرویس هوش مصنوعی خارجی ارسال می‌شود؛ اطلاعات محرمانه پیوست نکنید.</p>
+        <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">متن درخواست و فایل‌ها برای ساخت گزارش به سرویس هوش مصنوعی خارج از سامانه فرستاده می‌شوند. اطلاعات محرمانه را در متن ننویسید و در فایل‌ها هم قرار ندهید.</p>
     </x-ui.notice-card>
 
     <div class="flex flex-col gap-2">
@@ -167,7 +168,7 @@
         <div wire:key="ai-report-quota-exhausted">
             <x-ui.notice-card icon="error">
                 <p class="text-xs font-bold text-[var(--md-sys-color-error)]">سهمیهٔ امروز شما به پایان رسیده است.</p>
-                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">ساخت گزارش فردا از نو شروع می‌شود.</p>
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">از فردا دوباره می‌توانید با هوش مصنوعی گزارش بسازید یا اصلاح کنید. مشاهده، ویرایش دستی و چاپ گزارش‌های موجود سهمیه مصرف نمی‌کنند.</p>
             </x-ui.notice-card>
         </div>
     @endif

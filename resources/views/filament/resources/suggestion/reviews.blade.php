@@ -35,7 +35,7 @@
                                 {{ $item['label'] }}
                             </span>
                             @if ($item['is_ma'])
-                                <x-filament::badge color="primary" size="xs">CEO</x-filament::badge>
+                                <x-filament::badge color="primary" size="xs">تصمیم نهایی</x-filament::badge>
                             @endif
                             @if ($item['is_action'])
                                 <x-filament::badge color="warning" size="xs">
@@ -50,7 +50,7 @@
 
                     @if ($review->comments)
                         <p class="text-xs leading-relaxed text-gray-700 dark:text-gray-300">
-                            {{ $review->comments }}
+                            {{ $item['is_system_generated'] ? 'این واحد در مهلت بررسی پاسخ نداد؛ سامانه «بدون نظر قطعی» ثبت کرد. این نظر به معنی موافقت نیست.' : $review->comments }}
                         </p>
                     @endif
 

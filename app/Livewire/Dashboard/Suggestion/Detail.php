@@ -58,7 +58,7 @@ class Detail extends Component
 
         unset($this->suggestion, $this->myReview, $this->canMarkComplete);
         $this->dispatch('completion-marked');
-        $this->dispatch('toast', message: 'اقدام به عنوان تکمیل‌شده ثبت شد.', type: 'success');
+        $this->dispatch('toast', message: 'انجام کار واحد شما ثبت شد.', type: 'success');
     }
 
     #[Computed]
@@ -111,7 +111,7 @@ class Detail extends Component
         $this->feedbackForm->reset();
         unset($this->suggestion, $this->myReview, $this->canGiveFeedback);
         $this->dispatch('feedback-submitted');
-        $this->dispatch('toast', message: 'بازخورد ثبت شد.', type: 'success');
+        $this->dispatch('toast', message: 'نظر ثبت شد.', type: 'success');
     }
 
     #[Computed]

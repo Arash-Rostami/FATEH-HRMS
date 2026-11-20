@@ -19,7 +19,7 @@
                     اثربخشی
                 </span>
                 @if($this->canSetEffectiveness)
-                    <div wire:key="ths-workspace-effect-form" class="min-w-0 flex items-center gap-1 overflow-x-auto scrollbar-hide" role="radiogroup" aria-label="اثربخشی">
+                    <div wire:key="ths-workspace-effect-form" class="min-w-0 flex items-center gap-1 overflow-x-auto scrollbar-hide" role="radiogroup" aria-label="اثربخشی؛ میزان مفید بودن نتیجهٔ رسیدگی" title="نتیجهٔ رسیدگی چقدر مفید بود؟ انتخاب اختیاری است و فوراً ثبت می‌شود.">
                         @foreach($effectLabels as $value => $label)
                             <x-ui.buttons.form type="button" wire:click="setEffectiveness('{{ $value }}')" loading="setEffectiveness('{{ $value }}')"
                                     role="radio" :aria-checked="$effectiveness === (string) $value ? 'true' : 'false'" :title="$label"
@@ -70,7 +70,7 @@
 
         @if(! $embedded && $this->canClose && $this->ticket->status !== 'closed')
             <x-ui.buttons.form wire:key="ths-close-ticket" type="button" loading="closeTicket" icon="task_alt"
-                    wire:click="closeTicket" wire:confirm="این تیکت بسته شود؟"
+                    x-on:click="{{ confirmDialog('closeTicket', 'بستن تیکت', 'پس از بستن، امکان باز کردن دوباره یا ارسال پاسخ وجود ندارد. تیکت را می‌بندید؟') }}"
                     class="shrink-0 max-[359px]:w-full !h-auto min-h-[36px] max-sm:min-h-[44px] !px-3 !py-1.5 rounded-xl text-xs font-bold bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] hover:brightness-110">
                 بستن تیکت
             </x-ui.buttons.form>

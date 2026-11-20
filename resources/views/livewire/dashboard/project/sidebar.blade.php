@@ -31,7 +31,7 @@
                         <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted('project') ? 'volume_off' : 'volume_up'"></span>
                     </button>
                 @endif
-                <a href="{{ route('tasksheet', ['project' => $activeProjectId]) }}" target="_blank" rel="noopener noreferrer" title="تسک‌شیت" aria-label="تسک‌شیت"
+                <a href="{{ route('tasksheet', ['project' => $activeProjectId]) }}" target="_blank" rel="noopener noreferrer" title="گزارش کارکرد من" aria-label="گزارش کارکرد من"
                    class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] active:scale-90">
                     <span class="material-symbols-rounded text-[14px]">assignment_turned_in</span>
                 </a>

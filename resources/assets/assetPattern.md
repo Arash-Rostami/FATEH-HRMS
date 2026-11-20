@@ -12,6 +12,7 @@ resources/assets/
 │   └── <tenant>/     — per-tenant role-named files + bg/ backdrops, see Tenant-scoped assets below
 ├── js/
 │   └── lib/
+├── docs/             — downloadable guides (Launchpad artifact guide + data update guide), copied as-is by the one `resources/assets/docs` glob target
 └── video/
     └── <tenant>/     — per-tenant sequentially-numbered files, see below
 ```
@@ -22,6 +23,7 @@ resources/assets/
 
 `img/<tenant>/` and `video/<tenant>/` (`<tenant>` = a slug matching a `config/tenants.php` entry, e.g. `fateh`, `persol`) are auto-discovered at config-resolution time via `tenantAsset()`/`tenantVideos()` (`app/Helpers/index.php`) — no filename is ever hardcoded in PHP or Blade. Two different naming conventions apply inside a tenant folder:
 - **Images**: role-named, extension-agnostic — `logo.*`, `light.*`, `dark.*`, `favicon.*`, `user-background.*`, `admin-background.*`. Matched by basename only (`glob("{$dir}/{$role}.*")`), so `.jpg`/`.png`/`.svg`/`.webp` all work interchangeably per tenant.
+- **Install icons** (2026-11-17): `icon-192.*`, `icon-512.*` (square, listed in the `/site.webmanifest` route's `components/manifest.blade.php`) and `apple-touch-icon.*` (180×180, linked in `components/dashboard/meta-tags.blade.php`), same role-name lookup; a tenant without them gets no extra manifest entries and the apple link falls back to the favicon. Missing ones are generated from `logo.*` by every `npm run build` and never overwritten, so a hand-made icon wins (`resources/icons/iconsPattern.md`, "Tenant install icons").
 - **Videos**: sequentially numbered, no fixed count — `1.<ext>`, `2.<ext>`, ... as many as that tenant has.
 - **Backdrops** (`img/<tenant>/bg/`): a third shape — arbitrary count, any filename, matched by `glob("{$dir}/*.*")` (not a fixed role, not sequential numbering). The build only COPIES them (byte-identical; sharp touches nothing here — it only converts `sibling/` logos). Windows gotcha (2026-11-07): while the dev server or a browser tab still holds a backdrop open (e.g. `noon.webp`), `npm run build`'s output-folder wipe fails with `EPERM … lstat` and leaves `public/build` half-deleted; restart the server and rebuild, or run `npm run icons` + `npx vite build --emptyOutDir false` and re-copy `resources/assets/img` into `public/build/assets/img` without overwriting. Powers the user-panel quick-settings dynamic background; see `config/tenantPattern.md`'s "Dynamic user-panel backdrops" section for the full mechanism (`tenantBackdrops()`, the `backdrop_mode` flag, and why a `'time'`-mode tenant's filenames are semantically load-bearing — `morning`/`noon`/`evening`/`night` — while a `'tabs'`-mode tenant's aren't).
 - **Sibling-app logos** (`img/<tenant>/sibling/`, 2026-11-03): matched by NAME, not role — `<name>.<ext>` must equal the sibling's `name` in the tenant's `app.siblings` list (case-insensitive), resolved by `tenantSiblings()`; the build converts each one to an identical 160×160 WebP (`resources/icons/logos.mjs`, output `img/<tenant>/sibling/optimized/`; in `public/build/assets/img/<tenant>/sibling/` only the flat `.webp` files remain, the originals are not shipped); a missing file shows the generic app icon. See `config/tenantPattern.md` («Login-card sibling apps»).
@@ -31,7 +33,7 @@ Onboarding a new tenant is purely additive: add the folder + files, add one `con
 
 ## Build Pipeline
 
-`vite-plugin-static-copy` copies each `resources/assets/{audio,video,img,fonts,js}` tree to `public/build/assets/`, preserving structure, non-hashed. `resources/js/` and `resources/css/` are Vite-processed/hashed separately — never mix. **Exception — streamed media must NOT live under `public/build`:** a playing/streamed file there holds a Windows handle that makes Vite's `emptyOutDir` wipe fail mid-build (EPERM/ENOTEMPTY), half-deleting the served bundle — every asset 404s until the handle releases (even a stuck `php artisan serve` response holds one). The menu-player music therefore lives in **`public/audio/music/`** (hand-copied, gitignored, globbed by the blade), as does the login-card music toggle's `auth.mp3` (`public/audio/music/login/` + source copy at `resources/assets/audio/music/login/` — the `login/` subfolder keeps it out of the menu player's non-recursive library glob; see viewPattern.md §4's login-card music toggle for the full mechanism), and the audio copy target is narrowed to the root alarm files only:
+`vite-plugin-static-copy` copies each `resources/assets/{audio,video,img,fonts,js,docs}` tree to `public/build/assets/`, preserving structure, non-hashed. `resources/js/` and `resources/css/` are Vite-processed/hashed separately — never mix. **Exception — streamed media must NOT live under `public/build`:** a playing/streamed file there holds a Windows handle that makes Vite's `emptyOutDir` wipe fail mid-build (EPERM/ENOTEMPTY), half-deleting the served bundle — every asset 404s until the handle releases (even a stuck `php artisan serve` response holds one). The menu-player music therefore lives in **`public/audio/music/`** (hand-copied, gitignored, globbed by the blade), as does the login-card music toggle's `auth.mp3` (`public/audio/music/login/` + source copy at `resources/assets/audio/music/login/` — the `login/` subfolder keeps it out of the menu player's non-recursive library glob; see viewPattern.md §4's login-card music toggle for the full mechanism), and the audio copy target is narrowed to the root alarm files only:
 
 ```javascript
 viteStaticCopy({
@@ -82,6 +84,7 @@ Tenant-scoped brand assets are never hand-written as literal paths like the abov
 |------------|----------|------------|
 | UI sound effects (alarm, outgoing, incoming) | `audio/` (flat) | Copied as-is |
 | Custom web fonts | `fonts/` | Copied as-is |
+| Downloadable guides (`launchpad-artifact-guide.md`) | `docs/` | Copied as-is to `public/build/assets/docs/`; link with `asset('build/assets/docs/…')` and the `download` attribute (the browser would show `.md` inline otherwise) |
 | Vendored browser-global JS | `js/lib/` | Copied as-is (assigned to `window`, loaded via literal `<script src=asset(...)>`) |
 | Per-tenant brand logos/backgrounds/favicon | `img/<tenant>/` | Copied as-is; role-named, see Tenant-scoped assets above |
 | Per-tenant dynamic backdrop set | `img/<tenant>/bg/` | Copied as-is; arbitrary count/filename, see Tenant-scoped assets above |
@@ -106,3 +109,5 @@ Tenant-scoped brand assets are never hand-written as literal paths like the abov
 ## Service Worker Integration
 
 `resources/js/sw.js` (custom `injectManifest`, via `vite-plugin-pwa`) precaches the static-asset tree via `precacheAndRoute(self.__WB_MANIFEST)`; the precache glob is `**/*.{js,css,html,ico,png,svg,woff,woff2}` (set in `vite.config.mjs` `VitePWA.workbox.globPatterns`). There is no runtime-caching route for `build/assets/` — assets are served from the precache on navigation, fall back to network otherwise.
+
+`VitePWA` carries `manifest: false` (2026-11-17). Without it the plugin wrote a placeholder `manifest.webmanifest` into `public/build/` while `public/sw.js` precached it from the site root: a permanent 404 made every service-worker install fail with `bad-precaching-response`. The app's real manifest is the dynamic `/site.webmanifest` route (`routes/web.php`), not a file; never hand-copy a manifest into `public/`.

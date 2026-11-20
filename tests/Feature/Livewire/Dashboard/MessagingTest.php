@@ -73,6 +73,8 @@ class MessagingTest extends TestCase
         return [
             'plain forward' => [ForwardMessageAction::HEADING . "\n\nOriginal request"],
             'forward with earlier note' => ["Earlier note\n\n" . ForwardMessageAction::HEADING . "\n\nOriginal request"],
+            'legacy heading' => [ForwardMessageAction::LEGACY_HEADING . "\n\nOriginal request"],
+            'legacy heading with earlier note' => ["Earlier note\n\n" . ForwardMessageAction::LEGACY_HEADING . "\n\nOriginal request"],
         ];
     }
 
@@ -96,6 +98,16 @@ class MessagingTest extends TestCase
         $this->assertSame(['note' => '', 'forwarded' => 'Original'], ForwardMessageAction::parts($heading . "\n\nOriginal"));
         $this->assertSame(['note' => 'My note', 'forwarded' => 'Original'], ForwardMessageAction::parts("My note\n\n" . $heading . "\n\nOriginal"));
         $this->assertSame(['note' => '', 'forwarded' => ''], ForwardMessageAction::parts($heading));
+    }
+
+    public function test_forward_parts_accept_both_the_current_and_the_legacy_heading(): void
+    {
+        $legacy = ForwardMessageAction::LEGACY_HEADING;
+
+        $this->assertNotSame(ForwardMessageAction::HEADING, $legacy);
+        $this->assertSame(['note' => '', 'forwarded' => 'Original'], ForwardMessageAction::parts($legacy . "\n\nOriginal"));
+        $this->assertSame(['note' => 'My note', 'forwarded' => 'Original'], ForwardMessageAction::parts("My note\n\n" . $legacy . "\n\nOriginal"));
+        $this->assertSame(['note' => '', 'forwarded' => ''], ForwardMessageAction::parts($legacy));
     }
 
     public function test_both_presenters_split_a_forward_into_note_and_forwarded_text(): void
@@ -127,8 +139,8 @@ class MessagingTest extends TestCase
     {
         $base = ['id' => 5, 'is_mine' => true, 'body' => '', 'body_html' => '', 'reactions' => [], 'attachments' => [], 'can_edit' => false, 'can_delete' => false, 'sender_name' => 'A'];
 
-        $this->assertStringContainsString('بازفرستاده‌شده', view('livewire.dashboard.messaging.forward-quote', ['msg' => $base + ['forwarded_html' => '']])->render());
-        $this->assertStringNotContainsString('بازفرستاده‌شده', view('livewire.dashboard.messaging.forward-quote', ['msg' => $base + ['forwarded_html' => null]])->render());
+        $this->assertStringContainsString('بازارسال‌شده', view('livewire.dashboard.messaging.forward-quote', ['msg' => $base + ['forwarded_html' => '']])->render());
+        $this->assertStringNotContainsString('بازارسال‌شده', view('livewire.dashboard.messaging.forward-quote', ['msg' => $base + ['forwarded_html' => null]])->render());
 
         $actions = view('livewire.dashboard.messaging.message-actions', ['msg' => $base + ['forwarded_html' => 'Original text', 'plain_text' => 'Original text']])->render();
         $this->assertMatchesRegularExpression('/data-text="\s*Original text"/', $actions);

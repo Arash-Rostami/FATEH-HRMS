@@ -146,7 +146,20 @@ class HomeTest extends TestCase
         $this->assertNull(collect($catalog)->firstWhere('title', $homeTitle));
         foreach ($catalog as $item) {
             $this->assertStringContainsString('embed=1', $item['src']);
+            $this->assertSame('module', $item['group']);
         }
+    }
+
+    public function test_gadget_picker_renders_no_tab_row_without_program_options()
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Home::class)
+            ->assertDontSeeHtml('hero-gadget-tabs')
+            ->assertSeeHtml('data-gadget-tile')
+            ->assertSeeHtml('x-init="rows = ')
+            ->assertSeeHtml('usedSrc(rows[0].s)');
     }
 
     public function test_shortcuts_cover_every_module_nav_entry_with_matching_type_and_target()

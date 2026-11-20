@@ -5,7 +5,7 @@
     data-outgoing-sound="{{ asset('build/assets/audio/outgoing.mp3') }}"
     data-incoming-sound="{{ asset('build/assets/audio/incoming.mp3') }}"
     x-on:keydown.ctrl.k.window="focusSearch()"
-    x-on:keydown.escape.window="closeOverlays(); if(max) toggleMaximize(null)"
+    x-on:keydown.escape.window="onEscape($event)"
     x-on:message-forwarded="_syncSidebarAfterOwnAction($wire)"
     role="region"
     aria-label="پیام‌رسان"

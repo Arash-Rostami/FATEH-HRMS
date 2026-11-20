@@ -95,7 +95,7 @@ class ReservationTablePresenter
     public static function id(): TextColumn
     {
         return TextColumn::make('id')
-            ->label('ID')
+            ->label('شناسه')
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: true);
     }
@@ -119,7 +119,7 @@ class ReservationTablePresenter
     public static function isSeries(): TextColumn
     {
         return TextColumn::make('parent_id')
-            ->label('سری')
+            ->label('گروه تکرار')
             ->badge()
             ->formatStateUsing(fn($state) => $state !== null ? 'تکراری' : 'مستقل')
             ->color(fn($state) => $state !== null ? 'warning' : 'gray')

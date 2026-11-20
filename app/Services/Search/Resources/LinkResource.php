@@ -11,7 +11,7 @@ class LinkResource extends SearchResource
     protected string $group = 'لینک‌ها و ابزارها';
     protected string $icon = 'open_in_new';
     protected string $model = Link::class;
-    protected array $columns = ['url_title', 'url_description', 'link'];
+    protected array $columns = ['url_title', 'url_description'];
     protected ?string $titleField = 'url_title';
     protected ?string $subtitleField = 'url_description';
 

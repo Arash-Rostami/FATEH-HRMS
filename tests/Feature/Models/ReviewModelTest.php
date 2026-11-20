@@ -52,7 +52,7 @@ class ReviewModelTest extends TestCase
     {
         $this->assertCount(5, Review::FEEDBACKS);
         $this->assertSame('موافق', Review::FEEDBACKS['agree']);
-        $this->assertSame('نیمه موافق', Review::FEEDBACKS['neutral']);
+        $this->assertSame('بدون نظر قطعی', Review::FEEDBACKS['neutral']);
         $this->assertSame('مخالف', Review::FEEDBACKS['disagree']);
         $this->assertSame('ناقص', Review::FEEDBACKS['incomplete']);
         $this->assertSame('نامشخص', Review::FEEDBACKS['unknown']);

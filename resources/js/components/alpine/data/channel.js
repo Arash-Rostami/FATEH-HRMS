@@ -54,14 +54,11 @@ export default function channel() {
         ...chatBase(SCOPE),
         ...fancyboxMixin(),
         channelCount: 0,
-        cancelInviteeId: null,
         editingOriginal: '',
         isEditing: false,
         editingMsgId: null,
         editingBody: '',
         quoteChip: { visible: false, x: 0, y: 0, id: 0, sender: '', snippet: '' },
-        confirmingDeleteChannel: false,
-        confirmingTypeChange: false,
         keyOpen: false,
         channelKey: '',
         activeSender: null,
@@ -447,17 +444,16 @@ export default function channel() {
 
         openManageMembers(id) {
             if (!id) return;
-            if (this.max) this.toggleMaximize(null);
             this.$wire.openManageMembers(id).catch(() => {});
         },
 
         openManageAdmins(id) {
             if (!id) return;
-            if (this.max) this.toggleMaximize(null);
             this.$wire.openManageAdmins(id).catch(() => {});
         },
 
         closeOverlays() {
+            const wasOpen = this.showInfo || this.searchMessages || this.bookmarksOpen || this.daysOpen || this.emojiOpen || this.$wire.createMode || this.$wire.browseMode || this.replyingTo || this.deletingId || this.openActionsId || this.quoteChip.visible || this.activeSender || this.isEditing;
             this.showInfo = false;
             this.searchMessages = false;
             this.bookmarksOpen = false;
@@ -468,13 +464,12 @@ export default function channel() {
             this.emojiOpen = false;
             this.quoteChip.visible = false;
             this.activeSender = null;
-            this.confirmingDeleteChannel = false;
-            this.confirmingTypeChange = false;
             this.closeChannelKey();
             if (this.$wire.createMode) this.closeCreate();
             if (this.$wire.browseMode) this.toggleBrowse();
             this.$wire.cancelReply();
             this.$wire.cancelEdit();
+            return Boolean(wasOpen);
         },
 
         scrollToMessage(id) {
@@ -534,8 +529,6 @@ export default function channel() {
             this.searchMessages = false;
             this.bookmarksOpen = false;
             this.daysOpen = false;
-            this.confirmingDeleteChannel = false;
-            this.confirmingTypeChange = false;
             this.closeChannelKey();
             this._clearEdit();
 
@@ -671,34 +664,10 @@ export default function channel() {
             this.deletingId = id;
         },
 
-        confirmCancelInvite(id) {
-            this.cancelInviteeId = id;
-        },
-
         async doCancelInvite(channelId, userId) {
             const wire = this.$wire;
-            try {
-                await wire.$island('messages').cancelInvite(channelId, userId);
-                wire.$island('sidebar').refreshUnread();
-            } finally {
-                this.cancelInviteeId = null;
-            }
-        },
-
-        confirmDeleteChannel() {
-            this.confirmingDeleteChannel = true;
-        },
-
-        cancelDeleteChannel() {
-            this.confirmingDeleteChannel = false;
-        },
-
-        confirmTypeChange() {
-            this.confirmingTypeChange = true;
-        },
-
-        cancelTypeChange() {
-            this.confirmingTypeChange = false;
+            await wire.$island('messages').cancelInvite(channelId, userId);
+            wire.$island('sidebar').refreshUnread();
         },
 
         async doChangeType(id, type) {
@@ -709,8 +678,6 @@ export default function channel() {
                 wire.$island('sidebar').refreshUnread();
             } catch {
                 this.toast('خطا در تغییر نوع گروه.', 'error');
-            } finally {
-                this.confirmingTypeChange = false;
             }
         },
 
@@ -745,8 +712,6 @@ export default function channel() {
                 this.syncChannelCount();
             } catch {
                 this.toast('خطا در حذف گروه.', 'error');
-            } finally {
-                this.confirmingDeleteChannel = false;
             }
         },
 
@@ -769,7 +734,7 @@ export default function channel() {
                 await this._isl().send();
                 this.replyingTo = null;
                 this._syncSidebarAfterOwnAction(wire);
-                this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); this.autoGrow(ta(), 160); });
+                this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); this.autoGrow(ta(), 160); this.autoDirection(ta()); });
             } catch {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             } finally {

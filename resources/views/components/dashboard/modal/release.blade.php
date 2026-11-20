@@ -46,7 +46,7 @@
                         </div>
                         <div>
                             <h3 class="text-base font-bold text-[var(--md-sys-color-on-primary-container)]">یادداشت‌های انتشار</h3>
-                            <p class="text-[11px] text-[var(--md-sys-color-on-primary-container)]/70 mt-0.5">نسخه استاندارد شده با پوشش کامل ماژول‌ها و جزئیات کاربردی</p>
+                            <p class="text-[11px] text-[var(--md-sys-color-on-primary-container)]/70 mt-0.5">قابلیت‌های تازه و تغییرات هر نسخه</p>
                         </div>
                     </div>
 
@@ -54,7 +54,7 @@
                         <div class="flex items-center gap-2.5">
                             <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-on-primary-container)]/80"
                                   style="font-variation-settings:'FILL' 1">tips_and_updates</span>
-                            <p class="text-[11px] text-[var(--md-sys-color-on-primary-container)]/70 leading-5">ماژول یا قابلیت جدیدی می‌خواهید؟ پیشنهاد خود را ثبت کنید.</p>
+                            <p class="text-[11px] text-[var(--md-sys-color-on-primary-container)]/70 leading-5">اگر پیشنهادی برای بهبود سامانه یا افزودن یک قابلیت دارید، آن را ثبت کنید.</p>
                         </div>
                         <button type="button"
                                 @click="open = false; $dispatch('open-release-request', { type: 'recommendation' })"
@@ -100,7 +100,7 @@
                                     <span dir="ltr" class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg {{ $versionChipClass }}">{{ $checkpoint['version'] }}</span>
                                     <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-{{ $isNewest ? 'tertiary' : $checkpoint['color'] }}-container)] text-[var(--md-sys-color-on-{{ $isNewest ? 'tertiary' : $checkpoint['color'] }}-container)]">{{ $checkpoint['badge'] }}</span>
                                 </div>
-                                <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] tracking-wider">انجام شده در {{ $checkpoint['period'] }}</span>
+                                <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] tracking-wider">{{ $checkpoint['period'] }}</span>
                             </div>
 
                             <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
@@ -123,7 +123,7 @@
                                         <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
                                             <span class="material-symbols-rounded text-sm" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">build_circle</span>
                                         </div>
-                                        <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">رفع اشکالات و بهبودهای پایداری</h5>
+                                        <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">اصلاح‌ها و بهبودها</h5>
                                     </div>
                                     <ul class="space-y-2">
                                         @foreach($checkpoint['fixes'] as $fix)
@@ -146,7 +146,7 @@
                                           style="font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24">inventory_2</span>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">خلاصه کامل همه ماژول‌ها</h4>
+                                    <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">معرفی بخش‌های سامانه</h4>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">

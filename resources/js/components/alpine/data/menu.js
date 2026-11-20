@@ -16,7 +16,7 @@ const BASE_ITEMS = [
     {id: 'ai-assistant', href: '-', icon: 'auto_awesome', title: 'دستیار هوش مصنوعی', sub: 'گفتگو با هوش مصنوعی', module: 'ai-assistant', action: 'ai-assistant', group: 'فضای کاری', ai: true, requires: 'aiAssistant'},
     {id: 'correspondence-controller', href: '/correspondence', icon: 'mail', title: 'مکاتبات', sub: 'نامه‌های اداری', module: 'correspondence', group: 'خدمات', aiView: 'correspondence:ai'},
     {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس', module: 'dms', group: 'خدمات'},
-    {id: 'launchpad-controller', href: '/launchpad', icon: 'rocket_launch', title: 'پیشخوان برنامه‌ها', sub: 'برنامه‌های تعاملی', module: 'launchpad', group: 'خدمات'},
+    {id: 'launchpad-controller', href: '/launchpad', icon: 'rocket_launch', title: 'پیشخوان برنامه‌ها', sub: 'برنامه‌های تعاملی', module: 'launchpad', group: 'خدمات', ai: true},
     {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری', module: 'ths', group: 'خدمات', aiView: 'ths:ai'},
     {id: 'suggestion-controller', href: '/suggestion', icon: 'lightbulb', title: 'پیشنهادات', sub: 'کانون نقاط نظر سازمانی', group: 'سازمان'},
     {id: 'reservation-seat', href: '/reservation?tab=seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری', resourceType: 'seat', module: 'reservation', group: 'رزرواسیون'},
@@ -351,7 +351,7 @@ export default function menu(options = {}) {
             const inSearch = document.activeElement === input;
             const {key} = e;
 
-            if (key === 'Escape') return this.closeMenu();
+            if (key === 'Escape') { e.preventDefault(); return this.closeMenu(); }
 
             if (key === '/' && !inSearch) {
                 e.preventDefault();

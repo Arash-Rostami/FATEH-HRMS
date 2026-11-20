@@ -76,9 +76,11 @@ export default function aiAssistant(baseSrc) {
         toggleMaximized() {
             this.maximized = !this.maximized;
         },
-        handleEscape() {
+        handleEscape(event) {
+            if (event.defaultPrevented || (!this.maximized && !this.open)) return;
+            event.preventDefault();
             if (this.maximized) this.maximized = false;
-            else if (this.open) this.close();
+            else this.close();
         },
     };
 }

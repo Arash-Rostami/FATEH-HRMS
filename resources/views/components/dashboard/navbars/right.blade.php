@@ -3,8 +3,8 @@
 <aside
     x-data="peek"
     data-active="{{ $activeTab }}"
-    wire:keydown.window.arrow-down.prevent="navigateTab(1)"
-    wire:keydown.window.arrow-up.prevent="navigateTab(-1)"
+    @keydown.window.arrow-down="if (!document.querySelector('.fancybox__container')) { $event.preventDefault(); $wire.navigateTab(1) }"
+    @keydown.window.arrow-up="if (!document.querySelector('.fancybox__container')) { $event.preventDefault(); $wire.navigateTab(-1) }"
     :class="$store.focus.active ? 'focus-dim' : ''"
     class="right-rail hidden lg:flex w-[70px] flex-col items-center gap-2 pt-10 my-auto shrink-0 fixed top-1/5 right-1 z-[9998]"
 >

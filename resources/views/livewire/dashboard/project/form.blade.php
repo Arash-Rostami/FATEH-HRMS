@@ -55,7 +55,7 @@
 
             <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">اعضا</label>
 
-            <x-dashboard.member-picker wire:key="project-form-members-candidates" model="projectForm.memberIds" :candidates="$this->memberCandidates" height="h-72"/>
+            <x-dashboard.member-picker wire:key="project-form-members-candidates" model="projectForm.memberIds" :candidates="$this->memberCandidates" height="h-72" bulk :dept-options="$this->deptOptions"/>
             @error('projectForm.memberIds') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
             @unless($isEditing)
                 <p wire:key="project-form-members-hint" class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">شما مدیر پروژه هستید و خودکار عضو گفتگوی پروژه می‌شوید.</p>
@@ -66,29 +66,34 @@
                     <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">مالک پروژه</label>
                     <x-dashboard.member-picker model="projectForm.ownerId" mode="single" :candidates="$this->ownerCandidates" :search="false" height="h-40"/>
                     @error('projectForm.ownerId') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+                    <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">با ذخیره، مدیریت پروژه به این فرد منتقل می‌شود و شما عضو پروژه می‌مانید. مالک تازه باید از اعضای فعال پروژه باشد.</p>
                 </div>
             @endif
 
-            <x-ui.forms.select label="دپارتمان‌های ذی‌نفع" name="projectForm.departments" wire:model="projectForm.departments" icon="corporate_fare" multiple class="min-h-[160px]">
+            <x-ui.forms.select label="واحدهای دارای دسترسی" name="projectForm.departments" wire:model="projectForm.departments" icon="corporate_fare" multiple class="min-h-[160px]">
                 @foreach($this->availableDepartments as $code => $label)
                     <option value="{{ $code }}">{{ $label }}</option>
                 @endforeach
             </x-ui.forms.select>
             @unless($isEditing)
-                <p wire:key="project-form-departments-hint" class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">همهٔ اعضای دپارتمان‌های انتخاب‌شده، پروژه و گفتگو را می‌بینند.</p>
+                <p wire:key="project-form-departments-hint" class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">اعضای فعال واحدهای انتخاب‌شده به پروژه و گفتگوی آن دسترسی می‌گیرند؛ لازم نیست تک‌تک آن‌ها را انتخاب کنید.</p>
             @endunless
+            <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">با حذف نام یک نفر، اگر هنوز از راه واحدش عضو پروژه باشد، دسترسی او باقی می‌ماند. اگر دسترسی‌اش کاملاً برداشته شود، مسئولیت‌های باز او در پروژه نیز آزاد می‌شوند.</p>
         </div>
 
         <div x-show="tab === 'settings'" class="space-y-5">
             <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:brightness-95 select-none bg-[var(--md-sys-color-surface-variant)]">
                 <x-ui.forms.checkbox name="projectForm.requiresApproval"/>
-                <span class="text-sm text-[var(--md-sys-color-on-surface)]">تأیید مدیر پروژه هنگام «انجام‌شده»</span>
+                <span class="text-sm text-[var(--md-sys-color-on-surface)]">انجام کار به تأیید مالک پروژه نیاز دارد</span>
             </label>
             @error('projectForm.requiresApproval') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+            <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">{{ __('resources/project/strings.hints.requires_approval') }}</p>
 
-            <x-ui.forms.input label="سقف ساعت SLA" name="projectForm.slaHours" wire:model="projectForm.slaHours" icon="schedule" type="number"/>
+            <x-ui.forms.input label="مهلت پیش‌فرض وظیفه (ساعت)" name="projectForm.slaHours" wire:model="projectForm.slaHours" icon="schedule" type="number"/>
+            <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">{{ __('resources/project/strings.hints.sla') }}</p>
 
-            <x-ui.forms.input label="آرشیو خودکار پس از (روز) · پیش‌فرض ۴۵" name="projectForm.autoArchiveDays" wire:model="projectForm.autoArchiveDays" icon="inventory_2" type="number"/>
+            <x-ui.forms.input label="بایگانی خودکار پس از (روز)" name="projectForm.autoArchiveDays" wire:model="projectForm.autoArchiveDays" icon="inventory_2" type="number"/>
+            <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">{{ __('resources/project/strings.hints.auto_archive_days') }} بایگانی، وظیفه را از برد کنار می‌گذارد و آن را حذف نمی‌کند.</p>
 
             <div class="space-y-2" x-data="{ items: @entangle('projectForm.labels'), draft: '', add() { const v = this.draft.trim(); this.draft = ''; if (v && !this.items.includes(v) && this.items.length < 30) this.items = [...this.items, v]; } }">
                 <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">برچسب‌های مجاز وظایف</label>
@@ -106,33 +111,34 @@
                         </span>
                     </template>
                 </div>
-                <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">اگر پر باشد، وظایف فقط از میان این برچسب‌ها انتخاب می‌کنند.</p>
+                <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">اگر برچسبی اضافه کنید، برای برچسب‌های تازهٔ وظایف فقط همین فهرست قابل انتخاب است؛ برچسب‌های قبلی باقی می‌مانند. اگر خالی بگذارید، محدودیتی برای انتخاب برچسب نیست.</p>
                 @error('projectForm.labels') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
             </div>
 
             <x-ui.forms.date
-                label="مهلت پروژه (سقف مهلت وظایف)"
+                label="مهلت نهایی پروژه (اختیاری)"
                 prefix="projectForm.deadline"
                 :startYear="jNow()"
                 :endYear="jNow() + 5"
             />
+            <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">{{ __('resources/project/strings.hints.deadline') }}</p>
             @foreach(['projectForm.deadlineYear', 'projectForm.deadlineMonth', 'projectForm.deadlineDay'] as $errorKey)
                 @error($errorKey) <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
             @endforeach
 
             <div class="space-y-2">
-                <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">متای سفارشی وظایف</label>
+                <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">اطلاعات دلخواه وظایف</label>
                 <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">
-                    برای وظایف این پروژه فیلدهایی با برچسب دلخواه تعریف کنید؛ مقدار هر فیلد هنگام کار روی وظیفه پر می‌شود.
+                    {{ __('resources/project/strings.hints.custom_schema') }} اگر اطلاعات اضافه‌ای لازم ندارید، این قسمت را خالی بگذارید.
                 </p>
 
                 @foreach($projectForm->customSchema as $i => $row)
                     <div class="flex items-center gap-2">
                         <div class="w-2/5">
-                            <x-ui.forms.input label="کلید (a-z، 0-9، _)" name="projectForm.customSchema.{{ $i }}.key" wire:model="projectForm.customSchema.{{ $i }}.key" dir="ltr"/>
+                            <x-ui.forms.input label="نام انگلیسی (a-z، 0-9، _)" name="projectForm.customSchema.{{ $i }}.key" wire:model="projectForm.customSchema.{{ $i }}.key" dir="ltr"/>
                         </div>
                         <div class="flex-1">
-                            <x-ui.forms.input label="برچسب" name="projectForm.customSchema.{{ $i }}.label" wire:model="projectForm.customSchema.{{ $i }}.label"/>
+                            <x-ui.forms.input label="عنوان نمایشی" name="projectForm.customSchema.{{ $i }}.label" wire:model="projectForm.customSchema.{{ $i }}.label"/>
                         </div>
                         <button type="button" wire:click="removeSchemaRow({{ $i }})" aria-label="حذف"
                                 class="flex items-center justify-center w-9 h-9 rounded-lg text-[var(--md-sys-color-error)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] transition-all active:scale-90">
@@ -153,7 +159,7 @@
             <div class="space-y-2">
                 <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">تنظیمات دیگر</label>
                 <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">
-                    هر کلید و مقدار دلخواهی که در گزینه‌های بالا نمی‌گنجد را اینجا اضافه کنید. کلیدهای آماده: escalation_days (ارجاع تأخیر به جوابگو، روز) و due_soon_hours (هشدار نزدیک سررسید، ساعت).
+                    این بخش اختیاری است. برای تنظیمات آماده، نام دقیق را بنویسید: escalation_days یعنی چند روز پس از تأخیر به مسئول پیگیری خبر داده شود؛ due_soon_hours یعنی چند ساعت پیش از مهلت هشدار داده شود. برای این دو، مقدار را به صورت عدد وارد کنید. نام دلخواه، به‌تنهایی قابلیت تازه‌ای در برنامه ایجاد نمی‌کند.
                 </p>
 
                 @foreach($projectForm->extraSettings as $i => $row)

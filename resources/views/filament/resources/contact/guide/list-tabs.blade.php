@@ -1,10 +1,10 @@
 @php
     $tabs = [
         ['icon' => 'chat', 'label' => 'همه', 'badge' => null, 'hint' => 'همهٔ پیام‌ها، چه حذف‌شده و چه فعال، از جدیدترین به قدیمی‌ترین.'],
-        ['icon' => 'mail', 'label' => 'خوانده‌نشده', 'badge' => 'danger', 'hint' => 'پیام‌هایی که <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read_at</code> آن‌ها خالی است. شمارش این زبانه یک نشان قرمز (danger) می‌گیرد.'],
-        ['icon' => 'edit_note', 'label' => 'ویرایش‌شده', 'badge' => null, 'hint' => 'پیام‌هایی که <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">is_edited</code> آن‌ها <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">true</code> است — یعنی متن آن‌ها توسط خود کاربر یا از سمت ادمین ویرایش شده.'],
-        ['icon' => 'delete', 'label' => 'حذف‌شده', 'badge' => 'warning', 'hint' => 'پیام‌های حذف‌شدهٔ نرم (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">onlyTrashed</code>). شمارش این زبانه یک نشان زرد (warning) می‌گیرد. این پیام‌ها هنوز از پایگاه داده حذف نشده‌اند و قابل بازیابی‌اند.'],
-        ['icon' => 'warning', 'label' => 'در آستانهٔ حذف', 'badge' => 'danger', 'hint' => 'پیام‌های حذف‌شدهٔ نرمی که از ۳۰ روز گذشته‌اند (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">deleted_at &lt;= now()-۳۰روز</code>) — در صف حذف خودکار قرار دارند. شمارش این زبانه یک نشان قرمز (danger) می‌گیرد.'],
+        ['icon' => 'mail', 'label' => 'خوانده‌نشده', 'badge' => 'danger', 'hint' => 'پیام‌هایی که هنوز برای گیرنده خوانده‌شده ثبت نشده‌اند.'],
+        ['icon' => 'edit_note', 'label' => 'ویرایش‌شده', 'badge' => null, 'hint' => 'پیام‌هایی که متنشان پس از ارسال تغییر کرده است.'],
+        ['icon' => 'delete', 'label' => 'حذف‌شده', 'badge' => 'warning', 'hint' => 'پیام‌های حذف‌شده تا زمان پاک شدن دائمی، قابل بازیابی‌اند.'],
+        ['icon' => 'warning', 'label' => 'در آستانهٔ حذف', 'badge' => 'danger', 'hint' => 'از حذف این پیام‌ها دست‌کم ۳۰ روز گذشته و آمادهٔ پاک‌سازی خودکارند.'],
     ];
 @endphp
 

@@ -6,27 +6,68 @@ const STORAGE_KEY = 'hero_gadgets';
 const MAX_PANES = 6;
 const NEW_PANE = '__new__';
 const MAX_WIDGET_CLOSE_MS = 350;
+const ESCAPE_REGEX = /[.*+?^${}()|[\]\\]/g;
+const GROUPS = ['module', 'program', 'sso'];
+const ARROWS = ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'];
+const TILE = '[data-gadget-tile]';
+const SEARCH = '[data-gadget-search]';
+const DIALOG = '[role="dialog"]';
 
-export function addDeckModule(mod) {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const saved = raw ? JSON.parse(raw) : {};
-    const panes = Array.isArray(saved.panes) ? saved.panes : [];
-    const modules = saved.modules && typeof saved.modules === 'object' ? saved.modules : {};
-    if (panes.some((id) => modules[id]?.src === mod.src)) return 'exists';
-    if (panes.length >= MAX_PANES) return 'full';
-    let id = 'p_' + Date.now();
-    while (Object.hasOwn(modules, id)) id += '_';
-    panes.push(id);
-    modules[id] = mod;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...saved, panes, modules, slide: id }));
-    return 'added';
+const words = (query) => String(query ?? '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+export function matchesQuery(haystack, query) {
+    const text = String(haystack ?? '').toLowerCase();
+
+    return words(query).every((word) => text.includes(word));
+}
+
+export function splitMatches(text, query) {
+    const source = String(text ?? '');
+    const needles = words(query);
+
+    if (needles.length === 0) return [{ t: source, hit: false }];
+
+    const pattern = new RegExp(`(${needles.map((word) => word.replace(ESCAPE_REGEX, '\\$&')).join('|')})`, 'gi');
+
+    return source.split(pattern).map((t, i) => ({ t, hit: i % 2 === 1 })).filter((part) => part.t !== '');
+}
+
+const visibleTiles = (root) => [...root.querySelectorAll(TILE)].filter((tile) => tile.offsetParent !== null);
+
+function isFrameSrc(src) {
+    if (typeof src !== 'string' || src === '') return false;
+    try {
+        return /^https?:$/.test(new URL(src, window.location.href).protocol);
+    } catch (e) {
+        return false;
+    }
+}
+
+function readDeck(saved) {
+    const source = saved && typeof saved === 'object' ? saved : {};
+    const stored = source.modules && typeof source.modules === 'object' ? source.modules : {};
+    const panes = [];
+    const modules = {};
+
+    for (const id of Array.isArray(source.panes) ? source.panes : []) {
+        if (panes.length >= MAX_PANES) break;
+        if (typeof id !== 'string' || panes.includes(id) || !Object.hasOwn(stored, id)) continue;
+        const mod = stored[id];
+        if (!mod || !isFrameSrc(mod.src)) continue;
+        panes.push(id);
+        modules[id] = { title: String(mod.title ?? ''), icon: String(mod.icon ?? ''), src: mod.src };
+    }
+
+    return { panes, modules, slide: panes.includes(source.slide) ? source.slide : 0 };
 }
 
 export function launchpadPage() {
     return {
         ...tableToolsMixin('launchpad'),
+        ...maximizeMixin(),
 
         init() {
+            this.initMaximize();
             this.initTableTools();
         },
 
@@ -34,14 +75,6 @@ export function launchpadPage() {
             this.destroyTableTools();
         },
 
-        add(el) {
-            try {
-                const result = addDeckModule({ title: el.dataset.title, icon: el.dataset.icon, src: el.dataset.src });
-                this.$dispatch('toast', { message: el.dataset[result], type: result === 'added' ? 'success' : 'warning' });
-            } catch (e) {
-                this.$dispatch('toast', { message: 'ذخیره فضای کاری ناموفق بود.', type: 'error' });
-            }
-        },
         limit(event) {
             const input = event.target;
             if (input.files && input.files.length > Number(input.dataset.max)) {
@@ -65,21 +98,20 @@ export default function heroDeck() {
         maximizedPane: null,
         pickerFor: null,
         deckH: 0,
+        rows: [],
+        q: '',
+        tab: '',
 
         init() {
             try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw !== null) {
-                    const saved = JSON.parse(raw);
-                    const savedPanes = saved.panes;
+                const deck = readDeck(JSON.parse(localStorage.getItem(STORAGE_KEY)));
 
-                    this.panes = Array.isArray(savedPanes) ? savedPanes : [];
-                    this.modules = saved.modules || {};
+                this.panes = deck.panes;
+                this.modules = deck.modules;
 
-                    if (this.panes.includes(saved.slide) && this.modules[saved.slide]) {
-                        this.slide = saved.slide;
-                        this.loaded[saved.slide] = true;
-                    }
+                if (deck.slide !== 0) {
+                    this.slide = deck.slide;
+                    this.loaded[deck.slide] = true;
                 }
             } catch (e) {
                 try { localStorage.removeItem(STORAGE_KEY); } catch (e2) {}
@@ -92,15 +124,31 @@ export default function heroDeck() {
                 this.persist();
             });
 
+            this.$watch('pickerFor', (target) => {
+                if (target === null) {
+                    this.q = '';
+                    this.tab = '';
+                    return;
+                }
+                this.settle();
+                if (window.matchMedia?.('(pointer: fine)').matches) {
+                    this.$nextTick(() => document.querySelector(SEARCH)?.focus());
+                }
+            });
+
+            this.$watch('q', () => this.settle());
+
             this.storageAbort = new AbortController();
             window.addEventListener('storage', (e) => {
                 if (e.key !== STORAGE_KEY) return;
                 try {
                     const saved = JSON.parse(e.newValue);
                     if (!saved || typeof saved !== 'object') return;
-                    this.panes = Array.isArray(saved.panes) ? saved.panes : [];
-                    this.modules = saved.modules && typeof saved.modules === 'object' ? saved.modules : {};
+                    const deck = readDeck(saved);
+                    this.panes = deck.panes;
+                    this.modules = deck.modules;
                     if (this.slide !== 0 && !this.panes.includes(this.slide)) this.slide = 0;
+                    if (this.maximizedPane !== null && !this.panes.includes(this.maximizedPane)) this.releaseMaximize();
                 } catch (err) {}
             }, { signal: this.storageAbort.signal });
 
@@ -109,6 +157,13 @@ export default function heroDeck() {
 
         destroy() {
             this.storageAbort?.abort();
+            if (this.maximizedPane !== null) this.applyMaximize(false);
+        },
+
+        releaseMaximize() {
+            this.maximizedPane = null;
+            this._persistMaximize(null);
+            this.applyMaximize(false);
         },
 
         goto(target) {
@@ -121,6 +176,66 @@ export default function heroDeck() {
 
         openAddPicker() {
             if (this.canAddPane()) this.pickerFor = NEW_PANE;
+        },
+
+        usedSrc(src) {
+            return this.panes.some((p) => p !== this.pickerFor && this.modules[p]?.src === src);
+        },
+
+        show(index) {
+            const row = this.rows[index];
+
+            return row.g === this.tab && matchesQuery(row.f, this.q);
+        },
+
+        count(group) {
+            return this.rows.filter((row) => row.g === group && matchesQuery(row.f, this.q)).length;
+        },
+
+        settle() {
+            if (this.count(this.tab) > 0) return;
+
+            this.tab = GROUPS.find((group) => this.count(group) > 0) ?? this.tab;
+        },
+
+        parts(text) {
+            return splitMatches(text, this.q);
+        },
+
+        onSearch(event) {
+            if (event.isComposing || (event.key !== 'ArrowDown' && event.key !== 'Enter')) return;
+
+            const root = event.currentTarget.closest(DIALOG);
+            const first = root && visibleTiles(root).find((tile) => !tile.disabled);
+
+            if (!first) return;
+
+            event.preventDefault();
+            if (event.key === 'Enter') first.click();
+            else first.focus();
+        },
+
+        onGrid(event) {
+            if (!ARROWS.includes(event.key)) return;
+
+            const grid = event.currentTarget;
+            const tiles = visibleTiles(grid);
+            const at = tiles.indexOf(event.target.closest(TILE));
+
+            if (at < 0) return;
+
+            event.preventDefault();
+
+            const style = getComputedStyle(grid);
+            const rtl = style.direction === 'rtl';
+            const cols = style.gridTemplateColumns.split(' ').length;
+            const step = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1, ArrowDown: cols, ArrowUp: -cols }[event.key];
+
+            let next = at + step;
+            while (tiles[next]?.disabled) next += step;
+
+            if (tiles[next]) tiles[next].focus();
+            else if (event.key === 'ArrowUp') grid.closest(DIALOG)?.querySelector(SEARCH)?.focus();
         },
 
         pick(mod) {
@@ -167,11 +282,7 @@ export default function heroDeck() {
             Reflect.deleteProperty(this.frameReady, pane);
             drop(pane);
 
-            if (this.maximizedPane === pane) {
-                this.maximizedPane = null;
-                this._persistMaximize(null);
-                this.applyMaximize(false);
-            }
+            if (this.maximizedPane === pane) this.releaseMaximize();
 
             if (this.slide === pane) this.slide = 0;
 
@@ -179,14 +290,21 @@ export default function heroDeck() {
         },
 
         mountFrame(pane, slot) {
-            mountFrame(pane, slot, this.modules[pane], () => this.onFrameLoad(pane));
+            if (this.modules[pane]) mountFrame(pane, slot, this.modules[pane], () => this.onFrameLoad(pane));
         },
 
         onFrameLoad(pane) {
             this.frameReady[pane] = true;
         },
 
+        closeOverlays() {
+            if (!this.pickerFor) return false;
+            this.pickerFor = null;
+            return true;
+        },
+
         toggleMaximize(pane) {
+            if (pane === null) pane = this.maximizedPane;
             if (this.maximizedPane === pane) {
                 this.maxLeaving = true;
                 this._persistMaximize(null);

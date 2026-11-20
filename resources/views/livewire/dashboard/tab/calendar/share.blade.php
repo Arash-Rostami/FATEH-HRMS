@@ -24,7 +24,7 @@
 
         <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2">همکاران</label>
 
-        <x-dashboard.member-picker wire:key="calendar-share-users" model="shareRecipientIds" :candidates="$this->availableUsers" nameKey="full_name" height="max-h-64" emptyTitle="همکار دیگری برای اشتراک‌گذاری موجود نیست."/>
+        <x-dashboard.member-picker wire:key="calendar-share-users" model="shareRecipientIds" :candidates="$this->availableUsers" nameKey="full_name" bulk :dept-options="$this->deptOptions" height="max-h-64" emptyTitle="همکار دیگری برای اشتراک‌گذاری موجود نیست."/>
 
         @error('share')
         <p class="mt-3 text-xs text-[var(--md-sys-color-error)] animate-pulse">{{ $message }}</p>

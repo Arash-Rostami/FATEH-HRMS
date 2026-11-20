@@ -18,7 +18,7 @@
                 <div class="relative z-10 isolate w-full max-w-4xl max-h-[90vh] rounded-2xl bg-[var(--md-sys-color-surface)] modal-lift overflow-hidden flex flex-col max-sm:absolute max-sm:inset-x-0 max-sm:bottom-0 max-sm:h-[94dvh] max-sm:max-h-none max-sm:max-w-none max-sm:rounded-t-3xl max-sm:rounded-b-none sm:min-h-[60vh]"
                      :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }"
                      :style="dragY ? { transform: 'translateY(' + dragY + 'px)', transition: 'none' } : null"
-                     x-on:click.stop
+                     x-on:click="if (!$event.target.closest('[data-fancybox]')) $event.stopPropagation()"
                      role="dialog"
                      aria-modal="true"
                      aria-labelledby="ths-modal-title">

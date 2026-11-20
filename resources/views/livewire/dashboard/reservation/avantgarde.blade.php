@@ -1,4 +1,4 @@
-<div x-on:keydown.escape.window="if (max) { toggleMaximize() } else { $wire.clearFocus() }">
+<div x-on:keydown.escape.window="onEscape($event)">
 
     <div class="w-fit mx-auto md:mx-0 z-1 mb-6" x-on:click="if (max) toggleMaximize()">
         <x-ui.buttons.tab-selector
@@ -15,7 +15,7 @@
 
     @if($canvasTab === 'booking' && empty($tabs))
         <div wire:key="reservation-avantgarde-no-permission-canvas" class="contents">
-            <x-ui.empty icon="lock" title="دسترسی رزرو ندارید" description="مجوز رزرو هیچ نوع منبعی برای شما فعال نشده است. با مدیر سیستم تماس بگیرید." variant="list" />
+            <x-ui.empty icon="lock" title="دسترسی رزرو ندارید" description="برای شما اجازهٔ رزرو فعال نشده است. از مدیر سامانه کمک بگیرید." variant="list" />
         </div>
     @elseif($canvasTab === 'booking')
         <div wire:key="reservation-canvas-booking" class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12 w-full items-start">

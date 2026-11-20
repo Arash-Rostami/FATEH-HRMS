@@ -108,7 +108,7 @@ class Project extends Model
     public const KNOWN_SETTING_KEYS = ['requires_approval', 'sla', 'deadline', 'custom_schema', 'labels', 'auto_archive_days'];
 
     public const SETTING_LABELS = [
-        'escalation_days' => ['ارجاع تأخیر به جوابگو', 'روز'],
+        'escalation_days' => ['خبر دادن به مسئول پیگیری پس از تأخیر', 'روز'],
         'due_soon_hours' => ['هشدار نزدیک سررسید', 'ساعت'],
     ];
 
@@ -136,12 +136,12 @@ class Project extends Model
         $parts = [];
 
         if ($this->setting('requires_approval') === true) {
-            $parts[] = 'تأیید مدیر فعال';
+            $parts[] = 'تأیید مالک لازم است';
         }
 
         $sla = $this->setting('sla');
         if ($sla) {
-            $parts[] = 'SLA: ' . $sla . ' ساعت';
+            $parts[] = 'مهلت پیش‌فرض: ' . $sla . ' ساعت';
         }
 
         $deadline = $this->setting('deadline');
@@ -151,7 +151,7 @@ class Project extends Model
 
         $schema = $this->setting('custom_schema');
         if (is_array($schema) && $schema !== []) {
-            $parts[] = count($schema) . ' فیلد سفارشی';
+            $parts[] = count($schema) . ' قسمت اطلاعات دلخواه';
         }
 
         return $parts !== [] ? implode('، ', $parts) : '—';

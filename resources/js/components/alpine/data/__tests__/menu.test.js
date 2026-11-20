@@ -338,7 +338,7 @@ describe('menu AI assistant entry — tenancy gate, accent flag and click action
             const assistant = m.items.find((i) => i.id === 'ai-assistant')
             expect(assistant).toMatchObject({ ai: true, href: '-', action: 'ai-assistant' })
             expect(m.items.find((i) => i.id === 'ai-report-controller').ai).toBe(true)
-            expect(m.items.filter((i) => i.ai).length).toBe(2)
+            expect(m.items.filter((i) => i.ai).map((i) => i.id).sort()).toEqual(['ai-assistant', 'ai-report-controller', 'launchpad-controller'])
         })
     })
 
@@ -408,7 +408,7 @@ describe('menu launchpad entry', () => {
     test('uses the launchpad route, services group and its own tenant key', () => {
         withBootedMenu({}, (m) => {
             const entry = m.items.find((i) => i.id === 'launchpad-controller')
-            expect(entry).toMatchObject({ module: 'launchpad', href: '/launchpad', icon: 'rocket_launch', title: 'پیشخوان برنامه‌ها', group: 'خدمات' })
+            expect(entry).toMatchObject({ module: 'launchpad', href: '/launchpad', icon: 'rocket_launch', title: 'پیشخوان برنامه‌ها', group: 'خدمات', ai: true })
         })
 
         withBootedMenu({ off: ['launchpad'] }, (m) => {
@@ -597,8 +597,10 @@ describe('menu.handleGlobalKeydown', () => {
         m.menuOpen = true
         m.$refs = {}
         m.closeMenu = vi.fn()
-        m.handleGlobalKeydown({ key: 'Escape' })
+        const event = { key: 'Escape', preventDefault: vi.fn() }
+        m.handleGlobalKeydown(event)
         expect(m.closeMenu).toHaveBeenCalledTimes(1)
+        expect(event.preventDefault).toHaveBeenCalledOnce()
     })
 
     test('"/" focuses the search input when not already focused there', () => {

@@ -3,7 +3,7 @@
          x-transition:enter="animate-pop motion-reduce:!animate-none"
          @click.outside="$store.activityReactionPicker.close()"
          :style="{ top: $store.activityReactionPicker.top + 'px', right: $store.activityReactionPicker.right + 'px' }"
-         class="fixed z-30 p-2 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/50 shadow-[0_12px_32px_color-mix(in_srgb,var(--md-sys-color-scrim)_22%,transparent)]">
+         class="reaction-picker fixed z-30 p-2 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/50 shadow-[0_12px_32px_color-mix(in_srgb,var(--md-sys-color-scrim)_22%,transparent)]">
         <div class="grid grid-cols-7 gap-0.5 max-w-[260px]">
             <template x-for="emoji in $store.activityReactionPicker.reactions" :key="emoji">
                 <button type="button"

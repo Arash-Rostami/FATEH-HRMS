@@ -21,6 +21,11 @@ class CredentialResource extends SearchResource
         return $this->url('/profile?tab=credentials&open=' . $row->getKey());
     }
 
+    protected function selectList(): string
+    {
+        return '`id`, `app_name`, `username`';
+    }
+
     protected function scope(Builder $query): void
     {
         $query->where('user_id', $this->me());

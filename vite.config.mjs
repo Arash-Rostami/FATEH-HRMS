@@ -74,6 +74,7 @@ export default defineConfig({
                 {src: 'resources/assets/img', dest: 'assets'},
                 {src: 'resources/assets/fonts', dest: 'assets'},
                 {src: 'resources/assets/js', dest: 'assets'},
+                {src: 'resources/assets/docs', dest: 'assets'},
                 // {src: 'resources/fallback', dest: '.'},
             ]
         }),
@@ -83,6 +84,7 @@ export default defineConfig({
             filename: 'sw.js',
             outDir: 'public',
             registerType: 'autoUpdate',
+            manifest: false,
             devOptions: {
                 enabled: true,
                 type: 'module'

@@ -17,7 +17,9 @@ use App\Livewire\Dashboard\AiReport\Forms\ComposerForm;
 use App\Livewire\Dashboard\AiReport\Main;
 use App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter;
 use App\Models\AiReport;
+use App\Models\Department;
 use App\Models\Permission;
+use App\Models\Profile;
 use App\Models\User;
 use App\Services\Ai\AiClient;
 use App\Services\AiReport\BlockCatalog;
@@ -475,7 +477,7 @@ class AiReportTest extends TestCase
             app(GenerateReportAction::class)->execute($form, $owner);
             $this->fail('in-flight guard did not fire');
         } catch (ValidationException $e) {
-            $this->assertSame('یک گزارش در حال تولید است', $e->errors()['form.prompt'][0]);
+            $this->assertSame('یک گزارش شما در حال ساخت است. پس از پایان آن، درخواست تازه بدهید.', $e->errors()['form.prompt'][0]);
         }
     }
 
@@ -633,7 +635,7 @@ class AiReportTest extends TestCase
             app(GenerateReportAction::class)->execute($form, $owner);
             $this->fail('the shared lock did not block');
         } catch (ValidationException $e) {
-            $this->assertSame('یک گزارش در حال تولید است', $e->errors()['form.prompt'][0]);
+            $this->assertSame('یک گزارش شما در حال ساخت است. پس از پایان آن، درخواست تازه بدهید.', $e->errors()['form.prompt'][0]);
         } finally {
             $lock->release();
         }
@@ -982,14 +984,14 @@ class AiReportTest extends TestCase
 
         $whole = Livewire::actingAs($owner)->test(Main::class, ['report' => $private])->html();
         $this->assertStringNotContainsString('ai-report-section-refine-hint', $whole);
-        $this->assertStringNotContainsString('برای تغییر عنوان یا ویرایش دستی، اشتراک را بردارید.', $whole);
+        $this->assertStringNotContainsString('ai-report-shared-frozen-note', $whole);
 
         $section = Livewire::actingAs($owner)->test(Main::class, ['report' => $private])->call('editBlock', '0:1')->html();
         $this->assertStringContainsString('ai-report-section-refine-hint', $section);
         $this->assertSame(2, preg_match_all('/<select[^>]*name="form\.(type|length)"[^>]*disabled|<select[^>]*disabled[^>]*name="form\.(type|length)"/', $section));
 
         $sharedHtml = Livewire::actingAs($owner)->test(Main::class, ['report' => $shared])->html();
-        $this->assertStringContainsString('برای تغییر عنوان یا ویرایش دستی، اشتراک را بردارید.', $sharedHtml);
+        $this->assertStringContainsString('برای تغییر عنوان، ویرایش دستی یا برگشت به نسخهٔ قبل', $sharedHtml);
     }
 
     public function test_the_current_version_is_the_newest_one_matching_the_spec(): void
@@ -1066,7 +1068,7 @@ class AiReportTest extends TestCase
         $this->assertFalse($presenter->composerState($parked, false, $quota(1), false, null, $limits)['inactive']);
 
         $rules = $fresh['rules'];
-        $this->assertSame(['سهمیه', 'فایل‌ها', 'همزمانی', 'اشتراک', 'بازبینی'], array_keys($rules));
+        $this->assertSame(['سهمیه', 'فایل‌ها', 'نوبت ساخت', 'اشتراک', 'بازبینی'], array_keys($rules));
         $this->assertStringContainsString(convertToPersian('10'), $rules['سهمیه']);
         $this->assertStringContainsString(convertToPersian((string) $limits['files']), $rules['فایل‌ها']);
     }
@@ -1717,7 +1719,7 @@ class AiReportTest extends TestCase
 
         Livewire::actingAs($owner)->test(Main::class)
             ->assertSeeHtml('wire:key="ai-report-rules"')
-            ->assertSeeHtml('روزانه ' . convertToPersian('7') . ' بار')
+            ->assertSeeHtml('روزانه ' . convertToPersian('7') . ' نوبت')
             ->assertSeeHtml('ai-report-rule-4');
     }
 
@@ -2228,7 +2230,7 @@ class AiReportTest extends TestCase
             ->assertSeeHtml('wire:key="ai-report-letter-decision"')
             ->assertSeeHtml('wire:key="ai-report-letter-assumption"')
             ->assertSeeHtml('wire:key="ai-report-letter-copy"')
-            ->assertSeeHtml('رقم کلیدی')
+            ->assertSeeHtml('<bdi>نه میلیارد</bdi>')
             ->assertSeeHtml('data-text="' . e($text) . '"');
     }
 
@@ -2717,9 +2719,9 @@ class AiReportTest extends TestCase
 
         $table = Livewire::actingAs($owner)->withQueryParams(['tab' => 'table'])->test(Main::class)
             ->assertSeeHtml('<bdi>گزارش بودجه و هزینه</bdi>')
-            ->assertSeeHtml('<bdi>مفصل</bdi>')
+            ->assertSeeHtml('<bdi>مفصل (حدود ۲ تا ۴ صفحه)</bdi>')
             ->assertSeeHtml('<bdi>کارشناسان</bdi>')
-            ->assertDontSeeHtml('<bdi>آزاد (بدون قالب)</bdi>');
+            ->assertDontSeeHtml('<bdi>آزاد (طبق درخواست شما)</bdi>');
         $html = $table->html();
         $this->assertSame(3, substr_count($html, '<bdi>—</bdi>'));
         foreach (['type', 'length', 'audience'] as $col) {
@@ -2729,7 +2731,7 @@ class AiReportTest extends TestCase
         $rows = $table->instance()->reports;
         $this->assertCount(2, $rows);
         $presenter = new AiReportPresenter();
-        $this->assertSame(['گزارش بودجه و هزینه', 'مفصل', 'کارشناسان'], array_values($presenter->presets($rows->firstWhere('id', $new->id))));
+        $this->assertSame(['گزارش بودجه و هزینه', 'مفصل (حدود ۲ تا ۴ صفحه)', 'کارشناسان'], array_values($presenter->presets($rows->firstWhere('id', $new->id))));
         $this->assertSame(['—', '—', '—'], array_values($presenter->presets($rows->firstWhere('id', $old->id))));
 
         Livewire::withQueryParams([]);
@@ -3165,8 +3167,8 @@ class AiReportTest extends TestCase
             ->assertDispatched('toast', $this->toastType('success'));
 
         $component->call('share')
-            ->assertDispatched('toast', fn ($event, $params) => ($params['message'] ?? null) === 'گیرندگان تغییری نکرد.')
-            ->assertNotDispatched('toast', fn ($event, $params) => ($params['message'] ?? null) === 'اشتراک‌گذاری این گزارش مجاز نیست.');
+            ->assertDispatched('toast', fn ($event, $params) => ($params['message'] ?? null) === 'فهرست گیرندگان تغییری نکرد.')
+            ->assertNotDispatched('toast', fn ($event, $params) => ($params['message'] ?? null) === 'فقط مالک می‌تواند گزارش آماده و فعال خود را به اشتراک بگذارد.');
         $this->assertSame([(int) $first->id], $report->fresh()->recipients);
     }
 
@@ -3751,12 +3753,13 @@ JSON, true);
         $html = view('livewire.dashboard.ai-report.legend', ['presenter' => $presenter])->render();
         $this->assertStringContainsString($limits['total_mb'], $html);
         $this->assertStringContainsString('تا ' . $limits['files'] . ' فایل', $html);
-        $this->assertStringContainsString('کوتاه‌تر از ' . $limits['prompt_min'] . ' حرف', $html);
-        $this->assertStringContainsString('تا ' . $limits['inline_mb'] . ' مگابایت، سایر انواع تا ' . $limits['per_file_mb'] . ' مگابایت', $html);
-        $this->assertStringContainsString($limits['versions'] . ' نسخهٔ آخر نگه داشته می‌شوند', $html);
-        $this->assertStringContainsString('لینک هر گیرنده تا ' . $limits['link_days'] . ' روز از لحظهٔ افزودن او معتبر است', $html);
-        $this->assertStringContainsString('تیک او را بردارید و ارسال کنید', $html);
-        $this->assertStringContainsString('با دکمهٔ «ذخیره گزارش» یا با اشتراک‌گذاری ذخیره می‌شود', $html);
+        $this->assertStringContainsString('حداقل ' . $limits['prompt_min'] . ' حرف', $html);
+        $this->assertStringContainsString('هر PDF یا تصویر تا ' . $limits['inline_mb'] . ' مگابایت', $html);
+        $this->assertStringContainsString('هر فایل دیگر تا ' . $limits['per_file_mb'] . ' مگابایت', $html);
+        $this->assertStringContainsString($limits['versions'] . ' نسخهٔ آخر نگه داشته می‌شود', $html);
+        $this->assertStringContainsString('پیوند اعلان تا ' . $limits['link_days'] . ' روز معتبر است', $html);
+        $this->assertStringContainsString('تیک او را بردارید و دوباره «ارسال» را بزنید', $html);
+        $this->assertStringContainsString('این کار گزارش را هم ذخیره می‌کند', $html);
         $this->assertStringContainsString('معمولاً ' . $limits['eta'] . ' ثانیه', $html);
     }
 
@@ -3893,7 +3896,7 @@ JSON, true);
         Livewire::actingAs($developer)->test(ViewAiReport::class, ['record' => $report->getKey()])
             ->assertSee('هزینه‌های واحد فروش را جمع‌بندی کن')
             ->assertSee('financial.xlsx')
-            ->assertSee('فایل رمزگذاری‌شده')
+            ->assertSee('فایل رمز دارد؛ نسخهٔ بدون رمز را پیوست کنید')
             ->assertSuccessful();
     }
 
@@ -3948,16 +3951,15 @@ JSON, true);
         $limits = (new AiReportPresenter)->limits();
 
         $user = view('filament.resources.ai-report.guide.user')->render();
-        $this->assertStringContainsString('حداقل ' . $limits['prompt_min'] . ' حرف', $user);
-        $this->assertStringContainsString('تا ' . $limits['files'] . ' فایل', $user);
         $this->assertStringContainsString('معمولاً ' . $limits['eta'] . ' ثانیه', $user);
-        $this->assertStringContainsString($limits['versions'] . ' نسخهٔ آخر نگه داشته می‌شوند', $user);
-        $this->assertStringContainsString('لینک هر گیرنده تا ' . $limits['link_days'] . ' روز از لحظهٔ افزودن او معتبر است', $user);
+        $this->assertStringContainsString('تا ' . $limits['versions'] . ' نسخهٔ آخر نگه داشته می‌شود', $user);
+        $this->assertStringContainsString('پایان اعتبار پیوند اعلان پس از ' . $limits['link_days'] . ' روز', $user);
 
         $overview = view('filament.resources.ai-report.guide.overview')->render();
+        $this->assertStringContainsString('هر PDF یا تصویر تا ' . $limits['inline_mb'] . ' مگابایت', $overview);
         $this->assertStringContainsString('بیش از ' . $limits['stale_minutes'] . ' دقیقه', $overview);
         $this->assertStringContainsString('قدیمی‌تر از ' . $limits['stale_draft_days'] . ' روز', $overview);
-        $this->assertStringContainsString('آخرین درخواست کاربر', $overview);
+        $this->assertStringContainsString('آخرین درخواست و نام فایل‌های خوانده‌نشده', $overview);
         $this->assertSame('پیش‌نویس‌های قدیمی‌تر از ' . $limits['stale_draft_days'] . ' روز', AiReportTablePresenter::staleDraftFilter()->getLabel());
     }
 
@@ -5532,8 +5534,9 @@ JSON, true);
         $component = Livewire::actingAs($owner)->test(Main::class, ['report' => $report->fresh()]);
         $html = $component->html();
         $this->assertStringNotContainsString('wire:click="retry"', $html);
-        $this->assertStringContainsString('کوتاه‌تر یا دوباره بنویسید', $html);
-        $this->assertStringNotContainsString('مصرف نمی‌شود', $html);
+        $this->assertStringContainsString('کوتاه‌تر یا روشن‌تر بنویسید', $html);
+        $this->assertStringContainsString('wire:key="ai-report-retry-no-refund"', $html);
+        $this->assertStringNotContainsString('wire:key="ai-report-retry-quota-note"', $html);
         $this->assertStringNotContainsString('یک سهمیه مصرف می‌کند', $html);
 
         $component->call('retry');
@@ -5545,7 +5548,7 @@ JSON, true);
         $html = Livewire::actingAs($owner)->test(Main::class, ['report' => $refundable->fresh()])->html();
         $this->assertStringContainsString('wire:click="retry"', $html);
         $this->assertStringContainsString('یک سهمیه مصرف می‌کند', $html);
-        $this->assertStringNotContainsString('مصرف نمی‌شود', $html);
+        $this->assertStringNotContainsString('wire:key="ai-report-retry-no-refund"', $html);
     }
 
     public function test_an_inactive_report_cannot_be_shared_and_hides_the_share_button(): void
@@ -5555,7 +5558,8 @@ JSON, true);
 
         $component = Livewire::actingAs($owner)->test(Main::class, ['report' => $report]);
         $html = $component->html();
-        $this->assertStringNotContainsString('اشتراک‌گذاری با همکاران', $html);
+        $this->assertStringNotContainsString('wire:key="ai-report-share-button"', $html);
+        $this->assertStringNotContainsString('wire:key="ai-report-share-dialog"', $html);
 
         $component->call('share')->assertDispatched('toast', $this->toastType('warning'));
         $this->assertEmpty($report->fresh()->recipients);
@@ -5587,14 +5591,14 @@ JSON, true);
         $owner = $this->user();
         $presenter = new AiReportPresenter();
 
-        $this->assertStringContainsString('بازگردانده شد', $presenter->failHint('timeout'));
-        $this->assertStringContainsString('بازگردانده نشد', $presenter->failHint('too_large'));
-        $this->assertStringContainsString('بازگردانده شد', $presenter->failHint('bogus'));
+        $this->assertStringContainsString('به سهمیهٔ روز درخواست برگشت', $presenter->failHint('timeout'));
+        $this->assertStringContainsString('به سهمیه برنمی‌گردد', $presenter->failHint('too_large'));
+        $this->assertStringContainsString('به سهمیهٔ روز درخواست برگشت', $presenter->failHint('bogus'));
 
         $report = $this->blockRefineReport($owner);
         $report->update(['status' => AiReport::STATUS_FAILED, 'fail_reason' => 'invalid_spec']);
         $html = Livewire::actingAs($owner)->test(Main::class, ['report' => $report->fresh()])->html();
-        $this->assertStringContainsString('سهمیهٔ مصرف‌شده برای این درخواست به شما بازگردانده شد', $html);
+        $this->assertStringContainsString('نوبت مصرف‌شده برای این درخواست به سهمیهٔ همان روز برگشت', $html);
     }
 
     public function test_a_recipient_sees_the_read_only_banner_naming_the_sender(): void
@@ -5605,11 +5609,11 @@ JSON, true);
         $report->update(['seen_by' => []]);
 
         $html = Livewire::actingAs($recipient)->test(Main::class, ['report' => $report->fresh()])->html();
-        $this->assertStringContainsString('فقط خواندنی است', $html);
+        $this->assertStringContainsString('امکان ویرایش آن را ندارید', $html);
         $this->assertStringContainsString('آرش فرستنده', $html);
 
         $html = Livewire::actingAs($owner)->test(Main::class, ['report' => $report->fresh()])->html();
-        $this->assertStringNotContainsString('فقط خواندنی است', $html);
+        $this->assertStringNotContainsString('امکان ویرایش آن را ندارید', $html);
     }
 
     public function test_a_generating_report_renders_the_keyed_skeleton_with_eta_and_poll(): void
@@ -5884,5 +5888,61 @@ JSON, true);
         $run = $created->lastVersion()['run'] ?? null;
         $this->assertNotEmpty($run);
         Bus::assertDispatched(GenerateReportJob::class, fn (GenerateReportJob $job) => $job->reportId === $created->id && $job->run === $run);
+    }
+
+    public function test_share_bulk_selection_pool_matches_recipient_candidates_and_clears(): void
+    {
+        config(['ai.report.max_recipients' => 100000]);
+        $owner = User::factory()->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($owner)->test(Main::class);
+        $component->call('bulkSelectPeople', 'shareRecipients', 'all');
+        $expected = array_map('intval', array_column($component->instance()->recipientCandidates, 'id'));
+        $this->assertEqualsCanonicalizing($expected, array_map('intval', $component->get('shareRecipients')));
+
+        $component->call('bulkSelectPeople', 'shareRecipients', 'none');
+        $this->assertSame([], $component->get('shareRecipients'));
+
+        $component->set('form.prompt', 'untouched')->call('bulkSelectPeople', 'form.prompt', 'all');
+        $this->assertSame('untouched', $component->get('form.prompt'), 'a forged target property is a no-op');
+        $this->assertSame([], $component->get('shareRecipients'));
+    }
+
+    public function test_share_bulk_selection_is_capped_at_the_report_recipient_limit(): void
+    {
+        config(['ai.report.max_recipients' => 2]);
+        $owner = $this->user();
+        $this->user();
+        $this->user();
+        $this->user();
+
+        Livewire::actingAs($owner)->test(Main::class)
+            ->call('bulkSelectPeople', 'shareRecipients', 'all')
+            ->assertCount('shareRecipients', 2)
+            ->assertDispatched('toast', $this->toastType('info'));
+    }
+
+    public function test_share_bulk_selection_department_kind_filters_the_pool(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $colleague = User::factory()->create(['status' => 'active']);
+        Department::firstOrCreate(['code' => 'BLK'], ['name' => 'BLK', 'description' => 'BLK']);
+        Profile::factory()->create(['user_id' => $colleague->id, 'department_id' => 'BLK']);
+
+        $component = Livewire::actingAs($owner)->test(Main::class)->call('bulkSelectPeople', 'shareRecipients', 'department', 'BLK');
+
+        $this->assertSame([$colleague->id], array_map('intval', $component->get('shareRecipients')));
+    }
+
+    public function test_share_bulk_selection_is_refused_while_a_report_is_read_only(): void
+    {
+        $owner = $this->user();
+        $recipient = $this->user();
+        $report = $this->report($owner, ['recipients' => [(int) $recipient->id]]);
+
+        $component = Livewire::actingAs($recipient)->test(Main::class)->call('open', $report->id)->assertSet('readOnly', true);
+        $component->call('bulkSelectPeople', 'shareRecipients', 'all');
+
+        $this->assertSame([], $component->get('shareRecipients'));
     }
 }

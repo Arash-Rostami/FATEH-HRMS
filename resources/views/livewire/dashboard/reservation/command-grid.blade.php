@@ -60,7 +60,7 @@
                     <th data-col="resource" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">
                         <div class="flex items-center gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">meeting_room</span>
-                            <x-ui.table.sort-label column="resource" :sort="$gridSort" :sortDir="$gridSortDir">منبع</x-ui.table.sort-label>
+                            <x-ui.table.sort-label column="resource" :sort="$gridSort" :sortDir="$gridSortDir">مورد رزرو</x-ui.table.sort-label>
                         </div>
                     </th>
                     <th data-col="time" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold">
@@ -76,10 +76,10 @@
                         </div>
                     </th>
                     <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold last:rounded-tl-2xl">
-                        @php($gridColumns = ['resource' => 'منبع', 'time' => 'زمان', 'status' => 'وضعیت'])
+                        @php($gridColumns = ['resource' => 'مورد رزرو', 'time' => 'زمان', 'status' => 'وضعیت'])
                         <x-ui.table.tools>
                             <x-ui.table.density-toggle/>
-                            <x-ui.table.sort-popover :options="['time' => 'زمان', 'resource' => 'منبع']"
+                            <x-ui.table.sort-popover :options="['time' => 'زمان', 'resource' => 'مورد رزرو']"
                                                      :sort="$gridSort" :sortDir="$gridSortDir" :isDefault="$gridSort === ''"/>
                             <x-ui.table.col-toggle :scope="'reservation'" :columns="$gridColumns"/>
                             <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :basisOptions="false"/>
@@ -246,7 +246,7 @@
             @empty
                 <tr wire:key="reservation-history-empty">
                     <td colspan="4" class="py-8">
-                        <x-ui.empty icon="{{ $historyShowAll ? 'inbox' : match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', 'cancelled' => 'block', 'released' => 'autorenew', default => 'done_all' } }}" title="صندوق خالی است" description="موردی برای نمایش وجود ندارد." variant="list" />
+                        <x-ui.empty icon="{{ $historyShowAll ? 'inbox' : match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', 'cancelled' => 'block', 'released' => 'autorenew', default => 'done_all' } }}" title="رزروی برای نمایش نیست" description="موردی برای نمایش وجود ندارد." variant="list" />
                     </td>
                 </tr>
             @endforelse

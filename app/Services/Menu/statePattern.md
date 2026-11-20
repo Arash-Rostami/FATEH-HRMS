@@ -933,7 +933,7 @@ multiplies.
   `show` returns `false` when the latest reply is the user's **and** the user is not the current
   action recipient (no self-nudge for your own reply), else `true`. `title`/`body` branch on
   `currentActionRecipient()?->is($user)`: the current recipient gets `match($subject->status)`
-  («تیکت جدید ارجاع‌شده به واحد شما» / «تیکت محول‌شده به شما» / «پاسخ تیکت ثبت شد» / …), a
+  («درخواست تازه برای واحد شما» / «مسئول رسیدگی به درخواست شدید» / «درخواست شما بسته شد» / …), a
   reply-participant gets «پاسخ جدید: …». `refresh = true`. `badgeSuppressesCreate = false` — a
   reply on an already-badge-lit ticket must still CREATE a nudge for the reply-participants the
   badge does not track.

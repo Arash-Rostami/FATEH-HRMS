@@ -1,6 +1,6 @@
 <div dir="rtl"
      x-data="dms()"
-     @keydown.escape.window="if(max) toggleMaximize(null)"
+     @keydown.escape.window="onEscape($event)"
      class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
     >
 

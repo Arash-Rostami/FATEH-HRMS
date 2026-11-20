@@ -32,6 +32,31 @@ class TenantsConfigTest extends TestCase
         }
     }
 
+    public function test_every_sibling_ships_an_sso_block_with_an_https_receiver_on_its_own_host(): void
+    {
+        $checked = 0;
+
+        foreach (config('tenants') as $slug => $tenant) {
+            foreach ($tenant['sibling'] ?? [] as $sibling) {
+                $label = "{$slug}.{$sibling['name']}";
+                $sso = $sibling['sso'] ?? null;
+                $receiver = parse_url((string) ($sso['receiver'] ?? ''));
+
+                $this->assertIsArray($sso, "{$label} has no sso block");
+                $this->assertIsBool($sso['on'] ?? null, "{$label} sso.on must be a bool");
+                $this->assertTrue($sso['on'], "{$label} must ship with sso on (it only goes live once the Fateh issuer env keys are set)");
+                $this->assertSame('https', $receiver['scheme'] ?? null, "{$label} receiver must be https");
+                $this->assertSame(parse_url($sibling['url'], PHP_URL_HOST), $receiver['host'] ?? null, "{$label} receiver host must be the sibling host");
+                $this->assertSame('/sso/receive', $receiver['path'] ?? null, "{$label} receiver path");
+                $this->assertIsString($sso['aud'] ?? null, "{$label} sso.aud must be a string");
+                $this->assertNotSame('', trim($sso['aud']), "{$label} sso.aud must not be empty");
+                $checked++;
+            }
+        }
+
+        $this->assertGreaterThan(0, $checked);
+    }
+
     public function test_behavioral_flags_are_booleans_for_every_tenant(): void
     {
         foreach (['fateh', 'persol'] as $tenant) {
@@ -162,7 +187,7 @@ class TenantsConfigTest extends TestCase
             foreach (array_keys($tenant['modules'] ?? []) as $key) {
                 [$id, $view] = array_pad(explode(':', $key, 2), 2, null);
 
-                $unregistered = in_array($key, ['calculator', 'radio', 'stopwatch', 'password-reset', 'auth:sibling'], true);
+                $unregistered = in_array($key, ['calculator', 'radio', 'stopwatch', 'password-reset', 'auth:sibling', 'launchpad:sso'], true);
 
                 $this->assertTrue($modules->has($id) || $unregistered, "tenant '{$slug}' key '{$key}' is not a module id");
 
@@ -215,6 +240,11 @@ class TenantsConfigTest extends TestCase
         $modules = config('tenants.fateh.modules');
 
         $this->assertFalse($modules['correspondence'] ?? true);
+    }
+
+    public function test_fateh_turns_the_launchpad_module_off(): void
+    {
+        $this->assertFalse(config('tenants.fateh.modules')['launchpad'] ?? true);
     }
 
     public function test_fateh_keeps_notify_on_but_mail_and_sms_off(): void

@@ -63,15 +63,7 @@ class Credentials extends Component
 
     public function clearSignCode(SaveSignCodeAction $action): void
     {
-        $this->signCodeForm->validateOnly('current_password');
-
-        try {
-            $action->clear($this->signCodeForm->current_password);
-        } catch (ValidationException $e) {
-            $this->signCodeForm->reset();
-
-            throw $e;
-        }
+        $action->clear();
 
         $this->signCodeForm->reset();
         unset($this->hasSignCode);

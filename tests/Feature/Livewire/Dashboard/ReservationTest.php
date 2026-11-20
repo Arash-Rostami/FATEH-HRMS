@@ -1509,7 +1509,7 @@ class ReservationTest extends TestCase
         $this->assertStringContainsString('تمام روز', $this->summaryOf($classic->instance(), $resource));
         $this->assertStringNotContainsString('<x-ui.buttons.submit', $classic->html());
         $this->assertStringContainsString('تأیید رزرو', $classic->html());
-        $this->assertStringContainsString('منبع: zz-confirm-seat', $classic->html());
+        $this->assertStringContainsString('مورد رزرو: zz-confirm-seat', $classic->html());
         $this->assertStringContainsString('تاریخ', $classic->html());
 
         Livewire::withoutLazyLoading();
@@ -1636,7 +1636,7 @@ class ReservationTest extends TestCase
         $this->assertGreaterThan(0, $ok);
         $this->assertStringContainsString(convertToPersian('تاریخ: ' . toJalali(Carbon::parse($date), 'l، j F Y')), $summary);
         $this->assertStringContainsString(convertToPersian('ساعت: 09:00 تا 10:00'), $summary);
-        $this->assertStringContainsString(convertToPersian("تکرار: هفتگی، تا {$ok} بار"), $summary);
+        $this->assertStringContainsString(convertToPersian("پیش‌بینی تکرار: هفتگی، حداکثر {$ok} بار"), $summary);
     }
 
     public function test_booking_summary_counts_only_occurrences_inside_the_window_for_an_elevated_role()
@@ -1662,7 +1662,7 @@ class ReservationTest extends TestCase
         $ok = collect($instance->recurPreview)->where('ok', true)->count();
 
         $this->assertSame(2, $ok);
-        $this->assertStringContainsString(convertToPersian("تکرار: هفتگی، تا {$ok} بار"), $this->summaryOf($instance));
+        $this->assertStringContainsString(convertToPersian("پیش‌بینی تکرار: هفتگی، حداکثر {$ok} بار"), $this->summaryOf($instance));
     }
 
     public function test_booking_summary_says_only_this_once_when_a_single_occurrence_is_inside_the_window()
@@ -1726,8 +1726,8 @@ class ReservationTest extends TestCase
         $regularSummary = $this->summaryOf($regular);
         $regularSecond = $regular->recurPreview[1]['ok'];
 
-        $this->assertStringContainsString(convertToPersian('تکرار: روزانه، تا 3 بار'), $adminSummary);
-        $this->assertStringContainsString(convertToPersian('تکرار: روزانه، تا 2 بار'), $regularSummary);
+        $this->assertStringContainsString(convertToPersian('پیش‌بینی تکرار: روزانه، حداکثر 3 بار'), $adminSummary);
+        $this->assertStringContainsString(convertToPersian('پیش‌بینی تکرار: روزانه، حداکثر 2 بار'), $regularSummary);
         $this->assertTrue($adminSecond);
         $this->assertFalse($regularSecond);
     }
@@ -1754,11 +1754,11 @@ class ReservationTest extends TestCase
         $instance = $component->instance();
 
         $this->assertStringContainsString('فقط همین یک‌بار', $this->summaryOf($instance, $narrow));
-        $this->assertStringContainsString(convertToPersian('تکرار: روزانه، تا 3 بار'), $this->summaryOf($instance, $wide));
+        $this->assertStringContainsString(convertToPersian('پیش‌بینی تکرار: روزانه، حداکثر 3 بار'), $this->summaryOf($instance, $wide));
 
         $html = html_entity_decode($component->html());
         $this->assertStringContainsString('فقط همین یک‌بار', $html);
-        $this->assertStringContainsString(convertToPersian('تکرار: روزانه، تا 3 بار'), $html);
+        $this->assertStringContainsString(convertToPersian('پیش‌بینی تکرار: روزانه، حداکثر 3 بار'), $html);
 
         Livewire::withoutLazyLoading();
         $admin = Livewire::actingAs($this->actor(['role' => 'admin']))
@@ -1770,7 +1770,7 @@ class ReservationTest extends TestCase
             ->set('recurCount', 3)
             ->instance();
 
-        $this->assertStringContainsString(convertToPersian('تکرار: روزانه، تا 3 بار'), $this->summaryOf($admin, $narrow));
+        $this->assertStringContainsString(convertToPersian('پیش‌بینی تکرار: روزانه، حداکثر 3 بار'), $this->summaryOf($admin, $narrow));
     }
 
     public function test_booking_summary_repeat_count_is_capped_by_the_remaining_monthly_quota_in_the_selected_month()
@@ -2224,7 +2224,7 @@ class ReservationTest extends TestCase
             ->set('recurCount', 3)
             ->instance();
 
-        $this->assertStringContainsString(convertToPersian('تکرار: روزانه، تا 2 بار'), $this->summaryOf($instance, $target));
+        $this->assertStringContainsString(convertToPersian('پیش‌بینی تکرار: روزانه، حداکثر 2 بار'), $this->summaryOf($instance, $target));
     }
 
     public function test_booking_summary_counts_every_occurrence_when_all_are_last_minute_even_with_no_quota_left()
@@ -2263,7 +2263,7 @@ class ReservationTest extends TestCase
             );
         };
 
-        $this->assertStringContainsString(convertToPersian('تکرار: روزانه، تا 3 بار'), $summaryWith(72));
+        $this->assertStringContainsString(convertToPersian('پیش‌بینی تکرار: روزانه، حداکثر 3 بار'), $summaryWith(72));
         $this->assertStringContainsString('فقط همین یک‌بار', $summaryWith(30));
     }
 
@@ -3376,7 +3376,7 @@ class ReservationTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(Main::class)
-            ->assertSet('bookingBlockReason', fn($r) => is_string($r) && str_contains($r, 'سقف'));
+            ->assertSet('bookingBlockReason', fn($r) => is_string($r) && str_contains($r, 'سهمیه'));
     }
 
     public function test_status_legend_renders_all_four_reservation_statuses(): void
@@ -3389,7 +3389,7 @@ class ReservationTest extends TestCase
             ->assertSee('فعال')
             ->assertSee('آزادشده')
             ->assertSee('لغو توسط کاربر')
-            ->assertSee('لغو توسط ادمین');
+            ->assertSee('لغو توسط مدیریت');
     }
 
     public function test_client_set_view_is_clamped_to_classic_when_the_view_is_off_or_unknown()

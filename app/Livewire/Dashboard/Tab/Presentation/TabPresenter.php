@@ -5,19 +5,28 @@ namespace App\Livewire\Dashboard\Tab\Presentation;
 use App\Enums\PresenceStatus;
 use App\Livewire\Dashboard\Messaging\Actions\FetchMessagingUnreadAction;
 use App\Models\ChannelMessage;
+use App\Models\Department;
 use App\Models\DMS;
 use App\Models\Event;
+use App\Models\Launchpad;
 use App\Models\Reminder;
 use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\Menu\StateService;
+use App\Support\LaunchpadAccessPolicy;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class TabPresenter
 {
+    public const GADGET_GROUPS = [
+        'module' => ['label' => 'ماژول‌های سیستم', 'tab' => 'ماژول‌ها', 'icon' => 'widgets'],
+        'program' => ['label' => 'برنامه‌های آماده', 'tab' => 'برنامه‌ها', 'icon' => 'deployed_code'],
+        'sso' => ['label' => 'سامانه‌های متصل', 'tab' => 'سامانه‌ها', 'icon' => 'hub'],
+    ];
+
     public static function statStamp(int $userId): string
     {
         return implode('.', [
@@ -187,9 +196,53 @@ class TabPresenter
                 'title' => $s['title'],
                 'icon' => $s['icon'],
                 'src' => $this->embedSrc($s),
+                'group' => 'module',
+                'badge' => null,
+                'subtitle' => null,
+                'new' => false,
+                'expiring' => false,
             ])
+            ->concat($this->launchpadOptions())
+            ->sortBy(fn (array $item) => array_search($item['group'], array_keys(self::GADGET_GROUPS), true))
             ->values()
             ->all();
+    }
+
+    private function launchpadOptions(): Collection
+    {
+        if (tenantOff('launchpad')) {
+            return collect();
+        }
+
+        $user = auth()->user();
+        $ids = Launchpad::optionIds($user);
+        if ($ids === []) {
+            return collect();
+        }
+
+        $departments = Department::getCachedOptions();
+        $ssoSites = Launchpad::ssoSites();
+
+        return Launchpad::query()
+            ->whereIn('id', $ids)
+            ->get(['id', 'user_id', 'department_id', 'title', 'kind', 'settings', 'active', 'audience', 'seen_by', 'accessible_from', 'accessible_to', 'expire_at'])
+            ->filter(fn (Launchpad $row) => $row->kind === 'static' || array_key_exists($row->settings['site'] ?? '', $ssoSites))
+            ->filter(fn (Launchpad $row) => LaunchpadAccessPolicy::workspaceBlock($row, $user) === null)
+            ->map(function (Launchpad $row) use ($departments, $ssoSites, $user) {
+                $site = $row->kind === 'static' ? null : $ssoSites[$row->settings['site']];
+
+                return [
+                    'title' => $row->title,
+                    'icon' => $site ? 'hub' : 'deployed_code',
+                    'src' => route('launchpad', ['a' => $row->id, 'embed' => 1]),
+                    'group' => $site ? 'sso' : 'program',
+                    'badge' => $site ? $site['title'] : $departments->get($row->department_id),
+                    'subtitle' => $site ? parse_url((string) $site['url'], PHP_URL_HOST) : $departments->get($row->department_id),
+                    'new' => $row->isUnseenBy((int) $user->id),
+                    'expiring' => $row->status() === 'soon',
+                ];
+            })
+            ->values();
     }
 
     public function bottomNavPaging(array $tabs, string $activeTab): array

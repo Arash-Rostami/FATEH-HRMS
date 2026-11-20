@@ -5,6 +5,7 @@
         class="fixed inset-0 z-[100] overflow-hidden"
         x-show="{{ $show }}"
         x-cloak
+        @keydown.escape.window.capture="if ({{ $show }} && $onTop) { $event.stopImmediatePropagation(); {{ $show }} = false }"
     >
         <div
             class="fixed inset-0 bg-[var(--md-sys-color-primary)]/60"

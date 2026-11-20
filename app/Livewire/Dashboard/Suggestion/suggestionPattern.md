@@ -196,3 +196,11 @@ indexes: feedback, complete, user_id, suggestion_id, (suggestion_id, complete), 
 One `Review` row per (suggestion, department) pair, plus one row with `department_id = 'MA'` for the CEO/chairman decision.
 
 **Suggestion ID is intentionally Gregorian (2026-10-19, product decision):** `SN-YYYYMMDD-id` (and the matching `DATE_FORMAT` search) keeps the Gregorian date; the same applies to DMS document codes. Do not convert to Jalali — it would invalidate existing IDs. Everything else a user reads stays Jalali (`viewPattern.md` §8.36).
+
+## Persian wording and practical helpers (2026-11-19)
+
+Preserve the module header «پیشنهادات» and shared app controls. Module-specific copy uses «واحدهای مرتبط», «نظر واحد» and «واحدهای مسئول اجرا». A neutral response is «بدون نظر قطعی», including scheduler-filled rows; it is not partial agreement. Never change the stored `Review::AUTO_RESOLVE_COMMENT` fingerprint for wording: the user detail, admin timeline and review infolist translate it only when displaying it.
+
+Form helpers explain the current problem, proposed solution and expected benefit; purpose/rule are choices, not text-entry questions. Self-fill records the submitter-supplied opinions as department responses, so enable it only when those opinions are already known. It may skip the waiting stages. The ordinary route waits for the home department's head and then the other department heads.
+
+User/admin guides distinguish acceptance from completed execution. Acceptance without referrals stays accepted; acceptance with referrals reaches closed only after every referred department records completion. Under-review is resolved on the same suggestion by the home-department head submitting a fresh response, followed by another senior decision; do not restore the obsolete instruction to create another suggestion. Auto-neutral is restricted to unanswered team/dept remark stages after the 48-hour window in the hourly sweep; it never approves a proposal or replaces an existing verdict. Submission restrictions apply to MA/MG department members; senior-decision authority follows the position/fallback policy, not MA membership alone. Rules, permissions, persisted keys and workflow behavior remain unchanged.

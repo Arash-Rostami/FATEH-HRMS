@@ -128,6 +128,8 @@ The project governs people, dates and labels for its tasks. Zero migrations: eve
 
 `App\Services\Correspondence\CorrespondenceFonts` (letterhead font registry, sibling of `CorrespondencePdf`; see `correspondencePattern.md`) and `App\Services\Search\FaultTolerantGlobalSearchProvider` (admin global search; `filamentPattern.md` rule 65).
 
+`App\Services\SsoTokenService` (final, all static, neutral: no project words, needs `ext-sodium`): `sign(array $claims, string $secretKey)` and `verify(string $token, array $publicKeys, string $issuer, string $audience, int $skew = 30): ?array`. Token = `b64url({"alg":"EdDSA","typ":"JWT"}).b64url(claims).b64url(Ed25519 signature)`; `verify` checks alg, signature against any listed key, `iss`, `aud`, `iat`/`exp` with skew and `exp - iat <= 60`, and returns null on any failure. Fateh signs with it (Launchpad SSO handoff); sibling Laravel apps copy the file verbatim into their own `app/Services`. Keys are base64 strings. Five copies must stay behaviourally identical, so change all together: this class, BMS-CM and BMS-CX `app/Services/SsoTokenService.php` (PHP, byte-identical verbatim copies; `sign()` stays on purpose so the copies are byte-identical and the tests can mint tokens), porterra-lite `src/lib/ssoToken.js` and AI `utils/ssoToken.js` (JS, identical); the safe-`next` rule is identical in every receiver: relative path, one leading `/`, no `//`, `..`, backslash, `scheme:` prefix, `://` or control characters.
+
 ## 4g. Folder convention: master file outside, same-name folder for its parts (owner decision, 2026-11-10)
 
 - **One class, no parts** → the file sits loose in its parent folder (`app/Services/HolidayService.php`); never a folder for a single file.

@@ -52,11 +52,11 @@ class Suggestion extends Model
     ];
     public const STAGES = [
         'pending' => 'ارسال شده',
-        'team_remarks' => 'منتظر هم‌تیمی‌ها',
-        'dept_remarks' => 'منتظر ذینفعان',
+        'team_remarks' => 'منتظر نظر واحد پیشنهاددهنده',
+        'dept_remarks' => 'منتظر نظر واحدهای مرتبط',
         'awaiting_decision' => 'منتظر تصمیم نهایی',
-        'accepted' => 'پذیرفته شده',
-        'rejected' => 'پذیرفته نشده',
+        'accepted' => 'پذیرفته‌شده',
+        'rejected' => 'ردشده',
         'under_review' => 'نیازمند تکمیل',
         'closed' => 'پایان‌یافته',
     ];

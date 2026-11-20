@@ -45,7 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (InvalidSignatureException $e, Request $request) {
             if ($request->routeIs('ai-report.shared') && $request->user() !== null) {
-                return redirect()->route('ai-report')->with('ai-report-notice', 'لینک منقضی شده؛ از فهرست «دریافتی» گزارش را باز کنید.');
+                return redirect()->route('ai-report')->with('ai-report-notice', 'این پیوند دیگر معتبر نیست. اگر هنوز به گزارش دسترسی دارید، آن را از فهرست «دریافتی» باز کنید.');
             }
 
             return null;

@@ -1,8 +1,8 @@
 <x-ui.scroll-panel
     x-data="feed"
     @record-focus.window="if ($event.detail.type === 'feeds') activeId = $event.detail.id"
-    @confirmation-confirmed.window="$wire.dispatch($event.detail.method, {commentId: $event.detail.params})"
-    @keydown.escape.window="maximizedFeed && toggleMaximize(null)"
+    @confirmation-confirmed.window="if ($event.detail.method === 'delete-comment-confirmed') $wire.dispatch('delete-comment-confirmed', {commentId: $event.detail.params})"
+    @keydown.escape.window="onEscape($event)"
     class="animate-fade"
     gap="gap-0"
     dir="rtl"

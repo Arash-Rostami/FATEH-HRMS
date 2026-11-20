@@ -1108,12 +1108,13 @@ class TaskResourceTest extends TestCase
     public function test_approve_action_needs_update_permission_and_approves_for_those_who_have_it(): void
     {
         $task = $this->pendingApprovalTask();
+        $developer = $this->developer();
         Filament::setCurrentPanel('admin');
 
         Livewire::actingAs($this->viewOnlyAdmin())->test(ListTasks::class)
             ->assertTableActionHidden('approve', $task);
 
-        Livewire::actingAs($this->developer())->test(ListTasks::class)
+        Livewire::actingAs($developer)->test(ListTasks::class)
             ->assertTableActionVisible('approve', $task)
             ->callTableAction('approve', $task);
 

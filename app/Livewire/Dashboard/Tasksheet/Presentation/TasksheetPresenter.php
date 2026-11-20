@@ -32,14 +32,14 @@ class TasksheetPresenter
         $sc = $report['scorecard'];
 
         $tiles = [
-            ['icon' => 'task_alt', 'label' => 'تکمیل‌شده', 'value' => convertToPersian($sc['completed']['value']), 'chip' => $this->deltaChip($sc['completed']['value'], $sc['completed']['previous'], ''), 'ring' => null, 'spark' => $this->spark($sc['completed']['previous'], $sc['completed']['value'])],
-            ['icon' => 'speed', 'label' => 'به‌موقع بودن', 'value' => $sc['on_time_percent']['value'] !== null ? convertToPersian($sc['on_time_percent']['value']) . '٪' : '—', 'chip' => $this->pointsChip($this->deltaChip($sc['on_time_percent']['value'], $sc['on_time_percent']['previous']), $sc['on_time_percent']['delta_percent']), 'ring' => $sc['on_time_percent']['value'], 'spark' => $this->spark($sc['on_time_percent']['previous'], $sc['on_time_percent']['value'])],
-            ['icon' => 'schedule', 'label' => 'میانهٔ زمان انجام', 'value' => $sc['cycle_time_days']['median'] !== null ? convertToPersian(number_format($sc['cycle_time_days']['median'], 1)) . ' روز' : '—', 'chip' => $this->deltaChip($sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median'], ' روز', true), 'ring' => null, 'spark' => $this->spark($sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['median'])],
-            ['icon' => 'verified', 'label' => 'تأییدیهٔ دریافتی', 'value' => convertToPersian($sc['approvals_received']['value']), 'chip' => $this->deltaChip($sc['approvals_received']['value'], $sc['approvals_received']['previous'], ''), 'ring' => null, 'spark' => $this->spark($sc['approvals_received']['previous'], $sc['approvals_received']['value'])],
+            ['icon' => 'task_alt', 'label' => 'انجام‌شده در این بازه', 'value' => convertToPersian($sc['completed']['value']), 'chip' => $this->deltaChip($sc['completed']['value'], $sc['completed']['previous'], ''), 'ring' => null, 'spark' => $this->spark($sc['completed']['previous'], $sc['completed']['value'])],
+            ['icon' => 'speed', 'label' => 'انجام به‌موقع', 'value' => $sc['on_time_percent']['value'] !== null ? convertToPersian($sc['on_time_percent']['value']) . '٪' : '—', 'chip' => $this->pointsChip($this->deltaChip($sc['on_time_percent']['value'], $sc['on_time_percent']['previous']), $sc['on_time_percent']['delta_percent']), 'ring' => $sc['on_time_percent']['value'], 'spark' => $this->spark($sc['on_time_percent']['previous'], $sc['on_time_percent']['value'])],
+            ['icon' => 'schedule', 'label' => 'زمان معمول انجام', 'value' => $sc['cycle_time_days']['median'] !== null ? convertToPersian(number_format($sc['cycle_time_days']['median'], 1)) . ' روز' : '—', 'chip' => $this->deltaChip($sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median'], ' روز', true), 'ring' => null, 'spark' => $this->spark($sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['median'])],
+            ['icon' => 'verified', 'label' => 'تأییدهای دریافتی', 'value' => convertToPersian($sc['approvals_received']['value']), 'chip' => $this->deltaChip($sc['approvals_received']['value'], $sc['approvals_received']['previous'], ''), 'ring' => null, 'spark' => $this->spark($sc['approvals_received']['previous'], $sc['approvals_received']['value'])],
         ];
 
         $plainTiles = [
-            ['icon' => 'warning', 'label' => 'همچنان معوق', 'value' => convertToPersian($sc['still_overdue']), 'live' => true],
+            ['icon' => 'warning', 'label' => 'کارهای عقب‌افتاده', 'value' => convertToPersian($sc['still_overdue']), 'live' => true],
             ['icon' => 'autorenew', 'label' => 'در حال انجام', 'value' => convertToPersian($sc['in_progress']), 'live' => true],
         ];
 
@@ -65,9 +65,9 @@ class TasksheetPresenter
     public function highlightCards(array $report): array
     {
         $kinds = [
-            'hardest_close' => ['icon' => 'fitness_center', 'label' => 'سخت‌ترین وظیفهٔ بسته‌شده'],
-            'fastest_turnaround' => ['icon' => 'bolt', 'label' => 'سریع‌ترین انجام'],
-            'most_collaborated' => ['icon' => 'groups', 'label' => 'بیشترین همکاری'],
+            'hardest_close' => ['icon' => 'fitness_center', 'label' => 'کار شاخص این بازه'],
+            'fastest_turnaround' => ['icon' => 'bolt', 'label' => 'کوتاه‌ترین زمان انجام'],
+            'most_collaborated' => ['icon' => 'groups', 'label' => 'بیشترین نظر همکاران'],
         ];
 
         return collect($report['highlights'])
@@ -84,7 +84,7 @@ class TasksheetPresenter
             return $chip;
         }
 
-        $chip['text'] .= ' · ' . ($points > 0 ? '+' : ($points < 0 ? '−' : '')) . $this->formatNumber(abs($points));
+        $chip['text'] .= ' · ' . ($points > 0 ? '+' : ($points < 0 ? '−' : '')) . $this->formatNumber(abs($points)) . ' واحد درصد';
 
         return $chip;
     }
@@ -122,7 +122,7 @@ class TasksheetPresenter
                 ($direction === 'up') !== $lowerIsBetter => 'good',
                 default => 'bad',
             },
-            'text' => 'قبلی: ' . $this->formatNumber($previous) . $suffix,
+            'text' => 'بازهٔ قبل: ' . $this->formatNumber($previous) . $suffix,
             'icon' => match ($direction) {
                 'up' => 'trending_up',
                 'down' => 'trending_down',
@@ -172,7 +172,7 @@ class TasksheetPresenter
 
         return [
             'icon' => 'schedule',
-            'text' => convertToPersian($stillOverdue) . ' مورد دیرکرد در این پروژه',
+            'text' => convertToPersian($stillOverdue) . ' کار عقب‌افتاده در این پروژه',
             'classes' => $this->riskToneClasses($stillOverdue >= 3 ? 'error' : 'warning'),
         ];
     }

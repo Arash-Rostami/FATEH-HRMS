@@ -1,5 +1,5 @@
 @if(aiAssistantOn())
-    <div x-data="aiAssistant(@js($aiAssistantBaseSrc))" dir="rtl" x-cloak @keydown.escape.window="handleEscape()">
+    <div x-data="aiAssistant(@js($aiAssistantBaseSrc))" dir="rtl" x-cloak @keydown.escape.window="handleEscape($event)">
 
         <div x-show="open"
              x-transition:enter="transition ease-out duration-300"

@@ -48,7 +48,7 @@
                 @click.away="open = false"
                 class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold transition-all duration-200 rounded-xl ripple-effect text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]">
             <span class="text-base material-symbols-rounded">person_add</span>
-            ارجاع به
+            تعیین مسئول انجام
         </button>
 
         <div x-show="open"
@@ -73,8 +73,7 @@
     </div>
 
     <x-ui.buttons.form variant="ghost"
-                       wire:click="bulkDelete"
-                       wire:confirm="آیا از حذف موارد انتخاب‌شده اطمینان دارید؟"
+                       x-on:click="{{ confirmDialog('bulkDelete', 'حذف', 'آیا از حذف موارد انتخاب‌شده اطمینان دارید؟', null, 'dispatch', 'danger') }}"
                        loading="bulkDelete"
                        wire:loading.attr="disabled"
                        icon="delete"

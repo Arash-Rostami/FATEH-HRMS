@@ -26,13 +26,10 @@ class EventResource extends SearchResource
     {
         $me = $this->me();
 
-        $query->where(fn (Builder $q) => $q
+        $query->withoutOffModuleSyncs()->where(fn (Builder $q) => $q
             ->where('user_id', $me)
-            ->orWhereNull('user_id')
-            ->orWhere(fn (Builder $sub) => $sub
-                ->where('user_id', '!=', $me)
-                ->where('private', false)
-            )
+            ->orWhere('private', false)
+            ->orWhereHas('shares', fn (Builder $shared) => $shared->where('user_id', $me))
         );
     }
 }

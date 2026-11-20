@@ -10,9 +10,9 @@
             </div>
 
             <div>
-                <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)] mb-2 tracking-tight">ارزیابی عملکرد پشتیبانی</h3>
+                <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)] mb-2 tracking-tight">رضایت از رسیدگی به تیکت</h3>
                 <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed max-w-md mx-auto">
-                    تیکت <span class="font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 px-1.5 py-0.5 rounded-md" dir="ltr">{{ $presenter->formatId($ticketToRate->toArray()) }}</span> با موضوع <span class="font-medium text-[var(--md-sys-color-on-surface)]">"{{ Str::limit($ticketToRate->request_subject, 40) }}"</span> بسته شده است. لطفا میزان رضایت خود را اعلام نمایید.
+                    تیکت <span class="font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 px-1.5 py-0.5 rounded-md" dir="ltr">{{ $presenter->formatId($ticketToRate->toArray()) }}</span> با موضوع <span class="font-medium text-[var(--md-sys-color-on-surface)]">"{{ Str::limit($ticketToRate->request_subject, 40) }}"</span> بسته شده است. از ۱ تا ۵ ستاره به نحوهٔ رسیدگی امتیاز بدهید؛ ۱ کمترین و ۵ بیشترین رضایت است.
                 </p>
             </div>
 
@@ -55,11 +55,11 @@
                 <div class="space-y-2 text-right">
                     <label for="satisfactionComment" class="flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-on-surface)] ml-auto">
                         <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">chat</span>
-                        نظرات پیشنهادی (اختیاری):
+                        توضیح شما (اختیاری):
                     </label>
                     <textarea id="satisfactionComment" wire:model="rating.comment"
                               class="w-full bg-[var(--md-sys-color-surface-container-lowest)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-4 shadow-inner transition-colors placeholder:text-[var(--md-sys-color-on-surface-variant)]/50 min-h-[120px] resize-y"
-                              placeholder="چگونه می‌توانیم خدمات خود را بهبود بخشیم؟"></textarea>
+                              placeholder="چه چیزی خوب بود و چه چیزی می‌تواند بهتر شود؟"></textarea>
                     @error('rating.comment') <span class="text-[11px] text-[var(--md-sys-color-error)]">{{ $message }}</span> @enderror
                 </div>
 

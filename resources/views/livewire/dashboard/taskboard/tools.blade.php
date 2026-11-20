@@ -27,7 +27,7 @@
 
                         <button type="button"
                                 wire:click="exportTasks" wire:loading.attr="disabled" wire:target="exportTasks"
-                                title="دریافت خروجی وظایف" aria-label="دریافت خروجی وظایف"
+                                title="دریافت فایل Excel وظایف من؛ مستقل از جستجو و فیلترها" aria-label="دریافت فایل Excel وظایف من؛ مستقل از جستجو و فیلترها"
                                 class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]">
                             <span class="material-symbols-rounded text-[18px] leading-none">download</span>
                         </button>
@@ -50,8 +50,8 @@
 
                         <button type="button"
                                 @click="toggleFavoritesOnly()" :aria-pressed="showFavoritesOnly"
-                                :title="showFavoritesOnly ? 'نمایش همهٔ وظایف' : 'نمایش فقط پین‌شده‌ها'"
-                                :aria-label="showFavoritesOnly ? 'نمایش همهٔ وظایف' : 'نمایش فقط پین‌شده‌ها'"
+                                :title="showFavoritesOnly ? 'نمایش همهٔ وظایف' : 'نمایش فقط سنجاق‌شده‌ها'"
+                                :aria-label="showFavoritesOnly ? 'نمایش همهٔ وظایف' : 'نمایش فقط سنجاق‌شده‌ها'"
                                 :class="showFavoritesOnly ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]'"
                                 class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
                             <span class="material-symbols-rounded text-[18px] leading-none" :class="{ 'font-fill': showFavoritesOnly }">push_pin</span>
@@ -121,12 +121,12 @@
 
                     <div class="min-w-0">
                         <x-ui.forms.select
-                            label="جوابگو"
+                            label="مسئول پیگیری"
                             name="responsibleFilter"
                             wire:model.live="responsibleFilter"
                             icon="support_agent"
                         >
-                            <option value="">همه جوابگوها</option>
+                            <option value="">همهٔ مسئولان پیگیری</option>
 
                             @foreach($staffMembers as $staff)
                                 <option value="{{ $staff['id'] }}">
@@ -138,12 +138,12 @@
 
                     <div class="min-w-0">
                         <x-ui.forms.select
-                            label="دپارتمان"
+                            label="بخش سازمانی"
                             name="departmentFilter"
                             wire:model.live="departmentFilter"
                             icon="corporate_fare"
                         >
-                            <option value="">همه دپارتمان‌ها</option>
+                            <option value="">همهٔ بخش‌های سازمانی</option>
 
                             @foreach($departmentOptions as $code => $label)
                                 <option value="{{ $code }}">
@@ -297,7 +297,7 @@
                     @if(count($this->actionSourceDomainOptions))
                         <div wire:key="taskboard-filter-source-domain" class="min-w-0">
                             <x-ui.forms.select
-                                label="حوزهٔ منبع اقدام"
+                                label="دستهٔ منبع درخواست"
                                 name="actionSourceDomainFilter"
                                 wire:model.live="actionSourceDomainFilter"
                                 icon="hub"
@@ -316,7 +316,7 @@
                     @if(count($this->actionSourceOptions))
                         <div wire:key="taskboard-filter-source" class="min-w-0">
                             <x-ui.forms.select
-                                label="منبع اقدام"
+                                label="منبع درخواست"
                                 name="actionSourceFilter"
                                 wire:model.live="actionSourceFilter"
                                 icon="input"

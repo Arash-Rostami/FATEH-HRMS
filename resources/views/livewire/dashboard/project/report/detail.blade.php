@@ -32,7 +32,7 @@
 
     @if(!empty($row['meta_chips']))
         <div class="md:col-span-2">
-            <p class="{{ $caption }} mb-1.5">دیتای سفارشی</p>
+            <p class="{{ $caption }} mb-1.5">اطلاعات دلخواه</p>
             <div class="flex flex-wrap gap-1.5">
                 @foreach($row['meta_chips'] as $metaChip)
                     <span title="{{ $metaChip['label'] }}: {{ $metaChip['value'] }}"
@@ -133,7 +133,7 @@
         <a href="{{ route('tasks', ['open' => $row['id']]) }}" wire:navigate
            class="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110 active:scale-95 transition shadow-sm">
             <span class="material-symbols-rounded text-[16px]">open_in_new</span>
-            <span>مشاهده در تسک‌بورد</span>
+            <span>باز کردن در برد وظایف</span>
         </a>
     </div>
 </div>

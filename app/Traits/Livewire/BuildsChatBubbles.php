@@ -74,13 +74,26 @@ trait BuildsChatBubbles
 
         $fallback = null;
 
-        return collect($reactions)->groupBy('emoji')->map(fn($rows, $emoji) => [
-            'emoji' => $emoji,
-            'count' => $rows->count(),
-            'mine' => $rows->contains(fn($r) => (int) $r['user_id'] === $authId),
-            'names' => $rows->map(fn($r) => $readersMap[(int) $r['user_id']]['name']
-                ?? ($fallback ??= User::getCachedActiveOptions())->get((int) $r['user_id'], 'کاربر'))->implode('، '),
-        ])->values()->all();
+        return collect($reactions)->groupBy('emoji')->map(function ($rows, $emoji) use ($authId, $readersMap, &$fallback) {
+            $users = $rows->map(function ($r) use ($readersMap, &$fallback) {
+                $meta = $readersMap[(int) $r['user_id']] ?? null;
+
+                return [
+                    'name' => $meta['name']
+                        ?? ($fallback ??= User::getCachedActiveOptions())->get((int) $r['user_id'], 'کاربر'),
+                    'avatar' => $meta['avatar'] ?? null,
+                    'inactive' => $meta['inactive'] ?? false,
+                ];
+            })->values();
+
+            return [
+                'emoji' => $emoji,
+                'count' => $users->count(),
+                'mine' => $rows->contains(fn($r) => (int) $r['user_id'] === $authId),
+                'names' => $users->pluck('name')->implode('، '),
+                'users' => $users->all(),
+            ];
+        })->values()->all();
     }
 
     public function pinPreview(?int $id, ?string $body, string $sender): ?array

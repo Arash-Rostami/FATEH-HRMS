@@ -51,43 +51,47 @@ class SuggestionForm extends Form
         ];
     }
 
-    protected function attributes(): array
+    public function validationAttributes(): array
     {
         return [
-            'title' => 'عنوان',
-            'descriptionSelf' => 'توضیحات',
-            'departments' => 'واحدها',
+            'title' => 'عنوان پیشنهاد',
+            'descriptionSelf' => 'شرح پیشنهاد',
+            'departments' => 'واحدهای مرتبط',
             'purpose' => 'هدف',
-            'rule' => 'قوانین',
+            'rule' => 'اصول سازمان',
             'priority' => 'اولویت',
             'attachment' => 'پیوست',
+            'feedbackTeam' => 'نظر واحد شما',
+            'feedback.*' => 'نظر واحد مرتبط',
+            'descriptionTeam' => 'توضیح نظر واحد شما',
+            'descriptionDepts.*' => 'توضیح نظر واحد مرتبط',
         ];
     }
 
     protected function messages(): array
     {
         return [
-            'title.required' => 'وارد کردن عنوان الزامی است.',
+            'title.required' => 'برای پیشنهاد یک عنوان کوتاه بنویسید.',
             'title.string' => 'عنوان باید متن باشد.',
             'title.min' => 'عنوان باید حداقل ۳ کاراکتر باشد.',
             'title.max' => 'عنوان نباید بیشتر از ۲۵۵ کاراکتر باشد.',
-            'descriptionSelf.required' => 'وارد کردن توضیحات الزامی است.',
+            'descriptionSelf.required' => 'شرح پیشنهاد را بنویسید.',
             'descriptionSelf.string' => 'توضیحات باید متن باشد.',
             'descriptionSelf.min' => 'توضیحات باید حداقل ۱۰ کاراکتر باشد.',
-            'departments.array' => 'واحدها باید به صورت آرایه باشند.',
-            'purpose.required' => 'انتخاب هدف الزامی است.',
-            'purpose.array' => 'هدف باید به صورت آرایه باشد.',
+            'departments.array' => 'واحدهای مرتبط را از فهرست انتخاب کنید.',
+            'purpose.required' => 'دست‌کم یک هدف انتخاب کنید.',
+            'purpose.array' => 'هدف را از گزینه‌های فرم انتخاب کنید.',
             'purpose.min' => 'حداقل یک هدف باید انتخاب شود.',
-            'rule.required' => 'انتخاب قوانین الزامی است.',
-            'rule.array' => 'قوانین باید به صورت آرایه باشند.',
-            'rule.min' => 'حداقل یک قانون باید انتخاب شود.',
+            'rule.required' => 'دست‌کم یکی از اصول سازمان را انتخاب کنید.',
+            'rule.array' => 'اصول سازمان را از گزینه‌های فرم انتخاب کنید.',
+            'rule.min' => 'دست‌کم یکی از اصول سازمان را انتخاب کنید.',
             'priority.required' => 'انتخاب اولویت الزامی است.',
             'priority.in' => 'اولویت انتخابی معتبر نیست.',
             'attachment.file' => 'فایل انتخاب شده معتبر نیست.',
-            'attachment.mimes' => 'فرمت فایل باید pdf، png، jpg یا webp باشد.',
-            'attachment.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
-            'feedbackTeam.in' => 'بازخورد معتبر انتخاب کنید.',
-            'feedback.*.in' => 'بازخورد معتبر انتخاب کنید.',
+            'attachment.mimes' => 'فقط PDF یا تصویر PNG، JPG، JPEG و WEBP انتخاب کنید.',
+            'attachment.max' => 'حجم فایل باید حداکثر ' . convertToPersian((string) (config('file_upload_limits.document') / 1024)) . ' مگابایت باشد.',
+            'feedbackTeam.in' => 'نظر واحد خود را از گزینه‌های فرم انتخاب کنید.',
+            'feedback.*.in' => 'نظر هر واحد را از گزینه‌های فرم انتخاب کنید.',
         ];
     }
 }

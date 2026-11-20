@@ -63,10 +63,24 @@ class TicketForm extends Form
             'files.max' => 'حداکثر ۳ فایل می‌توانید ضمیمه کنید.',
             'files.*.file' => 'فایل ضمیمه باید معتبر باشد.',
             'files.*.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
-            'files.*.mimes' => 'فرمت فایل مجاز نیست.',
+            'files.*.mimes' => 'این نوع فایل پذیرفته نمی‌شود. تصویر، PDF، سند Word یا ODT، و فایل Excel یا ODS مجاز است.',
         ];
     }
 
+
+    public function validationAttributes(): array
+    {
+        return [
+            'targetDepartment' => 'واحد رسیدگی‌کننده',
+            'requestType' => 'نوع درخواست',
+            'requestArea' => 'حوزهٔ درخواست',
+            'priority' => 'اولویت',
+            'subject' => 'موضوع تیکت',
+            'description' => 'شرح درخواست',
+            'files' => 'پیوست‌ها',
+            'files.*' => 'فایل پیوست',
+        ];
+    }
 
     public function validated(): array
     {

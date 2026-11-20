@@ -1,6 +1,6 @@
     @if(empty($tabs))
         <div wire:key="reservation-avantgarde-no-permission" class="contents">
-            <x-ui.empty icon="lock" title="دسترسی رزرو ندارید" description="مجوز رزرو هیچ نوع منبعی برای شما فعال نشده است. با مدیر سیستم تماس بگیرید." variant="list" />
+            <x-ui.empty icon="lock" title="دسترسی رزرو ندارید" description="برای شما اجازهٔ رزرو فعال نشده است. از مدیر سامانه کمک بگیرید." variant="list" />
         </div>
     @else
         <div wire:key="reservation-avantgarde-type-selector" x-data="{ open: false }" @click.outside="open = false" class="relative w-full">
@@ -121,9 +121,9 @@
     @if(count($this->facets) > 0)
         <div wire:key="resv-facets-panel-booking" class="contents">
             <x-ui.forms.filters
-                placeholder="جستجوی منابع..."
+                placeholder="جستجو با نام مورد رزرو…"
                 searchModel="resourceSearch"
-                filterTitle="فیلتر منابع"
+                filterTitle="پیدا کردن مورد رزرو"
                 activeCondition="Object.keys(this.$wire.get('facetFilters') || {}).length > 0"
                 clearAction="this.$wire.call('resetFilters', true)"
             >

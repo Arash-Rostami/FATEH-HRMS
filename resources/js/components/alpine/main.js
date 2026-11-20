@@ -54,9 +54,14 @@ import status from "./data/status.js";
 import smsModal from "./data/sms.js";
 import tabSelector from "./data/tabSelector.js";
 import tagInput from "./data/tagInput.js";
+import memberPicker from "./data/memberPicker.js";
+import fancyboxMixin from "./mixins/fancybox.js";
+import { consumeEscape, onTop } from "./mixins/maximize.js";
 
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
+        Alpine.mapAttributes(consumeEscape)
+        Alpine.magic('onTop', (el) => onTop(el))
         registerAppStore(Alpine)
         registerThemeStore(Alpine)
         registerBackgroundStore(Alpine)
@@ -117,5 +122,7 @@ export default function initAlpine() {
         Alpine.data('status', status)
         Alpine.data('smsModal', smsModal)
         Alpine.data('tabSelector', tabSelector)
-        Alpine.data('tagInput', tagInput)    })
+        Alpine.data('tagInput', tagInput)
+        Alpine.data('memberPicker', memberPicker)
+        Alpine.data('fancyboxHost', () => ({ ...fancyboxMixin(), init() { this.initFancybox() } }))    })
 }

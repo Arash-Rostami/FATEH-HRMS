@@ -89,7 +89,7 @@
                                 <div class="flex size-8 items-center justify-center rounded-xl bg-[var(--tool-amethyst-bg)] text-[var(--tool-amethyst-color)]">
                                     <span class="material-symbols-rounded text-base" aria-hidden="true">grid_view</span>
                                 </div>
-                                <h3 class="text-sm font-semibold text-[var(--md-sys-color-on-surface)]">ماتریس اولویت × وضعیت</h3>
+                                <h3 class="text-sm font-semibold text-[var(--md-sys-color-on-surface)]">تعداد کارها بر اساس اولویت و وضعیت</h3>
                             </header>
                             <div class="p-4 overflow-x-auto">
                                 <table class="w-full text-xs border-separate border-spacing-1">

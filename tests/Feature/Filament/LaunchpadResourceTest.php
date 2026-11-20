@@ -4,6 +4,7 @@ namespace Tests\Feature\Filament;
 
 use App\Filament\Resources\LaunchpadResource;
 use App\Filament\Resources\LaunchpadResource\Pages\ListLaunchpads;
+use App\Jobs\RefreshLaunchpadJob;
 use App\Models\Department;
 use App\Models\Launchpad;
 use App\Models\Permission;
@@ -11,6 +12,7 @@ use App\Models\Profile;
 use App\Models\User;
 use App\Services\Menu\Indicators\UnseenLaunchpads;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
@@ -109,6 +111,41 @@ class LaunchpadResourceTest extends TestCase
         $this->assertFalse(LaunchpadResource::canCreate());
     }
 
+    public function test_audience_column_shows_all_users_for_a_public_row(): void
+    {
+        Storage::fake('public');
+        $admin = $this->developer();
+        $dept = $this->dept('LPRA');
+        $owner = $this->deptUser($dept);
+        $this->row($owner, $dept, ['title' => 'LP-admin-public', 'settings' => ['public' => true]]);
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->assertSee('LP-admin-public')
+            ->assertSee('همهٔ کاربران');
+    }
+
+    public function test_refresh_column_shows_the_configured_status_label_and_never_exposes_the_source(): void
+    {
+        Storage::fake('public');
+        $admin = $this->developer();
+        $dept = $this->dept('LPRF');
+        $owner = $this->deptUser($dept);
+        $this->row($owner, $dept, [
+            'title' => 'LP-admin-refresh',
+            'source' => ['url' => 'https://example.com/lp-secret-path', 'method' => 'GET', 'body' => null, 'auth' => 'header', 'env' => ['kind' => 'bearer', 'value' => 'lp-secret-token']],
+            'refresh_due_at' => now()->addDay(),
+            'settings' => ['refresh' => ['status' => 'unreachable']],
+        ]);
+        $this->row($owner, $dept, ['title' => 'LP-admin-pending', 'source' => ['url' => 'https://example.com/b', 'method' => 'GET', 'body' => null, 'auth' => 'none', 'env' => []], 'refresh_due_at' => now()->addDay()]);
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->assertSee('آخرین دریافت اطلاعات')
+            ->assertSee(config('launchpad.refresh.statuses.unreachable.label'))
+            ->assertSee(config('launchpad.refresh.statuses.pending.label'))
+            ->assertDontSee('lp-secret-token')
+            ->assertDontSee('lp-secret-path');
+    }
+
     public function test_link_rows_appear_with_their_kind_and_monitoring_stays_read_only(): void
     {
         Storage::fake('public');
@@ -129,7 +166,7 @@ class LaunchpadResourceTest extends TestCase
 
         Livewire::actingAs($admin)->test(ListLaunchpads::class)
             ->assertSee('LP-admin-link')
-            ->assertSee('پیوند به سامانه');
+            ->assertSee('میان‌بر به سامانه');
 
         $this->assertFalse(LaunchpadResource::canCreate());
 
@@ -175,6 +212,67 @@ class LaunchpadResourceTest extends TestCase
         $this->assertNotNull(Launchpad::withTrashed()->find($a->id));
         Storage::disk('public')->assertMissing('launchpad/files/' . $a->folder . '/' . Launchpad::storedName('index.html'));
         Storage::disk('public')->assertMissing('launchpad/files/' . $b->folder . '/' . Launchpad::storedName('index.html'));
+    }
+
+    public function test_toggle_refuses_an_expired_row_with_a_notification_and_leaves_it_unchanged(): void
+    {
+        Storage::fake('public');
+        $admin = $this->developer();
+        $dept = $this->dept('LPRT');
+        $owner = $this->deptUser($dept);
+        $expired = $this->row($owner, $dept, ['title' => 'LP-toggle-expired', 'active' => false, 'accessible_to' => today()->subDay()]);
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->call('updateTableColumnState', 'active', (string) $expired->getKey(), true)
+            ->assertNotified('مهلت دسترسی به برنامه تمام شده است.');
+
+        $this->assertFalse((bool) $expired->fresh()->active);
+    }
+
+    public function test_toggle_activation_re_arms_the_refresh_of_a_source_row(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+        $admin = $this->developer();
+        $dept = $this->dept('LPRS');
+        $owner = $this->deptUser($dept);
+        $row = $this->row($owner, $dept, [
+            'title' => 'LP-toggle-source',
+            'active' => false,
+            'source' => ['url' => 'http://example.com/api', 'method' => 'GET', 'body' => null, 'auth' => 'none', 'env' => []],
+            'refresh_due_at' => now()->addDay(),
+        ]);
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->call('updateTableColumnState', 'active', (string) $row->getKey(), true);
+
+        $fresh = $row->fresh();
+        $this->assertTrue((bool) $fresh->active);
+        $this->assertTrue($fresh->refresh_due_at->lte(now()));
+        Queue::assertPushed(RefreshLaunchpadJob::class, 1);
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->call('updateTableColumnState', 'active', (string) $row->getKey(), false);
+
+        $this->assertFalse((bool) $row->fresh()->active);
+    }
+
+    public function test_bulk_activate_goes_through_the_action_and_reports_refused_rows(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+        $admin = $this->developer();
+        $dept = $this->dept('LPRB');
+        $owner = $this->deptUser($dept);
+        $ok = $this->row($owner, $dept, ['title' => 'LP-bulk-ok', 'active' => false]);
+        $expired = $this->row($owner, $dept, ['title' => 'LP-bulk-expired', 'active' => false, 'expire_at' => today()->subDay()]);
+
+        Livewire::actingAs($admin)->test(ListLaunchpads::class)
+            ->callTableBulkAction('bulk_activate', [$ok, $expired])
+            ->assertNotified('موارد انتخاب‌شده فعال شدند.');
+
+        $this->assertTrue((bool) $ok->fresh()->active);
+        $this->assertFalse((bool) $expired->fresh()->active);
     }
 
     public function test_bulk_visibility_actions_toggle_rows_and_the_audience_badge(): void

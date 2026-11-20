@@ -22,7 +22,7 @@ class LaunchpadFileController extends Controller
             return $this->missing();
         }
 
-        $row = Launchpad::query()->whereKey((int) $launchpad)->first(['id', 'user_id', 'kind', 'folder', 'active', 'audience', 'accessible_from', 'accessible_to', 'expire_at']);
+        $row = Launchpad::query()->whereKey((int) $launchpad)->first(['id', 'user_id', 'kind', 'folder', 'active', 'audience', 'accessible_from', 'accessible_to', 'expire_at', 'settings']);
         $directory = $row?->directory();
         if ($row === null || $row->kind !== 'static' || $directory === null) {
             return $this->missing();
@@ -52,7 +52,7 @@ class LaunchpadFileController extends Controller
             'Access-Control-Allow-Origin' => '*',
         ]);
         $response->setPrivate();
-        $response->setEtag(hash_hmac('sha256', $row->folder . '|' . mb_strtolower($file), (string) config('app.key')));
+        $response->setEtag(hash_hmac('sha256', $row->folder . '|' . mb_strtolower($file) . '|' . filemtime($path), (string) config('app.key')));
         $response->isNotModified($request);
 
         return $response;

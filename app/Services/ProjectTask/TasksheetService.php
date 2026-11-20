@@ -588,11 +588,11 @@ class TasksheetService
     {
         $onTime = $onTimePercent !== null ? convertToPersian(number_format($onTimePercent, 0)) : '—';
         $avg = $avgCycle !== null ? convertToPersian(number_format($avgCycle, 1)) : '—';
-        $reactionsText = $reactions > 0 ? ' و ' . convertToPersian($reactions) . ' واکنش از همکاران گرفت' : '';
+        $reactionsText = $reactions > 0 ? ' و ' . convertToPersian($reactions) . ' ریاکشن از همکاران دریافت شد' : '';
 
         return 'در بازهٔ ' . convertToPersian($days) . ' روزه، ' . convertToPersian($completed) . ' از ' . convertToPersian($assigned)
-            . " وظیفهٔ محول‌شده را تکمیل کرد (٪{$onTime} به‌موقع)، میانگین زمان انجام {$avg} روز و " . convertToPersian($approvalsReceived)
-            . ' تأیید مدیر دریافت کرد' . $reactionsText . '.';
+            . " کار مرتبط با این فرد انجام شد. انجام به‌موقع: {$onTime}٪؛ میانگین زمان از ساخت تا انجام: {$avg} روز؛ " . convertToPersian($approvalsReceived)
+            . ' تأیید از دیگران ثبت شد' . $reactionsText . '.';
     }
 
     private function zeroStateReport(Carbon $start, Carbon $end, int $days): array

@@ -165,10 +165,10 @@ class ProjectSettingsTest extends TestCase
         ]);
 
         $summary = $project->settingsSummary();
-        $this->assertStringContainsString('تأیید مدیر فعال', $summary);
-        $this->assertStringContainsString('SLA: 48 ساعت', $summary);
+        $this->assertStringContainsString('تأیید مالک لازم است', $summary);
+        $this->assertStringContainsString('مهلت پیش‌فرض: 48 ساعت', $summary);
         $this->assertStringContainsString('مهلت:', $summary);
-        $this->assertStringContainsString('2 فیلد سفارشی', $summary);
+        $this->assertStringContainsString('2 قسمت اطلاعات دلخواه', $summary);
 
         [, $empty] = $this->ownerWithSettings(null);
         $this->assertSame('—', $empty->settingsSummary());

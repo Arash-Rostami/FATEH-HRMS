@@ -25,16 +25,17 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
             <div class="col-span-1 sm:col-span-3">
-                <x-ui.forms.select label="واحد سازمانی ارجاع‌شونده (اختیاری)" name="ticket.targetDepartment"
+                <x-ui.forms.select label="واحد رسیدگی‌کننده" name="ticket.targetDepartment"
                                    wire:model.live="ticket.targetDepartment" icon="domain">
-                    <option value="">انتخاب واحد سازمانی...</option>
+                    <option value="">انتخاب واحد...</option>
                     @unless(\App\Models\Department::anyHasCustomTicketOptions())
-                        <option value="N/A">پیش‌فرض (پشتیبانی عمومی)</option>
+                        <option value="N/A">پشتیبانی عمومی</option>
                     @endunless
                     @foreach ($departmentOptions as $code => $name)
                         <option value="{{ $code }}">{{ $name }}</option>
                     @endforeach
                 </x-ui.forms.select>
+                <p class="mt-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">واحدی را انتخاب کنید که باید به درخواست رسیدگی کند؛ سپس نوع و حوزهٔ درخواست را مشخص کنید.</p>
             </div>
 
             @if($this->ticket->targetDepartment !== '')
@@ -60,7 +61,7 @@
                         <p wire:key="ths-create-typical"
                            class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5">
                             <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">schedule</span>
-                            {{ $typicalHint }}
+                            {{ $typicalHint }}؛ این زمان تقریبی است.
                         </p>
                     @endif
                 </div>
@@ -92,6 +93,7 @@
                             </label>
                         @endforeach
                     </div>
+                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">اولویت را بر اساس فوریت واقعی انتخاب کنید؛ پس از ثبت، خودتان نمی‌توانید آن را تغییر دهید.</p>
                     @error('ticket.priority') <p
                         class="text-[10px] text-[var(--md-sys-color-error)] mt-1">{{ $message }}</p> @enderror
                 </div>
@@ -107,6 +109,9 @@
         <div wire:key="ths-create-content" class="space-y-4">
 
             <x-ui.title icon="edit_note" title="محتوای تیکت"/>
+            @if($aiOn)
+                <p wire:key="ths-create-ai-help" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">«نوشتن هوشمند» موضوع و شرح را پیشنهاد می‌دهد. متن را بررسی کنید و جاهای خالی را پر کنید؛ پذیرش پیشنهاد، تیکت را ارسال نمی‌کند.</p>
+            @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
@@ -114,7 +119,7 @@
                     <div @if($aiOn) class="relative" data-ai-blank="«____»" data-ai-next="ticket.description" x-bind:inert="aiLoading"
                          x-bind:class="{ 'ai-suggested': aiSuggested }" x-bind:aria-busy="aiLoading"
                          x-on:keydown.tab="!$event.shiftKey && aiBlanks > 0 && aiNextBlank($event.target) && $event.preventDefault()" @endif>
-                        <x-ui.forms.input label=" موضوع تیکت *" name="ticket.subject"
+                        <x-ui.forms.input label="موضوع تیکت *" name="ticket.subject"
                                           wire:model="ticket.subject" icon="label">
                             @if($aiOn)
                                 <x-slot:actions>
@@ -128,6 +133,7 @@
                                 </x-slot:actions>
                             @endif
                         </x-ui.forms.input>
+                        <p class="mt-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">در یک جمله بنویسید چه می‌خواهید یا چه مشکلی پیش آمده است.</p>
                         @if($aiOn)
                             <x-ui.loaders.ai-shimmer x-show="aiLoading" style="display: none;" class="rounded-t-lg"/>
                         @endif
@@ -137,7 +143,7 @@
                         <div @if($aiOn) class="relative" data-ai-blank="«____»" x-bind:inert="aiLoading"
                              x-bind:class="{ 'ai-suggested': aiSuggested }" x-bind:aria-busy="aiLoading"
                              x-on:keydown.tab="!$event.shiftKey && aiBlanks > 0 && aiNextBlank($event.target) && $event.preventDefault()" @endif>
-                            <x-ui.forms.textarea label="توضیحات تکمیلی *" name="ticket.description"
+                            <x-ui.forms.textarea label="شرح درخواست *" name="ticket.description"
                                                  wire:model="ticket.description" icon="description" rows="5" :maximizable="true">
                                 @if($aiOn)
                                     <x-slot:actions>
@@ -151,6 +157,7 @@
                                     </x-slot:actions>
                                 @endif
                             </x-ui.forms.textarea>
+                            <p class="mt-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">بگویید چه اتفاقی افتاده، کجا رخ داده و چه نتیجه‌ای می‌خواهید. اگر پیام خطایی دارید، متن یا تصویر آن را پیوست کنید.</p>
                             @if($aiOn)
                                 <x-ui.loaders.ai-shimmer x-show="aiLoading" style="display: none;" class="rounded-t-lg"/>
                             @endif
@@ -175,20 +182,20 @@
                                 <button type="button" x-show="aiSuggested" style="display: none;"
                                         x-on:click="aiUndo(); aiFocus()"
                                         class="rounded-md animate-slide-up-fade motion-reduce:!animate-none animate-delay-150 transition-transform active:scale-95">
-                                    <x-ui.badge>برگردان Esc</x-ui.badge>
+                                    <x-ui.badge>بازگشت متن قبلی Esc</x-ui.badge>
                                 </button>
-                                <button type="button" aria-label="تولید نسخهٔ دیگر" x-show="aiSuggested && !aiLoading" style="display: none;"
+                                <button type="button" aria-label="نوشتن پیشنهاد دیگر" x-show="aiSuggested && !aiLoading" style="display: none;"
                                         x-on:click="aiAgain()"
                                         class="rounded-md animate-slide-up-fade motion-reduce:!animate-none animate-delay-200 transition-transform active:scale-95">
                                     <x-ui.badge class="gap-1">
                                         <span class="material-symbols-rounded text-[14px]">refresh</span>
-                                        نسخهٔ دیگر
+                                        پیشنهاد دیگر
                                     </x-ui.badge>
                                 </button>
                                 <x-ui.badge x-show="aiReady()" style="display: none;"
                                             class="gap-1 !bg-[var(--tool-sage-bg)] !text-[var(--tool-sage-text)] animate-slide-up-fade motion-reduce:!animate-none animate-delay-300">
                                     <span class="material-symbols-rounded text-[14px]">check_circle</span>
-                                    آماده ارسال
+                                    جاهای خالی تکمیل شد
                                 </x-ui.badge>
                                 <button type="button" aria-label="پرکردن جای خالی بعدی" x-show="aiBlankLeft() > 0" style="display: none;"
                                         x-on:click="aiJumpBlank()"
@@ -220,7 +227,7 @@
                         <div class="flex items-center gap-2">
                         <span
                             class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-base">attach_file</span>
-                            <span class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">ضمائم</span>
+                            <span class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">پیوست‌ها</span>
                             <span
                                 class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-variant)] px-2 py-0.5 rounded-lg">اختیاری</span>
                         </div>

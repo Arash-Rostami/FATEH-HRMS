@@ -833,6 +833,7 @@ class ProjectResourceTest extends TestCase
     {
         [$project, $workflow] = $this->twoStepCycle();
         $draft = Workflow::factory()->create(['owner_id' => $project->owner_id, 'project_id' => $project->id]);
+        $developer = $this->developer();
         Filament::setCurrentPanel('admin');
 
         Livewire::actingAs($this->viewOnlyProjectAdmin())
@@ -840,7 +841,7 @@ class ProjectResourceTest extends TestCase
             ->assertTableActionHidden('forceAdvance', $workflow)
             ->assertTableActionHidden('reassignStep', $workflow);
 
-        Livewire::actingAs($this->developer())
+        Livewire::actingAs($developer)
             ->test(WorkflowsRelationManager::class, ['ownerRecord' => $project, 'pageClass' => EditProject::class])
             ->assertTableActionVisible('forceAdvance', $workflow)
             ->assertTableActionVisible('reassignStep', $workflow)

@@ -10,11 +10,11 @@
     $templateAverages = $this->templateAverages;
 @endphp
 
-<div class="flex flex-col gap-4" wire:key="workflow-{{ $activeProjectId }}" @project-workflow-refresh.window="$wire.refreshWorkflow()">
+<div class="flex flex-col gap-4" wire:key="workflow-{{ $activeProjectId }}" @project-workflow-refresh.window="$wire.refreshWorkflow()" x-on:confirmation-confirmed.window="{{ confirmDialogListener(['cancelWorkflow' => true, 'forceAdvance' => 'spread', 'advanceStep' => 'spread']) }}">
     <div class="flex flex-wrap items-center gap-2">
         <div class="flex-1 min-w-0">
             <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">چرخه‌های کاری</p>
-            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">توالی مراحل تحویل کار با محول‌شونده مشخص و پیگیری خودکار</p>
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">کار را به چند مرحله تقسیم کنید و برای هر مرحله مسئول بگذارید. پس از پایان هر مرحله، نوبت مرحلهٔ بعد می‌رسد.</p>
         </div>
 
         @if($isOwner)
@@ -22,14 +22,14 @@
                 @if($templates->isNotEmpty())
                     <div wire:key="workflow-apply-template" class="flex items-center gap-2">
                         <div class="w-40">
-                            <x-ui.forms.select label="اعمال الگو" name="selectedTemplateId" wire:model="selectedTemplateId">
+                            <x-ui.forms.select label="انتخاب الگوی چرخه" name="selectedTemplateId" wire:model="selectedTemplateId">
                                 <option value=""></option>
                                 @foreach($templates as $template)
                                     <option value="{{ $template->id }}">{{ $template->name }}{{ $template->avg_days ? ' · میانگین ' . convertToPersian($template->avg_days) . ' روز' : '' }}</option>
                                 @endforeach
                             </x-ui.forms.select>
                         </div>
-                        <x-ui.buttons.form wire:click="applyTemplate" variant="tonal" icon="content_copy" size="icon" title="اعمال الگو"/>
+                        <x-ui.buttons.form wire:click="applyTemplate" variant="tonal" icon="content_copy" size="icon" title="ساخت پیش‌نویس از الگو"/>
                     </div>
                 @endif
 

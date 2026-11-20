@@ -65,6 +65,8 @@ export default function settings() {
         currentPresence: 'onsite',
 
         _isDestroyed: false,
+        _resetPending: false,
+        _onConfirmed: null,
         tableModules: TABLE_MODULES,
         tableState: { modules: {}, compact: false, menuDeclutter: false },
 
@@ -81,6 +83,13 @@ export default function settings() {
         init() {
             this._isDestroyed = false;
             this.currentPresence = this.$root?.dataset?.currentPresence || 'onsite';
+
+            this._onConfirmed = (e) => {
+                if (!this._resetPending || e.detail?.method !== 'resetApp') return;
+                this._resetPending = false;
+                this.performReset();
+            };
+            window.addEventListener('confirmation-confirmed', this._onConfirmed);
 
             this.initFocusFromSnapshot();
             this.refreshTableState();
@@ -309,8 +318,13 @@ export default function settings() {
         },
 
         resetApp() {
-            if (!confirm('همه تنظیمات بازنشانی شود؟')) return;
+            this._resetPending = true;
+            window.dispatchEvent(new CustomEvent('open-confirmation', {
+                detail: { title: 'بازنشانی تنظیمات', message: 'همه تنظیمات بازنشانی شود؟', method: 'resetApp', type: 'dispatch', tone: 'danger' }
+            }));
+        },
 
+        performReset() {
             if ('caches' in window) {
                 caches.keys().then(names => names.forEach(n => caches.delete(n)));
             }
@@ -321,6 +335,8 @@ export default function settings() {
 
         destroy() {
             this._isDestroyed = true;
+
+            window.removeEventListener('confirmation-confirmed', this._onConfirmed);
 
             patternInitAbort?.abort();
             patternInitAbort = null;

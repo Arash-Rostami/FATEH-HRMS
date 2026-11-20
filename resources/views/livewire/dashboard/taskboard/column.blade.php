@@ -92,7 +92,7 @@
                     <x-slot:body>
                         <div class="p-3 text-[11.5px] leading-6">
                             <p class="font-bold mb-1">{{ $archivedCount }} وظیفهٔ آرشیو‌شده</p>
-                            <p>وظایف انجام‌شده و تأییدشده‌ای که مدتی از تأییدشان گذشته، خودکار شبانه آرشیو می‌شوند — چیزی حذف نمی‌شود. با کلیک روی این دکمه وارد آرشیو شوید و با «خروج از آرشیو» روی هر مورد، آن را برگردانید.</p>
+                            <p>وظایف انجام‌شده و تأییدشده پس از مدتی بدون تغییر، شبانه آرشیو می‌شوند؛ چیزی حذف نمی‌شود. این دکمه آرشیو را باز می‌کند. برای برگرداندن هر کارت، «خروج از آرشیو» را بزنید.</p>
                         </div>
                     </x-slot:body>
                 </x-ui.hover-popover>
@@ -154,7 +154,7 @@
                     </div>
                 @elseif($empty['olderExist'])
                     <div wire:key="taskboard-empty-window" class="contents">
-                        <x-ui.empty icon="history" title="هیچ موردی در ۴۵ روز اخیر نیست" description="تسک‌های انجام‌شده قدیمی‌تر پنهان شده‌اند" variant="list">
+                        <x-ui.empty icon="history" title="هیچ موردی در ۴۵ روز اخیر نیست" description="برای دیدن وظایف انجام‌شدهٔ قدیمی‌تر، دکمهٔ زیر را بزنید" variant="list">
                             <x-slot:slot>
                                 <button
                                     wire:click="toggleShowAllDone"

@@ -2,7 +2,7 @@
     <footer wire:key="composer-archived" class="flex-shrink-0 border-t bg-[color-mix(in_srgb,var(--md-sys-color-surface)_90%,transparent)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
         <div class="flex items-center gap-2 px-4 py-3.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">
             <span class="material-symbols-rounded text-[16px] flex-shrink-0">archive</span>
-            این مخاطب دیگر در فهرست فعال نیست؛ تاریخچهٔ گفتگو قابل مشاهده است اما امکان ارسال پیام جدید وجود ندارد.
+            این گفتگو در آرشیو است. پیام‌های قبلی را می‌توانید بخوانید. ارسال پیام تازه در دسترس نیست.
         </div>
     </footer>
 @else
@@ -88,7 +88,7 @@
                           x-on:input="len = $el.value.length; autoGrow($el, 160); autoDirection($el); resetPollInterval(); pingTyping()"
                           x-on:paste="pasteImage($event, 'composer-attachments')"
                           rows="1" placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
-                          class="w-full bg-transparent px-3 py-2.5 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[280px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)] [unicode-bidi:plaintext]"></textarea>
+                          class="w-full bg-transparent px-3 py-2.5 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[280px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]"></textarea>
                 <span x-show="len === 0" dir="rtl"
                       class="hidden lg:flex absolute inset-0 items-center justify-center gap-1.5 text-[10px] pointer-events-none text-[var(--md-sys-color-on-surface-variant)] opacity-50"
                       aria-hidden="true">

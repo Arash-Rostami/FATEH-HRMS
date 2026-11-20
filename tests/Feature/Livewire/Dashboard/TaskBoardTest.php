@@ -40,6 +40,7 @@ use Livewire\Attributes\Url;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use OpenSpout\Reader\XLSX\Reader;
+use ReflectionMethod;
 use Tests\TestCase;
 
 class TaskBoardTest extends TestCase
@@ -2085,6 +2086,59 @@ class TaskBoardTest extends TestCase
         $this->assertSame(30, $checklist[1]['weight']);
     }
 
+    public function test_collaborators_bulk_selection_selects_all_and_clears(): void
+    {
+        $creator = User::factory()->create(['status' => 'active']);
+        User::factory()->count(3)->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($creator)->test(Main::class);
+        $pool = (new ReflectionMethod($component->instance(), 'bulkPeoplePool'))->invoke($component->instance(), 'form.collaborators');
+        $this->assertNotEmpty($pool);
+        $this->assertContains($creator->id, $pool, 'without a project the pool is the same universe the picker lists, the creator included');
+
+        $component->call('bulkSelectPeople', 'form.collaborators', 'all');
+        $this->assertEqualsCanonicalizing($pool, array_map('intval', $component->get('form.collaborators')));
+
+        $component->call('bulkSelectPeople', 'form.collaborators', 'none');
+        $this->assertSame([], $component->get('form.collaborators'));
+
+        $component->call('bulkSelectPeople', 'form.collaborators', 'department');
+        $this->assertSame([], $component->get('form.collaborators'), 'a department run without a department value is a no-op');
+
+        $component->set('form.newTitle', 'untouched')->call('bulkSelectPeople', 'form.newTitle', 'all');
+        $this->assertSame('untouched', $component->get('form.newTitle'), 'a forged target property is a no-op');
+        $this->assertSame([], $component->get('form.collaborators'));
+    }
+
+    public function test_collaborators_bulk_pool_follows_the_project_roster_and_the_candidate_list(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $member = User::factory()->create(['status' => 'active']);
+        $inactive = User::factory()->create(['status' => 'inactive']);
+        $outsider = User::factory()->create(['status' => 'active']);
+        $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [$member->id, $inactive->id], 'departments' => []]);
+
+        $component = Livewire::actingAs($owner)->test(Main::class)->set('form.projectId', $project->id);
+        $component->call('bulkSelectPeople', 'form.collaborators', 'all');
+        $selected = array_map('intval', $component->get('form.collaborators'));
+        $candidates = array_map('intval', array_column($component->instance()->userPickerResults['candidates'], 'id'));
+
+        $this->assertEqualsCanonicalizing([$owner->id, $member->id], $selected);
+        $this->assertEqualsCanonicalizing($selected, $candidates);
+        $this->assertNotContains($outsider->id, $selected);
+        $this->assertNotContains($inactive->id, $selected);
+    }
+
+    public function test_task_modal_project_lookup_ignores_a_project_the_user_cannot_see(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $stranger = User::factory()->create(['status' => 'active']);
+        $project = Project::factory()->create(['owner_id' => $owner->id, 'member_ids' => [], 'departments' => []]);
+
+        $this->assertNull(Livewire::actingAs($stranger)->test(Main::class)->set('form.projectId', $project->id)->instance()->formProject);
+        $this->assertSame($project->id, Livewire::actingAs($owner)->test(Main::class)->set('form.projectId', $project->id)->instance()->formProject?->id);
+    }
+
     public function test_duplicate_task_copies_collaborators_and_responsible_user(): void
     {
         $creator = User::factory()->create(['status' => 'active']);
@@ -3333,7 +3387,7 @@ class TaskBoardTest extends TestCase
             ->test(Main::class)
             ->call('openCreateModal')
             ->set('form.projectId', $project->id)
-            ->assertSeeHtml('این فیلدها توسط مدیر پروژه برای این پروژه تعریف شده است.')
+            ->assertSeeHtml('مدیر پروژه این قسمت‌ها را برای اطلاعات موردنیاز هر وظیفه تعریف کرده است.')
             ->assertSeeHtml('wire:model="form.meta.vendor"')
             ->assertSeeHtml('تأمین‌کننده')
             ->assertDontSeeHtml('wire:click="addMetaKey"');
@@ -3346,16 +3400,16 @@ class TaskBoardTest extends TestCase
         Livewire::actingAs($owner)
             ->test(Main::class)
             ->call('openCreateModal')
-            ->assertSeeHtml('هنوز دیتای سفارشی ثبت نشده است.')
+            ->assertSeeHtml('هنوز اطلاعات دلخواهی ثبت نشده است.')
             ->assertSeeHtml('wire:model="newMetaKey"')
             ->assertSeeHtml('wire:click="addMetaKey"')
-            ->assertDontSeeHtml('این فیلدها توسط مدیر پروژه برای این پروژه تعریف شده است.');
+            ->assertDontSeeHtml('مدیر پروژه این قسمت‌ها را برای اطلاعات موردنیاز هر وظیفه تعریف کرده است.');
     }
 
     public function test_add_meta_key_enforces_the_key_regex_server_side(): void
     {
         $owner = User::factory()->create(['status' => 'active']);
-        $toast = 'کلید دیتای سفارشی فقط می‌تواند شامل حروف کوچک انگلیسی، رقم و زیرخط باشد.';
+        $toast = 'نام فیلد را با حروف کوچک انگلیسی، رقم و زیرخط (_) بنویسید؛ مثلاً tracking_code.';
 
         foreach (['Bad Key', 'a.b', 'a"b'] as $badKey) {
             Livewire::withoutLazyLoading();

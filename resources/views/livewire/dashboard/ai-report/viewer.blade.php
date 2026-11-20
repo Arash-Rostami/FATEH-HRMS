@@ -13,14 +13,14 @@
     @if($report !== null && $readOnly)
         <div wire:key="ai-report-recipient-banner" class="print:hidden">
             <x-ui.notice-card icon="forward_to_inbox">
-                <p class="text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">@if($report->isRecipient(auth()->user()))این گزارش را <bdi>{{ $report->user?->name ?? 'همکار شما' }}</bdi> برای شما فرستاده است و @else این گزارش @endifفقط خواندنی است.</p>
+                <p class="text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">@if($report->isRecipient(auth()->user()))این گزارش را <bdi>{{ $report->user?->name ?? 'همکار شما' }}</bdi> برای شما فرستاده است. @else این گزارش برای شما فقط قابل مشاهده است. @endifمی‌توانید آن را بخوانید، کپی یا چاپ کنید؛ امکان ویرایش آن را ندارید.</p>
             </x-ui.notice-card>
         </div>
     @endif
     @if($report !== null && $owner && !$report->active)
         <div wire:key="ai-report-inactive-notice" class="print:hidden">
             <x-ui.notice-card icon="visibility_off">
-                <p class="text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">این گزارش غیرفعال است؛ فقط شما آن را می‌بینید و گیرندگان به آن دسترسی ندارند. با «فعال‌سازی دوباره» در پایین صفحه برمی‌گردد.</p>
+                <p class="text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">این گزارش غیرفعال است و گیرندگان به آن دسترسی ندارند. برای برگرداندن دسترسی آن‌ها، «فعال‌سازی دوباره» را در پایین صفحه بزنید.</p>
             </x-ui.notice-card>
         </div>
     @endif
@@ -65,7 +65,7 @@
                 @if($owner && filled($lastPrompt))
                     @php($noRefund = in_array($report->fail_reason, config('ai.report.no_refund'), true))
                     @if($noRefund)
-                        <p wire:key="ai-report-retry-no-refund" class="mt-2 text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">لطفاً درخواست را کوتاه‌تر یا دوباره بنویسید و از دکمهٔ «اصلاح گزارش» استفاده کنید؛ «تلاش دوباره» برای این خطا جوابی ندارد.</p>
+                        <p wire:key="ai-report-retry-no-refund" class="mt-2 text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">درخواست را کوتاه‌تر یا روشن‌تر بنویسید و «اصلاح گزارش» را بزنید. فرستادن دوبارهٔ همان درخواست ممکن است همین خطا را تکرار کند.</p>
                     @else
                         <div wire:key="ai-report-retry" class="mt-3 flex flex-col gap-1.5">
                             @if(!empty($lastVersion['files']))
@@ -136,6 +136,7 @@
                         @if($report->saved_at === null)
                             <div wire:key="ai-report-save" class="contents">
                                 <x-ui.buttons.form wire:click="save" loading="save" variant="secondary" icon="bookmark_added" class="self-start">ذخیره گزارش</x-ui.buttons.form>
+                                <p class="text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">این گزارش فعلاً پیش‌نویس است. «ذخیره گزارش» آن را ذخیره‌شده علامت می‌زند و به‌تنهایی با کسی به اشتراک نمی‌گذارد.</p>
                             </div>
                         @else
                             <div wire:key="ai-report-saved-chip" class="flex items-center gap-1.5 self-start px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
@@ -153,12 +154,13 @@
                             <x-ui.buttons.form variant="secondary" wire:click="rename" loading="rename" class="whitespace-nowrap rounded-xl">ذخیرهٔ عنوان</x-ui.buttons.form>
                         </div>
                     @elseif($presenter->canSave($report) && !empty($report->recipients))
-                        <p wire:key="ai-report-shared-frozen-note" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">برای تغییر عنوان یا ویرایش دستی، اشتراک را بردارید.</p>
+                        <p wire:key="ai-report-shared-frozen-note" class="text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">برای تغییر عنوان، ویرایش دستی یا برگشت به نسخهٔ قبل، در پنجرهٔ «اشتراک‌گذاری با همکاران» همهٔ تیک‌ها را بردارید و «ارسال» را بزنید. این کار دسترسی همهٔ گیرندگان را قطع می‌کند.</p>
                     @endif
 
                     @if(count($versions) > 1 && $presenter->canRevert($report))
                         <div wire:key="ai-report-versions-rail" class="flex flex-wrap items-center gap-1.5">
                             <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-on-surface-variant)]">history</span>
+                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">برای نمایش و ادامهٔ کار از نسخهٔ قبلی، شمارهٔ آن را بزنید؛ سهمیه مصرف نمی‌شود.</span>
                             @foreach($versions as $version)
                                 <button type="button" wire:key="ai-report-version-{{ $version['index'] }}"
                                         @if($version['is_current'] || ! $version['has_spec']) disabled @endif

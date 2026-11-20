@@ -6,7 +6,7 @@
 
 @if($blockRef !== null)
     <div wire:key="ai-report-block-editor-form" class="flex flex-col gap-3" dir="auto">
-        <p class="text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">متن‌ها و ارقام را مستقیم ویرایش کنید؛ تغییر به‌عنوان نسخهٔ تازه ذخیره می‌شود و جمع ستون‌های عددی خودکار به‌روز می‌شود. امکان افزودن یا حذف ردیف وجود ندارد.</p>
+        <p class="text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]">متن و عددها را خودتان تغییر دهید؛ این کار سهمیه مصرف نمی‌کند و نسخهٔ تازه‌ای ثبت می‌کند. ردیف یا خطی را نمی‌توانید اضافه یا حذف کنید؛ برای حذف، متن آن را خالی نگذارید. جمع‌های عددی که از ردیف‌ها محاسبه شده‌اند خودکار به‌روز می‌شوند؛ جمع‌های دستی و مقدارهای دارای واحد را خودتان بررسی کنید.</p>
         @foreach($fields as $dot => $value)
             @php($head = explode('.', $dot)[0])
             @continue($head === 'columns' && in_array($blockDraft['type'] ?? null, ['action_items', 'progress'], true))

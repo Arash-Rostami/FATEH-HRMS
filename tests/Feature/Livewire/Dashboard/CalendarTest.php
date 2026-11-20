@@ -9,6 +9,7 @@ use App\Livewire\Dashboard\Tab\Status;
 use App\Livewire\Dashboard\Tab\Presentation\CalendarPresenter;
 use App\Livewire\Dashboard\EventReminder;
 use App\Enums\ReservationStatus;
+use App\Models\Department;
 use App\Models\Event;
 use App\Models\EventShare;
 use App\Models\Profile;
@@ -147,7 +148,8 @@ class CalendarTest extends TestCase
         for ($i = 0; $i < 3; $i++) {
             $status->call('sendSms', (string) $target->id);
         }
-        $calendar = Livewire::test(Calendar::class)->set('selectedDate', $date)->set('navigationDate', $date)
+        Livewire::withoutLazyLoading();
+        $calendar =Livewire::test(Calendar::class)->set('selectedDate', $date)->set('navigationDate', $date)
             ->set('smsUserId', $target->id)->set('smsType', 'birthday')
             ->set('smsKey', 'birthday-' . $target->id . '-' . Jalalian::now()->getYear())->set('smsText', 'تولدت مبارک');
         $calendar->call('submitSms')->assertNotDispatched('sms-sent');
@@ -3144,5 +3146,57 @@ class CalendarTest extends TestCase
         $this->assertNotNull($selectedEntry);
         $this->assertTrue($selectedEntry['is_snoozed']);
         $this->assertSame(3, $selectedEntry['snoozed_hours']);
+    }
+
+    public function test_share_bulk_selection_pool_matches_available_users_and_clears(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $event = Event::factory()->create(['user_id' => $user->id, 'date' => Carbon::create(2099, 7, 23, 9)]);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Calendar::class)->call('openShareModal', $event->id);
+        $component->call('bulkSelectPeople', 'shareRecipientIds', 'all');
+        $expected = array_map('intval', array_column($component->instance()->availableUsers, 'id'));
+        $this->assertEqualsCanonicalizing($expected, array_map('intval', $component->get('shareRecipientIds')));
+
+        $component->call('bulkSelectPeople', 'shareRecipientIds', 'none');
+        $this->assertSame([], $component->get('shareRecipientIds'));
+
+        $component->set('form.title', 'untouched')->call('bulkSelectPeople', 'form.title', 'all');
+        $this->assertSame('untouched', $component->get('form.title'), 'a forged target property is a no-op');
+        $this->assertSame([], $component->get('shareRecipientIds'));
+    }
+
+    public function test_share_bulk_selection_department_kind_filters_the_pool_and_skips_inactive_users(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $colleague = User::factory()->create(['status' => 'active']);
+        $inactive = User::factory()->create(['status' => 'inactive']);
+        Department::firstOrCreate(['code' => 'BLK'], ['name' => 'BLK', 'description' => 'BLK']);
+        Profile::factory()->create(['user_id' => $colleague->id, 'department_id' => 'BLK']);
+        Profile::factory()->create(['user_id' => $inactive->id, 'department_id' => 'BLK']);
+
+        $event = Event::factory()->create(['user_id' => $user->id, 'date' => Carbon::create(2099, 7, 23, 9)]);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Calendar::class)->call('openShareModal', $event->id)->call('bulkSelectPeople', 'shareRecipientIds', 'department', 'BLK');
+
+        $this->assertSame([$colleague->id], array_map('intval', $component->get('shareRecipientIds')));
+    }
+
+    public function test_share_bulk_selection_is_refused_without_an_owned_event_being_shared(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $stranger = User::factory()->create(['status' => 'active']);
+        User::factory()->create(['status' => 'active']);
+        $event = Event::factory()->create(['user_id' => $owner->id, 'date' => Carbon::create(2099, 7, 23, 9)]);
+
+        Livewire::withoutLazyLoading();
+        $closed = Livewire::actingAs($owner)->test(Calendar::class)->call('bulkSelectPeople', 'shareRecipientIds', 'all');
+        $this->assertSame([], $closed->get('shareRecipientIds'));
+
+        Livewire::withoutLazyLoading();
+        $foreign = Livewire::actingAs($stranger)->test(Calendar::class)->call('openShareModal', $event->id)->call('bulkSelectPeople', 'shareRecipientIds', 'all');
+        $this->assertSame([], $foreign->get('shareRecipientIds'));
     }
 }

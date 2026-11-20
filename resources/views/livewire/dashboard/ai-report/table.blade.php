@@ -36,8 +36,8 @@
             <th scope="col" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start first:rounded-tr-2xl"><x-ui.table.sort-label column="title" :sort="$sort" :sortDir="$sortDir">عنوان</x-ui.table.sort-label></th>
             <th scope="col" data-col="status" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start">وضعیت</th>
             <th scope="col" data-col="type" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start hidden md:table-cell">نوع</th>
-            <th scope="col" data-col="length" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start hidden md:table-cell">حجم</th>
-            <th scope="col" data-col="audience" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start hidden md:table-cell">مخاطب</th>
+            <th scope="col" data-col="length" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start hidden md:table-cell">میزان توضیحات</th>
+            <th scope="col" data-col="audience" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start hidden md:table-cell">گروه مخاطب</th>
             <th scope="col" data-col="owner" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start hidden md:table-cell">مالک</th>
             <th scope="col" data-col="recipients" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start hidden lg:table-cell">گیرندگان</th>
             <th scope="col" data-col="updated" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 font-bold text-start hidden sm:table-cell"><x-ui.table.sort-label column="updated" :sort="$sort" :sortDir="$sortDir">آخرین تغییر</x-ui.table.sort-label></th>
@@ -50,7 +50,7 @@
                         <x-ui.table.sort-popover :options="['updated' => 'آخرین تغییر', 'title' => 'عنوان']"
                                                  :sort="$sort" :sortDir="$sortDir" :isDefault="$sort === 'id'"/>
                     </div>
-                    <x-ui.table.col-toggle scope="ai-report" :columns="['status' => 'وضعیت', 'type' => 'نوع', 'length' => 'حجم', 'audience' => 'مخاطب', 'owner' => 'مالک', 'recipients' => 'گیرندگان', 'updated' => 'آخرین تغییر', 'state' => 'ذخیره', 'active' => 'دسترسی']"/>
+                    <x-ui.table.col-toggle scope="ai-report" :columns="['status' => 'وضعیت', 'type' => 'نوع', 'length' => 'میزان توضیحات', 'audience' => 'گروه مخاطب', 'owner' => 'مالک', 'recipients' => 'گیرندگان', 'updated' => 'آخرین تغییر', 'state' => 'ذخیره', 'active' => 'دسترسی']"/>
                 </x-ui.table.tools>
             </th>
         </tr>

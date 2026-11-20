@@ -36,9 +36,11 @@ class SaveSignCodeAction
         });
     }
 
-    public function clear(string $currentPassword): void
+    public function clear(): void
     {
-        $user = $this->guard($currentPassword);
+        $user = Auth::user();
+
+        abort_unless($user instanceof User && $user->isActive() && !tenantOff('correspondence'), 403);
 
         DB::transaction(function () use ($user): void {
             $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail(['id', 'extra']);

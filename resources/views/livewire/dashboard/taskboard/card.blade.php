@@ -146,7 +146,7 @@
                 @endif
 
                 @if($stateChip)
-                    <span wire:key="taskboard-card-state" title="تعیین تکلیف: {{ $stateChip['label'] }}" class="{{ $cb }} {{ $bd }} {{ $stateChip['class'] }}">
+                    <span wire:key="taskboard-card-state" title="نتیجهٔ کار: {{ $stateChip['label'] }}" class="{{ $cb }} {{ $bd }} {{ $stateChip['class'] }}">
                         <span class="material-symbols-rounded text-[12px]">{{ $stateChip['icon'] }}</span>
                         <span>{{ $stateChip['label'] }}</span>
                     </span>
@@ -200,7 +200,7 @@
                 @endif
 
                 @if($responsibleUser)
-                    <div wire:key="taskboard-card-responsible" data-col="people" title="جوابگو: {{ $responsibleUser['name'] }}" class="{{ $cb }} {{ $tone['sec'] }}">
+                    <div wire:key="taskboard-card-responsible" data-col="people" title="مسئول پیگیری: {{ $responsibleUser['name'] }}" class="{{ $cb }} {{ $tone['sec'] }}">
                         <span class="material-symbols-rounded text-[12px]">support_agent</span>
                         <span class="max-w-[140px] truncate" dir="auto">{{ $responsibleUser['name'] }}</span>
                     </div>

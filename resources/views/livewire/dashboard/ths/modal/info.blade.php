@@ -15,7 +15,7 @@
        x-cloak
        x-transition:enter="animate-slide-fade-from-left"
        x-transition:leave="animate-slide-fade-to-left"
-       x-on:click.outside="closeInfo()"
+       x-on:click.outside="if (!$event.target.closest('.fancybox__dialog, .fancybox__container')) closeInfo()"
        class="absolute inset-y-0 left-0 z-30 flex w-72 md:w-80 max-w-full flex-col overflow-hidden rounded-xl max-sm:rounded-b-none border-r border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-primary-container)] shadow-[0_16px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_24%,transparent)]"
        role="dialog"
        aria-label="توضیحات تیکت">

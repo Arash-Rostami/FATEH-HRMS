@@ -366,25 +366,71 @@ class LetterForm extends Form
         ];
     }
 
+    public function validationAttributes(): array
+    {
+        return [
+            'type' => 'نوع نامه',
+            'letterheadId' => 'سربرگ',
+            'classification' => 'طبقه‌بندی نامه',
+            'urgency' => 'فوریت نامه',
+            'signMode' => 'نوع امضا',
+            'routeMode' => 'ترتیب گرفتن امضاها',
+            'senderCategory' => 'دستهٔ فرستنده',
+            'subject' => 'موضوع نامه',
+            'blocks' => 'بخش‌های متن نامه',
+            'blocks.*' => 'بخش متن نامه',
+            'parties' => 'افراد نامه',
+            'parties.*.user_id' => 'شخص داخل سازمان',
+            'parties.*.role' => 'وظیفهٔ فرد در نامه',
+            'parties.*.print_in_cc' => 'درج نام در رونوشت چاپی',
+            'parties.*.email' => 'ایمیل گیرنده',
+            'parties.*.delivery' => 'روش تحویل',
+            'parties.*.address' => 'نشانی گیرنده',
+            'parties.*.title' => 'سمت گیرنده',
+            'deadline' => 'مهلت پیگیری نامه',
+            'tags' => 'برچسب‌ها',
+            'tags.*' => 'برچسب',
+            'relatedType' => 'نوع مورد مرتبط',
+            'relatedId' => 'شناسهٔ مورد مرتبط',
+            'theirNumber' => 'شمارهٔ نامهٔ فرستنده',
+            'theirDate' => 'تاریخ نامهٔ فرستنده',
+            'sender' => 'فرستنده',
+            'recipientOrg' => 'سازمان گیرنده',
+            'recipientPerson' => 'شخص گیرنده',
+            'recipientTitle' => 'سمت گیرنده',
+            'mode' => 'روش نوشتن نامه',
+            'prompt' => 'درخواست از هوش مصنوعی',
+            'audience' => 'گروه مخاطب نامه',
+            'tone' => 'لحن نامه',
+            'length' => 'طول متن',
+            'files' => 'پیوست‌ها',
+            'files.*' => 'فایل پیوست',
+            'image' => 'تصویر داخل متن',
+            'imageSize' => 'اندازهٔ تصویر',
+            'imageAlign' => 'چیدمان تصویر',
+            'imageCaption' => 'شرح تصویر',
+        ];
+    }
+
     protected function messages(): array
     {
         return [
             'subject.required' => 'موضوع نامه را بنویسید.',
             'subject.max' => 'موضوع نباید بیش از ۲۰۰ نویسه باشد.',
             'type.in' => 'نوع نامه معتبر نیست.',
-            'theirNumber.required_if' => 'شماره نامهٔ طرف را وارد کنید.',
-            'theirDate.required_if' => 'تاریخ نامهٔ طرف را وارد کنید.',
-            'theirDate.regex' => 'تاریخ معتبر نیست.',
-            'deadline.regex' => 'مهلت معتبر نیست.',
+            'theirNumber.required_if' => 'شمارهٔ درج‌شده روی نامهٔ فرستنده را وارد کنید.',
+            'theirDate.required_if' => 'تاریخ درج‌شده روی نامهٔ فرستنده را وارد کنید.',
+            'theirDate.regex' => 'تاریخ نامهٔ فرستنده را کامل و به شمسی وارد کنید؛ نمونه: ۱۴۰۵/۰۸/۲۶.',
+            'deadline.regex' => 'روز، ماه و سال مهلت پیگیری را کامل انتخاب کنید.',
             'sender.required_if' => 'فرستنده را وارد کنید.',
             'senderCategory.required_if' => 'دستهٔ فرستنده را انتخاب کنید.',
-            'prompt.required_if' => 'متن درخواست هوشمند را وارد کنید.',
-            'prompt.min' => 'متن درخواست هوشمند کوتاه است.',
-            'relatedId.required_with' => 'مورد مرتبط را انتخاب کنید.',
-            'files.max' => 'تعداد پیوست از سقف مجاز بیشتر است.',
+            'prompt.required_if' => 'بنویسید چه نامه‌ای می‌خواهید؛ هدف، مخاطب و اطلاعات لازم را توضیح دهید.',
+            'prompt.min' => 'درخواست خیلی کوتاه است؛ آن را با حداقل :min نویسه و جزئیات بیشتر بنویسید.',
+            'relatedId.required_with' => 'پس از انتخاب نوع مورد مرتبط، شناسهٔ آن را هم وارد کنید یا هر دو قسمت را خالی بگذارید.',
+            'files.max' => 'حداکثر :max فایل پیوست مجاز است؛ فایل‌های اضافی را از انتخاب بردارید.',
             'files.*.mimes' => ComposerForm::unsupportedFileMessage(),
             'image.mimes' => 'تصویر باید jpg، png یا webp باشد.',
-            'image.max' => 'حجم تصویر از سقف مجاز بیشتر است.',
+            'image.max' => 'حجم تصویر باید حداکثر :max کیلوبایت باشد؛ حجم آن را کم کنید و دوباره انتخاب کنید.',
         ];
     }
 

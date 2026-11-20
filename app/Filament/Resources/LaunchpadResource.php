@@ -63,9 +63,10 @@ class LaunchpadResource extends Resource
                 LaunchpadTablePresenter::kind(),
                 LaunchpadTablePresenter::department(),
                 LaunchpadTablePresenter::owner(),
-                self::activeColumn(),
+                self::activeColumn()->updateStateUsing(LaunchpadTablePresenter::toggleActive()),
                 LaunchpadTablePresenter::audienceCount(),
                 LaunchpadTablePresenter::status(),
+                LaunchpadTablePresenter::refreshed(),
                 LaunchpadTablePresenter::expiry(),
                 LaunchpadTablePresenter::created(),
             ])
@@ -84,7 +85,8 @@ class LaunchpadResource extends Resource
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions([
                 static::bulkDeleteAction(),
-                ...self::bulkVisibilityActions(),
+                self::bulkActivateAction()->action(LaunchpadTablePresenter::bulkSetActive(true)),
+                self::bulkDeactivateAction()->action(LaunchpadTablePresenter::bulkSetActive(false)),
             ])
             ->emptyStateIcon('heroicon-o-rocket-launch')
             ->defaultSort('created_at', 'desc')

@@ -5,7 +5,7 @@
         <x-ui.table wire:key="reservation-daily-table" cardClass="relative rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
             <x-slot:head>
                 <tr>
-                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 py-3 text-right font-bold first:rounded-tr-2xl">منبع</th>
+                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 py-3 text-right font-bold first:rounded-tr-2xl">مورد رزرو</th>
                     <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 py-3 text-right font-bold">همکار</th>
                     <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 py-3 text-right font-bold">زمان</th>
                     <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 py-3 text-center font-bold last:rounded-tl-2xl">ارتباط</th>
@@ -29,8 +29,10 @@
                         <td class="border-b border-[var(--md-sys-color-outline-variant)] px-4 py-3 align-middle">
                             <div class="flex items-center gap-3">
                                 @if($row['image'])
-                                    <button type="button"
-                                            x-on:click="src = @js($row['image']); caption = @js($resource->name); viewer = true"
+                                    <a href="{{ $row['image'] }}"
+                                            data-type="image"
+                                            data-fancybox="reservation-daily-{{ $row['reservation']->id }}"
+                                            data-caption="{{ $resource->name }}"
                                             aria-label="مشاهده تصویر {{ $resource->name }}"
                                             title="مشاهده تصویر"
                                             class="group/img relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-[var(--md-sys-color-surface-container-high)] ring-1 ring-[var(--md-sys-color-outline-variant)] transition hover:ring-2 hover:ring-[var(--md-sys-color-primary)]">
@@ -38,7 +40,7 @@
                                         <span class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover/img:opacity-100">
                                             <span class="material-symbols-rounded text-[18px] text-white">zoom_in</span>
                                         </span>
-                                    </button>
+                                    </a>
                                 @else
                                     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-container-high)]">
                                         <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">{{ $row['type']?->getMaterialIcon() ?? 'category' }}</span>
@@ -87,7 +89,7 @@
                                     </x-slot:trigger>
                                     <x-slot:content>
                                         <div class="px-4 pb-0.5 pt-2">
-                                            <x-ui.badge variant="info" class="!px-1.5 !py-0.5 !text-[10px]">درخواست دستی</x-ui.badge>
+                                            <x-ui.badge variant="info" class="!px-1.5 !py-0.5 !text-[10px]">تماس یا پیام شخصی</x-ui.badge>
                                         </div>
                                         <x-ui.modals.popover-item icon="chat" label="پیام در چت" :href="$row['contact']['chatUrl']" />
                                         @if($row['contact']['extTel'])
@@ -97,14 +99,14 @@
                                             <x-ui.modals.popover-item icon="call" label="تماس با موبایل" :href="'tel:'.$row['contact']['mobileTel']" />
                                         @endif
                                         <div class="px-4 pb-0.5 pt-2">
-                                            <x-ui.badge variant="warning" class="!px-1.5 !py-0.5 !text-[10px]">درخواست سیستمی</x-ui.badge>
+                                            <x-ui.badge variant="warning" class="!px-1.5 !py-0.5 !text-[10px]">ارسال پیام آماده</x-ui.badge>
                                         </div>
                                         @php($urgentSms = $row['contact']['mobileTel'] && ! tenantOff('notify:sms'))
                                         @foreach($data['presets'] as $key => $preset)
                                             <x-ui.modals.popover-item wire:key="reservation-daily-preset-{{ $row['reservation']->id }}-{{ $key }}" :icon="$preset['icon']" :label="$preset['label']" :last="$loop->last && ! $urgentSms" wire:click="reachOut({{ $row['reservation']->id }}, '{{ $key }}')" />
                                         @endforeach
                                         @if($urgentSms)
-                                            <x-ui.modals.popover-item wire:key="reservation-daily-sms-{{ $row['reservation']->id }}" icon="sms" label="پیامک فوری: جابه‌جایی رزرو" :last="true" wire:click="reachOutSms({{ $row['reservation']->id }})" />
+                                            <x-ui.modals.popover-item wire:key="reservation-daily-sms-{{ $row['reservation']->id }}" icon="sms" label="درخواست جابه‌جایی با پیامک" :last="true" wire:click="reachOutSms({{ $row['reservation']->id }})" />
                                         @endif
                                     </x-slot:content>
                                 </x-ui.modals.popover>
@@ -118,7 +120,7 @@
         </x-ui.table>
     @else
         <div wire:key="reservation-daily-empty" class="contents">
-            <x-ui.empty icon="event_busy" title="رزروی در این بازه پیدا نشد" description="بازه، نوع منبع یا عبارت جستجو را تغییر دهید." />
+            <x-ui.empty icon="event_busy" title="رزروی در این بازه پیدا نشد" description="بازه، نوع مورد رزرو یا عبارت جستجو را عوض کنید." />
         </div>
     @endif
 </div>

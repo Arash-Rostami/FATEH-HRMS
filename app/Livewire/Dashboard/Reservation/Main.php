@@ -83,7 +83,6 @@ class Main extends Component
     public $endTime = '10:00';
     public array $facetFilters = [];
     public string $resourceSearch = '';
-    public $zoomImageUrl = null;
     public int $resourcesLimit = 6;
     public int $historyLimit = 5;
     public $isRecurring = false;
@@ -395,8 +394,8 @@ class Main extends Component
     {
         $usage = $this->activeLimitUsage;
         if ($usage !== null && $usage['near'] && ($this->lastMinuteHours === null || $this->timeRange()[0]->gt(now()->addHours($this->lastMinuteHours)))) {
-            return 'به سقف رزرو ماهانه رسیده‌اید — ابتدا یکی را لغو کنید'
-                .($this->lastMinuteHours === null ? '' : ' یا رزروی را انتخاب کنید که حداکثر '.convertToPersian((string) $this->lastMinuteHours).' ساعت دیگر شروع می‌شود');
+            return 'سهمیهٔ رزرو این نوع در ماه انتخابی پر شده است. قوانین و تاریخ بازگشت سهمیه را ببینید.'
+                .($this->lastMinuteHours === null ? '' : ' رزرو لحظه‌آخری برای شروع تا '.convertToPersian((string) $this->lastMinuteHours).' ساعت آینده، در صورت رعایت سایر قوانین ممکن است.');
         }
 
         $cancel = $this->cancelLimitUsage;
@@ -407,7 +406,7 @@ class Main extends Component
         [$start, $end, $fullDay] = $this->timeRange();
 
         if ($end->isPast() || ((! $fullDay || $this->minNoticeHours > 0) && $start->lt(now()->addHours($this->minNoticeHours ?? 0)))) {
-            return 'زمان انتخابی گذشته یا کمتر از حداقل مهلت رزرو است';
+            return 'زمان دیگری انتخاب کنید؛ این زمان گذشته یا فاصلهٔ لازم تا شروع را ندارد.';
         }
 
         if (ResourceType::tryFrom($this->activeTab)?->isFullDay() ?? true) {
@@ -696,7 +695,7 @@ class Main extends Component
             return null;
         }
 
-        return 'هشدار: لغو این رزرو، تمام رزروهای این سری تکرارشونده را لغو می‌کند';
+        return 'با تأیید، این رزرو و تکرارهای مرتبطی که هنوز قابل لغو هستند، با هم لغو می‌شوند.';
     }
 
     public function loadMoreHistory(): void

@@ -32,7 +32,6 @@ class Main extends Component
     public string $search = '';
     public bool $attentionOnly = false;
     public ?int $selectedId = null;
-    public bool $showWorkflowModal = false;
 
     #[Computed]
     public function authDeptCode(): ?string

@@ -54,7 +54,7 @@ class GalleryTest extends TestCase
         Department::firstOrCreate(['code' => 'IT'], ['name' => 'IT']);
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
         Profile::factory()->create(['user_id' => $user->id, 'department_id' => 'IT']);
-        $photo = Photo::factory()->create(['department_id' => 'IT']);
+        $photo = Photo::factory()->create(['department_id' => 'IT', 'departments' => null, 'event_date' => now()->addYear()->toDateString()]);
 
         Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
@@ -62,7 +62,7 @@ class GalleryTest extends TestCase
             ->assertSeeHtml("togglePin({$photo->id}, 'gallery')")
             ->assertSeeHtml('onlySaved')
             ->assertSeeHtml("isEmpty('gallery')")
-            ->assertSee('موردی نشان نشده است');
+            ->assertSee('هنوز موردی نشان نکرده‌اید');
     }
 
     public function test_gallery_renders_and_loads_more()

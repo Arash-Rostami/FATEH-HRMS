@@ -66,7 +66,7 @@ export default function thsModal() {
         },
 
         confirming() {
-            return !!document.querySelector('.custom-modal.active');
+            return !!document.querySelector('.custom-modal.active, .fancybox__container');
         },
 
         onEscape() {

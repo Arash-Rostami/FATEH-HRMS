@@ -16,8 +16,8 @@
         </div>
         <div class="p-5 flex flex-col gap-2">
             <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">چت زندهٔ تیم</span> (همین برگه) — همان گروه بالا؛ پیام‌رسانی آنی برای همهٔ اعضای پروژه.</p>
-            <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">فعالیت‌ها و نظرات</span> (برگهٔ «فعالیت‌ها» در صفحهٔ پروژهٔ کاربر) — سابقهٔ رسمی رویدادهای سیستمی (تغییر وضعیت، ارجاع، آرشیو) به‌همراه نظرات باز؛ باز و قابل‌مشاهده برای همهٔ اعضای پروژه.</p>
-            <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">گفتگوی وظیفه</span> (تب گفتگوی هر کارتِ برد وظایف) — مخصوص همان یک وظیفه؛ ایجادکننده، مسئول انجام، همکاران، جوابگو و مدیر و اعضای پروژه آن را می‌بینند و پاسخ می‌دهند؛ در «فعالیت‌ها» یا «چت زندهٔ تیم» نمی‌آید.</p>
+            <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">فعالیت‌ها و نظرات</span> (برگهٔ «فعالیت‌ها» در صفحهٔ پروژهٔ کاربر) — سابقهٔ تغییر وضعیت، واگذاری و بایگانی کارها را برای همهٔ اعضا نشان می‌دهد. فقط مالک پروژه می‌تواند در این بخش نظر تازه ثبت کند.</p>
+            <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">گفتگوی وظیفه</span> (تب گفتگوی هر کارتِ برد وظایف) — مخصوص همان یک وظیفه؛ ایجادکننده، مسئول انجام، همکاران، مسئول پیگیری و مدیر و اعضای پروژه آن را می‌بینند و پاسخ می‌دهند؛ پیام‌های یک وظیفه در فعالیت‌ها هم به صورت خلاصه دیده می‌شوند، ولی وارد چت تیم نمی‌شوند.</p>
         </div>
     </div>
 </div>

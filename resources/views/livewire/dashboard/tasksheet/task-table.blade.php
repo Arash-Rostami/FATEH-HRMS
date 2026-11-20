@@ -37,11 +37,11 @@
                     <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">
                         @unless($readOnly)
                             <button type="button" @click="sort('completedAt')" class="print:hidden flex w-full items-center justify-center gap-1.5 transition-colors hover:text-[var(--md-sys-color-primary)]" :class="sortKey === 'completedAt' ? 'text-[var(--md-sys-color-primary)]' : ''">
-                                <span>تاریخ تکمیل</span>
+                                <span>تاریخ انجام</span>
                                 <span class="material-symbols-rounded text-[14px]" :class="sortKey === 'completedAt' ? '' : 'opacity-40'" x-text="sortKey === 'completedAt' ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more'"></span>
                             </button>
                         @endunless
-                        <span class="{{ $readOnly ? '' : 'hidden' }} print:inline">تاریخ تکمیل</span>
+                        <span class="{{ $readOnly ? '' : 'hidden' }} print:inline">تاریخ انجام</span>
                     </th>
                     <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">
                         @unless($readOnly)
@@ -108,7 +108,7 @@
                 @empty
                     <tr wire:key="tasksheet-tasks-empty">
                         <td colspan="7" class="py-8">
-                            <x-ui.empty icon="checklist" title="وظیفه‌ای در این بازه ثبت نشده" variant="filtered"/>
+                            <x-ui.empty icon="checklist" title="کاری برای نمایش در این گزارش نیست" variant="filtered"/>
                         </td>
                     </tr>
                 @endforelse

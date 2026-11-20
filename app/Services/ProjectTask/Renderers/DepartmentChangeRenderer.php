@@ -15,7 +15,7 @@ class DepartmentChangeRenderer implements ActivityLogRenderer
 
     public function getLabel(): string
     {
-        return 'تغییر دپارتمان';
+        return 'تغییر بخش سازمانی';
     }
 
     public function getBody(Reply $reply): string
@@ -23,8 +23,8 @@ class DepartmentChangeRenderer implements ActivityLogRenderer
         $to = $this->departmentLabel($reply->payload['to'] ?? null);
 
         return $to !== null
-            ? "دپارتمان وظیفه به «{$to}» تغییر کرد."
-            : 'دپارتمان وظیفه حذف شد.';
+            ? "بخش سازمانی وظیفه به «{$to}» تغییر کرد."
+            : 'بخش سازمانی وظیفه برداشته شد.';
     }
 
     private function departmentLabel(?string $code): ?string

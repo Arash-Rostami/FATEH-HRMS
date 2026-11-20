@@ -37,9 +37,11 @@ use App\Livewire\Dashboard\Channel\Main;
 use App\Models\Channel;
 use App\Models\ChannelMember;
 use App\Models\ChannelMessage;
+use App\Models\Department;
 use App\Models\Edge;
 use App\Models\Lock;
 use App\Models\Message;
+use App\Models\Profile;
 use App\Models\User;
 use App\Services\Menu\EdgeService;
 use App\Services\Menu\Toasts\ChannelToast;
@@ -157,8 +159,13 @@ class ChannelTest extends TestCase
         $chips = (new ChannelPresenter())->messages($rows, 3, 600, $readers)[0]['reactions'];
 
         $this->assertSame([
-            ['emoji' => '👍', 'count' => 2, 'mine' => true, 'names' => 'Ali، Sara'],
-            ['emoji' => '❤️', 'count' => 1, 'mine' => false, 'names' => 'کاربر'],
+            ['emoji' => '👍', 'count' => 2, 'mine' => true, 'names' => 'Ali، Sara', 'users' => [
+                ['name' => 'Ali', 'avatar' => null, 'inactive' => false],
+                ['name' => 'Sara', 'avatar' => null, 'inactive' => false],
+            ]],
+            ['emoji' => '❤️', 'count' => 1, 'mine' => false, 'names' => 'کاربر', 'users' => [
+                ['name' => 'کاربر', 'avatar' => null, 'inactive' => false],
+            ]],
         ], $chips);
     }
 
@@ -548,7 +555,7 @@ class ChannelTest extends TestCase
             ->call('selectChannel', $channel->id)
             ->set('composer.body', '')
             ->call('send')
-            ->assertDispatched('show-toast', message: 'وارد کردن متن پیام یا افزودن فایل ضمیمه الزامی است.', type: 'error');
+            ->assertDispatched('show-toast', message: 'متن پیام را بنویسید یا یک فایل پیوست کنید.', type: 'error');
 
         $this->assertSame(0, ChannelMessage::where('channel_id', $channel->id)->count());
     }
@@ -1925,8 +1932,8 @@ class ChannelTest extends TestCase
         $this->assertStringContainsString('>bookmark<', $html);
         $this->assertStringContainsString('font-fill', $html);
         $this->assertStringContainsString('-translate-y-1/2 translate-x-1/2', $html);
-        $this->assertStringContainsString(trim(json_encode('نشان کردن پیام'), '"'), $html);
-        $this->assertStringContainsString(trim(json_encode('برداشتن نشان پیام'), '"'), $html);
+        $this->assertStringContainsString(trim(json_encode('نشان کردن'), '"'), $html);
+        $this->assertStringContainsString(trim(json_encode('برداشتن نشان'), '"'), $html);
 
         $blade = file_get_contents(base_path('resources/views/livewire/dashboard/channel/messages.blade.php'));
         $this->assertStringContainsString("!ring-2 !ring-[var(--md-sys-color-primary)]", $blade);
@@ -1983,11 +1990,11 @@ class ChannelTest extends TestCase
         $component = Livewire::actingAs($viewer)->test(Main::class);
 
         $component->assertSet('channelsLimit', 30)
-            ->assertSeeHtml('نمایش بیشتر');
+            ->assertSeeHtml('loadMoreChannels()');
 
         $component->call('loadMoreChannels')
             ->assertSet('channelsLimit', 60)
-            ->assertDontSeeHtml('نمایش بیشتر');
+            ->assertDontSeeHtml('loadMoreChannels()');
     }
 
     public function test_sidebar_load_more_button_is_scoped_to_the_sidebar_island(): void
@@ -2020,7 +2027,7 @@ class ChannelTest extends TestCase
         }
 
         Livewire::actingAs($viewer)->test(Main::class)
-            ->assertDontSeeHtml('نمایش بیشتر');
+            ->assertDontSeeHtml('loadMoreChannels()');
     }
 
     public function test_searching_resets_the_sidebar_page_size(): void
@@ -3112,5 +3119,72 @@ class ChannelTest extends TestCase
 
         $this->assertSame(['promoted' => 0, 'demoted' => 0], $result);
         $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $inactive->id)->value('role'));
+    }
+
+    public function test_member_bulk_selection_pool_matches_candidates_clears_and_needs_the_open_modal(): void
+    {
+        [$owner, $member, $newcomer] = $this->activeUsers(3);
+        $inactive = User::factory()->create(['status' => 'inactive', 'presence' => 'onsite']);
+        $channel = $this->channelWithMembers($owner, [$member]);
+
+        $component = Livewire::actingAs($owner)->test(Main::class)->call('selectChannel', $channel->id);
+        $component->call('bulkSelectPeople', 'memberRecipientIds', 'all');
+        $this->assertSame([], $component->get('memberRecipientIds'), 'the members modal must be open before bulk selection works');
+
+        $component->call('openManageMembers', $channel->id)->call('bulkSelectPeople', 'memberRecipientIds', 'none')->call('bulkSelectPeople', 'memberRecipientIds', 'all');
+        $selected = array_map('intval', $component->get('memberRecipientIds'));
+        $expected = array_map('intval', array_column($component->instance()->memberCandidates, 'id'));
+        $this->assertEqualsCanonicalizing($expected, $selected);
+        $this->assertContains($newcomer->id, $selected);
+        $this->assertNotContains($inactive->id, $selected);
+        $this->assertNotContains($owner->id, $selected);
+
+        $component->call('bulkSelectPeople', 'memberRecipientIds', 'none');
+        $this->assertSame([], $component->get('memberRecipientIds'));
+
+        $component->set('composer.body', 'untouched')->call('bulkSelectPeople', 'composer.body', 'all');
+        $this->assertSame('untouched', $component->get('composer.body'), 'a forged target property is a no-op');
+        $this->assertSame([], $component->get('memberRecipientIds'));
+    }
+
+    public function test_admin_and_create_bulk_selection_use_their_own_pools_and_the_department_kind(): void
+    {
+        [$owner, $member, $other] = $this->activeUsers(3);
+        Department::firstOrCreate(['code' => 'BLK'], ['name' => 'BLK', 'description' => 'BLK']);
+        Profile::factory()->create(['user_id' => $member->id, 'department_id' => 'BLK']);
+        $channel = $this->channelWithMembers($owner, [$member, $other]);
+
+        $component = Livewire::actingAs($owner)->test(Main::class)->call('selectChannel', $channel->id);
+        $component->call('bulkSelectPeople', 'adminRecipientIds', 'all');
+        $this->assertSame([], $component->get('adminRecipientIds'), 'the admins modal must be open before bulk selection works');
+
+        $component->call('openManageAdmins', $channel->id)->call('bulkSelectPeople', 'adminRecipientIds', 'all');
+        $this->assertEqualsCanonicalizing([$member->id, $other->id], array_map('intval', $component->get('adminRecipientIds')));
+
+        $component->call('bulkSelectPeople', 'adminRecipientIds', 'none')->call('bulkSelectPeople', 'adminRecipientIds', 'department', 'BLK');
+        $this->assertSame([$member->id], array_map('intval', $component->get('adminRecipientIds')));
+
+        $component->call('bulkSelectPeople', 'createRecipientIds', 'all');
+        $this->assertSame([], $component->get('createRecipientIds'), 'the create form must be open before bulk selection works');
+
+        $component->call('openCreate')->call('bulkSelectPeople', 'createRecipientIds', 'all');
+        $created = array_map('intval', $component->get('createRecipientIds'));
+        $this->assertEqualsCanonicalizing(array_map('intval', array_column($component->instance()->memberCandidates, 'id')), $created);
+        $this->assertNotContains($owner->id, $created);
+
+        $component->call('bulkSelectPeople', 'createRecipientIds', 'none', 'BLK');
+        $this->assertNotContains($member->id, array_map('intval', $component->get('createRecipientIds')));
+        $this->assertContains($other->id, array_map('intval', $component->get('createRecipientIds')));
+    }
+
+    public function test_bulk_selection_is_refused_for_a_member_without_admin_rights(): void
+    {
+        [$owner, $member] = $this->activeUsers(2);
+        $channel = $this->channelWithMembers($owner, [$member]);
+
+        $component = Livewire::actingAs($member)->test(Main::class)->call('selectChannel', $channel->id)->set('isManageMembersOpen', true);
+        $component->call('bulkSelectPeople', 'memberRecipientIds', 'all');
+
+        $this->assertSame([], $component->get('memberRecipientIds'));
     }
 }

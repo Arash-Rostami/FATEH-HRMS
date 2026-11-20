@@ -20,6 +20,7 @@ use App\Services\ProjectTask\ProjectHeartbeat;
 use App\Services\ProjectTask\ProjectSettings;
 use App\Services\ProjectTask\ReportingService;
 use App\Services\ProjectTask\TaskMetrics;
+use App\Traits\Livewire\BulkSelectsPeople;
 use App\Traits\Livewire\FocusOnRecord;
 use App\Traits\Livewire\HasProjectMembers;
 use App\Traits\Livewire\HasReportSummary;
@@ -37,7 +38,7 @@ use Livewire\Component;
 #[Lazy]
 class Main extends Component
 {
-    use FocusOnRecord, ManagesTaskModal, HasReportSummary, HasProjectMembers;
+    use BulkSelectsPeople, FocusOnRecord, ManagesTaskModal, HasReportSummary, HasProjectMembers;
 
     private const PROJECT_LIST_COLUMNS = [
         'projects.id',
@@ -389,13 +390,38 @@ class Main extends Component
     }
 
     #[Computed]
+    public function deptOptions(): array
+    {
+        return Department::getCachedOptions()->toArray();
+    }
+
+    #[Computed]
     public function memberCandidates(): array
     {
+        $depts = User::getCachedActiveDeptMap();
+
         return User::getCachedActiveOptions()
             ->except(auth()->id())
-            ->map(fn($name, $id) => ['id' => (int) $id, 'name' => $name])
+            ->map(fn($name, $id) => ['id' => (int) $id, 'name' => $name, 'dept' => $depts[(int) $id] ?? ''])
             ->values()
             ->all();
+    }
+
+    protected function bulkSelectTargets(): array
+    {
+        return ['projectForm.memberIds', 'form.collaborators'];
+    }
+
+    protected function canBulkSelect(string $property): bool
+    {
+        return $property !== 'form.collaborators' || !$this->isReadOnly;
+    }
+
+    protected function bulkPeoplePool(string $property, ?string $dept = null): array
+    {
+        return $property === 'form.collaborators'
+            ? $this->taskModalPeoplePool($dept)
+            : $this->bulkDefaultPeoplePool($dept);
     }
 
     #[Computed]

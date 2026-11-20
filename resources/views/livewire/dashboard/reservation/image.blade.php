@@ -18,14 +18,16 @@
                  x-show="!imageError"
             >
 
-            <button x-show="!imageError"
-                    type="button"
-                    wire:click="$set('zoomImageUrl', '{{  $resource->displayImageUrl }}')"
+            <a x-show="!imageError"
+                    href="{{ $resource->displayImageUrl }}"
+                    data-type="image"
+                    data-fancybox="reservation-card-{{ $resource->id }}"
+                    data-caption="{{ $resource->name }}"
                     class="absolute top-4 left-4 w-10 h-10 rounded-xl bg-black/20 hover:bg-black/40 border border-white/10 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-20 shadow-xl"
                     title="بزرگنمایی"
             >
                 <span class="material-symbols-rounded text-[22px]">zoom_in</span>
-            </button>
+            </a>
         @endif
 
         <div
@@ -82,12 +84,12 @@
             @if($blocked)
                 <div wire:key="reservation-booking-blocked" class="flex items-center gap-1.5 mb-2 px-1">
                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-error)]">block</span>
-                    <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason ?? 'ساعت مجاز این منبع: '.convertToPersian($slot['start']).' تا '.convertToPersian($slot['end']) }}</span>
+                    <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason ?? 'ساعت مجاز این مورد رزرو: '.convertToPersian($slot['start']).' تا '.convertToPersian($slot['end']) }}</span>
                 </div>
             @endif
 
             <x-ui.buttons.submit
-                x-on:click="{{ confirmDialog('book', 'تأیید رزرو', 'منبع: ' . $resource->name . chr(10) . \App\Livewire\Dashboard\Reservation\Presentation\ReservationSummaryPresenter::summary($this, $resource), $resource->id) }}"
+                x-on:click="{{ confirmDialog('book', 'تأیید رزرو', 'مورد رزرو: ' . $resource->name . chr(10) . \App\Livewire\Dashboard\Reservation\Presentation\ReservationSummaryPresenter::summary($this, $resource), $resource->id) }}"
                 :disabled="$blocked"
                 :target="'book('.$resource->id.')'"
                 :text="!(ResourceType::tryFrom($activeTab)?->isFullDay() ?? true) ? 'ثبت زمان ('.convertToPersian($startTime).' - '.convertToPersian($endTime).')' : 'ثبت رزرو کامل'"

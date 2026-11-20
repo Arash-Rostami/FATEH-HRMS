@@ -241,13 +241,11 @@ describe('channel() island-scoped action wiring — wire-capture correctness', (
     test('doCancelInvite captures $wire ONCE and reuses it for both the cancelInvite call and the trailing sidebar refresh (the regression caught 2026-10-01)', async () => {
         const c = channel();
         const wire = installWireProbe(c);
-        c.cancelInviteeId = 9;
 
         await c.doCancelInvite(1, 2);
 
         expect(wire._islands.messages.cancelInvite).toHaveBeenCalledWith(1, 2);
         expect(wire._islands.sidebar.refreshUnread).toHaveBeenCalledOnce();
-        expect(c.cancelInviteeId).toBeNull();
     });
 
     test('closeCreate/leaveChannel/createChannel/joinChannel/toggleBrowse/openCreate each read this.$wire only ONCE and reuse it for both calls (toggleBrowse/openCreate fixed 2026-10-01, Fable-5 review)', async () => {
@@ -486,12 +484,6 @@ describe('channel() reply/delete/sender-filter state', () => {
         expect(c.isEditing).toBe(false);
     });
 
-    test('confirmCancelInvite just stores the target id', () => {
-        const c = channel();
-        c.confirmCancelInvite(4);
-        expect(c.cancelInviteeId).toBe(4);
-    });
-
     test('clearSenderFilter is a no-op when no sender is active, otherwise clears it via the messages island', async () => {
         const c = channel();
         c.$wire = createWireMock();
@@ -539,6 +531,25 @@ describe('channel() reply/delete/sender-filter state', () => {
 
         expect(c.$wire.set).not.toHaveBeenCalledWith('createMode', false);
         expect(c.$wire.set).not.toHaveBeenCalledWith('browseMode', false);
+    });
+
+    test('closeOverlays reports whether any layer was open so Escape can leave maximize alone', () => {
+        const c = channel();
+        c.$wire = createWireMock();
+        c.$wire.createMode = false;
+        c.$wire.browseMode = false;
+
+        expect(c.closeOverlays()).toBe(false);
+
+        c.showInfo = true;
+        expect(c.closeOverlays()).toBe(true);
+        expect(c.showInfo).toBe(false);
+
+        c.replyingTo = { id: 1 };
+        expect(c.closeOverlays()).toBe(true);
+
+        c.isEditing = true;
+        expect(c.closeOverlays()).toBe(true);
     });
 });
 
@@ -1453,7 +1464,7 @@ describe('channel() react — burst fires only on giving, once, island-routed (a
         const chip = document.createElement('button');
         chip.className = mine ? 'reaction-burst reaction-mine' : 'reaction-burst';
         chip.dataset.reactionChip = '7';
-        chip.dataset.emoji = '🔥';
+        chip.dataset.emoji = 'fire';
         document.body.appendChild(chip);
         return chip;
     };
@@ -1469,10 +1480,10 @@ describe('channel() react — burst fires only on giving, once, island-routed (a
             }),
         };
 
-        await c.react(7, '🔥');
+        await c.react(7, 'fire');
 
         expect(chip.classList.contains('burst-now')).toBe(true);
-        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledWith(7, '🔥');
+        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledWith(7, 'fire');
         expect(wire._islands.messages.toggleReaction).toHaveBeenCalledTimes(1);
     });
 
@@ -1488,10 +1499,10 @@ describe('channel() react — burst fires only on giving, once, island-routed (a
             }),
         };
 
-        await c.react(7, '🔥');
+        await c.react(7, 'fire');
 
         expect(chip.classList.contains('burst-now')).toBe(false);
-        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledWith(7, '🔥');
+        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledWith(7, 'fire');
     });
 
     test('a brand-new chip (picker give of an emoji not yet on the message) bursts after the island lands', async () => {
@@ -1505,11 +1516,11 @@ describe('channel() react — burst fires only on giving, once, island-routed (a
             }),
         };
 
-        await c.react(7, '🔥');
+        await c.react(7, 'fire');
 
         const fresh = document.querySelector('[data-reaction-chip="7"]');
         expect(fresh.classList.contains('burst-now')).toBe(true);
-        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledWith(7, '🔥');
+        expect(wire._islands.messages.toggleReaction).toHaveBeenCalledWith(7, 'fire');
     });
 
     test('a give that did not land (chip still not mine after the toggle) never bursts', async () => {
@@ -1519,27 +1530,18 @@ describe('channel() react — burst fires only on giving, once, island-routed (a
         const chip = makeChip(false);
         wire._islands.messages = { toggleReaction: vi.fn(() => Promise.resolve()) };
 
-        await c.react(7, '🔥');
+        await c.react(7, 'fire');
 
         expect(chip.classList.contains('burst-now')).toBe(false);
         expect(wire._islands.messages.toggleReaction).toHaveBeenCalledTimes(1);
     });
 });
 
-describe('channel() type change — confirm flag and island-routed call', () => {
-    test('confirmTypeChange and cancelTypeChange toggle the confirm flag', () => {
-        const c = channel();
-        c.confirmTypeChange();
-        expect(c.confirmingTypeChange).toBe(true);
-        c.cancelTypeChange();
-        expect(c.confirmingTypeChange).toBe(false);
-    });
-
-    test('doChangeType calls the messages island, refreshes the sidebar and resets the flag', async () => {
+describe('channel() type change — island-routed call', () => {
+    test('doChangeType calls the messages island and refreshes the sidebar', async () => {
         const c = channel();
         const wire = createWireMock();
         c.$wire = wire;
-        c.confirmingTypeChange = true;
         wire._islands.messages = { changeChannelType: vi.fn(() => Promise.resolve()) };
         wire._islands.sidebar = { refreshUnread: vi.fn() };
 
@@ -1547,21 +1549,18 @@ describe('channel() type change — confirm flag and island-routed call', () => 
 
         expect(wire._islands.messages.changeChannelType).toHaveBeenCalledWith(5, 'open');
         expect(wire._islands.sidebar.refreshUnread).toHaveBeenCalledTimes(1);
-        expect(c.confirmingTypeChange).toBe(false);
     });
 
-    test('doChangeType toasts an error on failure and still resets the flag', async () => {
+    test('doChangeType toasts an error on failure', async () => {
         const c = channel();
         const wire = createWireMock();
         c.$wire = wire;
         c.toast = vi.fn();
-        c.confirmingTypeChange = true;
         wire._islands.messages = { changeChannelType: vi.fn(() => Promise.reject(new Error('x'))) };
 
         await c.doChangeType(5, 'private');
 
         expect(c.toast).toHaveBeenCalledWith('خطا در تغییر نوع گروه.', 'error');
-        expect(c.confirmingTypeChange).toBe(false);
     });
 
     test('doChangeType does nothing without a channel id', async () => {

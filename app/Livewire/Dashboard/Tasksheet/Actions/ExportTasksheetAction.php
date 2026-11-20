@@ -6,6 +6,7 @@ use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Livewire\Dashboard\Tasksheet\Presentation\TasksheetPresenter;
 use App\Models\User;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Services\ProjectTask\TasksheetService;
 use Carbon\Carbon;
 use OpenSpout\Common\Entity\Row;
@@ -64,11 +65,11 @@ class ExportTasksheetAction
         $writer->addRow(Row::fromValues(['شاخص', 'مقدار', 'بازهٔ قبل', 'تغییر'], $boldStyle));
 
         $rows = [
-            ['تکمیل‌شده', $sc['completed']['value'], $sc['completed']['previous'], $sc['completed']['delta_percent'], '٪'],
-            ['به‌موقع (٪)', $sc['on_time_percent']['value'], $sc['on_time_percent']['previous'], $sc['on_time_percent']['delta_percent'], ' امتیاز'],
-            ['میانگین مدت انجام (روز)', $sc['cycle_time_days']['avg'], null, null, '٪'],
-            ['میانهٔ مدت انجام (روز)', $sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['delta_percent'], '٪'],
-            ['تأییدیهٔ دریافتی', $sc['approvals_received']['value'], $sc['approvals_received']['previous'], $sc['approvals_received']['delta_percent'], '٪'],
+            ['انجام‌شده', $sc['completed']['value'], $sc['completed']['previous'], $sc['completed']['delta_percent'], '٪'],
+            ['انجام به‌موقع (٪)', $sc['on_time_percent']['value'], $sc['on_time_percent']['previous'], $sc['on_time_percent']['delta_percent'], ' واحد درصد'],
+            ['میانگین از ساخت تا انجام (روز)', $sc['cycle_time_days']['avg'], null, null, '٪'],
+            ['زمان معمول انجام (روز)', $sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['delta_percent'], '٪'],
+            ['تأییدهای دریافتی', $sc['approvals_received']['value'], $sc['approvals_received']['previous'], $sc['approvals_received']['delta_percent'], '٪'],
         ];
 
         foreach ($rows as [$label, $value, $previous, $delta, $unit]) {
@@ -80,24 +81,24 @@ class ExportTasksheetAction
             ]));
         }
 
-        $writer->addRow(Row::fromValues(['همچنان معوق', $sc['still_overdue']]));
+        $writer->addRow(Row::fromValues(['کارهای عقب‌افتاده', $sc['still_overdue']]));
         $writer->addRow(Row::fromValues(['در حال انجام', $sc['in_progress']]));
-        $writer->addRow(Row::fromValues(['با مهلت نزدیک', $sc['upcoming_deadline']]));
+        $writer->addRow(Row::fromValues(['مهلت تا ' . convertToPersian((string) TaskMetrics::DUE_SOON_DAYS) . ' روز آینده', $sc['upcoming_deadline']]));
     }
 
     private function writeHighlights(Writer $writer, array $highlights, Style $boldStyle): void
     {
         $rows = array_filter([
-            $highlights['hardest_close'] ? ['سخت‌ترین بسته‌شده', $highlights['hardest_close']] : null,
-            $highlights['fastest_turnaround'] ? ['سریع‌ترین انجام', $highlights['fastest_turnaround']] : null,
-            $highlights['most_collaborated'] ? ['بیشترین همکاری', $highlights['most_collaborated']] : null,
+            $highlights['hardest_close'] ? ['کار شاخص این بازه', $highlights['hardest_close']] : null,
+            $highlights['fastest_turnaround'] ? ['کوتاه‌ترین زمان انجام', $highlights['fastest_turnaround']] : null,
+            $highlights['most_collaborated'] ? ['بیشترین نظر همکاران', $highlights['most_collaborated']] : null,
         ]);
 
         if ($rows === []) {
             return;
         }
 
-        $writer->addRow(Row::fromValues(['نکات برجسته'], $boldStyle));
+        $writer->addRow(Row::fromValues(['کارهای برجسته'], $boldStyle));
 
         foreach ($rows as [$label, $row]) {
             $extra = array_key_exists('comments_count', $row)
@@ -116,7 +117,7 @@ class ExportTasksheetAction
             return;
         }
 
-        $writer->addRow(Row::fromValues(['روند هفتگی تکمیل'], $boldStyle));
+        $writer->addRow(Row::fromValues(['کارهای انجام‌شده در هر هفته'], $boldStyle));
         $writer->addRow(Row::fromValues(array_map(fn($i) => 'هفتهٔ ' . ($i + 1), array_keys($weeklyTotals)), $boldStyle));
         $writer->addRow(Row::fromValues($weeklyTotals));
         $writer->addRow(Row::fromValues(['']));
@@ -129,7 +130,7 @@ class ExportTasksheetAction
         }
 
         $writer->addRow(Row::fromValues(['خلاصه به تفکیک پروژه'], $boldStyle));
-        $writer->addRow(Row::fromValues(['پروژه', 'نقش', 'تکمیل‌شده', 'به‌موقع (٪)', 'معوق', 'در حال انجام'], $boldStyle));
+        $writer->addRow(Row::fromValues(['پروژه', 'نقش', 'انجام‌شده', 'انجام به‌موقع (٪)', 'عقب‌افتاده', 'در حال انجام'], $boldStyle));
 
         foreach ($projects as $project) {
             $writer->addRow(Row::fromValues([
@@ -176,7 +177,7 @@ class ExportTasksheetAction
 
             $writer->addRow(Row::fromValues([$group['name']], $boldStyle));
             $writer->addRow(Row::fromValues([
-                'شناسه', 'عنوان', 'اولویت', 'وضعیت', 'مهلت', 'تاریخ تکمیل', 'مدت انجام (روز)', 'به‌موقع',
+                'شناسه', 'عنوان', 'اولویت', 'وضعیت', 'مهلت', 'تاریخ انجام', 'از ساخت تا انجام (روز)', 'به‌موقع',
             ], $boldStyle));
 
             foreach ($group['tasks'] as $row) {

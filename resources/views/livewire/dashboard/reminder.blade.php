@@ -1,4 +1,4 @@
-<div class="contents">
+<div class="contents" x-data x-on:confirmation-confirmed.window="if ($event.detail.method === 'delete-{{ $this->getId() }}') $wire.call('delete', $event.detail.params)">
 
     @if($variant === 'embedded')
         <div wire:key="reminder-embedded" class="space-y-5" dir="rtl">

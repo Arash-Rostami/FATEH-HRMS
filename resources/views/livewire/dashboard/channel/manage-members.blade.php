@@ -11,6 +11,6 @@
 
         <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2">کاربران فعال</label>
 
-        <x-dashboard.member-picker wire:key="channel-members-candidates" model="memberRecipientIds" :candidates="$this->memberCandidates" height="h-[50vh] md:h-64"/>
+        <x-dashboard.member-picker wire:key="channel-members-candidates" model="memberRecipientIds" :candidates="$this->memberCandidates" height="h-[50vh] md:h-64" bulk :dept-options="$this->deptOptions"/>
     </div>
 </x-ui.modals.action>

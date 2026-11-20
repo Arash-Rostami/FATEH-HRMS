@@ -303,6 +303,7 @@ export default function contact() {
         },
 
         closeOverlays() {
+            const wasOpen = this.showInfo || this.searchMessages || this.bookmarksOpen || this.daysOpen || this.emojiOpen || this.replyingTo || this.editingMsg || this.quoteChip.visible || this.openActionsId || this.deletingId;
             this.showInfo = false;
             this.searchMessages = false;
             this.bookmarksOpen = false;
@@ -313,6 +314,7 @@ export default function contact() {
             this.cancelDelete();
             this.quoteChip.visible = false;
             this.openActionsId = null;
+            return Boolean(wasOpen);
         },
 
         toggleActions(id, e) {
@@ -500,7 +502,7 @@ export default function contact() {
                 await this._isl().send();
                 this.replyingTo = null;
                 this._syncSidebarAfterOwnAction(wire);
-                this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); this.autoGrow(ta(), 160); });
+                this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); this.autoGrow(ta(), 160); this.autoDirection(ta()); });
             } catch {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             } finally {

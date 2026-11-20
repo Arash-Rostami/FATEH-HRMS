@@ -5,28 +5,28 @@
             'label' => 'فعال',
             'code' => 'active',
             'chip' => 'bg-success-100 text-success-700',
-            'hint' => 'رزرو پابرجاست و منبع برای آن بازه در دسترس کاربر است. این تنها وضعیتی است که کاربر خودش می‌تواند لغو کند (دکمهٔ لغو در صفحهٔ کاربر فقط برای رزرو فعال ظاهر می‌شود).',
+            'hint' => 'رزرو لغو یا آزاد نشده است. برای زمان استفاده، تاریخ و ساعت آن را ببینید. کاربر فقط رزرو فعالِ در مهلت لغو را می‌تواند لغو کند.',
         ],
         [
             'icon' => 'autorenew',
             'label' => 'آزادشده',
             'code' => 'released',
             'chip' => 'bg-info-100 text-info-700',
-            'hint' => 'ادمین با دکمهٔ «آزادسازی» رزرو را پیش از موعد پایان از حالت فعال خارج کرده. رزرو در سوابق می‌ماند، در سقف ماهانه محاسبه می‌شود و کاربر دیگر نمی‌تواند آن را لغو کند. برای رزروهای بلندمدتِ در‌حال‌انجام، پایان به همین لحظه کوتاه می‌شود و باقی‌ماندهٔ بازه برای دیگران آزاد می‌گردد. برای رزروهای ساعتی، منبع تنها در صورت فعال‌بودنِ «مجوز رزرو در زمان آزادشده» (در قوانین رزرو) آزاد می‌شود؛ در غیر این صورت وضعیت آزادشده می‌ماند ولی منبع هنوز اشغال است.',
+            'hint' => 'مدیریت رزرو را آزاد کرده است؛ سابقه و مصرف سهمیه باقی می‌مانند. رزرو پیوستهٔ شروع‌شده در زمان آزادسازی پایان می‌یابد. در سایر موارد، آزاد شدن زمان برای دیگران به تنظیمات نوع بستگی دارد.',
         ],
         [
             'icon' => 'cancel',
             'label' => 'لغو توسط کاربر',
             'code' => 'cancelled_user',
             'chip' => 'bg-warning-100 text-warning-700',
-            'hint' => 'خودِ کاربر رزرو را لغو کرده است. دلیل لغو (در صورت ثبت) در فیلد «دلیل لغو» ثبت می‌شود و «لغوکننده» همان کاربر است.',
+            'hint' => 'صاحب رزرو آن را لغو کرده است. رزرو از سهمیهٔ ماهانه کنار می‌رود و در تعداد لغوهای کاربر حساب می‌شود.',
         ],
         [
             'icon' => 'shield_person',
-            'label' => 'لغو توسط ادمین',
+            'label' => 'لغو توسط مدیریت',
             'code' => 'cancelled_admin',
             'chip' => 'bg-danger-100 text-danger-700',
-            'hint' => 'مدیر از این صفحه رزرو را با انتخاب دلیل لغو کرده است و نام او به‌عنوان لغوکننده ثبت می‌شود. این لغو در سقف لغو کاربر محاسبه نمی‌شود؛ آن سقف فقط لغوهای خود کاربر را می‌شمارد.',
+            'hint' => 'مدیریت رزرو را لغو کرده است. این مورد به تعداد لغوهای خود کاربر اضافه نمی‌شود.',
         ],
     ];
 @endphp
@@ -38,7 +38,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">چهار وضعیت — رنگ و آیکون هرکدام در جدول همین است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر رزرو یکی از این چهار حالت را دارد. رنگ و آیکون ستون «وضعیت» در جدول/صفحهٔ جزئیات مستقیماً از همین تعریف می‌آید: <span class="font-black text-[var(--md-sys-color-primary)]">فعال</span> (سبز/تیک)، <span class="font-black text-[var(--md-sys-color-primary)]">آزادشده</span> (آبی/چرخش)، <span class="font-black text-[var(--md-sys-color-primary)]">لغو توسط کاربر</span> (زرد/ضربدر) و <span class="font-black text-[var(--md-sys-color-primary)]">لغو توسط ادمین</span> (قرمز/سپر). لغوها (کاربر یا ادمین) هر دو در گروه «لغو شده» قرار می‌گیرند و در زبانهٔ «لغو شده» تاریخچهٔ کاربر ظاهر می‌شوند.
+        وضعیت نشان می‌دهد رزرو پابرجاست، آزاد شده یا لغو شده است. رزروهای لغوشدهٔ کاربر و مدیریت، هر دو در زبانهٔ «لغو شده» دیده می‌شوند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -80,7 +80,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">فعال و آزادشده هر دو می‌شمارند</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">سقف ماهانه <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">max_per_user</code> مجموعِ رزروهای «فعال» و «آزادشده» در همان ماه را محدود می‌کند. پس آزادسازی یک رزرو، آن را از جای منبع بیرون می‌کند ولی جای سقف ماهانه را آزاد نمی‌کند — کاربر برای رزرو بعدی همان ماه باید یکی را لغو کند.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">رزروهای فعال و آزادشدهٔ ماه شروع، هر دو سهمیه مصرف می‌کنند. آزادسازی سهمیه را برنمی‌گرداند. لغو می‌تواند سهمیه را باز کند، اما سقف لغو را هم جداگانه بررسی کنید.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -91,7 +91,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">لغوها می‌شمارند ولی در سقفِ دیگری</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">رزروهای لغوشده از سقف <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">max_per_user</code> کسر نمی‌شوند (جایشان آزاد می‌شود)، ولی لغوِ کاربر به سقف جداگانهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">max_cancel_count</code> در بازهٔ شمارش لغو می‌افزاید. لغوی ادمین به این سقف اضافه نمی‌شود.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">لغو، رزرو را از شمارش سهمیهٔ ماهانه خارج می‌کند. لغو خود کاربر در سقف جداگانهٔ لغو حساب می‌شود؛ لغو مدیریتی به آن اضافه نمی‌شود.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -102,14 +102,14 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">فقط «فعال» قابل‌لغو توسط کاربر است</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">دکمهٔ لغو در صفحهٔ کاربر و دکمهٔ «لغو رزرو» در این صفحه فقط روی رزرو با وضعیت فعال ظاهر می‌شوند. رزرو «آزادشده» دیگر فعال نیست و کاربر نمی‌تواند آن را لغو کند — فقط ادمین می‌تواند از این صفحه حذفش کند.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">لغو برای رزرو فعال است. کاربر باید هنوز در مهلت لغو باشد و از سقف لغو عبور نکرده باشد. رزرو آزادشده دیگر توسط کاربر قابل لغو نیست.</p>
                 </div>
             </div>
         </div>
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                وقتی کاربر می‌گوید «رزرو را لغو کردم ولی هنوز به سقف رسیده‌ام»، علت معمولاً رزروهای «آزادشده» است — آن‌ها فعال نیستند ولی جای سقف ماهانه را نگه می‌دارند.
+                اگر سهمیه هنوز پر است، نوع رزرو، ماه شروع و رزروهای آزادشده را بررسی کنید. مانع رزرو تازه ممکن است سقف لغو باشد، نه سهمیهٔ ماهانه.
             </p>
         </div>
     </div>

@@ -73,7 +73,7 @@ trait HasTaskApproval
 
         if ($project?->setting('requires_approval') !== true || ProjectAccessPolicy::canManageTasks($project, auth()->user())) return;
 
-        throw ValidationException::withMessages(['form' => 'این وظیفه تأیید شده و قفل است؛ فقط مالک پروژه می‌تواند آن را بازگشایی کند.']);
+        throw ValidationException::withMessages(['form' => 'این وظیفه تأیید شده و دیگر برای شما قابل تغییر نیست. برای ادامه از مالک پروژه کمک بگیرید.']);
     }
 
     protected function guardPastDeadline(): void

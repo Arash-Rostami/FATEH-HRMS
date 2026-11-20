@@ -187,7 +187,6 @@ class ChannelResourceTest extends TestCase
         $owner = User::factory()->create(['status' => 'active']);
         $channel = Channel::factory()->ownedBy($owner)->create(['name' => '0-test-rm-roles']);
         $member = User::factory()->create(['status' => 'active']);
-        $channel->memberUsers()->attach($owner->id, ['joined_at' => now()]);
         $channel->memberUsers()->attach($member->id, ['joined_at' => now(), 'entered_at' => now()]);
 
         $admin = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'admin']);

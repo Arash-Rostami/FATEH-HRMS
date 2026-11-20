@@ -105,6 +105,16 @@ describe('thsModal factory', () => {
         expect(c.isClosing).toBe(true)
     })
 
+    test('a fancybox over the modal counts as a layer above it', () => {
+        const c = make()
+        expect(c.confirming()).toBe(false)
+
+        document.body.insertAdjacentHTML('beforeend', '<div class="fancybox__container"></div>')
+        expect(c.confirming()).toBe(true)
+
+        document.querySelector('.fancybox__container').remove()
+    })
+
     test('closing the panel resets its tab only when not reopened within the leave animation', () => {
         const c = make()
         c.openInfo()

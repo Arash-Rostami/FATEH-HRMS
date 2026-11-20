@@ -18,7 +18,7 @@ class PolicySummaryPresenter
         $chips = [];
 
         if ($type === 'meeting') {
-            $chips[] = ['icon' => 'person', 'text' => 'منبع ملاقات = یک همکار؛ دعوت‌نامه در تقویم او ثبت می‌شود', 'tone' => 'info'];
+            $chips[] = ['icon' => 'person', 'text' => 'اگر این مورد برای ملاقات با یک همکار تعریف شده باشد، دعوت‌نامه در تقویم او ثبت می‌شود', 'tone' => 'info'];
         }
 
         $days = $policies['window_days'] ?? null;
@@ -75,7 +75,7 @@ class PolicySummaryPresenter
         }
 
         if (! empty($policies['requires_approval'])) {
-            $chips[] = ['icon' => 'verified_user', 'text' => 'رزرو پس از تأیید مدیر نهایی می‌شود', 'tone' => 'warning'];
+            $chips[] = ['icon' => 'verified_user', 'text' => 'ثبت رزرو به معنی تأیید مدیر نیست', 'tone' => 'warning'];
         }
 
         $rangeDays = $policies['max_range_days'] ?? null;

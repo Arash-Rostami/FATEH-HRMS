@@ -15,7 +15,7 @@ class ResponsibleChangeRenderer implements ActivityLogRenderer
 
     public function getLabel(): string
     {
-        return 'تغییر جوابگو';
+        return 'تغییر مسئول پیگیری';
     }
 
     public function getBody(Reply $reply): string
@@ -23,8 +23,8 @@ class ResponsibleChangeRenderer implements ActivityLogRenderer
         $to = $this->userName($reply->payload['to'] ?? null);
 
         return $to !== null
-            ? "جوابگوی وظیفه به «{$to}» تغییر کرد."
-            : 'جوابگوی وظیفه حذف شد.';
+            ? "مسئول پیگیری وظیفه به «{$to}» تغییر کرد."
+            : 'مسئول پیگیری وظیفه برداشته شد.';
     }
 
     private function userName(?int $userId): ?string

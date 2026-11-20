@@ -407,6 +407,19 @@ describe('contact() reply/edit/delete state', () => {
 });
 
 describe('contact() closeOverlays', () => {
+    test('reports whether any layer was open so Escape can leave maximize alone', () => {
+        const c = contact();
+        c.$wire = createWireMock();
+
+        expect(c.closeOverlays()).toBe(false);
+
+        c.showInfo = true;
+        expect(c.closeOverlays()).toBe(true);
+
+        c.editingMsg = { id: 2, body: 'x' };
+        expect(c.closeOverlays()).toBe(true);
+    });
+
     test('clears every overlay/UI flag and routes reply/edit/delete clearing through the shared helpers', () => {
         const c = contact();
         c.$wire = createWireMock();

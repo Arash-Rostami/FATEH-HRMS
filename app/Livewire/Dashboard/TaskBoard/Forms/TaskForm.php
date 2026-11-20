@@ -90,22 +90,27 @@ class TaskForm extends Form
         'deadlineYear' => 'سال سررسید',
         'deadlineMonth' => 'ماه سررسید',
         'deadlineDay' => 'روز سررسید',
-        'departmentId' => 'دپارتمان',
+        'departmentId' => 'بخش سازمانی',
         'projectId' => 'پروژهٔ مرتبط',
         'labels' => 'برچسب‌ها',
         'priority' => 'اولویت',
         'checklist' => 'چک‌لیست',
         'unit' => 'واحد (زیرمجموعه)',
         'section' => 'بخش (زیرمجموعه)',
-        'project' => 'برچسب پروژه',
+        'project' => 'نام نمایشی پروژه',
         'scheme' => 'طرح',
-        'actionSourceDomain' => 'حوزه منشاء اقدام',
-        'actionSource' => 'منشاء اقدام',
+        'actionSourceDomain' => 'دستهٔ منبع درخواست',
+        'actionSource' => 'منبع درخواست',
         'collaborators' => 'همکاران',
         'collaborators.*' => 'همکاران',
-        'responsibleUserId' => 'جوابگو',
-        'state' => 'تعیین تکلیف',
-        'meta' => 'دیتای سفارشی',
+        'responsibleUserId' => 'مسئول پیگیری',
+        'state' => 'نتیجهٔ کار',
+        'meta' => 'اطلاعات دلخواه',
+        'meta.*' => 'متن اطلاعات دلخواه',
+        'checklist.*.text' => 'متن مرحله',
+        'checklist.*.weight' => 'سهم مرحله از پیشرفت',
+        'attachments' => 'پیوست‌ها',
+        'attachments.*' => 'فایل پیوست',
         'selectedAssignee' => 'مسئول انجام',
     ];
 
@@ -135,7 +140,7 @@ class TaskForm extends Form
                 function (string $attribute, mixed $value, Closure $fail) {
                     foreach (array_keys($value ?? []) as $key) {
                         if (!preg_match('/^[a-z0-9_]+$/', (string) $key)) {
-                            $fail('کلید دیتای سفارشی فقط می‌تواند شامل حروف کوچک انگلیسی، رقم و زیرخط باشد.');
+                            $fail('نام فیلد را با حروف کوچک انگلیسی، رقم و زیرخط (_) بنویسید؛ مثلاً tracking_code.');
                         }
                     }
                 },
@@ -165,16 +170,16 @@ class TaskForm extends Form
     protected function messages(): array
     {
         return [
-            'newTitle.required' => 'فیلد عنوان الزامی است.',
+            'newTitle.required' => 'عنوان وظیفه را بنویسید.',
             'newTitle.max' => 'عنوان نباید بیش از :max کاراکتر باشد.',
-            'deadlineMonth.min' => 'ماه باید بین 1 تا 12 باشد.',
-            'deadlineMonth.max' => 'ماه باید بین 1 تا 12 باشد.',
-            'deadlineDay.min' => 'روز باید بین 1 تا 31 باشد.',
-            'deadlineDay.max' => 'روز باید بین 1 تا 31 باشد.',
-            'actionSourceDomain.max' => 'حوزه منشاء اقدام نباید بیش از ۲۰۰۰ کاراکتر باشد.',
-            'actionSource.max' => 'منشاء اقدام نباید بیش از ۲۰۰۰ کاراکتر باشد.',
-            'responsibleUserId.exists' => 'کاربر جوابگوی انتخاب‌شده معتبر نیست.',
-            'state.enum' => 'تعیین تکلیف انتخاب‌شده معتبر نیست.',
+            'deadlineMonth.min' => 'ماه باید بین ۱ تا ۱۲ باشد.',
+            'deadlineMonth.max' => 'ماه باید بین ۱ تا ۱۲ باشد.',
+            'deadlineDay.min' => 'روز باید بین ۱ تا ۳۱ باشد.',
+            'deadlineDay.max' => 'روز باید بین ۱ تا ۳۱ باشد.',
+            'actionSourceDomain.max' => 'دستهٔ منبع درخواست نباید بیش از ۲۰۰۰ کاراکتر باشد.',
+            'actionSource.max' => 'منبع درخواست نباید بیش از ۲۰۰۰ کاراکتر باشد.',
+            'responsibleUserId.exists' => 'مسئول پیگیری معتبر نیست؛ فرد دیگری انتخاب کنید.',
+            'state.enum' => 'یکی از نتیجه‌های کار را از فهرست انتخاب کنید.',
             'priority.enum' => 'اولویت انتخاب‌شده معتبر نیست.',
             'collaborators.*.exists' => 'یکی از همکاران انتخاب‌شده معتبر نیست.',
             'selectedAssignee.exists' => 'مسئول انجام انتخاب‌شده معتبر نیست.',

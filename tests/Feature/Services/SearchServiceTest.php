@@ -13,6 +13,7 @@ use App\Models\Correspondence;
 use App\Models\Department;
 use App\Models\DMS;
 use App\Models\Event;
+use App\Models\EventShare;
 use App\Models\FAQ;
 use App\Models\Feed;
 use App\Models\Link;
@@ -236,7 +237,7 @@ class SearchServiceTest extends TestCase
         $this->assertNotSame('—', $item['title']);
     }
 
-    public function test_event_search_resource_scope_gates_visibility_by_user_null_or_public(): void
+    public function test_event_search_resource_scope_mirrors_the_calendar_own_public_or_shared_with_me(): void
     {
         $me = User::factory()->create(['status' => 'active']);
         $other = User::factory()->create(['status' => 'active']);
@@ -246,14 +247,19 @@ class SearchServiceTest extends TestCase
         $own = Event::factory()->create(['user_id' => $me->id, 'title' => $token, 'private' => true]);
         $publicOther = Event::factory()->create(['user_id' => $other->id, 'title' => $token, 'private' => false]);
         $privateOther = Event::factory()->create(['user_id' => $other->id, 'title' => $token, 'private' => true]);
-        $general = Event::factory()->create(['user_id' => null, 'title' => $token, 'private' => true]);
+        $sharedPrivate = Event::factory()->create(['user_id' => $other->id, 'title' => $token, 'private' => true]);
+        EventShare::create(['event_id' => $sharedPrivate->id, 'user_id' => $me->id, 'shared_by' => $other->id]);
+        $generalPublic = Event::factory()->create(['user_id' => null, 'title' => $token, 'private' => false]);
+        $generalPrivate = Event::factory()->create(['user_id' => null, 'title' => $token, 'private' => true]);
 
         $ids = collect($this->runResource(EventResource::class, $token)['items'] ?? [])->pluck('id')->all();
 
         $this->assertContains($own->id, $ids);
         $this->assertContains($publicOther->id, $ids);
-        $this->assertContains($general->id, $ids);
+        $this->assertContains($sharedPrivate->id, $ids);
+        $this->assertContains($generalPublic->id, $ids);
         $this->assertNotContains($privateOther->id, $ids);
+        $this->assertNotContains($generalPrivate->id, $ids);
     }
 
     public function test_report_search_resource_scope_only_returns_active_rows(): void
@@ -336,7 +342,7 @@ class SearchServiceTest extends TestCase
         $this->assertSame('url:/dashboard?tab=faqs&open=' . $faq->id, $item['action']);
     }
 
-    public function test_link_search_resource_scans_url_title_description_and_link_columns(): void
+    public function test_link_search_resource_scans_url_title_and_description_but_not_the_kind_column(): void
     {
         $link = Link::factory()->create(['url_title' => $this->token(), 'url_description' => 'desc', 'link' => 'internal']);
 
@@ -344,6 +350,47 @@ class SearchServiceTest extends TestCase
 
         $this->assertItemShape($item, 'link', 'لینک‌ها و ابزارها', 'open_in_new');
         $this->assertSame('url:/dashboard?tab=links&open=' . $link->id, $item['action']);
+
+        $kindHit = collect($this->runResource(LinkResource::class, 'internal')['items'] ?? [])->pluck('id')->all();
+        $this->assertNotContains($link->id, $kindHit);
+    }
+
+    public function test_search_context_caps_the_query_length_and_token_count_and_drops_repeated_tokens(): void
+    {
+        $this->assertSame(100, mb_strlen(SearchContext::for(str_repeat('a', 300))->query));
+
+        $this->assertSame(
+            ['a1', 'b2', 'c3', 'd4', 'e5'],
+            SearchContext::for('a1 b2 c3 d4 e5 f6 g7 a1')->tokens
+        );
+    }
+
+    public function test_like_wildcards_in_a_query_match_literally_and_never_as_patterns(): void
+    {
+        $token = $this->token();
+        $plain = Link::factory()->create(['url_title' => $token . 'ab', 'url_description' => 'x']);
+        $literal = Link::factory()->create(['url_title' => $token . '%off', 'url_description' => 'x']);
+
+        $ids = collect($this->runResource(LinkResource::class, $token . '%')['items'] ?? [])->pluck('id')->all();
+
+        $this->assertContains($literal->id, $ids);
+        $this->assertNotContains($plain->id, $ids);
+    }
+
+    public function test_people_credential_and_ticket_search_select_only_the_columns_they_display(): void
+    {
+        $expected = [
+            PeopleResource::class => '`id`, `name`, `email`',
+            CredentialResource::class => '`id`, `app_name`, `username`',
+            TicketResource::class => '`id`, `request_subject`, `description`',
+        ];
+
+        foreach ($expected as $class => $columns) {
+            $hook = new ReflectionMethod($class, 'selectList');
+            $hook->setAccessible(true);
+
+            $this->assertSame($columns, $hook->invoke(new $class()));
+        }
     }
 
     public function test_dms_search_resource_scope_visible_to_user_gates_rows(): void
@@ -645,16 +692,38 @@ class SearchServiceTest extends TestCase
         $this->assertNotContains($inactive->id, $ids);
     }
 
-    public function test_reservation_search_resource_scope_only_returns_active_status(): void
+    public function test_reservation_search_resource_scope_returns_only_active_resources_of_types_the_user_may_book(): void
     {
+        $me = User::factory()->create(['status' => 'active', 'booking' => json_encode([
+            ['key' => 'all', 'value' => false],
+            ['key' => 'seat', 'value' => true],
+            ['key' => 'car', 'value' => false],
+        ])]);
+        $this->actingAs($me);
         $token = $this->token();
-        $active = Resource::factory()->create(['name' => $token, 'status' => 'active']);
-        $inactive = Resource::factory()->create(['name' => $token, 'status' => 'inactive']);
+
+        $seat = Resource::factory()->create(['name' => $token, 'status' => 'active', 'type' => 'seat']);
+        $car = Resource::factory()->create(['name' => $token, 'status' => 'active', 'type' => 'car']);
+        $inactiveSeat = Resource::factory()->create(['name' => $token, 'status' => 'inactive', 'type' => 'seat']);
 
         $ids = collect($this->runResource(ReservationResource::class, $token)['items'] ?? [])->pluck('id')->all();
 
-        $this->assertContains($active->id, $ids);
-        $this->assertNotContains($inactive->id, $ids);
+        $this->assertContains($seat->id, $ids);
+        $this->assertNotContains($car->id, $ids);
+        $this->assertNotContains($inactiveSeat->id, $ids);
+    }
+
+    public function test_reservation_search_resource_shows_every_active_type_to_a_user_who_may_book_all(): void
+    {
+        $me = User::factory()->create(['status' => 'active', 'booking' => json_encode([['key' => 'all', 'value' => true]])]);
+        $this->actingAs($me);
+        $token = $this->token();
+
+        $car = Resource::factory()->create(['name' => $token, 'status' => 'active', 'type' => 'car']);
+
+        $ids = collect($this->runResource(ReservationResource::class, $token)['items'] ?? [])->pluck('id')->all();
+
+        $this->assertContains($car->id, $ids);
     }
 
     public function test_channel_search_resource_scope_gates_to_member_channels(): void

@@ -49,7 +49,7 @@
                 <button type="button" wire:click="saveAsTemplate({{ $wf->id }})" title="ذخیره به‌عنوان الگو" class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_8%,transparent)] hover:text-[var(--md-sys-color-primary)] active:scale-[0.95] transition-all duration-200">
                     <span class="material-symbols-rounded text-[18px]">bookmark_add</span>
                 </button>
-                <button type="button" wire:click="cancelWorkflow({{ $wf->id }})" wire:confirm="این چرخه لغو شود؟" title="لغو چرخه" class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] hover:text-[var(--md-sys-color-error)] active:scale-[0.95] transition-all duration-200">
+                <button type="button" x-on:click="{{ confirmDialog('cancelWorkflow', 'لغو چرخه', 'اجرای این چرخه متوقف شود؟ وظیفهٔ ناتمام مرحلهٔ فعلی به حالت «توقف» می‌رود.', $wf->id, 'dispatch', 'danger') }}" title="لغو چرخه" class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] hover:text-[var(--md-sys-color-error)] active:scale-[0.95] transition-all duration-200">
                     <span class="material-symbols-rounded text-[18px]">cancel</span>
                 </button>
             </div>
@@ -61,7 +61,7 @@
         <div wire:key="workflow-card-draft-body-{{ $wf->id }}" class="flex flex-col items-center justify-center py-6 px-4 rounded-xl border border-dashed border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] bg-[var(--md-sys-color-surface-container-lowest)] text-center animate-toast-in">
             <span class="material-symbols-rounded text-[28px] text-[var(--md-sys-color-on-surface-variant)] opacity-40 mb-2">linear_scale</span>
             <p class="text-[13px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
-                {{ convertToPersian($totalSteps) }} مرحله تعریف‌شده است.<br>برای به‌جریان افتادن وظایف، دکمهٔ <strong class="text-[var(--md-sys-color-primary)]">شروع</strong> را بزنید.
+                {{ convertToPersian($totalSteps) }} مرحله تعریف‌شده است.<br>چرخه هنوز اجرا نشده است. برای شروع مرحلهٔ اول، دکمهٔ <strong class="text-[var(--md-sys-color-primary)]">شروع</strong> را بزنید.
             </p>
         </div>
     @elseif($currentStep)
@@ -106,11 +106,11 @@
 
                             <div class="flex items-center justify-between gap-2 border-t border-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] pt-2.5 mt-3">
                                 <a href="{{ route('tasks', ['open' => $task->id]) }}" wire:navigate dir="auto" class="inline-flex items-center gap-1 text-[12px] font-bold text-[var(--md-sys-color-primary)] hover:text-[color-mix(in_srgb,var(--md-sys-color-primary)_80%,black)] hover:underline active:scale-[0.97] transition-all">
-                                    نمایش در بورد <span class="material-symbols-rounded text-[16px]">arrow_forward</span>
+                                    باز کردن وظیفه <span class="material-symbols-rounded text-[16px]">arrow_forward</span>
                                 </a>
                                 @if($isOwner)
-                                    <button type="button" wire:click="forceAdvance({{ $wf->id }}, {{ $wf->current_step }})" wire:confirm="پیشروی اجباری این مرحله انجام شود؟" class="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--md-sys-color-error)] opacity-80 hover:opacity-100 hover:underline active:scale-[0.97] transition-all">
-                                        پیشروی اجباری <span class="material-symbols-rounded text-[14px]">fast_forward</span>
+                                    <button type="button" x-on:click="{{ confirmDialog('forceAdvance', 'عبور از مرحلهٔ فعلی', 'بدون تکمیل کار این مرحله ادامه می‌دهید؟ وظیفهٔ ناتمام آن متوقف می‌شود؛ اگر آخرین مرحله باشد، چرخه پایان می‌یابد.', [$wf->id, $wf->current_step], 'dispatch', 'danger') }}" class="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--md-sys-color-error)] opacity-80 hover:opacity-100 hover:underline active:scale-[0.97] transition-all">
+                                        عبور از مرحلهٔ فعلی <span class="material-symbols-rounded text-[14px]">fast_forward</span>
                                     </button>
                                 @endif
                             </div>
@@ -122,7 +122,7 @@
                                 وظیفهٔ این مرحله حذف شده است.
                             </span>
                             @if($isOwner)
-                                <button type="button" wire:click="forceAdvance({{ $wf->id }}, {{ $wf->current_step }})" wire:confirm="پیشروی اجباری این مرحله انجام شود؟" class="text-[11px] font-bold text-[var(--md-sys-color-error)] underline underline-offset-2 hover:text-[color-mix(in_srgb,var(--md-sys-color-error)_80%,black)] transition-colors">پیشروی اجباری</button>
+                                <button type="button" x-on:click="{{ confirmDialog('forceAdvance', 'عبور از مرحلهٔ فعلی', 'بدون تکمیل کار این مرحله ادامه می‌دهید؟ وظیفهٔ ناتمام آن متوقف می‌شود؛ اگر آخرین مرحله باشد، چرخه پایان می‌یابد.', [$wf->id, $wf->current_step], 'dispatch', 'danger') }}" class="text-[11px] font-bold text-[var(--md-sys-color-error)] underline underline-offset-2 hover:text-[color-mix(in_srgb,var(--md-sys-color-error)_80%,black)] transition-colors">عبور از مرحلهٔ فعلی</button>
                             @endif
                         </div>
                     @endif
@@ -132,10 +132,10 @@
             @elseif(($currentStep['type'] ?? 'action') === 'approval')
                 @if($canAct)
                     <div wire:key="workflow-step-render-approval-{{ $wf->id }}" class="flex flex-col gap-3 animate-toast-in">
-                        <x-ui.forms.input label="یادداشت تأییدیه (اختیاری)" name="stepNotes.{{ $wf->id }}" wire:model="stepNotes.{{ $wf->id }}"/>
+                        <x-ui.forms.input label="دلیل تأیید یا رد (اختیاری)" name="stepNotes.{{ $wf->id }}" wire:model="stepNotes.{{ $wf->id }}"/>
                         <div class="flex items-center gap-2">
                             <x-ui.buttons.form wire:click="advanceStep({{ $wf->id }}, {{ $wf->current_step }}, true)" icon="check_circle" class="flex-1 justify-center shadow-sm hover:shadow-md transition-shadow">تأیید و ادامه</x-ui.buttons.form>
-                            <x-ui.buttons.form wire:click="advanceStep({{ $wf->id }}, {{ $wf->current_step }}, false)" wire:confirm="این مرحله رد و بازگردانده شود؟" variant="danger" icon="undo" class="flex-1 justify-center shadow-sm hover:shadow-md transition-shadow">رد و بازگشت</x-ui.buttons.form>
+                            <x-ui.buttons.form x-on:click="{{ confirmDialog('advanceStep', 'رد و بازگشت', 'این مرحله رد و بازگردانده شود؟', [$wf->id, $wf->current_step, false], 'dispatch', 'danger') }}" variant="danger" icon="undo" class="flex-1 justify-center shadow-sm hover:shadow-md transition-shadow">رد و بازگشت</x-ui.buttons.form>
                         </div>
                     </div>
                 @endif
@@ -154,20 +154,19 @@
             @if($canAct)
                 <div wire:key="workflow-reassign-trigger-{{ $wf->id }}" class="pt-1">
                     @if($reassigningWorkflowId === $wf->id)
-                        <div wire:key="workflow-reassign-open-{{ $wf->id }}" x-data="{ memberQuery: '' }" class="rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-lowest)] p-3 space-y-2.5 animate-toast-in shadow-sm">
-                            <x-dashboard.member-search/>
+                        <div wire:key="workflow-reassign-open-{{ $wf->id }}" class="rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-lowest)] p-3 space-y-2.5 animate-toast-in shadow-sm">
                             <div class="bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] rounded-lg p-1 min-h-[40px]">
-                                <x-dashboard.member-picker wire:key="workflow-reassign-picker-{{ $wf->id }}" model="reassignSelection.{{ $wf->id }}" :candidates="$memberCandidates" :search="false" rounded="rounded-md" py="py-1.5"/>
+                                <x-dashboard.member-picker wire:key="workflow-reassign-picker-{{ $wf->id }}" model="reassignSelection.{{ $wf->id }}" :candidates="$memberCandidates" :dept-options="$this->deptOptions" bulk rounded="rounded-md" size="sm"/>
                             </div>
                             <div class="flex items-center gap-2 pt-1">
                                 <x-ui.buttons.form wire:click="closeReassign" variant="ghost" class="flex-1 justify-center bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">انصراف</x-ui.buttons.form>
-                                <x-ui.buttons.form wire:click="reassignStep({{ $wf->id }})" variant="tonal" icon="check" class="flex-1 justify-center">ثبت واگذاری</x-ui.buttons.form>
+                                <x-ui.buttons.form wire:click="reassignStep({{ $wf->id }})" variant="tonal" icon="check" class="flex-1 justify-center">ثبت مسئولان مرحله</x-ui.buttons.form>
                             </div>
                         </div>
                     @else
                         <button type="button" wire:key="workflow-reassign-closed-{{ $wf->id }}" wire:click="openReassign({{ $wf->id }})" class="group/reassign inline-flex items-center gap-1.5 text-[12px] font-bold text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] active:scale-[0.97] transition-all duration-200">
                             <span class="material-symbols-rounded text-[16px] group-hover/reassign:-rotate-12 transition-transform duration-300">manage_accounts</span>
-                            واگذاری به فرد دیگر
+                            تغییر مسئولان مرحله
                         </button>
                     @endif
                 </div>
@@ -197,10 +196,10 @@
                                         <span class="inline-flex items-center h-4 px-1.5 rounded-sm bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] text-[var(--md-sys-color-error)] font-bold">رد شد</span>
                                     @endif
                                     @if($entry['forced'] ?? false)
-                                        <span class="inline-flex items-center h-4 px-1.5 rounded-sm bg-[color-mix(in_srgb,var(--md-sys-color-warning)_15%,transparent)] text-[var(--md-sys-color-warning)] font-bold">اجباری</span>
+                                        <span class="inline-flex items-center h-4 px-1.5 rounded-sm bg-[color-mix(in_srgb,var(--md-sys-color-warning)_15%,transparent)] text-[var(--md-sys-color-warning)] font-bold">با تصمیم مدیر</span>
                                     @endif
                                     @if(!empty($entry['event']))
-                                        <span class="inline-flex items-center h-4 px-1.5 rounded-sm bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)] font-bold">{{ ['reassigned' => 'واگذاری مجدد', 'task_detached' => 'جداشدن وظیفه', 'project_deleted' => 'لغو با حذف پروژه', 'restored' => 'بازیابی'][$entry['event']] ?? $entry['event'] }}</span>
+                                        <span class="inline-flex items-center h-4 px-1.5 rounded-sm bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)] font-bold">{{ ['reassigned' => 'تغییر مسئولان', 'task_detached' => 'جداشدن وظیفه', 'project_deleted' => 'لغو با حذف پروژه', 'restored' => 'بازیابی'][$entry['event']] ?? $entry['event'] }}</span>
                                     @endif
                                     <span class="opacity-70 flex items-center gap-1 font-medium">
                                         <span class="material-symbols-rounded text-[12px]">schedule</span>

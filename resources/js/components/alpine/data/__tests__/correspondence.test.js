@@ -739,15 +739,9 @@ describe('fullscreen letter editor — CSS guard', () => {
 })
 
 describe('correspondencePage', () => {
-    test('confirmAction forwards the dataset to the confirmation dialog and openModal names the modal', () => {
+    test('openModal names the modal and confirmations no longer live in the page factory', () => {
         const page = correspondencePage()
-        const events = []
-        window.addEventListener('open-confirmation', (e) => events.push(e.detail), { once: true })
-        const el = document.createElement('button')
-        Object.assign(el.dataset, { title: 'T', message: 'M', method: 'voidLetter' })
-
-        page.confirmAction(el)
-        expect(events[0]).toEqual({ title: 'T', message: 'M', method: 'voidLetter' })
+        expect(page.confirmAction).toBeUndefined()
 
         const opened = []
         window.addEventListener('open-modal', (e) => opened.push(e.detail), { once: true })

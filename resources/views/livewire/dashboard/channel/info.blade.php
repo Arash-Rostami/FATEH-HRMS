@@ -9,7 +9,7 @@
 <div x-show="showInfo"
      x-transition:enter="animate-slide-fade-from-left"
      x-transition:leave="animate-slide-fade-to-left"
-     x-on:click.outside="showInfo = false"
+     x-on:click.outside="if (!$event.target.closest('.custom-modal, .fancybox__dialog, .fancybox__container')) showInfo = false"
      class="absolute inset-y-0 left-0 z-30 flex w-72 md:w-80 flex-col overflow-hidden rounded-xl border-r border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] shadow-[0_16px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_24%,transparent)] bg-[var(--md-sys-color-primary-container)] "
      role="dialog"
      aria-label="اطلاعات گروه">
@@ -103,33 +103,15 @@
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-[11px] font-semibold text-[var(--md-sys-color-on-surface)]">{{ $invitee['name'] }}</p>
                                     @if($invitee['cancellable'])
-                                        <p class="truncate text-[9px] text-[var(--md-sys-color-on-surface-variant)] opacity-80">دعوت‌شده · منتظر نخستین ورود</p>
+                                        <p class="truncate text-[9px] text-[var(--md-sys-color-on-surface-variant)] opacity-80">هنوز وارد گروه نشده است</p>
                                     @else
-                                        <p class="truncate text-[9px] text-[var(--md-sys-color-on-surface-variant)] opacity-80">دعوت دریافت شده و قابل لغو نیست</p>
+                                        <p class="truncate text-[9px] text-[var(--md-sys-color-on-surface-variant)] opacity-80">دعوت دیده شده است و دیگر نمی‌توانید آن را لغو کنید</p>
                                     @endif
                                 </div>
 
                                 @if($invitee['cancellable'])
-                                    <div x-show="cancelInviteeId === {{ $invitee['id'] }}" style="display: none;" class="flex flex-shrink-0 items-center gap-1">
-                                        <button type="button"
-                                                x-on:click="cancelInviteeId = null"
-                                                class="rounded-md bg-[var(--md-sys-color-surface-variant)] px-1.5 py-1 text-[9px] font-semibold text-[var(--md-sys-color-on-surface-variant)] transition-all hover:brightness-95 active:scale-95"
-                                                title="انصراف از لغو">
-                                            انصراف
-                                        </button>
-                                        <button type="button"
-                                                x-on:click="doCancelInvite({{ $header['id'] }}, {{ $invitee['id'] }})"
-                                                wire:loading.attr="disabled"
-                                                wire:target="cancelInvite"
-                                                class="rounded-md bg-[var(--md-sys-color-error)] px-1.5 py-1 text-[9px] font-bold text-[var(--md-sys-color-on-error)] transition-all hover:brightness-110 active:scale-95"
-                                                title="لغو این دعوت">
-                                            لغو دعوت
-                                        </button>
-                                    </div>
-                                    <button x-show="cancelInviteeId !== {{ $invitee['id'] }}"
-                                            style="display: none;"
-                                            type="button"
-                                            x-on:click="confirmCancelInvite({{ $invitee['id'] }})"
+                                    <button type="button"
+                                            x-on:click="{{ confirmDialog('cancelInvite', 'لغو دعوت', 'لغو دعوت ' . $invitee['name'], [$header['id'], $invitee['id']], 'dispatch', 'danger') }}"
                                             class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_50%,transparent)] text-[var(--md-sys-color-error)] transition-all hover:!bg-[var(--md-sys-color-error-container)] active:scale-90"
                                             title="لغو دعوت"
                                             aria-label="لغو دعوت {{ $invitee['name'] }}">
@@ -137,7 +119,7 @@
                                     </button>
                                 @else
                                     <span class="flex h-6 w-6 flex-shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] opacity-60"
-                                          title="این کاربر دعوت را دریافت کرده و دیگر قابل لغو نیست">
+                                          title="این فرد دعوت را دیده است. برای برداشتن دسترسی از «مدیریت اعضا» استفاده کنید.">
                                         <span class="material-symbols-rounded text-[14px]" aria-hidden="true">mark_email_read</span>
                                     </span>
                                 @endif
@@ -178,36 +160,13 @@
                                 <span>تبدیل به گروه خصوصی</span>
                             </button>
                         @else
-                            <div wire:key="channel-info-type-open" class="contents">
-                            <div x-show="!confirmingTypeChange" style="display: none;">
-                                <button type="button"
-                                        x-on:click="confirmTypeChange()"
-                                        class="flex w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-2 text-xs font-bold text-[var(--md-sys-color-on-surface)] transition-all hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-[0.98]">
-                                    <span class="material-symbols-rounded text-[17px]">campaign</span>
-                                    <span>تبدیل به گروه عمومی</span>
-                                </button>
-                            </div>
-
-                            <div x-show="confirmingTypeChange"
-                                 style="display: none;"
-                                 class="flex flex-col gap-2 rounded-xl bg-[var(--md-sys-color-error-container)] p-2.5 text-[var(--md-sys-color-on-error-container)]">
-                                <p class="text-[11px] font-bold">با عمومی‌شدن، همهٔ کاربران می‌توانند عضو شوند و همهٔ پیام‌های قبلی را ببینند. ادامه می‌دهید؟</p>
-                                <div class="flex items-center justify-end gap-1.5">
-                                    <button type="button"
-                                            x-on:click="cancelTypeChange()"
-                                            class="rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-error-container)_12%,transparent)] px-3 py-1 text-[11px] font-semibold transition-all hover:brightness-90 active:scale-95">
-                                        انصراف
-                                    </button>
-                                    <x-ui.buttons.form x-on:click.prevent="doChangeType({{ $header['id'] }}, 'open')"
-                                                       wire:loading.attr="disabled"
-                                                       wire:target="changeChannelType"
-                                                       loading="changeChannelType"
-                                                       class="h-auto rounded-lg bg-[var(--md-sys-color-error)] px-3 py-1 text-[11px] font-bold text-[var(--md-sys-color-on-error)] transition-all hover:brightness-110">
-                                        عمومی شود
-                                    </x-ui.buttons.form>
-                                </div>
-                            </div>
-                            </div>
+                            <button wire:key="channel-info-type-open"
+                                    type="button"
+                                    x-on:click="{{ confirmDialog('changeChannelType', 'تبدیل به گروه عمومی', 'با عمومی‌شدن، همهٔ کاربران می‌توانند عضو شوند و همهٔ پیام‌های قبلی را ببینند. ادامه می‌دهید؟', [$header['id'], 'open'], 'dispatch', 'danger') }}"
+                                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-2 text-xs font-bold text-[var(--md-sys-color-on-surface)] transition-all hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-[0.98]">
+                                <span class="material-symbols-rounded text-[17px]">campaign</span>
+                                <span>تبدیل به گروه عمومی</span>
+                            </button>
                         @endif
                     </div>
                 @endif
@@ -261,34 +220,12 @@
                     </p>
                 @elseif($can['delete'] && (int) $header['members_count'] === 1)
                     <div wire:key="channel-info-delete-group">
-                        <div x-show="!confirmingDeleteChannel" style="display: none;">
-                            <button type="button"
-                                    x-on:click="confirmDeleteChannel()"
-                                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_65%,transparent)] px-3 py-2 text-xs font-bold text-[var(--md-sys-color-on-error-container)] transition-all hover:brightness-105 active:scale-[0.98]">
-                                <span class="material-symbols-rounded text-[17px]">delete_forever</span>
-                                <span>حذف گروه</span>
-                            </button>
-                        </div>
-
-                        <div x-show="confirmingDeleteChannel"
-                             style="display: none;"
-                             class="flex flex-col gap-2 rounded-xl bg-[var(--md-sys-color-error-container)] p-2.5 text-[var(--md-sys-color-on-error-container)]">
-                            <p class="text-[11px] font-bold">این گروه حذف خواهد شد. مطمئن هستید؟</p>
-                            <div class="flex items-center justify-end gap-1.5">
-                                <button type="button"
-                                        x-on:click="cancelDeleteChannel()"
-                                        class="rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-error-container)_12%,transparent)] px-3 py-1 text-[11px] font-semibold transition-all hover:brightness-90 active:scale-95">
-                                    انصراف
-                                </button>
-                                <x-ui.buttons.form x-on:click.prevent="doDeleteChannel({{ $header['id'] }})"
-                                                   wire:loading.attr="disabled"
-                                                   wire:target="deleteChannel"
-                                                   loading="deleteChannel"
-                                                   class="h-auto rounded-lg bg-[var(--md-sys-color-error)] px-3 py-1 text-[11px] font-bold text-[var(--md-sys-color-on-error)] transition-all hover:brightness-110">
-                                    حذف گروه
-                                </x-ui.buttons.form>
-                            </div>
-                        </div>
+                        <button type="button"
+                                x-on:click="{{ confirmDialog('deleteChannel', 'حذف گروه', 'این گروه حذف خواهد شد. مطمئن هستید؟', $header['id'], 'dispatch', 'danger') }}"
+                                class="flex w-full items-center justify-center gap-2 rounded-xl bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_65%,transparent)] px-3 py-2 text-xs font-bold text-[var(--md-sys-color-on-error-container)] transition-all hover:brightness-105 active:scale-[0.98]">
+                            <span class="material-symbols-rounded text-[17px]">delete_forever</span>
+                            <span>حذف گروه</span>
+                        </button>
                     </div>
                 @endif
             </div>

@@ -46,6 +46,18 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
     transition-duration: var(--theme-transition-duration);
 }
 
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+    transition: none !important;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 250ms;
+    animation-timing-function: var(--theme-transition-easing);
+}
+
 @layer base {
     /* --- Theme Variables --- */
     :root {
@@ -125,9 +137,11 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
         --presence-leave: #6B7280;
 
         accent-color: var(--md-sys-color-primary) !important;
+        color-scheme: light;
     }
 
     :root.dark {
+        color-scheme: dark;
         --md-sys-color-primary: #b5cbd2;
         --md-sys-color-on-primary: #1f3238;
         --md-sys-color-primary-container: #37474d;

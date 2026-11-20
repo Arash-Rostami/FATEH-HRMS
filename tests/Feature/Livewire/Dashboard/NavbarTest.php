@@ -14,6 +14,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -247,6 +248,26 @@ class NavbarTest extends TestCase
             ->test(CommandPalette::class)
             ->set('query', 'a')
             ->assertSet('results', []);
+    }
+
+    public function test_command_palette_search_is_rate_limited_per_user()
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $key = 'cmd-search:' . $user->id;
+        RateLimiter::clear($key);
+
+        $component = Livewire::actingAs($user)->test(CommandPalette::class);
+        $component->set('query', 'home');
+        $this->assertNotEmpty($component->instance()->results);
+
+        for ($i = 0; $i < 60; $i++) {
+            RateLimiter::hit($key, 60);
+        }
+
+        $component->set('query', 'homes');
+        $this->assertSame([], $component->instance()->results);
+
+        RateLimiter::clear($key);
     }
 
     public function test_command_palette_navigate_mode_search_returns_home_tab_for_home_query()

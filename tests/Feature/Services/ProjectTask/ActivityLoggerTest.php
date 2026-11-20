@@ -315,11 +315,11 @@ class ActivityLoggerTest extends TestCase
         $metaRendered = $logger->render($metaReply);
         $settingsRendered = $logger->render($settingsReply);
 
-        $this->assertSame('تغییر دیتای سفارشی', $metaRendered['label']);
+        $this->assertSame('تغییر اطلاعات دلخواه', $metaRendered['label']);
         $this->assertStringContainsString('vendor', $metaRendered['body']);
         $this->assertSame('تغییر تنظیمات پروژه', $settingsRendered['label']);
-        $this->assertStringContainsString('SLA', $settingsRendered['body']);
-        $this->assertStringContainsString('سقف مهلت', $settingsRendered['body']);
+        $this->assertStringContainsString('مهلت پیش‌فرض وظیفه', $settingsRendered['body']);
+        $this->assertStringContainsString('آخرین مهلت پروژه', $settingsRendered['body']);
     }
 
     private function renderReply(TaskActivityType $type, array $attributes = []): array
@@ -336,14 +336,14 @@ class ActivityLoggerTest extends TestCase
             'archive' => 'بایگانی',
             'approval' => 'تأیید مدیر پروژه',
             'attachment' => 'پیوست',
-            'responsible_change' => 'تغییر جوابگو',
-            'department_change' => 'تغییر دپارتمان',
-            'state_change' => 'تعیین تکلیف',
+            'responsible_change' => 'تغییر مسئول پیگیری',
+            'department_change' => 'تغییر بخش سازمانی',
+            'state_change' => 'نتیجهٔ کار',
             'deadline_change' => 'تغییر مهلت',
             'priority_change' => 'تغییر اولویت',
             'label_change' => 'تغییر برچسب‌ها',
             'project_change' => 'تغییر پروژه',
-            'meta_change' => 'تغییر دیتای سفارشی',
+            'meta_change' => 'تغییر اطلاعات دلخواه',
             'settings_change' => 'تغییر تنظیمات پروژه',
             'workflow_step' => 'چرخه کاری',
         ];
@@ -407,7 +407,7 @@ class ActivityLoggerTest extends TestCase
         $audience = $this->renderReply(TaskActivityType::Assignment, ['payload' => ['added' => [$user->id], 'removed' => []]]);
 
         $this->assertSame("مسئولیت وظیفه به «{$user->name}» واگذار شد.", $handover['body']);
-        $this->assertSame('مسئول وظیفه حذف شد.', $removal['body']);
+        $this->assertSame('مسئول انجام وظیفه برداشته شد.', $removal['body']);
         $this->assertSame('عضو افزوده شد: ' . $user->name, $audience['body']);
     }
 
@@ -421,10 +421,10 @@ class ActivityLoggerTest extends TestCase
         $department = $this->renderReply(TaskActivityType::DepartmentChange, ['payload' => ['to' => 'ZZT']]);
         $departmentGone = $this->renderReply(TaskActivityType::DepartmentChange, ['payload' => ['to' => 'ZZQ']]);
 
-        $this->assertSame("جوابگوی وظیفه به «{$user->name}» تغییر کرد.", $responsible['body']);
-        $this->assertSame('جوابگوی وظیفه حذف شد.', $responsibleGone['body']);
-        $this->assertSame('دپارتمان وظیفه به «برچسب دپارتمان آزمایشی» تغییر کرد.', $department['body']);
-        $this->assertSame('دپارتمان وظیفه حذف شد.', $departmentGone['body']);
+        $this->assertSame("مسئول پیگیری وظیفه به «{$user->name}» تغییر کرد.", $responsible['body']);
+        $this->assertSame('مسئول پیگیری وظیفه برداشته شد.', $responsibleGone['body']);
+        $this->assertSame('بخش سازمانی وظیفه به «برچسب دپارتمان آزمایشی» تغییر کرد.', $department['body']);
+        $this->assertSame('بخش سازمانی وظیفه برداشته شد.', $departmentGone['body']);
     }
 
     public function test_state_change_renderer_branches_icon_and_body_per_state(): void
@@ -439,12 +439,12 @@ class ActivityLoggerTest extends TestCase
             $rendered = $this->renderReply(TaskActivityType::StateChange, ['payload' => ['to' => $value]]);
 
             $this->assertSame($icon, $rendered['icon']);
-            $this->assertSame("تعیین تکلیف وظیفه به «{$label}» تغییر کرد.", $rendered['body']);
+            $this->assertSame("نتیجهٔ کار به «{$label}» تغییر کرد.", $rendered['body']);
         }
 
         $removed = $this->renderReply(TaskActivityType::StateChange, ['payload' => ['to' => null]]);
         $this->assertSame('rule', $removed['icon']);
-        $this->assertSame('تعیین تکلیف وظیفه حذف شد.', $removed['body']);
+        $this->assertSame('نتیجهٔ کار برداشته شد.', $removed['body']);
     }
 
     public function test_priority_change_renderer_resolves_enum_label_and_falls_back_to_removed(): void

@@ -61,7 +61,7 @@ class UpdateProjectAction
 
         if ($current && $current->updated_at->timestamp !== $form->updatedAt) {
             throw ValidationException::withMessages([
-                'form' => 'این پروژه توسط شخص دیگری تغییر کرده؛ لطفاً صفحه را بازخوانی کرده و دوباره تلاش کنید.',
+                'form' => 'پروژه پس از باز شدن این فرم تغییر کرده است. صفحه را تازه کنید و تغییرهایتان را دوباره وارد کنید.',
             ]);
         }
     }

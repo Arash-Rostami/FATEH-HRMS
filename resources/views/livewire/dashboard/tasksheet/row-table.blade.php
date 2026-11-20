@@ -27,7 +27,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3 text-xs text-[var(--md-sys-color-on-surface-variant)]">
-            <span>{{ convertToPersian($row['completed']) }} تکمیل‌شده</span>
+            <span>{{ convertToPersian($row['completed']) }} انجام‌شده</span>
             <span class="inline-flex items-center gap-1">
                 {{ $row['on_time_percent'] !== null ? convertToPersian($row['on_time_percent']) . '٪ به‌موقع' : '—' }}
                 @if($type === 'project')
@@ -39,15 +39,15 @@
                     @endif
                 @endif
             </span>
-            <span>{{ convertToPersian($row['still_overdue']) }} معوق</span>
-            <span>{{ convertToPersian($row['in_progress']) }} در جریان</span>
+            <span>{{ convertToPersian($row['still_overdue']) }} عقب‌افتاده</span>
+            <span>{{ convertToPersian($row['in_progress']) }} در حال انجام</span>
         </div>
 
         @if($type === 'project' && !$readOnly)
             <button type="button" wire:click="scopeToProject({{ $row['project_id'] }})"
                     class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors print:hidden shrink-0">
                 <span class="material-symbols-rounded text-[12px]">filter_center_focus</span>
-                فقط این پروژه
+                فقط جدول این پروژه
             </button>
         @endif
     </div>

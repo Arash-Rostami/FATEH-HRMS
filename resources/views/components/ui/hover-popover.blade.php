@@ -13,8 +13,8 @@
 
 <div
     {{ $attributes->merge(['class' => 'relative inline-flex']) }}
-    x-data="{ open: false, closeTimer: null, pos: {}, side: '{{ $side }}', w: {{ $widthPx }} }"
-    @mouseenter="clearTimeout(closeTimer); pos = $refs.trigger.getBoundingClientRect().toJSON(); open = true"
+    x-data="{ open: false, closeTimer: null, pos: {}, side: '{{ $side }}', w: {{ $widthPx }}, hoverable: window.matchMedia('(hover: hover) and (pointer: fine)').matches }"
+    @mouseenter="if (!hoverable) return; clearTimeout(closeTimer); pos = $refs.trigger.getBoundingClientRect().toJSON(); open = true"
     @mouseleave="closeTimer = setTimeout(() => open = false, 180)"
 >
     <div x-ref="trigger" @click="pos = $refs.trigger.getBoundingClientRect().toJSON(); open = !open" class="cursor-pointer">
@@ -38,7 +38,7 @@
                 top: (pos.bottom + 8) + 'px',
                 left: Math.min(Math.max((side === 'left' ? pos.left : pos.right - w), 8), window.innerWidth - w - 8) + 'px'
             }"
-            class="{{ $width }} {{ $surfaceClasses }} z-50"
+            class="hover-popover {{ $width }} {{ $surfaceClasses }} z-50"
         >
             {{ $body }}
         </div>

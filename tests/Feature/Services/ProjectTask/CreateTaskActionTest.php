@@ -88,7 +88,7 @@ class CreateTaskActionTest extends TestCase
             $this->fail('Expected ValidationException was not thrown');
         } catch (ValidationException $e) {
             $this->assertArrayHasKey('form.deadline', $e->errors());
-            $this->assertSame('این تاریخ از مهلت پروژه فراتر است.', $e->errors()['form.deadline'][0]);
+            $this->assertSame('مهلت وظیفه نباید پس از مهلت نهایی پروژه باشد.', $e->errors()['form.deadline'][0]);
         }
 
         $this->assertTrue(Task::where('title', 'Tinker project deadline cap probe')->doesntExist());

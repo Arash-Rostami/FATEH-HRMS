@@ -13,6 +13,7 @@ use App\Livewire\Dashboard\TaskBoard\Actions\AssignTaskAction;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskDetail;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Models\User;
 use App\Services\ProjectTask\EventSyncService;
 use App\Services\ProjectTask\RankGenerator;
@@ -878,7 +879,7 @@ class TaskModelTest extends TestCase
 
         $state = Task::with('project')->find($breached->id)->urgency_state;
         $this->assertSame('sla', $state['kind']);
-        $this->assertSame('نقض SLA', $state['label']);
+        $this->assertSame(TaskMetrics::LABEL_BREACH, $state['label']);
         $this->assertEqualsWithDelta(0.9, $state['score'], 0.0001);
 
         $this->assertNull(Task::with('project')->find($fresh->id)->urgency_state['kind']);

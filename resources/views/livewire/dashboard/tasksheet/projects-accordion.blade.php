@@ -6,7 +6,7 @@
                 @include('livewire.dashboard.tasksheet.row-table', ['row' => $row, 'type' => 'project'])
             </div>
         @else
-            <p wire:key="tasksheet-projects-scoped-empty" class="text-xs text-[var(--md-sys-color-on-surface-variant)] px-1">در این بازه، فعالیتی برای این پروژه ثبت نشده است.</p>
+            <p wire:key="tasksheet-projects-scoped-empty" class="text-xs text-[var(--md-sys-color-on-surface-variant)] px-1">کاری از این پروژه در جزئیات این گزارش نیست. این پیام به معنی خالی بودن کل پروژه نیست.</p>
         @endif
     </div>
 @elseif(!empty($report['projects']))

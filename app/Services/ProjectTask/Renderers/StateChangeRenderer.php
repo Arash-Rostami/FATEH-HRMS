@@ -20,7 +20,7 @@ class StateChangeRenderer implements ActivityLogRenderer
 
     public function getLabel(): string
     {
-        return 'تعیین تکلیف';
+        return 'نتیجهٔ کار';
     }
 
     public function getBody(Reply $reply): string
@@ -28,8 +28,8 @@ class StateChangeRenderer implements ActivityLogRenderer
         $to = $this->state($reply->payload['to'] ?? null);
 
         return $to !== null
-            ? "تعیین تکلیف وظیفه به «{$to->getLabel()}» تغییر کرد."
-            : 'تعیین تکلیف وظیفه حذف شد.';
+            ? "نتیجهٔ کار به «{$to->getLabel()}» تغییر کرد."
+            : 'نتیجهٔ کار برداشته شد.';
     }
 
     private function state(?string $value): ?TaskState

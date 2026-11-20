@@ -40,7 +40,7 @@ class ProjectTablePresenter
     {
         return TextColumn::make('audience_summary')
             ->label(__('resources/project/strings.fields.member_ids'))
-            ->getStateUsing(fn($record) => count($record->member_ids ?? []) . ' عضو، ' . count($record->departments ?? []) . ' دپارتمان')
+            ->getStateUsing(fn($record) => count($record->member_ids ?? []) . ' عضو، ' . count($record->departments ?? []) . ' واحد دارای دسترسی')
             ->toggleable(isToggledHiddenByDefault: true);
     }
 

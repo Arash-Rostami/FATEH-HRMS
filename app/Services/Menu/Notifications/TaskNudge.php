@@ -100,7 +100,7 @@ class TaskNudge implements MenuNudge
         }
 
         $doerId = $task->assigned_to ?? $task->user_id;
-        $plan = [$doerId => ['وظیفهٔ سررسید گذشته: ' . $task->title, "وظیفهٔ «{$task->title}» از سررسید خود گذشته است."]];
+        $plan = [$doerId => ['مهلت کار گذشته است: ' . $task->title, "مهلت وظیفهٔ «{$task->title}» تمام شده است. وضعیت رسیدگی را بررسی کنید."]];
 
         $accountableId = $task->detail?->responsible_user_id;
         $limit = $task->project?->charter()->escalationDays() ?? 0;
@@ -159,7 +159,7 @@ class TaskNudge implements MenuNudge
 
         return [$approverId => [
             $prefix . 'وظیفهٔ منتظر تأیید: ' . $task->title,
-            "وظیفهٔ «{$task->title}» در ستون انجام است و منتظر تأیید شماست.",
+            "انجام وظیفهٔ «{$task->title}» ثبت شده و منتظر تأیید شماست.",
         ]];
     }
 
@@ -247,7 +247,7 @@ class TaskNudge implements MenuNudge
         }
 
         if ($kind === 'completed' && $task->isPendingApproval() && $doerId && (int)$doerId !== (int)$actor) {
-            $entries[$doerId] = ['در انتظار تأیید مدیر: ' . $title, 'وظیفه پس از تأیید مدیر پروژه نهایی می‌شود.'];
+            $entries[$doerId] = ['انجام کار ثبت شد؛ در انتظار تأیید: ' . $title, 'انجام کار ثبت شده است، اما هنوز تأیید نشده است.'];
         }
 
         return $entries;
@@ -286,7 +286,7 @@ class TaskNudge implements MenuNudge
         $entries = [];
 
         if ($old) {
-            $entries[$old] = ['وظیفه از شما گرفته شد: ' . $title, 'این وظیفه به شخص دیگری ارجاع شد.'];
+            $entries[$old] = ['مسئول انجام تغییر کرد: ' . $title, 'دیگر مسئول انجام این وظیفه نیستید.'];
         }
 
         if ($new) {
@@ -358,11 +358,11 @@ class TaskNudge implements MenuNudge
 
     private function accountableText(string $title): array
     {
-        return ['جوابگوی وظیفه ' . $title . ' شدید.', 'شما مسئول پاسخگویی این وظیفه هستید.'];
+        return ['مسئول پیگیری وظیفه ' . $title . ' شدید.', 'پیگیری نتیجهٔ این وظیفه به شما سپرده شد. این نقش با مسئول انجام کار فرق دارد.'];
     }
 
     private function removedText(string $title): array
     {
-        return ['از وظیفه ' . $title . ' حذف شدید.', 'دیگر در این وظیفه نقشی ندارید.'];
+        return ['نقش شما در وظیفه ' . $title . ' تغییر کرد.', 'نقش قبلی شما برداشته شد؛ ممکن است هنوز از راه دیگری به این وظیفه دسترسی داشته باشید.'];
     }
 }

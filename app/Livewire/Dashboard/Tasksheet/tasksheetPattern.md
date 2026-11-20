@@ -24,7 +24,7 @@ per task, within the window), and — since 2026-10-09 — the completion is cre
 `ActivityLogger` stamps `payload['owner'] = assigned_to ?? user_id` on every `done` StatusChange, and
 `TasksheetService::creditedTo()` reads it, so a ticket close, a manager drag, a bulk move or a cycle
 advance credits the person who owned the work, not whoever moved the card (the former "event's actor"
-rule is gone). A done event later undone by a reopen inside the window no longer counts.
+rule is gone). A done event followed by a later reopen no longer counts; the current query also checks reopens after the selected end.
 This is the same reasoning `servicePattern.md` §4 gives for why `TasksheetService` is not just an
 extension of `ReportingService` (which is current-status-scoped by design, correct for a live board,
 wrong for a frozen-in-time window).
@@ -129,23 +129,17 @@ while active a «بازهٔ قبلی فعال است — بازگشت» banner s
 carries no `#[Locked]` (it is toggled via `wire:click` only, but the readOnly gap is closed the
 established way: method early-return + the `GUARDED_WHEN_READ_ONLY` `updating()` entry).
 
-## Scorecard tiles are owned-only, drilldown tables are touched-scope
+## Completion credit, live counters and detail groups
 
-`report()`'s top-level scorecard tiles (`completed`, `on_time_percent`, `cycle_time_days`,
-`approvals_received`, `still_overdue`, `in_progress`, `upcoming_deadline`) are scoped to tasks the
-subject **owns** (`Task::ownedBy`: assigned to him, created by him while unassigned, or listed in `collaborators` — so a delegator's sheet no longer carries the assignee's overdue/in-progress) — never the wider candidate/touched set, which also includes tasks the subject merely
-*commented on* without owning. `buildReport()` builds `$ownedSet = $ownedTaskIds->flip()` and filters
-both the events passed into `scorecardMetrics()` and the tasks passed into `taskStatusCounts()`
-through it (`baselineMetrics()` does the same for its own baseline-window scorecard). Without this,
-one comment left on a colleague's task would leak that colleague's approvals/overdue status into the
-subject's personal report tiles. The per-project/standalone **drilldown tables** (`groupStats()`,
-feeding `projects`/`standalone`) are intentionally **not** owned-scoped — they show "tasks in this
-project the subject was involved with," so they correctly use the full touched-task collection for
-that group. **2026-10-22 refinement:** the LIVE overdue/in-progress flags that feed the project rows (`liveCounts`) are now set only for OWNED tasks — a non-owned task the subject merely commented on no longer shows up as «N مورد دیرکرد» in the row (it still counts in the row when completed in the window). On-time compares by DAY (a task finished after noon on its 12:00-stored due day is on time, like `ReportingService`), and «مهلت نزدیک» uses `TaskMetrics::DUE_SOON_DAYS` (3). Do not conflate the two: fixing a scorecard leak by touching `groupStats()` would be
-wrong. The `narrative` sentence's denominator is `$candidateTaskIds->count()` (owned ∪ acted-in-window)
-— it deliberately reports on tasks touched at all in the window, not the narrower owned-only count,
-since the sentence reads "X of Y assigned tasks completed" against the subject's full workload
-footprint for that window.
+The current service separates three scopes; do not infer them from older touched-scope descriptions:
+- `gather()` loads the subject's current owned tasks created by the selected end, plus tasks reached through relevant events in the window. Owned means assigned to the subject, created by the subject while unassigned, or listed as a collaborator.
+- `completions()` credits the recorded doer (`payload.owner`, falling back to the current assignee/creator). The latest done event in the window is excluded if a later reopen exists, including a reopen after the window. Merely commenting or collaborating does not grant completion credit.
+- The completed/on-time/calendar-duration metrics use those credited completions. Human approval counts exclude self-approval and system approval.
+- `liveCounts()` examines current owned tasks in the gathered set. Deleted, archived, settled and suspended tasks are excluded. Overdue/in-progress are current states, even in a past-window report; due soon means through `TaskMetrics::DUE_SOON_DAYS` (3).
+- Detail groups include credited completions or live overdue/in-progress flags. A comment-only task, or a due-soon task without either flag, does not automatically appear in the table.
+- The narrative denominator is current owned ids union credited completion ids, not a count of all comments or assignments.
+
+`scopeProjectId` only limits the displayed detail tables. It does not filter `report()`, highlights, the activity feed or Excel export. Copy must call it «فقط جدول این پروژه» and explain this consequence.
 
 ## `TasksheetService`'s two-method locked contract
 
@@ -268,9 +262,15 @@ same toggler `taskboard.blade.php`/`project.blade.php` already use between each 
 ## Overhaul sync (2026-10-09)
 
 - **Credit** goes to the doer (`payload.owner`, see «Event-sourced»); approvals received count only real manager approvals in an approval-required project and only for the credited doer (no more inflated «every Done is an approval»); `still_overdue`/`in_progress` are live snapshots (`live` flag on the tiles, labeled «همین حالا») and use `TaskMetrics` rules (suspended «توقف», archived, trashed tasks are excluded).
-- **Median, not average:** the cycle tile and export label say «میانهٔ زمان انجام»; the delta column mixes units on purpose (no suffix for counts, « روز» for the cycle-time tile, « امتیاز» points for on-time %; `lowerIsBetter` flips the chip TONE for cycle time while the arrow keeps the true direction — 2026-10-22), and `baselineWindow()` is the one baseline math (previous window of the same length, ending one second before `start`).
+- **Median, not logged effort:** the tile/export label is «زمان معمول انجام». It is the median calendar time from creation to the done event, not worked hours. The legend explains the median with an example. Counts have no suffix, duration uses «روز», and on-time changes use «واحد درصد». `lowerIsBetter` changes the tone for duration; the arrow keeps the numeric direction. `baselineWindow()` remains the previous equal-length window ending just before the selected start.
 - **Privacy:** when the viewer is not the subject (`isRestricted`: manager share, admin) `report()`/`activityFeed()` pass through `restrict()` — comment bodies are dropped and tasks in projects the viewer cannot see are masked («وظیفهٔ محدود» / «پروژهٔ محدود», personal tasks «وظیفه شخصی»); the cache key is `tasksheet2:…`. Trashed tasks stay in history with «(حذف‌شده)».
 - **Window limits:** custom ranges cap at 365 days, an invalid custom range keeps the last good range and flags `rangeInvalid`, activity paging stops at `MAX_ACTIVITY` = 200.
 - **Access:** a privileged viewer (admin/developer) can open an inactive subject; the manager is a head of the subject's department or the parent department's head; the signed share link now lives 7 days (was 14).
 - **Custom range UI (2026-10-16):** the range picker is the shared `<x-ui.forms.date-span-popover apply="setCustomRange" :clear="false" :basisOptions="false" :active="$preset === 'custom'"/>` (icon button + error dot while a custom range is active) next to the three always-visible preset chips; no `HasDateSpan` trait (Tasksheet has one fixed window, no created/updated basis, no clear — `setPreset` is the reset), and `:clear`/`:basisOptions` take `false`, not `null` (null falls back to the component default).
 - **Project chip / highlights:** project groups carry the project id; highlights skip same-day completions for "fastest" and require at least one comment for "most collaborated".
+
+## Persian wording and practical helpers (2026-11-18)
+
+Preserve the «تسک‌شیت» module header and shared app controls. UI wording distinguishes selected-window results from current work, explains the subject name, median calendar duration, overlapping live counts, and table-only project focus. Highlights use «کار شاخص این بازه» (priority tier multiplied by elapsed days, not measured difficulty), «کوتاه‌ترین زمان انجام» (same-day completions excluded), and «بیشترین نظر همکاران».
+
+Sharing creates an authenticated signed link lasting seven days, not a saved snapshot and not a recipient-bound grant. Presets are evaluated when the link opens; use a custom date range for fixed dates. Baseline viewing is temporary and is excluded from share parameters; Excel uses the displayed window. Non-subject viewers get masked personal/inaccessible project titles and no comment/attachment bodies. Printing includes visible detail groups, not the activity feed; Excel includes all report groups regardless of table focus. Keep these facts aligned across page helpers, user legend, exports, share notifications and the admin share action.

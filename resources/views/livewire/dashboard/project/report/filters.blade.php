@@ -10,8 +10,8 @@
     [
         'field' => 'department',
         'icon' => 'corporate_fare',
-        'label' => 'دپارتمان',
-        'allLabel' => 'همه دپارتمان‌ها',
+        'label' => 'بخش سازمانی',
+        'allLabel' => 'همه بخش سازمانی‌ها',
         'options' => collect($opts['departments'] ?? [])->map(fn($name, $code) => ['value' => $code, 'label' => $name])->values()->all(),
     ],
     [
@@ -100,6 +100,6 @@
     <a href="{{ route('tasksheet', ['project' => $activeProjectId]) }}" target="_blank"
        class="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]">
         <span class="material-symbols-rounded text-[14px]">assignment_turned_in</span>
-        <span>گزارش تسک‌شیت</span>
+        <span>گزارش کارکرد من</span>
     </a>
 </div>

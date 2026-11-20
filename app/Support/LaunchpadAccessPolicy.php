@@ -14,7 +14,7 @@ final class LaunchpadAccessPolicy
             && !$row->trashed()
             && ($row->isOwnedBy($user)
                 || $user->hasElevatedRole()
-                || ($row->isAudience($user) && in_array($row->status(), ['live', 'soon'], true)));
+                || (($row->isPublic() || $row->isAudience($user)) && in_array($row->status(), ['live', 'soon'], true)));
     }
 
     public static function canCreateIn(?User $user, string $dept): bool

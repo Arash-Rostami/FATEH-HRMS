@@ -10,47 +10,103 @@ const SNAP_MAX_CHARS = 600000;
 const LIST_LIMIT = 40;
 const LIST_KEEP = 24;
 const SNAP_REFRESH_MS = 10000;
+const SLICE_NODES = 500;
 const DROP_TAGS = new Set(['SCRIPT', 'TEMPLATE', 'NOSCRIPT', 'IFRAME', 'VIDEO', 'AUDIO', 'CANVAS']);
-const KEEP_ATTRIBUTES = new Set(['x-cloak']);
 const LIVE_ATTRIBUTE = /^(?:id$|wire:|x-|ax-|[:@]|on[a-z]+$)/;
+
+const verdicts = new Map();
+
+function verdict(name) {
+    let kind = verdicts.get(name);
+
+    if (kind === undefined) {
+        kind = name === 'x-cloak' ? 0 : (name.startsWith('wire:loading') || name === 'wire:offline') ? 2 : LIVE_ATTRIBUTE.test(name) ? 1 : 0;
+        verdicts.set(name, kind);
+    }
+
+    return kind;
+}
+
+const PERSIST_MAX_CHARS = 120000;
 
 const snaps = Object.create(null);
 
 let stylesheetLinks = '';
 
+const idle = (fn, timeout, wait = 1000) => (typeof requestIdleCallback === 'function' ? requestIdleCallback(fn, timeout ? {timeout} : undefined) : setTimeout(fn, wait));
+
+const storeKey = (tab) => 'peek:' + (document.documentElement.dataset.uid || '') + ':' + tab;
+
+function persist(tab, html) {
+    if (html.length > PERSIST_MAX_CHARS) return;
+
+    idle(() => {
+        try {
+            sessionStorage.setItem(storeKey(tab), html);
+        } catch {}
+    }, 2000);
+}
+
+function recall(tab) {
+    try {
+        const html = sessionStorage.getItem(storeKey(tab));
+
+        return html && html[0] === '<' ? html : null;
+    } catch {
+        return null;
+    }
+}
+
 const viewportWidth = () => document.documentElement.clientWidth || window.innerWidth;
 
 const isDesktop = () => typeof window.matchMedia !== 'function' || window.matchMedia('(min-width: 1024px)').matches;
 
-function cleanAttributes(el) {
+const VOID_TAGS = new Set(['AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK', 'META', 'SOURCE', 'TRACK', 'WBR']);
+const TEXT_ESC = /[&<>]/g;
+const ATTR_ESC = /[&"]/g;
+const ENTITIES = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'};
+
+const entity = (char) => ENTITIES[char];
+
+let out = '';
+let walked = 0;
+let job = null;
+
+function* writeInert(el) {
     const attrs = el.attributes;
-    for (let i = attrs.length - 1; i >= 0; i--) {
-        const name = attrs[i].name;
-        if (name.startsWith('wire:loading') || name === 'wire:offline') el.style.display = 'none';
-        if (!KEEP_ATTRIBUTES.has(name) && LIVE_ATTRIBUTE.test(name)) el.removeAttribute(name);
+    for (let i = 0; i < attrs.length; i++) {
+        if (verdict(attrs[i].name) === 2) return false;
     }
-}
 
-function inertCopy(src) {
-    const copy = src.cloneNode(false);
-    cleanAttributes(copy);
-    if (copy.tagName === 'IMG') copy.loading = 'lazy';
+    const isImage = el.tagName === 'IMG';
+    const tag = el.localName;
+    out += '<' + tag + (isImage ? ' loading="lazy" decoding="async"' : '');
 
-    const crowded = src.children.length > LIST_LIMIT;
+    for (let i = 0; i < attrs.length; i++) {
+        const {name, value} = attrs[i];
+        if (isImage && (name === 'loading' || name === 'decoding')) continue;
+        if (verdict(name) === 0) out += ' ' + name + '="' + value.replace(ATTR_ESC, entity) + '"';
+    }
+
+    out += '>';
+    if (VOID_TAGS.has(el.tagName)) return true;
+
+    const raw = el.tagName === 'STYLE';
+    const cap = el.childElementCount > LIST_LIMIT ? LIST_KEEP : Infinity;
     let kept = 0;
 
-    for (let child = src.firstChild; child; child = child.nextSibling) {
-        if (crowded && kept >= LIST_KEEP) break;
-
+    for (let child = el.firstChild; child && kept < cap && out.length <= SNAP_MAX_CHARS; child = child.nextSibling) {
         if (child.nodeType === Node.TEXT_NODE) {
-            copy.appendChild(child.cloneNode(false));
-        } else if (child.nodeType === Node.ELEMENT_NODE && !DROP_TAGS.has(child.tagName) && child.style.display !== 'none') {
-            copy.appendChild(inertCopy(child));
-            kept++;
+            out += raw ? child.data : child.data.replace(TEXT_ESC, entity);
+        } else if (child.nodeType === Node.ELEMENT_NODE && !DROP_TAGS.has(child.tagName) && child.style?.display !== 'none') {
+            if (++walked % SLICE_NODES === 0) yield child;
+            if (yield* writeInert(child)) kept++;
         }
     }
 
-    return copy;
+    out += '</' + tag + '>';
+
+    return true;
 }
 
 function findTabRoot() {
@@ -95,6 +151,8 @@ export function buildFrameDocument(html) {
 export default function peek() {
     let timer = null;
     let anchor = null;
+    let card = null;
+    let shown = null;
 
     return {
         open: false,
@@ -105,37 +163,80 @@ export default function peek() {
 
         destroy() {
             clearTimeout(timer);
+            job = null;
         },
 
         capture() {
             if (document.hidden || !isDesktop()) return;
 
             const tab = this.$root.dataset.active;
-            if (!tab) return;
+            if (!tab || job?.tab === tab) return;
 
-            const now = Date.now();
             const last = snaps[tab];
-            if (last && now - last.at < SNAP_REFRESH_MS) return;
+            if (last && Date.now() - last.at < SNAP_REFRESH_MS) return;
 
-            const host = findTabRoot();
-            if (!host) return;
+            const run = job = {tab};
+            let host = null;
+            let walk = null;
+            let node = null;
 
-            const html = inertCopy(host).outerHTML;
-            snaps[tab] = {html: html.length > SNAP_MAX_CHARS ? null : html, at: now};
+            const step = () => {
+                if (job !== run) return;
+
+                try {
+                    if (!walk) {
+                        host = findTabRoot();
+                        out = '';
+                        walked = 0;
+                        walk = host && writeInert(host);
+                    }
+
+                    const live = walk && !document.hidden && this.$root.dataset.active === tab && host.isConnected && (!node || host.contains(node));
+                    const turn = live && walk.next();
+
+                    if (turn && !turn.done) {
+                        node = turn.value;
+                        idle(step, 0, 0);
+                        return;
+                    }
+
+                    const html = out;
+                    out = '';
+                    job = null;
+                    if (!turn) return;
+
+                    const prev = snaps[tab];
+
+                    if (html.length > SNAP_MAX_CHARS) {
+                        snaps[tab] = {html: prev?.html ?? recall(tab), at: Date.now()};
+                        return;
+                    }
+
+                    if (html !== prev?.html) persist(tab, html);
+                    snaps[tab] = {html, at: Date.now()};
+                    if (this.open && shown === tab && !this.frame) this.frame = buildFrameDocument(html);
+                } catch {
+                    out = '';
+                    job = null;
+                }
+            };
+
+            idle(step, 0, 0);
         },
 
         frameFor(tab) {
-            const snap = snaps[tab];
+            const snap = snaps[tab] ?? (snaps[tab] = {html: recall(tab), at: 0});
 
-            return snap && snap.html ? buildFrameDocument(snap.html) : null;
+            return snap.html ? buildFrameDocument(snap.html) : null;
         },
 
         place() {
             if (!anchor) return;
 
-            const card = document.querySelector('[data-peek-card]');
-            const height = card && card.offsetHeight ? card.offsetHeight : CARD_HEIGHT;
-            const width = card && card.offsetWidth ? card.offsetWidth : CARD_WIDTH;
+            if (!card?.isConnected) card = document.querySelector('[data-peek-card]');
+
+            const height = card?.offsetHeight || CARD_HEIGHT;
+            const width = card?.offsetWidth || CARD_WIDTH;
             const viewport = viewportWidth();
             const centered = anchor.top + anchor.height / 2 - height / 2;
             const top = Math.max(EDGE, Math.min(centered, window.innerHeight - height - EDGE));
@@ -146,14 +247,13 @@ export default function peek() {
 
         show(tab, el) {
             clearTimeout(timer);
+            if (tab === this.$root.dataset.active) this.capture();
             timer = setTimeout(() => this.load(tab, el), this.open ? SWITCH_DELAY : OPEN_DELAY);
         },
 
         hide() {
             clearTimeout(timer);
-            timer = setTimeout(() => {
-                this.open = false;
-            }, CLOSE_DELAY);
+            if (this.open) timer = setTimeout(() => (this.open = false), CLOSE_DELAY);
         },
 
         keep() {
@@ -165,7 +265,7 @@ export default function peek() {
             anchor = {top: box.top, left: box.left, height: box.height};
             this.label = el.getAttribute('aria-label') || '';
             this.icon = el.querySelector('.material-symbols-rounded')?.textContent.trim() || 'tab';
-            if (tab === this.$root.dataset.active) this.capture();
+            shown = tab;
             this.frame = this.frameFor(tab);
             this.open = true;
             this.place();

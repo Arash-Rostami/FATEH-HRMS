@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class Launchpad extends Model
@@ -35,11 +36,24 @@ class Launchpad extends Model
         'accessible_to',
         'expire_at',
         'settings',
+        'source',
+        'refresh_due_at',
     ];
+
+    protected $hidden = ['source'];
+
+    public const OPTIONS_PREFERENCE = 'launchpad_options';
+
+    public static function optionIds(User $user): array
+    {
+        return array_map('intval', (array) $user->getPreference(self::OPTIONS_PREFERENCE, []));
+    }
 
     protected function casts(): array
     {
         return [
+            'source' => 'encrypted:array',
+            'refresh_due_at' => 'datetime',
             'audience' => 'array',
             'seen_by' => 'array',
             'settings' => 'array',
@@ -59,18 +73,35 @@ class Launchpad extends Model
             ->where(fn (Builder $q) => $q->whereNull('expire_at')->orWhere('expire_at', '>=', $today));
     }
 
+    public function scopeDueForRefresh(Builder $query): Builder
+    {
+        return $query->live()
+            ->where('kind', 'static')
+            ->whereNotNull('refresh_due_at')
+            ->where('refresh_due_at', '<=', now())
+            ->orderBy('refresh_due_at');
+    }
+
+    public static function nextRefreshAt(): Carbon
+    {
+        [$hour, $minute] = array_map('intval', explode(':', (string) config('launchpad.refresh.at')));
+
+        return now()->addDay()->setTime($hour, $minute);
+    }
+
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
         return $user->hasElevatedRole()
             ? $query
             : $query->where(fn (Builder $q) => $q->where('user_id', $user->id)
-                ->orWhere(fn (Builder $s) => $s->live()->whereJsonContains('audience', $user->id)));
+                ->orWhere(fn (Builder $s) => $s->live()->where(fn (Builder $a) => $a->whereJsonContains('audience', $user->id)->orWhere('settings->public', true))));
     }
 
     public function scopeUnseenBy(Builder $query, int $userId): Builder
     {
         return $query->live()
             ->whereJsonContains('audience', $userId)
+            ->where(fn (Builder $q) => $q->whereNull('settings->public')->orWhere('settings->public', '!=', true))
             ->where('user_id', '!=', $userId)
             ->where(fn (Builder $q) => $q->whereNull('seen_by')->orWhereJsonDoesntContain('seen_by', $userId));
     }
@@ -83,6 +114,11 @@ class Launchpad extends Model
     public function isAudience(?User $user): bool
     {
         return $user !== null && in_array((int) $user->id, self::ids($this->audience), true);
+    }
+
+    public function isPublic(): bool
+    {
+        return ($this->settings['public'] ?? null) === true;
     }
 
     public function status(): string
@@ -98,11 +134,22 @@ class Launchpad extends Model
         };
     }
 
+    public function isLive(): bool
+    {
+        return in_array($this->status(), ['live', 'soon'], true);
+    }
+
+    public function isUnseenBy(int $userId): bool
+    {
+        return (int) $this->user_id !== $userId
+            && !$this->isPublic()
+            && in_array($userId, self::ids($this->audience), true)
+            && !in_array($userId, self::ids($this->seen_by), true);
+    }
+
     public function markSeenBy(int $userId): void
     {
-        if ((int) $this->user_id === $userId
-            || !in_array($userId, self::ids($this->audience), true)
-            || in_array($userId, self::ids($this->seen_by), true)) {
+        if (!$this->isUnseenBy($userId)) {
             return;
         }
 
@@ -116,6 +163,31 @@ class Launchpad extends Model
             static::query()->whereKey($row->id)->toBase()->update(['seen_by' => json_encode($seen, JSON_THROW_ON_ERROR)]);
             DB::afterCommit(fn () => StateService::flush());
         });
+    }
+
+    public static function ssoSites(): array
+    {
+        if (tenantOff('launchpad:sso') || blank(config('launchpad.sso.issuer')) || strlen((string) base64_decode((string) config('launchpad.sso.secret_key'), true)) !== SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) {
+            return [];
+        }
+
+        return collect((array) config('app.siblings'))
+            ->filter(fn (array $item) => ($item['sso']['on'] ?? false) === true && filled($item['sso']['receiver'] ?? null) && filled($item['sso']['aud'] ?? null) && static::sameHttpsOrigin((string) ($item['url'] ?? ''), (string) $item['sso']['receiver']))
+            ->keyBy('name')
+            ->all();
+    }
+
+    private static function sameHttpsOrigin(string $url, string $receiver): bool
+    {
+        $site = parse_url($url);
+        $target = parse_url($receiver);
+
+        return is_array($site) && is_array($target)
+            && ($site['scheme'] ?? null) === 'https'
+            && ($target['scheme'] ?? null) === 'https'
+            && isset($site['host'], $target['host'])
+            && $site['host'] === $target['host']
+            && ($site['port'] ?? null) === ($target['port'] ?? null);
     }
 
     public function directory(): ?string

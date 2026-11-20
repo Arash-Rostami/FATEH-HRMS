@@ -8,7 +8,7 @@
 <div x-show="showInfo"
      x-transition:enter="animate-slide-fade-from-left"
      x-transition:leave="animate-slide-fade-to-left"
-     x-on:click.outside="showInfo = false"
+     x-on:click.outside="if (!$event.target.closest('.fancybox__dialog, .fancybox__container')) showInfo = false"
      class="absolute inset-y-0 left-0 z-30 flex w-72 md:w-80 flex-col overflow-hidden rounded-xl border-r border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-primary-container)] shadow-[0_16px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_24%,transparent)]"
      role="dialog"
      aria-label="اطلاعات همکار">

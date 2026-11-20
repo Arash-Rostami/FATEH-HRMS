@@ -1,4 +1,4 @@
-import { describe, expect, test, vi, beforeEach } from 'vitest'
+import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
 import calculator from '../calculator.js'
 
 const STORAGE_KEY = 'calculator_state'
@@ -371,6 +371,21 @@ describe('calculator state persistence round-trip', () => {
 })
 
 describe('calculator.init', () => {
+    const keydownListeners = []
+
+    beforeEach(() => {
+        const add = window.addEventListener.bind(window)
+        vi.spyOn(window, 'addEventListener').mockImplementation((type, listener, options) => {
+            if (type === 'keydown') keydownListeners.push(listener)
+            add(type, listener, options)
+        })
+    })
+
+    afterEach(() => {
+        keydownListeners.splice(0).forEach((listener) => window.removeEventListener('keydown', listener))
+        vi.restoreAllMocks()
+    })
+
     test('with no modal ref, still restores persisted state without registering listeners', () => {
         const c = calculator()
         c.$refs = {}
@@ -400,10 +415,12 @@ describe('calculator.init', () => {
         c.$refs = { calculatorModal: modal }
 
         c.init()
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+        const esc = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+        window.dispatchEvent(esc)
 
         expect(c.minimized).toBe(true)
         expect(modal.classList.contains('hidden')).toBe(true)
+        expect(esc.defaultPrevented).toBe(true)
     })
 })
 

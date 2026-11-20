@@ -62,6 +62,10 @@ class ViewConventionTest extends TestCase
         'livewire/dashboard/ths/ticket-table-row.blade.php',
     ];
 
+    private const ALLOWED_NATIVE_CONFIRM = [
+        'resources/js/components/alpine/stores/filament-menu.js' => 'Filament admin utilities page: the admin panel does not mount the user-panel shared confirmation modal',
+    ];
+
     private const ALLOWED_LIGHTBOX_SHELL = [];
 
     private const ALLOWED_AVATAR_STACK = [];
@@ -80,6 +84,7 @@ class ViewConventionTest extends TestCase
         'components/ui/buttons/form.blade.php',
         'components/ui/forms/ai-trigger.blade.php',
         'livewire/dashboard/ai-report.blade.php',
+        'livewire/dashboard/launchpad.blade.php',
     ];
 
     private const ALLOWED_SMART_SPARKLE = [
@@ -144,6 +149,44 @@ class ViewConventionTest extends TestCase
             "New digression from the design-system component family for '{$needle}':\n" . implode("\n", $offenders)
             . "\nAdopt the shared component instead, or add the file to this test's baseline with a justified reason.",
         );
+    }
+
+    public function test_confirmations_use_the_shared_modal_not_native_prompts_or_inline_yes_no_panels(): void
+    {
+        $offenders = [];
+        foreach ($this->viewFiles(['resources/views/livewire', 'resources/views/layouts', 'resources/views/components']) as $relativePath => $contents) {
+            if (str_contains($contents, 'wire:confirm') || preg_match('/(?<![\w.$-])confirm\(/', $contents) || preg_match('/x-show="!?confirming[A-Za-z]*"/', $contents)) {
+                $offenders[] = 'resources/views/' . $relativePath;
+            }
+        }
+
+        $scripts = array_merge(
+            glob(base_path('resources/js/components/alpine/{data,stores,mixins}/*.js'), GLOB_BRACE) ?: [],
+            glob(base_path('resources/js/core/*.js')) ?: [],
+        );
+        foreach ($scripts as $script) {
+            if (preg_match('/(?<![\w.$-])confirm\(/', file_get_contents($script))) {
+                $offenders[] = str_replace('\\', '/', substr($script, strlen(base_path()) + 1));
+            }
+        }
+
+        $offenders = array_values(array_diff($offenders, array_keys(self::ALLOWED_NATIVE_CONFIRM)));
+        sort($offenders);
+
+        $this->assertSame(
+            [],
+            $offenders,
+            "Confirmations go through the shared modal (viewPattern 'Confirmation modal'): confirmDialog()/confirmDialogListener() in Blade, an open-confirmation dispatch in PHP/JS. Native confirm(), wire:confirm and inline confirming* panels are forbidden outside ALLOWED_NATIVE_CONFIRM:\n" . implode("\n", $offenders),
+        );
+    }
+
+    public function test_info_drawers_ignore_clicks_inside_the_fancybox_viewer(): void
+    {
+        foreach (['ths/modal/info', 'channel/info', 'contact/info'] as $view) {
+            $contents = file_get_contents(resource_path("views/livewire/dashboard/{$view}.blade.php"));
+
+            $this->assertMatchesRegularExpression('/click\.outside="[^"]*fancybox/', $contents, "{$view} must not close behind an open Fancybox viewer");
+        }
     }
 
     public function test_ai_sparkle_icon_is_limited_to_ai_and_the_listed_smart_features(): void

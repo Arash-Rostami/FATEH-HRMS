@@ -20,7 +20,7 @@
                     <tr>
                         <th class="px-3 md:px-6 py-4"></th>
                         <th class="px-3 md:px-6 py-4">عنوان</th>
-                        <th class="px-3 md:px-6 py-4 hidden lg:table-cell">دپارتمان</th>
+                        <th class="px-3 md:px-6 py-4 hidden lg:table-cell">بخش سازمانی</th>
                         <th class="px-3 md:px-6 py-4 hidden md:table-cell">مسئول</th>
                         <th class="px-3 md:px-6 py-4">وضعیت</th>
                         @include('livewire.dashboard.project.report.sort-th', ['field' => 'priority', 'label' => 'اولویت'])
@@ -34,7 +34,7 @@
                     @forelse($groupedReportRows as $deptKey => $rowsInGroup)
                     <tr wire:key="report-group-{{ $deptKey }}" class="bg-[var(--md-sys-color-surface-container-low)]">
                         <td colspan="10" class="px-3 md:px-6 py-2 text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
-                            {{ $deptKey === '' ? 'بدون دپارتمان' : ($rowsInGroup->first()['department_label'] ?? $deptKey) }}
+                            {{ $deptKey === '' ? 'بدون بخش سازمانی' : ($rowsInGroup->first()['department_label'] ?? $deptKey) }}
                             <span class="opacity-60 font-normal">({{ convertToPersian($rowsInGroup->count()) }})</span>
                         </td>
                     </tr>

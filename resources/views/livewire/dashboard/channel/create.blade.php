@@ -6,7 +6,7 @@
                 <div>
                     <h2 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">ساخت گروه جدید</h2>
                     <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]"
-                       x-text="$wire.create.type === 'private' ? 'گروه خصوصی — فقط با دعوت مدیر' : 'گروه عمومی — همه می‌توانند پیوستن'"></p>
+                       x-text="$wire.create.type === 'private' ? 'گروه خصوصی | عضویت با دعوت' : 'گروه عمومی | عضویت از بخش کاوش'"></p>
                 </div>
             </div>
             <x-ui.modals.close-button close="closeCreate()"/>
@@ -23,7 +23,7 @@
             <div>
                 <label for="create-desc" class="block text-[11px] font-semibold mb-1.5 text-[var(--md-sys-color-on-surface-variant)]">توضیحات (اختیاری)</label>
                 <textarea id="create-desc" rows="3" wire:model="create.description" maxlength="500" autocomplete="off"
-                          placeholder="توضیحی کوتاه درباره موضوع گروه"
+                          placeholder="مثلاً هماهنگی کارهای تیم فروش"
                           class="md3-input peer w-full rounded-xl text-sm outline-none focus:ring-2 px-4 py-2.5 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50 resize-none"></textarea>
             </div>
 
@@ -58,9 +58,9 @@
                     </label>
                 </div>
                 <p class="text-[10px] mb-2 text-[var(--md-sys-color-on-surface-variant)]"
-                   x-text="$wire.create.type === 'private' ? 'تنها اعضای انتخاب‌شده به گروه خصوصی دسترسی دارند — دیگران نمی‌توانند خودشان پیوستن.' : 'اختیاری — در گروه عمومی دیگران می‌توانند از طریق مرور پیوستن.'"></p>
+                   x-text="$wire.create.type === 'private' ? 'افرادی را که می‌خواهید به گروه خصوصی دعوت کنید انتخاب کنید. بعداً هم می‌توانید عضو اضافه کنید.' : 'انتخاب اعضا اختیاری است. دیگران می‌توانند گروه عمومی را در «کاوش» پیدا کنند و عضو شوند.'"></p>
 
-                <x-dashboard.member-picker wire:key="channel-create-member-picker" model="createRecipientIds" :candidates="$this->memberCandidates" height="max-h-56"/>
+                <x-dashboard.member-picker wire:key="channel-create-member-picker" model="createRecipientIds" :candidates="$this->memberCandidates" height="max-h-56" bulk :dept-options="$this->deptOptions"/>
             </div>
 
             <div class="flex items-center gap-2 pt-1">

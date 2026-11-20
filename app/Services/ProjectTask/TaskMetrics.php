@@ -13,7 +13,7 @@ class TaskMetrics
 
     public const SETTLED_STATUSES = ['done', 'pending'];
 
-    public const LABEL_BREACH = 'نقض SLA یا مهلت';
+    public const LABEL_BREACH = 'عبور از مهلت';
 
     public const LABEL_DUE_SOON = 'سررسید نزدیک';
 

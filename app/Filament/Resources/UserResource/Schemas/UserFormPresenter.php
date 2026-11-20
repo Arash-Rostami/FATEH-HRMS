@@ -124,6 +124,16 @@ class UserFormPresenter
             ->helperText(__('resources/user/strings.hints.email'));
     }
 
+    public static function emailTrusted(): Toggle
+    {
+        return Toggle::make('email_trusted')
+            ->label(__('resources/user/strings.form.email_trusted'))
+            ->helperText(__('resources/user/strings.hints.email_trusted'))
+            ->default(false)
+            ->visible(fn () => (bool) auth()->user()?->hasElevatedRole())
+            ->afterStateHydrated(fn (Toggle $component, ?User $record) => $component->state(filled($record?->email_verified_at)));
+    }
+
     public static function extra(): KeyValue
     {
         return KeyValue::make('extra')
@@ -274,7 +284,7 @@ class UserFormPresenter
             ->default(UserRole::User->value)
             ->required()
             ->native(false)
-            ->disableOptionWhen(fn(string $value): bool => $value === UserRole::Developer->value)
+            ->disableOptionWhen(fn(string $value, ?User $record): bool => $value === UserRole::Developer->value && !$record?->isDeveloper())
             ->helperText(__('resources/user/strings.hints.role'));
     }
 

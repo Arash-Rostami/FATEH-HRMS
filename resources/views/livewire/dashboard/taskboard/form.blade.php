@@ -11,7 +11,7 @@
 <x-ui.modals.action
     wire:model="isModalOpen"
     wire:key="unified-task-modal"
-    title="{{ $isReadOnly ? 'مشاهده وظیفه' : ($isEditMode ? 'ویرایش وظیفه و اقدامات' : 'ایجاد وظیفه جدید') }}"
+    title="{{ $isReadOnly ? 'مشاهده وظیفه' : ($isEditMode ? 'ویرایش وظیفه' : 'ایجاد وظیفه جدید') }}"
     action="{{ $isEditMode ? 'updateTask' : 'createTask' }}"
     confirm-text="{{ $isEditMode ? 'ذخیره تغییرات' : 'ایجاد وظیفه' }}"
     cancel-text="انصراف"
@@ -81,7 +81,7 @@
             <div wire:key="taskboard-ticket-banner"
                 class="flex items-center gap-3 mb-5 px-4 py-3 rounded-2xl bg-[var(--md-sys-color-secondary-container)]/50 text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)]/20 text-xs">
                 <span class="material-symbols-rounded text-xl shrink-0 text-[var(--md-sys-color-secondary)]">support_agent</span>
-                <span class="leading-relaxed">این وظیفه به‌صورت خودکار از یک تیکت پشتیبانی ایجاد شده است. گفتگو و ویرایش جزئیات فقط از طریق تیکت مبدأ امکان‌پذیر است.</span>
+                <span class="leading-relaxed">این وظیفه از یک درخواست پشتیبانی ساخته شده است. برای تغییر آن یا ارسال پیام، خود تیکت را باز کنید.</span>
             </div>
         @endif
 
@@ -101,7 +101,7 @@
                     model="form.selectedAssignee"
                     mode="single"
                     server
-                    noneLabel="خودم (شخصی)"
+                    noneLabel="ایجادکنندهٔ وظیفه"
                     :candidates="$this->userPickerResults['candidates']"
                     :hasMore="$this->userPickerResults['hasMore']"
                     :deptOptions="$departmentOptions"
@@ -109,6 +109,7 @@
                     height="max-h-40"
                     :disabled="$isReadOnly"
                 />
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">این فرد کار را انجام می‌دهد. اگر کسی انتخاب نکنید، انجام کار با ایجادکنندهٔ وظیفه است.</p>
                 @if($this->formProject)
                     <p wire:key="taskboard-roster-hint" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">فقط اعضای پروژه نمایش داده می‌شوند.</p>
                 @endif
@@ -116,6 +117,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @unless(tenantOff('projects'))
+                <div class="space-y-1.5">
                 <x-ui.forms.select label="پروژه (اختیاری)" name="form.projectId" wire:model.live="form.projectId"
                                    icon="folder" :disabled="$isReadOnly">
                     <option value="">بدون پروژه</option>
@@ -123,6 +125,8 @@
                         <option value="{{ $id }}">{{ $name }}</option>
                     @endforeach
                 </x-ui.forms.select>
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">با اتصال به پروژه، افراد مجاز آن پروژه هم وظیفه و گفتگوی آن را می‌بینند. قواعد مهلت و برچسب‌های پروژه نیز اعمال می‌شود.</p>
+                </div>
                 @endunless
 
                 <x-ui.forms.select label="اولویت" name="form.priority" wire:model="form.priority" icon="flag"
@@ -140,7 +144,7 @@
                     @if($form->pendingProjectName)
                         <div wire:key="taskboard-levelup-pending" class="flex items-center gap-2 text-xs">
                             <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">workspaces</span>
-                            <span class="flex-1">پروژهٔ «{{ $form->pendingProjectName }}» هنگام ذخیرهٔ این وظیفه ساخته و پیوند می‌شود.</span>
+                            <span class="flex-1">با ذخیرهٔ وظیفه، پروژهٔ «{{ $form->pendingProjectName }}» ساخته می‌شود و این وظیفه در آن قرار می‌گیرد.</span>
                             <button type="button" wire:click="cancelPendingProject"
                                     class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
                                 لغو
@@ -190,7 +194,7 @@
                     :disabled="$isReadOnly"
                 />
                 @if(!$isReadOnly && blank($form->deadlineYear) && ($sla = $this->formProject?->charter()->slaHours()))
-                    <p wire:key="taskboard-sla-hint" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mt-1">خالی بگذارید تا بر اساس SLA پروژه ({{ convertToPersian($sla) }} ساعت) تعیین شود.</p>
+                    <p wire:key="taskboard-sla-hint" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mt-1">هنگام ساخت وظیفه یا تغییر پروژهٔ آن، اگر مهلت را خالی بگذارید، سامانه بر اساس زمان مجاز انجام کار در پروژه ({{ convertToPersian($sla) }} ساعت) مهلت را تعیین می‌کند؛ این مهلت از پایان پروژه دیرتر نمی‌شود.</p>
                 @endif
                 @error('form.deadline')
                 <div class="{{ $errorClass }}">
@@ -236,7 +240,7 @@
                     </div>
                 @else
                     <div wire:key="taskboard-reply-thread" class="contents">
-                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mb-3">این گفتگو خصوصی است؛ فقط ایجادکننده، مسئول انجام و همکاران این وظیفه آن را می‌بینند و پاسخ‌ها را دریافت می‌کنند.</p>
+                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mb-3">ایجادکننده، مسئول انجام، همکاران و مسئول پیگیری به این گفتگو دسترسی دارند. اگر وظیفه در پروژه باشد، افراد مجاز پروژه هم آن را می‌بینند. ارسال پیام، وضعیت وظیفه را عوض نمی‌کند.</p>
 
                     <div class="relative flex flex-col gap-3 max-h-96 overflow-y-auto custom-scrollbar pr-1 pl-1">
                         @if($this->taskComments->isNotEmpty())

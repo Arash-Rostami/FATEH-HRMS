@@ -30,12 +30,12 @@
 
                     <p class="leading-snug text-[var(--md-sys-color-on-surface)] text-sm py-2">
                         <span class="material-symbols-rounded relative top-2">person</span>
-                        ثبت کننده: {{ $p->suggestion()->user->name ?? '-' }}
+                        ثبت‌کننده: {{ $p->suggestion()->user->name ?? '-' }}
                     </p>
 
                     <div class="flex flex-wrap items-center gap-1.5 mt-2">
                         <span
-                            title="مرحله/وضعیت"
+                            title="مرحلهٔ بررسی"
                             class="cursor-help px-2.5 py-1 rounded-lg text-xs font-bold
                                   {{ 'bg-[var(--md-sys-color-' . $stage['bg'] . ')]' }}
                                   {{ 'text-[var(--md-sys-color-' . $stage['on'] . ')]' }}">
@@ -59,7 +59,7 @@
                                          bg-[var(--md-sys-color-secondary-container)]
                                          text-[var(--md-sys-color-on-secondary-container)]">
                                 <span class="material-symbols-rounded !text-xs">edit_note</span>
-                                تکمیل شخصی
+                                ثبت نظر توسط پیشنهاددهنده
                             </span>
                         @endif
                     </div>
@@ -269,7 +269,7 @@
 
             {{-- RULES --}}
             <div class="pt-3 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
-                <x-ui.title icon="rule" title="قواعد"/>
+                <x-ui.title icon="rule" title="اصول سازمان"/>
                 <div class="mt-2 flex flex-wrap gap-1.5">
                     @foreach((array)$p->suggestion()->rule as $rv)
                         <span class="px-2.5 py-1 rounded-lg text-xs font-bold
@@ -301,7 +301,7 @@
     {{-- ══ DEPARTMENTS STATUS ══ --}}
     @if(count($p->suggestion()->departments ?? []))
         <div wire:key="suggestion-departments" class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]">
-            <x-ui.title icon="corporate_fare" title="واحدهای ذی‌نفع"/>
+            <x-ui.title icon="corporate_fare" title="واحدهای مرتبط"/>
             <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 @foreach($p->departmentStatuses() as $dept)
                     <div @class([
@@ -324,7 +324,7 @@
                             ارجاع
                         </span>
                             @if($dept['is_complete'])
-                                <span wire:key="suggestion-dept-complete-{{ $dept['dept'] }}" class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
+                                <span wire:key="suggestion-dept-complete-{{ $dept['dept'] }}" class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="کار واحد انجام شده است">task_alt</span>
                             @elseif($dept['has_review'])
                                 <span wire:key="suggestion-dept-pending-{{ $dept['dept'] }}" class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
                             @endif
@@ -339,7 +339,7 @@
     @if($p->suggestion()->reviews->isNotEmpty())
         <div wire:key="suggestion-reviews" class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                 border border-[var(--md-sys-color-outline-variant)]">
-            <x-ui.title icon="rate_review" title="بازخوردها"/>
+            <x-ui.title icon="rate_review" title="نظرها"/>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 @foreach($p->reviewItems() as $item)
                     <div wire:key="suggestion-review-{{ $item['review']->id }}" @class([
@@ -371,7 +371,7 @@
                                 @if($item['is_system_generated'])
                                     <span wire:key="suggestion-review-auto-chip" class="text-[9px] px-1.5 py-0.5 rounded-lg font-bold shrink-0 inline-flex items-center gap-0.5 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
                                         <span class="material-symbols-rounded text-[10px]">smart_toy</span>
-                                        تولید خودکار
+                                        ثبت خودکار
                                     </span>
                                 @endif
                             </div>
@@ -382,7 +382,7 @@
 
                         @if($item['review']->comments)
                             <p wire:key="suggestion-review-comments" class="text-xs leading-relaxed whitespace-pre-wrap text-[var(--md-sys-color-on-surface-variant)] px-1">
-                                {{ $item['review']->comments }}
+                                {{ $item['is_system_generated'] ? 'این واحد در مهلت بررسی پاسخ نداد؛ سامانه «بدون نظر قطعی» ثبت کرد. این نظر به معنی موافقت نیست.' : $item['review']->comments }}
                             </p>
                         @endif
 
@@ -390,9 +390,9 @@
                             <div wire:key="suggestion-review-actions" class="mt-3 rounded-lg overflow-hidden border border-[var(--md-sys-color-primary)]/15 bg-[var(--md-sys-color-primary-container)]">
                                 <div class="flex items-center gap-2 px-2 py-2 bg-[var(--md-sys-color-primary)]/10 border-b border-[var(--md-sys-color-primary)]/10">
                                     <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">assignment</span>
-                                    <span class="text-[11px] font-semibold tracking-wider text-[var(--md-sys-color-on-primary-container)]">دستورالعمل اجرا:</span>
+                                    <span class="text-[11px] font-semibold tracking-wider text-[var(--md-sys-color-on-primary-container)]">کارهای لازم برای اجرا:</span>
                                     @if($item['review']->referral)
-                                        <div wire:key="suggestion-review-referral" class="flex flex-wrap gap-1 mr-auto cursor-help" title="واحدهای موظف">
+                                        <div wire:key="suggestion-review-referral" class="flex flex-wrap gap-1 mr-auto cursor-help" title="واحدهای مسئول اجرا">
                                             @foreach($item['referral_labels'] as $rl)
                                                 <span class="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-sm leading-none
                                                          bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
@@ -424,7 +424,7 @@
                                 ارجاع
                             </span>
                                 @if($item['review']->complete)
-                                    <span wire:key="suggestion-review-complete" class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
+                                    <span wire:key="suggestion-review-complete" class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="کار واحد انجام شده است">task_alt</span>
                                 @else
                                     <span wire:key="suggestion-review-pending" class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
                                 @endif
@@ -442,7 +442,7 @@
                     border border-[var(--md-sys-color-outline-variant)]">
             <x-ui.title icon="task_alt" title="تکمیل اقدام واحد"/>
             <p class="mt-3 text-sm leading-7 text-[var(--md-sys-color-on-surface-variant)]">
-                واحد شما به عنوان مسئول اقدام ارجاع داده شده است. در صورت اتمام اجرای دستورالعمل، اقدام را تکمیل‌شده اعلام کنید.
+                پیشنهاد برای اجرا به واحد شما سپرده شده است. فقط پس از انجام کار خواسته‌شده، تکمیل را ثبت کنید. با ثبت همهٔ واحدهای مسئول، پیشنهاد «پایان‌یافته» می‌شود.
             </p>
             <div class="mt-4 flex justify-end">
                 <x-ui.buttons.form type="button"
@@ -461,7 +461,8 @@
         <div wire:key="suggestion-feedback-section" class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                     border border-[var(--md-sys-color-outline-variant)]">
 
-            <x-ui.title icon="add_comment" title="ثبت بازخورد"/>
+            <x-ui.title icon="add_comment" title="ثبت نظر"/>
+            <p class="mt-3 text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">نظر را از طرف واحد خود ثبت می‌کنید. دلیل موافقت یا مخالفت را بنویسید؛ «بدون نظر قطعی» به معنی تأیید پیشنهاد نیست.</p>
 
             <div class="mt-4 space-y-4">
 
@@ -498,11 +499,11 @@
                 </p>
                 @enderror
 
-                <x-ui.forms.textarea label="توضیحات" name="comment" :rows="4" wire:model="feedbackForm.comment" :maximizable="true"/>
+                <x-ui.forms.textarea label="توضیح نظر واحد" name="comment" :rows="4" wire:model="feedbackForm.comment" :maximizable="true"/>
 
                 <x-ui.buttons.form icon="send" loading="submitFeedback"
-                        x-on:click="{{ confirmDialog('submitFeedback', 'ثبت بازخورد', 'بازخورد شما برای این پیشنهاد ثبت شود؟') }}">
-                    ثبت بازخورد
+                        x-on:click="{{ confirmDialog('submitFeedback', 'ثبت نظر', 'نظر شما برای این پیشنهاد ثبت شود؟') }}">
+                    ثبت نظر
                 </x-ui.buttons.form>
 
             </div>
@@ -515,6 +516,7 @@
                     border border-[var(--md-sys-color-outline-variant)]">
 
             <x-ui.title icon="gavel" title="تصمیم نهایی"/>
+            <p class="mt-3 text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">«نیاز به تکمیل» پیشنهاد را برای توضیح بیشتر به مدیر واحد پیشنهاددهنده برمی‌گرداند. در صورت پذیرش، می‌توانید همین حالا مسئول اجرا و کار او را مشخص کنید.</p>
 
             <div class="mt-4 space-y-4">
 
@@ -522,7 +524,7 @@
                     @foreach([
                         'accepted'     => ['primary','on-primary','check_circle','پذیرش'],
                         'rejected'     => ['error','on-error','cancel','رد'],
-                        'under_review' => ['outline','surface-variant','find_in_page','تکمیل مجدد'],
+                        'under_review' => ['outline','surface-variant','find_in_page','نیاز به تکمیل'],
                     ] as $val => [$bg,$on,$ic,$lbl])
 
                         <label class="relative flex items-center gap-3 p-3.5 rounded-xl cursor-pointer select-none transition-all
@@ -555,7 +557,7 @@
                 @enderror
 
                 <x-ui.forms.textarea
-                    label="یادداشت تصمیم"
+                    label="توضیح تصمیم"
                     name="decisionComment"
                     :rows="4"
                     wire:model="decisionForm.decisionComment"
@@ -578,11 +580,12 @@
                         </div>
 
                         <div class="p-3 bg-[var(--md-sys-color-surface)]">
-                            <x-ui.forms.select label="واحدهای ذی‌نفع" name="decisionForm.referralDepts" wire:model.live="decisionForm.referralDepts" multiple class="max-h-60">
+                            <x-ui.forms.select label="واحدهای مسئول اجرا" name="decisionForm.referralDepts" wire:model.live="decisionForm.referralDepts" multiple class="max-h-60">
                                 @foreach($this->allDepartments as $code => $name)
                                     <option value="{{ $code }}" title="{{ $this->allDepartmentTooltips[$code] ?? '' }}">{{ $name }}</option>
                                 @endforeach
                             </x-ui.forms.select>
+                            <p class="mt-2 text-xs leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر واحدی انتخاب نکنید، پیشنهاد فقط پذیرفته می‌شود و منتظر ثبت اجرای واحدها نمی‌ماند. با انتخاب واحدها، پایان اجرا پس از اعلام تکمیل همهٔ آن‌ها ثبت می‌شود.</p>
                         </div>
 
                         @if($decisionForm->referralDepts)
@@ -593,7 +596,7 @@
                                     name="referralActions"
                                     :rows="3"
                                     wire:model="decisionForm.referralActions"
-                                    placeholder="دستورالعمل اجرایی خود را برای واحدهای انتخاب شده بنویسید..."
+                                    placeholder="بنویسید هر واحد چه کاری باید انجام دهد."
                                     :maximizable="true"
                                 />
                             </div>

@@ -1,5 +1,5 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
-import maximizeMixin from '../maximize.js'
+import maximizeMixin, { consumeEscape } from '../maximize.js'
 
 function withLayoutDom() {
     document.body.innerHTML = `
@@ -31,6 +31,38 @@ describe('maximizeMixin.applyMaximize', () => {
         expect(document.getElementById('navbar').classList.contains('layout-hidden')).toBe(true);
         expect(document.getElementById('footer').classList.contains('layout-hidden')).toBe(true);
         expect(document.getElementById('content-shell').classList.contains('maximized')).toBe(true);
+    });
+
+    test('the view-maximized flag on html follows the active state and initMaximize clears a stale one', () => {
+        withLayoutDom();
+        const m = maximizeMixin();
+
+        m.applyMaximize(true);
+        expect(document.documentElement.classList.contains('view-maximized')).toBe(true);
+
+        m.applyMaximize(false);
+        expect(document.documentElement.classList.contains('view-maximized')).toBe(false);
+
+        document.documentElement.classList.add('view-maximized');
+        m.initMaximize();
+        expect(document.documentElement.classList.contains('view-maximized')).toBe(false);
+    });
+
+    test('applyMaximize records the state in maxOn', () => {
+        withLayoutDom();
+        const m = maximizeMixin();
+
+        m.applyMaximize(true);
+        expect(m.maxOn).toBe(true);
+
+        m.applyMaximize(false);
+        expect(m.maxOn).toBe(false);
+    });
+
+    test('navigating away clears a stuck view-maximized flag', () => {
+        document.documentElement.classList.add('view-maximized');
+        document.dispatchEvent(new Event('livewire:navigating'));
+        expect(document.documentElement.classList.contains('view-maximized')).toBe(false);
     });
 
     test('deactivating removes those same classes', () => {
@@ -293,5 +325,94 @@ describe('maximizeMixin — localStorage throwing degrades silently', () => {
         expect(() => m.toggleMaximize()).not.toThrow();
         vi.advanceTimersByTime(350);
         expect(m.max).toBe(false);
+    });
+});
+
+describe('consumeEscape', () => {
+    test('a plain close handler is rewritten to mark the press consumed when something was open', () => {
+        const out = consumeEscape({ name: 'x-on:keydown.escape.window', value: 'membersOpen = false; specsOpen = false' });
+
+        expect(out.value).toContain('membersOpen');
+        expect(out.value).toContain('specsOpen');
+        expect(out.value).toContain('$event.preventDefault()');
+        expect(out.value.endsWith('membersOpen = false; specsOpen = false')).toBe(true);
+    });
+
+    test('capture handlers, method calls and other events are returned untouched', () => {
+        for (const attribute of [
+            { name: 'x-on:keydown.escape.window.capture', value: 'show = false' },
+            { name: 'x-on:keydown.escape.window', value: 'onEscape($event)' },
+            { name: 'x-on:click', value: 'open = false' },
+        ]) {
+            expect(consumeEscape(attribute)).toBe(attribute);
+        }
+    });
+});
+
+describe('maximizeMixin.onEscape', () => {
+    function maximized(extra = {}) {
+        const m = { ...maximizeMixin(), $root: document.body, ...extra };
+        m.toggleMaximize = vi.fn();
+        m.maxOn = true;
+        return m;
+    }
+
+    beforeEach(() => {
+        vi.useFakeTimers();
+        document.elementFromPoint = () => document.body;
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+        delete document.elementFromPoint;
+    });
+
+    test('an unconsumed press un-maximizes once', () => {
+        const m = maximized();
+
+        m.onEscape({ defaultPrevented: false });
+        vi.runAllTimers();
+
+        expect(m.toggleMaximize).toHaveBeenCalledOnce();
+    });
+
+    test('a press another layer consumed leaves the view maximized', () => {
+        const m = maximized();
+
+        m.onEscape({ defaultPrevented: true });
+        vi.runAllTimers();
+
+        expect(m.toggleMaximize).not.toHaveBeenCalled();
+    });
+
+    test('a press that closed an inner overlay leaves the view maximized', () => {
+        const m = maximized({ closeOverlays: vi.fn(() => true) });
+
+        m.onEscape({ defaultPrevented: false });
+        vi.runAllTimers();
+
+        expect(m.closeOverlays).toHaveBeenCalledOnce();
+        expect(m.toggleMaximize).not.toHaveBeenCalled();
+    });
+
+    test('a layer drawn over the view keeps it maximized', () => {
+        const m = maximized();
+        document.elementFromPoint = () => document.documentElement;
+        m.$root = document.createElement('div');
+
+        m.onEscape({ defaultPrevented: false });
+        vi.runAllTimers();
+
+        expect(m.toggleMaximize).not.toHaveBeenCalled();
+    });
+
+    test('a view that is not maximized is never toggled', () => {
+        const m = maximized();
+        m.maxOn = false;
+
+        m.onEscape({ defaultPrevented: false });
+        vi.runAllTimers();
+
+        expect(m.toggleMaximize).not.toHaveBeenCalled();
     });
 });

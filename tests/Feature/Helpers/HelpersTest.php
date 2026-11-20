@@ -704,6 +704,14 @@ class HelpersTest extends TestCase
         );
     }
 
+    public function test_confirm_dialog_listener_spreads_an_array_of_params_into_the_call(): void
+    {
+        $this->assertSame(
+            "if (\$event.detail.method === 'sendLink') \$wire.call('sendLink', ...\$event.detail.params)",
+            confirmDialogListener(['sendLink' => 'spread'])
+        );
+    }
+
     public function test_tenant_logo_user_scope_auth_context_uses_its_own_flag_independent_of_non_auth(): void
     {
         config([

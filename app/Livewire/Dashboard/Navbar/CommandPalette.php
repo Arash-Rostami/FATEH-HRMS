@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Tabs;
 use App\Services\Search\ContentService;
 use App\Services\Search\NavigationService;
 use Exception;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
 
 class CommandPalette extends Component
@@ -63,7 +64,7 @@ class CommandPalette extends Component
 
     public function updatedQuery(): void
     {
-        if (strlen($this->query) < 2) {
+        if (strlen($this->query) < 2 || ! RateLimiter::attempt('cmd-search:' . auth()->id(), 60, fn () => true, 60)) {
             $this->results = [];
             return;
         }

@@ -50,11 +50,16 @@
 @if($chrome)
     <x-dashboard.global/>
     <x-dashboard.footer/>
+@elseif($embed)
+    <x-ui.modals.confirmation/>
+    <x-ui.modals.toast/>
+    <div x-data="fancyboxHost" class="hidden"></div>
 @endif
 
 @filamentScripts
 @livewireScripts
 @unless($embed)
+    <x-service-worker />
     @livewire(Pulse::class)
     @livewire(UnreadNotifications::class)
 @endunless

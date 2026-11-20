@@ -10,6 +10,7 @@ use App\Filament\Pages\ListRecords;
 use App\Filament\RelationManagers\RelationManager;
 use App\Filament\Resources\EventResource\RelationManagers\EventSharesRelationManager;
 use App\Filament\Resources\ReservationResource;
+use App\Filament\Resources\UserResource;
 use App\Filament\Resources\UserResource\Pages\CreateUser;
 use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Resources\UserResource\Pages\ListUsers;
@@ -53,6 +54,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Mockery;
@@ -206,6 +208,226 @@ class UserResourceTest extends TestCase
         $fresh = $user->fresh();
         $this->assertSame('0 After Edit', $fresh->name);
         $this->assertSame('inactive', $fresh->status);
+    }
+
+    public function test_email_trusted_toggle_hydrates_from_and_writes_email_verified_at()
+    {
+        $admin = $this->developer();
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user', 'type' => 'employee', 'email_verified_at' => null]);
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->assertFormSet(['email_trusted' => false])
+            ->fillForm(['email_trusted' => true])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $stamp = $user->fresh()->email_verified_at;
+        $this->assertNotNull($stamp);
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->assertFormSet(['email_trusted' => true])
+            ->fillForm(['name' => '0 Still Trusted'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertEquals($stamp, $user->fresh()->email_verified_at);
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm(['email_trusted' => false])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_changing_the_email_in_the_form_drops_the_trusted_marker()
+    {
+        $admin = $this->developer();
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user', 'type' => 'employee', 'email_verified_at' => now()]);
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm(['email' => 'trust-form-' . uniqid() . '@example.com'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_create_form_can_mark_the_new_email_trusted()
+    {
+        $admin = $this->developer();
+        $email = 'usr-trust-' . uniqid() . '@example.com';
+
+        Livewire::actingAs($admin)->test(CreateUser::class)
+            ->fillForm([
+                'name' => '0 Trusted New',
+                'email' => $email,
+                'email_trusted' => true,
+                'password' => 'Secret123!',
+                'password_confirmation' => 'Secret123!',
+                'type' => 'employee',
+                'role' => 'user',
+                'status' => 'active',
+                'presence' => 'onsite',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertNotNull(User::where('email', $email)->value('email_verified_at'));
+    }
+
+    private function plainAdmin(): User
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'admin', 'email_verified_at' => null]);
+        Permission::create(['user_id' => $user->id, 'is_super_admin' => true]);
+
+        return $user;
+    }
+
+    public function test_a_developer_sees_the_trust_toggle_and_logs_each_change()
+    {
+        Log::spy();
+        $developer = $this->developer();
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user', 'type' => 'employee', 'email_verified_at' => null]);
+
+        Livewire::actingAs($developer)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->assertFormFieldVisible('email_trusted')
+            ->fillForm(['email_trusted' => true])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNotNull($user->fresh()->email_verified_at);
+        Log::shouldHaveReceived('info')->with('email trust', ['actor' => $developer->id, 'user' => $user->id, 'trusted' => true])->once();
+
+        Livewire::actingAs($developer)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm(['email_trusted' => false])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull($user->fresh()->email_verified_at);
+        Log::shouldHaveReceived('info')->with('email trust', ['actor' => $developer->id, 'user' => $user->id, 'trusted' => false])->once();
+
+    }
+
+    public function test_a_plain_admin_can_turn_the_trust_toggle_on_and_off_for_another_user()
+    {
+        Log::spy();
+        $admin = $this->plainAdmin();
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user', 'type' => 'employee', 'email_verified_at' => null]);
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->assertFormFieldVisible('email_trusted')
+            ->fillForm(['email_trusted' => true])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNotNull($user->fresh()->email_verified_at);
+        Log::shouldHaveReceived('info')->with('email trust', ['actor' => $admin->id, 'user' => $user->id, 'trusted' => true])->once();
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm(['email_trusted' => false])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull($user->fresh()->email_verified_at);
+        Log::shouldHaveReceived('info')->with('email trust', ['actor' => $admin->id, 'user' => $user->id, 'trusted' => false])->once();
+    }
+
+    public function test_an_admin_or_developer_can_change_the_trust_flag_of_their_own_account()
+    {
+        foreach ([$this->plainAdmin(), $this->developer()] as $actor) {
+            $actor->forceFill(['email_verified_at' => null, 'type' => 'employee'])->saveQuietly();
+
+            Livewire::actingAs($actor)->test(EditUser::class, ['record' => $actor->getRouteKey()])
+                ->assertFormFieldEnabled('email_trusted')
+                ->fillForm(['email_trusted' => true])
+                ->call('save')
+                ->assertHasNoFormErrors();
+
+            $this->assertNotNull($actor->fresh()->email_verified_at);
+        }
+    }
+
+    public function test_a_non_elevated_actor_submitting_the_trust_toggle_changes_nothing()
+    {
+        $actor = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
+        Permission::create(['user_id' => $actor->id, 'is_super_admin' => true]);
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user', 'type' => 'employee', 'email_verified_at' => null]);
+        $trusted = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user', 'type' => 'employee', 'email_verified_at' => now()]);
+
+        Livewire::actingAs($actor)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm(['email_trusted' => true])
+            ->call('save');
+
+        Livewire::actingAs($actor)->test(EditUser::class, ['record' => $trusted->getRouteKey()])
+            ->fillForm(['email_trusted' => false, 'name' => '0 User Rename'])
+            ->call('save');
+
+        $this->assertNull($user->fresh()->email_verified_at);
+        $this->assertNotNull($trusted->fresh()->email_verified_at);
+    }
+
+    public function test_a_plain_admin_cannot_edit_a_developer_account_but_a_developer_can_save_their_own_record()
+    {
+        $developer = $this->developer();
+        $developer->forceFill(['type' => 'employee'])->saveQuietly();
+        $otherDeveloper = $this->developer();
+        $admin = $this->plainAdmin();
+        $plain = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
+
+        $this->actingAs($admin);
+        $this->assertFalse(UserResource::canEdit($developer));
+        $this->assertTrue(UserResource::canEdit($plain));
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $developer->getRouteKey()])->assertForbidden();
+
+        $this->actingAs($otherDeveloper);
+        $this->assertTrue(UserResource::canEdit($developer));
+
+        Livewire::actingAs($developer)->test(EditUser::class, ['record' => $developer->getRouteKey()])
+            ->fillForm(['name' => '0 Developer Saved'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('0 Developer Saved', $developer->fresh()->name);
+    }
+
+    public function test_a_non_elevated_actor_cannot_mark_a_new_user_trusted()
+    {
+        $email = 'usr-untrusted-' . uniqid() . '@example.com';
+        $actor = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
+        Permission::create(['user_id' => $actor->id, 'is_super_admin' => true]);
+
+        Livewire::actingAs($actor)->test(CreateUser::class)
+            ->fillForm([
+                'name' => '0 Untrusted New',
+                'email' => $email,
+                'email_trusted' => true,
+                'password' => 'Secret123!',
+                'password_confirmation' => 'Secret123!',
+                'type' => 'employee',
+                'role' => 'user',
+                'status' => 'active',
+                'presence' => 'onsite',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull(User::where('email', $email)->value('email_verified_at'));
+    }
+
+    public function test_changing_the_email_with_the_toggle_on_leaves_trust_cleared_and_the_form_off()
+    {
+        $developer = $this->developer();
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user', 'type' => 'employee', 'email_verified_at' => now()]);
+
+        Livewire::actingAs($developer)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm(['email' => 'trust-both-' . uniqid() . '@example.com', 'email_trusted' => true])
+            ->call('save')
+            ->assertHasNoFormErrors()
+            ->assertFormSet(['email_trusted' => false]);
+
+        $this->assertNull($user->fresh()->email_verified_at);
     }
 
     private function userWithProtectedExtra(): User

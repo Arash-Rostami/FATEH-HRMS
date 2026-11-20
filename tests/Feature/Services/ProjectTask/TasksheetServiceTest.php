@@ -378,13 +378,13 @@ class TasksheetServiceTest extends TestCase
 
         $this->assertTrue($result['success']);
         $this->assertTrue($manager->is($result['manager']));
-        $this->assertSame('گزارش برای گیرندهٔ انتخاب‌شده ارسال شد.', $result['message']);
+        $this->assertSame('پیوند گزارش در اعلان‌های گیرندهٔ انتخاب‌شده ثبت شد.', $result['message']);
 
         $rows = $this->tasksheetNotificationsFor($manager->id);
         $this->assertCount(1, $rows);
         $data = json_decode($rows[0]->data, true);
-        $this->assertSame('گزارش تسک‌شیت به اشتراک گذاشته شد', $data['title']);
-        $this->assertSame("{$subject->name} یک گزارش تسک‌شیت با شما به اشتراک گذاشت.", $data['body']);
+        $this->assertSame('گزارش تسک‌شیت دریافت کردید', $data['title']);
+        $this->assertSame("{$subject->name} گزارش کار خود را برای شما فرستاد. پیوند گزارش تا ۷ روز معتبر است.", $data['body']);
     }
 
     public function test_share_without_a_recipient_resolves_the_departments_highest_ranking_user(): void
@@ -397,7 +397,7 @@ class TasksheetServiceTest extends TestCase
 
         $this->assertTrue($result['success']);
         $this->assertTrue($manager->is($result['manager']), 'the manager rank must beat the supervisor rank');
-        $this->assertSame('گزارش برای مدیرِ همین کاربر ارسال شد.', $result['message']);
+        $this->assertSame('پیوند گزارش در اعلان‌های مدیر سازمانی ثبت شد.', $result['message']);
         $this->assertCount(1, $this->tasksheetNotificationsFor($manager->id));
     }
 
@@ -409,13 +409,13 @@ class TasksheetServiceTest extends TestCase
         $result = $service->shareWithManager($subjectWithoutDept);
         $this->assertFalse($result['success']);
         $this->assertNull($result['manager']);
-        $this->assertSame('مدیر این کاربر به‌طور خودکار شناسایی نشد.', $result['message']);
+        $this->assertSame('مدیر سازمانی پیدا نشد. گیرنده را خودتان انتخاب کنید.', $result['message']);
 
         $loneSubject = $this->userInDept('ZZU', 'contractor');
         $result = $service->shareWithManager($loneSubject);
         $this->assertFalse($result['success']);
         $this->assertNull($result['manager']);
-        $this->assertSame('مدیر این کاربر به‌طور خودکار شناسایی نشد.', $result['message']);
+        $this->assertSame('مدیر سازمانی پیدا نشد. گیرنده را خودتان انتخاب کنید.', $result['message']);
     }
 
     public function test_share_rejects_the_subject_as_their_own_recipient(): void
@@ -426,7 +426,7 @@ class TasksheetServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertNull($result['manager']);
-        $this->assertSame('گیرنده نمی‌تواند خود کاربر باشد.', $result['message']);
+        $this->assertSame('گزارش را برای فرد دیگری بفرستید؛ گیرنده همان صاحب گزارش است.', $result['message']);
         $this->assertCount(0, $this->tasksheetNotificationsFor($subject->id), 'the self-share guard must never persist a notification');
     }
 
@@ -441,7 +441,7 @@ class TasksheetServiceTest extends TestCase
         $rows = $this->tasksheetNotificationsFor($manager->id);
         $this->assertCount(1, $rows);
         $this->assertSame(
-            "گزارش تسک‌شیت {$subject->name} توسط مدیریت با شما به اشتراک گذاشته شد.",
+            "مدیریت گزارش کار {$subject->name} را برای شما فرستاد. پیوند گزارش تا ۷ روز معتبر است.",
             json_decode($rows[0]->data, true)['body']
         );
     }

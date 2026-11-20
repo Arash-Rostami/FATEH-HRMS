@@ -23,7 +23,8 @@ export default function calculator() {
             if (this.modal) {
                 this._windowCalculateListener = () => this.mounted();
                 this._windowKeydownListener = (event) => {
-                    if (event.key === "Escape" && this.modal.classList.contains('flex')) {
+                    if (event.key === "Escape" && !event.defaultPrevented && this.modal.classList.contains('flex')) {
+                        event.preventDefault();
                         this.minimize();
                         return;
                     }

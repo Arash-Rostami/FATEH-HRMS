@@ -9,12 +9,14 @@ use App\Livewire\Dashboard\Tab\Actions\SaveEventAction;
 use App\Livewire\Dashboard\Tab\Actions\ShareEventAction;
 use App\Livewire\Dashboard\Tab\Forms\EventForm;
 use App\Livewire\Dashboard\Tab\Presentation\CalendarPresenter;
+use App\Models\Department;
 use App\Models\Event;
 use App\Models\NotifyLog;
 use App\Models\User;
 use App\Services\Menu\StateService;
 use App\Services\Template\Words\Sms;
 use App\Services\Reservation\EventSyncService;
+use App\Traits\Livewire\BulkSelectsPeople;
 use App\Traits\Livewire\FocusOnRecord;
 use App\Traits\Livewire\SendsSms;
 use Illuminate\Support\Collection;
@@ -32,6 +34,7 @@ use Throwable;
 #[Lazy]
 class Calendar extends Component
 {
+    use BulkSelectsPeople;
     use FocusOnRecord;
     use SendsSms;
 
@@ -407,12 +410,29 @@ class Calendar extends Component
     public function availableUsers(): array
     {
         $authId = Auth::id();
+        $depts = User::getCachedActiveDeptMap();
 
         return User::getCachedActiveOptions()
             ->except($authId)
-            ->map(fn($name, $id) => ['id' => $id, 'full_name' => $name])
+            ->map(fn($name, $id) => ['id' => $id, 'full_name' => $name, 'dept' => $depts[(int) $id] ?? ''])
             ->values()
             ->toArray();
+    }
+
+    #[Computed]
+    public function deptOptions(): array
+    {
+        return Department::getCachedOptions()->toArray();
+    }
+
+    protected function bulkSelectTargets(): array
+    {
+        return ['shareRecipientIds'];
+    }
+
+    protected function canBulkSelect(string $property): bool
+    {
+        return $this->sharingEvent !== null;
     }
 
     #[Computed]

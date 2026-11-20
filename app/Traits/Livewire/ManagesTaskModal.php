@@ -81,7 +81,7 @@ trait ManagesTaskModal
     #[Computed]
     public function formProject(): ?Project
     {
-        return $this->form->projectId ? Project::find($this->form->projectId) : null;
+        return $this->form->projectId ? Project::visibleTo(auth()->user())->find($this->form->projectId) : null;
     }
 
     #[Computed]
@@ -123,6 +123,17 @@ trait ManagesTaskModal
                 ->all(),
             'hasMore' => $users->count() > $limit,
         ];
+    }
+
+    protected function taskModalPeoplePool(?string $dept = null): array
+    {
+        $depts = User::getCachedActiveDeptMap();
+        $active = User::getCachedActiveOptions()->keys()->map(fn ($id) => (int) $id);
+        $roster = $this->formProject?->charter()->rosterIds();
+
+        return ($roster === null ? $active : $active->intersect($roster))
+            ->when($dept !== null, fn ($ids) => $ids->filter(fn ($id) => ($depts[$id] ?? '') === $dept))
+            ->values()->all();
     }
 
     #[Computed]
@@ -167,7 +178,7 @@ trait ManagesTaskModal
         $key = strtolower(trim($this->newMetaKey));
 
         if ($key === '' || !preg_match('/^[a-z0-9_]+$/', $key)) {
-            $this->dispatch('toast', message: 'کلید دیتای سفارشی فقط می‌تواند شامل حروف کوچک انگلیسی، رقم و زیرخط باشد.', type: 'error');
+            $this->dispatch('toast', message: 'نام فیلد را با حروف کوچک انگلیسی، رقم و زیرخط (_) بنویسید؛ مثلاً tracking_code.', type: 'error');
             return;
         }
 
@@ -228,7 +239,7 @@ trait ManagesTaskModal
         } catch (ValidationException|HttpException $e) {
             throw $e;
         } catch (InvalidArgumentException $e) {
-            $this->addError('form.deadline', 'تاریخ وارد شده معتبر نیست');
+            $this->addError('form.deadline', 'روز، ماه و سال مهلت را کامل و به شمسی وارد کنید.');
             return;
         } catch (Exception $e) {
             report($e);
@@ -240,7 +251,7 @@ trait ManagesTaskModal
         $this->refreshAfterTaskSave();
         $this->isModalOpen = false;
         $this->dispatch('task-created');
-        $this->dispatch('toast', message: 'وظیفه با موفقیت اضافه شد.', type: 'success');
+        $this->dispatch('toast', message: 'وظیفه ساخته شد.', type: 'success');
     }
 
     public function approveTask(ApproveTaskAction $action, int $taskId): void
@@ -263,7 +274,7 @@ trait ManagesTaskModal
 
         if ($action->execute($task, auth()->user())) {
             $this->refreshAfterTaskSave();
-            $this->dispatch('toast', message: 'وظیفه بازگشایی شد.', type: 'success');
+            $this->dispatch('toast', message: 'وظیفه به «در حال انجام» برگشت و تأیید قبلی آن برداشته شد.', type: 'success');
         } else {
             $this->dispatch('toast', message: 'بازگشایی این وظیفه ممکن نیست.', type: 'error');
         }
@@ -288,7 +299,7 @@ trait ManagesTaskModal
 
         $this->form->reset();
         $this->refreshAfterTaskSave();
-        $this->dispatch('toast', message: 'وظیفه تکثیر شد.', type: 'success');
+        $this->dispatch('toast', message: 'یک کپی از وظیفه با مسئولیت انجام شما ساخته شد.', type: 'success');
     }
 
     public function editTask(int $taskId): void
@@ -362,7 +373,7 @@ trait ManagesTaskModal
 
         $this->levelUpForm->reset();
         $this->showLevelUpForm = false;
-        $this->dispatch('toast', message: 'پروژه هنگام ذخیرهٔ وظیفه ساخته و پیوند می‌شود.', type: 'success');
+        $this->dispatch('toast', message: 'پروژه هنوز ساخته نشده است؛ با ذخیرهٔ وظیفه ساخته می‌شود و این وظیفه در آن قرار می‌گیرد.', type: 'success');
     }
 
     public function cancelPendingProject(): void
@@ -447,7 +458,7 @@ trait ManagesTaskModal
         } catch (HttpException $e) {
             throw $e;
         } catch (InvalidArgumentException $e) {
-            $this->addError('form.deadline', 'تاریخ وارد شده معتبر نیست');
+            $this->addError('form.deadline', 'روز، ماه و سال مهلت را کامل و به شمسی وارد کنید.');
             return;
         } catch (Exception $e) {
             report($e);
@@ -459,14 +470,14 @@ trait ManagesTaskModal
         $this->editingTaskId = null;
         $this->isModalOpen = false;
         $this->refreshAfterTaskSave();
-        $this->dispatch('toast', message: 'وظیفه با موفقیت بروزرسانی شد.', type: 'success');
+        $this->dispatch('toast', message: 'تغییرات وظیفه ذخیره شد.', type: 'success');
     }
 
     protected function refuseIfCycleLocked(?Task $task): bool
     {
         if (!$task?->isCycleLocked()) return false;
 
-        $this->dispatch('toast', message: 'این وظیفه به مرحلهٔ جاری چرخه متصل است؛ ابتدا مرحله را پیش ببرید یا چرخه را لغو کنید.', type: 'error');
+        $this->dispatch('toast', message: 'این وظیفه مربوط به مرحلهٔ فعلی چرخهٔ کاری است. برای حذف یا انتقال آن به پروژهٔ دیگر، ابتدا مرحله را پیش ببرید یا چرخه را لغو کنید.', type: 'error');
 
         return true;
     }

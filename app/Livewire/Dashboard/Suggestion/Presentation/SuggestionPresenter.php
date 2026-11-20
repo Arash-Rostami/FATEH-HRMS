@@ -17,13 +17,13 @@ class SuggestionPresenter
 
     private const DEFAULT_FEEDBACK = 'unknown';
     private const WORKFLOW_STEPS = [
-        1 => ['ثبت پیشنهاد', 'ثبت اولیه توسط کاربر و تعیین واحدهای ذی‌نفع', 'lightbulb'],
-        2 => ['نظر تیم / مدیر مستقیم', 'نیمه موافق خودکار پس از ۴۸ ساعت در صورت عدم پاسخ', 'group'],
-        3 => ['بررسی هم‌زمان ذی‌نفعان', 'ارسال به سرپرستان واحدها — عدم پاسخ به منزله نیمه موافق', 'corporate_fare'],
-        4 => ['تجمیع و ارسال به مدیریت ارشد', 'جمع‌بندی خودکار نظرات و آماده‌سازی برای تصمیم نهایی', 'summarize'],
-        5 => ['تصمیم مدیریت ارشد سازمان', 'تأیید، رد یا درخواست تکمیل مجدد', 'gavel'],
-        6 => ['ارجاع برای اقدام', 'صدور دستور اجرا و ارسال به واحدهای مربوطه', 'forward_to_inbox'],
-        7 => ['پایان و بایگانی', 'فرآیند با موفقیت تکمیل و پیشنهاد بایگانی شد', 'inventory_2'],
+        1 => ['ثبت پیشنهاد', 'عنوان، شرح و واحدهای مرتبط را مشخص کنید', 'lightbulb'],
+        2 => ['نظر واحد پیشنهاددهنده', 'اگر واحد پاسخ ندهد، پس از ۴۸ ساعت «بدون نظر قطعی» ثبت می‌شود', 'group'],
+        3 => ['نظر واحدهای مرتبط', 'مدیر هر واحد نظرش را می‌نویسد؛ سکوت، موافقت نیست', 'corporate_fare'],
+        4 => ['آمادهٔ تصمیم نهایی', 'پس از ثبت نظر واحدها، پیشنهاد به تصمیم‌گیرنده می‌رسد', 'summarize'],
+        5 => ['تصمیم مدیریت ارشد سازمان', 'پذیرش، رد یا درخواست توضیح بیشتر', 'gavel'],
+        6 => ['ارجاع برای اقدام', 'در صورت ارجاع، هر واحد باید انجام کار خود را ثبت کند', 'forward_to_inbox'],
+        7 => ['پایان اجرای پیشنهاد', 'همهٔ واحدهای مسئول اجرا، انجام کار خود را ثبت کرده‌اند', 'inventory_2'],
     ];
     private const STAGE_META = [
         'pending' => ['surface-variant', 'on-surface-variant', 'hourglass_empty'],
@@ -119,7 +119,7 @@ class SuggestionPresenter
             $this->buildInfoRow('corporate_fare', 'واحد ثبت‌کننده', $userDep),
             $this->buildInfoRow('calendar_today', 'تاریخ ثبت', toJalali($s->created_at, 'j F Y')),
             $this->buildInfoRow('schedule', 'مهلت بررسی', $deadline['formatted'], $deadline['passed'] ? 'warning' : 'text'),
-            $this->buildInfoRow('edit_note', 'تکمیل شخصی', $this->isSelfFill() ? 'بله' : 'خیر', 'bool'),
+            $this->buildInfoRow('edit_note', 'ثبت نظر توسط پیشنهاددهنده', $this->isSelfFill() ? 'بله' : 'خیر', 'bool'),
             $this->buildInfoRow('how_to_reg', 'پاسخ‌های دریافتی', $this->formatResponseCount($totalDeps, $respondedDeps), $this->resolveResponseCountType($totalDeps)),
             $this->buildInfoRow('gavel', 'ارجاع به مدیریت ارشد', $this->sentToCeo() ? 'بله' : 'خیر', 'bool'),
             $this->buildInfoRow('forward_to_inbox', 'ارجاع برای اقدام', $this->formatReferralText(), $this->hasReferral() ? 'text' : 'bool'),
@@ -207,7 +207,7 @@ class SuggestionPresenter
         return [
             $this->buildStat('موافق', 'thumb_up', 'primary', $this->suggestion->agree_count),
             $this->buildStat('مخالف', 'thumb_down', 'error', $this->suggestion->disagree_count),
-            $this->buildStat('نیمه موافق', 'thumbs_up_down', 'on-surface-variant', $this->suggestion->neutral_count),
+            $this->buildStat('بدون نظر قطعی', 'thumbs_up_down', 'on-surface-variant', $this->suggestion->neutral_count),
         ];
     }
 

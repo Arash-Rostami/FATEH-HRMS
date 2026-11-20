@@ -14,6 +14,7 @@
     <!-- General Info -->
     <div class="space-y-1">
         <x-ui.forms.input label="نام چرخه" name="workflowName" wire:model="workflowName" icon="conversion_path"/>
+        <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)]">مراحل به ترتیب اجرا می‌شوند. ذخیره فقط پیش‌نویس می‌سازد؛ پس از بررسی مسئولان و مراحل، «شروع چرخه» را بزنید.</p>
         @error('name')
         <p class="flex items-center gap-1 text-[12px] font-medium text-[var(--md-sys-color-error)] animate-toast-in">
             <span class="material-symbols-rounded text-[14px]">error</span>
@@ -49,14 +50,14 @@
                     <div class="w-40">
                         <x-ui.forms.select label="نوع مرحله" name="steps.{{ $i }}.type" wire:model.live="steps.{{ $i }}.type">
                             <option value="action">اقدام</option>
-                            <option value="approval">تأییدیه</option>
+                            <option value="approval">تأیید یا رد</option>
                         </x-ui.forms.select>
                     </div>
 
                     @if(($step['type'] ?? 'action') !== 'approval')
                         <label wire:key="workflow-step-populate-toggle-{{ $i }}" class="group/toggle flex items-center gap-2.5 cursor-pointer select-none">
                             <x-ui.forms.checkbox wire:key="workflow-step-populate-box-{{ $i }}" name="steps.{{ $i }}.populate_task" :live="true"/>
-                            <span class="text-[13px] font-medium text-[var(--md-sys-color-on-surface-variant)] group-hover/toggle:text-[var(--md-sys-color-on-surface)] transition-colors duration-200">این مرحله یک وظیفهٔ واقعی بسازد</span>
+                            <span class="text-[13px] font-medium text-[var(--md-sys-color-on-surface-variant)] group-hover/toggle:text-[var(--md-sys-color-on-surface)] transition-colors duration-200">برای این مرحله، وظیفه بساز</span>
                         </label>
                     @endif
                 </div>
@@ -66,7 +67,7 @@
                     <div wire:key="workflow-step-reject-target-{{ $i }}" class="animate-toast-in">
                         <x-ui.forms.select label="در صورت رد، بازگشت به" name="steps.{{ $i }}.reject_to_step" wire:model="steps.{{ $i }}.reject_to_step" icon="keyboard_return"
                             class="!bg-[color-mix(in_srgb,var(--md-sys-color-error)_6%,transparent)] !border-[color-mix(in_srgb,var(--md-sys-color-error)_30%,transparent)] focus:!border-[var(--md-sys-color-error)] focus:!ring-[color-mix(in_srgb,var(--md-sys-color-error)_20%,transparent)]">
-                            <option value="">مرحله قبل (پیش‌فرض)</option>
+                            <option value="">مرحلهٔ قبل (پیش‌فرض)</option>
                             @for($j = 0; $j < $i; $j++)
                                 <option value="{{ $j }}">مرحلهٔ «{{ $steps[$j]['label'] ?: convertToPersian($j + 1) }}»</option>
                             @endfor
@@ -88,26 +89,25 @@
                                 جزئیات وظیفهٔ خودکار
                             </h4>
 
-                            <x-ui.forms.input label="عنوان وظیفه (مثلاً: تکمیل فرم اطلاعات)" name="steps.{{ $i }}.task_title" wire:model="steps.{{ $i }}.task_title"/>
+                            <x-ui.forms.input label="عنوان وظیفه" name="steps.{{ $i }}.task_title" wire:model="steps.{{ $i }}.task_title"/>
 
                             <x-ui.forms.textarea label="توضیحات وظیفه (اختیاری)" name="steps.{{ $i }}.task_description" wire:model="steps.{{ $i }}.task_description" :rows="2"/>
 
-                            <x-ui.forms.input type="number" min="0" max="365" label="مهلت (روز، از زمان فعال‌شدن این مرحله)" name="steps.{{ $i }}.deadline_days" wire:model="steps.{{ $i }}.deadline_days" icon="hourglass_empty"/>
+                            <x-ui.forms.input type="number" min="0" max="365" label="مهلت از شروع مرحله (روز)" name="steps.{{ $i }}.deadline_days" wire:model="steps.{{ $i }}.deadline_days" icon="hourglass_empty"/>
+                            <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)]">وقتی نوبت این مرحله برسد، وظیفه ساخته می‌شود. پس از انجام و تأیید لازمِ همان وظیفه، چرخه خودکار ادامه پیدا می‌کند. صفر یعنی مهلت همان روز؛ اگر خالی بگذارید، مهلت پیش‌فرض پروژه اعمال می‌شود.</p>
                         </div>
                     </div>
                 @endif
 
                 <!-- Assignees Picker -->
-                <div wire:key="workflow-step-assignees-{{ $i }}" x-data="{ memberQuery: '' }" class="pt-2">
+                <div wire:key="workflow-step-assignees-{{ $i }}" class="pt-2">
                     <label class="flex items-center gap-1.5 text-[12px] font-bold text-[var(--md-sys-color-on-surface-variant)] mb-3 select-none">
                         <span class="material-symbols-rounded text-[18px]">group</span>
                         مسئولان مرحله
                     </label>
-                    <div class="space-y-2">
-                        <x-dashboard.member-search/>
-                        <div class="bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] rounded-xl p-2 min-h-[48px]">
-                            <x-dashboard.member-picker wire:key="workflow-step-picker-{{ $i }}" model="steps.{{ $i }}.assignee_user_ids" :candidates="$memberCandidates" :search="false"/>
-                        </div>
+                    <p class="mb-3 text-[12px] text-[var(--md-sys-color-on-surface-variant)]">تکمیل یا تأیید توسط یکی از مسئولان کافی است؛ لازم نیست همه اقدام کنند. در مرحله‌ای که وظیفه می‌سازد، نفر اول مسئول انجام و بقیه همکار آن وظیفه هستند.</p>
+                    <div class="bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] rounded-xl p-2 min-h-[48px]">
+                        <x-dashboard.member-picker wire:key="workflow-step-picker-{{ $i }}" model="steps.{{ $i }}.assignee_user_ids" :candidates="$memberCandidates" :dept-options="$this->deptOptions" bulk/>
                     </div>
                     @error("steps.{$i}.assignee_user_ids")
                     <p class="flex items-center gap-1 text-[12px] font-medium text-[var(--md-sys-color-error)] mt-1.5 animate-toast-in"><span class="material-symbols-rounded text-[14px]">error</span>{{ $message }}</p>

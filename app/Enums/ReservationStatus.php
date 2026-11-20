@@ -39,7 +39,7 @@ enum ReservationStatus: string implements HasColor, HasIcon, HasLabel
             self::Active => 'فعال',
             self::Released => 'آزادشده',
             self::CancelledUser => 'لغو توسط کاربر',
-            self::CancelledAdmin => 'لغو توسط ادمین',
+            self::CancelledAdmin => 'لغو توسط مدیریت',
         };
     }
 

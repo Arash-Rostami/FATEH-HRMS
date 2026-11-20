@@ -2,38 +2,38 @@
     $ops = [
         [
             'icon' => 'rate_review',
-            'label' => 'ثبت بازخورد',
-            'hint' => 'روی صفحهٔ «مشاهده»، دکمهٔ «بازخورد» فقط برای سرپرست واحدی ظاهر می‌شود که واحدش در مرحلهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">team_remarks</code> (واحد ثبت‌کننده = اولین واحد ذی‌نفع) یا <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">dept_remarks</code> (واحد او در فهرست ذی‌نفعان) است و هنوز بازخورد موافق/نیمه‌موافق/مخالف نداده. مدیریت ارشد این دکمه را نمی‌بیند.',
+            'label' => 'ثبت نظر',
+            'hint' => 'در صفحهٔ مشاهده، اگر نوبت واحد شما باشد، «ثبت نظر» را بزنید. مدیر واحد پیشنهاددهنده در حالت «نیازمند تکمیل» هم از همین راه توضیح تازه می‌فرستد.',
         ],
         [
             'icon' => 'gavel',
             'label' => 'تصمیم نهایی',
-            'hint' => 'دکمهٔ «تصمیم» فقط برای «تصمیم‌گیرندهٔ ارشد» (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">isSeniorDecisionMaker</code>) و فقط در مرحلهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">awaiting_decision</code> ظاهر می‌شود. سه گزینه: پذیرش (با ارجاع اختیاری واحدها + دستورالعمل)، رد، یا درخواست تکمیل مجدد. ثبت تصمیم، بازخورد واحد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">MA</code> را در جدول بررسی‌ها می‌نویسد.',
+            'hint' => 'این دکمه فقط برای فرد دارای اختیار تصمیم نهایی و در مرحلهٔ مربوط ظاهر می‌شود. پذیرش، رد یا نیاز به تکمیل را مشخص کنید. هنگام پذیرش، ارجاع برای اجرا اختیاری است.',
         ],
         [
             'icon' => 'task_alt',
             'label' => 'تکمیل اقدام واحد',
-            'hint' => 'دکمهٔ «تکمیل اقدام» فقط برای سرپرست واحدی ظاهر می‌شود که توسط مدیریت ارشد برای اجرای اقدام ارجاع شده باشد و ردیف بررسیِ واحدش هنوز <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">complete</code> نشده. تکمیل همهٔ واحدهای ارجاع‌شده، مرحله را به <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" dir="ltr">closed</code> می‌برد.',
+            'hint' => 'این دکمه برای مدیر واحدی است که مسئول اجرا شده است. پس از انجام کار، تکمیل را ثبت کنید. تکمیل همهٔ واحدهای مسئول، پیشنهاد را پایان‌یافته می‌کند.',
         ],
         [
             'icon' => 'forum',
             'label' => 'بخش «بررسی‌ها» در صفحهٔ ویرایش',
-            'hint' => 'بخش «بررسی‌ها» در صفحهٔ ویرایش، بررسی‌کننده، واحد، نوع بازخورد، وضعیت تکمیل، توضیحات، اقدامات و تاریخ را نشان می‌دهد. این موارد با دکمه‌های «بازخورد»، «تصمیم» و «تکمیل اقدام» ثبت می‌شوند؛ معمولاً نیازی به ثبت دستی بررسی نیست.',
+            'hint' => 'نظر واحدها، ثبت‌کنندهٔ نظر، توضیح‌ها، کارهای خواسته‌شده و وضعیت تکمیل را می‌بینید. این بخش برای مشاهده است؛ نظر را با دکمهٔ مربوط به نقش خود ثبت کنید.',
         ],
         [
             'icon' => 'summarize',
             'label' => 'صفحهٔ مشاهده با دو زبانه',
-            'hint' => 'صفحهٔ «مشاهده» دو زبانه دارد: «بررسی کلی» (تایم‌لاین روند + شناسه، مرحله، ثبت‌کننده، واحد ثبت‌کننده، تکمیل شخصی، ارسال به مدیریت ارشد، اهداف، قواعد، واحدها، مهلت و تاریخ‌ها + شرح و پیوست) و «بررسی‌ها» (شمارش موافق/نیمه‌موافق/مخالف + تایم‌لاین بازخوردها + بخش تصمیم شامل یادداشت، واحدهای ارجاع‌شده و دستورالعمل).',
+            'hint' => 'در زبانهٔ پیشنهاد، شرح، هدف‌ها، واحدها و مرحله را ببینید. در زبانهٔ نظرها و تصمیم، نظر واحدها و نتیجهٔ مدیریت را بخوانید.',
         ],
         [
             'icon' => 'download',
             'label' => 'خروجی اکسل',
-            'hint' => 'با «خروجی اکسل» پیشنهادهای انتخاب‌شده را در یک فایل اکسل دریافت کنید.',
+            'hint' => 'پیشنهادهای موردنظر را انتخاب کنید و خروجی اکسل بگیرید.',
         ],
         [
             'icon' => 'search',
             'label' => 'جستجوی سراسری',
-            'hint' => 'جستجوی سراسری پنل در عنوان، متن و نام پیشنهاددهنده می‌گردد و در نتیجه نام ثبت‌کننده و مرحله را نشان می‌دهد. کلیک روی نتیجه به صفحهٔ «مشاهده» می‌رود.',
+            'hint' => 'عنوان، متن پیشنهاد یا نام ثبت‌کننده را جستجو کنید. با انتخاب نتیجه، صفحهٔ مشاهده باز می‌شود.',
         ],
     ];
 @endphp
@@ -45,7 +45,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">عملیات مدیریتی شما روی پیشنهادها</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        سه دکمهٔ «بازخورد»، «تصمیم» و «تکمیل اقدام» در صفحهٔ مشاهده بر اساس نقش کاربر و مرحلهٔ پیشنهاد دیده می‌شوند. قواعد دسترسی در پنل مدیریت و پنل کاربر یکسان است.
+        سه دکمهٔ «نظر»، «تصمیم» و «تکمیل اقدام» در صفحهٔ مشاهده بر اساس نقش کاربر و مرحلهٔ پیشنهاد دیده می‌شوند. قواعد دسترسی در پنل مدیریت و پنل کاربر یکسان است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -71,11 +71,11 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">tips_and_updates</span>
-                تغییر مستقیم مرحله در فرم مدیریت توصیه نمی‌شود؛ با ثبت بازخورد بعدی، سیستم مرحله را دوباره تعیین می‌کند.
+                مرحله را با ثبت نظر، تصمیم یا انجام کار تغییر دهید؛ سامانه نتیجهٔ این کارها را خودکار در مرحله نشان می‌دهد.
             </p>
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2 mt-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                بخش «بررسی‌ها» ماژول جدا ندارد؛ هر کس بتواند پیشنهاد را باز کند آن را می‌بیند و در صفحهٔ ویرایش می‌تواند مدیریتش کند.
+                بخش «بررسی‌ها» سابقهٔ نظرها را نشان می‌دهد. مشاهدهٔ آن، به‌تنهایی اجازهٔ ثبت نظر یا تصمیم به شما نمی‌دهد.
             </p>
         </div>
     </div>

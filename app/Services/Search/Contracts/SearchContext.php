@@ -6,6 +6,9 @@ use Illuminate\Support\Str;
 
 final class SearchContext
 {
+    private const QUERY_MAX = 100;
+    private const TOKENS_MAX = 5;
+
     public function __construct(
         public readonly string $query,
         public readonly array $tokens,
@@ -18,16 +21,16 @@ final class SearchContext
      */
     public static function for(string $query, bool $allHistory = false): ?self
     {
-        $query = self::normalize($query);
+        $query = self::normalize(mb_substr($query, 0, self::QUERY_MAX));
 
         if (Str::length($query) < 2) {
             return null;
         }
 
-        $tokens = array_values(array_filter(
+        $tokens = array_slice(array_values(array_unique(array_filter(
             explode(' ', $query),
             fn (string $token) => $token !== ''
-        ));
+        ))), 0, self::TOKENS_MAX);
 
         if ($tokens === []) {
             return null;

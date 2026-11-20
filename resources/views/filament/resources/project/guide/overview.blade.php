@@ -4,7 +4,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«پروژه» یک فضای کاری تیمی است که چند وظیفه، یک گفتگو و یک تقویم را کنار هم می‌آورد</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        کاربران پروژه را از صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/projects</code> در پنل کاربری می‌سازند. اتصال یک وظیفه به پروژه کاملاً اختیاری است — وظایف بدون پروژه دقیقاً مثل قبل کار می‌کنند. در پنل مدیریت می‌توانید پروژه‌های سازمان، اعضا، وظایف مرتبط و درصد پیشرفت هر پروژه را بررسی کنید.
+        کاربران از بخش «پروژه‌ها» پروژه می‌سازند. پروژه کارهای مربوط به یک هدف را کنار هم نگه می‌دارد؛ وظیفه می‌تواند بدون پروژه هم ثبت شود. در این صفحه، اعضا، کارها و میزان پیشرفت پروژه‌های سازمان را بررسی کنید.
     </p>
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
@@ -16,7 +16,7 @@
                 <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shrink-0">
                     <span class="material-symbols-rounded text-[22px]">stacks</span>
                 </span>
-                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر پروژه یک نام، یک مالک (<code class="px-1 rounded bg-[var(--md-sys-color-secondary-container)] font-mono text-[11px]">owner_id</code>)، فهرست اعضا و دپارتمان‌های مجاز، و یک گروه گفتگوی متصل دارد. ستون‌های «تعداد وظایف»، «پیشرفت» و «فراتر از مهلت» به‌صورت زنده محاسبه می‌شوند.</p>
+                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر پروژه یک مالک، اعضا، واحدهای دارای دسترسی و یک گروه گفتگو دارد. ستون‌های جدول، تعداد کارها، درصد انجام‌شده و کارهای عقب‌افتاده را نشان می‌دهند؛ این عددها دستی وارد نمی‌شوند.</p>
             </div>
         </div>
     </div>

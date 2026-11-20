@@ -9,7 +9,7 @@ class TasksImminent implements MenuBadge
 {
     public function getBody(): string
     {
-        return 'یکی از وظایف شما سررسید گذشته یا نزدیک است؛ برای مشاهده به برد وظایف مراجعه کنید.';
+        return 'مهلت یکی از کارهای شما گذشته یا نزدیک است. برای پیگیری، برد وظایف را باز کنید.';
     }
 
     public function getKey(): string
@@ -19,7 +19,7 @@ class TasksImminent implements MenuBadge
 
     public function getTitle(): string
     {
-        return 'وظیفهٔ نزدیک به سررسید';
+        return 'مهلت کاری نزدیک است یا گذشته';
     }
 
     public function isActive(): bool

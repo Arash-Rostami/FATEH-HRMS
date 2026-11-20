@@ -9,7 +9,7 @@ class TasksTodo implements MenuBadge
 {
     public function getBody(): string
     {
-        return 'در برد وظایف شما وظیفه‌ای در ستون «انجام نشده» وجود دارد؛ برای مشاهده به برد وظایف مراجعه کنید.';
+        return 'در ستون «انجام‌نشده» کاری دارید. برای پیگیری، برد وظایف را باز کنید.';
     }
 
     public function getKey(): string
@@ -19,7 +19,7 @@ class TasksTodo implements MenuBadge
 
     public function getTitle(): string
     {
-        return 'وظیفه جدید در ستون انجام‌نشده';
+        return 'کاری در ستون انجام‌نشده دارید';
     }
 
     public function isActive(): bool

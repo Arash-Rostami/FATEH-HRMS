@@ -184,6 +184,20 @@ class UserModelTest extends TestCase
         $this->assertSame('active', $user->fresh()->status);
     }
 
+    public function test_changing_the_email_clears_the_trusted_marker_unless_it_is_set_in_the_same_save(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $user->update(['name' => '0 Renamed']);
+        $this->assertNotNull($user->fresh()->email_verified_at);
+
+        $user->update(['email' => 'trust-' . uniqid() . '@example.com']);
+        $this->assertNull($user->fresh()->email_verified_at);
+
+        $user->forceFill(['email' => 'trust-' . uniqid() . '@example.com', 'email_verified_at' => now()])->save();
+        $this->assertNotNull($user->fresh()->email_verified_at);
+    }
+
     public function test_a_user_owning_a_non_project_channel_cannot_be_deactivated_or_guested(): void
     {
         $owner = $this->staff();
