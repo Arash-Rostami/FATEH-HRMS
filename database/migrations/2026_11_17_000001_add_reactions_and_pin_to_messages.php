@@ -56,18 +56,6 @@ return new class extends Migration {
                 $table->unique(['department_id', 'title_key'], 'launchpads_department_title_unique');
             });
         }
-
-        if (!Schema::hasColumn('launchpads', 'source')) {
-            Schema::table('launchpads', function (Blueprint $table) {
-                $table->text('source')->nullable()->after('settings');
-            });
-        }
-
-        if (!Schema::hasColumn('launchpads', 'refresh_due_at')) {
-            Schema::table('launchpads', function (Blueprint $table) {
-                $table->timestamp('refresh_due_at')->nullable()->index()->after('source');
-            });
-        }
     }
 
     public function down(): void
