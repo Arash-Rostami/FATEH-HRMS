@@ -11,6 +11,7 @@ vi.mock('../../mixins/player.js', async importOriginal => {
             loadLibrary: vi.fn(), selectItem: vi.fn(), playEpisode: vi.fn(),
             toggle: vi.fn(), seek: vi.fn(), destroyPlayer: vi.fn(), toast: vi.fn(),
             faTime: value => String(value),
+            fa: value => String(value).replace(/\d/g, digit => '۰۱۲۳۴۵۶۷۸۹'[digit]),
             progressOf: () => 0, episodeState: () => 'new', resumeAt: () => 0,
         }),
     };
@@ -188,8 +189,11 @@ describe('media library', () => {
         expect(root.recentItems).toEqual([]);
     });
 
-    it('formats digits itself', () => {
-        expect(component([item(1)]).number(12)).toBe('۱۲');
+    it('formats digits through the player digit helper', () => {
+        const root = component([item(1)]);
+        expect(root.number(12)).toBe('۱۲');
+        expect(root.number(1234)).toBe('۱۲۳۴');
+        expect(root.number(null)).toBe('۰');
     });
 
     it('toasts the unlock date for a locked lesson instead of failing silently', () => {

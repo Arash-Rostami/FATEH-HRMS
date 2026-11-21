@@ -312,7 +312,7 @@ export default function media() {
             return this.selected?.episodes.filter((ep, idx) => this.episodeState(this.selectedId, idx) === 'done').length ?? 0;
         },
 
-        number(value) { return Number(value ?? 0).toLocaleString('fa-IR'); },
+        number(value) { return this.fa(Number(value ?? 0)); },
 
         time(seconds) { return this.faTime(Number(seconds)); },
 
