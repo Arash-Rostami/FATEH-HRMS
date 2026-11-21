@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasAudience;
 use App\Models\Concerns\HasDepartment;
+use App\Models\Concerns\HasNudgeTracking;
 use App\Models\Concerns\HasPublicAssetUrl;
 use App\Models\Concerns\HasUser;
 use App\Models\Concerns\Hooks\HasMediaHooks;
@@ -28,8 +29,6 @@ class Media extends Model
         HasDepartment,
         HasUser,
         HasMediaHooks;
-
-    public const NUDGE_KEY = 'media-controller:nudge';
 
     public const MAX_SECONDS = 172800;
 
@@ -60,6 +59,7 @@ class Media extends Model
         'report_date',
         'expires_at',
         'report_ids',
+        'seen_by',
     ];
 
     public function parent(): BelongsTo
@@ -105,7 +105,7 @@ class Media extends Model
             return new Collection();
         }
 
-        $parents = fn () => static::library($user)->select('media.id');
+        $parents = static::library($user)->select('media.id');
 
         return static::query()
             ->whereIn('id', $ids)
@@ -113,8 +113,16 @@ class Media extends Model
             ->active()
             ->notExpired()
             ->released()
-            ->where(fn (Builder $query) => $query->whereIn('id', $parents())->orWhereIn('parent_id', $parents()))
+            ->where(fn (Builder $query) => $query->whereIn('id', $parents)->orWhereIn('parent_id', $parents))
             ->get(['id', 'duration_seconds']);
+    }
+
+    public function scopeUnseenBy(Builder $query, int $userId): Builder
+    {
+        return $query->library(User::query()->find($userId))
+            ->where('user_id', '!=', $userId)
+            ->where('created_at', '>=', now()->subDays(HasNudgeTracking::FRESHNESS_DAYS))
+            ->where(fn (Builder $inner) => $inner->whereNull('seen_by')->orWhereJsonDoesntContain('seen_by', $userId));
     }
 
     public static function probeDuration(string $absolutePath): ?int
@@ -143,6 +151,7 @@ class Media extends Model
             'report_date' => 'date',
             'expires_at' => 'date',
             'report_ids' => 'array',
+            'seen_by' => 'array',
             'duration_seconds' => 'integer',
             'position' => 'integer',
         ];

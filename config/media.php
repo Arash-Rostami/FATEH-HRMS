@@ -12,6 +12,8 @@ return [
 
     'position_tolerance' => 5,
 
+    'notes_max' => 100,
+
     'sync' => [
         'local_seconds' => 5,
         'safety_seconds' => 90,

@@ -58,8 +58,9 @@ use App\Services\Menu\Notifications\AdNudge;
 use App\Services\Menu\Notifications\ChannelNudge;
 use App\Services\Menu\Notifications\ContactNudge;
 use App\Services\Menu\Notifications\DmsNudge;
+use App\Livewire\Dashboard\Media\Actions\MarkMediaSeenAction;
+use App\Services\Menu\Indicators\UnseenMedia;
 use App\Services\Menu\Notifications\FeedNudge;
-use App\Services\Menu\Notifications\MediaNudge;
 use App\Services\Menu\Notifications\PhotoNudge;
 use App\Services\Menu\Notifications\PostNudge;
 use App\Services\Menu\Notifications\ProjectNudge;
@@ -892,18 +893,35 @@ class MenuServiceTest extends TestCase
         $this->assertNotContains($maUser->id, $ids);
     }
 
-    public function test_media_nudge_skips_episodes_and_unreleased_or_expired_items(): void
+    public function test_unseen_media_badge_lights_for_a_new_series_and_clears_when_marked_seen(): void
     {
-        $nudge = new MediaNudge();
-        $user = new User();
-        $subject = $nudge->triggers()[0]['subject'];
+        $viewer = $this->activeUser();
+        $owner = $this->activeUser();
+        $this->actingAs($viewer);
 
-        $this->assertNull($subject(new Media(['parent_id' => 4])));
-        $this->assertInstanceOf(Media::class, $subject(new Media(['parent_id' => null])));
-        $this->assertSame(Media::NUDGE_KEY, $nudge->getKey());
-        $this->assertFalse($nudge->show(new Media(['active' => true, 'expires_at' => '2020-01-01']), $user));
-        $this->assertFalse($nudge->show(new Media(['active' => true, 'report_date' => now()->addDay()->toDateString()]), $user));
-        $this->assertTrue($nudge->show(new Media(['active' => true]), $user));
+        $series = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true]);
+        $episode = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $owner->id]);
+        $own = Media::factory()->series()->create(['user_id' => $viewer->id, 'departments' => null, 'active' => true]);
+        $expired = Media::factory()->series()->expired()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true]);
+        $inactive = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => false]);
+
+        $unseen = Media::unseenBy($viewer->id)->pluck('id');
+
+        $this->assertTrue((new UnseenMedia())->isActive());
+        $this->assertTrue($unseen->contains($series->id));
+        $this->assertFalse($unseen->contains($episode->id));
+        $this->assertFalse($unseen->contains($own->id));
+        $this->assertFalse($unseen->contains($expired->id));
+        $this->assertFalse($unseen->contains($inactive->id));
+
+        $this->assertGreaterThan(0, MarkMediaSeenAction::execute($viewer));
+        $this->assertFalse(Media::unseenBy($viewer->id)->whereKey($series->id)->exists());
+        $this->assertSame([$viewer->id], array_values(array_map('intval', $series->fresh()->seen_by ?? [])));
+        $this->assertNull($episode->fresh()->seen_by);
+
+        $this->assertSame(0, MarkMediaSeenAction::execute($viewer));
+        $this->assertSame([$viewer->id], array_values(array_map('intval', $series->fresh()->seen_by ?? [])));
+        $this->assertFalse((new UnseenMedia())->isActive());
     }
 
     public function test_feed_post_photo_and_report_nudges_show_only_while_the_subject_is_active(): void

@@ -200,6 +200,23 @@ class MediaPlaybackTest extends TestCase
         $this->assertNull(MediaNote::find($note->id));
     }
 
+    public function test_a_note_past_the_cap_is_refused_and_writes_no_row(): void
+    {
+        config(['media.notes_max' => 1]);
+
+        $this->assertNotNull(SaveNoteAction::execute($this->viewer, 'add', [
+            'media_id' => $this->episode->id,
+            'position' => 1,
+            'body' => 'اول',
+        ]));
+        $this->assertNull(SaveNoteAction::execute($this->viewer, 'add', [
+            'media_id' => $this->episode->id,
+            'position' => 2,
+            'body' => 'دوم',
+        ]));
+        $this->assertSame(1, MediaNote::query()->where('user_id', $this->viewer->id)->where('media_id', $this->episode->id)->count());
+    }
+
     public function test_progress_controller_answers_json_and_never_redirects(): void
     {
         $this->assertSame(401, $this->invoke(MediaProgressController::class, '/media/progress', ['items' => []], null, true)->getStatusCode());

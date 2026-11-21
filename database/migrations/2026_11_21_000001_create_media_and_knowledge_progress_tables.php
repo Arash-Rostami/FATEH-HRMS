@@ -30,6 +30,7 @@ return new class extends Migration {
                 $table->date('report_date')->nullable();
                 $table->date('expires_at')->nullable();
                 $table->json('report_ids')->nullable();
+                $table->json('seen_by')->nullable();
                 $table->timestamps();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');

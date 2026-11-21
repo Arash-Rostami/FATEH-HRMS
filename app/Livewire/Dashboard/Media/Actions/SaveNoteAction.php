@@ -31,6 +31,10 @@ class SaveNoteAction
             return null;
         }
 
+        if (MediaNote::query()->where('user_id', $user->id)->where('media_id', $mediaId)->count() >= (int) config('media.notes_max', 100)) {
+            return null;
+        }
+
         return MediaNote::create([
             'user_id' => $user->id,
             'media_id' => $mediaId,
