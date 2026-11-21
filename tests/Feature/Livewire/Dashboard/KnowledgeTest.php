@@ -58,8 +58,7 @@ class KnowledgeTest extends TestCase
             ->assertSet('activeTab', 'reports')
             ->assertSeeHtml('wire:key="knowledge-reports-pane"')
             ->assertDontSeeHtml('wire:key="knowledge-library-pane"')
-            ->assertSeeHtml('data-tab-pill="reports"')
-            ->assertSeeHtml('data-tab-pill="media"');
+            ->assertSeeHtmlInOrder(['دانش سازمانی</h2>', 'id="knowledge-header-tools"', 'data-tab-pill="reports"', 'data-tab-pill="media"']);
     }
 
     public function test_the_tab_query_param_opens_the_media_pane_and_switch_tab_moves_between_panes(): void

@@ -334,6 +334,21 @@ class MediaTest extends TestCase
         Livewire::test(Library::class)->assertSeeHtml('copyNotes()')->assertSeeHtml('canMarkDone(')->assertSeeHtml('togglePictureInPicture()')->assertSeeHtml('toggleHeaderDeclutter()')->assertSeeHtml('wire:key="media-recent"');
     }
 
+    public function test_library_renders_the_shared_progress_search_and_pill_components(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->media($user);
+        $this->actingAs($user);
+        Livewire::withoutLazyLoading();
+        Livewire::test(Library::class)
+            ->assertSeeHtml('x-bind:stroke-dashoffset=')
+            ->assertSeeHtml('animate-status-morph')
+            ->assertSeeHtml('rowLimit += 30')
+            ->assertSeeHtml('ranks[$el.dataset.id] !== undefined && ranks[$el.dataset.id] < rowLimit')
+            ->assertSeeHtml('for="media-search"')
+            ->assertSeeHtml('for="media-transcript-search"');
+    }
+
     public function test_deep_link_accepts_visible_episode_but_rejects_hidden_parent_chain(): void
     {
         $user = User::factory()->create(['status' => 'active']);

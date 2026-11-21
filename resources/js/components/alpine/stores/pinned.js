@@ -1,4 +1,4 @@
-const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation', 'ai-report', 'correspondence', 'faq', 'post', 'report', 'gallery', 'media'];
+const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation', 'ai-report', 'correspondence', 'faq', 'post', 'report', 'gallery', 'media', 'media-pin'];
 
 const KEYS = {
     contact: 'pinned-contacts',
@@ -14,13 +14,14 @@ const KEYS = {
     post: 'saved_posts',
     report: 'saved_reports',
     gallery: 'saved_gallery',
-    media: 'saved_media'
+    media: 'saved_media',
+    'media-pin': 'pinned-media'
 };
 
 export default function pinned(Alpine) {
     Alpine.store('pinned', {
-        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null, 'ai-report': null, correspondence: null, faq: null, post: null, report: null, gallery: null, media: null },
-        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [], 'ai-report': [], correspondence: [], faq: [], post: [], report: [], gallery: [], media: [] },
+        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null, 'ai-report': null, correspondence: null, faq: null, post: null, report: null, gallery: null, media: null, 'media-pin': null },
+        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [], 'ai-report': [], correspondence: [], faq: [], post: [], report: [], gallery: [], media: [], 'media-pin': [] },
 
         init() {
             for (let i = 0; i < SCOPES.length; i++) {

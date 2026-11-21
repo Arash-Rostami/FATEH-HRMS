@@ -6,7 +6,9 @@ use App\Filament\Resources\MediaResource\Pages\CreateMedia;
 use App\Filament\Resources\MediaResource\Pages\EditMedia;
 use App\Filament\Resources\MediaResource\Pages\ListMedia;
 use App\Filament\Resources\MediaResource\RelationManagers\EpisodesRelationManager;
+use App\Filament\Resources\MediaResource\RelationManagers\ProgressRelationManager;
 use App\Filament\Resources\MediaResource\Schemas\MediaFormPresenter;
+use App\Filament\Resources\MediaResource\Schemas\MediaInfolistPresenter;
 use App\Filament\Resources\MediaResource\Schemas\MediaTablePresenter;
 use App\Models\Media;
 use App\Traits\Filament\AuthorizesByPermission;
@@ -31,7 +33,12 @@ class MediaResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return ! ReportResource::canViewAny() && ! tenantOffName(static::getSlug()) && ! tenantOff('knowledge:media') && static::canViewAny();
+        return ReportResource::knowledgeEntry() === static::class;
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('resources/report/strings.nav_label');
     }
 
     protected static ?string $model = Media::class;
@@ -40,11 +47,11 @@ class MediaResource extends Resource
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-play-circle';
 
     protected static array $guide = [
-        ['label' => 'بررسی', 'icon' => 'video_library', 'view' => 'filament.resources.media.guide.overview'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.media.guide.admin-ops'],
+        ['label' => 'معرفی رسانه', 'icon' => 'video_library', 'view' => 'filament.resources.media.guide.overview'],
+        ['label' => 'ثبت و ویرایش', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.media.guide.admin-ops'],
         ['label' => 'دسترسی واحدها', 'icon' => 'lock', 'view' => 'filament.resources.media.guide.visibility'],
-        ['label' => 'زبانه‌های فهرست و فیلترها', 'icon' => 'filter_list', 'view' => 'filament.resources.media.guide.list-tabs'],
-        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.media.guide.user'],
+        ['label' => 'فهرست و فیلترها', 'icon' => 'filter_list', 'view' => 'filament.resources.media.guide.list-tabs'],
+        ['label' => 'نمای کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.media.guide.user'],
     ];
 
     public static function form(Schema $schema): Schema
@@ -119,7 +126,41 @@ class MediaResource extends Resource
     {
         return [
             EpisodesRelationManager::class,
+            ProgressRelationManager::class,
         ];
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                ->hiddenLabel()
+                ->schema([
+                    MediaInfolistPresenter::cover(),
+                    MediaInfolistPresenter::title(),
+                    MediaInfolistPresenter::kind(),
+                    MediaInfolistPresenter::description(),
+
+                    MediaInfolistPresenter::divider(),
+                    MediaInfolistPresenter::department(),
+                    MediaInfolistPresenter::audience(),
+                    MediaInfolistPresenter::user(),
+                    MediaInfolistPresenter::duration(),
+
+                    MediaInfolistPresenter::divider(),
+                    MediaInfolistPresenter::active(),
+                    MediaInfolistPresenter::pinned(),
+
+                    MediaInfolistPresenter::divider(),
+                    MediaInfolistPresenter::reportDate(),
+                    MediaInfolistPresenter::expiresAt(),
+                    MediaInfolistPresenter::createdAt(),
+                    MediaInfolistPresenter::updatedAt(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
 
     public static function getGlobalSearchResultActions(Model $record): array

@@ -8,6 +8,7 @@ use App\Enums\ReleaseRequestType;
 use App\Enums\ReservationStatus;
 use App\Enums\SkillRequestStatus;
 use App\Enums\UserType;
+use App\Filament\Resources\MediaResource;
 use App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter;
 use App\Models\Department;
 use App\Models\NotifyRule;
@@ -29,7 +30,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
 
     protected static bool $isLazy = true;
     protected static ?int $sort = -1;
-    private const TAB_MODULES = ['events' => 'calendar', 'resources' => 'reservation', 'reservation_policies' => 'reservation', 'ai_reports' => 'ai-report'];
+    private const TAB_MODULES = ['events' => 'calendar', 'resources' => 'reservation', 'reservation_policies' => 'reservation', 'ai_reports' => 'ai-report', 'media' => 'knowledge:media'];
 
     public string $activeTab = 'users';
     protected string $view = 'livewire.admin.widgets.filament-analytics';
@@ -415,6 +416,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'ads' => count($this->adsData),
             'ai_reports' => count($this->aiReportsData),
             'reports' => count($this->reportsData),
+            'media' => count($this->mediaData),
             'energy' => count($this->energyData),
             'authorities' => count($this->authoritiesData),
             'channels' => count($this->channelsData),
@@ -458,6 +460,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'ai_reports' => ['icon' => 'heroicon-o-document-chart-bar', 'label' => __('resources/ai_report/strings.plural_label')],
             'posts' => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/post/strings.plural_label')],
             'reports' => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/report/strings.plural_label')],
+            'media' => ['icon' => 'heroicon-o-play-circle', 'label' => __('resources/media/strings.plural_label')],
             'events' => ['icon' => 'heroicon-o-calendar-days', 'label' => __('resources/event/strings.plural_label')],
             'suggestions' => ['icon' => 'heroicon-o-light-bulb', 'label' => __('resources/suggestion/strings.plural_label')],
             'tasks' => ['icon' => 'heroicon-o-clipboard-document-list', 'label' => __('resources/task/strings.plural_label')],
@@ -482,7 +485,11 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'projects' => ['icon' => 'heroicon-o-rectangle-stack', 'label' => __('resources/project/strings.plural_label')],
         ];
 
-        return array_filter($tabs, fn (string $key) => ! tenantOff(self::TAB_MODULES[$key] ?? $key), ARRAY_FILTER_USE_KEY);
+        return array_filter(
+            $tabs,
+            fn (string $key) => ! tenantOff(self::TAB_MODULES[$key] ?? $key) && ($key !== 'media' || MediaResource::canViewAny()),
+            ARRAY_FILTER_USE_KEY
+        );
     }
 
     #[Computed(seconds: 300, cache: true)]
@@ -746,6 +753,59 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     }
 
     #[Computed(seconds: 300, cache: true)]
+    public function mediaData(): array
+    {
+        $library = DB::table('media')->selectRaw("
+            COUNT(CASE WHEN parent_id IS NULL THEN 1 END) as items,
+            COUNT(CASE WHEN parent_id IS NULL AND active = 1 THEN 1 END) as active,
+            COUNT(CASE WHEN parent_id IS NULL AND kind = 'series' THEN 1 END) as series,
+            COUNT(CASE WHEN parent_id IS NULL AND kind = 'video' THEN 1 END) as videos,
+            COUNT(CASE WHEN parent_id IS NULL AND kind = 'audio' THEN 1 END) as audios,
+            COUNT(CASE WHEN parent_id IS NOT NULL THEN 1 END) as episodes
+        ")->first();
+
+        $learning = DB::table('knowledge_progress')->selectRaw('
+            COUNT(DISTINCT user_id) as learners,
+            COUNT(DISTINCT CASE WHEN last_seen_at >= ? THEN user_id END) as weekly,
+            COUNT(CASE WHEN completed_at IS NOT NULL THEN 1 END) as completed,
+            COALESCE(SUM(position), 0) as seconds
+        ', [now()->subDays(7)])->first();
+
+        $top = DB::table('knowledge_progress')
+            ->join('media', 'media.id', '=', 'knowledge_progress.media_id')
+            ->groupBy('media.id', 'media.title')
+            ->orderByRaw('COUNT(DISTINCT knowledge_progress.user_id) DESC')
+            ->selectRaw('media.title, COUNT(DISTINCT knowledge_progress.user_id) as learners')
+            ->first();
+
+        $s = fn (string $key): string => __('resources/dashboard/strings.analytics.media.' . $key);
+
+        return [
+            Stat::make(__('resources/media/strings.plural_label'), $library->items)
+                ->description($s('active') . ': ' . (int) $library->active)
+                ->icon('heroicon-o-play-circle')
+                ->color('primary'),
+            Stat::make($s('kinds'), (int) $library->series . ' ┆ ' . (int) $library->videos . ' ┆ ' . (int) $library->audios)
+                ->description($s('episodes') . ': ' . (int) $library->episodes)
+                ->icon('heroicon-o-rectangle-stack')
+                ->color('info'),
+            Stat::make($s('learners'), $learning->learners)
+                ->description($s('weekly') . ': ' . (int) $learning->weekly)
+                ->icon('heroicon-o-users')
+                ->color('success'),
+            Stat::make($s('completed'), $learning->completed)
+                ->description($s('hours') . ': ' . round($learning->seconds / 3600, 1))
+                ->icon('heroicon-o-check-badge')
+                ->color('success'),
+            Stat::make($s('top'), $top?->title ?? '—')
+                ->description($top ? $s('learners') . ': ' . (int) $top->learners : null)
+                ->extraAttributes(['class' => '!text-xs'])
+                ->icon('heroicon-o-trophy')
+                ->color('warning'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
     public function reservationPoliciesData(): array
     {
         $stats = DB::table('reservation_policies')->selectRaw("
@@ -870,6 +930,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'ads' => $this->adsData,
             'ai_reports' => $this->aiReportsData,
             'reports' => $this->reportsData,
+            'media' => $this->mediaData,
             'energy' => $this->energyData,
             'authorities' => $this->authoritiesData,
             'channels' => $this->channelsData,

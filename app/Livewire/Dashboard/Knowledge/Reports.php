@@ -22,7 +22,7 @@ class Reports extends Component
 
     public int $perPage = 5;
     #[Locked]
-    public string $view = 'card';
+    public string $view = 'list';
     public string $search = '';
     public string $activeFilter = 'all';
     public bool $showModal = false;
@@ -35,7 +35,7 @@ class Reports extends Component
         $report = $this->visibleReportsQuery()->whereKey($id)->first();
 
         if (!$report) {
-            $this->dispatch('toast', message: 'گزارش در دسترس نیست!', type: 'error');
+            $this->dispatch('toast', message: 'گزارش در دسترس نیست.', type: 'error');
             return;
         }
 
@@ -54,7 +54,7 @@ class Reports extends Component
             return response()->download(public_path($report->file_path));
         }
 
-        $this->dispatch('toast', message: 'فایل موجود نیست!', type: 'error');
+        $this->dispatch('toast', message: 'فایل گزارش پیدا نشد.', type: 'error');
     }
 
     public function focusRecord(int $id): void
@@ -75,7 +75,7 @@ class Reports extends Component
     public function mount(?int $open = null)
     {
         $this->open = $open;
-        $this->view = session('reports_view_mode', 'card');
+        $this->view = session('reports_view_mode', $this->view);
     }
 
     public function placeholder(): View

@@ -159,6 +159,22 @@ describe('colVisibility ai-report scope', () => {
     })
 })
 
+describe('colVisibility media scope', () => {
+    test('persists to media-col-hidden and renders the episode table rule', async () => {
+        const s = fresh()
+        s.init()
+        expect(s.maps.media).toEqual([])
+
+        s.toggle('notes', 'media')
+        await flushMicrotask()
+        expect(JSON.parse(localStorage.getItem('media-col-hidden'))).toEqual(['notes'])
+
+        await flushRaf()
+        expect(document.getElementById('dms-col-visibility-style').textContent)
+            .toContain('.media-episode-table [data-col="notes"]{display:none!important}')
+    })
+})
+
 describe('colVisibility launchpad scope', () => {
     test('restores, persists to launchpad-col-hidden, renders the table rule and resets', async () => {
         localStorage.setItem('launchpad-col-hidden', JSON.stringify(['owner']))

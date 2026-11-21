@@ -136,7 +136,7 @@ class MediaPlaybackTest extends TestCase
             'completed' => false,
             'duration' => 10,
         ]]));
-        $this->assertSame(1, KnowledgeProgress::query()->count());
+        $this->assertSame(1, KnowledgeProgress::query()->where('user_id', $this->viewer->id)->count());
     }
 
     public function test_the_stored_duration_wins_over_the_client_and_an_unknown_duration_does_not_cap_real_progress(): void

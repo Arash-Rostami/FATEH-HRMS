@@ -7,6 +7,7 @@ use App\Models\Concerns\HasDepartment;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasModelCache;
 use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasUser;
 use App\Models\Concerns\Hooks\HasMediaHooks;
 use App\Services\Cache\ModelCacheVersion;
@@ -33,6 +34,7 @@ class Media extends Model
         HasUser,
         HasModelCache,
         HasMenuState,
+        HasReminders,
         HasMediaHooks;
 
     public const MAX_SECONDS = 172800;
@@ -109,16 +111,24 @@ class Media extends Model
             return new Collection();
         }
 
-        $parents = static::library($user)->select('media.id');
-
-        return static::query()
+        $candidates = static::query()
             ->whereIn('id', $ids)
             ->whereIn('kind', [self::KIND_AUDIO, self::KIND_VIDEO])
             ->active()
             ->notExpired()
             ->released()
-            ->where(fn (Builder $query) => $query->whereIn('id', $parents)->orWhereIn('parent_id', $parents))
-            ->get(['id', 'duration_seconds']);
+            ->get(['id', 'parent_id', 'duration_seconds']);
+
+        if ($candidates->isEmpty()) {
+            return $candidates;
+        }
+
+        $visible = static::library($user)
+            ->whereIn('media.id', $candidates->map(fn (self $media) => $media->parent_id ?? $media->id)->unique()->all())
+            ->pluck('media.id')
+            ->all();
+
+        return $candidates->filter(fn (self $media) => in_array($media->parent_id ?? $media->id, $visible, true))->values();
     }
 
     public function scopeNewFor(Builder $query, int $userId): Builder

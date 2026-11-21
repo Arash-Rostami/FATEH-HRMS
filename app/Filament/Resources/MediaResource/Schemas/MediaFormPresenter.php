@@ -129,22 +129,31 @@ class MediaFormPresenter extends ReportFormPresenter
             ->downloadable()
             ->openable()
             ->acceptedFileTypes(static::mediaMimes())
-            ->maxSize(config('file_upload_limits.video'))
+            ->maxSize(static::uploadLimitKb())
             ->disk('public')
             ->directory('media/files')
             ->getUploadedFileNameForStorageUsing(
                 fn(TemporaryUploadedFile $file): string => FileNamer::stored('media', $file)
             )
             ->live()
-            ->afterStateUpdated(function (?TemporaryUploadedFile $state, Set $set): void {
-                $duration = static::probedDuration($state);
+            ->afterStateUpdated(function (mixed $state, Set $set): void {
+                $duration = static::probedDuration($state instanceof TemporaryUploadedFile ? $state : null);
 
                 if ($duration !== null) {
                     $set('duration_seconds', $duration);
                 }
             })
             ->nullable()
-            ->helperText(__('resources/media/strings.hints.file_path'));
+            ->helperText(fn(): string => __('resources/media/strings.hints.file_path') . ' ' . __('resources/media/strings.hints.max_size', [
+                'mb' => intdiv(static::uploadLimitKb(), 1024),
+            ]));
+    }
+
+    public static function uploadLimitKb(): int
+    {
+        $server = (int) (min(ini_parse_quantity((string) ini_get('upload_max_filesize')), ini_parse_quantity((string) ini_get('post_max_size'))) / 1024);
+
+        return $server > 0 ? min((int) config('file_upload_limits.video'), $server) : (int) config('file_upload_limits.video');
     }
 
     public static function probedDuration(?TemporaryUploadedFile $file): ?int

@@ -3,11 +3,11 @@
      x-data="report()"
      wire:ignore.self>
 
-    <x-ui.title icon="show_chart" title="گزارشات" :count="$this->totalReports" countLabel="گزارش">
-        <x-slot:actions>
+    <template x-teleport="#knowledge-header-tools">
+        <div class="flex flex-wrap items-center gap-2">
             <x-ui.buttons.view-toggle />
             <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
-            <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'card'" x-cloak />
+            <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش یا پنهان‌کردن نوار تاریخ" x-show="view === 'card'" x-cloak />
 
             @unless(tenantOff('ai-report'))
                 <a
@@ -32,20 +32,23 @@
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'reports-legend' })"
-                title="راهنمای گزارشات"
+                title="راهنمای گزارش‌ها"
                 class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
             >
                 <span class="material-symbols-rounded text-lg">help</span>
             </button>
-        </x-slot:actions>
-    </x-ui.title>
+            <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+                {{ convertToPersian($this->totalReports) }} گزارش
+            </span>
+        </div>
+    </template>
 
     <x-dashboard.modal.badge-legend
         name="reports-badge-legend"
         :items="[\App\Services\Menu\BadgeLegendCatalog::get('reports-controller')]"
     />
 
-    <x-ui.modals.dialog name="reports-legend" title="راهنمای گزارشات">
+    <x-ui.modals.dialog name="reports-legend" title="راهنمای گزارش‌ها">
         @include('livewire.dashboard.knowledge.reports.legend')
     </x-ui.modals.dialog>
 
@@ -86,7 +89,7 @@
                         <span class="material-symbols-rounded text-lg">history</span>
                     </div>
                     <h3 class="text-base font-bold text-[var(--md-sys-color-on-surface)] flex items-center gap-2">
-                        اخیراً باز شده
+                        گزارش‌های اخیر
                         <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-on-surface-variant)] transition-transform duration-300" :class="open ? 'rotate-180' : ''">expand_more</span>
                     </h3>
                 </button>

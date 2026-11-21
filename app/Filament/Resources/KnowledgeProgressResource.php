@@ -19,7 +19,12 @@ class KnowledgeProgressResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return ! ReportResource::canViewAny() && ! tenantOffName(static::getSlug()) && ! tenantOff('knowledge:media');
+        return ReportResource::knowledgeEntry() === static::class;
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('resources/report/strings.nav_label');
     }
 
     public static function canCreate(): bool

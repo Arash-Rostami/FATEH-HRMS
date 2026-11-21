@@ -19,37 +19,42 @@ const patternLoaders = {
     snow: () => import("./patterns/snow.js")
 };
 
-const BACKGROUND_ELEMENT_IDS = [
+const BACKGROUND_ELEMENT_IDS = Object.freeze([
     'interactive-background',
     'interactive-background-apple',
     'interactive-background-google'
-];
+]);
 
 const PATTERN_SETTLE_DELAY = 50;
 const RESET_RELOAD_DELAY = 500;
 const TOAST_VISIBLE_MS = 1500;
 const TOAST_FADE_MS = 200;
+const SOUND_SCOPES = Object.freeze(['channel', 'contact', 'project']);
+const NO_PATTERNS = Object.freeze([]);
 
-const TABLE_MODULES = [
+const TABLE_MODULES = Object.freeze([
     { id: 'dms', label: 'مدیریت اسناد', cols: true },
     { id: 'ths', label: 'تیکت‌های پشتیبانی', cols: true },
     { id: 'reservation', label: 'رزرو امکانات', cols: true },
     { id: 'taskboard', label: 'تسک‌بورد', cols: true, colsLabel: 'بخش کارت' },
     { id: 'ai-report', label: 'گزارش ساز هوشمند', cols: true },
     { id: 'correspondence', label: 'مکاتبات', cols: true },
-    { id: 'launchpad', label: 'پیشخوان برنامه‌ها', cols: true }
-];
+    { id: 'launchpad', label: 'پیشخوان برنامه‌ها', cols: true },
+    { id: 'media', label: 'دانش سازمانی', cols: true }
+]);
 
-const EXPORT_KEYS = [
+const MODULES_BY_ID = new Map(TABLE_MODULES.map(mod => [mod.id, mod]));
+
+const EXPORT_KEYS = Object.freeze([
     'user-theme', 'user-mode', 'app-density',
     'backgroundEnabled', 'patternEnabled', 'activePattern', 'bgTone',
     'fontSizeLevel', 'readingRuler', 'doubleClickCopy',
-    'dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden', 'ai-report-col-hidden', 'correspondence-col-hidden', 'launchpad-col-hidden',
+    'dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden', 'ai-report-col-hidden', 'correspondence-col-hidden', 'launchpad-col-hidden', 'media-col-hidden',
     'table-tools:dms', 'table-tools:ths', 'table-tools:reservation', 'table-tools:taskboard', 'table-tools:ai-report', 'table-tools:correspondence', 'table-tools:launchpad', 'table-tools:media',
     'menu_declutter',
     'chat-muted-channels', 'chat-muted-contacts', 'chat-muted-projects', 'notification-sound-muted',
     'chat-push-channel', 'chat-push-contact', 'chat-push-project'
-];
+]);
 
 let activePatternInstance = null;
 let patternInitRunId = 0;
@@ -77,12 +82,13 @@ export default function settings() {
         get doubleClickCopy() { return this.$store.accessibility.doubleClickCopy; },
 
         get availablePatterns() {
-            return this.$store?.background?.patterns || [];
+            return this.$store?.background?.patterns || NO_PATTERNS;
         },
 
         init() {
             this._isDestroyed = false;
-            this.currentPresence = this.$root?.dataset?.currentPresence || 'onsite';
+            const ds = this.$root?.dataset;
+            this.currentPresence = ds?.currentPresence || 'onsite';
 
             this._onConfirmed = (e) => {
                 if (!this._resetPending || e.detail?.method !== 'resetApp') return;
@@ -95,7 +101,7 @@ export default function settings() {
             this.refreshTableState();
 
             if (!this.$store.focus.active) {
-                const serverUntil = parseInt(this.$root?.dataset?.focusUntil || '', 10);
+                const serverUntil = parseInt(ds?.focusUntil || '', 10);
                 if (serverUntil && serverUntil > Date.now()) {
                     const endsAt = serverUntil - Date.now() > 86400000 ? null : serverUntil;
                     this.$store.focus.active = true;
@@ -108,8 +114,7 @@ export default function settings() {
 
             if (watcherOwner === null) {
                 watcherOwner = this;
-                this.$watch('$store.background.patternEnabled', () => this.initPattern());
-                this.$watch('$store.background.activePattern', () => this.initPattern());
+                this.$watch('$store.background.patternEnabled + "|" + $store.background.activePattern', () => this.initPattern());
                 this.$watch('$store.background.enabled', (value) => {
                     if (value) this.clearVisuals();
                 });
@@ -143,7 +148,7 @@ export default function settings() {
             }
             activePatternInstance = null;
 
-            for (let i = 0, len = BACKGROUND_ELEMENT_IDS.length; i < len; i++) {
+            for (let i = 0; i < BACKGROUND_ELEMENT_IDS.length; i++) {
                 document.getElementById(BACKGROUND_ELEMENT_IDS[i])?.remove();
             }
         },
@@ -159,8 +164,7 @@ export default function settings() {
             const store = this.$store?.background;
             if (!store?.patternEnabled) return;
 
-            const currentPatternId = store.activePattern || 'shapes';
-            const loader = patternLoaders[currentPatternId];
+            const loader = patternLoaders[store.activePattern || 'shapes'];
             if (!loader) return;
 
             try {
@@ -219,8 +223,9 @@ export default function settings() {
         },
 
         resetNotifications() {
-            ['channel', 'contact', 'project'].forEach(scope => this.$store.sound?.clearAll(scope));
-            if (this.$store.sound?.notificationMuted) this.$store.sound.toggleNotification();
+            const sound = this.$store.sound;
+            for (const scope of SOUND_SCOPES) sound?.clearAll(scope);
+            if (sound?.notificationMuted) sound.toggleNotification();
         },
 
         _readFlag(key, expected) {
@@ -230,21 +235,26 @@ export default function settings() {
             } catch { return false; }
         },
 
+        _drop(key) {
+            try { localStorage.removeItem(key); } catch {}
+        },
+
         _maxKey(id) {
             const uid = document.documentElement.dataset.uid;
             return uid ? `max:${id}:${uid}` : null;
         },
 
         refreshTableState() {
+            const uid = document.documentElement.dataset.uid;
+            const maps = this.$store.colVisibility?.maps;
             const modules = {};
-            TABLE_MODULES.forEach(({ id, cols }) => {
-                const maxKey = this._maxKey(id);
+            for (const { id, cols } of TABLE_MODULES) {
                 modules[id] = {
-                    hiddenCols: cols ? (this.$store.colVisibility?.maps?.[id]?.length ?? 0) : 0,
+                    hiddenCols: cols ? (maps?.[id]?.length ?? 0) : 0,
                     toolbarCollapsed: this._readFlag(`table-tools:${id}`, 'true'),
-                    maximized: !!maxKey && this._readFlag(maxKey)
+                    maximized: !!uid && this._readFlag(`max:${id}:${uid}`)
                 };
-            });
+            }
             this.tableState = {
                 modules,
                 compact: !!this.$store.density?.compact,
@@ -252,45 +262,55 @@ export default function settings() {
             };
         },
 
-        resetTableModule(id) {
-            const mod = TABLE_MODULES.find(m => m.id === id);
-            if (!mod) return;
+        _resetModule(id, uid) {
+            const mod = MODULES_BY_ID.get(id);
+            if (!mod) return false;
             if (mod.cols) this.$store.colVisibility?.reset(id);
-            const maxKey = this._maxKey(id);
-            [`table-tools:${id}`, maxKey].forEach(k => {
-                if (!k) return;
-                try { localStorage.removeItem(k); } catch {}
-            });
-            this.refreshTableState();
+            this._drop(`table-tools:${id}`);
+            if (uid) this._drop(`max:${id}:${uid}`);
+            return true;
+        },
+
+        _resetDensity() {
+            if (this.$store.density?.compact) this.$store.density.toggle();
+        },
+
+        _resetDeclutter() {
+            try { localStorage.setItem('menu_declutter', 'false'); } catch {}
+            document.documentElement.classList.remove('declutter');
+            window.dispatchEvent(new CustomEvent('declutter', { detail: { on: false } }));
+        },
+
+        resetTableModule(id) {
+            if (this._resetModule(id, document.documentElement.dataset.uid)) this.refreshTableState();
         },
 
         resetDensity() {
-            if (this.$store.density?.compact) this.$store.density.toggle();
+            this._resetDensity();
             this.refreshTableState();
         },
 
         resetDeclutter() {
-            try { localStorage.setItem('menu_declutter', 'false'); } catch {}
-            document.documentElement.classList.remove('declutter');
-            window.dispatchEvent(new CustomEvent('declutter', { detail: { on: false } }));
+            this._resetDeclutter();
             this.refreshTableState();
         },
 
         resetTables() {
-            TABLE_MODULES.forEach(({ id }) => this.resetTableModule(id));
-            this.resetDensity();
-            this.resetDeclutter();
+            const uid = document.documentElement.dataset.uid;
+            for (const { id } of TABLE_MODULES) this._resetModule(id, uid);
+            this._resetDensity();
+            this._resetDeclutter();
+            this.refreshTableState();
         },
 
         exportSettings() {
             const data = {};
-            EXPORT_KEYS.forEach(key => {
+            for (const key of EXPORT_KEYS) {
                 const value = localStorage.getItem(key);
                 if (value !== null) data[key] = value;
-            });
+            }
 
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
             const a = document.createElement('a');
             a.href = url;
             a.download = 'fateh-settings.json';
@@ -307,9 +327,9 @@ export default function settings() {
                     const data = JSON.parse(reader.result);
                     if (!data || typeof data !== 'object' || Array.isArray(data)) return;
 
-                    EXPORT_KEYS.forEach(key => {
+                    for (const key of EXPORT_KEYS) {
                         if (typeof data[key] === 'string') localStorage.setItem(key, data[key]);
-                    });
+                    }
 
                     location.reload();
                 } catch (e) {}

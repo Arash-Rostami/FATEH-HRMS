@@ -159,6 +159,26 @@ class ViewServiceProviderTest extends TestCase
         $this->assertSame(['resources/css/app.css', 'resources/js/app.js'], $view->getData()['viteEntries']);
     }
 
+    public function test_knowledge_route_loads_its_lazy_chunk_and_only_the_media_tab_has_a_maximize_scope(): void
+    {
+        $composer = new ModuleChunkComposer();
+
+        request()->setRouteResolver(fn () => (new Route('GET', '/knowledge', []))->name('knowledge'));
+        $view = app('view')->make('layouts.app');
+        $composer->compose($view);
+        $data = $view->getData();
+
+        $this->assertSame('knowledge', $data['moduleChunk']);
+        $this->assertContains('resources/js/components/alpine/modules/knowledge.js', $data['viteEntries']);
+        $this->assertNull($data['maxScope']);
+
+        request()->merge(['tab' => 'media']);
+        $view = app('view')->make('layouts.app');
+        $composer->compose($view);
+
+        $this->assertSame('media', $view->getData()['maxScope']);
+    }
+
     public function test_layout_composer_hides_the_chrome_for_embed_and_for_the_minimal_layout_section(): void
     {
         $factory = app('view');

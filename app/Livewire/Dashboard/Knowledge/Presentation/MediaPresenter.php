@@ -130,6 +130,9 @@ class MediaPresenter
             'title' => $episode->title,
             'topic' => $episode->topic ?? '',
             'icon' => $this->icon($episode, $episode->kind),
+            'kind' => $episode->kind === 'video' ? 'video' : 'audio',
+            'ext' => strtoupper($extension),
+            'date_label' => $episode->report_date ? convertToPersian(toJalali($episode->report_date, 'j F Y')) : '',
             'duration' => $episode->duration_seconds === null ? null : (int) $episode->duration_seconds,
             'file_url' => $url,
             'mime' => $locked ? null : match ($extension) {

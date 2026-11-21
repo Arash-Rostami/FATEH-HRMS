@@ -246,6 +246,7 @@ export default function playerMixin() {
         error: false,
         tapToPlay: false,
         pictureInPicture: false,
+        fullscreen: false,
         seeking: false,
         progressUrl: '',
         userId: '',
@@ -462,6 +463,23 @@ export default function playerMixin() {
             }
         },
 
+        toggleFullscreen() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+                return;
+            }
+            const el = shared.element;
+            if (!el || shared.kind !== 'video') return;
+            const stage = document.querySelector('[data-video-stage]');
+            const target = stage && stage.offsetParent !== null ? stage : el;
+            const request = target.requestFullscreen ?? target.webkitRequestFullscreen;
+            if (!request) {
+                el.webkitEnterFullscreen?.();
+                return;
+            }
+            Promise.resolve(request.call(target)).catch(() => this.toast('نمایش تمام‌صفحه انجام نشد.', 'error'));
+        },
+
         seek(seconds) {
             if (!shared.element || !Number.isFinite(seconds)) return;
             const target = this.duration > 0 ? Math.max(0, Math.min(seconds, this.duration)) : Math.max(0, seconds);
@@ -653,11 +671,15 @@ export default function playerMixin() {
                 } else if (e.key === 'ArrowLeft') {
                     e.preventDefault();
                     e.stopPropagation();
-                    this.skip(10);
+                    this.skip(-10);
                 } else if (e.key === 'ArrowRight') {
                     e.preventDefault();
                     e.stopPropagation();
-                    this.skip(-10);
+                    this.skip(10);
+                } else if (e.key === 'f' || e.key === 'F') {
+                    this.toggleFullscreen();
+                } else if (e.key === 'm' || e.key === 'M') {
+                    this.toggleMute();
                 } else if (e.key === 'n' || e.key === 'N') {
                     this.next();
                 } else if (e.key === 'p' || e.key === 'P') {
@@ -778,7 +800,12 @@ export default function playerMixin() {
         _track(kind, src) {
             const tr = document.createElement('track');
             tr.kind = kind;
-            tr.src = src;
+            try {
+                const url = new URL(src, location.href);
+                tr.src = url.origin !== location.origin && url.pathname.startsWith('/storage/') ? url.pathname + url.search : src;
+            } catch {
+                tr.src = src;
+            }
             tr.srclang = 'fa';
             return tr;
         },

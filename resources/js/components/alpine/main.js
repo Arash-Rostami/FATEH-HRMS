@@ -37,8 +37,6 @@ import faq from "./data/faq.js";
 import peek from "./data/peek.js";
 import links from "./data/links.js";
 import gallery from "./data/gallery.js";
-import report from "./data/report.js";
-import media from "./data/media.js";
 import filters from "./data/filters.js";
 import calculator from "./data/calculator.js";
 import stopwatch from "./data/stopwatch.js";
@@ -103,8 +101,6 @@ export default function initAlpine() {
         Alpine.data('peek', peek)
         Alpine.data('links', links)
         Alpine.data('gallery', gallery)
-        Alpine.data('report', report)
-        Alpine.data('media', media)
         Alpine.data('filters', filters)
         Alpine.data('calculator', calculator)
         Alpine.data('stopwatch', stopwatch)

@@ -177,6 +177,15 @@ describe('media library', () => {
         expect(root.destroyPlayer).toHaveBeenCalledOnce();
     });
 
+    it('applies the shared UI scale on init like the messaging modules', () => {
+        const root = component([item(1)]);
+        root.initMaximize = vi.fn();
+        root.bindPlayerKeys = vi.fn();
+        root.init();
+        expect(document.documentElement.style.getPropertyValue('--chat-scale')).toBe('1');
+        expect(root.isDefaultScale()).toBe(true);
+    });
+
     it('collapses the hero header through the shared declutter mixin and persists it per module', () => {
         const root = component([item(1)]);
         root.initMaximize = vi.fn();
@@ -235,7 +244,7 @@ describe('media library', () => {
             messages.push(root.toast.mock.calls.at(-1)[0]);
         }
         expect(new Set(messages).size).toBe(5);
-        expect(messages[3]).toBe('به سقف یادداشت‌های این جلسه رسیده‌اید.');
+        expect(messages[3]).toBe('تعداد یادداشت‌های این جلسه به حد مجاز رسیده است.');
         expect(root.toast).toHaveBeenLastCalledWith(expect.any(String), 'error');
     });
 

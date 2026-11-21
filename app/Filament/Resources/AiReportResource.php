@@ -29,7 +29,7 @@ class AiReportResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return ! ReportResource::canViewAny() && ! tenantOffName(static::getSlug()) && static::canViewAny();
+        return ReportResource::knowledgeEntry() === null && ! tenantOffName(static::getSlug()) && static::canViewAny();
     }
 
     public static function canCreate(): bool

@@ -5,6 +5,8 @@
     'label' => null,
     'color' => 'var(--md-sys-color-primary)',
     'trackColor' => 'var(--md-sys-color-surface-variant)',
+    'alpinePercent' => null,
+    'alpineLabel' => null,
 ])
 
 @php
@@ -18,10 +20,8 @@
     <svg width="{{ $size }}" height="{{ $size }}" viewBox="0 0 {{ $size }} {{ $size }}" class="-rotate-90">
         <circle cx="{{ $size / 2 }}" cy="{{ $size / 2 }}" r="{{ $radius }}" fill="none" stroke="{{ $trackColor }}" stroke-width="{{ $stroke }}"/>
         <circle cx="{{ $size / 2 }}" cy="{{ $size / 2 }}" r="{{ $radius }}" fill="none" stroke="{{ $color }}" stroke-width="{{ $stroke }}"
-                stroke-dasharray="{{ $circumference }}" stroke-dashoffset="{{ $offset }}" stroke-linecap="round"
+                stroke-dasharray="{{ $circumference }}" @if($alpinePercent) x-bind:stroke-dashoffset="{{ $circumference }} * (1 - Math.min(Math.max({{ $alpinePercent }}, 0), 100) / 100)" @else stroke-dashoffset="{{ $offset }}" @endif stroke-linecap="round"
                 class="transition-all duration-500"/>
     </svg>
-    <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold tabular-nums" style="color: {{ $color }};">
-        {{ $label ?? round($clamped) . '٪' }}
-    </span>
+    <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold tabular-nums" style="color: {{ $color }};">@if($alpineLabel)<span x-text="{{ $alpineLabel }}"></span>@else{{ $label ?? round($clamped) . '٪' }}@endif</span>
 </div>

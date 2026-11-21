@@ -6,19 +6,32 @@ import persistentStateMixin from '../mixins/persistentState.js';
 import highlightMatchMixin from '../mixins/highlightMatch.js';
 import clipboardMixin from '../mixins/clipboard.js';
 import tableToolsMixin from '../mixins/tableTools.js';
+import chatScaleMixin from '../mixins/chatScale.js';
 import { normalize } from './memberPicker.js';
 
 const PROGRESS_KEY = 'media_progress';
 const RECENT_LIMIT = 5;
+const ACCENTS = { p: 'primary', t: 'tertiary', ok: 'success', w: 'warning', sec: 'secondary' };
+const accentStyles = new Map();
+const inProgress = progress => progress > 0 && progress < 1;
+
+const memoNormalize = () => {
+    let last = {}, result;
+    return value => value === last ? result : (result = normalize(last = value));
+};
 
 export default function media() {
     let observer, controller, unlockTimer, trackHost, trackSequence = 0;
     let clockOffset = 0, hydrated = false, destroyed = false, unlockFailures = 0;
     const unlocked = new Set();
     const searchIndex = new Map();
-    const itemOrder = new Map();
+    const byId = new Map();
+    const hitKeys = new Map();
     const owners = new Map();
-    let loadedTracksKey = null, lastPayload = null;
+    const queryKey = memoNormalize();
+    const transcriptKey = memoNormalize();
+    let loadedTracksKey = null, lastPayload = null, departmentList = [], cueKeys = null, cueKeysFor = null;
+    const lookup = (vm, id) => (vm.items, byId.get(id));
     const player = playerMixin();
     const root = Object.defineProperties({}, Object.getOwnPropertyDescriptors(player));
 
@@ -30,6 +43,7 @@ export default function media() {
         ...highlightMatchMixin(),
         ...clipboardMixin(),
         ...tableToolsMixin('media'),
+        ...chatScaleMixin(),
         items: [],
         libraryNotes: {},
         selectedId: null,
@@ -39,8 +53,8 @@ export default function media() {
         mobileDetail: false,
         query: '',
         filter: 'all',
+        filtersOpen: false,
         department: '',
-        sort: 'recent',
         onlySaved: false,
         tab: 'episodes',
         legendTab: 'playback',
@@ -52,6 +66,7 @@ export default function media() {
         tracksBusy: false,
         tracksError: '',
         ranks: {},
+        rowLimit: 30,
         refreshing: false,
         refreshError: '',
 
@@ -63,6 +78,7 @@ export default function media() {
             this.readLibrary();
             this.initMaximize();
             this.initTableTools();
+            this.initChatScale();
             window.addEventListener('media:state', () => this.syncTrackContext(), { signal: controller.signal });
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) this.scheduleUnlock();
@@ -89,11 +105,14 @@ export default function media() {
             this.items = payload.items;
             this.libraryNotes = payload.notes ?? {};
             searchIndex.clear();
-            itemOrder.clear();
+            byId.clear();
+            hitKeys.clear();
             owners.clear();
+            departmentList = [...new Set(payload.items.map(item => item.department).filter(Boolean))];
             for (const [index, item] of this.items.entries()) {
-                itemOrder.set(item.id, index);
-                searchIndex.set(item.id, normalize([item.title, item.department, item.unit, ...item.episodes.map(ep => `${ep.title} ${ep.topic}`)].join(' ')));
+                const plain = payload.items[index];
+                byId.set(item.id, item);
+                searchIndex.set(item.id, normalize([plain.title, plain.department, plain.unit, ...plain.episodes.map(ep => `${ep.title} ${ep.topic}`)].join(' ')));
                 for (const ep of item.episodes) owners.set(ep.id, [item, ep]);
             }
             this.loadLibrary(payload);
@@ -109,8 +128,8 @@ export default function media() {
                 const requested = Number(this.$el.dataset.open ?? params.get('open'));
                 const remembered = this._readLastOpenId();
                 const found = this.items.find(item => item.id === requested || item.episodes.some(ep => ep.id === requested));
-                const fallback = this.items.find(item => item.id === remembered) ?? this.items[0];
-                const item = found ?? this.items.find(item => item.id === this.cur?.sid) ?? fallback;
+                const fallback = byId.get(remembered) ?? this.items[0];
+                const item = found ?? byId.get(this.cur?.sid) ?? fallback;
                 if (item) {
                     this.choose(item.id, !!found);
                     const idx = found?.episodes.findIndex(ep => ep.id === requested) ?? -1;
@@ -123,7 +142,7 @@ export default function media() {
                         }
                     }
                 }
-            } else if (!this.items.some(item => item.id === this.selectedId)) {
+            } else if (!byId.has(this.selectedId)) {
                 this.selectedId = null;
                 this.mobileDetail = false;
             }
@@ -138,7 +157,7 @@ export default function media() {
         },
 
         get selected() {
-            return this.items.find(item => item.id === this.selectedId) ?? null;
+            return lookup(this, this.selectedId) ?? null;
         },
 
         get contextEpisode() {
@@ -152,26 +171,26 @@ export default function media() {
         },
 
         get departments() {
-            return [...new Set(this.items.map(item => item.department).filter(Boolean))];
+            this.items;
+            return departmentList;
         },
 
         get visibleItems() {
-            const query = normalize(this.query);
-            return this.items.filter(item => {
-                return (!query || searchIndex.get(item.id)?.includes(query))
-                    && (!this.department || item.department === this.department)
-                    && (!this.onlySaved || this.$store.pinned.isPinned(item.id, 'media'))
-                    && (this.filter === 'all'
-                        || this.filter === 'series' && item.type === 'series'
-                        || this.filter === 'continue' && ((progress) => progress > 0 && progress < 1)(this.progressOf(item.id))
-                        || this.filter === item.kind);
-            }).sort((a, b) => {
-                const pin = Number(this.pinned(b)) - Number(this.pinned(a));
-                if (pin) return pin;
-                if (this.sort === 'title') return a.title.localeCompare(b.title, 'fa');
-                if (this.sort === 'duration') return a.total_duration - b.total_duration;
-                return itemOrder.get(a.id) - itemOrder.get(b.id);
-            });
+            const query = queryKey(this.query);
+            const { department, onlySaved, filter } = this;
+            const store = this.$store.pinned;
+            const pinnedRows = [], rows = [];
+            for (const item of this.items) {
+                if (query && !searchIndex.get(item.id)?.includes(query)) continue;
+                if (department && item.department !== department) continue;
+                if (onlySaved && !store.isPinned(item.id, 'media')) continue;
+                if (!(filter === 'all'
+                    || filter === 'series' && item.type === 'series'
+                    || filter === 'continue' && inProgress(this.progressOf(item.id))
+                    || filter === item.kind)) continue;
+                (this.pinned(item) ? pinnedRows : rows).push(item);
+            }
+            return pinnedRows.length ? pinnedRows.concat(rows) : rows;
         },
 
         get upNext() {
@@ -199,7 +218,7 @@ export default function media() {
         },
 
         pinned(item) {
-            return item.pinned || this.$store.pinned.isPinned(item.id, 'media');
+            return item.pinned || this.$store.pinned.isPinned(item.id, 'media-pin');
         },
 
         played(id) {
@@ -207,7 +226,7 @@ export default function media() {
         },
 
         choose(id, detail = true) {
-            const item = this.items.find(item => item.id === Number(id));
+            const item = lookup(this, Number(id));
             if (!item) return;
             this.selectedId = item.id;
             this.viewedEpisodeIndex = 0;
@@ -221,11 +240,14 @@ export default function media() {
         },
 
         episodeHit(id) {
-            const query = normalize(this.query);
+            const query = queryKey(this.query);
             if (!query) return null;
-            const item = this.items.find(row => row.id === Number(id));
-            if (item?.type !== 'series' || normalize(item.title).includes(query)) return null;
-            const index = item.episodes.findIndex(ep => normalize(`${ep.title} ${ep.topic}`).includes(query));
+            const item = lookup(this, Number(id));
+            if (item?.type !== 'series') return null;
+            let keys = hitKeys.get(item.id);
+            if (!keys) hitKeys.set(item.id, keys = { title: normalize(item.title), eps: item.episodes.map(ep => normalize(`${ep.title} ${ep.topic}`)) });
+            if (keys.title.includes(query)) return null;
+            const index = keys.eps.findIndex(key => key.includes(query));
             return index < 0 ? null : { index, title: item.episodes[index].title };
         },
 
@@ -260,7 +282,7 @@ export default function media() {
         },
 
         accessible(sid, index) {
-            const episode = this.items.find(item => item.id === sid)?.episodes[index];
+            const episode = lookup(this, sid)?.episodes[index];
             return !!episode?.file_url && !this.isLocked(episode);
         },
 
@@ -290,7 +312,7 @@ export default function media() {
                 unlockFailures = 0;
             } catch {
                 failed = true;
-                this.refreshError = 'به‌روزرسانی کتابخانه انجام نشد؛ دوباره تلاش کنید.';
+                this.refreshError = 'کتابخانه به‌روز نشد. دوباره تلاش کنید.';
             } finally {
                 this.refreshing = false;
             }
@@ -359,9 +381,12 @@ export default function media() {
         time(seconds) { return this.faTime(Number(seconds)); },
 
         accentStyle(accent) {
-            const tokens = { p: 'primary', t: 'tertiary', ok: 'success', w: 'warning', sec: 'secondary' };
-            const color = `var(--md-sys-color-${tokens[accent] ?? 'primary'})`;
-            return { background: `linear-gradient(145deg,color-mix(in srgb,${color} 58%,var(--md-sys-color-surface)),color-mix(in srgb,${color} 22%,var(--md-sys-color-surface)))` };
+            let style = accentStyles.get(accent);
+            if (!style) {
+                const color = `var(--md-sys-color-${ACCENTS[accent] ?? 'primary'})`;
+                accentStyles.set(accent, style = { background: `linear-gradient(145deg,color-mix(in srgb,${color} 58%,var(--md-sys-color-surface)),color-mix(in srgb,${color} 22%,var(--md-sys-color-surface)))` });
+            }
+            return style;
         },
 
         percent(fraction) {
@@ -369,7 +394,7 @@ export default function media() {
         },
 
         glyph(sid, index) {
-            if (this.isLocked(this.items.find(item => item.id === sid)?.episodes[index])) return 'lock';
+            if (this.isLocked(lookup(this, sid)?.episodes[index])) return 'lock';
             if (this.playing && this.cur.sid === sid && this.cur.idx === index) return 'eq';
             return this.episodeState(sid, index) === 'done' ? 'done' : 'num';
         },
@@ -390,7 +415,7 @@ export default function media() {
         },
 
         episodeProgress(sid, index) {
-            const episode = this.items.find(item => item.id === sid)?.episodes[index];
+            const episode = lookup(this, sid)?.episodes[index];
             return episode?.duration ? Math.min(1, (this.library.progress?.[episode.id]?.position ?? 0) / episode.duration) : 0;
         },
 
@@ -426,9 +451,9 @@ export default function media() {
         noteFailed(error, fallback) {
             if (error.name === 'AbortError') return;
             this.toast({
-                401: 'نشست شما پایان یافته؛ دوباره وارد شوید.',
-                419: 'صفحه منقضی شده؛ آن را دوباره بارگذاری کنید.',
-                422: error.reason === 'cap' ? 'به سقف یادداشت‌های این جلسه رسیده‌اید.' : 'متن یادداشت معتبر نیست.',
+                401: 'برای ادامه، دوباره وارد سامانه شوید.',
+                419: 'صفحه را دوباره بارگذاری کنید و تلاش کنید.',
+                422: error.reason === 'cap' ? 'تعداد یادداشت‌های این جلسه به حد مجاز رسیده است.' : 'متن یادداشت را بررسی کنید.',
             }[error.message] ?? fallback, 'error');
         },
 
@@ -444,7 +469,7 @@ export default function media() {
                 this.libraryNotes = { ...this.libraryNotes, [episode.id]: [...(this.libraryNotes[episode.id] ?? []), note].sort((a, b) => a.position - b.position) };
                 if (this.contextEpisode?.id === episode.id && this.noteBody.trim() === body) this.noteBody = '';
             } catch (error) {
-                this.noteFailed(error, 'ذخیرهٔ یادداشت انجام نشد؛ دوباره تلاش کنید.');
+                this.noteFailed(error, 'یادداشت ذخیره نشد. دوباره تلاش کنید.');
             } finally { this.noteBusy = false; }
         },
 
@@ -456,7 +481,7 @@ export default function media() {
                 await this.noteRequest('delete', { id });
                 if (!destroyed) this.libraryNotes = { ...this.libraryNotes, [episodeId]: (this.libraryNotes[episodeId] ?? []).filter(note => note.id !== Number(id)) };
             } catch (error) {
-                this.noteFailed(error, 'حذف یادداشت انجام نشد؛ دوباره تلاش کنید.');
+                this.noteFailed(error, 'یادداشت حذف نشد. دوباره تلاش کنید.');
             } finally { this.noteBusy = false; }
         },
 
@@ -469,6 +494,7 @@ export default function media() {
             trackHost?.remove();
             trackHost = null;
             loadedTracksKey = null;
+            cueKeys = cueKeysFor = null;
             this.cues = [];
             this.chapters = [];
             this.tracksError = '';
@@ -476,13 +502,17 @@ export default function media() {
         },
 
         syncTrackContext() {
-            if (trackHost && Number(trackHost.dataset.episode) !== this.contextEpisode?.id) this.clearTracks();
+            if (trackHost) {
+                if (Number(trackHost.dataset.episode) === this.contextEpisode?.id) return;
+                this.clearTracks();
+            }
             this.loadTracks();
         },
 
         loadTracks() {
+            if (this.tab !== 'transcript' || trackHost) return;
             const episode = this.contextEpisode;
-            if (this.tab !== 'transcript' || !episode || this.isLocked(episode) || !episode.transcript_url && !episode.chapters_url || trackHost) return;
+            if (!episode || this.isLocked(episode) || !episode.transcript_url && !episode.chapters_url) return;
             const key = `${episode.id}:${episode.transcript_url}:${episode.chapters_url}`;
             if (loadedTracksKey === key) return;
             if (!this.$refs.mediaTracks) return;
@@ -499,7 +529,7 @@ export default function media() {
             let remaining = urls.length;
             for (const [kind, url] of urls) {
                 const track = this._track(kind, url);
-                track.label = kind === 'chapters' ? 'فصل‌ها' : 'رونوشت';
+                track.label = kind === 'chapters' ? 'فصل‌ها' : 'متن جلسه';
                 track.addEventListener('load', () => {
                     if (destroyed || sequence !== trackSequence) return;
                     const cues = Array.from(track.track.cues ?? []).map(cue => ({ start: cue.startTime, end: cue.endTime, text: cue.text }));
@@ -509,7 +539,7 @@ export default function media() {
                 }, { once: true });
                 track.addEventListener('error', () => {
                     if (destroyed || sequence !== trackSequence) return;
-                    this.tracksError = 'دریافت رونوشت انجام نشد.';
+                    this.tracksError = 'متن جلسه بارگذاری نشد.';
                     this.tracksBusy = --remaining > 0;
                 }, { once: true });
                 trackHost.appendChild(track);
@@ -518,8 +548,14 @@ export default function media() {
         },
 
         get visibleCues() {
-            const query = normalize(this.transcriptQuery);
-            return this.cues.filter(cue => !query || normalize(cue.text).includes(query));
+            const cues = this.cues;
+            const query = transcriptKey(this.transcriptQuery);
+            if (!query) return cues;
+            if (cueKeysFor !== cues) {
+                cueKeys = cues.map(cue => normalize(cue.text));
+                cueKeysFor = cues;
+            }
+            return cues.filter((_, index) => cueKeys[index].includes(query));
         },
 
         destroy() {

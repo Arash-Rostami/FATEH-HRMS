@@ -40,6 +40,29 @@ class ReportResource extends Resource
         ));
     }
 
+    public static function knowledgeEntry(): ?string
+    {
+        foreach ([self::class, MediaResource::class, KnowledgeProgressResource::class] as $resource) {
+            if (! tenantOffName($resource::getSlug())
+                && ! ($resource !== self::class && tenantOff('knowledge:media'))
+                && $resource::canViewAny()) {
+                return $resource;
+            }
+        }
+
+        return null;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::knowledgeEntry() === static::class;
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('resources/report/strings.nav_label');
+    }
+
     protected static ?string $model = Report::class;
     protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-presentation-chart-line';

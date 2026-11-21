@@ -418,7 +418,7 @@ describe('playerMixin — seek/skip/next/prev navigation', () => {
         expect(p.t).toBe(150)
     })
 
-    test('skip adds the delta (RTL: ArrowLeft = +10s)', () => {
+    test('skip adds the delta (LTR timeline: ArrowRight = +10s)', () => {
         const p = makePlayer()
         p.playEpisode(1, 1)
         p.duration = 500

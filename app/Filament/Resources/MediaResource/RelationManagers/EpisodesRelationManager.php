@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MediaResource\RelationManagers;
 use App\Filament\RelationManagers\RelationManager;
 use App\Filament\Resources\MediaResource;
 use App\Filament\Resources\MediaResource\Schemas\MediaFormPresenter;
+use App\Filament\Resources\MediaResource\Schemas\MediaInfolistPresenter;
 use App\Filament\Resources\MediaResource\Schemas\MediaTablePresenter;
 use App\Models\Media;
 use App\Services\Cache\ModelCacheVersion;
@@ -35,16 +36,41 @@ class EpisodesRelationManager extends RelationManager
         return __('resources/media/strings.relation.episodes');
     }
 
+    public function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                ->hiddenLabel()
+                ->schema([
+                    MediaInfolistPresenter::cover(),
+                    MediaInfolistPresenter::title(),
+                    MediaInfolistPresenter::kind(),
+                    MediaInfolistPresenter::duration(),
+
+                    MediaInfolistPresenter::divider(),
+                    MediaInfolistPresenter::active(),
+                    MediaInfolistPresenter::pinned(),
+
+                    MediaInfolistPresenter::divider(),
+                    MediaInfolistPresenter::reportDate(),
+                    MediaInfolistPresenter::expiresAt(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema->components([
             Tabs::make()
                 ->tabs([
-                    Tab::make(__('resources/report/strings.form.tab_main'))
+                    Tab::make(__('resources/media/strings.form.tab_main'))
                         ->icon('heroicon-o-information-circle')
                         ->schema([
-                            Section::make(__('resources/report/strings.form.section_main'))
-                                ->description(__('resources/report/strings.form.section_description'))
+                            Section::make(__('resources/media/strings.relation.episode_details'))
+                                ->description(__('resources/media/strings.relation.episode_hint'))
                                 ->icon('heroicon-o-document-text')
                                 ->schema([
                                     MediaFormPresenter::episodeKind(),
@@ -63,10 +89,10 @@ class EpisodesRelationManager extends RelationManager
                                 ->columnSpanFull(),
                         ]),
 
-                    Tab::make(__('resources/report/strings.form.tab_files'))
+                    Tab::make(__('resources/media/strings.form.tab_files'))
                         ->icon('heroicon-o-paper-clip')
                         ->schema([
-                            Section::make(__('resources/report/strings.form.section_files'))
+                            Section::make(__('resources/media/strings.form.section_files'))
                                 ->icon('heroicon-o-folder-open')
                                 ->schema([
                                     MediaFormPresenter::coverImage(),
@@ -111,7 +137,7 @@ class EpisodesRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->icon('heroicon-o-sparkles')
-                    ->label(__('resources/media/strings.navigation.singular'))
+                    ->label(__('resources/media/strings.relation.add_episode'))
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['user_id'] = auth()->id();
                         $data['parent_id'] = $this->getOwnerRecord()->getKey();

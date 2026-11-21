@@ -1075,6 +1075,10 @@
         @apply !py-0
     }
 
+    .app-density-compact .media-episode-table tbody td {
+        @apply !py-0
+    }
+
     .correspondence-editor .ProseMirror {
         min-height: 8rem;
         outline: none;

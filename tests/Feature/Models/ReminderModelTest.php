@@ -5,6 +5,7 @@ namespace Tests\Feature\Models;
 use App\Enums\ReminderRecurrence;
 use App\Jobs\ReconcileReminderDueJob;
 use App\Models\DMS;
+use App\Models\Media;
 use App\Models\Reminder;
 use App\Models\Task;
 use App\Models\User;
@@ -297,6 +298,15 @@ class ReminderModelTest extends TestCase
     {
         $this->assertNull(Reminder::urlFor('App\\Models\\SomeUnknownModel', 1));
         $this->assertNull(Reminder::urlFor(null, 1));
+    }
+
+    public function test_url_for_a_media_host_opens_the_knowledge_media_tab(): void
+    {
+        $url = (string) Reminder::urlFor(Media::class, 7);
+
+        $this->assertStringContainsString('/knowledge', $url);
+        $this->assertStringContainsString('tab=media', $url);
+        $this->assertStringContainsString('open=7', $url);
     }
 
     public function test_host_url_if_available_drops_the_link_when_the_hosts_module_is_off_for_the_tenant(): void

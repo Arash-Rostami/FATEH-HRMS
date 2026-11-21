@@ -1,6 +1,7 @@
-@props(['id', 'scope', 'pinNoun', 'muteNoun', 'for' => null])
+@props(['id', 'scope', 'pinNoun', 'muteNoun' => null, 'for' => null, 'mute' => true, 'pinScope' => null])
 
 @php
+    $pinScope ??= $scope;
     $pinOff  = 'سنجاق کردن ' . $pinNoun;
     $pinOn   = 'برداشتن سنجاق ' . $pinNoun;
     $muteOff = 'بی‌صدا کردن ' . $muteNoun;
@@ -10,21 +11,22 @@
      :style="{ 'background-color': $store.tagged.tagBg(@js($id), @js($scope)) }"></div>
 <div class="sb-fade absolute top-1.5 end-1.5 z-10 flex items-center gap-1 pointer-events-none">
     <button type="button"
-            x-on:click.stop="$store.pinned.togglePin(@js($id), @js($scope))"
+            x-on:click.stop="$store.pinned.togglePin(@js($id), @js($pinScope))"
             x-on:keydown.enter.stop
             x-on:keydown.space.stop
-            :aria-pressed="$store.pinned.isPinned(@js($id), @js($scope))"
-            :aria-label="$store.pinned.isPinned(@js($id), @js($scope)) ? @js($pinOn) : @js($pinOff)"
-            :title="$store.pinned.isPinned(@js($id), @js($scope)) ? @js($pinOn) : @js($pinOff)"
+            :aria-pressed="$store.pinned.isPinned(@js($id), @js($pinScope))"
+            :aria-label="$store.pinned.isPinned(@js($id), @js($pinScope)) ? @js($pinOn) : @js($pinOff)"
+            :title="$store.pinned.isPinned(@js($id), @js($pinScope)) ? @js($pinOn) : @js($pinOff)"
             class="inline-flex items-center justify-center w-6 h-6 rounded-full cursor-pointer transition-[opacity,transform,background-color] duration-200 ease-out"
-            :class="$store.pinned.isPinned(@js($id), @js($scope))
+            :class="$store.pinned.isPinned(@js($id), @js($pinScope))
                       ? 'opacity-100 scale-100 pointer-events-auto bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
                       : 'opacity-0 scale-90 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto focus:opacity-100 focus:scale-100 focus:pointer-events-auto text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]'">
         <span class="material-symbols-rounded text-[14px] inline-block transition-transform duration-200"
               aria-hidden="true"
-              :class="$store.pinned.isPinned(@js($id), @js($scope)) ? 'font-fill rotate-45' : ''">push_pin</span>
+              :class="$store.pinned.isPinned(@js($id), @js($pinScope)) ? 'font-fill rotate-45' : ''">push_pin</span>
     </button>
 
+    @if($mute)
     <button type="button"
             x-on:click.stop="$store.sound.toggleMute(@js($id), @js($scope))"
             x-on:keydown.enter.stop
@@ -39,6 +41,7 @@
         <span class="material-symbols-rounded text-[14px]" aria-hidden="true"
               x-text="$store.sound.isMuted(@js($id), @js($scope)) ? 'volume_off' : 'volume_up'"></span>
     </button>
+    @endif
 
     <button type="button"
             x-on:click.stop="tagOpen = !tagOpen"

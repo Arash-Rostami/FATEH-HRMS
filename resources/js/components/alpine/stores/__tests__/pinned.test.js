@@ -123,6 +123,18 @@ describe('pinned.isPinned / togglePin', () => {
         expect(s.isPinned(1, 'report')).toBe(false)
     })
 
+    test('media bookmarks and media pins are separate scopes with their own keys', async () => {
+        const s = freshStore()
+        s.init()
+        s.togglePin(4, 'media')
+        s.togglePin(9, 'media-pin')
+        await Promise.resolve()
+        expect(JSON.parse(localStorage.getItem('saved_media'))).toEqual([4])
+        expect(JSON.parse(localStorage.getItem('pinned-media'))).toEqual([9])
+        expect(s.isPinned(4, 'media-pin')).toBe(false)
+        expect(s.isPinned(9, 'media')).toBe(false)
+    })
+
     test('isEmpty reports whether a scope has no bookmarks', () => {
         const s = freshStore()
         s.init()

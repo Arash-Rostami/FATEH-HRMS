@@ -14,6 +14,7 @@ class ModuleChunkComposer
         'tasksheet' => 'tasksheet', 'tasksheet.shared' => 'tasksheet',
         'ai-report' => 'ai-report', 'ai-report.shared' => 'ai-report',
         'correspondence' => 'correspondence',
+        'knowledge' => 'knowledge',
     ];
 
     public function compose(View $view): void
@@ -61,6 +62,7 @@ class ModuleChunkComposer
         return match (request()->route()?->getName()) {
             'dashboard' => ['home' => 'hero', 'feed' => 'feed', 'calendar' => 'calendar'][$tab ?? 'home'] ?? null,
             'energy' => $tab === 'chart' ? 'energy' : null,
+            'knowledge' => $tab === 'media' ? 'media' : null,
             default => $moduleChunk,
         };
     }

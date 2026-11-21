@@ -3406,7 +3406,9 @@ class AiReportTest extends TestCase
 
         $this->assertNotContains('switch_ai_report_resource', $names);
         $this->assertContains('switch_report_resource', $names);
-        $this->assertCount(1, $names);
+        $this->assertContains('switch_media_resource', $names);
+        $this->assertContains('switch_knowledge_progress_resource', $names);
+        $this->assertCount(3, $names);
     }
 
     public function test_a_refund_after_midnight_hits_the_day_the_slot_was_taken(): void

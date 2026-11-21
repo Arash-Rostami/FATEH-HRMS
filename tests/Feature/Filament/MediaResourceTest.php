@@ -16,6 +16,7 @@ use App\Filament\Resources\KnowledgeProgressResource\Schemas\KnowledgeProgressTa
 use App\Filament\Resources\MediaResource\Pages\ListMedia;
 use App\Filament\Resources\MediaResource\Schemas\MediaFormPresenter;
 use App\Filament\Resources\MediaResource\RelationManagers\EpisodesRelationManager;
+use App\Filament\Resources\MediaResource\RelationManagers\ProgressRelationManager;
 use App\Filament\Resources\ReportResource;
 use App\Models\Department;
 use App\Models\KnowledgeProgress;
@@ -29,6 +30,7 @@ use App\Traits\Filament\HandlesSaveExceptions;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
+use Filament\Schemas\Schema as FilamentSchema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -198,6 +200,52 @@ class MediaResourceTest extends TestCase
             Media::factory()->make(['kind' => 'audio', 'parent_id' => 1]),
             EditMedia::class,
         ));
+    }
+
+    public function test_media_infolist_schemas_compose_without_type_errors(): void
+    {
+        $resourceSchema = MediaResource::infolist(FilamentSchema::make());
+        $this->assertInstanceOf(FilamentSchema::class, $resourceSchema);
+
+        $relationSchema = (new EpisodesRelationManager())
+            ->infolist(FilamentSchema::make());
+        $this->assertInstanceOf(FilamentSchema::class, $relationSchema);
+    }
+
+    public function test_progress_relation_manager_mounts_only_when_progress_exists(): void
+    {
+        $this->assertContains(ProgressRelationManager::class, MediaResource::getRelations());
+
+        $admin = $this->developer();
+        $this->actingAs($admin);
+        $media = Media::factory()->create(['title' => '0-Progress Probe']);
+
+        $this->assertFalse(ProgressRelationManager::canViewForRecord($media, EditMedia::class));
+        $this->assertNull(ProgressRelationManager::deniedByPermission($media));
+
+        KnowledgeProgress::create([
+            'user_id' => $admin->id,
+            'media_id' => $media->id,
+            'position' => 120,
+        ]);
+
+        $this->assertTrue(ProgressRelationManager::canViewForRecord($media, EditMedia::class));
+        $this->assertNull(ProgressRelationManager::deniedByPermission($media));
+
+        $plain = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'user']);
+        $empty = Media::factory()->create(['title' => '0-Progress Empty Probe']);
+        $this->actingAs($plain);
+
+        $this->assertFalse(ProgressRelationManager::canViewForRecord($empty, EditMedia::class));
+        $this->assertNull(ProgressRelationManager::deniedByPermission($empty));
+
+        KnowledgeProgress::create([
+            'user_id' => $plain->id,
+            'media_id' => $empty->id,
+            'position' => 5,
+        ]);
+
+        $this->assertSame('knowledge_progress', ProgressRelationManager::deniedByPermission($empty));
     }
 
     public function test_list_media_header_actions_include_create(): void

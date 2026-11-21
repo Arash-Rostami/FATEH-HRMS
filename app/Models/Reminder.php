@@ -34,6 +34,7 @@ class Reminder extends Model
         Project::class => 'projects',
         DMS::class => 'dms',
         Reservation::class => 'reservation',
+        Media::class => 'knowledge',
     ];
 
     protected $attributes = [
@@ -216,7 +217,9 @@ class Reminder extends Model
 
         $route = static::HOST_ROUTES[$remindableType] ?? null;
 
-        return $route ? route($route, ['open' => $remindableId]) : null;
+        $query = $remindableType === Media::class ? ['tab' => 'media', 'open' => $remindableId] : ['open' => $remindableId];
+
+        return $route ? route($route, $query) : null;
     }
 
     public function hostUrl(): ?string

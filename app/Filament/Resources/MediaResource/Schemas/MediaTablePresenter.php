@@ -42,11 +42,16 @@ class MediaTablePresenter extends ReportTablePresenter
     {
         return TextColumn::make('duration_seconds')
             ->label(__('resources/media/strings.table.duration'))
-            ->formatStateUsing(fn($state): string => $state
-                ? convertToPersian((string) max(1, (int) round(((int) $state) / 60))) . ' ' . __('resources/media/strings.table.minutes')
-                : '—')
+            ->formatStateUsing(fn($state): string => static::durationLabel($state))
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function durationLabel(mixed $state): string
+    {
+        return $state
+            ? convertToPersian((string) max(1, (int) round(((int) $state) / 60))) . ' ' . __('resources/media/strings.table.minutes')
+            : '—';
     }
 
     public static function icon(): TextColumn
@@ -88,7 +93,7 @@ class MediaTablePresenter extends ReportTablePresenter
             );
     }
 
-    private static function kindLabel(string $kind): string
+    public static function kindLabel(string $kind): string
     {
         return match ($kind) {
             'series' => __('resources/media/strings.fields.kind_series'),

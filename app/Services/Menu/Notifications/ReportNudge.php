@@ -10,7 +10,7 @@ class ReportNudge implements MenuNudge
 {
     public function body($subject, User $user): string
     {
-        return 'گزارش جدیدی آپلود شده است؛ لطفاً بررسی نمایید.';
+        return 'گزارش تازه‌ای منتشر شده است.';
     }
 
     public function for($subject)
@@ -35,7 +35,7 @@ class ReportNudge implements MenuNudge
 
     public function title($subject, User $user): string
     {
-        return 'گزارش جدید از ' . ($subject->department?->displayLabel() ?? 'سازمان') . ': ' . $subject->title;
+        return 'گزارش تازه از ' . ($subject->department?->displayLabel() ?? 'سازمان') . ': ' . $subject->title;
     }
 
     public function triggers(): array

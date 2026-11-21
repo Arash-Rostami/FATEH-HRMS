@@ -1,9 +1,4 @@
 <div class="animate-fade w-full max-w-[88rem] mx-auto flex flex-col" dir="rtl" role="status" aria-label="در حال بارگذاری گزارشات">
-    <div class="flex items-center justify-between mb-4">
-        <x-ui.loaders.skeleton.bar width="w-40" height="h-8"/>
-        <x-ui.loaders.skeleton.bar width="w-24" height="h-8"/>
-    </div>
-
     <div class="flex flex-wrap items-center gap-2 mb-6">
         <x-ui.loaders.skeleton.bar width="w-64" height="h-9"/>
         <x-ui.loaders.skeleton.bar width="w-20" height="h-9"/>
