@@ -11,7 +11,7 @@ class MarkMediaSeenAction
 {
     public static function execute(User $user): int
     {
-        $count = Media::unseenBy($user->id)->update([
+        $count = Media::unseenBy($user->id)->toBase()->update([
             'seen_by' => DB::raw("JSON_ARRAY_APPEND(COALESCE(`seen_by`, JSON_ARRAY()), '$', ".(int) $user->id.')'),
         ]);
 
