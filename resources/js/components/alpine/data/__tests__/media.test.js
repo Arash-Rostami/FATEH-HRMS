@@ -2,9 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../mixins/player.js', () => ({
     default: () => ({
+        library: { items: [], progress: {}, notes: {} },
         cur: { sid: null, idx: 0 }, t: 0, playing: false,
         loadLibrary: vi.fn(), selectItem: vi.fn(), playEpisode: vi.fn(),
-        toggle: vi.fn(), seek: vi.fn(), destroyPlayer: vi.fn(),
+        toggle: vi.fn(), seek: vi.fn(), destroyPlayer: vi.fn(), toast: vi.fn(),
         faTime: value => String(value),
         progressOf: () => 0, episodeState: () => 'new', resumeAt: () => 0,
     }),
@@ -137,16 +138,71 @@ describe('media library', () => {
         expect(root.destroyPlayer).toHaveBeenCalledOnce();
     });
 
-    it('formats digits itself and hands the csrf token to the player', () => {
-        document.head.innerHTML = '<meta name="csrf-token" content="token-1">';
+    it('formats digits itself', () => {
+        expect(component([item(1)]).number(12)).toBe('۱۲');
+    });
+
+    it('toasts the unlock date for a locked lesson instead of failing silently', () => {
+        const unlock = Math.floor(Date.now() / 1000) + 100;
+        const root = component([item(1, { episodes: [episode(1, { file_url: null, unlock_at: unlock, unlock_label: '۷ آذر ۱۴۰۵' })] })]);
+        root.startEpisode(0);
+        expect(root.toast).toHaveBeenCalledWith('این جلسه در ۷ آذر ۱۴۰۵ منتشر می‌شود');
+        expect(root.playEpisode).not.toHaveBeenCalled();
+    });
+
+    it('shows distinct note failures for 401, 419 and 422', async () => {
         const root = component([item(1)]);
-        root.initMaximize = vi.fn();
-        root.bindPlayerKeys = vi.fn();
-        root.init();
-        expect(root.number(12)).toBe('۱۲');
-        expect(root._csrf).toBe('token-1');
-        root.destroy();
-        document.head.innerHTML = '';
+        root.noteBody = 'متن';
+        const messages = [];
+        for (const status of ['401', '419', '422', '500']) {
+            root.noteRequest = vi.fn().mockRejectedValue(new Error(status));
+            await root.addNote();
+            messages.push(root.toast.mock.calls.at(-1)[0]);
+        }
+        expect(new Set(messages).size).toBe(4);
+        expect(root.toast).toHaveBeenLastCalledWith(expect.any(String), 'error');
+    });
+
+    it('reads live progress only from the reactive library and keeps the higher local value on refresh', () => {
+        const root = component([item(1)]);
+        root.library.progress = { 1: { position: 150, last_position: 150, completed: false } };
+        expect(root.episodeProgress(1, 0)).toBe(0.5);
+        const payload = { serverNow: Date.now() / 1000, items: [item(1)], notes: {}, progress: { 1: { position: 60, last_position: 60, completed: false } } };
+        root.$el.dataset.library = JSON.stringify(payload);
+        root.readLibrary();
+        expect(root.loadLibrary.mock.calls.at(-1)[0].progress[1].position).toBe(150);
+    });
+
+    it('derives row order and lesson glyphs from state', () => {
+        const root = component([item(1), item(2, { pinned: true })]);
+        root.rankRows();
+        expect(root.ranks).toEqual({ 2: 0, 1: 1 });
+        root.query = 'رسانه 1';
+        root.rankRows();
+        expect(root.ranks).toEqual({ 1: 0 });
+        root.cur = { sid: 1, idx: 0 };
+        root.playing = true;
+        expect(root.glyph(1, 0)).toBe('eq');
+        root.playing = false;
+        root.episodeState = () => 'done';
+        expect(root.glyph(1, 0)).toBe('done');
+    });
+
+    it('marks the cue under the playhead of the open item only', () => {
+        const root = component([item(1)]);
+        root.cur = { sid: 1, idx: 0 };
+        root.t = 12;
+        expect(root.activeCue({ start: 10, end: 15 })).toBe(true);
+        expect(root.activeCue({ start: 15, end: 20 })).toBe(false);
+        root.cur = { sid: 2, idx: 0 };
+        expect(root.activeCue({ start: 10, end: 15 })).toBe(false);
+    });
+
+    it('includes the resume time in the continue label', () => {
+        const root = component([item(1, { type: 'series', episodes: [episode(11), episode(12)] })]);
+        root.progressOf = () => 0.4;
+        root.resumeAt = () => 75;
+        expect(root.heroLabel()).toBe('ادامه از جلسهٔ ۱ · 75');
     });
 
     it('rejects empty and oversized notes without a request', async () => {

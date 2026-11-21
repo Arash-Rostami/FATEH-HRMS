@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Media\Presentation;
 
 use App\Enums\MediaIcon;
+use App\Models\Department;
 use App\Models\KnowledgeProgress;
 use App\Models\Media;
 use App\Models\MediaNote;
@@ -16,7 +17,7 @@ class MediaPresenter
     private const COLUMNS = [
         'id', 'parent_id', 'kind', 'title', 'topic', 'description', 'cover_image',
         'file_path', 'transcript_path', 'chapters_path', 'icon', 'duration_seconds',
-        'position', 'active', 'pinned', 'department_id', 'report_date', 'report_ids', 'created_at',
+        'position', 'active', 'pinned', 'department_id', 'departments', 'report_date', 'report_ids', 'created_at',
     ];
 
     private const EPISODE_COLUMNS = [
@@ -34,45 +35,8 @@ class MediaPresenter
         }
 
         $user->loadMissing('profile');
-        $library = Media::library($user)
-            ->select(self::COLUMNS)
-            ->with([
-                'department:code,name',
-                'episodes' => fn ($query) => $query->select(self::EPISODE_COLUMNS)->where('active', true)->notExpired(),
-            ])
-            ->orderByDesc('pinned')->latest()->orderByDesc('id')->get();
-
-        $reportIds = $library->flatMap(fn (Media $item) => $item->report_ids ?? [])->unique()->values();
-        $reports = $reportIds->isEmpty() ? collect() : Report::forViewer($user)->notExpired()
-            ->whereIn('id', $reportIds)->get(['id', 'title', 'file_path'])
-            ->mapWithKeys(fn (Report $report) => [$report->id => $this->material($report)]);
-        $episodeIds = [];
-
-        $payload['items'] = $library->map(function (Media $item) use ($reports, &$episodeIds): array {
-            $episodes = $item->kind === 'series' ? $item->episodes : collect([$item]);
-            $episodeIds = array_merge($episodeIds, $episodes->pluck('id')->all());
-            $kind = $item->kind === 'series'
-                ? ($episodes->first(fn (Media $episode) => $episode->kind === 'video') ? 'video' : 'audio')
-                : $item->kind;
-
-            return [
-                'id' => $item->id,
-                'kind' => $kind,
-                'type' => $item->kind === 'series' ? 'series' : 'single',
-                'title' => $item->title,
-                'description_html' => $item->description ?? '',
-                'cover_url' => $item->cover_url ?: null,
-                'icon' => $this->icon($item, $kind),
-                'accent' => ['p', 't', 'ok', 'w', 'sec'][$item->id % 5],
-                'unit' => 'دانش سازمانی',
-                'department' => $item->department?->name ?? 'همهٔ بخش‌ها',
-                'date_label' => convertToPersian(toJalali($item->report_date ?? $item->created_at, 'j F Y')),
-                'pinned' => (bool) $item->pinned,
-                'total_duration' => (int) $episodes->sum('duration_seconds'),
-                'episodes' => $episodes->map(fn (Media $episode) => $this->episode($episode))->values()->all(),
-                'materials' => $this->materials($item, $reports),
-            ];
-        })->all();
+        $payload['items'] = Media::cachedCatalog($user->profile?->department_id, fn () => $this->catalog($user));
+        $episodeIds = collect($payload['items'])->pluck('episodes.*.id')->flatten()->all();
 
         if ($episodeIds === []) {
             return $payload;
@@ -92,6 +56,46 @@ class MediaPresenter
             ])->values()->all())->all();
 
         return $payload;
+    }
+
+    private function catalog(User $user): array
+    {
+        $departments = Department::getCachedModels();
+        $library = Media::library($user)
+            ->select(self::COLUMNS)
+            ->with(['episodes' => fn ($query) => $query->select(self::EPISODE_COLUMNS)->where('active', true)->notExpired()])
+            ->orderByDesc('pinned')->latest()->orderByDesc('id')->get();
+
+        $reportIds = $library->flatMap(fn (Media $item) => $item->report_ids ?? [])->unique()->values();
+        $reports = $reportIds->isEmpty() ? collect() : Report::forViewer($user)->notExpired()
+            ->whereIn('id', $reportIds)->get(['id', 'title', 'file_path'])
+            ->mapWithKeys(fn (Report $report) => [$report->id => $this->material($report)]);
+
+        return $library->map(function (Media $item) use ($reports, $departments): array {
+            $episodes = $item->kind === 'series' ? $item->episodes : collect([$item]);
+            $kind = $item->kind === 'series'
+                ? ($episodes->first(fn (Media $episode) => $episode->kind === 'video') ? 'video' : 'audio')
+                : $item->kind;
+
+            return [
+                'id' => $item->id,
+                'kind' => $kind,
+                'type' => $item->kind === 'series' ? 'series' : 'single',
+                'title' => $item->title,
+                'description_html' => $item->description ?? '',
+                'cover_url' => $item->cover_url ?: null,
+                'icon' => $this->icon($item, $kind),
+                'accent' => ['p', 't', 'ok', 'w', 'sec'][$item->id % 5],
+                'unit' => 'دانش سازمانی',
+                'department' => $departments->get((string) $item->department_id)?->name
+                    ?? ($item->audienceDepartments->pluck('name')->join('، ') ?: 'همهٔ بخش‌ها'),
+                'date_label' => convertToPersian(toJalali($item->report_date ?? $item->created_at, 'j F Y')),
+                'pinned' => (bool) $item->pinned,
+                'total_duration' => (int) $episodes->sum('duration_seconds'),
+                'episodes' => $episodes->map(fn (Media $episode) => $this->episode($episode))->values()->all(),
+                'materials' => $this->materials($item, $reports),
+            ];
+        })->all();
     }
 
     private function episode(Media $episode): array

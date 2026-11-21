@@ -28,14 +28,13 @@
         <x-ui.forms.select label="ترتیب" name="media-sort" x-model="sort"><option value="recent">تازه‌ترین</option><option value="title">عنوان</option><option value="duration">مدت</option></x-ui.forms.select>
         <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="self-end !flex" />
     </div>
-    <div id="media-list" x-effect="syncRows($el, visibleItems)" class="flex flex-col flex-1 min-h-0 overflow-y-auto py-1 contact-scrollbar" role="listbox" aria-label="رسانه‌ها">
+    <div id="media-list" x-effect="rankRows()" class="flex flex-col flex-1 min-h-0 overflow-y-auto py-1 contact-scrollbar" role="listbox" aria-label="رسانه‌ها">
         @foreach($this->library['items'] as $item)
             <div wire:key="media-row-{{ $item['id'] }}" data-id="{{ $item['id'] }}" data-rf="media-{{ $item['id'] }}"
-                 x-data="{ tagOpen: false }"
+                 x-show="ranks[$el.dataset.id] !== undefined" x-bind:style="{ order: ranks[$el.dataset.id] }"
                  x-on:click="choose($el.dataset.id)" x-on:keydown.enter.self.prevent="choose($el.dataset.id)" x-on:keydown.space.self.prevent="choose($el.dataset.id)"
                  role="option" tabindex="0" :aria-selected="selectedId === Number($el.dataset.id)" title="{{ $item['title'] }}"
                  class="sb-row group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md hover:bg-[var(--md-sys-color-surface-variant)] aria-selected:bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] aria-selected:border-r-2 aria-selected:border-[var(--md-sys-color-primary)]">
-                <x-ui.row-actions :id="$item['id']" scope="media" pin-noun="رسانه" mute-noun="رسانه" />
                 <div class="relative flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ring-1 ring-[var(--md-sys-color-outline-variant)]" data-accent="{{ $item['accent'] }}" :style="accentStyle($el.dataset.accent)">
                     @if($item['cover_url'])
                         <img wire:key="media-row-cover" src="{{ $item['cover_url'] }}" alt="" loading="lazy" class="w-full h-full rounded-xl object-cover">
@@ -47,10 +46,11 @@
                 <div class="sb-fade flex-1 min-w-0">
                     <p class="truncate text-[13px] font-semibold text-[var(--md-sys-color-on-surface)]" data-title="{{ $item['title'] }}" x-html="highlight($el.dataset.title, query)"></p>
                     <p class="text-[11px] truncate text-[var(--md-sys-color-on-surface-variant)]">{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }} · {{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }} · {{ convertToPersian((string) count($item['episodes'])) }} جلسه</p>
-                    <div data-id="{{ $item['id'] }}" x-effect="paintMeter($el, progressOf(Number($el.dataset.id)))" class="mt-2 [&>div>div:first-child]:hidden">
-                        <x-ui.quota-meter label="پیشرفت" :used="0" :cap="100" :pct="0" :tone="['text' => 'text-[var(--md-sys-color-primary)]', 'fill' => 'bg-[var(--md-sys-color-primary)]']" />
+                    <div class="mt-2 h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden" role="progressbar" aria-label="پیشرفت" aria-valuemin="0" aria-valuemax="100" x-bind:aria-valuenow="percent(progressOf({{ $item['id'] }}))">
+                        <div class="h-full rounded-full transition-all duration-500 bg-[var(--md-sys-color-primary)]" x-bind:style="{ width: percent(progressOf({{ $item['id'] }})) + '%' }"></div>
                     </div>
                 </div>
+                <x-ui.buttons.bookmark :id="$item['id']" scope="media" class="shrink-0" />
             </div>
         @endforeach
         <div wire:key="media-sidebar-empty" x-show="!visibleItems.length" class="contents"><x-ui.empty icon="search_off" title="موردی پیدا نشد" description="جستجو یا فیلتر را تغییر دهید." /></div>

@@ -36,7 +36,7 @@ class Main extends Component
     public function focusRecord(int $id): bool
     {
         foreach ($this->library['items'] as $item) {
-            if ($item['id'] === $id || in_array($id, array_column($item['episodes'], 'id'), true)) {
+            if ($item['id'] === $id || in_array($id, array_column(array_filter($item['episodes'], fn (array $episode) => $episode['unlock_at'] === null), 'id'), true)) {
                 return true;
             }
         }

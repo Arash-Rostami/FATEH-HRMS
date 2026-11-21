@@ -162,6 +162,50 @@ class MediaTest extends TestCase
         $this->assertSame([$publicReport->id], array_column($row['materials'], 'id'));
     }
 
+    public function test_two_departments_never_share_a_cached_catalog(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $first = Department::factory()->create();
+        $second = Department::factory()->create();
+        $inFirst = User::factory()->create(['status' => 'active']);
+        $inSecond = User::factory()->create(['status' => 'active']);
+        Profile::updateOrCreate(['user_id' => $inFirst->id], ['department_id' => $first->code]);
+        Profile::updateOrCreate(['user_id' => $inSecond->id], ['department_id' => $second->code]);
+        $item = $this->media($owner, ['departments' => [$first->code]]);
+        $presenter = app(MediaPresenter::class);
+        $this->assertContains($item->id, array_column($presenter->library($inFirst->fresh())['items'], 'id'));
+        $this->assertNotContains($item->id, array_column($presenter->library($inSecond->fresh())['items'], 'id'));
+        $this->assertContains($item->id, array_column($presenter->library($inFirst->fresh())['items'], 'id'));
+    }
+
+    public function test_progress_and_notes_are_never_part_of_the_cached_catalog(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $item = $this->media($user);
+        KnowledgeProgress::create(['user_id' => $user->id, 'media_id' => $item->id, 'position' => 100, 'last_position' => 40]);
+        MediaNote::create(['user_id' => $user->id, 'media_id' => $item->id, 'position' => 40, 'body' => 'یادداشت خصوصی']);
+        $this->actingAs($user);
+        $presenter = app(MediaPresenter::class);
+        $presenter->library($user);
+        $cached = Media::cachedCatalog($user->fresh()->profile?->department_id, fn () => []);
+        $this->assertContains($item->id, array_column($cached, 'id'));
+        $this->assertStringNotContainsString('یادداشت خصوصی', json_encode($cached, JSON_UNESCAPED_UNICODE));
+        $this->assertArrayNotHasKey('progress', $cached[0]);
+        $this->assertArrayNotHasKey('notes', $cached[0]);
+        KnowledgeProgress::where('media_id', $item->id)->update(['position' => 200]);
+        $this->assertSame(200, ((array) $presenter->library($user)['progress'])[$item->id]['position']);
+    }
+
+    public function test_department_label_falls_back_to_the_audience_departments(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $department = Department::factory()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], ['department_id' => $department->code]);
+        $item = $this->media($user, ['departments' => [$department->code]]);
+        $row = collect(app(MediaPresenter::class)->library($user->fresh())['items'])->firstWhere('id', $item->id);
+        $this->assertSame($department->name, $row['department']);
+    }
+
     public function test_inactive_and_expired_children_are_not_listed_in_a_visible_series(): void
     {
         $user = User::factory()->create(['status' => 'active']);
@@ -188,5 +232,8 @@ class MediaTest extends TestCase
             ->assertSet('open', $episode->id)->assertSeeHtml('data-rf="media-' . $series->id . '"');
         Livewire::withoutLazyLoading();
         Livewire::withQueryParams(['open' => $hiddenEpisode->id])->test(Main::class)->assertSet('open', null);
+        $locked = $this->media($user, ['parent_id' => $series->id, 'report_date' => now()->addDays(2)->toDateString()]);
+        Livewire::withoutLazyLoading();
+        Livewire::withQueryParams(['open' => $locked->id])->test(Main::class)->assertSet('open', null);
     }
 }

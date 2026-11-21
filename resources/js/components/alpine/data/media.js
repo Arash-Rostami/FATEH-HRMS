@@ -40,20 +40,19 @@ export default function media() {
         legendTab: 'playback',
         noteBody: '',
         noteBusy: false,
-        noteError: '',
         transcriptQuery: '',
         cues: [],
         chapters: [],
         tracksBusy: false,
         tracksError: '',
+        ranks: {},
         refreshing: false,
         refreshError: '',
         theatre: false,
 
         init() {
             controller = new AbortController();
-            this._csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-            observer =new MutationObserver(() => this.readLibrary());
+            observer = new MutationObserver(() => this.readLibrary());
             observer.observe(this.$el, { attributes: true, attributeFilter: ['data-library'] });
             this.bindPlayerKeys('[data-media-root]');
             this.readLibrary();
@@ -74,6 +73,11 @@ export default function media() {
             try { payload = JSON.parse(raw); } catch { return; }
             if (!Array.isArray(payload.items)) return;
             lastPayload = raw;
+            const known = this.library.progress ?? {};
+            payload.progress = { ...(payload.progress ?? {}) };
+            for (const [id, row] of Object.entries(known)) {
+                if (row.position > (payload.progress[id]?.position ?? 0)) payload.progress[id] = row;
+            }
             clockOffset = Number(payload.serverNow) * 1000 - Date.now();
             this.items = payload.items;
             this.libraryNotes = payload.notes ?? {};
@@ -149,14 +153,8 @@ export default function media() {
             });
         },
 
-        syncRows(element, visible) {
-            const positions = new Map(visible.map((item, index) => [item.id, index]));
-            for (const row of element.children) {
-                if (!row.dataset.id) continue;
-                const index = positions.get(Number(row.dataset.id));
-                row.style.display = index === undefined ? 'none' : '';
-                row.style.order = index ?? 0;
-            }
+        rankRows() {
+            this.ranks = Object.fromEntries(this.visibleItems.map((item, index) => [item.id, index]));
         },
 
         pinned(item) {
@@ -173,7 +171,6 @@ export default function media() {
             this._persistLastOpen(item.id);
             this.tab = 'episodes';
             this.noteBody = '';
-            this.noteError = '';
             this.transcriptQuery = '';
             this.clearTracks();
         },
@@ -225,7 +222,8 @@ export default function media() {
         startEpisode(index) {
             const item = this.selected;
             const episode = item?.episodes[index];
-            if (!episode || this.isLocked(episode) || !episode.file_url) return;
+            if (episode && this.isLocked(episode)) return this.toast(`این جلسه در ${episode.unlock_label} منتشر می‌شود`);
+            if (!episode?.file_url) return;
             this.clearTracks();
             this.viewedEpisodeIndex = index;
             const moment = this.pendingMoment?.sid === item.id && this.pendingMoment.idx === index ? this.pendingMoment : null;
@@ -264,7 +262,7 @@ export default function media() {
         heroLabel() {
             if (this.cur?.sid === this.selectedId && this.playing) return 'توقف';
             const index = this.resumeIndex();
-            return index >= 0 && this.progressOf(this.selectedId) > 0 ? `ادامه از جلسهٔ ${this.number(index + 1)}` : 'پخش';
+            return index >= 0 && this.progressOf(this.selectedId) > 0 ? `ادامه از جلسهٔ ${this.number(index + 1)} · ${this.time(this.resumeAt(this.selectedId, index))}` : 'پخش';
         },
 
         doneCount() {
@@ -281,18 +279,18 @@ export default function media() {
             return { background: `linear-gradient(145deg,color-mix(in srgb,${color} 58%,var(--md-sys-color-surface)),color-mix(in srgb,${color} 22%,var(--md-sys-color-surface)))` };
         },
 
-        paintMeter(element, fraction) {
-            const value = Math.max(0, Math.min(1, Number(fraction) || 0));
-            const fill = element.querySelector('.h-full');
-            if (fill) fill.style.width = `${value * 100}%`;
+        percent(fraction) {
+            return Math.round(Math.max(0, Math.min(1, Number(fraction) || 0)) * 100);
         },
 
-        paintRing(element) {
-            const value = Math.max(0, Math.min(1, this.progressOf(this.selectedId)));
-            const circle = element.querySelectorAll('circle')[1];
-            if (circle) circle.style.strokeDashoffset = Number(circle.getAttribute('stroke-dasharray')) * (1 - value);
-            const label = element.querySelector('span');
-            if (label) label.textContent = `${this.number(Math.round(value * 100))}٪`;
+        glyph(sid, index) {
+            if (this.isLocked(this.items.find(item => item.id === sid)?.episodes[index])) return 'lock';
+            if (this.playing && this.cur.sid === sid && this.cur.idx === index) return 'eq';
+            return this.episodeState(sid, index) === 'done' ? 'done' : 'num';
+        },
+
+        activeCue(cue) {
+            return this.cur?.sid === this.selectedId && this.t >= cue.start && this.t < cue.end;
         },
 
         seekContext(seconds) {
@@ -308,7 +306,7 @@ export default function media() {
 
         episodeProgress(sid, index) {
             const episode = this.items.find(item => item.id === sid)?.episodes[index];
-            return episode?.duration ? Math.min(1, this._storedPos(episode.id) / episode.duration) : 0;
+            return episode?.duration ? Math.min(1, (this.library.progress?.[episode.id]?.position ?? 0) / episode.duration) : 0;
         },
 
         copyMoment() {
@@ -330,12 +328,20 @@ export default function media() {
             return response.status === 204 ? null : response.json();
         },
 
+        noteFailed(error, fallback) {
+            if (error.name === 'AbortError') return;
+            this.toast({
+                401: 'نشست شما پایان یافته؛ دوباره وارد شوید.',
+                419: 'صفحه منقضی شده؛ آن را دوباره بارگذاری کنید.',
+                422: 'متن یادداشت معتبر نیست.',
+            }[error.message] ?? fallback, 'error');
+        },
+
         async addNote() {
             const episode = this.contextEpisode;
             const body = this.noteBody.trim();
             if (this.noteBusy || !episode?.file_url || this.isLocked(episode) || !body || [...body].length > 500) return;
             this.noteBusy = true;
-            this.noteError = '';
             const position = Math.floor(this.contextTime());
             try {
                 const note = await this.noteRequest('add', { media_id: episode.id, position, body });
@@ -343,7 +349,7 @@ export default function media() {
                 this.libraryNotes = { ...this.libraryNotes, [episode.id]: [...(this.libraryNotes[episode.id] ?? []), note].sort((a, b) => a.position - b.position) };
                 if (this.contextEpisode?.id === episode.id && this.noteBody.trim() === body) this.noteBody = '';
             } catch (error) {
-                if (error.name !== 'AbortError') this.noteError = 'ذخیرهٔ یادداشت انجام نشد؛ دوباره تلاش کنید.';
+                this.noteFailed(error, 'ذخیرهٔ یادداشت انجام نشد؛ دوباره تلاش کنید.');
             } finally { this.noteBusy = false; }
         },
 
@@ -351,14 +357,15 @@ export default function media() {
             if (this.noteBusy || !this.currentNotes.some(note => note.id === Number(id))) return;
             const episodeId = this.contextEpisode.id;
             this.noteBusy = true;
-            this.noteError = '';
             try {
                 await this.noteRequest('delete', { id });
                 if (!destroyed) this.libraryNotes = { ...this.libraryNotes, [episodeId]: (this.libraryNotes[episodeId] ?? []).filter(note => note.id !== Number(id)) };
             } catch (error) {
-                if (error.name !== 'AbortError') this.noteError = 'حذف یادداشت انجام نشد؛ دوباره تلاش کنید.';
+                this.noteFailed(error, 'حذف یادداشت انجام نشد؛ دوباره تلاش کنید.');
             } finally { this.noteBusy = false; }
         },
+
+        _mountTracks() {},
 
         clearTracks() {
             trackSequence++;

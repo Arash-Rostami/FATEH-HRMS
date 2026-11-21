@@ -3,14 +3,14 @@
 namespace Tests\Feature\Livewire\Dashboard;
 
 use App\Livewire\Dashboard\Tab\Reports;
-use App\Models\KnowledgeProgress;
-use Illuminate\Support\Facades\Storage;
 use App\Models\Department;
+use App\Models\KnowledgeProgress;
 use App\Models\Profile;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
