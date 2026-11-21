@@ -23,6 +23,7 @@ use App\Traits\Filament\HandlesDroppedFiles;
 use App\Traits\Filament\HandlesSaveExceptions;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\Exports\Models\Export;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -146,22 +147,17 @@ class MediaResourceTest extends TestCase
 
         $series = Media::factory()->create(['title' => '0-Owner Series', 'kind' => 'series']);
 
-        $data = [
-            'kind' => 'audio',
-            'title' => '0-Child Episode',
-            'active' => true,
-        ];
-
         Livewire::actingAs($admin)
             ->test(EpisodesRelationManager::class, [
                 'ownerRecord' => $series,
                 'pageClass' => EditMedia::class,
             ])
-            ->mountAction('create')
-            ->set('mountedActions.0.data.kind', 'audio')
-            ->set('mountedActions.0.data.title', '0-Child Episode')
-            ->callMountedAction()
-            ->assertHasNoActionErrors();
+            ->callAction(TestAction::make('create')->table(), [
+                'kind' => 'audio',
+                'title' => '0-Child Episode',
+                'active' => true,
+            ])
+            ->assertHasNoFormErrors();
 
         $episode = Media::query()->where('title', '0-Child Episode')->first();
         $this->assertNotNull($episode);
@@ -188,22 +184,18 @@ class MediaResourceTest extends TestCase
 
         $page = Livewire::actingAs($admin)->test(ListMedia::class);
 
-        $actions = $page->instance()->getHeaderActions();
-        $names = array_map(fn($action) => $action->getName(), $actions);
+        $names = array_map(fn($action) => $action->getName(), $page->instance()->getCachedHeaderActions());
 
         $this->assertContains('create', $names);
-        $this->assertContains('switch_media', $names);
-        $this->assertContains('switch_knowledge_progress', $names);
+        $this->assertContains('switch_media_resource', $names);
+        $this->assertContains('switch_knowledge_progress_resource', $names);
     }
 
     public function test_knowledge_progress_resource_is_read_only(): void
     {
-        $this->assertFalse(\App\Filament\Resources\KnowledgeProgressResource::canCreate());
-        $this->assertSame(['index' => 'knowledge-progress'], array_map(
-            fn($page) => $page::getSlug(),
-            \App\Filament\Resources\KnowledgeProgressResource::getPages(),
-        ));
-        $this->assertSame('knowledge-progress', \App\Filament\Resources\KnowledgeProgressResource::getSlug());
+        $this->assertFalse(KnowledgeProgressResource::canCreate());
+        $this->assertSame(['index'], array_keys(KnowledgeProgressResource::getPages()));
+        $this->assertSame('knowledge-progress', KnowledgeProgressResource::getSlug());
     }
 
     public function test_episode_reorder_bumps_the_media_cache_version_once(): void
@@ -226,11 +218,7 @@ class MediaResourceTest extends TestCase
 
         $order = [$episodes[1]->getKey(), $episodes[0]->getKey()];
 
-        try {
-            $component->call('reorderTable', $order);
-        } catch (\Throwable $e) {
-            $this->markTestSkipped('reorderTable requires the Filament table harness: ' . $e->getMessage());
-        }
+        $component->call('reorderTable', $order);
 
         $this->assertNotSame($versionBefore, ModelCacheVersion::version(Media::class), 'the reorder must bump the Media cache version');
         $this->assertSame(

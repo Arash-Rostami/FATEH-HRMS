@@ -476,7 +476,7 @@ describe('playerMixin — pending queue, CSRF and HTTP statuses', () => {
         expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
     })
 
-    test('a failed drain keeps the remainder in the queue for the next load', () => {
+    test('a failed drain puts every chunk back into the queue for the next load', async () => {
         const p = makePlayer()
         global.fetch = vi.fn().mockRejectedValue(new Error('offline'))
         const items = []
@@ -486,7 +486,9 @@ describe('playerMixin — pending queue, CSRF and HTTP statuses', () => {
         p._saveState('media_progress_pending', items)
         p.progressUrl = '/media/progress'
         p.loadLibrary(library())
-        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(60)
+        await vi.waitFor(() => {
+            expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(60)
+        })
     })
 })
 
@@ -576,9 +578,9 @@ describe('playerMixin — prebuffer gating', () => {
         p.t = 450
         p.maybePrebuffer()
         const prebuffer = FakeAudio.instances.at(-1)
+        prebuffer.removeAttribute = vi.fn()
         p.playEpisode(1, 1)
-        expect(prebuffer.removeAttribute).toBeDefined()
-        expect(prebuffer.removeAttribute).toHaveBeenCalled
+        expect(prebuffer.removeAttribute).toHaveBeenCalledWith('src')
     })
 })
 
@@ -589,19 +591,33 @@ describe('playerMixin — destroyPlayer and key handling', () => {
         sharedElement()._trigger('playing')
         p.bindPlayerKeys('#x')
         p.t = 150
+        const remove = vi.spyOn(document, 'removeEventListener')
         p.destroyPlayer()
-        expect(sharedElement().paused).toBe(true)
-        const keydownCount = document._listeners?.keydown?.length ?? 0
-        p.bindPlayerKeys('#x')
-        p.destroyPlayer()
+        expect(remove).toHaveBeenCalledWith('keydown', expect.any(Function))
+        remove.mockRestore()
     })
 
-    test('audio keeps playing across destroy (survives wire:navigate); video pauses', () => {
+    test('audio keeps playing across destroy (survives wire:navigate) and a new component re-adopts it', () => {
         const p = makePlayer()
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
+        p.t = 50
         p.destroyPlayer()
-        expect(FakeAudio.instances.at(-1).paused).toBe(true)
+        expect(sharedElement().paused).toBe(false)
+        const next = playerMixin()
+        next.progressUrl = '/media/progress'
+        next.loadLibrary(library())
+        expect(next.cur).toEqual({ sid: 1, idx: 0 })
+        expect(next.playing).toBe(true)
+    })
+
+    test('video pauses and releases the shared ui on destroy', () => {
+        const p = makePlayer()
+        document.createElement = () => new FakeAudio()
+        p.playEpisode(2, 0)
+        sharedElement()._trigger('playing')
+        p.destroyPlayer()
+        expect(sharedElement().paused).toBe(true)
     })
 })
 
