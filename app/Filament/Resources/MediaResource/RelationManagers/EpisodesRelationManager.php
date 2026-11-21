@@ -22,6 +22,11 @@ class EpisodesRelationManager extends RelationManager
 
     protected static string $relationship = 'episodes';
 
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        return $ownerRecord->kind === 'series' && parent::canViewForRecord($ownerRecord, $pageClass);
+    }
+
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('resources/media/strings.relation.episodes');
@@ -39,6 +44,7 @@ class EpisodesRelationManager extends RelationManager
                                 ->description(__('resources/report/strings.form.section_description'))
                                 ->icon('heroicon-o-document-text')
                                 ->schema([
+                                    MediaFormPresenter::episodeKind(),
                                     MediaFormPresenter::title(),
                                     MediaFormPresenter::topic(),
                                     MediaFormPresenter::icon(),
@@ -99,7 +105,13 @@ class EpisodesRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->icon('heroicon-o-sparkles')
-                    ->label(__('resources/media/strings.navigation.singular')),
+                    ->label(__('resources/media/strings.navigation.singular'))
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['user_id'] = auth()->id();
+                        $data['parent_id'] = $this->getOwnerRecord()->getKey();
+
+                        return $data;
+                    }),
             ])
             ->recordActions([
                 self::viewAction(),

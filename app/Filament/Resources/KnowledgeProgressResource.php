@@ -11,7 +11,6 @@ use App\Traits\Filament\FilamentActions;
 use App\Traits\Filament\FilamentFilters;
 use App\Traits\Filament\FilamentResourceSwitch;
 use Filament\Resources\Resource;
-use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -30,6 +29,7 @@ class KnowledgeProgressResource extends Resource
     }
 
     protected static ?string $model = KnowledgeProgress::class;
+    protected static ?string $slug = 'knowledge-progress';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 
     public static function getEloquentQuery(): Builder
@@ -82,10 +82,7 @@ class KnowledgeProgressResource extends Resource
                 self::createdAtFilter(),
             ])
             ->filtersFormColumns(2)
-            ->recordActions([
-                static::bulkExportAction(ProgressExporter::class),
-            ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(ProgressExporter::class))
+            ->groupedBulkActions([static::bulkExportAction(ProgressExporter::class)])
             ->emptyStateIcon('heroicon-o-bookmark')
             ->defaultSort('last_seen_at', 'desc')
             ->striped();

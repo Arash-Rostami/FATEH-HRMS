@@ -12,13 +12,15 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ListMedia extends ListRecords
 {
-    use FilamentHeaderActions;
+    use FilamentHeaderActions {
+        getHeaderActions as private baseHeaderActions;
+    }
 
     protected static string $resource = MediaResource::class;
 
-    protected function listHeaderActions(): array
+    protected function getHeaderActions(): array
     {
-        return [...ReportResource::switchActions(static::$resource), MediaResource::setupGuideAction()];
+        return [...ReportResource::switchActions(static::$resource), ...$this->baseHeaderActions()];
     }
 
     public function getTabs(): array

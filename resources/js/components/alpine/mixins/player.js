@@ -1,6 +1,7 @@
 import persistentStateMixin from "./persistentState.js";
 
 const EVENT_PAUSE_REQ = 'audio-pause-request';
+const EVENT_PLAY_STATE = 'audio-play-state';
 const EVENT_STATE = 'media:state';
 const EVENT_ENDED = 'media:ended';
 const PROGRESS_KEY = 'media_progress';
@@ -10,8 +11,13 @@ const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 const DIGIT_REGEX = /[0-9]/g;
 const INPUT_SEL = 'input, textarea, select, [contenteditable]';
 const SAFETY_TICK_MS = 15000;
+const PENDING_CAP = 100;
+const CHUNK_SIZE = 50;
 
-const shared = { element: null, kind: null, prebuffer: null, ui: null, bound: false, keydown: null, interval: null, stateRaf: null };
+const shared = {
+    element: null, kind: null, prebuffer: null, ui: null, bound: false,
+    keydown: null, interval: null, stateRaf: null, resumeSeek: null, host: null, selfPause: false,
+};
 
 const fmt = (s) => {
     if (!Number.isFinite(s) || s <= 0) return '0:00';
@@ -42,17 +48,24 @@ const emitStateCoalesced = (ui) => {
     });
 };
 
+const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
 function ensureElement(ui, kind) {
     if (shared.element && shared.kind === kind) {
         return shared.element;
     }
-    if (shared.element) shared.element.pause();
+    if (shared.element) {
+        if (shared.kind === 'video' && shared.element.parentNode) shared.element.parentNode.removeChild(shared.element);
+        shared.element.pause();
+    }
     shared.element = kind === 'video' ? document.createElement('video') : new Audio();
     shared.kind = kind;
     shared.element.preload = 'metadata';
     shared.element.volume = ui.vol;
     shared.element.muted = ui.muted;
+    shared.element.setAttribute('playsinline', '');
     bindElement(ui);
+    if (kind === 'video' && shared.host) shared.host.appendChild(shared.element);
     return shared.element;
 }
 
@@ -70,7 +83,7 @@ function bindElement(ui) {
     });
 
     el.addEventListener('pause', () => {
-        if (!shared.ui) return;
+        if (!shared.ui || shared.selfPause) return;
         shared.ui.playing = false;
         stopSafetyInterval();
         shared.ui.flush('pause');
@@ -102,9 +115,10 @@ function bindElement(ui) {
         if (!shared.ui) return;
         shared.ui.t = el.currentTime;
         if (Number.isFinite(el.duration) && el.duration > 0) shared.ui.duration = el.duration;
-        if (shared.ui.playing && shared.ui.t - shared.ui._lastPersist >= (shared.ui.sync.local_seconds || 5)) {
+        const ep = shared.ui.episode();
+        if (ep && shared.ui.playing && shared.ui.t - shared.ui._lastPersist >= (shared.ui.sync.local_seconds || 5)) {
             shared.ui._lastPersist = shared.ui.t;
-            shared.ui._storeLocal(shared.ui.episode()?.id, Math.floor(shared.ui.t));
+            shared.ui._storeLocal(ep.id, Math.floor(shared.ui.t));
         }
         shared.ui.maybePrebuffer();
         emitStateCoalesced(shared.ui);
@@ -134,8 +148,19 @@ function stopSafetyInterval() {
     }
 }
 
+function cancelResumeSeek(el) {
+    if (shared.resumeSeek) {
+        el.removeEventListener('loadedmetadata', shared.resumeSeek);
+        shared.resumeSeek = null;
+    }
+}
+
 window.addEventListener(EVENT_PAUSE_REQ, () => {
     if (live()) shared.element.pause();
+});
+
+window.addEventListener(EVENT_PLAY_STATE, (e) => {
+    if (e.detail === true && live()) shared.element.pause();
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -152,7 +177,7 @@ window.addEventListener('pageshow', (e) => {
 document.addEventListener('livewire:navigating', () => {
     if (!shared.ui) return;
     shared.ui.flush('navigating');
-    if (shared.ui.playing) shared.element.pause();
+    if (shared.ui.playing && shared.kind === 'video') shared.element.pause();
 });
 
 export default function playerMixin() {
@@ -170,11 +195,12 @@ export default function playerMixin() {
         ready: false,
         error: false,
         tapToPlay: false,
+        seeking: false,
         progressUrl: '',
         sync: { local_seconds: 5, safety_seconds: 90, min_delta: 10, prebuffer_remaining_seconds: 120 },
         _lastPersist: 0,
         _lastFlush: 0,
-        _csrf: '',
+        _synced: {},
 
         get timeLabel() {
             return faTime(this.t) + ' / ' + faTime(this.duration);
@@ -188,9 +214,27 @@ export default function playerMixin() {
             return this.episode();
         },
 
+        get fa() {
+            return fa;
+        },
+
         loadLibrary(payload) {
             this.library = payload ?? { items: [], progress: {}, notes: {} };
             this.ready = true;
+            if (shared.ui === null && this.cur.sid !== null && shared.element) shared.ui = this;
+            this._drainPending();
+        },
+
+        adoptPlayback() {
+            if (!shared.element) return false;
+            if (shared.ui) this._synced = shared.ui._synced;
+            shared.ui = this;
+            this.cur = shared.ui === this ? shared.uiCur ?? this.cur : this.cur;
+            this.t = shared.element.currentTime;
+            this.duration = Number.isFinite(shared.element.duration) ? shared.element.duration : this.duration;
+            this.playing = live();
+            this.error = false;
+            return true;
         },
 
         item(sid) {
@@ -233,7 +277,7 @@ export default function playerMixin() {
             const serverPos = server?.position ?? 0;
             const furthest = Math.max(local, serverPos);
             if (furthest < 5) return 0;
-            return server?.last_position ?? furthest;
+            return Math.max(server?.last_position ?? 0, local);
         },
 
         selectItem(id) {
@@ -250,7 +294,9 @@ export default function playerMixin() {
                 return;
             }
             if (live() || this.playing) this.flush('switch');
+            shared.selfPause = true;
             window.dispatchEvent(new CustomEvent(EVENT_PAUSE_REQ));
+            shared.selfPause = false;
             const el = ensureElement(this, item.kind === 'video' ? 'video' : 'audio');
             shared.ui = this;
             this.cur = { sid, idx };
@@ -262,6 +308,7 @@ export default function playerMixin() {
             this._lastPersist = 0;
             this._lastFlush = 0;
             this._releasePrebuffer();
+            cancelResumeSeek(el);
 
             if (!this.canPlay(ep.mime)) {
                 this.error = true;
@@ -306,12 +353,6 @@ export default function playerMixin() {
 
         skip(delta) {
             this.seek(this.t + delta);
-        },
-
-        seekFromEvent(e, rectEl) {
-            const rect = (rectEl || e.currentTarget).getBoundingClientRect();
-            const fraction = Math.min(1, Math.max(0, (rect.right - e.clientX) / rect.width));
-            this.seek(this.duration * fraction);
         },
 
         next(auto = false) {
@@ -361,17 +402,24 @@ export default function playerMixin() {
         },
 
         flush(reason) {
-            if (!this.cur.sid) return;
+            if (!this.cur.sid || !(shared.ui === this) || !shared.element?.src || this.t <= 0) return;
             const ep = this.episode();
             if (!ep) return;
             const tolerance = 5;
             const cap = (ep.duration || this.duration || 0) + tolerance;
             const position = Math.max(0, Math.min(Math.floor(Math.max(this.t, this._storedPos(ep.id))), cap));
             const lastPosition = Math.max(0, Math.floor(this.t));
-            const storedPos = Math.floor(this._loadState(PROGRESS_KEY, {})[ep.id]?.position ?? 0);
-            if (position === storedPos && reason !== 'pagehide' && reason !== 'freeze') {
-                this._lastFlush = this.t;
-                return;
+            const ack = this._synced[ep.id];
+            const minDelta = this.sync.min_delta || 10;
+            if (ack && reason !== 'pagehide' && reason !== 'freeze') {
+                if (position === ack.position && lastPosition === ack.last_position) {
+                    this._lastFlush = this.t;
+                    return;
+                }
+                if (reason === 'safety' && position - ack.position < minDelta) {
+                    this._lastFlush = this.t;
+                    return;
+                }
             }
             const ratio = ep.duration ? position / ep.duration : 0;
             const completed = ratio >= 0.95;
@@ -384,7 +432,7 @@ export default function playerMixin() {
                 duration: Math.floor(this.duration) || null,
             };
             this._storeLocal(ep.id, position);
-            this._queuePending([entry]);
+            this._markProgress(ep.id, position, lastPosition, completed);
             this._lastFlush = this.t;
             this._sendProgress(this.progressUrl, { items: [entry] });
         },
@@ -393,9 +441,23 @@ export default function playerMixin() {
             this.flush('destroy');
             stopSafetyInterval();
             this._releasePrebuffer();
+            if (shared.keydown) {
+                document.removeEventListener('keydown', shared.keydown);
+                shared.keydown = null;
+            }
+            if (shared.kind === 'video' && shared.element?.parentNode) {
+                shared.element.parentNode.removeChild(shared.element);
+            }
             if (shared.ui === this) {
                 shared.ui = null;
-                if (shared.element) shared.element.pause();
+                if (shared.kind === 'video' && shared.element) shared.element.pause();
+            }
+        },
+
+        mountVideo(host) {
+            shared.host = host ?? null;
+            if (shared.kind === 'video' && shared.element && shared.host && !shared.element.parentNode) {
+                shared.host.appendChild(shared.element);
             }
         },
 
@@ -409,9 +471,11 @@ export default function playerMixin() {
                     this.toggle();
                 } else if (e.key === 'ArrowLeft') {
                     e.preventDefault();
+                    e.stopPropagation();
                     this.skip(10);
                 } else if (e.key === 'ArrowRight') {
                     e.preventDefault();
+                    e.stopPropagation();
                     this.skip(-10);
                 } else if (e.key === 'n' || e.key === 'N') {
                     this.next();
@@ -446,6 +510,18 @@ export default function playerMixin() {
             this._saveState(PROGRESS_KEY, { ...stored, [id]: { position, updatedAt: Date.now() } });
         },
 
+        _markProgress(id, position, lastPosition, completed) {
+            const prev = this.library.progress?.[id];
+            this.library.progress = {
+                ...(this.library.progress ?? {}),
+                [id]: {
+                    position: Math.max(prev?.position ?? 0, position),
+                    last_position: lastPosition,
+                    completed: completed || !!(prev?.completed),
+                },
+            };
+        },
+
         _nextPlayable(from) {
             const episodes = this.item()?.episodes ?? [];
             for (let i = from; i < episodes.length; i++) {
@@ -463,14 +539,16 @@ export default function playerMixin() {
         },
 
         _seekOnMeta(el, at) {
-            const seek = () => {
-                el.currentTime = at;
-                el.removeEventListener('loadedmetadata', seek);
-            };
+            cancelResumeSeek(el);
             if (el.readyState >= 1) {
                 el.currentTime = at;
                 return;
             }
+            const seek = () => {
+                el.currentTime = at;
+                cancelResumeSeek(el);
+            };
+            shared.resumeSeek = seek;
             el.addEventListener('loadedmetadata', seek);
         },
 
@@ -492,24 +570,42 @@ export default function playerMixin() {
             return tr;
         },
 
+        _coalescePending(pending) {
+            const byId = {};
+            for (const item of pending) {
+                byId[item.id] = item;
+            }
+            return Object.values(byId);
+        },
+
         _queuePending(items) {
-            const pending = this._loadState(PENDING_KEY, []);
-            this._saveState(PENDING_KEY, [...pending, ...items].slice(-100));
+            const merged = this._coalescePending([...this._loadState(PENDING_KEY, []), ...items]);
+            this._saveState(PENDING_KEY, merged.slice(-PENDING_CAP));
         },
 
         _drainPending() {
-            const pending = this._loadState(PENDING_KEY, []);
-            if (!pending.length) return;
-            this._sendProgress(this.progressUrl, { items: pending }, true);
+            const pending = this._coalescePending(this._loadState(PENDING_KEY, []));
+            if (!pending.length || !this.progressUrl) return;
+            const remaining = [...pending];
+            while (remaining.length) {
+                const chunk = remaining.splice(0, CHUNK_SIZE);
+                const ok = this._sendProgress(this.progressUrl, { items: chunk }, { keepalive: false, drain: true });
+                if (!ok) {
+                    this._saveState(PENDING_KEY, remaining);
+                    return;
+                }
+            }
             this._saveState(PENDING_KEY, []);
         },
 
-        _sendProgress(url, body, keepalive = false) {
+        _sendProgress(url, body, { keepalive = false, drain = false } = {}) {
             if (!url) return false;
-            const payload = { ...body, _token: this._csrf };
-            if (!keepalive && navigator.sendBeacon) {
+            const payload = { ...body, _token: csrfToken() };
+            if (navigator.sendBeacon && !keepalive && !drain) {
                 try {
-                    return navigator.sendBeacon(url, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+                    navigator.sendBeacon(url, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+                    this._ack(body.items);
+                    return true;
                 } catch {
                 }
             }
@@ -519,9 +615,22 @@ export default function playerMixin() {
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify(payload),
             }).then((r) => {
-                if (!r.ok && r.status === 419) this._queuePending(body.items ?? []);
-            }).catch(() => {});
+                if (r.ok) {
+                    this._ack(body.items);
+                    if (drain) this._saveState(PENDING_KEY, []);
+                } else if (r.status === 401 || r.status === 419 || r.status === 422) {
+                    this._queuePending(body.items ?? []);
+                }
+            }).catch(() => {
+                this._queuePending(body.items ?? []);
+            });
             return true;
+        },
+
+        _ack(items) {
+            for (const item of items ?? []) {
+                this._synced[item.id] = { position: item.position, last_position: item.last_position };
+            }
         },
 
         _releasePrebuffer() {

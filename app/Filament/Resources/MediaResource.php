@@ -37,6 +37,7 @@ class MediaResource extends Resource
 
     protected static ?string $model = Media::class;
     protected static ?string $recordTitleAttribute = 'title';
+    protected static ?string $slug = 'media';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-play-circle';
 
     protected static array $guide = [

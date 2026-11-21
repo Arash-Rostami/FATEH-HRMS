@@ -7,6 +7,7 @@ use App\Filament\Resources\KnowledgeProgressResource;
 use App\Filament\Resources\ReportResource;
 use App\Models\KnowledgeProgress;
 use App\Traits\Filament\FilamentHeaderActions;
+use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListKnowledgeProgress extends ListRecords
@@ -22,16 +23,16 @@ class ListKnowledgeProgress extends ListRecords
         }
 
         return [
-            'all' => \Filament\Schemas\Components\Tabs\Tab::make('همه')
+            'all' => Tab::make('همه')
                 ->icon('heroicon-o-list-bullet'),
 
-            'completed' => \Filament\Schemas\Components\Tabs\Tab::make(__('resources/media/strings.progress.export.completed_yes'))
+            'completed' => Tab::make(__('resources/media/strings.progress.export.completed_yes'))
                 ->icon('heroicon-o-check-circle')
                 ->badge(fn() => $this->getStats()->completed_count ?: null)
                 ->badgeColor('success')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('completed_at')),
 
-            'in_progress' => \Filament\Schemas\Components\Tabs\Tab::make(__('resources/media/strings.progress.tabs.in_progress'))
+            'in_progress' => Tab::make(__('resources/media/strings.progress.tabs.in_progress'))
                 ->icon('heroicon-o-play-circle')
                 ->badge(fn() => $this->getStats()->open_count ?: null)
                 ->badgeColor('warning')

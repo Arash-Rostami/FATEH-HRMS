@@ -98,7 +98,7 @@ class MediaResourceTest extends TestCase
                 'kind' => 'series',
                 'title' => '0-Created Series Title',
                 'user_id' => $author->id,
-                'icon' => 'heroicon-o-play',
+                'icon' => 'heroicon-o-video-camera',
             ])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -138,6 +138,72 @@ class MediaResourceTest extends TestCase
             ->assertHasNoFormErrors();
 
         $this->assertSame('0-Updated Media Title', $media->fresh()->title);
+    }
+
+    public function test_create_episode_in_relation_manager_sets_kind_user_and_parent(): void
+    {
+        $admin = $this->developer();
+
+        $series = Media::factory()->create(['title' => '0-Owner Series', 'kind' => 'series']);
+
+        $data = [
+            'kind' => 'audio',
+            'title' => '0-Child Episode',
+            'active' => true,
+        ];
+
+        Livewire::actingAs($admin)
+            ->test(EpisodesRelationManager::class, [
+                'ownerRecord' => $series,
+                'pageClass' => EditMedia::class,
+            ])
+            ->mountAction('create')
+            ->set('mountedActions.0.data.kind', 'audio')
+            ->set('mountedActions.0.data.title', '0-Child Episode')
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+
+        $episode = Media::query()->where('title', '0-Child Episode')->first();
+        $this->assertNotNull($episode);
+        $this->assertSame('audio', $episode->kind);
+        $this->assertSame($series->id, $episode->parent_id);
+        $this->assertSame($admin->id, $episode->user_id);
+    }
+
+    public function test_episodes_relation_manager_hidden_for_non_series_owners(): void
+    {
+        $this->assertFalse(EpisodesRelationManager::canViewForRecord(
+            Media::factory()->make(['kind' => 'audio']),
+            EditMedia::class,
+        ));
+        $this->assertFalse(EpisodesRelationManager::canViewForRecord(
+            Media::factory()->make(['kind' => 'audio', 'parent_id' => 1]),
+            EditMedia::class,
+        ));
+    }
+
+    public function test_list_media_header_actions_include_create(): void
+    {
+        $admin = $this->developer();
+
+        $page = Livewire::actingAs($admin)->test(ListMedia::class);
+
+        $actions = $page->instance()->getHeaderActions();
+        $names = array_map(fn($action) => $action->getName(), $actions);
+
+        $this->assertContains('create', $names);
+        $this->assertContains('switch_media', $names);
+        $this->assertContains('switch_knowledge_progress', $names);
+    }
+
+    public function test_knowledge_progress_resource_is_read_only(): void
+    {
+        $this->assertFalse(\App\Filament\Resources\KnowledgeProgressResource::canCreate());
+        $this->assertSame(['index' => 'knowledge-progress'], array_map(
+            fn($page) => $page::getSlug(),
+            \App\Filament\Resources\KnowledgeProgressResource::getPages(),
+        ));
+        $this->assertSame('knowledge-progress', \App\Filament\Resources\KnowledgeProgressResource::getSlug());
     }
 
     public function test_delete_table_action_removes_media_row()

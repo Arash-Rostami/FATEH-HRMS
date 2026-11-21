@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\KnowledgeProgressResource\Schemas;
 
+use App\Models\User;
 use App\Traits\Filament\FilamentFilters;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -118,7 +119,7 @@ class KnowledgeProgressTablePresenter
     {
         return SelectFilter::make('user_id')
             ->label(__('resources/media/strings.progress.table.user'))
-            ->options(fn() => \App\Models\User::query()->select('id', 'name')->visibleOnBoard()->orderBy('name')->pluck('name', 'id')->all())
+            ->options(fn() => User::query()->select('id', 'name')->visibleOnBoard()->orderBy('name')->pluck('name', 'id')->all())
             ->searchable();
     }
 }

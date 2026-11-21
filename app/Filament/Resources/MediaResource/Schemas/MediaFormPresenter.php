@@ -11,8 +11,11 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Symfony\Component\Mime\MimeTypes;
 
 class MediaFormPresenter extends ReportFormPresenter
 {
@@ -20,14 +23,34 @@ class MediaFormPresenter extends ReportFormPresenter
     {
         return Select::make('kind')
             ->label(__('resources/media/strings.fields.kind'))
+            ->options(static::kindOptions())
+            ->required()
+            ->live()
+            ->default('audio')
+            ->helperText(__('resources/media/strings.hints.kind'));
+    }
+
+    public static function episodeKind(): Select
+    {
+        return Select::make('kind')
+            ->label(__('resources/media/strings.fields.kind'))
             ->options([
-                'series' => __('resources/media/strings.fields.kind_series'),
                 'audio' => __('resources/media/strings.fields.kind_audio'),
                 'video' => __('resources/media/strings.fields.kind_video'),
             ])
             ->required()
+            ->live()
             ->default('audio')
-            ->helperText(__('resources/media/strings.hints.kind'));
+            ->helperText(__('resources/media/strings.hints.episode_kind'));
+    }
+
+    private static function kindOptions(): array
+    {
+        return [
+            'series' => __('resources/media/strings.fields.kind_series'),
+            'audio' => __('resources/media/strings.fields.kind_audio'),
+            'video' => __('resources/media/strings.fields.kind_video'),
+        ];
     }
 
     public static function topic(): TextInput
@@ -43,6 +66,8 @@ class MediaFormPresenter extends ReportFormPresenter
     {
         return Select::make('parent_id')
             ->label(__('resources/media/strings.fields.parent_id'))
+            ->live()
+            ->hidden(fn(Get $get): bool => $get('kind') === 'series')
             ->options(fn() => Media::query()
                 ->select('id', 'title')
                 ->whereNull('parent_id')
@@ -88,16 +113,7 @@ class MediaFormPresenter extends ReportFormPresenter
             ->label(__('resources/media/strings.fields.file_path'))
             ->downloadable()
             ->openable()
-            ->acceptedFileTypes([
-                'audio/mpeg',
-                'audio/mp4',
-                'audio/x-m4a',
-                'audio/wav',
-                'audio/x-wav',
-                'audio/ogg',
-                'video/mp4',
-                'video/webm',
-            ])
+            ->acceptedFileTypes(static::mediaMimes())
             ->maxSize(config('file_upload_limits.video'))
             ->disk('public')
             ->directory('media/files')
@@ -114,6 +130,22 @@ class MediaFormPresenter extends ReportFormPresenter
             })
             ->nullable()
             ->helperText(__('resources/media/strings.hints.file_path'));
+    }
+
+    private static function mediaMimes(): array
+    {
+        $guesser = MimeTypes::getDefault();
+
+        $mimes = [];
+        foreach ((array) config('media.mimes', []) as $list) {
+            foreach ((array) $list as $extension) {
+                foreach ($guesser->getMimeTypes($extension) as $mime) {
+                    $mimes[$mime] = true;
+                }
+            }
+        }
+
+        return array_keys($mimes);
     }
 
     public static function durationSeconds(): TextInput
@@ -175,13 +207,17 @@ class MediaFormPresenter extends ReportFormPresenter
     private static function vttUpload(string $name): FileUpload
     {
         return FileUpload::make($name)
-            ->acceptedFileTypes(['text/vtt'])
+            ->acceptedFileTypes(['text/vtt', 'text/plain', 'application/octet-stream'])
             ->maxSize(config('file_upload_limits.document'))
             ->disk('public')
             ->directory('media/files')
             ->getUploadedFileNameForStorageUsing(
-                fn(TemporaryUploadedFile $file): string => FileNamer::stored('media', $file)
+                fn(TemporaryUploadedFile $file): string => Str::of(FileNamer::stored('media', $file))->replaceLast(
+                    $file->getClientOriginalExtension() ?: 'vtt',
+                    'vtt',
+                )->toString()
             )
+            ->rules(['extensions:vtt'])
             ->downloadable()
             ->openable()
             ->nullable();
