@@ -47,11 +47,12 @@ class MediaPresenter
         }
 
         $payload['progress'] = (object) KnowledgeProgress::where('user_id', $user->id)->whereIn('media_id', $episodeIds)
-            ->get(['media_id', 'position', 'last_position', 'completed_at'])
+            ->get(['media_id', 'position', 'last_position', 'completed_at', 'last_seen_at', 'updated_at'])
             ->mapWithKeys(fn (KnowledgeProgress $row) => [$row->media_id => [
                 'position' => (int) $row->position,
                 'last_position' => (int) $row->last_position,
                 'completed' => $row->completed_at !== null,
+                'updated_at' => (int) ($row->last_seen_at ?? $row->updated_at)?->timestamp,
             ]])->all();
         $payload['notes'] = (object) MediaNote::where('user_id', $user->id)->whereIn('media_id', $episodeIds)
             ->orderBy('position')->orderBy('id')->get(['id', 'media_id', 'position', 'body'])

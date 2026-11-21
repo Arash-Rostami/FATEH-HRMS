@@ -11,6 +11,7 @@ use App\Models\MediaNote;
 use App\Models\Profile;
 use App\Models\Report;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
@@ -85,6 +86,7 @@ class MediaTest extends TestCase
         $this->assertArrayHasKey('serverNow', $payload);
         $this->assertArrayNotHasKey('file_path', $row['episodes'][0]);
         $this->assertSame(40, ((array) $payload['progress'])[$item->id]['last_position']);
+        $this->assertSame(KnowledgeProgress::where('media_id', $item->id)->first()->updated_at->timestamp, ((array) $payload['progress'])[$item->id]['updated_at']);
         $this->assertSame('یادداشت من', ((array) $payload['notes'])[$item->id][0]['body']);
         $this->assertStringNotContainsString('یادداشت دیگری', json_encode($payload, JSON_UNESCAPED_UNICODE));
     }
@@ -195,6 +197,8 @@ class MediaTest extends TestCase
         $this->assertArrayNotHasKey('notes', $cached[0]);
         KnowledgeProgress::where('media_id', $item->id)->update(['position' => 200]);
         $this->assertSame(200, ((array) $presenter->library($user)['progress'])[$item->id]['position']);
+        KnowledgeProgress::where('media_id', $item->id)->update(['last_seen_at' => '2026-01-01 00:00:00']);
+        $this->assertSame(Carbon::parse('2026-01-01 00:00:00')->timestamp, ((array) $presenter->library($user)['progress'])[$item->id]['updated_at']);
     }
 
     public function test_department_label_falls_back_to_the_audience_departments(): void
