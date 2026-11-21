@@ -179,13 +179,14 @@ class MediaModelTest extends TestCase
     public function test_catalog_cache_is_department_scoped_and_changes_with_the_day(): void
     {
         ModelCacheVersion::bump(Media::class);
+        $this->travelTo(today()->setTime(23, 59, 30));
 
         $this->assertSame(['d' => 'A'], Media::cachedCatalog('KMDA', fn () => ['d' => 'A']));
         $this->assertSame(['d' => 'B'], Media::cachedCatalog('KMDB', fn () => ['d' => 'B']));
         $this->assertSame(['d' => 'all'], Media::cachedCatalog(null, fn () => ['d' => 'all']));
         $this->assertSame(['d' => 'A'], Media::cachedCatalog('KMDA', fn () => ['d' => 'changed']));
 
-        $this->travelTo(now()->addDay());
+        $this->travelTo(now()->addMinute());
 
         $this->assertSame(['d' => 'next-day'], Media::cachedCatalog('KMDA', fn () => ['d' => 'next-day']));
 
