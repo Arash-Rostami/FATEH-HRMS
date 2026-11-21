@@ -4,7 +4,8 @@
     @foreach($this->library['items'] as $item)
         <template wire:key="media-workspace-{{ $item['id'] }}" data-id="{{ $item['id'] }}" x-if="selectedId === Number($el.dataset.id)">
         <section>
-            <header class="relative flex flex-wrap items-end gap-4 md:gap-7 p-4 md:p-7 bg-gradient-to-b from-[var(--md-sys-color-primary-container)] to-[var(--md-sys-color-background)]">
+            <header class="relative flex flex-wrap items-end gap-4 md:gap-7 p-4 md:p-7 bg-gradient-to-b from-[var(--md-sys-color-primary-container)] to-[var(--md-sys-color-background)]"
+                    :class="headerDeclutter ? 'md:h-0! md:py-0! md:overflow-hidden! md:pointer-events-none!' : ''">
                 <x-ui.buttons.form variant="ghost" size="icon" x-on:click="backToList()" class="md:hidden" aria-label="بازگشت به کتابخانه"><span class="material-symbols-rounded">arrow_forward</span></x-ui.buttons.form>
                 <div class="w-28 h-28 md:w-[184px] md:h-[184px] rounded-2xl shrink-0 flex items-center justify-center overflow-hidden" data-accent="{{ $item['accent'] }}" :style="accentStyle($el.dataset.accent)">
                     @if($item['cover_url'])
@@ -24,6 +25,7 @@
                 <x-ui.buttons.form variant="primary" x-on:click="heroPlay()" x-bind:disabled="!selected?.episodes.some(ep => ep.file_url)"><span class="material-symbols-rounded" x-text="playing && cur.sid === selectedId ? 'pause' : 'play_arrow'"></span><span x-text="heroLabel()"></span></x-ui.buttons.form>
                 <x-ui.buttons.bookmark :id="$item['id']" scope="media" class="w-10 h-10" />
                 <x-ui.buttons.form variant="ghost" size="icon" x-on:click="copyMoment()" title="پیوند این لحظه" aria-label="پیوند این لحظه"><span class="material-symbols-rounded">share</span></x-ui.buttons.form>
+                <x-ui.buttons.form variant="ghost" size="icon" x-on:click="toggleHeaderDeclutter()" x-bind:aria-pressed="headerDeclutter" x-bind:title="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'" x-bind:aria-label="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'" class="max-md:hidden"><span class="material-symbols-rounded rotate-90" x-text="headerDeclutter ? 'unfold_more' : 'unfold_less'"></span></x-ui.buttons.form>
                 <x-ui.modals.maximize-button size="lg" />
                 <div class="hidden md:flex items-center gap-3 ms-auto">
                     <div class="relative inline-flex items-center justify-center shrink-0 w-14 h-14">

@@ -155,6 +155,26 @@ describe('media library', () => {
         expect(root.destroyPlayer).toHaveBeenCalledOnce();
     });
 
+    it('collapses the hero header through the shared declutter mixin and persists it per module', () => {
+        const root = component([item(1)]);
+        root.initMaximize = vi.fn();
+        root.bindPlayerKeys = vi.fn();
+        root.init();
+        expect(root.headerDeclutter).toBe(false);
+        root.toggleHeaderDeclutter();
+        expect(root.headerDeclutterExit).toBe(true);
+        vi.advanceTimersByTime(400);
+        expect(root.headerDeclutter).toBe(true);
+        expect(JSON.parse(localStorage.getItem('table-tools:media'))).toBe(true);
+        root.destroy();
+        const again = component([item(1)]);
+        again.initMaximize = vi.fn();
+        again.bindPlayerKeys = vi.fn();
+        again.init();
+        expect(again.headerDeclutter).toBe(true);
+        again.destroy();
+    });
+
     it('formats digits itself', () => {
         expect(component([item(1)]).number(12)).toBe('۱۲');
     });

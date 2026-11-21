@@ -5,6 +5,7 @@ import lastOpenMixin from '../mixins/lastOpen.js';
 import persistentStateMixin from '../mixins/persistentState.js';
 import highlightMatchMixin from '../mixins/highlightMatch.js';
 import clipboardMixin from '../mixins/clipboard.js';
+import tableToolsMixin from '../mixins/tableTools.js';
 import { normalize } from './memberPicker.js';
 
 export default function media() {
@@ -24,6 +25,7 @@ export default function media() {
         ...persistentStateMixin(),
         ...highlightMatchMixin(),
         ...clipboardMixin(),
+        ...tableToolsMixin('media'),
         items: [],
         libraryNotes: {},
         selectedId: null,
@@ -56,6 +58,7 @@ export default function media() {
             this.bindPlayerKeys('[data-media-root]');
             this.readLibrary();
             this.initMaximize();
+            this.initTableTools();
             window.addEventListener('media:state', () => this.syncTrackContext(), { signal: controller.signal });
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) this.scheduleUnlock();
@@ -465,6 +468,7 @@ export default function media() {
             clearTimeout(unlockTimer);
             this.clearTracks();
             this.destroyPlayer();
+            this.destroyTableTools();
             if (this.maxOn) this.applyMaximize(false);
         },
     }));
