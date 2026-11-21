@@ -15,7 +15,7 @@ class ProgressExporter extends Exporter
 
     public static function modifyQuery(Builder $query): Builder
     {
-        return $query->with(['user:id,name', 'media:id,title,parent_id', 'media.parent:id,title', 'report:id,title']);
+        return $query->with(['user:id,name', 'media:id,title,parent_id', 'media.parent:id,title']);
     }
 
     public static function getColumns(): array
@@ -29,7 +29,7 @@ class ProgressExporter extends Exporter
 
             ExportColumn::make('item')
                 ->label(__('resources/media/strings.progress.export.item'))
-                ->state(fn($record) => $record->media?->title ?? $record->report?->title ?? '-'),
+                ->state(fn($record) => $record->media?->title ?? '-'),
 
             ExportColumn::make('series')
                 ->label(__('resources/media/strings.progress.export.series'))

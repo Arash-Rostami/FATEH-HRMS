@@ -117,7 +117,7 @@ class MediaPlaybackTest extends TestCase
         $this->assertNull(KnowledgeProgress::query()->where('media_id', $locked->id)->first());
     }
 
-    public function test_completion_is_stamped_once_and_report_tracking_can_be_switched_off(): void
+    public function test_completion_is_stamped_once_and_report_items_are_ignored(): void
     {
         $this->assertSame(1, SaveProgressAction::execute($this->viewer, [$this->item(96, 96, true)]));
         $doneAt = $this->progress()->completed_at;
@@ -126,7 +126,6 @@ class MediaPlaybackTest extends TestCase
         $this->assertSame(0, SaveProgressAction::execute($this->viewer, [$this->item(96, 96, true)]));
         $this->assertTrue($doneAt->eq($this->progress()->completed_at));
 
-        config(['media.track_reports' => false]);
         $report = Report::factory()->create(['departments' => null, 'active' => true]);
 
         $this->assertSame(0, SaveProgressAction::execute($this->viewer, [[
@@ -137,7 +136,7 @@ class MediaPlaybackTest extends TestCase
             'completed' => false,
             'duration' => 10,
         ]]));
-        $this->assertNull(KnowledgeProgress::query()->where('report_id', $report->id)->first());
+        $this->assertSame(1, KnowledgeProgress::query()->count());
     }
 
     public function test_the_stored_duration_wins_over_the_client_and_an_unknown_duration_does_not_cap_real_progress(): void

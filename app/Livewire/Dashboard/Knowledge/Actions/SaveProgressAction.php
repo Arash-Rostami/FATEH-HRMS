@@ -4,7 +4,6 @@ namespace App\Livewire\Dashboard\Knowledge\Actions;
 
 use App\Models\KnowledgeProgress;
 use App\Models\Media;
-use App\Models\Report;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\Menu\StateService;
@@ -20,41 +19,23 @@ class SaveProgressAction
             return 0;
         }
 
-        $mediaItems = array_values(array_filter($parsed, fn (array $item) => $item['type'] === 'media'));
-        $reportItems = config('media.track_reports')
-            ? array_values(array_filter($parsed, fn (array $item) => $item['type'] === 'report'))
-            : [];
+        $playable = Media::playableFor($user, array_column($parsed, 'id'))->keyBy('id');
 
-        $playable = Media::playableFor($user, array_column($mediaItems, 'id'))->keyBy('id');
-        $reportIds = $reportItems === []
-            ? collect()
-            : Report::forViewer($user)->notExpired()->whereIn('id', array_column($reportItems, 'id'))->pluck('id')->flip();
-
-        if ($playable->isEmpty() && $reportIds->isEmpty()) {
+        if ($playable->isEmpty()) {
             return 0;
         }
 
         $existing = KnowledgeProgress::query()
             ->where('user_id', $user->id)
-            ->where(function ($query) use ($playable, $reportIds) {
-                if ($playable->isNotEmpty()) {
-                    $query->whereIn('media_id', $playable->keys());
-                }
-
-                if ($reportIds->isNotEmpty()) {
-                    $method = $playable->isNotEmpty() ? 'orWhereIn' : 'whereIn';
-                    $query->{$method}('report_id', $reportIds->keys());
-                }
-            })
-            ->get(['media_id', 'report_id', 'position', 'last_position', 'completed_at'])
-            ->keyBy(fn (KnowledgeProgress $row) => $row->media_id ? 'media:'.$row->media_id : 'report:'.$row->report_id);
+            ->whereIn('media_id', $playable->keys())
+            ->get(['media_id', 'position', 'last_position', 'completed_at'])
+            ->keyBy(fn (KnowledgeProgress $row) => 'media:'.$row->media_id);
 
         $stamp = now()->format('Y-m-d H:i:s');
         $mediaRows = [];
-        $reportRows = [];
         $durations = [];
 
-        foreach ($mediaItems as $item) {
+        foreach ($parsed as $item) {
             $row = $playable->get($item['id']);
 
             if ($row === null) {
@@ -66,7 +47,6 @@ class SaveProgressAction
             $built = self::build($user->id, $item, $existing->get('media:'.$item['id']), $stored ?? $sent, $stamp, 'media_id');
 
             if ($built !== null) {
-                $built['report_id'] = null;
                 $mediaRows[] = $built;
             }
 
@@ -75,25 +55,11 @@ class SaveProgressAction
             }
         }
 
-        foreach ($reportItems as $item) {
-            if (!$reportIds->has($item['id'])) {
-                continue;
-            }
-
-            $built = self::build($user->id, $item, $existing->get('report:'.$item['id']), self::sane($item['duration']), $stamp, 'report_id');
-
-            if ($built !== null) {
-                $built['media_id'] = null;
-                $reportRows[] = $built;
-            }
-        }
-
         $firstPlay = array_filter($mediaRows, fn (array $row) => !$existing->has('media:'.$row['media_id'])) !== []
             && StateService::lit($user->id, 'media-controller');
 
-        $write = function () use ($mediaRows, $reportRows, $durations, $firstPlay) {
+        $write = function () use ($mediaRows, $durations, $firstPlay) {
             self::upsert('media_id', $mediaRows);
-            self::upsert('report_id', $reportRows);
 
             if ($firstPlay) {
                 DB::afterCommit(fn () => StateService::flush());
@@ -105,9 +71,9 @@ class SaveProgressAction
             }
         };
 
-        $durations !== [] || ($mediaRows !== [] && $reportRows !== []) ? DB::transaction($write) : $write();
+        $durations !== [] ? DB::transaction($write) : $write();
 
-        return count($mediaRows) + count($reportRows);
+        return count($mediaRows);
     }
 
     private static function parse(array $items): array
@@ -115,7 +81,7 @@ class SaveProgressAction
         $parsed = [];
 
         foreach ($items as $item) {
-            if (!is_array($item) || !in_array($item['type'] ?? null, ['media', 'report'], true)) {
+            if (!is_array($item) || ($item['type'] ?? null) !== 'media') {
                 continue;
             }
 

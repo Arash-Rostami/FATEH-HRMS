@@ -12,7 +12,6 @@ class KnowledgeProgress extends Model
     protected $fillable = [
         'user_id',
         'media_id',
-        'report_id',
         'position',
         'last_position',
         'completed_at',
@@ -27,11 +26,6 @@ class KnowledgeProgress extends Model
     public function media(): BelongsTo
     {
         return $this->belongsTo(Media::class);
-    }
-
-    public function report(): BelongsTo
-    {
-        return $this->belongsTo(Report::class);
     }
 
     protected function casts(): array

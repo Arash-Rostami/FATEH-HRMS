@@ -6,8 +6,6 @@ return [
         'video' => ['mp4', 'webm'],
     ],
 
-    'track_reports' => filter_var(env('MEDIA_TRACK_REPORTS', false), FILTER_VALIDATE_BOOLEAN),
-
     'completion_ratio' => 0.95,
 
     'position_tolerance' => 5,

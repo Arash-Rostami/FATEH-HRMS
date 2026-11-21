@@ -29,8 +29,6 @@ return [
             'completed' => 'وضعیت',
             'completed_yes' => 'تمام‌شده',
             'completed_no' => 'در جریان',
-            'received' => 'دریافت شده',
-            'completed_or_received' => 'تکمیل‌شده یا دریافت شده',
             'last_seen_at' => 'آخرین مشاهده',
             'created_at' => 'تاریخ ایجاد',
         ],

@@ -36,7 +36,7 @@ class KnowledgeProgressTablePresenter
     {
         return TextColumn::make('item')
             ->label(__('resources/media/strings.progress.table.item'))
-            ->state(fn(Model $record): string => $record->media?->title ?? $record->report?->title ?? '-')
+            ->state(fn(Model $record): string => $record->media?->title ?? '-')
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
@@ -62,7 +62,6 @@ class KnowledgeProgressTablePresenter
     {
         return match (true) {
             $record->completed_at === null => __('resources/media/strings.progress.export.completed_no'),
-            $record->report_id !== null => __('resources/media/strings.progress.export.received'),
             default => __('resources/media/strings.progress.export.completed_yes'),
         };
     }
@@ -114,7 +113,7 @@ class KnowledgeProgressTablePresenter
     {
         return TernaryFilter::make('completed_at')
             ->label(__('resources/media/strings.progress.table.completed'))
-            ->trueLabel(__('resources/media/strings.progress.export.completed_or_received'))
+            ->trueLabel(__('resources/media/strings.progress.export.completed_yes'))
             ->falseLabel(__('resources/media/strings.progress.export.completed_no'))
             ->nullable()
             ->native(false);

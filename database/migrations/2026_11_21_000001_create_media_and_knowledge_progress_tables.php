@@ -47,8 +47,7 @@ return new class extends Migration {
             Schema::create('knowledge_progress', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-                $table->foreignId('media_id')->nullable()->constrained('media')->cascadeOnDelete();
-                $table->foreignId('report_id')->nullable()->constrained('reports')->cascadeOnDelete();
+                $table->foreignId('media_id')->constrained('media')->cascadeOnDelete();
                 $table->unsignedInteger('position')->default(0);
                 $table->unsignedInteger('last_position')->default(0);
                 $table->timestamp('completed_at')->nullable();
@@ -57,7 +56,6 @@ return new class extends Migration {
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
                 $table->unique(['user_id', 'media_id']);
-                $table->unique(['user_id', 'report_id']);
                 $table->index('last_seen_at');
             });
         }
