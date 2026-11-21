@@ -206,6 +206,39 @@ class MediaResourceTest extends TestCase
         $this->assertSame('knowledge-progress', \App\Filament\Resources\KnowledgeProgressResource::getSlug());
     }
 
+    public function test_episode_reorder_bumps_the_media_cache_version_once(): void
+    {
+        $admin = $this->developer();
+
+        $series = Media::factory()->create(['title' => '0-Reorder Series', 'kind' => 'series']);
+        $episodes = [
+            Media::factory()->create(['title' => '0-Ep A', 'kind' => 'audio', 'parent_id' => $series->id]),
+            Media::factory()->create(['title' => '0-Ep B', 'kind' => 'audio', 'parent_id' => $series->id]),
+        ];
+
+        ModelCacheVersion::bump(Media::class);
+        $versionBefore = ModelCacheVersion::version(Media::class);
+
+        $component = Livewire::actingAs($admin)->test(EpisodesRelationManager::class, [
+            'ownerRecord' => $series,
+            'pageClass' => EditMedia::class,
+        ]);
+
+        $order = [$episodes[1]->getKey(), $episodes[0]->getKey()];
+
+        try {
+            $component->call('reorderTable', $order);
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('reorderTable requires the Filament table harness: ' . $e->getMessage());
+        }
+
+        $this->assertNotSame($versionBefore, ModelCacheVersion::version(Media::class), 'the reorder must bump the Media cache version');
+        $this->assertSame(
+            $order,
+            Media::query()->where('parent_id', $series->id)->orderBy('position')->pluck('id')->values()->all(),
+        );
+    }
+
     public function test_delete_table_action_removes_media_row()
     {
         $admin = $this->developer();

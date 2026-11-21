@@ -5,6 +5,8 @@ namespace App\Filament\Resources\MediaResource\RelationManagers;
 use App\Filament\RelationManagers\RelationManager;
 use App\Filament\Resources\MediaResource\Schemas\MediaFormPresenter;
 use App\Filament\Resources\MediaResource\Schemas\MediaTablePresenter;
+use App\Models\Media;
+use App\Services\Cache\ModelCacheVersion;
 use App\Traits\Filament\FilamentActions;
 use Filament\Actions\CreateAction;
 use Filament\Schemas\Components\Section;
@@ -101,6 +103,9 @@ class EpisodesRelationManager extends RelationManager
                 MediaTablePresenter::reportDate(),
             ])
             ->reorderable('position')
+            ->afterReordering(function (): void {
+                ModelCacheVersion::bump(Media::class);
+            })
             ->defaultSort('position', 'asc')
             ->headerActions([
                 CreateAction::make()
