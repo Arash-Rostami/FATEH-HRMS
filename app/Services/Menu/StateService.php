@@ -63,7 +63,7 @@ class StateService
     public static function lit(int $userId, string $key): bool
     {
         $version = Cache::get(self::VERSION_KEY);
-        $map = $version === null ? null : Cache::get("menu_state:v{$version}:u{$userId}");
+        $map = $version === null ? null : Cache::get('menu_state:v'.(int) $version.":u{$userId}");
 
         return ($map[$key] ?? true) !== false;
     }

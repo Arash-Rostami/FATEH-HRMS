@@ -94,7 +94,7 @@ class TabsTest extends TestCase
         Livewire::actingAs($user)->withQueryParams(['tab' => 'reports', 'open' => 7])->test(Tabs::class)
             ->assertRedirectToRoute('knowledge', ['open' => 7]);
 
-        $this->assertArrayNotHasKey('reports', Livewire::actingAs($user)->test(Tabs::class)->instance()->tabs);
+        $this->assertArrayNotHasKey('reports', Livewire::actingAs($user)->withQueryParams(['tab' => 'home'])->test(Tabs::class)->instance()->tabs);
     }
 
     public function test_off_tab_is_absent_and_query_tab_falls_back_to_home_and_returns_when_on()

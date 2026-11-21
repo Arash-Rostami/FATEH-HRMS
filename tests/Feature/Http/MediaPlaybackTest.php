@@ -399,14 +399,19 @@ class MediaPlaybackTest extends TestCase
             DB::table('media')->where('id', $this->episode->id)->update(['duration_seconds' => null]);
         };
 
+        DB::commit();
+        DB::beginTransaction();
+
         $reset();
         $stamp(false);
+        $this->assertFalse(StateService::lit($this->viewer->id, 'media-controller'));
         $version = StateService::version();
         SaveProgressAction::execute($this->viewer, [$this->item(10, 10)]);
         $this->assertSame($version, StateService::version());
 
         $reset();
         $stamp(true);
+        $version = StateService::version();
         SaveProgressAction::execute($this->viewer, [$this->item(10, 10)]);
         $this->assertNotSame($version, StateService::version());
     }

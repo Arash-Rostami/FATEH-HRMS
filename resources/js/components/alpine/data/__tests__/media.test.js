@@ -10,6 +10,7 @@ vi.mock('../../mixins/player.js', async importOriginal => {
             cur: { sid: null, idx: 0 }, t: 0, playing: false,
             loadLibrary: vi.fn(), selectItem: vi.fn(), playEpisode: vi.fn(),
             toggle: vi.fn(), seek: vi.fn(), destroyPlayer: vi.fn(), toast: vi.fn(),
+            _k: key => key,
             faTime: value => String(value),
             fa: value => String(value).replace(/\d/g, digit => '۰۱۲۳۴۵۶۷۸۹'[digit]),
             progressOf: () => 0, episodeState: () => 'new', resumeAt: () => 0,
@@ -373,7 +374,6 @@ describe('media composed with the real player mixin', () => {
         const old = component(items, build);
         old.playEpisode(1, 0);
         await Promise.resolve();
-        old.destroy();
         return old;
     };
 
@@ -424,7 +424,6 @@ describe('media composed with the real player mixin', () => {
         expect(old.userId).toBe('5');
         old.playEpisode(1, 0);
         await Promise.resolve();
-        old.destroy();
         const same = component([item(1)], build, '5');
         expect(same.playing).toBe(true);
         same.destroy();

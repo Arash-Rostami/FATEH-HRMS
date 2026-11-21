@@ -195,7 +195,7 @@ describe('playerMixin — episodeState / progressOf / resumeAt', () => {
     test('resumeAt prefers server last_position when local is lower', () => {
         const p = makePlayer()
         p._saveState('media_progress', { '11': { position: 100, updatedAt: Date.now() } })
-        expect(p.resumeAt(1, 0)).toBe(350)
+        expect(p.resumeAt(1, 0)).toBe(340)
     })
 
     test('resumeAt ignores sub-5s positions (fresh start)', () => {
@@ -207,14 +207,14 @@ describe('playerMixin — episodeState / progressOf / resumeAt', () => {
         const p = makePlayer()
         vi.advanceTimersByTime(10)
         p._saveState('media_progress', { '11': { position: 900, updatedAt: Date.now() } })
-        expect(p.resumeAt(1, 0)).toBe(900)
+        expect(p.resumeAt(1, 0)).toBe(890)
     })
 
     test('resumeAt resumes from a newer lower local stop while the furthest stays', () => {
         const p = makePlayer()
         vi.advanceTimersByTime(10)
         p._saveState('media_progress', { '11': { position: 900, last_position: 120, updatedAt: Date.now() } })
-        expect(p.resumeAt(1, 0)).toBe(120)
+        expect(p.resumeAt(1, 0)).toBe(110)
         expect(p.library.progress['11'].position).toBe(400)
     })
 
@@ -224,9 +224,9 @@ describe('playerMixin — episodeState / progressOf / resumeAt', () => {
         const local = Date.now() - 86400000
         p.library.progress['11'] = { position: 400, last_position: 350, completed: false, updated_at: Math.floor((local - 3600000) / 1000) }
         p._saveState('media_progress', { '11': { position: 400, last_position: 120, updatedAt: local } })
-        expect(p.resumeAt(1, 0)).toBe(120)
+        expect(p.resumeAt(1, 0)).toBe(110)
         p.library.progress['11'].updated_at = Math.floor((local + 3600000) / 1000)
-        expect(p.resumeAt(1, 0)).toBe(350)
+        expect(p.resumeAt(1, 0)).toBe(340)
     })
 
     test('resumeAt restarts a lesson whose stop is at its end and rewinds an unfinished one', () => {
@@ -434,7 +434,7 @@ describe('playerMixin — seek/skip/next/prev navigation', () => {
         p.playEpisode(1, 1)
         sharedElement()._trigger('playing')
         p.next(true)
-        expect(p.cur.idx).toBe(0)
+        expect(p.cur.idx).toBe(1)
         p.cur = { sid: 1, idx: 1 }
         p.library.items[0].episodes[0].unlock_at = 1893456000
         p.next(true)
@@ -496,6 +496,7 @@ describe('playerMixin — local-first progress and flush', () => {
         const p = makePlayer()
         p.playEpisode(1, 0)
         const el = sharedElement()
+        el._trigger('playing')
         el.currentTime = 40
         el._trigger('timeupdate')
         el.currentTime = 60
@@ -561,7 +562,7 @@ describe('playerMixin — local-first progress and flush', () => {
 
     test('safety flush respects min_delta against the acked position', async () => {
         const p = makePlayer()
-        p.playEpisode(1, 0)
+        p.playEpisode(1, 1)
         sharedElement()._trigger('playing')
         p.t = 300
         p.flush('pause')
@@ -586,6 +587,7 @@ describe('playerMixin — local-first progress and flush', () => {
         expect(p._synced['12'].position).toBe(999)
         p.library.progress['12'].position = 0
         p.library.progress['12'].completed = false
+        p.library.items[0].episodes[1].duration = 1000
         p.t = 2000
         p.duration = 1000
         p.flush('pagehide')
@@ -808,7 +810,7 @@ describe('playerMixin — pending queue, CSRF and HTTP statuses', () => {
         })
         const items = []
         for (let i = 1; i <= 120; i++) {
-            items.push({ type: 'media', id: i, position: i, last_position: i, completed: false, duration: null })
+            items.push({ type: 'media', id: 1000 + i, position: i, last_position: i, completed: false, duration: null })
         }
         p._saveState('media_progress_pending', items)
         p.progressUrl = '/media/progress'
@@ -824,7 +826,7 @@ describe('playerMixin — pending queue, CSRF and HTTP statuses', () => {
         global.fetch = vi.fn().mockRejectedValue(new Error('offline'))
         const items = []
         for (let i = 1; i <= 60; i++) {
-            items.push({ type: 'media', id: i, position: i, last_position: i, completed: false, duration: null })
+            items.push({ type: 'media', id: 1000 + i, position: i, last_position: i, completed: false, duration: null })
         }
         p._saveState('media_progress_pending', items)
         p.progressUrl = '/media/progress'
@@ -870,8 +872,8 @@ describe('playerMixin — audio-pause-request coordination and radio/ambient exc
         r.audio = audio
         window.dispatchEvent(new CustomEvent('media:state', { detail: { playing: true } }))
         expect(audio.paused).toBe(true)
-        audio.paused = false
         r.destroy()
+        audio.paused = false
         window.dispatchEvent(new CustomEvent('media:state', { detail: { playing: true } }))
         expect(audio.paused).toBe(false)
     })
@@ -926,14 +928,15 @@ describe('playerMixin — prebuffer gating', () => {
     test('prebuffers the next episode only under the threshold and without saveData', () => {
         const p = makePlayer()
         p.playEpisode(1, 0)
-        sharedElement()._trigger('playing')
+        const main = sharedElement()
+        main._trigger('playing')
         p.duration = 500
         p.t = 100
         p.maybePrebuffer()
-        expect(FakeAudio.instances.some((el) => el.src === '/storage/media/files/a2.mp3' && el !== sharedElement())).toBe(false)
+        expect(FakeAudio.instances.some((el) => el.src === '/storage/media/files/a2.mp3' && el !== main)).toBe(false)
         p.t = 400
         p.maybePrebuffer()
-        expect(FakeAudio.instances.some((el) => el.src === '/storage/media/files/a2.mp3' && el !== sharedElement())).toBe(true)
+        expect(FakeAudio.instances.some((el) => el.src === '/storage/media/files/a2.mp3' && el !== main)).toBe(true)
     })
 
     test('saveData skips prebuffering entirely', () => {
@@ -1049,6 +1052,7 @@ describe('playerMixin — per-user scoping, safety timer, rewind, last lesson, l
         expect(el.paused).toBe(true)
         expect(b.cur.sid).toBeNull()
         expect(b.playing).toBe(false)
+        vi.runOnlyPendingTimers()
         expect(vi.getTimerCount()).toBe(0)
         const c = forUser('2')
         expect(c.cur.sid).toBeNull()

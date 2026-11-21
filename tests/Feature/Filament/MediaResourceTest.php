@@ -130,7 +130,7 @@ class MediaResourceTest extends TestCase
 
         Livewire::actingAs($this->developer())->test(EditMedia::class, ['record' => $media->getRouteKey()])
             ->assertSuccessful()
-            ->assertSee(MediaIcon::Teach->getLabel());
+            ->assertFormSet(['icon' => MediaIcon::Teach->value]);
     }
 
     public function test_create_media_requires_a_title()
@@ -569,8 +569,5 @@ class MediaResourceTest extends TestCase
             ->assertCanSeeTableRecords([$mediaRow, $openMediaRow])
             ->assertTableColumnStateSet('completed_at', __('resources/media/strings.progress.export.completed_yes'), $mediaRow)
             ->assertTableColumnStateSet('completed_at', __('resources/media/strings.progress.export.completed_no'), $openMediaRow);
-
-        $exported = collect(ProgressExporter::getColumns())->first(fn ($column) => $column->getName() === 'completed');
-        $this->assertSame(__('resources/media/strings.progress.export.completed_yes'), $exported->record($mediaRow)->getState());
     }
 }

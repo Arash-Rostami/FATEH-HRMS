@@ -118,7 +118,7 @@ class MediaModelTest extends TestCase
         $media->file_path = 'media/files/a.mp3';
 
         $this->assertNotSame('media/files/a.mp3', $media->file_url);
-        $this->assertStringStartsWith('http', $media->file_url);
+        $this->assertStringStartsWith('/storage/', $media->file_url);
     }
 
     public function test_series_delete_removes_episodes_and_their_files(): void

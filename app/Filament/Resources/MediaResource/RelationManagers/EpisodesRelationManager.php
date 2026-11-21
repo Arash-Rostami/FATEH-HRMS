@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MediaResource\RelationManagers;
 
 use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\MediaResource;
 use App\Filament\Resources\MediaResource\Schemas\MediaFormPresenter;
 use App\Filament\Resources\MediaResource\Schemas\MediaTablePresenter;
 use App\Models\Media;
@@ -99,7 +100,7 @@ class EpisodesRelationManager extends RelationManager
                 MediaTablePresenter::title(),
                 MediaTablePresenter::kind(),
                 MediaTablePresenter::duration(),
-                self::activeColumn(),
+                MediaResource::activeColumn(),
                 MediaTablePresenter::reportDate(),
             ])
             ->reorderable('position')
