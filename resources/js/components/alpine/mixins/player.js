@@ -378,9 +378,9 @@ export default function playerMixin() {
             const localStop = local?.last_position ?? local?.position ?? 0;
             const serverAt = server?.updated_at ? server.updated_at * 1000 : this._loadedAt;
             const stop = local && local.updatedAt > serverAt ? localStop : (server?.last_position ?? localStop);
-            const at = ep.duration > 0 ? Math.min(stop, ep.duration) : stop;
             const back = this.sync.resume_rewind ?? 10;
-            return at > back ? at - back : at;
+            if (ep.duration > 0 && stop >= ep.duration - back) return 0;
+            return stop > back ? stop - back : stop;
         },
 
         selectItem(id) {
@@ -595,6 +595,7 @@ export default function playerMixin() {
                 shared.keydown = null;
             }
             if (shared.kind === 'video' && shared.element?.parentNode) {
+                if (document.pictureInPictureElement === shared.element) document.exitPictureInPicture?.().catch(() => {});
                 shared.element.parentNode.removeChild(shared.element);
             }
             if (this._host && shared.host === this._host) shared.host = null;
@@ -802,7 +803,11 @@ export default function playerMixin() {
 
         async _drainPending() {
             if (!this.progressUrl) return;
-            const pending = this._coalescePending(this._loadState(this._k(PENDING_KEY), []));
+            const queued = this._coalescePending(this._loadState(this._k(PENDING_KEY), []));
+            const stale = (item) => item.type === 'media' && !item.completed && (this.library.progress?.[item.id]?.position ?? 0) >= item.position;
+            const dropped = queued.filter(stale);
+            if (dropped.length) this._dequeue(dropped);
+            const pending = queued.filter((item) => !stale(item));
             for (let i = 0; i < pending.length; i += CHUNK_SIZE) {
                 const chunk = pending.slice(i, i + CHUNK_SIZE);
                 if (await this._post(this.progressUrl, chunk) === 'retry') return;

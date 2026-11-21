@@ -229,11 +229,13 @@ describe('playerMixin — episodeState / progressOf / resumeAt', () => {
         expect(p.resumeAt(1, 0)).toBe(350)
     })
 
-    test('resumeAt clamps the stop to the episode duration', () => {
+    test('resumeAt restarts a lesson whose stop is at its end and rewinds an unfinished one', () => {
         const p = makePlayer()
         vi.advanceTimersByTime(10)
         p._saveState('media_progress', { '11': { position: 900, last_position: 5000, updatedAt: Date.now() } })
-        expect(p.resumeAt(1, 0)).toBe(1000)
+        expect(p.resumeAt(1, 0)).toBe(0)
+        p._saveState('media_progress', { '11': { position: 900, last_position: 500, updatedAt: Date.now() } })
+        expect(p.resumeAt(1, 0)).toBe(490)
     })
 })
 
@@ -697,6 +699,16 @@ describe('playerMixin — pending queue, CSRF and HTTP statuses', () => {
         p.t = 30
         p.flush('pause')
         await settle()
+        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
+    })
+
+    test('a queued save older than the loaded server progress is dropped instead of replayed', async () => {
+        const p = makePlayer()
+        global.fetch.mockClear()
+        p.library.progress = { 11: { position: 500, last_position: 500, completed: false, updated_at: 0 } }
+        p._queuePending([{ type: 'media', id: 11, position: 50, last_position: 50, completed: false, duration: null }])
+        await p._drainPending()
+        expect(global.fetch).not.toHaveBeenCalled()
         expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
     })
 

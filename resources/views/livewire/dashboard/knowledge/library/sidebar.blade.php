@@ -56,7 +56,7 @@
                     <div class="flex items-center gap-1.5 min-w-0">
                         <p class="truncate text-[13px] font-semibold text-[var(--md-sys-color-on-surface)]" data-title="{{ $item['title'] }}" x-html="highlight($el.dataset.title, query)"></p>
                         @if($item['is_new'])
-                            <x-ui.badge wire:key="media-row-new" x-show="!played({{ $item['id'] }})" variant="info" class="shrink-0">جدید</x-ui.badge>
+                            <x-ui.badge wire:key="media-row-new" x-cloak x-show="!played({{ $item['id'] }})" variant="info" class="shrink-0">جدید</x-ui.badge>
                         @endif
                     </div>
                     <p class="text-[11px] truncate text-[var(--md-sys-color-on-surface-variant)]">{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }} · {{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }} · {{ convertToPersian((string) count($item['episodes'])) }} جلسه</p>

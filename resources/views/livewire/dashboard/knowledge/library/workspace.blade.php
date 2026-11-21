@@ -15,7 +15,7 @@
                     @endif
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="flex gap-2 mb-3"><x-ui.badge>{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }}</x-ui.badge><x-ui.badge>{{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }}</x-ui.badge>@if($item['is_new'])<x-ui.badge wire:key="media-hero-new" x-show="!played({{ $item['id'] }})" variant="info">جدید</x-ui.badge>@endif</div>
+                    <div class="flex gap-2 mb-3"><x-ui.badge>{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }}</x-ui.badge><x-ui.badge>{{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }}</x-ui.badge>@if($item['is_new'])<x-ui.badge wire:key="media-hero-new" x-cloak x-show="!played({{ $item['id'] }})" variant="info">جدید</x-ui.badge>@endif</div>
                     <h2 class="text-2xl md:text-4xl font-extrabold text-[var(--md-sys-color-on-surface)] mb-2">{{ $item['title'] }}</h2>
                     <div class="text-[13px] leading-6 text-[var(--md-sys-color-on-surface-variant)] mb-3 prose rich-colors max-w-none">{!! $item['description_html'] !!}</div>
                     <p class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--md-sys-color-on-surface-variant)]"><b>{{ $item['unit'] }}</b><span>{{ $item['department'] }}</span><span>{{ $item['date_label'] }}</span><span x-text="time({{ $item['total_duration'] }})"></span></p>

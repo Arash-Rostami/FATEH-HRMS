@@ -29,9 +29,9 @@ trait HasDepartmentHooks
 
     private static function blockDeleteWhileReferencedOnDeleting(self $department)
     {
-        $referenced = collect(['profiles', 'authorities', 'faqs', 'photos', 'reports', 'reviews', 'task_details'])
+        $referenced = collect(['profiles', 'authorities', 'faqs', 'photos', 'reports', 'media', 'reviews', 'task_details'])
             ->contains(fn(string $table) => DB::table($table)->where('department_id', $department->code)->exists())
-            || collect(['feeds', 'photos', 'posts', 'reports', 'suggestions'])
+            || collect(['feeds', 'photos', 'posts', 'reports', 'media', 'suggestions'])
                 ->contains(fn(string $table) => DB::table($table)->whereJsonContains('departments', $department->code)->exists())
             || Project::withTrashed()->whereJsonContains('departments', $department->code)->exists()
             || Ticket::query()->where('extra->target_department', $department->code)->exists()

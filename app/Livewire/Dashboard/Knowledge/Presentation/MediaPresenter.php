@@ -68,7 +68,7 @@ class MediaPresenter
     {
         ['department_code' => $code, 'audience' => $audience, 'owner_id' => $ownerId, 'new_until' => $newUntil] = $item;
         unset($item['department_code'], $item['audience'], $item['owner_id'], $item['new_until']);
-        $item['is_new'] = $ownerId !== $viewerId && $newUntil >= now()->timestamp;
+        $item['is_new'] = $ownerId !== $viewerId && $newUntil >= now()->timestamp && collect($item['episodes'])->contains(fn (array $episode) => $episode['file_url'] !== null);
         $item['department'] = $departments->get((string) $code)?->name
             ?? ($departments->only($audience)->pluck('name')->join('، ') ?: 'همهٔ بخش‌ها');
         $item['unit'] = $item['unit'] ?: $item['department'];

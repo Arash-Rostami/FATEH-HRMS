@@ -906,8 +906,11 @@ class MenuServiceTest extends TestCase
 
         $old = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true, 'created_at' => now()->subDays(40)]);
         $other = $this->activeUser();
+        $empty = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true]);
 
         $new = Media::newFor($viewer->id)->pluck('id');
+
+        $this->assertFalse($new->contains($empty->id));
 
         $this->assertTrue((new UnseenMedia())->isActive());
         $this->assertFalse($new->contains($old->id));
