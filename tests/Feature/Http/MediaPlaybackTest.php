@@ -273,6 +273,21 @@ class MediaPlaybackTest extends TestCase
         $invalid = $this->invoke(MediaNoteController::class, '/media/notes', ['body' => ''] + $payload, $this->viewer, true);
         $this->assertSame(422, $invalid->getStatusCode());
         $this->assertSame('invalid', json_decode($invalid->getContent(), true)['reason']);
+
+        $hidden = Media::factory()->series()->create(['departments' => ['KMDB'], 'active' => true]);
+        $secret = Media::factory()->create(['parent_id' => $hidden->id, 'user_id' => $hidden->user_id]);
+        MediaNote::create(['user_id' => $this->viewer->id, 'media_id' => $secret->id, 'position' => 1, 'body' => 'x']);
+
+        foreach ([
+            ['media_id' => $secret->id] + $payload,
+            ['media_id' => $hidden->id] + $payload,
+            ['body' => str_repeat('م', 501)] + $payload,
+            ['body' => ['x']] + $payload,
+        ] as $refused) {
+            $response = $this->invoke(MediaNoteController::class, '/media/notes', $refused, $this->viewer, true);
+            $this->assertSame(422, $response->getStatusCode());
+            $this->assertSame('invalid', json_decode($response->getContent(), true)['reason']);
+        }
     }
 
     public function test_a_duration_backfill_invalidates_the_catalog_but_plain_progress_never_does(): void
