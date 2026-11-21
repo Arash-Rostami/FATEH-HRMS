@@ -21,7 +21,7 @@ class Main extends Component
 
     public function mount(): void
     {
-        abort_if(tenantOff('reports:media'), 404);
+        abort_if(tenantOff('media'), 404);
 
         $this->newIds = Media::newFor(auth()->id())->pluck('media.id')->map(fn ($id) => (int) $id)->all();
     }
@@ -60,7 +60,7 @@ class Main extends Component
 
     public function render(): View
     {
-        abort_if(tenantOff('reports:media'), 404);
+        abort_if(tenantOff('media'), 404);
 
         return view('livewire.dashboard.media');
     }

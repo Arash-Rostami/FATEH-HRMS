@@ -17,7 +17,7 @@ const BASE_ITEMS = [
     {id: 'correspondence-controller', href: '/correspondence', icon: 'mail', title: 'مکاتبات', sub: 'نامه‌های اداری', module: 'correspondence', group: 'خدمات', aiView: 'correspondence:ai'},
     {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس', module: 'dms', group: 'خدمات'},
     {id: 'launchpad-controller', href: '/launchpad', icon: 'rocket_launch', title: 'پیشخوان برنامه‌ها', sub: 'برنامه‌های تعاملی', module: 'launchpad', group: 'خدمات', ai: true},
-    {id: 'media-controller', href: '/media', icon: 'video_library', title: 'رسانه', sub: 'صوت و ویدیوی آموزشی', module: 'reports:media', group: 'سازمان'},
+    {id: 'media-controller', href: '/media', icon: 'video_library', title: 'دانش سازمانی', sub: 'صوت و ویدیوی آموزشی', module: 'media', group: 'سازمان'},
     {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری', module: 'ths', group: 'خدمات', aiView: 'ths:ai'},
     {id: 'suggestion-controller', href: '/suggestion', icon: 'lightbulb', title: 'پیشنهادات', sub: 'کانون نقاط نظر سازمانی', group: 'سازمان'},
     {id: 'reservation-seat', href: '/reservation?tab=seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری', resourceType: 'seat', module: 'reservation', group: 'رزرواسیون'},
@@ -50,7 +50,7 @@ const HOME_TABS = [
     {id: 'calendar', label: 'تقویم', alias: 'calendar'},
     {id: 'status', label: 'وضعیت', alias: 'status'},
     {id: 'gallery', label: 'گالری', alias: 'gallery'},
-    {id: 'reports', label: 'دانش سازمانی', alias: 'report reports library knowledge کتابخانه گزارش'},
+    {id: 'reports', label: 'گزارش‌ها', alias: 'report reports'},
     {id: 'links', label: 'لینک‌ها', alias: 'link links'},
     {id: 'faqs', label: 'پرسش‌های متداول', alias: 'faq faqs', off: ['faq', 'faqs']},
 ].map((tab) => ({...tab, _searchKey: foldSearch(`${tab.label} ${tab.alias}`)}));

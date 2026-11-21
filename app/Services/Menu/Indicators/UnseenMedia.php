@@ -9,7 +9,7 @@ class UnseenMedia implements MenuBadge
 {
     public function getBody(): string
     {
-        return 'رسانهٔ جدیدی منتشر شده که هنوز آن را باز نکرده‌اید.';
+        return 'رسانهٔ جدیدی منتشر شده که هنوز آن را پخش نکرده‌اید.';
     }
 
     public function getKey(): string
@@ -19,7 +19,7 @@ class UnseenMedia implements MenuBadge
 
     public function getTitle(): string
     {
-        return 'رسانهٔ دیده‌نشده';
+        return 'رسانهٔ پخش‌نشده';
     }
 
     public function isActive(): bool

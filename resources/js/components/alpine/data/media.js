@@ -173,7 +173,7 @@ export default function media() {
         get recentItems() {
             const touched = this.library.progress ?? {};
             const owners = new Map(this.items.flatMap(item => item.episodes.map(ep => [ep.id, [item, ep]])));
-            const stamps = Object.entries(this._loadState(this._k(PROGRESS_KEY), {}))
+            const stamps = Object.entries(this._loadState(this._k(PROGRESS_KEY), {}) ?? {})
                 .filter(([id]) => id in touched)
                 .sort(([, a], [, b]) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
             const picked = new Map();

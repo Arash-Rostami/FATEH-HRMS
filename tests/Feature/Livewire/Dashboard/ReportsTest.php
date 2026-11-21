@@ -79,25 +79,6 @@ class ReportsTest extends TestCase
         $this->assertFalse(KnowledgeProgress::where('user_id', $user->id)->where('report_id', $report->id)->exists());
     }
 
-    public function test_media_route_pill_is_hidden_when_the_media_view_is_disabled(): void
-    {
-        $user = User::factory()->create(['status' => 'active']);
-        config(['app.off' => ['reports:media']]);
-        Livewire::withoutLazyLoading();
-        Livewire::actingAs($user)->test(Reports::class)->assertDontSeeHtml('data-tab-pill="media"');
-    }
-
-    public function test_reports_and_media_pills_both_use_route_mode(): void
-    {
-        $user = User::factory()->create(['status' => 'active']);
-        config(['app.off' => []]);
-        Livewire::withoutLazyLoading();
-        Livewire::actingAs($user)->test(Reports::class)
-            ->assertSeeHtml('data-tab-pill="reports"')
-            ->assertSeeHtml('data-tab-pill="media"')
-            ->assertSeeHtml('href="' . route('media') . '"');
-    }
-
     private function makeDepartment(string $code): Department
     {
         return Department::factory()->create(['code' => $code, 'name' => $code, 'description' => $code]);

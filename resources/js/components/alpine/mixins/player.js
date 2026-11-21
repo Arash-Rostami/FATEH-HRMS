@@ -478,7 +478,6 @@ export default function playerMixin() {
             const nextIdx = this._nextPlayable(this.cur.idx + 1);
             if (auto && this.stopAfter) {
                 this.stopAfter = false;
-                this._savePrefs();
                 this.playing = false;
                 return;
             }
@@ -509,7 +508,6 @@ export default function playerMixin() {
 
         toggleStopAfter() {
             this.stopAfter = !this.stopAfter;
-            this._savePrefs();
         },
 
         undoSwitch() {
@@ -679,11 +677,10 @@ export default function playerMixin() {
             const vol = Number(prefs.vol);
             if (SPEEDS.includes(prefs.speed)) this.speed = prefs.speed;
             if (prefs.vol !== undefined && Number.isFinite(vol)) this.vol = Math.max(0, Math.min(1, vol));
-            this.stopAfter = prefs.stopAfter === true;
         },
 
         _savePrefs() {
-            this._saveState(this._k(PREFS_KEY), { speed: this.speed, vol: this.vol, stopAfter: this.stopAfter });
+            this._saveState(this._k(PREFS_KEY), { speed: this.speed, vol: this.vol });
         },
 
         _offerUndo() {

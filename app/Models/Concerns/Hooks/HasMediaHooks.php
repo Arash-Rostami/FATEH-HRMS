@@ -14,7 +14,6 @@ trait HasMediaHooks
         static::saving(self::guardExpiryBeforeDateOnSaving(...));
         static::saving(self::guardStructureOnSaving(...));
         static::saving(self::normalizeDurationOnSaving(...));
-        static::saving(self::clearEpisodeSeenByOnSaving(...));
         static::updated(self::cleanReplacedFilesOnUpdated(...));
         static::deleting(self::deleteEpisodesOnDeleting(...));
         static::deleted(self::deleteFilesOnDeleted(...));
@@ -60,13 +59,6 @@ trait HasMediaHooks
         }
 
         $query->update([$column => DB::raw($case.' ELSE `'.$column.'` END')]);
-    }
-
-    private static function clearEpisodeSeenByOnSaving(self $media): void
-    {
-        if ($media->parent_id) {
-            $media->seen_by = null;
-        }
     }
 
     private static function normalizeDurationOnSaving(self $media): void

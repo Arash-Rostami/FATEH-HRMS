@@ -455,13 +455,13 @@ describe('media composed with the real player mixin', () => {
 
     const series = () => item(1, { type: 'series', cover_url: '/cover.jpg', episodes: [episode(11), episode(12), episode(13)] });
 
-    it('remembers speed, volume and stop-after per user and ignores unknown stored values', () => {
+    it('remembers speed and volume per user, never stop-after, and ignores unknown stored values', () => {
         const first = component([item(1)], build, '5');
         first.setSpeed(1.5);
         first.setVolume(0.3);
         first.toggleStopAfter();
         const again = component([item(1)], build, '5');
-        expect([again.speed, again.vol, again.stopAfter]).toEqual([1.5, 0.3, true]);
+        expect([again.speed, again.vol, again.stopAfter]).toEqual([1.5, 0.3, false]);
         expect(component([item(1)], build, '6').speed).toBe(1);
         localStorage.setItem('media_prefs:7', JSON.stringify({ speed: 3, vol: 9 }));
         const bad = component([item(1)], build, '7');

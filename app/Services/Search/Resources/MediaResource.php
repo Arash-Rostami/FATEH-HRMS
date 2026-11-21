@@ -25,7 +25,7 @@ class MediaResource extends SearchResource
 
     public function search(SearchContext $context): array
     {
-        if (tenantOff('reports:media')) {
+        if (tenantOff('media')) {
             return [];
         }
 

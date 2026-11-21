@@ -40,15 +40,6 @@
         </x-slot:actions>
     </x-ui.title>
 
-    @unless(tenantOff('reports:media'))
-        <div wire:key="reports-media-navigation">
-            <x-ui.buttons.tab-selector activeTab="reports" :tabs="[
-                ['id' => 'reports', 'label' => 'گزارشات', 'icon' => 'show_chart', 'route' => route('dashboard', ['tab' => 'reports'])],
-                ['id' => 'media', 'label' => 'رسانه', 'icon' => 'play_circle', 'route' => route('media')],
-            ]" />
-        </div>
-    @endunless
-
     <x-dashboard.modal.badge-legend
         name="reports-badge-legend"
         :items="[\App\Services\Menu\BadgeLegendCatalog::get('reports-controller')]"

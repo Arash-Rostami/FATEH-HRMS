@@ -31,7 +31,7 @@ class MediaPresenter
         $payload = ['serverNow' => now()->timestamp, 'items' => [], 'progress' => (object) [], 'notes' => (object) []];
         $user ??= auth()->user();
 
-        if (! $user || tenantOff('reports:media')) {
+        if (! $user || tenantOff('media')) {
             return $payload;
         }
 

@@ -114,7 +114,6 @@ class MediaTest extends TestCase
         $first->assertSee('جدید');
         $this->assertArrayNotHasKey('is_new', $row['episodes'][0]);
         $this->assertNotContains($episode->id, $first->get('newIds'));
-        $this->assertNull($series->fresh()->seen_by);
         $this->assertTrue($this->isNew($viewer, $series));
         $this->assertTrue($this->isNew($viewer, $series));
     }
