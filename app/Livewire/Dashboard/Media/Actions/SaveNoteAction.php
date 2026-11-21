@@ -21,9 +21,9 @@ class SaveNoteAction
     {
         $mediaId = filter_var($data['media_id'] ?? null, FILTER_VALIDATE_INT);
         $position = filter_var($data['position'] ?? null, FILTER_VALIDATE_INT);
-        $body = trim((string) ($data['body'] ?? ''));
+        $body = is_string($data['body'] ?? null) ? trim($data['body']) : '';
 
-        if ($mediaId === false || $mediaId < 1 || $position === false || $position < 0 || $body === '' || mb_strlen($body) > 500) {
+        if ($mediaId === false || $mediaId < 1 || $position === false || $position < 0 || $position > Media::MAX_SECONDS || $body === '' || mb_strlen($body) > 500) {
             return null;
         }
 
