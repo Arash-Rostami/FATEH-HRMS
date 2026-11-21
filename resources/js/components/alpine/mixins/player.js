@@ -258,6 +258,7 @@ export default function playerMixin() {
         _host: null,
         _synced: {},
         _touched: {},
+        _inflight: {},
 
         get timeLabel() {
             return faTime(this.t) + ' / ' + faTime(this.duration);
@@ -309,6 +310,7 @@ export default function playerMixin() {
             if (!shared.element || !prev || prev === this) return false;
             this._synced = prev._synced;
             this._touched = prev._touched;
+            this._inflight = prev._inflight;
             this._lastFlush = prev._lastFlush;
             this.cur = { ...prev.cur };
             shared.ui = this;
@@ -560,6 +562,13 @@ export default function playerMixin() {
                     return;
                 }
             }
+            const state = position + ':' + lastPosition;
+            const direct = reason === 'pagehide' || reason === 'freeze';
+            if (!direct && this._inflight[ep.id] === state) {
+                this._lastFlush = this.t;
+                return;
+            }
+            this._inflight[ep.id] = state;
             const ratio = ep.duration ? position / ep.duration : 0;
             const completed = ratio >= 0.95;
             const entry = {
@@ -811,12 +820,17 @@ export default function playerMixin() {
         },
 
         _sendProgress(url, body, beacon = false) {
-            if (!url) return false;
             const items = body.items ?? [];
+            const settle = () => items.forEach((i) => delete this._inflight[i.id]);
+            if (!url) {
+                settle();
+                return false;
+            }
             if (beacon && navigator.sendBeacon) {
                 try {
                     const blob = new Blob([JSON.stringify({ ...body, _token: csrfToken() })], { type: 'application/json' });
                     if (navigator.sendBeacon(url, blob)) {
+                        settle();
                         this._queuePending(items);
                         return true;
                     }
@@ -826,6 +840,7 @@ export default function playerMixin() {
             const ids = new Set(items.map((i) => i.id));
             const older = this._loadState(this._k(PENDING_KEY), []).filter((i) => ids.has(i.id));
             this._post(url, items).then((res) => {
+                settle();
                 if (res === 'retry') {
                     this._queuePending(items);
                     return;
