@@ -44,6 +44,6 @@ class MediaResource extends SearchResource
 
     protected function selectList(): string
     {
-        return '`id`, `title`, `topic`, `description`, `parent_id`, `active`, `departments`, `department_id`, `expires_at`, `report_date`, `kind`';
+        return '`id`, `title`, `topic`, `parent_id`, `active`, `departments`, `department_id`, `expires_at`, `report_date`, `kind`';
     }
 }

@@ -59,7 +59,8 @@ class SaveProgressAction
                 continue;
             }
 
-            $duration = $row->duration_seconds ?: self::sane($item['duration']);
+            $sent = self::sane($item['duration']);
+            $duration = $row->duration_seconds ?: $sent;
             $built = self::build($user->id, $item, $existing->get('media:'.$item['id']), $duration, $stamp, 'media_id');
 
             if ($built !== null) {
@@ -67,8 +68,8 @@ class SaveProgressAction
                 $mediaRows[] = $built;
             }
 
-            if ($row->duration_seconds === null && self::sane($item['duration']) !== null) {
-                $durations[$item['id']] = self::sane($item['duration']);
+            if ($row->duration_seconds === null && $sent !== null) {
+                $durations[$item['id']] = $sent;
             }
         }
 

@@ -15,12 +15,14 @@ class MediaNudge implements MenuNudge
 
     public function for($subject)
     {
+        $subject->loadMissing('department');
+
         return $subject->audienceUsers();
     }
 
     public function getKey(): string
     {
-        return 'media-controller:nudge';
+        return Media::NUDGE_KEY;
     }
 
     public function refresh(): bool
