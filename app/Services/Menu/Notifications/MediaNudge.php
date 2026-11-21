@@ -20,7 +20,7 @@ class MediaNudge implements MenuNudge
 
     public function getKey(): string
     {
-        return Media::NUDGE_KEY;
+        return 'media-controller:nudge';
     }
 
     public function refresh(): bool

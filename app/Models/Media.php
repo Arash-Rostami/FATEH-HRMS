@@ -29,7 +29,7 @@ class Media extends Model
         HasUser,
         HasMediaHooks;
 
-    public const NUDGE_KEY = 'media-controller:nudge';
+    public const MAX_SECONDS = 172800;
 
     public const KIND_SERIES = 'series';
 
@@ -112,16 +112,16 @@ class Media extends Model
             return new Collection();
         }
 
-        $parentIds = static::library($user)->pluck('id');
+        $parents = fn () => static::library($user)->select('media.id');
 
         return static::query()
             ->whereIn('id', $ids)
             ->active()
             ->notExpired()
             ->released()
-            ->where(function (Builder $query) use ($parentIds) {
-                $query->where(fn (Builder $single) => $single->whereNull('parent_id')->whereIn('id', $parentIds)->whereIn('kind', [self::KIND_AUDIO, self::KIND_VIDEO]))
-                    ->orWhereIn('parent_id', $parentIds);
+            ->where(function (Builder $query) use ($parents) {
+                $query->where(fn (Builder $single) => $single->whereNull('parent_id')->whereIn('id', $parents())->whereIn('kind', [self::KIND_AUDIO, self::KIND_VIDEO]))
+                    ->orWhereIn('parent_id', $parents());
             })
             ->get(['id', 'duration_seconds']);
     }

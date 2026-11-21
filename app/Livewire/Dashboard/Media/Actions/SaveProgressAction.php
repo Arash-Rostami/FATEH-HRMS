@@ -35,13 +35,19 @@ class SaveProgressAction
         $existing = KnowledgeProgress::query()
             ->where('user_id', $user->id)
             ->where(function ($query) use ($playable, $reportIds) {
-                $query->whereIn('media_id', $playable->keys())
-                    ->orWhereIn('report_id', $reportIds->keys());
+                if ($playable->isNotEmpty()) {
+                    $query->whereIn('media_id', $playable->keys());
+                }
+
+                if ($reportIds->isNotEmpty()) {
+                    $method = $playable->isNotEmpty() ? 'orWhereIn' : 'whereIn';
+                    $query->{$method}('report_id', $reportIds->keys());
+                }
             })
             ->get(['media_id', 'report_id', 'position', 'last_position', 'completed_at'])
             ->keyBy(fn (KnowledgeProgress $row) => $row->media_id ? 'media:'.$row->media_id : 'report:'.$row->report_id);
 
-        $now = now();
+        $stamp = now()->format('Y-m-d H:i:s');
         $mediaRows = [];
         $reportRows = [];
         $durations = [];
@@ -53,8 +59,8 @@ class SaveProgressAction
                 continue;
             }
 
-            $duration = self::sane($item['duration']) ?? ($row->duration_seconds ?: null);
-            $built = self::build($user->id, $item, $existing->get('media:'.$item['id']), $duration, $now, 'media_id');
+            $duration = $row->duration_seconds ?: self::sane($item['duration']);
+            $built = self::build($user->id, $item, $existing->get('media:'.$item['id']), $duration, $stamp, 'media_id');
 
             if ($built !== null) {
                 $built['report_id'] = null;
@@ -71,7 +77,7 @@ class SaveProgressAction
                 continue;
             }
 
-            $built = self::build($user->id, $item, $existing->get('report:'.$item['id']), self::sane($item['duration']), $now, 'report_id');
+            $built = self::build($user->id, $item, $existing->get('report:'.$item['id']), self::sane($item['duration']), $stamp, 'report_id');
 
             if ($built !== null) {
                 $built['media_id'] = null;
@@ -108,6 +114,7 @@ class SaveProgressAction
                 'id' => $id,
                 'position' => max(0, $position),
                 'last_position' => max(0, $last),
+                'completed' => filter_var($item['completed'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'duration' => $item['duration'] ?? null,
             ];
         }
@@ -129,17 +136,19 @@ class SaveProgressAction
 
             $byKey[$key]['position'] = max($byKey[$key]['position'], $item['position']);
             $byKey[$key]['last_position'] = $item['last_position'];
+            $byKey[$key]['completed'] = $byKey[$key]['completed'] || $item['completed'];
             $byKey[$key]['duration'] ??= $item['duration'];
         }
 
         return array_values($byKey);
     }
 
-    private static function build(int $userId, array $item, ?KnowledgeProgress $stored, ?int $duration, $now, string $idColumn): ?array
+    private static function build(int $userId, array $item, ?KnowledgeProgress $stored, ?int $duration, string $stamp, string $idColumn): ?array
     {
         $position = self::clamp($item['position'], $duration);
         $last = self::clamp($item['last_position'], $duration);
-        $completing = $duration !== null && $position >= (int) floor($duration * (float) config('media.completion_ratio', 0.95));
+        $completing = $item['completed']
+            || ($duration !== null && $position >= (int) floor($duration * (float) config('media.completion_ratio', 0.95)));
         $storedPosition = (int) ($stored->position ?? 0);
         $storedLast = (int) ($stored->last_position ?? -1);
         $alreadyDone = $stored?->completed_at !== null;
@@ -148,8 +157,6 @@ class SaveProgressAction
             return null;
         }
 
-        $stamp = $now->format('Y-m-d H:i:s');
-
         return [
             'user_id' => $userId,
             $idColumn => $item['id'],
@@ -157,7 +164,7 @@ class SaveProgressAction
             'last_position' => $last,
             'completed_at' => $completing && !$alreadyDone ? $stamp : null,
             'last_seen_at' => $stamp,
-            'created_at' => ($stored?->created_at ?? $now)->format('Y-m-d H:i:s'),
+            'created_at' => $stamp,
             'updated_at' => $stamp,
         ];
     }
@@ -166,18 +173,14 @@ class SaveProgressAction
     {
         $tolerance = (int) config('media.position_tolerance', 5);
 
-        if ($duration === null || $duration < 1) {
-            return min($position, $tolerance);
-        }
-
-        return min($position, $duration + $tolerance);
+        return min($position, ($duration ?? Media::MAX_SECONDS) + $tolerance);
     }
 
     private static function sane(mixed $value): ?int
     {
         $seconds = filter_var($value, FILTER_VALIDATE_INT);
 
-        return $seconds !== false && $seconds >= 1 && $seconds <= 172800 ? $seconds : null;
+        return $seconds !== false && $seconds >= 1 && $seconds <= Media::MAX_SECONDS ? $seconds : null;
     }
 
     private static function upsert(string $uniqueColumn, array $rows): void
