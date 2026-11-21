@@ -478,6 +478,33 @@ class MediaResourceTest extends TestCase
         $this->assertNull($episode->fresh()->parent_id);
     }
 
+    public function test_zero_duration_is_refused_and_a_positive_one_accepted(): void
+    {
+        $admin = $this->developer();
+        $media = Media::factory()->create(['kind' => 'audio', 'title' => '0-Duration Probe']);
+
+        $page = Livewire::actingAs($admin)->test(EditMedia::class, ['record' => $media->getRouteKey()]);
+
+        $page->fillForm(['duration_seconds' => 0])->call('save')->assertHasFormErrors(['duration_seconds']);
+        $page->fillForm(['duration_seconds' => 90])->call('save')->assertHasNoFormErrors();
+
+        $this->assertSame(90, $media->fresh()->duration_seconds);
+    }
+
+    public function test_kind_select_is_disabled_only_for_a_series_with_episodes(): void
+    {
+        $admin = $this->developer();
+        $series = Media::factory()->create(['kind' => 'series', 'title' => '0-Locked Series']);
+        $empty = Media::factory()->create(['kind' => 'series', 'title' => '0-Empty Series']);
+        Media::factory()->create(['kind' => 'audio', 'parent_id' => $series->id, 'title' => '0-Locked Episode']);
+
+        Livewire::actingAs($admin)->test(EditMedia::class, ['record' => $series->getRouteKey()])
+            ->assertFormFieldIsDisabled('kind');
+
+        Livewire::actingAs($admin)->test(EditMedia::class, ['record' => $empty->getRouteKey()])
+            ->assertFormFieldIsEnabled('kind');
+    }
+
     public function test_progress_table_renders_media_and_report_titles_and_filters_completion(): void
     {
         $admin = $this->developer();

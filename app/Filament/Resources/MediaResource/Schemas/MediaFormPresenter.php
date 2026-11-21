@@ -26,7 +26,10 @@ class MediaFormPresenter extends ReportFormPresenter
             ->required()
             ->live()
             ->default('audio')
-            ->helperText(__('resources/media/strings.hints.kind'));
+            ->disabled(fn(?Media $record): bool => $record?->kind === 'series' && $record->episodes()->exists())
+            ->helperText(fn(?Media $record): string => $record?->kind === 'series' && $record->episodes()->exists()
+                ? __('resources/media/strings.hints.kind_locked')
+                : __('resources/media/strings.hints.kind'));
     }
 
     public static function episodeKind(): Select
@@ -169,7 +172,7 @@ class MediaFormPresenter extends ReportFormPresenter
         return TextInput::make('duration_seconds')
             ->label(__('resources/media/strings.fields.duration_seconds'))
             ->numeric()
-            ->minValue(0)
+            ->minValue(1)
             ->nullable()
             ->helperText(__('resources/media/strings.hints.duration_seconds'));
     }
