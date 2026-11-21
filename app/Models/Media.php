@@ -139,11 +139,12 @@ class Media extends Model
 
         return $query->library($user)
             ->where('media.user_id', '!=', $userId)
-            ->where(fn (Builder $playable) => $playable->whereNotNull('media.file_path')
+            ->where(fn (Builder $playable) => $playable->where(fn (Builder $own) => $own->where('media.kind', '!=', self::KIND_SERIES)->whereNotNull('media.file_path'))
                 ->orWhereExists(fn ($sub) => $sub->from('media as playable')->selectRaw('1')
                     ->whereColumn('playable.parent_id', 'media.id')
                     ->where('playable.active', true)
                     ->whereNotNull('playable.file_path')
+                    ->where(fn ($expires) => $expires->whereNull('playable.expires_at')->orWhere('playable.expires_at', '>', now()))
                     ->where(fn ($date) => $date->whereNull('playable.report_date')->orWhere('playable.report_date', '<=', today()->toDateString()))))
             ->where(fn (Builder $inner) => $inner->where('media.report_date', '>=', $since->toDateString())
                 ->orWhere(fn (Builder $created) => $created->whereNull('media.report_date')->where('media.created_at', '>=', $since)))

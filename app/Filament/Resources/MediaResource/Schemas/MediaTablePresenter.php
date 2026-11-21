@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MediaResource\Schemas;
 use App\Enums\MediaIcon;
 use App\Filament\Resources\ReportResource\Schemas\ReportTablePresenter;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
@@ -13,6 +14,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class MediaTablePresenter extends ReportTablePresenter
 {
+    public static function reportDate(): TextColumn
+    {
+        return parent::reportDate()->label(__('resources/media/strings.fields.report_date'));
+    }
+
+    public static function reportDateRangeFilter(): Filter
+    {
+        return parent::reportDateRangeFilter()->label(__('resources/media/strings.filters.report_date_range'));
+    }
+
     public static function kind(): TextColumn
     {
         return TextColumn::make('kind')

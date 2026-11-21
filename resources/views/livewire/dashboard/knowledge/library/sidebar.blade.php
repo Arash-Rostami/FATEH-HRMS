@@ -1,3 +1,4 @@
+@use('App\Models\Media')
 <aside aria-label="کتابخانه" :class="{ 'hidden': mobileDetail, 'flex': !mobileDetail, 'sb-collapsed': sbCollapsed, 'animate-sidebar-slide': sbSlide }"
        class="chat-scale flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:flex w-full md:w-[320px] lg:w-[360px] bg-[var(--md-sys-color-surface)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
     <div class="flex-shrink-0 px-4 pt-4 pb-3">
@@ -56,7 +57,7 @@
                  x-on:click="choose($el.dataset.id)" x-on:keydown.enter.self.prevent="choose($el.dataset.id)" x-on:keydown.space.self.prevent="choose($el.dataset.id)"
                  role="option" tabindex="0" :aria-selected="selectedId === Number($el.dataset.id)" title="{{ $item['title'] }}"
                  class="sb-row group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md hover:bg-[var(--md-sys-color-surface-variant)] aria-selected:bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] aria-selected:border-r-2 aria-selected:border-[var(--md-sys-color-primary)]">
-                <x-ui.row-actions :id="$item['id']" scope="media" pin-scope="media-pin" pin-noun="رسانه" :mute="false" :for="\App\Models\Media::make(['id' => $item['id']])"/>
+                <x-ui.row-actions :id="$item['id']" scope="media" pin-scope="media-pin" pin-noun="رسانه" :mute="false" :for="(new Media)->forceFill(['id' => $item['id']])"/>
                 <div class="relative flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ring-1 ring-[var(--md-sys-color-outline-variant)]" data-accent="{{ $item['accent'] }}" :style="accentStyle($el.dataset.accent)">
                     @if($item['cover_url'])
                         <img wire:key="media-row-cover" src="{{ $item['cover_url'] }}" alt="" loading="lazy" class="w-full h-full rounded-xl object-cover">

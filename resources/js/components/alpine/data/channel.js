@@ -103,6 +103,7 @@ export default function channel() {
             }, { signal });
 
             this._bindViewport();
+            this.initSwipeReply();
 
             document.addEventListener('selectionchange', () => {
                 if (selRaf) return;
@@ -160,6 +161,7 @@ export default function channel() {
             this._destroyed = true;
             this.stopPolling();
             ac?.abort();
+            this._swipeAc?.abort();
             vpAc?.abort();
             vpRo?.disconnect();
             clearTimeout(this._scrollSettleTimer);

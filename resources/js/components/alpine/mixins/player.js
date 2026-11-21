@@ -252,7 +252,7 @@ export default function playerMixin() {
         userId: '',
         stopAfter: false,
         undo: null,
-        sync: { local_seconds: 5, safety_seconds: 90, min_delta: 10, prebuffer_remaining_seconds: 120, resume_rewind: 10 },
+        sync: { local_seconds: 5, safety_seconds: 90, min_delta: 10, prebuffer_remaining_seconds: 120, resume_rewind: 10, completion_ratio: 0.95, position_tolerance: 5 },
         _lastPersist: 0,
         _lastFlush: 0,
         _loadedAt: 0,
@@ -564,8 +564,8 @@ export default function playerMixin() {
             if (!this.cur.sid || !(shared.ui === this) || !shared.element?.src) return;
             const ep = this.episode();
             if (!ep || (this.t <= 0 && !this._touched[ep.id])) return;
-            const tolerance = 5;
-            const cap = (ep.duration || this.duration || 0) + tolerance;
+            const tolerance = this.sync.position_tolerance;
+            const cap =(ep.duration || this.duration || 0) + tolerance;
             const position = Math.max(0, Math.min(Math.floor(Math.max(this.t, this._storedPos(ep.id))), cap));
             const lastPosition = Math.max(0, Math.floor(this.t));
             const ack = this._synced[ep.id];
@@ -588,7 +588,7 @@ export default function playerMixin() {
             }
             this._inflight[ep.id] = state;
             const ratio = ep.duration ? position / ep.duration : 0;
-            const completed = ratio >= 0.95;
+            const completed = ratio >= this.sync.completion_ratio;
             const entry = {
                 type: 'media',
                 id: ep.id,

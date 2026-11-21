@@ -17,6 +17,7 @@ use App\Services\Cache\ModelCacheVersion;
 use App\Services\Menu\StateService;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -137,6 +138,23 @@ class MediaPlaybackTest extends TestCase
             'duration' => 10,
         ]]));
         $this->assertSame(1, KnowledgeProgress::query()->where('user_id', $this->viewer->id)->count());
+    }
+
+    public function test_an_older_save_arriving_late_does_not_move_the_resume_point_back(): void
+    {
+        SaveProgressAction::execute($this->viewer, [$this->item(40, 40)]);
+        $seen = $this->progress()->last_seen_at;
+
+        Carbon::setTestNow(now()->subMinutes(5));
+
+        try {
+            SaveProgressAction::execute($this->viewer, [$this->item(10, 10)]);
+        } finally {
+            Carbon::setTestNow();
+        }
+
+        $this->assertSame(40, $this->progress()->last_position);
+        $this->assertTrue($seen->eq($this->progress()->last_seen_at));
     }
 
     public function test_the_stored_duration_wins_over_the_client_and_an_unknown_duration_does_not_cap_real_progress(): void
@@ -437,6 +455,19 @@ class MediaPlaybackTest extends TestCase
         SaveProgressAction::execute($this->viewer, [$this->item(10, 10)]);
 
         $this->assertFalse(Media::newFor($this->viewer->id)->whereKey($this->episode->parent_id)->exists());
+    }
+
+    public function test_the_new_badge_ignores_a_series_with_its_own_file_and_a_series_with_only_expired_lessons(): void
+    {
+        $fileOnSeries = Media::factory()->series()->create(['departments' => null, 'active' => true, 'file_path' => 'media/files/series-own.mp4']);
+        $expired = Media::factory()->series()->create(['departments' => null, 'active' => true]);
+        Media::factory()->create(['parent_id' => $expired->id, 'user_id' => $expired->user_id, 'active' => true, 'expires_at' => now()->subDay()]);
+
+        $ids = Media::newFor($this->viewer->id)->pluck('media.id');
+
+        $this->assertNotContains($fileOnSeries->id, $ids);
+        $this->assertNotContains($expired->id, $ids);
+        $this->assertContains($this->episode->parent_id, $ids);
     }
 
     private function item(int $position, int $last, bool $completed = false, ?int $duration = 100): array

@@ -221,6 +221,10 @@ export default function media() {
             return item.pinned || this.$store.pinned.isPinned(item.id, 'media-pin');
         },
 
+        item(sid) {
+            return lookup(this, sid ?? this.cur.sid) ?? null;
+        },
+
         played(id) {
             return !!this.item(id)?.episodes.some(ep => this.library.progress?.[ep.id]);
         },

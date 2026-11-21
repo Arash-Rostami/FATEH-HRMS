@@ -57,6 +57,11 @@ class MediaInfolistPresenter extends ReportInfolistPresenter
         return parent::pinned()->label(__('resources/media/strings.fields.pinned'));
     }
 
+    public static function reportDate(): TextEntry
+    {
+        return parent::reportDate()->label(__('resources/media/strings.fields.report_date'));
+    }
+
     public static function title(): TextEntry
     {
         return parent::title()->label(__('resources/media/strings.fields.title'));

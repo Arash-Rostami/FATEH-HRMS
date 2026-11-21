@@ -248,6 +248,26 @@ class MediaResourceTest extends TestCase
         $this->assertSame('knowledge_progress', ProgressRelationManager::deniedByPermission($empty));
     }
 
+    public function test_the_nested_series_columns_can_be_sorted_without_a_query_error(): void
+    {
+        $admin = $this->developer();
+        $series = Media::factory()->series()->create(['title' => '0-Sort Series']);
+        $episode = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $series->user_id, 'title' => '0-Sort Episode']);
+        KnowledgeProgress::create(['user_id' => $admin->id, 'media_id' => $episode->id, 'position' => 5]);
+
+        Livewire::actingAs($admin)->test(ListMedia::class)
+            ->sortTable('parent.title')
+            ->assertSuccessful()
+            ->sortTable('parent.title', 'desc')
+            ->assertSuccessful();
+
+        Livewire::actingAs($admin)->test(ListKnowledgeProgress::class)
+            ->sortTable('media.title')
+            ->assertSuccessful();
+
+        $this->assertFalse(KnowledgeProgressTablePresenter::series()->isSortable());
+    }
+
     public function test_list_media_header_actions_include_create(): void
     {
         $admin = $this->developer();

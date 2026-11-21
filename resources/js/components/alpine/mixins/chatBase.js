@@ -33,6 +33,9 @@ const SETTLE_STOP_EVENTS = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
 const MSG_ROW_SEL = '[data-rf*="message-"]';
 const UNREAD_ID_SEL = '[data-unread-id]';
 const DAY_SEL = '[data-day]';
+const SWIPE_ACTIVATE_PX = 14;
+const SWIPE_MAX_PX = 72;
+const SWIPE_COMMIT_PX = 40;
 let fmt;
 const formats = () => fmt ??= {
     day: new Intl.DateTimeFormat('fa-IR-u-ca-persian', { day: 'numeric', month: 'long' }),
@@ -411,6 +414,58 @@ export default function chatBase(scope) {
             };
 
             requestAnimationFrame(tick);
+        },
+
+        initSwipeReply() {
+            this._swipeAc?.abort();
+            this._swipeAc = new AbortController();
+            const { signal } = this._swipeAc;
+            const sw = { on: false, engaged: false, row: null, bubble: null, id: null, x0: 0, y0: 0, dx: 0 };
+
+            const reset = () => {
+                if (!sw.on) return;
+                const bubble = sw.bubble;
+                if (bubble) {
+                    bubble.style.transition = 'transform 150ms';
+                    bubble.style.transform = '';
+                    setTimeout(() => { if (bubble.style.transition) bubble.style.transition = ''; }, 200);
+                }
+                sw.on = false; sw.engaged = false; sw.row = null; sw.bubble = null; sw.id = null; sw.dx = 0;
+            };
+
+            document.addEventListener('pointerdown', (e) => {
+                if (sw.on || e.pointerType !== 'touch') return;
+                if (e.target.closest?.('a,button,[role=button],label,input,textarea,select,[contenteditable]')) return;
+                const row = e.target.closest?.(MSG_ROW_SEL);
+                if (!row || !row.closest(`#${ID_VIEWPORT}`)) return;
+                const bubble = row.querySelector('.msg-bubble');
+                if (!bubble) return;
+                sw.on = true; sw.row = row; sw.bubble = bubble; sw.id = idOf(row.dataset.rf);
+                sw.x0 = e.clientX; sw.y0 = e.clientY; sw.dx = 0;
+            }, { passive: true, signal });
+
+            document.addEventListener('pointermove', (e) => {
+                if (!sw.on) return;
+                const dx = e.clientX - sw.x0;
+                const dy = e.clientY - sw.y0;
+                if (!sw.engaged && (Math.abs(dx) < SWIPE_ACTIVATE_PX || Math.abs(dx) <= Math.abs(dy))) return;
+                sw.engaged = true;
+                sw.dx = Math.max(-SWIPE_MAX_PX, Math.min(SWIPE_MAX_PX, dx));
+                sw.bubble.style.transition = '';
+                sw.bubble.style.transform = `translateX(${sw.dx}px)`;
+            }, { passive: true, signal });
+
+            document.addEventListener('pointerup', () => {
+                if (!sw.on) return;
+                const { row, id, dx, engaged } = sw;
+                const commit = engaged && Math.abs(dx) >= SWIPE_COMMIT_PX;
+                reset();
+                if (!commit) return;
+                const btn = row.querySelector('button[data-body]');
+                this.startReply(id, btn?.dataset.sender, btn?.dataset.body);
+            }, { signal });
+
+            document.addEventListener('pointercancel', reset, { signal });
         },
 
         async loadOlderKeepingPlace(load) {

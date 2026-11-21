@@ -1,5 +1,5 @@
 <div @class([
-            'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] scale-90 group-hover:scale-100 group-focus-within:scale-100 max-md:top-auto max-md:bottom-full max-md:mb-1.5 max-md:translate-y-0 max-md:translate-x-0',
+            'absolute bottom-0 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] scale-90 group-hover:scale-100 group-focus-within:scale-100 max-md:translate-x-0',
             'left-0 -translate-x-[calc(100%+6px)] max-md:left-auto max-md:right-0' => $msg['is_mine'],
             'right-0 translate-x-[calc(100%+6px)] max-md:right-auto max-md:left-0' => !$msg['is_mine']
         ])

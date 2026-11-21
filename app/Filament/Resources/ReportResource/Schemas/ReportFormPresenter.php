@@ -87,7 +87,7 @@ class ReportFormPresenter
             required: false,
             yearFrom: 1380,
             fullWidth: true,
-        );
+        )->helperText(__('resources/report/strings.hints.report_date'));
     }
 
     public static function expiresAt(): FusedGroup
@@ -98,7 +98,7 @@ class ReportFormPresenter
             required: false,
             yearFrom: 1380,
             fullWidth: true,
-        );
+        )->helperText(__('resources/report/strings.hints.expires_at'));
     }
 
     public static function description(): RichEditor

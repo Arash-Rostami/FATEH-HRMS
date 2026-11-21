@@ -78,7 +78,6 @@ class EpisodesRelationManager extends RelationManager
                                     MediaFormPresenter::topic(),
                                     MediaFormPresenter::icon(),
                                     MediaFormPresenter::active(),
-                                    MediaFormPresenter::pinned(),
                                     MediaFormPresenter::divider(),
                                     MediaFormPresenter::reportDate(),
                                     MediaFormPresenter::expiresAt(),

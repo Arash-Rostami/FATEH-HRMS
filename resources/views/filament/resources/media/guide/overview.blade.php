@@ -141,7 +141,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">پیشرفت</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">زیر مدخل «پیشرفت» دیده می‌شود که هر کاربر تا کجای کدام جلسه پیش رفته و چه جلسه‌هایی را تمام کرده است؛ خروجی اکسل هم دارد.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">در «پیشرفت یادگیری»، ببینید هر کاربر تا کجای جلسه پیش رفته و آن را تمام کرده است یا نه. از همین جدول می‌توانید خروجی اکسل بگیرید.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">

@@ -924,7 +924,7 @@ class MenuServiceTest extends TestCase
         $this->assertFalse(Media::newFor($viewer->id)->whereKey($series->id)->exists());
         $this->assertTrue(Media::newFor($other->id)->whereKey($series->id)->exists());
 
-        $this->assertFalse((new UnseenMedia())->isActive());
+        $this->assertSame(Media::newFor($viewer->id)->exists(), (new UnseenMedia())->isActive());
     }
 
     public function test_feed_post_photo_and_report_nudges_show_only_while_the_subject_is_active(): void

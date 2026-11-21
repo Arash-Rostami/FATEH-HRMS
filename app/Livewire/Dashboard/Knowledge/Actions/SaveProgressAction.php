@@ -184,9 +184,9 @@ class SaveProgressAction
             ['user_id', $uniqueColumn],
             [
                 'position' => DB::raw('GREATEST(COALESCE(`position`, 0), COALESCE('.$incoming('position').', 0))'),
-                'last_position' => DB::raw($incoming('last_position')),
+                'last_position' => DB::raw('IF('.$incoming('last_seen_at').' >= COALESCE(`last_seen_at`, \'1970-01-01 00:00:00\'), '.$incoming('last_position').', `last_position`)'),
                 'completed_at' => DB::raw('COALESCE(`completed_at`, '.$incoming('completed_at').')'),
-                'last_seen_at' => DB::raw($incoming('last_seen_at')),
+                'last_seen_at' => DB::raw('GREATEST(COALESCE(`last_seen_at`, '.$incoming('last_seen_at').'), '.$incoming('last_seen_at').')'),
                 'updated_at' => DB::raw($incoming('updated_at')),
             ]
         );

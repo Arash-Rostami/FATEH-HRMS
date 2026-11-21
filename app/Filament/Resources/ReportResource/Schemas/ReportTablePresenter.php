@@ -196,7 +196,7 @@ class ReportTablePresenter
         );
     }
 
-    public static function shareWithDepartmentsBulkAction(): BulkAction
+    public static function shareWithDepartmentsBulkAction(string $copy = 'resources/report/strings.bulk'): BulkAction
     {
         return BulkAction::make('share_with_departments')
             ->label(__('resources/report/strings.bulk.share_with_departments'))
@@ -209,13 +209,13 @@ class ReportTablePresenter
                     ->multiple()
                     ->searchable()
                     ->preload()
-                    ->helperText(__('resources/report/strings.bulk.share_description')),
+                    ->helperText(__($copy . '.share_description')),
             ])
-            ->action(function (Collection $records, array $data): void {
+            ->action(function (Collection $records, array $data) use ($copy): void {
                 $depts = $data['departments'] ?? [];
                 $records->each(fn($record) => $record->update(['departments' => $depts]));
                 Notification::make()
-                    ->title(__('resources/report/strings.bulk.share_done'))
+                    ->title(__($copy . '.share_done'))
                     ->success()
                     ->send();
             });

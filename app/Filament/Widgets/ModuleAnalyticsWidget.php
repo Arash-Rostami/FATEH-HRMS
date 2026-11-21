@@ -877,7 +877,9 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
 
     public function setTab(string $tab): void
     {
-        $this->activeTab = $tab;
+        if (array_key_exists($tab, $this->getAllTabs())) {
+            $this->activeTab = $tab;
+        }
     }
 
     #[Computed(seconds: 300, cache: true)]
@@ -924,7 +926,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
 
     public function statsSchema(Schema $schema): Schema
     {
-        $stats = match ($this->activeTab) {
+        $stats = ! array_key_exists($this->activeTab, $this->getAllTabs()) ? [] : match ($this->activeTab) {
             'users' => $this->usersData,
             'departments' => $this->departmentsData,
             'ads' => $this->adsData,

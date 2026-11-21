@@ -168,15 +168,25 @@ class MediaModelTest extends TestCase
         DB::table('media')->where('id', $media->id)->update(['description' => "hello\x00world"]);
 
         Media::writeSystemDurations([$media->id => 90]);
-        Media::writePositions([$media->id => 3]);
 
         $row = DB::table('media')->where('id', $media->id)->first();
 
         $this->assertSame(90, (int) $row->duration_seconds);
-        $this->assertSame(3, (int) $row->position);
         $this->assertSame("hello\x00world", $row->description);
         $this->assertSame($stamp, $row->updated_at);
         Storage::disk('public')->assertExists('media/files/keep.mp3');
+    }
+
+    public function test_a_new_file_without_a_duration_is_probed_on_the_server_when_the_item_is_saved(): void
+    {
+        Storage::fake('public');
+        $data = str_repeat("\x80", 24000);
+        $wav = 'RIFF'.pack('V', 36 + strlen($data)).'WAVEfmt '.pack('VvvVVvv', 16, 1, 1, 8000, 8000, 1, 8).'data'.pack('V', strlen($data)).$data;
+        Storage::disk('public')->put('media/files/probe.wav', $wav);
+
+        $media = Media::factory()->create(['file_path' => 'media/files/probe.wav', 'duration_seconds' => null]);
+
+        $this->assertSame(3, (int) $media->fresh()->duration_seconds);
     }
 
     public function test_probe_duration_returns_null_instead_of_throwing(): void

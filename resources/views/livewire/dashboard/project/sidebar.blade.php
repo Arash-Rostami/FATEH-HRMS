@@ -66,7 +66,7 @@
                         'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeProjectId !== $project['id'],
                     ])>
 
-                <x-ui.row-actions :id="$project['id']" scope="project" pin-noun="پروژه" mute-noun="پروژه" :for="\App\Models\Project::make(['id' => $project['id']])"/>
+                <x-ui.row-actions :id="$project['id']" scope="project" pin-noun="پروژه" mute-noun="پروژه" :for="(new \App\Models\Project)->forceFill(['id' => $project['id']])"/>
 
                 @php($badge = $this->presenter->badgeColors($project['id']))
                 <span class="relative flex-shrink-0">

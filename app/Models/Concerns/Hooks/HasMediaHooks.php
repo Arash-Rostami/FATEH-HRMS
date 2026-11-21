@@ -3,7 +3,9 @@
 namespace App\Models\Concerns\Hooks;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 trait HasMediaHooks
 {
@@ -13,6 +15,7 @@ trait HasMediaHooks
     {
         static::saving(self::guardExpiryBeforeDateOnSaving(...));
         static::saving(self::guardStructureOnSaving(...));
+        static::saving(self::probeDurationOnSaving(...));
         static::saving(self::normalizeDurationOnSaving(...));
         static::updated(self::cleanReplacedFilesOnUpdated(...));
         static::deleting(self::deleteEpisodesOnDeleting(...));
@@ -21,24 +24,14 @@ trait HasMediaHooks
 
     public static function writeSystemDurations(array $secondsById): void
     {
-        self::writeCases('duration_seconds', $secondsById, 1, true);
-    }
-
-    public static function writePositions(array $positions): void
-    {
-        self::writeCases('position', $positions, 0, false);
-    }
-
-    private static function writeCases(string $column, array $pairs, int $min, bool $onlyNull): void
-    {
         $clean = [];
 
-        foreach ($pairs as $id => $value) {
+        foreach ($secondsById as $id => $seconds) {
             $id = (int) $id;
-            $value = (int) $value;
+            $seconds = (int) $seconds;
 
-            if ($id > 0 && $value >= $min) {
-                $clean[$id] = $value;
+            if ($id > 0 && $seconds >= 1) {
+                $clean[$id] = $seconds;
             }
         }
 
@@ -48,17 +41,27 @@ trait HasMediaHooks
 
         $case = 'CASE `id`';
 
-        foreach ($clean as $id => $value) {
-            $case .= ' WHEN '.$id.' THEN '.$value;
+        foreach ($clean as $id => $seconds) {
+            $case .= ' WHEN '.$id.' THEN '.$seconds;
         }
 
-        $query = DB::table((new static())->getTable())->whereIn('id', array_keys($clean));
+        DB::table((new static())->getTable())
+            ->whereIn('id', array_keys($clean))
+            ->where(fn ($inner) => $inner->whereNull('duration_seconds')->orWhere('duration_seconds', '<', 1))
+            ->update(['duration_seconds' => DB::raw($case.' ELSE `duration_seconds` END')]);
+    }
 
-        if ($onlyNull) {
-            $query->where(fn ($inner) => $inner->whereNull($column)->orWhere($column, '<', 1));
+    private static function probeDurationOnSaving(self $media): void
+    {
+        if ($media->duration_seconds !== null || ! is_string($media->file_path) || $media->file_path === '' || ! $media->isDirty('file_path')) {
+            return;
         }
 
-        $query->update([$column => DB::raw($case.' ELSE `'.$column.'` END')]);
+        try {
+            $media->duration_seconds = static::probeDuration(Storage::disk('public')->path($media->file_path));
+        } catch (Throwable) {
+            $media->duration_seconds = null;
+        }
     }
 
     private static function normalizeDurationOnSaving(self $media): void

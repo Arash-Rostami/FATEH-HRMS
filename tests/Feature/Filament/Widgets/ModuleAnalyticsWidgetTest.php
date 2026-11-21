@@ -116,6 +116,22 @@ class ModuleAnalyticsWidgetTest extends TestCase
         $this->assertContains('tasks', $keys());
     }
 
+    public function test_set_tab_ignores_a_tab_that_is_hidden_for_the_tenant_or_the_viewer(): void
+    {
+        $widget = $this->widget();
+        $widget->activeTab = 'users';
+
+        config(['app.off' => ['notify']]);
+        $widget->setTab('notify');
+        $this->assertSame('users', $widget->activeTab);
+
+        $widget->setTab('media');
+        $this->assertSame('users', $widget->activeTab);
+
+        $widget->setTab('tasks');
+        $this->assertSame('tasks', $widget->activeTab);
+    }
+
     #[DataProvider('statMethodsProvider')]
     public function test_data_method_returns_array_of_stat_objects(string $method): void
     {

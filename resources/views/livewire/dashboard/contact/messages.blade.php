@@ -149,7 +149,7 @@
                         <div class="relative">
                             <div
                                 :style="isEmojiOnly(@js($msg['forwarded_html'] === null ? $msg['body_html'] : '')) && 'font-size:2rem;background:none;box-shadow:none;padding:0'"                                @class([
-                                      'px-4 py-2.5 text-sm leading-relaxed break-words select-text cursor-default ' . $msg['bubble_radius'],
+                                      'relative msg-bubble touch-pan-y px-4 py-2.5 text-sm leading-relaxed break-words select-text cursor-default ' . $msg['bubble_radius'],
                                       'bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)]' => $msg['is_mine'],
                                       'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_1px_6px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent),inset_0_1px_0_color-mix(in_srgb,white_6%,transparent)]' => !$msg['is_mine']
                                   ])
@@ -162,9 +162,9 @@
                                     <span dir="auto" class="block break-words [unicode-bidi:plaintext]" :style="fontStyle({{ $msg['id'] }})">{!! $msg['body_html'] !!}</span>
                                 @endif
                                 @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])
+                                @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'canReact' => $canReact, 'pinnedId' => $pin['id'] ?? null, 'pinLabel' => 'سنجاق پیام'])
                             </div>
 
-                                @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'canReact' => $canReact, 'pinnedId' => $pin['id'] ?? null, 'pinLabel' => 'سنجاق پیام'])
                                 @include('livewire.dashboard.messaging.reactions', ['msg' => $msg, 'canReact' => $canReact])
 
                             @if($msg['is_last'])

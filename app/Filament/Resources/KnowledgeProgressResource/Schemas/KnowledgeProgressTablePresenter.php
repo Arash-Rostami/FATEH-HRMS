@@ -45,7 +45,6 @@ class KnowledgeProgressTablePresenter
         return TextColumn::make('media.parent.title')
             ->label(__('resources/media/strings.progress.table.series'))
             ->state(fn(Model $record): string => $record->media?->parent?->title ?? '-')
-            ->sortable()
             ->toggleable(isToggledHiddenByDefault: true);
     }
 

@@ -1672,3 +1672,106 @@ describe('chatBase send ghost', () => {
         }
     });
 });
+
+describe('swipe-to-reply (initSwipeReply — touch-only, direction-locked, chatBase shared by channel/contact)', () => {
+    const fire = (target, type, props = {}) => {
+        const e = new Event(type, { bubbles: true, cancelable: true });
+        Object.assign(e, { pointerType: 'touch', clientX: 0, clientY: 0, button: 0, ...props });
+        target.dispatchEvent(e);
+    };
+
+    const instances = [];
+
+    const start = () => {
+        const c = chatBase('contact');
+        c.startReply = vi.fn();
+        c.initSwipeReply();
+        instances.push(c);
+        return c;
+    };
+
+    const fixture = (insideViewport = true) => {
+        document.body.innerHTML = insideViewport
+            ? `<div id="msg-viewport"><div data-rf="message-12"><div class="msg-bubble"></div><button data-body="plain text" data-sender="Ali"></button></div></div>`
+            : `<div><div data-rf="message-12"><div class="msg-bubble"></div></div></div>`;
+        return document.querySelector('.msg-bubble');
+    };
+
+    afterEach(() => {
+        for (const c of instances.splice(0)) c._swipeAc?.abort();
+    });
+
+    test('a horizontal touch drag past the commit threshold replies with the row id, sender and body', () => {
+        const bubble = fixture();
+        const c = start();
+
+        fire(bubble, 'pointerdown', { clientX: 100, clientY: 100 });
+        fire(bubble, 'pointermove', { clientX: 150, clientY: 102 });
+        expect(bubble.style.transform).toContain('translateX(50px)');
+
+        fire(bubble, 'pointerup', { clientX: 150, clientY: 102 });
+        expect(c.startReply).toHaveBeenCalledWith(12, 'Ali', 'plain text');
+        expect(bubble.style.transform).toBe('');
+    });
+
+    test('a vertical drag never engages and never replies', () => {
+        const bubble = fixture();
+        const c = start();
+
+        fire(bubble, 'pointerdown', { clientX: 100, clientY: 100 });
+        fire(bubble, 'pointermove', { clientX: 104, clientY: 150 });
+        expect(bubble.style.transform).toBe('');
+
+        fire(bubble, 'pointerup', { clientX: 104, clientY: 150 });
+        expect(c.startReply).not.toHaveBeenCalled();
+    });
+
+    test('an engaged drag under the commit threshold snaps back without replying', () => {
+        const bubble = fixture();
+        const c = start();
+
+        fire(bubble, 'pointerdown', { clientX: 100, clientY: 100 });
+        fire(bubble, 'pointermove', { clientX: 130, clientY: 100 });
+        expect(bubble.style.transform).toContain('translateX(30px)');
+
+        fire(bubble, 'pointerup', { clientX: 130, clientY: 100 });
+        expect(c.startReply).not.toHaveBeenCalled();
+        expect(bubble.style.transform).toBe('');
+    });
+
+    test('a mouse pointer, a row outside the viewport and an interactive target are all ignored', () => {
+        const bubble = fixture();
+        const c = start();
+
+        fire(bubble, 'pointerdown', { pointerType: 'mouse', clientX: 100, clientY: 100 });
+        fire(bubble, 'pointermove', { pointerType: 'mouse', clientX: 150, clientY: 100 });
+        fire(bubble, 'pointerup', { pointerType: 'mouse', clientX: 150, clientY: 100 });
+
+        const orphan = fixture(false);
+        fire(orphan, 'pointerdown', { clientX: 100, clientY: 100 });
+        fire(orphan, 'pointermove', { clientX: 150, clientY: 100 });
+        fire(orphan, 'pointerup', { clientX: 150, clientY: 100 });
+
+        const button = document.querySelector('button[data-body]');
+        fire(button, 'pointerdown', { clientX: 100, clientY: 100 });
+        fire(button, 'pointermove', { clientX: 150, clientY: 100 });
+        fire(button, 'pointerup', { clientX: 150, clientY: 100 });
+
+        expect(c.startReply).not.toHaveBeenCalled();
+    });
+
+    test('pointercancel releases the drag and the bubble returns without replying', () => {
+        const bubble = fixture();
+        const c = start();
+
+        fire(bubble, 'pointerdown', { clientX: 100, clientY: 100 });
+        fire(bubble, 'pointermove', { clientX: 160, clientY: 100 });
+        fire(bubble, 'pointercancel', { clientX: 160, clientY: 100 });
+
+        expect(bubble.style.transform).toBe('');
+        expect(c.startReply).not.toHaveBeenCalled();
+
+        fire(bubble, 'pointerup', { clientX: 160, clientY: 100 });
+        expect(c.startReply).not.toHaveBeenCalled();
+    });
+});

@@ -9,17 +9,52 @@ use App\Models\Report;
 use App\Support\FileNamer;
 use App\Traits\Filament\FilamentIconOptions;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Symfony\Component\Mime\MimeTypes;
 
 class MediaFormPresenter extends ReportFormPresenter
 {
     use FilamentIconOptions;
+
+    public static function departmentId(): Select
+    {
+        return parent::departmentId()->helperText(__('resources/media/strings.hints.department_id'));
+    }
+
+    public static function departments(): Select
+    {
+        return parent::departments()->helperText(__('resources/media/strings.hints.departments'));
+    }
+
+    public static function description(): RichEditor
+    {
+        return parent::description()->placeholder(__('resources/media/strings.placeholders.description'));
+    }
+
+    public static function reportDate(): FusedGroup
+    {
+        return parent::reportDate()
+            ->label(__('resources/media/strings.fields.report_date'))
+            ->helperText(__('resources/media/strings.hints.report_date'));
+    }
+
+    public static function expiresAt(): FusedGroup
+    {
+        return parent::expiresAt()->helperText(__('resources/media/strings.hints.expires_at'));
+    }
+
+    public static function userId(): Select
+    {
+        return parent::userId()->helperText(__('resources/media/strings.hints.user_id'));
+    }
 
     public static function kind(): Select
     {
@@ -73,11 +108,12 @@ class MediaFormPresenter extends ReportFormPresenter
             ->label(__('resources/media/strings.fields.parent_id'))
             ->live()
             ->hidden(fn(Get $get): bool => $get('kind') === 'series')
-            ->options(fn() => Media::query()
+            ->options(fn(?Media $record) => Media::query()
                 ->select('id', 'title')
                 ->whereNull('parent_id')
                 ->where('kind', 'series')
-                ->where('active', true)
+                ->where(fn(Builder $query) => $query->where('active', true)
+                    ->when($record?->parent_id, fn(Builder $inner, int $current) => $inner->orWhere('id', $current)))
                 ->orderBy('title')
                 ->pluck('title', 'id')
                 ->all())

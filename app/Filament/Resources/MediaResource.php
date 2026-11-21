@@ -260,7 +260,7 @@ class MediaResource extends Resource
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions([
                 static::bulkDeleteAction(),
-                MediaTablePresenter::shareWithDepartmentsBulkAction(),
+                MediaTablePresenter::shareWithDepartmentsBulkAction('resources/media/strings.bulk'),
                 ...self::bulkVisibilityActions(),
             ])
             ->emptyStateIcon('heroicon-o-play-circle')

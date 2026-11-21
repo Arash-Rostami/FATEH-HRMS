@@ -1,7 +1,8 @@
+@use('App\Services\Menu\BadgeLegendCatalog')
 <div dir="rtl" data-media-root x-data="media()" x-on:keydown.escape.window="onEscape($event)"
      data-library="{{ json_encode($this->library, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}"
      data-progress-url="{{ route('media.progress') }}" data-user-id="{{ auth()->id() }}" data-notes-url="{{ route('media.notes') }}"
-     data-sync="{{ json_encode(config('media.sync')) }}" data-open="{{ $open }}"
+     data-sync="{{ json_encode(config('media.sync') + ['completion_ratio' => config('media.completion_ratio'), 'position_tolerance' => config('media.position_tolerance')]) }}" data-open="{{ $open }}"
      class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] relative overflow-hidden animate-fade"
      role="region" aria-label="کتابخانهٔ رسانه">
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">
@@ -25,7 +26,7 @@
             <x-dashboard.media.player part="bar" />
         </div>
     </div>
-    <x-dashboard.modal.badge-legend name="media-badge-legend" :items="array_filter([\App\Services\Menu\BadgeLegendCatalog::get('media-controller')])" />
+    <x-dashboard.modal.badge-legend name="media-badge-legend" :items="array_filter([BadgeLegendCatalog::get('media-controller')])" />
     <div wire:ignore x-ref="mediaTracks" hidden></div>
     <x-ui.modals.dialog name="media-legend" title="راهنمای رسانه">
         @include('livewire.dashboard.knowledge.library.legend')

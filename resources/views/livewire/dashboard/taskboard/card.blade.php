@@ -407,7 +407,7 @@
                     @case('reminder')
                         @if($a['show'])
                             <span wire:key="taskboard-card-reminder" @click.stop>
-                                <x-dashboard.reminder-trigger :for="\App\Models\Task::make(['id' => $taskId])" variant="inline" tooltip-position="right"/>
+                                <x-dashboard.reminder-trigger :for="(new \App\Models\Task)->forceFill(['id' => $taskId])" variant="inline" tooltip-position="right"/>
                             </span>
                         @endif
                         @break

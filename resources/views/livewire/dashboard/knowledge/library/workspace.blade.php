@@ -1,3 +1,4 @@
+@use('App\Models\Media')
 <main class="flex-1 min-w-0 flex flex-col overflow-y-auto custom-scrollbar [scrollbar-gutter:auto]! bg-[var(--md-sys-color-background)] md:flex" :class="{ 'hidden': !mobileDetail, 'flex': mobileDetail }" aria-label="فضای رسانه">
     <div wire:key="media-refresh-error" x-show="refreshError" x-cloak class="p-4" role="alert"><p x-text="refreshError" class="text-sm text-[var(--md-sys-color-error)]"></p><x-ui.buttons.form variant="tonal" x-on:click="refreshLibrary()">تلاش دوباره</x-ui.buttons.form></div>
     <div wire:key="media-workspace-empty" x-show="!selected" class="contents"><x-ui.empty icon="video_library" title="برای شروع، یک رسانه انتخاب کنید" description="از فهرست، یک فایل صوتی، ویدیو یا مجموعهٔ آموزشی را باز کنید." :fill="true" /></div>
@@ -22,7 +23,7 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto md:ms-auto md:flex-col md:items-end md:justify-between md:self-stretch">
                     <div class="chat-scale flex items-center gap-1.5 max-md:ms-auto">
-                        <x-dashboard.reminder-trigger :for="\App\Models\Media::make(['id' => $item['id']])" key-suffix="hero"/>
+                        <x-dashboard.reminder-trigger :for="(new Media)->forceFill(['id' => $item['id']])" key-suffix="hero"/>
                         <x-ui.buttons.form variant="primary" x-on:click="heroPlay()" x-bind:disabled="!selected?.episodes.some(ep => ep.file_url)" class="!h-8 !rounded-xl !px-3 text-[12px]"><span class="material-symbols-rounded text-[18px]" x-text="playing && cur.sid === selectedId ? 'pause' : 'play_arrow'"></span><span x-text="heroLabel()"></span></x-ui.buttons.form>
                         <x-ui.buttons.bookmark :id="$item['id']" scope="media" class="!h-8 !w-8 !rounded-xl !p-0 bg-[var(--md-sys-color-surface-variant)]" />
                         <x-ui.buttons.form variant="none" x-on:click="copyMoment()" title="کپی پیوند این لحظه" aria-label="کپی پیوند این لحظه" class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95"><span class="material-symbols-rounded text-base">share</span></x-ui.buttons.form>
@@ -88,10 +89,10 @@
                                         <p wire:key="media-episode-lock" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]"><span class="material-symbols-rounded text-[14px]">lock</span>زمان انتشار {{ $episode['unlock_label'] }}</p>
                                     @endif
                                 </td>
-                                <td data-col="type" class="hidden md:table-cell px-4 md:px-6 py-3 text-xs whitespace-nowrap"><span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-[16px]">{{ ($episode['kind'] ?? $item['kind']) === 'video' ? 'smart_display' : 'headphones' }}</span>{{ ($episode['kind'] ?? $item['kind']) === 'video' ? 'تصویری' : 'صوتی' }}@if(! empty($episode['ext']))<span class="text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $episode['ext'] }}</span>@endif</span></td>
+                                <td data-col="type" class="hidden md:table-cell px-4 md:px-6 py-3 text-xs whitespace-nowrap"><span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-[16px]">{{ ($episode['kind'] ?? $item['kind']) === 'video' ? 'smart_display' : 'headphones' }}</span>{{ ($episode['kind'] ?? $item['kind']) === 'video' ? 'تصویری' : 'صوتی' }}@if(! empty($episode['ext']))<span wire:key="media-episode-ext" class="text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $episode['ext'] }}</span>@endif</span></td>
                                 <td data-col="duration" class="hidden md:table-cell px-4 md:px-6 py-3 text-xs tabular-nums" x-text="time({{ $episode['duration'] ?? 0 }})"></td>
                                 <td data-col="date" class="hidden lg:table-cell px-4 md:px-6 py-3 text-xs whitespace-nowrap">{{ $episode['date_label'] ?? '' }}</td>
-                                <td data-col="extras" class="hidden lg:table-cell px-4 md:px-6 py-3"><span class="inline-flex items-center gap-1 text-[var(--md-sys-color-on-surface-variant)]">@if($episode['transcript_url'])<span class="material-symbols-rounded text-[18px]" title="متن جلسه" aria-label="متن جلسه">subtitles</span>@endif @if($episode['chapters_url'])<span class="material-symbols-rounded text-[18px]" title="فصل‌ها" aria-label="فصل‌ها">list_alt</span>@endif @if(! $episode['transcript_url'] && ! $episode['chapters_url'])<span aria-hidden="true">—</span>@endif</span></td>
+                                <td data-col="extras" class="hidden lg:table-cell px-4 md:px-6 py-3"><span class="inline-flex items-center gap-1 text-[var(--md-sys-color-on-surface-variant)]">@if($episode['transcript_url'])<span wire:key="media-episode-transcript" class="material-symbols-rounded text-[18px]" title="متن جلسه" aria-label="متن جلسه">subtitles</span>@endif @if($episode['chapters_url'])<span wire:key="media-episode-chapters" class="material-symbols-rounded text-[18px]" title="فصل‌ها" aria-label="فصل‌ها">list_alt</span>@endif @if(! $episode['transcript_url'] && ! $episode['chapters_url'])<span wire:key="media-episode-extras-none" aria-hidden="true">—</span>@endif</span></td>
                                 <td data-col="notes" class="hidden md:table-cell px-4 md:px-6 py-3 text-xs tabular-nums" x-text="number((libraryNotes[{{ $episode['id'] }}] ?? []).length)"></td>
                                 <td data-col="status" class="hidden md:table-cell px-4 md:px-6 py-3">
                                     <div class="flex items-center gap-3">
@@ -133,7 +134,7 @@
                             <button type="button" aria-label="فصل‌های قبلی" x-on:click="$refs.chapterStrip.scrollBy({ left: $refs.chapterStrip.clientWidth * 0.7, behavior: 'smooth' })"
                                     class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 hover:!bg-[var(--md-sys-color-primary)] hover:!text-[var(--md-sys-color-on-primary)] active:scale-90"><span class="material-symbols-rounded text-[18px]">chevron_right</span></button>
                             <div x-ref="chapterStrip" role="list" aria-label="فصل‌های جلسه" class="flex min-w-0 flex-1 items-stretch gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                                <template x-for="chapter in chapters" :key="chapter.start">
+                                <template x-for="chapter in chapters" :key="chapter.start + ':' + chapter.end">
                                     <button type="button" role="listitem" x-on:click="seekContext(chapter.start)" x-bind:aria-current="activeCue(chapter)" x-bind:title="chapter.text"
                                             class="w-36 shrink-0 rounded-xl px-3 py-2 text-right transition-colors duration-200 md:w-40"
                                             x-bind:class="activeCue(chapter) ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-variant)]'">
@@ -147,7 +148,7 @@
                         </div>
                     </div>
                     <div wire:key="media-cues" x-show="visibleCues.length" x-cloak class="max-h-[26rem] snap-y overflow-y-auto rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] p-1 custom-scrollbar">
-                        <template x-for="cue in visibleCues" :key="cue.start">
+                        <template x-for="cue in visibleCues" :key="cue.start + ':' + cue.end">
                             <button type="button" x-on:click="seekContext(cue.start)" x-bind:aria-current="activeCue(cue)"
                                     class="flex w-full snap-start items-start gap-3 rounded-xl px-3 py-2.5 text-right transition-colors hover:bg-[var(--md-sys-color-surface-variant)]"
                                     x-bind:class="activeCue(cue) && '!bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'">
