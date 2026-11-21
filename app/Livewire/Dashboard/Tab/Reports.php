@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
-use App\Livewire\Dashboard\Media\Actions\SaveProgressAction;
 use App\Models\Department;
 use App\Models\Report;
 use App\Traits\Livewire\FocusOnRecord;
@@ -41,29 +40,21 @@ class Reports extends Component
         }
 
         $disk = Storage::disk('public');
-        $localPath = storage_path('app/' . $report->file_path);
-        $publicPath = public_path($report->file_path);
 
         if ($disk->exists($report->file_path)) {
-            $response = $disk->download($report->file_path);
-        } elseif (is_file($localPath)) {
-            $response = response()->download($localPath);
-        } elseif (is_file($publicPath)) {
-            $response = response()->download($publicPath);
-        } else {
-            $this->dispatch('toast', message: 'فایل موجود نیست!', type: 'error');
-
-            return;
+            return $disk->download($report->file_path);
         }
 
-        if (config('media.track_reports') && auth()->user()) {
-            SaveProgressAction::execute(auth()->user(), [[
-                'type' => 'report', 'id' => $report->id, 'position' => 0,
-                'last_position' => 0, 'completed' => true, 'duration' => null,
-            ]]);
+        $localPath = storage_path('app/' . $report->file_path);
+        if (file_exists($localPath)) {
+            return response()->download($localPath);
         }
 
-        return $response;
+        if (file_exists(public_path($report->file_path))) {
+            return response()->download(public_path($report->file_path));
+        }
+
+        $this->dispatch('toast', message: 'فایل موجود نیست!', type: 'error');
     }
 
     public function focusRecord(int $id): void
