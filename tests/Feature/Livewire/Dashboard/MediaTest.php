@@ -89,6 +89,19 @@ class MediaTest extends TestCase
         $this->assertStringNotContainsString('یادداشت دیگری', json_encode($payload, JSON_UNESCAPED_UNICODE));
     }
 
+    public function test_mounting_marks_unseen_media_seen_once_for_the_viewer(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $viewer = User::factory()->create(['status' => 'active']);
+        $item = $this->media($owner);
+        $this->actingAs($viewer);
+        Livewire::withoutLazyLoading();
+        Livewire::test(Main::class);
+        $this->assertSame([$viewer->id], $item->fresh()->seen_by);
+        Livewire::test(Main::class);
+        $this->assertSame([$viewer->id], $item->fresh()->seen_by);
+    }
+
     public function test_locked_episodes_never_expose_file_or_track_urls(): void
     {
         $user = User::factory()->create(['status' => 'active']);
