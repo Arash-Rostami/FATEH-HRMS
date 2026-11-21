@@ -284,7 +284,7 @@ class SummarizeChannelAction
     {
         $meter = Channel::quotaMeter($userId);
         $warn = $meter['pct'] >= 80 && $meter['used'] < $meter['cap']
-            ? 'فقط ' . convertToPersian($meter['cap'] - $meter['used']) . ' بار دیگر امروز می‌توانید از دستیار بپرسید.'
+            ? 'فقط ' . convertToPersian($meter['cap'] - $meter['used']) . ' بار دیگر امروز می‌توانید از منشی بپرسید.'
             : null;
 
         return Blade::render('<x-ui.quota-meter label="سهمیهٔ امروز" aria="سهمیهٔ امروز" :used="$used" :cap="$cap" :pct="$pct" :tone="$tone" :warn="$warn"/>', $meter + ['warn' => $warn]);

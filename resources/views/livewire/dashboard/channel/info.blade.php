@@ -21,7 +21,7 @@
                       :class="aiOpen ? 'bg-[var(--ai-bg)] text-[var(--ai-text)]' : 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'">
                     <span class="material-symbols-rounded text-[15px]" x-text="aiOpen ? 'auto_awesome' : 'tag'">tag</span>
                 </span>
-                <h3 class="text-xs font-bold tracking-tight text-[var(--md-sys-color-on-surface)]" x-text="aiOpen ? 'دستیار هوشمند' : 'اطلاعات گروه'">اطلاعات گروه</h3>
+                <h3 class="text-xs font-bold tracking-tight text-[var(--md-sys-color-on-surface)]" x-text="aiOpen ? 'منشی هوشمند' : 'اطلاعات گروه'">اطلاعات گروه</h3>
             </div>
             <x-ui.modals.close-button close="showInfo = false"/>
         </div>
@@ -235,14 +235,14 @@
     </div>
 
     @if(channelAiOn())
-        <div x-show="aiOpen" x-cloak class="flex flex-1 min-h-0 flex-col overflow-hidden bg-[var(--md-sys-color-surface)]" role="tabpanel" aria-label="دستیار هوشمند">
+        <div x-show="aiOpen" x-cloak class="flex flex-1 min-h-0 flex-col overflow-hidden bg-[var(--md-sys-color-surface)]" role="tabpanel" aria-label="منشی هوشمند">
             <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto contact-scrollbar p-4">
                 <div x-show="aiMeter" x-cloak x-html="aiMeter" aria-live="polite"></div>
                 <p x-show="!aiMeter" x-cloak class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">سهمیه نمایش داده نشد.</p>
 
                 <div class="flex items-start gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-warning)_35%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-warning)_12%,transparent)] px-3 py-2">
                     <span class="material-symbols-rounded mt-0.5 text-[15px] text-[var(--md-sys-color-warning)]" aria-hidden="true">shield_person</span>
-                    <p class="text-[11px] leading-5 text-[var(--md-sys-color-on-surface)]"><strong>برای گفتگوهای خصوصی یا محرمانه از دستیار استفاده نکنید.</strong> متن پیام‌ها، از جمله پیام سنجاق‌شده، به سرویس هوش مصنوعی فرستاده می‌شود.</p>
+                    <p class="text-[11px] leading-5 text-[var(--md-sys-color-on-surface)]"><strong>برای گفتگوهای خصوصی یا محرمانه از منشی استفاده نکنید.</strong> متن پیام‌ها، از جمله پیام سنجاق‌شده، به سرویس هوش مصنوعی فرستاده می‌شود.</p>
                 </div>
 
                 <div x-show="!aiAnswer" x-cloak class="flex flex-col gap-2">

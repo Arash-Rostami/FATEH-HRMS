@@ -172,8 +172,7 @@
                                variant="ai"
                                class="!h-8 !gap-1.5 !px-3 !text-xs"
                                x-on:click="openAiPanel()"
-                               aria-label="دستیار هوشمند"
-                               title="برای گفتگوهای خصوصی یا محرمانه از دستیار استفاده نکنید. متن پیام‌ها به سرویس هوش مصنوعی فرستاده می‌شود."><span class="hidden sm:inline">دستیار هوشمند</span></x-ui.buttons.form>
+                               aria-label="منشی هوشمند"><span class="hidden sm:inline">منشی هوشمند</span></x-ui.buttons.form>
         </div>
     @endif
 

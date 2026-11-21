@@ -76,11 +76,16 @@ echo "== APP =="
 echo "local HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://localhost)  (expect 302 - / always redirects to dashboard)"
 grep -E '^(APP_ENV|APP_DEBUG|LOG_LEVEL)=' .env | tr '\n' ' '; echo
 echo "shell env APP_DEBUG: ${APP_DEBUG}  (must be blank or false)"
-as 'php artisan about' | grep -i debugCSS=$(ls public/build/assets/app-*.css 2>/dev/null | head -1 | xargs -r basename)
+su -s /bin/bash office-bms -c 'php artisan about' | grep -i debug
+CSS=$(ls public/build/assets/app-*.css 2>/dev/null | head -1 | xargs -r basename)
 [ -n "$CSS" ] && curl -s -o /dev/null -D - -H 'Accept-Encoding: gzip' -w 'size: %{size_download}\n' "$DOMAIN/build/assets/$CSS" | grep -iE '^HTTP|content-encoding|cache-control|^size' | tr -d '\r'
 echo "sw.js: $(curl -sI $DOMAIN/sw.js | grep -i cache-control | tr -d '\r')"
 echo "errors in laravel.log (last 200 lines): $(tail -n 200 storage/logs/laravel.log 2>/dev/null | grep -c '\.ERROR')"
 
 echo "== RESOURCES =="
-echo "memory: $(( $(cat /sys/fs/cgroup/memory.current) / 1048576 )) MB of $(( $(cat /sys/fs/cgroup/memory.max) / 1048576 )) MB"
+if MEM=$(cat /sys/fs/cgroup/memory.current 2>/dev/null) && [ -n "$MEM" ]; then
+  echo "memory: $(( MEM / 1048576 )) MB of $(( $(cat /sys/fs/cgroup/memory.max 2>/dev/null || echo 0) / 1048576 )) MB"
+else
+  echo "memory: $(ps -eo rss= | awk '{s+=$1} END {print int(s/1024)}') MB used by all processes (container limit: see the PaaS dashboard)"
+fi
 df -h /var/www/html 2>/dev/null | tail -1 || echo "disk: df blocked in this container, skipped"
