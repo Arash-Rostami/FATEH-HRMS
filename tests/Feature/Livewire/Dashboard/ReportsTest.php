@@ -4,11 +4,13 @@ namespace Tests\Feature\Livewire\Dashboard;
 
 use App\Livewire\Dashboard\Tab\Reports;
 use App\Models\Department;
+use App\Models\KnowledgeProgress;
 use App\Models\Profile;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -47,6 +49,53 @@ class ReportsTest extends TestCase
         }
         DB::purge('mysql');
         config(['database.default' => 'mysql']);
+    }
+
+    public function test_successful_download_tracks_a_report_only_when_enabled(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        Storage::fake('public');
+        Storage::disk('public')->put('reports/tracked.pdf', 'document');
+        $report = Report::factory()->create(['user_id' => $user->id, 'active' => true, 'file_path' => 'reports/tracked.pdf']);
+        config(['media.track_reports' => false]);
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Reports::class);
+        $component->assertDontSee('دانلود موفق از دکمهٔ دانلود، گزارش را در پیشرفت شما ثبت می‌کند');
+        $component->call('download', $report->id);
+        $this->assertFalse(KnowledgeProgress::where('user_id', $user->id)->where('report_id', $report->id)->exists());
+        config(['media.track_reports' => true]);
+        $component->call('download', $report->id)
+            ->assertSee('دانلود موفق از دکمهٔ دانلود، گزارش را در پیشرفت شما ثبت می‌کند');
+        $this->assertTrue(KnowledgeProgress::where('user_id', $user->id)->where('report_id', $report->id)->whereNotNull('completed_at')->exists());
+    }
+
+    public function test_missing_download_does_not_mark_the_report_complete(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $report = Report::factory()->create(['user_id' => $user->id, 'active' => true, 'file_path' => 'reports/missing-' . uniqid() . '.pdf']);
+        config(['media.track_reports' => true]);
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Reports::class)->call('download', $report->id)->assertDispatched('toast');
+        $this->assertFalse(KnowledgeProgress::where('user_id', $user->id)->where('report_id', $report->id)->exists());
+    }
+
+    public function test_media_route_pill_is_hidden_when_the_media_view_is_disabled(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        config(['app.off' => ['reports:media']]);
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Reports::class)->assertDontSeeHtml('data-tab-pill="media"');
+    }
+
+    public function test_reports_and_media_pills_both_use_route_mode(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        config(['app.off' => []]);
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Reports::class)
+            ->assertSeeHtml('data-tab-pill="reports"')
+            ->assertSeeHtml('data-tab-pill="media"')
+            ->assertSeeHtml('href="' . route('media') . '"');
     }
 
     private function makeDepartment(string $code): Department

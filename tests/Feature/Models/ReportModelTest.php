@@ -60,6 +60,15 @@ class ReportModelTest extends TestCase
         $prop->setValue(null, null);
     }
 
+    public function test_office_materials_keep_the_existing_thumbnail_fallback(): void
+    {
+        foreach (['xls', 'xlsx', 'ppt', 'pptx'] as $extension) {
+            $report = new Report(['file_path' => 'materials/example.' . $extension]);
+            $this->assertSame($extension, $report->file_type);
+            $this->assertStringEndsWith('build/assets/img/report.png', $report->thumbnail);
+        }
+    }
+
     public function test_description_set_mutator_strips_control_characters(): void
     {
         $report = new Report();
