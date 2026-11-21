@@ -14,7 +14,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
-use ReflectionMethod;
 use Tests\TestCase;
 
 class MediaTest extends TestCase
@@ -218,9 +217,9 @@ class MediaTest extends TestCase
         $row = collect($presenter->library($owner->fresh())['items'])->firstWhere('id', $item->id);
         $this->assertSame($owner->name, $row['unit']);
         $this->assertSame('audio/mpeg', $row['episodes'][0]['mime']);
-        $labelled = new ReflectionMethod($presenter, 'labelled');
-        $fallback = $labelled->invoke($presenter, ['unit' => null, 'department_code' => $department->code, 'audience' => []], Department::getCachedModels());
-        $this->assertSame($department->name, $fallback['unit']);
+        $owner->forceFill(['name' => ''])->save();
+        $row = collect($presenter->library($owner->fresh())['items'])->firstWhere('id', $item->id);
+        $this->assertSame($department->name, $row['unit']);
     }
 
     public function test_inactive_and_expired_children_are_not_listed_in_a_visible_series(): void

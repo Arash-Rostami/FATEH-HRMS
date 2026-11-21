@@ -68,7 +68,7 @@ class MediaPresenter
         unset($item['department_code'], $item['audience']);
         $item['department'] = $departments->get((string) $code)?->name
             ?? ($departments->only($audience)->pluck('name')->join('، ') ?: 'همهٔ بخش‌ها');
-        $item['unit'] ??= $item['department'];
+        $item['unit'] = $item['unit'] ?: $item['department'];
 
         return $item;
     }
@@ -85,7 +85,7 @@ class MediaPresenter
             ->whereIn('id', $reportIds)->get(['id', 'title', 'file_path'])
             ->mapWithKeys(fn (Report $report) => [$report->id => $this->material($report)]);
 
-        $owners = User::whereIn('id', $library->pluck('user_id')->unique())->pluck('name', 'id');
+        $owners = User::getCachedAllOptions();
 
         return $library->map(function (Media $item) use ($reports, $owners): array {
             $episodes = $item->kind === 'series' ? $item->episodes : collect([$item]);
