@@ -67,6 +67,7 @@ export default function media() {
             const raw = this.$el.dataset.library;
             if (!raw || raw === lastPayload) return;
             this.progressUrl = this.$el.dataset.progressUrl ?? '';
+            this.userId = this.$el.dataset.userId ?? '';
             try { this.sync = { ...this.sync, ...JSON.parse(this.$el.dataset.sync || '{}') }; } catch {}
             let payload;
             try { payload = JSON.parse(raw); } catch { return; }

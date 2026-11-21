@@ -240,6 +240,15 @@ class MediaTest extends TestCase
         $this->assertSame([$visible->id], array_column($row['episodes'], 'id'));
     }
 
+    public function test_root_exposes_the_authenticated_user_id_for_the_player_storage_keys(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->media($user);
+        $this->actingAs($user);
+        Livewire::withoutLazyLoading();
+        Livewire::test(Main::class)->assertSeeHtml('data-user-id="' . $user->id . '"');
+    }
+
     public function test_deep_link_accepts_visible_episode_but_rejects_hidden_parent_chain(): void
     {
         $user = User::factory()->create(['status' => 'active']);

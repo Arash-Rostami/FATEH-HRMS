@@ -16,7 +16,7 @@ const CHUNK_SIZE = 50;
 
 const shared = {
     element: null, kind: null, prebuffer: null, ui: null, bound: false,
-    keydown: null, interval: null, stateRaf: null, resumeSeek: null, host: null, selfPause: false,
+    keydown: null, interval: null, stateRaf: null, resumeSeek: null, host: null, selfPause: false, userId: null,
 };
 
 const fmt = (s) => {
@@ -123,9 +123,12 @@ function bindElement(ui) {
         shared.ui.t = el.currentTime;
         if (Number.isFinite(el.duration) && el.duration > 0) shared.ui.duration = el.duration;
         const ep = shared.ui.episode();
-        if (ep && shared.ui.playing && shared.ui.t - shared.ui._lastPersist >= (shared.ui.sync.local_seconds || 5)) {
-            shared.ui._lastPersist = shared.ui.t;
-            shared.ui._storeLocal(ep.id, Math.floor(shared.ui.t));
+        if (ep && shared.ui.playing) {
+            if (shared.ui.t > 0) shared.ui._touched[ep.id] = true;
+            if (Math.abs(shared.ui.t - shared.ui._lastPersist) >= (shared.ui.sync.local_seconds || 5)) {
+                shared.ui._lastPersist = shared.ui.t;
+                shared.ui._trackLocal(ep, shared.ui.t);
+            }
         }
         shared.ui.maybePrebuffer();
         emitStateCoalesced(shared.ui);
@@ -204,12 +207,14 @@ export default function playerMixin() {
         tapToPlay: false,
         seeking: false,
         progressUrl: '',
+        userId: '',
         sync: { local_seconds: 5, safety_seconds: 90, min_delta: 10, prebuffer_remaining_seconds: 120 },
         _lastPersist: 0,
         _lastFlush: 0,
         _loadedAt: 0,
         _host: null,
         _synced: {},
+        _touched: {},
 
         get timeLabel() {
             return faTime(this.t) + ' / ' + faTime(this.duration);
@@ -235,14 +240,27 @@ export default function playerMixin() {
             this.library = payload ?? { items: [], progress: {}, notes: {} };
             this.ready = true;
             this._loadedAt = Date.now();
-            if (shared.ui && shared.ui !== this) this.adoptPlayback();
+            if (shared.ui && shared.ui !== this) {
+                if (shared.userId === this.userId) this.adoptPlayback();
+                else this._releasePlayback();
+            }
             this._drainPending();
+        },
+
+        _releasePlayback() {
+            shared.ui._synced = {};
+            shared.ui = null;
+            shared.userId = null;
+            shared.element?.pause();
+            stopSafetyInterval();
+            this._releasePrebuffer();
         },
 
         adoptPlayback() {
             const prev = shared.ui;
             if (!shared.element || !prev || prev === this) return false;
             this._synced = prev._synced;
+            this._touched = prev._touched;
             this._lastFlush = prev._lastFlush;
             this.cur = { ...prev.cur };
             shared.ui = this;
@@ -250,6 +268,7 @@ export default function playerMixin() {
             this.duration = Number.isFinite(shared.element.duration) ? shared.element.duration : this.duration;
             this.playing = live();
             this.error = false;
+            if (this.playing) startSafetyInterval();
             return true;
         },
 
@@ -288,7 +307,7 @@ export default function playerMixin() {
         resumeAt(sid, idx) {
             const ep = this.episode(sid, idx);
             if (!ep) return 0;
-            const local = this._loadState(PROGRESS_KEY, {})[ep.id];
+            const local = this._loadState(this._k(PROGRESS_KEY), {})[ep.id];
             const server = this.library.progress?.[ep.id];
             if (Math.max(local?.position ?? 0, server?.position ?? 0) < 5) return 0;
             const localStop = local?.last_position ?? local?.position ?? 0;
@@ -316,6 +335,8 @@ export default function playerMixin() {
             shared.selfPause = false;
             const el = ensureElement(this, isVideoEp(ep, item) ? 'video' : 'audio');
             shared.ui = this;
+            shared.userId = this.userId;
+            delete this._touched[ep.id];
             this.cur = { sid, idx };
             this.t = 0;
             this.duration = ep.duration || 0;
@@ -367,6 +388,8 @@ export default function playerMixin() {
             const target = this.duration > 0 ? Math.max(0, Math.min(seconds, this.duration)) : Math.max(0, seconds);
             shared.element.currentTime = target;
             this.t = target;
+            const ep = this.episode();
+            if (ep) this._touched[ep.id] = true;
         },
 
         skip(delta) {
@@ -377,7 +400,8 @@ export default function playerMixin() {
             const item = this.item();
             const nextIdx = this._nextPlayable(this.cur.idx + 1);
             if (!item || nextIdx === null) {
-                this.playing = false;
+                if (auto) this.playing = false;
+                else this.toast('آخرین جلسه است');
                 return;
             }
             this.playEpisode(this.cur.sid, nextIdx);
@@ -420,9 +444,9 @@ export default function playerMixin() {
         },
 
         flush(reason) {
-            if (!this.cur.sid || !(shared.ui === this) || !shared.element?.src || this.t <= 0) return;
+            if (!this.cur.sid || !(shared.ui === this) || !shared.element?.src) return;
             const ep = this.episode();
-            if (!ep) return;
+            if (!ep || (this.t <= 0 && !this._touched[ep.id])) return;
             const tolerance = 5;
             const cap = (ep.duration || this.duration || 0) + tolerance;
             const position = Math.max(0, Math.min(Math.floor(Math.max(this.t, this._storedPos(ep.id))), cap));
@@ -457,7 +481,6 @@ export default function playerMixin() {
 
         destroyPlayer() {
             this.flush('destroy');
-            stopSafetyInterval();
             this._releasePrebuffer();
             if (shared.keydown) {
                 document.removeEventListener('keydown', shared.keydown);
@@ -470,6 +493,7 @@ export default function playerMixin() {
             this._host = null;
             if (shared.ui === this && shared.kind === 'video') {
                 shared.ui = null;
+                stopSafetyInterval();
                 if (shared.element) shared.element.pause();
             }
         },
@@ -545,16 +569,26 @@ export default function playerMixin() {
 
         faTime,
 
+        _k(key) {
+            return this.userId ? key + ':' + this.userId : key;
+        },
+
+        _trackLocal(ep, t) {
+            const position = Math.floor(t);
+            this._storeLocal(ep.id, position);
+            this._markProgress(ep.id, position, position, !!ep.duration && position / ep.duration >= 0.95);
+        },
+
         _storedPos(id) {
             const server = this.library.progress?.[id]?.position ?? 0;
-            const local = this._loadState(PROGRESS_KEY, {})[id]?.position ?? 0;
+            const local = this._loadState(this._k(PROGRESS_KEY), {})[id]?.position ?? 0;
             return Math.max(server, local);
         },
 
         _storeLocal(id, position, lastPosition = position) {
-            const stored = this._loadState(PROGRESS_KEY, {});
+            const stored = this._loadState(this._k(PROGRESS_KEY), {});
             const furthest = Math.max(stored[id]?.position ?? 0, position);
-            this._saveState(PROGRESS_KEY, { ...stored, [id]: { position: furthest, last_position: lastPosition, updatedAt: Date.now() } });
+            this._saveState(this._k(PROGRESS_KEY), { ...stored, [id]: { position: furthest, last_position: lastPosition, updatedAt: Date.now() } });
         },
 
         _markProgress(id, position, lastPosition, completed) {
@@ -626,18 +660,18 @@ export default function playerMixin() {
         },
 
         _queuePending(items) {
-            const merged = this._coalescePending([...this._loadState(PENDING_KEY, []), ...items]);
-            this._saveState(PENDING_KEY, merged.slice(-PENDING_CAP));
+            const merged = this._coalescePending([...this._loadState(this._k(PENDING_KEY), []), ...items]);
+            this._saveState(this._k(PENDING_KEY), merged.slice(-PENDING_CAP));
         },
 
         _dequeue(items) {
             const sent = new Set(items.map(rev));
-            this._saveState(PENDING_KEY, this._loadState(PENDING_KEY, []).filter((i) => !sent.has(rev(i))));
+            this._saveState(this._k(PENDING_KEY), this._loadState(this._k(PENDING_KEY), []).filter((i) => !sent.has(rev(i))));
         },
 
         async _drainPending() {
             if (!this.progressUrl) return;
-            const pending = this._coalescePending(this._loadState(PENDING_KEY, []));
+            const pending = this._coalescePending(this._loadState(this._k(PENDING_KEY), []));
             for (let i = 0; i < pending.length; i += CHUNK_SIZE) {
                 const chunk = pending.slice(i, i + CHUNK_SIZE);
                 if (await this._post(this.progressUrl, chunk) === 'retry') return;
@@ -668,7 +702,7 @@ export default function playerMixin() {
                 }
             }
             const ids = new Set(items.map((i) => i.id));
-            const older = this._loadState(PENDING_KEY, []).filter((i) => ids.has(i.id));
+            const older = this._loadState(this._k(PENDING_KEY), []).filter((i) => ids.has(i.id));
             this._post(url, items).then((res) => {
                 if (res === 'retry') {
                     this._queuePending(items);

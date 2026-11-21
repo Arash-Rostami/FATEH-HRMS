@@ -21,9 +21,10 @@ import media from '../media.js';
 const episode = (id, values = {}) => ({ id, title: 'جلسه', topic: '', duration: 300, file_url: '/storage/example.mp3', unlock_at: null, ...values });
 const item = (id, values = {}) => ({ id, title: `رسانه ${id}`, kind: 'audio', type: 'single', department: 'فناوری', episodes: [episode(id)], materials: [], total_duration: 300, ...values });
 
-function component(items, factory = media) {
+function component(items, factory = media, userId = '') {
     const root = factory();
     root.$el = document.createElement('div');
+    root.$el.dataset.userId = userId;
     root.$el.dataset.library = JSON.stringify({ serverNow: Date.now() / 1000, items, notes: {}, progress: {} });
     root.$store = { pinned: { isPinned: () => false } };
     root.$dispatch = vi.fn();
@@ -332,6 +333,22 @@ describe('media composed with the real player mixin', () => {
         expect(fresh.playing).toBe(true);
         expect(fresh.selectedId).toBe(1);
         fresh.toggle();
+        expect(playing).toBe(false);
+    });
+
+    it('reads the user id from the root and refuses to adopt another user\'s playback', async () => {
+        const old = component([item(1)], build, '5');
+        expect(old.userId).toBe('5');
+        old.playEpisode(1, 0);
+        await Promise.resolve();
+        old.destroy();
+        const same = component([item(1)], build, '5');
+        expect(same.playing).toBe(true);
+        same.destroy();
+        const other = component([item(1)], build, '6');
+        expect(other.userId).toBe('6');
+        expect(other.cur.sid).toBeNull();
+        expect(other.playing).toBe(false);
         expect(playing).toBe(false);
     });
 

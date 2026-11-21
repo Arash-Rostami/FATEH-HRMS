@@ -973,3 +973,144 @@ describe('playerMixin — sync triggers', () => {
         expect(FakeAudio.instances.at(-1).paused).toBe(false)
     })
 })
+
+describe('playerMixin — per-user scoping, safety timer, rewind, last lesson, live progress', () => {
+    const forUser = (id) => {
+        const p = playerMixin()
+        p.userId = id
+        p.progressUrl = '/media/progress'
+        p.loadLibrary(library())
+        return p
+    }
+    const queued = { type: 'media', id: 11, position: 300, last_position: 300, completed: false, duration: null }
+
+    test('two users in one browser never see each other\'s progress or queue', () => {
+        const a = forUser('1')
+        const b = forUser('2')
+        a._storeLocal(11, 300, 300)
+        a._queuePending([queued])
+        expect(b._loadState(b._k('media_progress'), {})).toEqual({})
+        expect(b._loadState(b._k('media_progress_pending'), [])).toEqual([])
+        expect(localStorage.getItem('media_progress:1')).not.toBeNull()
+        expect(localStorage.getItem('media_progress')).toBeNull()
+        expect(localStorage.getItem('media_progress_pending')).toBeNull()
+    })
+
+    test('adoption across a user change is refused and the previous playback is released', () => {
+        const a = forUser('1')
+        a.playEpisode(1, 0)
+        const el = sharedElement()
+        el._trigger('playing')
+        const b = forUser('2')
+        expect(el.paused).toBe(true)
+        expect(b.cur.sid).toBeNull()
+        expect(b.playing).toBe(false)
+        expect(vi.getTimerCount()).toBe(0)
+        const c = forUser('2')
+        expect(c.cur.sid).toBeNull()
+    })
+
+    test('the same user still adopts the playing audio', () => {
+        const a = forUser('1')
+        a.playEpisode(1, 0)
+        sharedElement()._trigger('playing')
+        const b = forUser('1')
+        expect(b.cur).toEqual({ sid: 1, idx: 0 })
+        expect(b.playing).toBe(true)
+    })
+
+    test('the safety timer survives a destroy for audio and adoption never double-starts it', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        sharedElement()._trigger('playing')
+        expect(vi.getTimerCount()).toBe(1)
+        p.destroyPlayer()
+        expect(vi.getTimerCount()).toBe(1)
+        const next = makePlayer()
+        expect(next.playing).toBe(true)
+        expect(vi.getTimerCount()).toBe(1)
+    })
+
+    test('adopting a playing element restarts a stopped safety timer', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        const el = sharedElement()
+        el._trigger('playing')
+        p.destroyPlayer()
+        el.pause()
+        el._trigger('pause')
+        expect(vi.getTimerCount()).toBe(0)
+        el.play()
+        makePlayer()
+        expect(vi.getTimerCount()).toBe(1)
+    })
+
+    test('the safety timer stops when a video is destroyed', () => {
+        const p = makePlayer()
+        videoFactory()
+        p.playEpisode(2, 0)
+        sharedElement()._trigger('playing')
+        expect(vi.getTimerCount()).toBe(1)
+        p.destroyPlayer()
+        expect(vi.getTimerCount()).toBe(0)
+    })
+
+    test('a deliberate seek back to 0 after real progress is saved as the stop', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        const el = sharedElement()
+        el._trigger('playing')
+        el.currentTime = 300
+        el._trigger('timeupdate')
+        p.seek(0)
+        el._trigger('timeupdate')
+        const stored = JSON.parse(localStorage.getItem('media_progress'))['11']
+        expect(stored).toMatchObject({ position: 300, last_position: 0 })
+        p.flush('pagehide')
+        const entry = JSON.parse(localStorage.getItem('media_progress_pending')).find((i) => i.id === 11)
+        expect(entry).toMatchObject({ position: 400, last_position: 0 })
+    })
+
+    test('a never-played selection still sends nothing at t=0', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        p.flush('pagehide')
+        expect(navigator.sendBeacon).not.toHaveBeenCalled()
+        expect(global.fetch).not.toHaveBeenCalled()
+    })
+
+    test('a manual next on the last lesson leaves playback untouched and toasts', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 1)
+        sharedElement()._trigger('playing')
+        const toast = vi.fn()
+        p.toast = toast
+        p.next()
+        expect(toast).toHaveBeenCalledWith('آخرین جلسه است')
+        expect(p.playing).toBe(true)
+        expect(sharedElement().paused).toBe(false)
+    })
+
+    test('the auto-advance after ended keeps the stopped state without a toast', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 1)
+        sharedElement()._trigger('playing')
+        const toast = vi.fn()
+        p.toast = toast
+        p.next(true)
+        expect(p.playing).toBe(false)
+        expect(toast).not.toHaveBeenCalled()
+    })
+
+    test('library.progress follows playback at the local save step without a request', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        const el = sharedElement()
+        el._trigger('playing')
+        el.currentTime = 700
+        el._trigger('timeupdate')
+        expect(p.library.progress['11']).toMatchObject({ position: 700, last_position: 700 })
+        expect(p.progressOf(1)).toBeCloseTo(0.2)
+        expect(global.fetch).not.toHaveBeenCalled()
+    })
+})
