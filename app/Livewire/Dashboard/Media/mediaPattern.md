@@ -6,7 +6,7 @@ The user-panel slice follows the frozen Knowledge contracts and their §13 reuse
 
 ## Library and access
 
-`Main` is lazy, uses `FocusOnRecord`, and exposes one computed `library`. Its placeholder has the identical app-shell height and constant `x-data="media()"` expression. A disabled `reports:media` returns 404 before building the library. `mount()` calls `MarkMediaSeenAction::execute()` once, which clears the menu badge.
+`Main` is lazy, uses `FocusOnRecord`, and exposes one computed `library`. Its placeholder has the identical app-shell height and constant `x-data="media()"` expression. A disabled `media` module returns 404 before building the library (the route-name guard also covers it). `mount()` writes nothing: «new» is derived, never stored. `Media::scopeNewFor` marks a parent as new when it is library-visible, not the viewer's own, released within `media.new_days` (30; `report_date`, else `created_at`) and neither it nor any episode has a progress row for the viewer. `mount()` plucks those ids once (live, class L) into the `#[Locked]` `$newIds`, and `library()` merges `is_new` outside the cached catalog; the client hides a chip as soon as the item is played (`played()`). `SaveProgressAction` flushes the menu state only when a first play happens while something was new. The older `seen_by` column and `MarkMediaSeenAction` no longer exist.
 
 `MediaPresenter` reaches roots only through `Media::library($user)`. It eager-loads department and ordered, active, unexpired episodes. Episode reads do not apply an independent audience scope: the visible parent grants access. Future episodes remain listed, but every file and track URL is null. Progress and notes are queried only for the current viewer and the listed episode IDs.
 
@@ -33,7 +33,7 @@ No custom player skin, progress SVG, loading spinner, toast shell, normalizer or
 - `resources/js/components/alpine/main.js`: import `media` from `./data/media.js` and register `Alpine.data('media', media)` eagerly, including the placeholder path.
 - `resources/js/components/alpine/stores/pinned.js`: add `media` to `SCOPES`, `KEYS` (`saved_media`), `sets` (`null`) and `lists` (`[]`).
 - `routes/web.php`: authenticated, tenant-gated `GET /media` → `Main`, name `media`; JSON `POST /media/progress` → `MediaProgressController`, name `media.progress`; JSON `POST /media/notes` → `MediaNoteController`, name `media.notes`; dedicated `media-progress` and `media-notes` limiters with the contract's JSON 401/419 behavior.
-- `config/modules.php`: retitle the existing reports entry «دانش سازمانی» and append `media` as its final view; retain Reports as the existing home tab.
+- `config/modules.php`: its own route module `media` titled «دانش سازمانی» (`nav` route `media`, `aliases` `media-controller`, same category), the way Launchpad is registered. Reports keeps its original entry, and the Reports tab no longer carries a pill row.
 - `BadgeLegendCatalog`: register `media-controller` for `media-badge-legend`; register `UnseenMedia` (badge key `media-controller`), navigation and search entries as specified by the shared slice; there is no nudge, provider or profile-hook row.
 - Import the shared slice's models/config/Actions and the admin slice's `mixins/player.js` and `components/dashboard/media/player.blade.php` before compiling this slice.
 - Run the icon and asset build at integration: user-panel utility classes are not visible on the local Apache installation until built.

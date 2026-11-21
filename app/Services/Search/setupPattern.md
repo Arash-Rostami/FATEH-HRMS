@@ -39,7 +39,7 @@ app/Services/Search/
 - `Contracts/Searchable.php` — interface every content resource fulfils.
 - `Contracts/SearchContext.php` — immutable value object: normalized query + tokens.
 - `Contracts/SearchResource.php` — abstract base; ALL the shared search machinery.
-- `Resources/` — one tiny class per searchable module (24 registered; `AiReportResource.php` sits after `ReportResource.php` — the same order as `ContentService::$resources`; `CorrespondenceResource.php` is registered in the same list). `MediaResource` (2026-11-21) is the first entry of the PAGE-modules block in `ContentService::$resources` (so 25 are registered): `scope()` is `Media::library()` (parents only), action is `route('media', ['open' => id])`, and `search()` returns `[]` when `tenantOff('reports:media')`.
+- `Resources/` — one tiny class per searchable module (24 registered; `AiReportResource.php` sits after `ReportResource.php` — the same order as `ContentService::$resources`; `CorrespondenceResource.php` is registered in the same list). `MediaResource` (2026-11-21) is the first entry of the PAGE-modules block in `ContentService::$resources` (so 25 are registered): `scope()` is `Media::library()` (parents only), action is `route('media', ['open' => id])`, and `search()` returns `[]` when `tenantOff('media')`.
 - `ContentService.php` — orchestrator: registry + ranking of resources.
 - `NavigationService.php` — the module-shortcut engine (static list).
 

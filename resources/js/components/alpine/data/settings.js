@@ -45,7 +45,7 @@ const EXPORT_KEYS = [
     'backgroundEnabled', 'patternEnabled', 'activePattern', 'bgTone',
     'fontSizeLevel', 'readingRuler', 'doubleClickCopy',
     'dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden', 'ai-report-col-hidden', 'correspondence-col-hidden', 'launchpad-col-hidden',
-    'table-tools:dms', 'table-tools:ths', 'table-tools:reservation', 'table-tools:taskboard', 'table-tools:ai-report', 'table-tools:correspondence', 'table-tools:launchpad',
+    'table-tools:dms', 'table-tools:ths', 'table-tools:reservation', 'table-tools:taskboard', 'table-tools:ai-report', 'table-tools:correspondence', 'table-tools:launchpad', 'table-tools:media',
     'menu_declutter',
     'chat-muted-channels', 'chat-muted-contacts', 'chat-muted-projects', 'notification-sound-muted',
     'chat-push-channel', 'chat-push-contact', 'chat-push-project'
