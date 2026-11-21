@@ -1,4 +1,4 @@
-<aside aria-label="کتابخانه" x-show="!theatre" :class="{ 'hidden': mobileDetail || theatre, 'flex': !mobileDetail, 'sb-collapsed': sbCollapsed, 'animate-sidebar-slide': sbSlide }"
+<aside aria-label="کتابخانه" :class="{ 'hidden': mobileDetail, 'flex': !mobileDetail, 'sb-collapsed': sbCollapsed, 'animate-sidebar-slide': sbSlide }"
        class="flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:flex w-full md:w-[320px] lg:w-[360px] bg-[var(--md-sys-color-surface)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
     <div class="flex-shrink-0 px-4 pt-4 pb-3">
         <div class="sb-head flex items-center justify-between mb-4">

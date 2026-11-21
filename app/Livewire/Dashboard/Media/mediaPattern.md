@@ -24,7 +24,7 @@ Unlock timers use the server clock offset. All locks due together cause one libr
 
 ## Reused UI
 
-The shell, rail, row grammar and collapse include mirror Channel; route navigation and download behavior mirror `Tab/Reports`. Title, route and Alpine tabs, form buttons and fields, semantic table, bookmark, row-actions, saved-empty, quota meter, progress ring, empty states, skeletons, dialogs and maximize backdrop all use the shared components. Theatre uses the existing focus store's chrome dimming; maximize stays a separate standard control. Rich descriptions use `rich-colors`.
+The shell, rail, row grammar and collapse include mirror Channel; route navigation and download behavior mirror `Tab/Reports`. Title, route and Alpine tabs, form buttons and fields, semantic table, bookmark, row-actions, saved-empty, quota meter, progress ring, empty states, skeletons, dialogs and maximize backdrop all use the shared components. The cinema view is the standard maximize (`maximize` mixin, maximize button, `max-backdrop`); the media code never writes the focus store. The video stage and the video/audio element follow the current episode (`isVideo`), never the series-level `kind`, which is presentation only. Rich descriptions use `rich-colors`.
 
 No custom player skin, progress SVG, loading spinner, toast shell, normalizer or clipboard implementation is introduced. The existing quota-meter and ring markup are updated in place by small browser adapters because they accept server-side scalar props, not reactive Alpine expressions.
 

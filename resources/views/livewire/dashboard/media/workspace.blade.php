@@ -24,7 +24,6 @@
                 <x-ui.buttons.form variant="primary" x-on:click="heroPlay()" x-bind:disabled="!selected?.episodes.some(ep => ep.file_url)"><span class="material-symbols-rounded" x-text="playing && cur.sid === selectedId ? 'pause' : 'play_arrow'"></span><span x-text="heroLabel()"></span></x-ui.buttons.form>
                 <x-ui.buttons.bookmark :id="$item['id']" scope="media" class="w-10 h-10" />
                 <x-ui.buttons.form variant="ghost" size="icon" x-on:click="copyMoment()" title="پیوند این لحظه" aria-label="پیوند این لحظه"><span class="material-symbols-rounded">share</span></x-ui.buttons.form>
-                <x-ui.buttons.form variant="ghost" size="icon" x-on:click="toggleTheatre()" x-bind:aria-pressed="theatre" title="حالت سینمایی" aria-label="حالت سینمایی"><span class="material-symbols-rounded">theaters</span></x-ui.buttons.form>
                 <x-ui.modals.maximize-button size="lg" />
                 <div class="hidden md:flex items-center gap-3 ms-auto">
                     <div class="relative inline-flex items-center justify-center shrink-0 w-14 h-14">
@@ -38,9 +37,7 @@
                     <div class="text-xs text-[var(--md-sys-color-on-surface-variant)]"><b class="block text-[var(--md-sys-color-on-surface)]" x-text="number(doneCount()) + ' از ' + number(selected?.episodes.length) + ' جلسه'"></b><span x-text="number(percent(progressOf(selectedId))) + '٪ پیشرفت'"></span></div>
                 </div>
             </div>
-            @if($item['kind'] === 'video')
-                <div wire:key="media-video-stage" class="mx-4 md:mx-7 mb-4"><x-dashboard.media.player part="stage" /></div>
-            @endif
+            <div wire:key="media-video-stage" x-show="cur?.sid === selectedId && isVideo" x-cloak class="mx-4 md:mx-7 mb-4"><x-dashboard.media.player part="stage" /></div>
             <div class="px-4 md:px-7 sticky top-0 z-10 bg-[var(--md-sys-color-background)] pt-2">
                 <x-ui.buttons.tab-selector :hasA11y="true" :tabs="[
                     ['id' => 'episodes', 'label' => 'جلسات', 'icon' => 'list', 'alpine' => 'showEpisodes()', 'activeExpr' => 'tab === \'episodes\'', 'countExpr' => 'selected?.episodes.length'],
