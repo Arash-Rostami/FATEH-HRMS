@@ -175,6 +175,19 @@ describe('media library', () => {
         again.destroy();
     });
 
+    it('lists up to five recently touched items from the local store, newest first, one per item and never locked ones', () => {
+        const unlock = Math.floor(Date.now() / 1000) + 100;
+        const series = item(10, { type: 'series', episodes: [episode(101), episode(102)] });
+        const locked = item(20, { episodes: [episode(20, { file_url: null, unlock_at: unlock })] });
+        const root = component([item(1), item(2), item(3), item(4), item(5), item(6), series, locked]);
+        const stamp = (updatedAt) => ({ position: 10, last_position: 10, updatedAt });
+        localStorage.setItem('media_progress', JSON.stringify({ 1: stamp(10), 2: stamp(70), 3: stamp(30), 4: stamp(40), 5: stamp(50), 6: stamp(60), 101: stamp(80), 102: stamp(90), 20: stamp(100), 999: stamp(110) }));
+        root.library = { progress: Object.fromEntries([1, 2, 3, 4, 5, 6, 101, 102, 20, 999].map(id => [id, {}])) };
+        expect(root.recentItems.map(row => row.id)).toEqual([10, 2, 6, 5, 4]);
+        root.library = { progress: {} };
+        expect(root.recentItems).toEqual([]);
+    });
+
     it('formats digits itself', () => {
         expect(component([item(1)]).number(12)).toBe('۱۲');
     });

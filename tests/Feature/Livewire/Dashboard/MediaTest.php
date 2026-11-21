@@ -255,7 +255,7 @@ class MediaTest extends TestCase
         $this->media($user);
         $this->actingAs($user);
         Livewire::withoutLazyLoading();
-        Livewire::test(Main::class)->assertSeeHtml('copyNotes()')->assertSeeHtml('canMarkDone(')->assertSeeHtml('togglePictureInPicture()')->assertSeeHtml('toggleHeaderDeclutter()');
+        Livewire::test(Main::class)->assertSeeHtml('copyNotes()')->assertSeeHtml('canMarkDone(')->assertSeeHtml('togglePictureInPicture()')->assertSeeHtml('toggleHeaderDeclutter()')->assertSeeHtml('wire:key="media-recent"');
     }
 
     public function test_deep_link_accepts_visible_episode_but_rejects_hidden_parent_chain(): void

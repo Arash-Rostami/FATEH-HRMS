@@ -8,6 +8,9 @@ import clipboardMixin from '../mixins/clipboard.js';
 import tableToolsMixin from '../mixins/tableTools.js';
 import { normalize } from './memberPicker.js';
 
+const PROGRESS_KEY = 'media_progress';
+const RECENT_LIMIT = 5;
+
 export default function media() {
     let observer, controller, unlockTimer, trackHost, trackSequence = 0;
     let clockOffset = 0, hydrated = false, destroyed = false, unlockFailures = 0;
@@ -159,6 +162,21 @@ export default function media() {
                 if (this.sort === 'duration') return a.total_duration - b.total_duration;
                 return itemOrder.get(a.id) - itemOrder.get(b.id);
             });
+        },
+
+        get recentItems() {
+            const touched = this.library.progress ?? {};
+            const owners = new Map(this.items.flatMap(item => item.episodes.map(ep => [ep.id, [item, ep]])));
+            const stamps = Object.entries(this._loadState(this._k(PROGRESS_KEY), {}))
+                .filter(([id]) => id in touched)
+                .sort(([, a], [, b]) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+            const picked = new Map();
+            for (const [id] of stamps) {
+                const [item, ep] = owners.get(Number(id)) ?? [];
+                if (item && !this.isLocked(ep) && !picked.has(item.id)) picked.set(item.id, item);
+                if (picked.size === RECENT_LIMIT) break;
+            }
+            return [...picked.values()];
         },
 
         rankRows() {

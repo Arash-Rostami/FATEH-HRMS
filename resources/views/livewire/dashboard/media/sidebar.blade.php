@@ -28,6 +28,15 @@
         <x-ui.forms.select label="ترتیب" name="media-sort" x-model="sort"><option value="recent">تازه‌ترین</option><option value="title">عنوان</option><option value="duration">مدت</option></x-ui.forms.select>
         <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="self-end !flex" />
     </div>
+    <div wire:key="media-recent" x-show="recentItems.length" x-cloak class="sb-fold flex-shrink-0 px-4 pb-3">
+        <p class="mb-1.5 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">اخیراً پخش‌شده</p>
+        <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
+            <template x-for="row in recentItems" :key="row.id">
+                <button type="button" x-on:click="choose(row.id)" :title="row.title" :aria-selected="selectedId === row.id" x-text="row.title"
+                        class="max-w-40 truncate px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200 whitespace-nowrap text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] aria-selected:bg-[var(--md-sys-color-primary-container)] aria-selected:text-[var(--md-sys-color-on-primary-container)]"></button>
+            </template>
+        </div>
+    </div>
     <div id="media-list" x-effect="rankRows()" class="flex flex-col flex-1 min-h-0 overflow-y-auto py-1 contact-scrollbar" role="listbox" aria-label="رسانه‌ها">
         @foreach($this->library['items'] as $item)
             <div wire:key="media-row-{{ $item['id'] }}" data-id="{{ $item['id'] }}" data-rf="media-{{ $item['id'] }}"
