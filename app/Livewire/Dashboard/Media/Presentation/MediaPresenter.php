@@ -35,7 +35,11 @@ class MediaPresenter
         }
 
         $user->loadMissing('profile');
-        $payload['items'] = Media::cachedCatalog($user->profile?->department_id, fn () => $this->catalog($user));
+        $departments = Department::getCachedModels();
+        $payload['items'] = array_map(
+            fn (array $item) => $this->labelled($item, $departments),
+            Media::cachedCatalog($user->profile?->department_id, fn () => $this->catalog($user))
+        );
         $episodeIds = collect($payload['items'])->pluck('episodes.*.id')->flatten()->all();
 
         if ($episodeIds === []) {
@@ -58,9 +62,18 @@ class MediaPresenter
         return $payload;
     }
 
+    private function labelled(array $item, Collection $departments): array
+    {
+        ['department_code' => $code, 'audience' => $audience] = $item;
+        unset($item['department_code'], $item['audience']);
+        $item['department'] = $departments->get((string) $code)?->name
+            ?? ($departments->only($audience)->pluck('name')->join('، ') ?: 'همهٔ بخش‌ها');
+
+        return $item;
+    }
+
     private function catalog(User $user): array
     {
-        $departments = Department::getCachedModels();
         $library = Media::library($user)
             ->select(self::COLUMNS)
             ->with(['episodes' => fn ($query) => $query->select(self::EPISODE_COLUMNS)->where('active', true)->notExpired()])
@@ -71,7 +84,7 @@ class MediaPresenter
             ->whereIn('id', $reportIds)->get(['id', 'title', 'file_path'])
             ->mapWithKeys(fn (Report $report) => [$report->id => $this->material($report)]);
 
-        return $library->map(function (Media $item) use ($reports, $departments): array {
+        return $library->map(function (Media $item) use ($reports): array {
             $episodes = $item->kind === 'series' ? $item->episodes : collect([$item]);
             $kind = $item->kind === 'series'
                 ? ($episodes->first(fn (Media $episode) => $episode->kind === 'video') ? 'video' : 'audio')
@@ -87,8 +100,8 @@ class MediaPresenter
                 'icon' => $this->icon($item, $kind),
                 'accent' => ['p', 't', 'ok', 'w', 'sec'][$item->id % 5],
                 'unit' => 'دانش سازمانی',
-                'department' => $departments->get((string) $item->department_id)?->name
-                    ?? ($item->audienceDepartments->pluck('name')->join('، ') ?: 'همهٔ بخش‌ها'),
+                'department_code' => $item->department_id,
+                'audience' => $item->audienceCodes(),
                 'date_label' => convertToPersian(toJalali($item->report_date ?? $item->created_at, 'j F Y')),
                 'pinned' => (bool) $item->pinned,
                 'total_duration' => (int) $episodes->sum('duration_seconds'),
