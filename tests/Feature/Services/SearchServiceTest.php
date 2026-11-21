@@ -17,6 +17,7 @@ use App\Models\EventShare;
 use App\Models\FAQ;
 use App\Models\Feed;
 use App\Models\Link;
+use App\Models\Media;
 use App\Models\Message;
 use App\Models\Onboarding;
 use App\Models\Photo;
@@ -34,6 +35,7 @@ use App\Models\User;
 use App\Services\Search\ContentService;
 use App\Services\Search\Contracts\SearchContext;
 use App\Services\Search\NavigationService;
+use Illuminate\Support\Facades\Route;
 use App\Services\Search\Resources\AdResource;
 use App\Services\Search\Resources\AiReportResource;
 use App\Services\Search\Resources\AuthorityResource;
@@ -47,6 +49,7 @@ use App\Services\Search\Resources\FaqResource;
 use App\Services\Search\Resources\FeedResource;
 use App\Services\Search\Resources\GalleryResource;
 use App\Services\Search\Resources\LinkResource;
+use App\Services\Search\Resources\MediaResource;
 use App\Services\Search\Resources\MessageResource;
 use App\Services\Search\Resources\OnboardingResource;
 use App\Services\Search\Resources\PeopleResource;
@@ -272,6 +275,27 @@ class SearchServiceTest extends TestCase
 
         $this->assertContains($active->id, $ids);
         $this->assertNotContains($inactive->id, $ids);
+    }
+
+    public function test_media_search_resource_lists_only_a_visible_released_parent_and_links_to_media(): void
+    {
+        if (!Route::has('media')) {
+            Route::get('/media', fn () => '')->name('media');
+        }
+
+        $token = $this->token();
+        $series = Media::factory()->series()->create(['title' => $token, 'departments' => null, 'active' => true]);
+        $episode = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $series->user_id, 'title' => $token]);
+        $expired = Media::factory()->series()->expired()->create(['title' => $token]);
+        $foreign = Media::factory()->series()->create(['title' => $token, 'departments' => ['ZZ-SX'], 'active' => true]);
+
+        $ids = collect($this->runResource(MediaResource::class, $token)['items'] ?? [])->pluck('id')->all();
+
+        $this->assertContains($series->id, $ids);
+        $this->assertNotContains($episode->id, $ids);
+        $this->assertNotContains($expired->id, $ids);
+        $this->assertNotContains($foreign->id, $ids);
+        $this->assertSame('url:/media?open=' . $series->id, (new MediaResource())->action($series));
     }
 
     public function test_feed_post_gallery_and_report_search_exclude_inactive_and_other_department_rows(): void
