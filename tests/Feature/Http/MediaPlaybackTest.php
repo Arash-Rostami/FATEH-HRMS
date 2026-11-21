@@ -130,6 +130,40 @@ class MediaPlaybackTest extends TestCase
         $this->assertNull(KnowledgeProgress::query()->where('report_id', $report->id)->first());
     }
 
+    public function test_the_stored_duration_wins_over_the_client_and_an_unknown_duration_does_not_cap_real_progress(): void
+    {
+        SaveProgressAction::execute($this->viewer, [$this->item(5000, 5000, false, 172800)]);
+        $this->assertSame(105, $this->progress()->position);
+
+        $this->episode->update(['duration_seconds' => null]);
+        KnowledgeProgress::query()->where('user_id', $this->viewer->id)->delete();
+
+        SaveProgressAction::execute($this->viewer, [$this->item(900, 900, false, null)]);
+        $this->assertSame(900, $this->progress()->position);
+        $this->assertNull($this->progress()->completed_at);
+    }
+
+    public function test_the_completed_flag_stamps_completion_even_when_the_duration_is_unknown(): void
+    {
+        $this->episode->update(['duration_seconds' => null]);
+
+        SaveProgressAction::execute($this->viewer, [$this->item(60, 60, true, null)]);
+
+        $this->assertNotNull($this->progress()->completed_at);
+    }
+
+    public function test_a_note_on_an_unplayable_episode_or_with_a_malformed_body_is_refused(): void
+    {
+        $hidden = Media::factory()->series()->create(['departments' => ['KMDB'], 'active' => true]);
+        $secret = Media::factory()->create(['parent_id' => $hidden->id, 'user_id' => $hidden->user_id]);
+
+        $this->assertNull(SaveNoteAction::execute($this->viewer, 'add', ['media_id' => $secret->id, 'position' => 1, 'body' => 'x']));
+        $this->assertNull(SaveNoteAction::execute($this->viewer, 'add', ['media_id' => $hidden->id, 'position' => 1, 'body' => 'x']));
+        $this->assertNull(SaveNoteAction::execute($this->viewer, 'add', ['media_id' => $this->episode->id, 'position' => 1, 'body' => ['x']]));
+        $this->assertNull(SaveNoteAction::execute($this->viewer, 'add', ['media_id' => $this->episode->id, 'position' => Media::MAX_SECONDS + 1, 'body' => 'x']));
+        $this->assertSame(0, MediaNote::query()->whereIn('media_id', [$secret->id, $hidden->id, $this->episode->id])->count());
+    }
+
     public function test_a_null_duration_is_backfilled_without_touching_the_row_clock(): void
     {
         $this->episode->update(['duration_seconds' => null]);
