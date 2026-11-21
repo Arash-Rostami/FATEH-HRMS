@@ -30,6 +30,8 @@ The other providers (`AppServiceProvider`, `FilamentServiceProvider`, `FortifySe
 
 **Named limiter `launchpad-file` (2026-11-17):** same provider — `Limit::perMinute(600)` keyed by the route token plus `Limit::perMinute(6000)` per IP, used by the outside-auth Launchpad file route (`throttle:launchpad-file`); the IP ceiling is high on purpose because a whole office can share one address.
 
+**Named limiters `media-progress` and `media-notes` (2026-11-21):** same provider, next to `launchpad-file` — `media-progress` is 120/min keyed by the user id (IP when guest) plus 600/min per IP, `media-notes` is 30/min per user plus 300/min per IP; the two JSON endpoints of the Media library (`POST /media/progress` sends batched play positions, so its per-user ceiling is generous; `POST /media/notes` is a human typing). See `app/Http/httpPattern.md` §9.
+
 **Named limiter `icon-miss` (2026-11-03):** `FortifyServiceProvider::boot()` next to `login`/`two-factor` — two limits (20/min per IP + 60/min global, no `by()`) used by `POST /icon-miss` (`throttle:icon-miss`), so a botnet or a shared proxy IP cannot flood the cache or log; see `app/Http/httpPattern.md`.
 
 **One exception — `AppServiceProvider::boot()` carries the tenant module-off route guard (2026-10-24):** `Event::listen(RouteMatched::class, …)` aborts 404 when `tenantOffName()` matches the module slot of the matched route name (or, for `livewire.update`, of each payload component name). It is a listener, not route middleware, because a closure in a route group breaks `route:cache`. See `config/tenantPattern.md` "Module `off` list".
