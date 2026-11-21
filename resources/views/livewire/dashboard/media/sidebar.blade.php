@@ -41,7 +41,7 @@
                     @else
                         <span wire:key="media-row-icon" class="material-symbols-rounded text-[20px]">{{ $item['icon'] }}</span>
                     @endif
-                    <span x-show="playing && cur.sid === {{ $item['id'] }}" x-cloak class="absolute bottom-0 flex gap-0.5 items-end" aria-label="در حال پخش"><i class="animate-eq w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq w-1 h-3 bg-[var(--md-sys-color-primary)]"></i></span>
+                    <span x-show="playing && cur.sid === {{ $item['id'] }}" x-cloak class="absolute bottom-0 flex gap-0.5 items-end" aria-label="در حال پخش"><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i></span>
                 </div>
                 <div class="sb-fade flex-1 min-w-0">
                     <p class="truncate text-[13px] font-semibold text-[var(--md-sys-color-on-surface)]" data-title="{{ $item['title'] }}" x-html="highlight($el.dataset.title, query)"></p>

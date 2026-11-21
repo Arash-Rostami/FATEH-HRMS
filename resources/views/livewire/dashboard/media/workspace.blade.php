@@ -57,7 +57,7 @@
                             <tr wire:key="media-episode-{{ $episode['id'] }}" class="hover:bg-[var(--md-sys-color-surface-variant)]">
                                 <td class="px-3 py-3 text-[var(--md-sys-color-on-surface-variant)]">
                                     <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'num'">{{ convertToPersian((string) ($index + 1)) }}</span>
-                                    <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'eq'" x-cloak class="flex gap-0.5 items-end h-4" aria-label="در حال پخش"><i class="animate-eq w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq w-1 h-3 bg-[var(--md-sys-color-primary)]"></i></span>
+                                    <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'eq'" x-cloak class="flex gap-0.5 items-end h-4" aria-label="در حال پخش"><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i></span>
                                     <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'done'" x-cloak class="material-symbols-rounded text-[20px] font-fill text-[var(--md-sys-color-success)]" aria-label="تمام‌شده">check_circle</span>
                                     <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'lock'" x-cloak class="material-symbols-rounded text-[18px]" aria-label="قفل‌شده">lock</span>
                                 </td>
