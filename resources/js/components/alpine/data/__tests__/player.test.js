@@ -975,18 +975,17 @@ describe('playerMixin — destroyPlayer and key handling', () => {
         remove.mockRestore()
     })
 
-    test('audio keeps playing across destroy (survives wire:navigate) and a new component re-adopts it', () => {
+    test('audio pauses and releases the shared ui on destroy, so a new component does not adopt it', () => {
         const p = makePlayer()
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
         p.t = 50
         p.destroyPlayer()
-        expect(sharedElement().paused).toBe(false)
+        expect(sharedElement().paused).toBe(true)
         const next = playerMixin()
         next.progressUrl = '/media/progress'
         next.loadLibrary(library())
-        expect(next.cur).toEqual({ sid: 1, idx: 0 })
-        expect(next.playing).toBe(true)
+        expect(next.playing).toBe(false)
     })
 
     test('video pauses and releases the shared ui on destroy', () => {
@@ -1010,12 +1009,12 @@ describe('playerMixin — sync triggers', () => {
         expect(global.fetch).toHaveBeenCalled()
     })
 
-    test('livewire:navigating pauses VIDEO but keeps audio playing', () => {
+    test('livewire:navigating pauses audio as well as video', () => {
         const p = makePlayer()
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
         document.dispatchEvent(new Event('livewire:navigating'))
-        expect(FakeAudio.instances.at(-1).paused).toBe(false)
+        expect(FakeAudio.instances.at(-1).paused).toBe(true)
     })
 })
 
@@ -1064,16 +1063,16 @@ describe('playerMixin — per-user scoping, safety timer, rewind, last lesson, l
         expect(b.playing).toBe(true)
     })
 
-    test('the safety timer survives a destroy for audio and adoption never double-starts it', () => {
+    test('the safety timer stops on destroy for audio and adoption never double-starts it', () => {
         const p = makePlayer()
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
         expect(vi.getTimerCount()).toBe(1)
-        p.destroyPlayer()
-        expect(vi.getTimerCount()).toBe(1)
         const next = makePlayer()
         expect(next.playing).toBe(true)
         expect(vi.getTimerCount()).toBe(1)
+        next.destroyPlayer()
+        expect(vi.getTimerCount()).toBe(0)
     })
 
     test('adopting a playing element restarts a stopped safety timer', () => {
@@ -1081,7 +1080,6 @@ describe('playerMixin — per-user scoping, safety timer, rewind, last lesson, l
         p.playEpisode(1, 0)
         const el = sharedElement()
         el._trigger('playing')
-        p.destroyPlayer()
         el.pause()
         el._trigger('pause')
         expect(vi.getTimerCount()).toBe(0)

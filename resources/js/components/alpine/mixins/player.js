@@ -227,7 +227,7 @@ window.addEventListener('pageshow', (e) => {
 document.addEventListener('livewire:navigating', () => {
     if (!shared.ui) return;
     shared.ui.flush('navigating');
-    if (shared.ui.playing && shared.kind === 'video') shared.element.pause();
+    if (shared.ui.playing) shared.element.pause();
 });
 
 export default function playerMixin() {
@@ -600,7 +600,7 @@ export default function playerMixin() {
             }
             if (this._host && shared.host === this._host) shared.host = null;
             this._host = null;
-            if (shared.ui === this && shared.kind === 'video') {
+            if (shared.ui === this) {
                 shared.ui = null;
                 stopSafetyInterval();
                 if (shared.element) shared.element.pause();
