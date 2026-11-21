@@ -201,8 +201,8 @@ export default function media() {
         },
 
         scheduleUnlock() {
-            clearTimeout(unlockTimer);
             if (destroyed || this.refreshing) return;
+            clearTimeout(unlockTimer);
             const now = Date.now() + clockOffset;
             const waiting = this.items.flatMap(item => item.episodes).filter(ep => ep.unlock_at && !ep.file_url && !unlocked.has(ep.unlock_at));
             const due = waiting.filter(ep => ep.unlock_at * 1000 <= now);
@@ -230,7 +230,9 @@ export default function media() {
             } finally {
                 this.refreshing = false;
             }
+            if (destroyed) return;
             if (failed && stamps.length) {
+                clearTimeout(unlockTimer);
                 unlockTimer = setTimeout(() => this.scheduleUnlock(), Math.min(240000, 30000 * 2 ** unlockFailures++));
             } else if (!failed) {
                 this.readLibrary();
