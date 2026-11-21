@@ -258,6 +258,23 @@ class MediaPlaybackTest extends TestCase
         $this->assertSame(204, $deleted->getStatusCode());
     }
 
+    public function test_notes_controller_tells_cap_from_invalid_refusals(): void
+    {
+        config(['media.notes_max' => 1]);
+        $payload = ['action' => 'add', 'media_id' => $this->episode->id, 'position' => 1, 'body' => 'اول'];
+
+        $this->assertSame(201, $this->invoke(MediaNoteController::class, '/media/notes', $payload, $this->viewer, true)->getStatusCode());
+
+        $capped = $this->invoke(MediaNoteController::class, '/media/notes', $payload, $this->viewer, true);
+        $this->assertSame(422, $capped->getStatusCode());
+        $this->assertSame('cap', json_decode($capped->getContent(), true)['reason']);
+        $this->assertSame(1, MediaNote::query()->where('user_id', $this->viewer->id)->where('media_id', $this->episode->id)->count());
+
+        $invalid = $this->invoke(MediaNoteController::class, '/media/notes', ['body' => ''] + $payload, $this->viewer, true);
+        $this->assertSame(422, $invalid->getStatusCode());
+        $this->assertSame('invalid', json_decode($invalid->getContent(), true)['reason']);
+    }
+
     public function test_a_duration_backfill_invalidates_the_catalog_but_plain_progress_never_does(): void
     {
         ModelCacheVersion::bump(Media::class);

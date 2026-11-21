@@ -17,7 +17,16 @@ class SaveNoteAction
         };
     }
 
-    private static function add(User $user, array $data): ?MediaNote
+    public static function capReached(User $user, array $data): bool
+    {
+        $input = self::input($data);
+
+        return $input !== null
+            && Media::playableFor($user, [$input[0]])->isNotEmpty()
+            && self::atCap($user, $input[0]);
+    }
+
+    private static function input(array $data): ?array
     {
         $mediaId = filter_var($data['media_id'] ?? null, FILTER_VALIDATE_INT);
         $position = filter_var($data['position'] ?? null, FILTER_VALIDATE_INT);
@@ -27,11 +36,25 @@ class SaveNoteAction
             return null;
         }
 
-        if (Media::playableFor($user, [$mediaId])->isEmpty()) {
+        return [$mediaId, $position, $body];
+    }
+
+    private static function atCap(User $user, int $mediaId): bool
+    {
+        return MediaNote::query()->where('user_id', $user->id)->where('media_id', $mediaId)->count() >= (int) config('media.notes_max', 100);
+    }
+
+    private static function add(User $user, array $data): ?MediaNote
+    {
+        $input = self::input($data);
+
+        if ($input === null) {
             return null;
         }
 
-        if (MediaNote::query()->where('user_id', $user->id)->where('media_id', $mediaId)->count() >= (int) config('media.notes_max', 100)) {
+        [$mediaId, $position, $body] = $input;
+
+        if (Media::playableFor($user, [$mediaId])->isEmpty() || self::atCap($user, $mediaId)) {
             return null;
         }
 

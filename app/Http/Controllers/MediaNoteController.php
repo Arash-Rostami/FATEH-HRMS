@@ -24,14 +24,15 @@ class MediaNoteController extends Controller
             return $this->malformed();
         }
 
-        $note = SaveNoteAction::execute($request->user(), $action, $request->only(['media_id', 'position', 'body', 'id']));
+        $data = $request->only(['media_id', 'position', 'body', 'id']);
+        $note = SaveNoteAction::execute($request->user(), $action, $data);
 
         if ($action === 'delete') {
             return response()->noContent();
         }
 
         if ($note === null) {
-            return $this->malformed();
+            return $this->malformed(SaveNoteAction::capReached($request->user(), $data) ? 'cap' : 'invalid');
         }
 
         return response()->json([

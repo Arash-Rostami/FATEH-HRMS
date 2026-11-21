@@ -23,8 +23,8 @@ trait GuardsJsonEndpoint
         return null;
     }
 
-    protected function malformed(): JsonResponse
+    protected function malformed(?string $reason = null): JsonResponse
     {
-        return response()->json(['message' => 'بدنهٔ درخواست نامعتبر است.'], 422);
+        return response()->json(['message' => 'بدنهٔ درخواست نامعتبر است.'] + ($reason ? ['reason' => $reason] : []), 422);
     }
 }
