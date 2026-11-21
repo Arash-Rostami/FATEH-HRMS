@@ -14,6 +14,8 @@ return [
 
     'notes_max' => 100,
 
+    'new_days' => 30,
+
     'unknown_duration_advance' => 600,
 
     'sync' => [

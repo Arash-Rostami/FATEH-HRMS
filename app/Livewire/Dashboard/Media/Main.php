@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Dashboard\Media;
 
-use App\Livewire\Dashboard\Media\Actions\MarkMediaSeenAction;
 use App\Livewire\Dashboard\Media\Presentation\MediaPresenter;
 use App\Models\Media;
 use App\Traits\Livewire\FocusOnRecord;
@@ -24,9 +23,7 @@ class Main extends Component
     {
         abort_if(tenantOff('reports:media'), 404);
 
-        $user = auth()->user();
-        $this->newIds = Media::unseenBy($user->id)->pluck('id')->map(fn ($id) => (int) $id)->all();
-        MarkMediaSeenAction::execute($user);
+        $this->newIds = Media::newFor(auth()->id())->pluck('media.id')->map(fn ($id) => (int) $id)->all();
     }
 
     #[Computed]

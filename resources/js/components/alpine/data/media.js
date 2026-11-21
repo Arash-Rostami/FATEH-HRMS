@@ -193,6 +193,10 @@ export default function media() {
             return item.pinned || this.$store.pinned.isPinned(item.id, 'media');
         },
 
+        played(id) {
+            return !!this.item(id)?.episodes.some(ep => this.library.progress?.[ep.id]);
+        },
+
         choose(id, detail = true) {
             const item = this.items.find(item => item.id === Number(id));
             if (!item) return;

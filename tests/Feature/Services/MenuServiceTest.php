@@ -19,6 +19,7 @@ use App\Models\EnergyTest;
 use App\Models\Event;
 use App\Models\EventShare;
 use App\Models\Feed;
+use App\Models\KnowledgeProgress;
 use App\Models\Media;
 use App\Models\Message;
 use App\Models\Photo;
@@ -58,7 +59,6 @@ use App\Services\Menu\Notifications\AdNudge;
 use App\Services\Menu\Notifications\ChannelNudge;
 use App\Services\Menu\Notifications\ContactNudge;
 use App\Services\Menu\Notifications\DmsNudge;
-use App\Livewire\Dashboard\Media\Actions\MarkMediaSeenAction;
 use App\Services\Menu\Indicators\UnseenMedia;
 use App\Services\Menu\Notifications\FeedNudge;
 use App\Services\Menu\Notifications\PhotoNudge;
@@ -893,7 +893,7 @@ class MenuServiceTest extends TestCase
         $this->assertNotContains($maUser->id, $ids);
     }
 
-    public function test_unseen_media_badge_lights_for_a_new_series_and_clears_when_marked_seen(): void
+    public function test_unseen_media_badge_lights_for_a_new_series_and_clears_when_played(): void
     {
         $viewer = $this->activeUser();
         $owner = $this->activeUser();
@@ -901,34 +901,26 @@ class MenuServiceTest extends TestCase
 
         $series = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true]);
         $episode = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $owner->id]);
-        $own = Media::factory()->series()->create(['user_id' => $viewer->id, 'departments' => null, 'active' => true]);
         $expired = Media::factory()->series()->expired()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true]);
         $inactive = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => false]);
 
         $old = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true, 'created_at' => now()->subDays(40)]);
         $other = $this->activeUser();
 
-        $unseen = Media::unseenBy($viewer->id)->pluck('id');
+        $new = Media::newFor($viewer->id)->pluck('id');
 
         $this->assertTrue((new UnseenMedia())->isActive());
-        $this->assertFalse($unseen->contains($old->id));
-        $this->assertTrue($unseen->contains($series->id));
-        $this->assertFalse($unseen->contains($episode->id));
-        $this->assertFalse($unseen->contains($own->id));
-        $this->assertFalse($unseen->contains($expired->id));
-        $this->assertFalse($unseen->contains($inactive->id));
+        $this->assertFalse($new->contains($old->id));
+        $this->assertTrue($new->contains($series->id));
+        $this->assertFalse($new->contains($episode->id));
+        $this->assertFalse($new->contains($expired->id));
+        $this->assertFalse($new->contains($inactive->id));
 
-        $stamp = DB::table('media')->where('id', $series->id)->value('updated_at');
+        KnowledgeProgress::create(['user_id' => $viewer->id, 'media_id' => $episode->id, 'position' => 10, 'last_position' => 10]);
 
-        $this->assertGreaterThan(0, MarkMediaSeenAction::execute($viewer));
-        $this->assertSame($stamp, DB::table('media')->where('id', $series->id)->value('updated_at'));
-        $this->assertFalse(Media::unseenBy($viewer->id)->whereKey($series->id)->exists());
-        $this->assertSame([$viewer->id], array_values(array_map('intval', $series->fresh()->seen_by ?? [])));
-        $this->assertNull($episode->fresh()->seen_by);
-        $this->assertTrue(Media::unseenBy($other->id)->whereKey($series->id)->exists());
+        $this->assertFalse(Media::newFor($viewer->id)->whereKey($series->id)->exists());
+        $this->assertTrue(Media::newFor($other->id)->whereKey($series->id)->exists());
 
-        $this->assertSame(0, MarkMediaSeenAction::execute($viewer));
-        $this->assertSame([$viewer->id], array_values(array_map('intval', $series->fresh()->seen_by ?? [])));
         $this->assertFalse((new UnseenMedia())->isActive());
     }
 

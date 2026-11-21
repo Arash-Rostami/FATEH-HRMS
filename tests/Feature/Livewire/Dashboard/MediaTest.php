@@ -91,21 +91,15 @@ class MediaTest extends TestCase
         $this->assertStringNotContainsString('یادداشت دیگری', json_encode($payload, JSON_UNESCAPED_UNICODE));
     }
 
-    public function test_mounting_marks_unseen_media_seen_once_for_the_viewer(): void
+    private function isNew(User $viewer, Media $item): bool
     {
-        $owner = User::factory()->create(['status' => 'active']);
-        $viewer = User::factory()->create(['status' => 'active']);
-        $item = $this->media($owner);
         $this->actingAs($viewer);
         Livewire::withoutLazyLoading();
-        Livewire::test(Main::class);
-        $this->assertSame([$viewer->id], $item->fresh()->seen_by);
-        Livewire::withoutLazyLoading();
-        Livewire::test(Main::class);
-        $this->assertSame([$viewer->id], $item->fresh()->seen_by);
+
+        return collect(Livewire::test(Main::class)->instance()->library['items'])->firstWhere('id', $item->id)['is_new'];
     }
 
-    public function test_unseen_series_is_new_on_the_first_mount_only_and_episodes_never(): void
+    public function test_opening_the_library_never_writes_and_keeps_a_series_new_and_episodes_never(): void
     {
         $owner = User::factory()->create(['status' => 'active']);
         $viewer = User::factory()->create(['status' => 'active']);
@@ -120,10 +114,40 @@ class MediaTest extends TestCase
         $first->assertSee('جدید');
         $this->assertArrayNotHasKey('is_new', $row['episodes'][0]);
         $this->assertNotContains($episode->id, $first->get('newIds'));
-        Livewire::withoutLazyLoading();
-        $second = Livewire::test(Main::class);
-        $this->assertFalse(collect($second->instance()->library['items'])->firstWhere('id', $series->id)['is_new']);
-        $this->assertSame([], $second->get('newIds'));
+        $this->assertNull($series->fresh()->seen_by);
+        $this->assertTrue($this->isNew($viewer, $series));
+        $this->assertTrue($this->isNew($viewer, $series));
+    }
+
+    public function test_playing_clears_new_for_a_single_and_an_episode_clears_its_series(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $viewer = User::factory()->create(['status' => 'active']);
+        $single = $this->media($owner);
+        $series = $this->media($owner, ['kind' => 'series']);
+        $episode = $this->media($owner, ['parent_id' => $series->id]);
+        $this->assertTrue($this->isNew($viewer, $single));
+        $this->assertTrue($this->isNew($viewer, $series));
+        KnowledgeProgress::create(['user_id' => $viewer->id, 'media_id' => $single->id, 'position' => 5, 'last_position' => 5]);
+        KnowledgeProgress::create(['user_id' => $viewer->id, 'media_id' => $episode->id, 'position' => 5, 'last_position' => 5]);
+        $this->assertFalse($this->isNew($viewer, $single));
+        $this->assertFalse($this->isNew($viewer, $series));
+        $this->assertTrue($this->isNew(User::factory()->create(['status' => 'active']), $series));
+    }
+
+    public function test_items_older_than_new_days_are_never_new(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $viewer = User::factory()->create(['status' => 'active']);
+        $dated = $this->media($owner, ['report_date' => now()->subDays(31)->toDateString()]);
+        $recent = $this->media($owner, ['report_date' => now()->subDays(29)->toDateString()]);
+        $created = $this->media($owner);
+        DB::table('media')->where('id', $created->id)->update(['created_at' => now()->subDays(40)]);
+        $this->assertFalse($this->isNew($viewer, $dated));
+        $this->assertTrue($this->isNew($viewer, $recent));
+        $this->assertFalse($this->isNew($viewer, $created));
+        config(['media.new_days' => 60]);
+        $this->assertTrue($this->isNew($viewer, $dated));
     }
 
     public function test_is_new_is_per_user_and_never_part_of_the_cached_catalog(): void
