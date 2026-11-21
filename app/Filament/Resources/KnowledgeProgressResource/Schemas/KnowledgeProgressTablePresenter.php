@@ -119,7 +119,7 @@ class KnowledgeProgressTablePresenter
     {
         return SelectFilter::make('user_id')
             ->label(__('resources/media/strings.progress.table.user'))
-            ->options(fn() => User::query()->select('id', 'name')->visibleOnBoard()->orderBy('name')->pluck('name', 'id')->all())
+            ->options(fn() => User::getCachedAllOptions()->toArray())
             ->searchable();
     }
 }
