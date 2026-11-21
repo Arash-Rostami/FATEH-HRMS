@@ -109,6 +109,17 @@ describe('media library', () => {
         expect(root.copyText.mock.calls[0][0]).toContain('open=1&t=42');
     });
 
+    it('copies the lesson notes as timed Persian lines and does nothing without notes', () => {
+        const root = component([item(1)]);
+        root.copyText = vi.fn();
+        root.faTime = value => `t${value}`;
+        root.copyNotes();
+        expect(root.copyText).not.toHaveBeenCalled();
+        root.libraryNotes = { 1: [{ id: 1, position: 5, body: 'اول' }, { id: 2, position: 65, body: 'دوم' }] };
+        root.copyNotes();
+        expect(root.copyText).toHaveBeenCalledWith('t5 — اول\nt65 — دوم', 'یادداشت‌ها کپی شد.');
+    });
+
     it('captures note ownership context across selection changes', async () => {
         const root = component([item(1), item(2)]);
         let finish;

@@ -249,6 +249,15 @@ class MediaTest extends TestCase
         Livewire::test(Main::class)->assertSeeHtml('data-user-id="' . $user->id . '"');
     }
 
+    public function test_workspace_renders_the_copy_notes_control(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->media($user);
+        $this->actingAs($user);
+        Livewire::withoutLazyLoading();
+        Livewire::test(Main::class)->assertSeeHtml('copyNotes()');
+    }
+
     public function test_deep_link_accepts_visible_episode_but_rejects_hidden_parent_chain(): void
     {
         $user = User::factory()->create(['status' => 'active']);

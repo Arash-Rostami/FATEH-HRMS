@@ -340,6 +340,11 @@ export default function media() {
             this.copyText(url.href, 'پیوند این لحظه کپی شد.');
         },
 
+        copyNotes() {
+            if (!this.currentNotes.length) return;
+            this.copyText(this.currentNotes.map(note => `${this.time(note.position)} — ${note.body}`).join('\n'), 'یادداشت‌ها کپی شد.');
+        },
+
         async noteRequest(action, data) {
             const response = await fetch(this.$el.dataset.notesUrl, {
                 method: 'POST', credentials: 'same-origin', signal: controller?.signal,
