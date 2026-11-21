@@ -11,7 +11,7 @@ const DIGIT_REGEX = /[0-9]/g;
 const INPUT_SEL = 'input, textarea, select, [contenteditable]';
 const SAFETY_TICK_MS = 15000;
 
-const shared = { element: null, kind: null, prebuffer: null, ui: null, bound: false, keydown: null, interval: null };
+const shared = { element: null, kind: null, prebuffer: null, ui: null, bound: false, keydown: null, interval: null, stateRaf: null };
 
 const fmt = (s) => {
     if (!Number.isFinite(s) || s <= 0) return '0:00';
@@ -32,6 +32,14 @@ const emitState = (ui) => {
     window.dispatchEvent(new CustomEvent(EVENT_STATE, {
         detail: { playing: ui.playing, sid: ui.cur.sid, idx: ui.cur.idx, t: ui.t, duration: ui.duration },
     }));
+};
+
+const emitStateCoalesced = (ui) => {
+    if (shared.stateRaf) return;
+    shared.stateRaf = requestAnimationFrame(() => {
+        shared.stateRaf = null;
+        emitState(ui);
+    });
 };
 
 function ensureElement(ui, kind) {
@@ -96,9 +104,10 @@ function bindElement(ui) {
         if (Number.isFinite(el.duration) && el.duration > 0) shared.ui.duration = el.duration;
         if (shared.ui.playing && shared.ui.t - shared.ui._lastPersist >= (shared.ui.sync.local_seconds || 5)) {
             shared.ui._lastPersist = shared.ui.t;
-            shared.ui._storeLocal();
+            shared.ui._storeLocal(shared.ui.episode()?.id, Math.floor(shared.ui.t));
         }
         shared.ui.maybePrebuffer();
+        emitStateCoalesced(shared.ui);
     });
 
     el.addEventListener('loadedmetadata', () => {
