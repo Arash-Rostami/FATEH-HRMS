@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Media;
 
+use App\Livewire\Dashboard\Media\Actions\MarkMediaSeenAction;
 use App\Livewire\Dashboard\Media\Presentation\MediaPresenter;
 use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\View\View;
@@ -14,11 +15,16 @@ class Main extends Component
 {
     use FocusOnRecord;
 
-    #[Computed]
-    public function library(): array
+    public function mount(): void
     {
         abort_if(tenantOff('reports:media'), 404);
 
+        MarkMediaSeenAction::execute(auth()->user());
+    }
+
+    #[Computed]
+    public function library(): array
+    {
         return app(MediaPresenter::class)->library();
     }
 
