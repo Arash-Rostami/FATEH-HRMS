@@ -4,7 +4,6 @@ namespace Tests\Feature\Http;
 
 use App\Http\Controllers\MediaNoteController;
 use App\Http\Controllers\MediaProgressController;
-use App\Livewire\Dashboard\Media\Actions\MarkMediaSeenAction;
 use App\Livewire\Dashboard\Media\Actions\SaveNoteAction;
 use App\Livewire\Dashboard\Media\Actions\SaveProgressAction;
 use App\Models\Department;
@@ -380,19 +379,18 @@ class MediaPlaybackTest extends TestCase
         $this->assertSame(['v' => 2], Media::cachedCatalog('KMDA', fn () => ['v' => 2]));
     }
 
-    public function test_per_user_data_never_enters_the_catalog_cache_and_seen_marking_does_not_bump(): void
+    public function test_per_user_data_never_enters_the_catalog_cache(): void
     {
         ModelCacheVersion::bump(Media::class);
         $this->assertSame(['v' => 1], Media::cachedCatalog('KMDA', fn () => ['v' => 1]));
 
         SaveProgressAction::execute($this->viewer, [$this->item(40, 30)]);
         SaveNoteAction::execute($this->viewer, 'add', ['media_id' => $this->episode->id, 'position' => 5, 'body' => 'note']);
-        MarkMediaSeenAction::execute($this->viewer);
 
         $this->assertSame(['v' => 1], Media::cachedCatalog('KMDA', fn () => ['v' => 'stale-check']));
     }
 
-    public function test_playable_for_and_unseen_by_always_read_live_rows(): void
+    public function test_playable_for_and_new_for_always_read_live_rows(): void
     {
         $this->assertSame(100, (int) Media::playableFor($this->viewer, [$this->episode->id])->first()->duration_seconds);
 
@@ -400,11 +398,11 @@ class MediaPlaybackTest extends TestCase
 
         $this->assertSame(77, (int) Media::playableFor($this->viewer, [$this->episode->id])->first()->duration_seconds);
 
-        $this->assertTrue(Media::unseenBy($this->viewer->id)->exists());
+        $this->assertTrue(Media::newFor($this->viewer->id)->whereKey($this->episode->parent_id)->exists());
 
-        MarkMediaSeenAction::execute($this->viewer);
+        SaveProgressAction::execute($this->viewer, [$this->item(10, 10)]);
 
-        $this->assertFalse(Media::unseenBy($this->viewer->id)->exists());
+        $this->assertFalse(Media::newFor($this->viewer->id)->whereKey($this->episode->parent_id)->exists());
     }
 
     private function item(int $position, int $last, bool $completed = false, ?int $duration = 100): array

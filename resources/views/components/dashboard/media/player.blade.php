@@ -27,6 +27,7 @@
                 <div class="min-w-0">
                     <p class="truncate text-[13px] font-bold text-[var(--md-sys-color-on-surface)]" x-text="currentEpisode?.title"></p>
                     <p class="truncate text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="item()?.title"></p>
+                    <p x-show="upNext" x-cloak class="truncate text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="'بعدی: ' + upNext?.title"></p>
                 </div>
             </div>
         </template>
@@ -81,6 +82,11 @@
         </div>
 
         <div class="hidden items-center justify-end gap-1 md:flex">
+            <x-ui.buttons.form variant="none" x-on:click="toggleStopAfter()" x-bind:aria-pressed="stopAfter" title="توقف پس از این جلسه" aria-label="توقف پس از این جلسه"
+                               class="w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"
+                               x-bind:class="stopAfter && 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'">
+                <span class="material-symbols-rounded text-[20px]">bedtime</span>
+            </x-ui.buttons.form>
             <x-ui.buttons.form variant="tonal" x-on:click="setSpeed()" aria-label="سرعت پخش" x-text="fa(speed) + '×'"/>
             <x-ui.buttons.form variant="none" x-on:click="toggleMute()" x-bind:aria-label="muted ? 'باصدا کردن' : 'بی‌صدا کردن'"
                                class="w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]">
@@ -97,6 +103,12 @@
             </div>
         </template>
 
+        <template x-if="undo">
+            <div class="absolute -top-12 start-4 shadow-lg">
+                <x-ui.buttons.form variant="tonal" x-on:click="undoSwitch()">بازگشت به لحظهٔ قبل</x-ui.buttons.form>
+            </div>
+        </template>
+
         <template x-if="error && currentEpisode">
             <div class="flex items-center gap-2 text-[12px] font-bold text-[var(--md-sys-color-error)]">
                 <span class="material-symbols-rounded text-[18px]">error</span>
@@ -107,7 +119,7 @@
     </footer>
 @elseif($part === 'stage')
     <template x-if="currentEpisode && isVideo">
-        <div class="relative mx-4 mt-4 aspect-video max-h-[360px] w-[calc(100%-2rem)] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-primary)_45%,var(--md-sys-color-surface))] shadow-sm md:mx-7 md:w-[calc(100%-3.5rem)]"
+        <div class="relative mx-4 mt-4 aspect-video max-h-96 w-[calc(100%-2rem)] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-primary)_45%,var(--md-sys-color-surface))] shadow-sm md:mx-7 md:w-[calc(100%-3.5rem)]"
              :class="playing ? '' : 'paused'"
              x-init="mountVideo()"
              wire:ignore>
@@ -135,6 +147,9 @@
                     <x-ui.buttons.form variant="none" icon="skip_next" x-on:click="next()" aria-label="بعدی" class="w-8 h-8 rounded-lg hover:bg-white/20"/>
                     <span class="tabular-nums" x-text="faTime(t) + ' / ' + faTime(duration)"></span>
                     <span class="ms-auto truncate" x-text="currentEpisode?.title"></span>
+                    <x-ui.buttons.form variant="none" x-show="canPictureInPicture" x-on:click="togglePictureInPicture()" x-bind:aria-pressed="pictureInPicture" aria-label="تصویر در تصویر" title="تصویر در تصویر" class="w-8 h-8 rounded-lg hover:bg-white/20">
+                        <span class="material-symbols-rounded text-[20px]">picture_in_picture_alt</span>
+                    </x-ui.buttons.form>
                 </div>
             </div>
         </div>

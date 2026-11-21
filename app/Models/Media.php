@@ -131,6 +131,21 @@ class Media extends Model
             ->where(fn (Builder $inner) => $inner->whereNull('seen_by')->orWhereJsonDoesntContain('seen_by', $userId));
     }
 
+    public function scopeNewFor(Builder $query, int $userId): Builder
+    {
+        $user = (int) auth()->id() === $userId ? auth()->user() : User::query()->find($userId);
+        $since = now()->subDays((int) config('media.new_days', 30));
+        $played = fn ($sub) => $sub->from('knowledge_progress')->selectRaw('1')->where('knowledge_progress.user_id', $userId);
+
+        return $query->library($user)
+            ->where(fn (Builder $inner) => $inner->where('media.report_date', '>=', $since->toDateString())
+                ->orWhere(fn (Builder $created) => $created->whereNull('media.report_date')->where('media.created_at', '>=', $since)))
+            ->whereNotExists(fn ($sub) => $played($sub)->whereColumn('knowledge_progress.media_id', 'media.id'))
+            ->whereNotExists(fn ($sub) => $played($sub)
+                ->join('media as episodes', 'episodes.id', '=', 'knowledge_progress.media_id')
+                ->whereColumn('episodes.parent_id', 'media.id'));
+    }
+
     public static function cachedCatalog(?string $departmentCode, Closure $build): array
     {
         return static::cached(

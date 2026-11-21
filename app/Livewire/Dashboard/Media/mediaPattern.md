@@ -14,7 +14,7 @@ Reports attached through `report_ids` are resolved once through `Report::forView
 
 ## Browser and player boundary
 
-`media()` composes the player using property descriptors so player getters are not evaluated during object spread. Root getters remain getters as well. Player initialization consumes the root's progress URL and sync configuration before loading the payload. Keyboard binding, Persian time formatting (`faTime`) and native track construction reuse the player's methods; counters use `toLocaleString('fa-IR')` because the player does not export `fa`.
+`media()` composes the player using property descriptors so player getters are not evaluated during object spread. Root getters remain getters as well. Player initialization consumes the root's progress URL and sync configuration before loading the payload. Keyboard binding, Persian time formatting (`faTime`) and native track construction reuse the player's methods; counters use the player's exported `fa` digit helper (`number()` wraps it).
 
 Selection is view-only: browsing another item must not overwrite the currently playing episode. A moment link stores a pending seek without autoplay; the first explicit play supplies it through the player's resume hook. Search uses `highlightMatch` for escaped highlighting and the existing exported `normalize` from `memberPicker.js`; `highlightMatch.js` itself has no normalization helper.
 

@@ -1,6 +1,6 @@
 <div dir="rtl" data-media-root x-data="media()" x-on:keydown.escape.window="onEscape($event)"
      data-library="{{ json_encode($this->library, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}"
-     data-progress-url="{{ route('media.progress') }}" data-notes-url="{{ route('media.notes') }}"
+     data-progress-url="{{ route('media.progress') }}" data-user-id="{{ auth()->id() }}" data-notes-url="{{ route('media.notes') }}"
      data-sync="{{ json_encode(config('media.sync')) }}"
      class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
      role="region" aria-label="کتابخانهٔ رسانه">

@@ -5,7 +5,11 @@ import lastOpenMixin from '../mixins/lastOpen.js';
 import persistentStateMixin from '../mixins/persistentState.js';
 import highlightMatchMixin from '../mixins/highlightMatch.js';
 import clipboardMixin from '../mixins/clipboard.js';
+import tableToolsMixin from '../mixins/tableTools.js';
 import { normalize } from './memberPicker.js';
+
+const PROGRESS_KEY = 'media_progress';
+const RECENT_LIMIT = 5;
 
 export default function media() {
     let observer, controller, unlockTimer, trackHost, trackSequence = 0;
@@ -24,6 +28,7 @@ export default function media() {
         ...persistentStateMixin(),
         ...highlightMatchMixin(),
         ...clipboardMixin(),
+        ...tableToolsMixin('media'),
         items: [],
         libraryNotes: {},
         selectedId: null,
@@ -56,6 +61,7 @@ export default function media() {
             this.bindPlayerKeys('[data-media-root]');
             this.readLibrary();
             this.initMaximize();
+            this.initTableTools();
             window.addEventListener('media:state', () => this.syncTrackContext(), { signal: controller.signal });
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) this.scheduleUnlock();
@@ -67,6 +73,7 @@ export default function media() {
             const raw = this.$el.dataset.library;
             if (!raw || raw === lastPayload) return;
             this.progressUrl = this.$el.dataset.progressUrl ?? '';
+            this.userId = this.$el.dataset.userId ?? '';
             try { this.sync = { ...this.sync, ...JSON.parse(this.$el.dataset.sync || '{}') }; } catch {}
             let payload;
             try { payload = JSON.parse(raw); } catch { return; }
@@ -157,12 +164,37 @@ export default function media() {
             });
         },
 
+        get upNext() {
+            const item = this.item();
+            const next = item?.type === 'series' ? item.episodes[this.cur.idx + 1] : null;
+            return next?.file_url && !this.isLocked(next) ? next : null;
+        },
+
+        get recentItems() {
+            const touched = this.library.progress ?? {};
+            const owners = new Map(this.items.flatMap(item => item.episodes.map(ep => [ep.id, [item, ep]])));
+            const stamps = Object.entries(this._loadState(this._k(PROGRESS_KEY), {}))
+                .filter(([id]) => id in touched)
+                .sort(([, a], [, b]) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+            const picked = new Map();
+            for (const [id] of stamps) {
+                const [item, ep] = owners.get(Number(id)) ?? [];
+                if (item && !this.isLocked(ep) && !picked.has(item.id)) picked.set(item.id, item);
+                if (picked.size === RECENT_LIMIT) break;
+            }
+            return [...picked.values()];
+        },
+
         rankRows() {
             this.ranks = Object.fromEntries(this.visibleItems.map((item, index) => [item.id, index]));
         },
 
         pinned(item) {
             return item.pinned || this.$store.pinned.isPinned(item.id, 'media');
+        },
+
+        played(id) {
+            return !!this.item(id)?.episodes.some(ep => this.library.progress?.[ep.id]);
         },
 
         choose(id, detail = true) {
@@ -177,6 +209,28 @@ export default function media() {
             this.noteBody = '';
             this.transcriptQuery = '';
             this.clearTracks();
+        },
+
+        episodeHit(id) {
+            const query = normalize(this.query);
+            const item = this.items.find(row => row.id === Number(id));
+            if (!query || item?.type !== 'series' || normalize(item.title).includes(query)) return null;
+            const index = item.episodes.findIndex(ep => normalize(`${ep.title} ${ep.topic}`).includes(query));
+            return index < 0 ? null : { index, title: item.episodes[index].title };
+        },
+
+        chooseEpisode(id) {
+            const hit = this.episodeHit(id);
+            this.choose(id);
+            if (hit) this.viewedEpisodeIndex = hit.index;
+        },
+
+        undoSwitch() {
+            const back = this.undo;
+            player.undoSwitch.call(this);
+            if (!back) return;
+            if (this.selectedId !== back.sid) this.choose(back.sid, false);
+            this.viewedEpisodeIndex = back.idx;
         },
 
         backToList() { this.mobileDetail = false; },
@@ -290,7 +344,7 @@ export default function media() {
             return this.selected?.episodes.filter((ep, idx) => this.episodeState(this.selectedId, idx) === 'done').length ?? 0;
         },
 
-        number(value) { return Number(value ?? 0).toLocaleString('fa-IR'); },
+        number(value) { return this.fa(Number(value ?? 0)); },
 
         time(seconds) { return this.faTime(Number(seconds)); },
 
@@ -337,6 +391,11 @@ export default function media() {
             url.searchParams.set('open', this.contextEpisode.id);
             url.searchParams.set('t', Math.floor(this.contextTime()));
             this.copyText(url.href, 'پیوند این لحظه کپی شد.');
+        },
+
+        copyNotes() {
+            if (!this.currentNotes.length) return;
+            this.copyText(this.currentNotes.map(note => `${this.time(note.position)} — ${note.body}`).join('\n'), 'یادداشت‌ها کپی شد.');
         },
 
         async noteRequest(action, data) {
@@ -459,6 +518,7 @@ export default function media() {
             clearTimeout(unlockTimer);
             this.clearTracks();
             this.destroyPlayer();
+            this.destroyTableTools();
             if (this.maxOn) this.applyMaximize(false);
         },
     }));

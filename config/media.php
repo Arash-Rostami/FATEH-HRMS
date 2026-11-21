@@ -14,6 +14,8 @@ return [
 
     'notes_max' => 100,
 
+    'new_days' => 30,
+
     'unknown_duration_advance' => 600,
 
     'sync' => [
@@ -21,5 +23,6 @@ return [
         'safety_seconds' => 90,
         'min_delta' => 10,
         'prebuffer_remaining_seconds' => 120,
+        'resume_rewind' => 10,
     ],
 ];

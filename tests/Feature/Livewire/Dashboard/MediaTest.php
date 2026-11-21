@@ -91,7 +91,66 @@ class MediaTest extends TestCase
         $this->assertStringNotContainsString('یادداشت دیگری', json_encode($payload, JSON_UNESCAPED_UNICODE));
     }
 
-    public function test_mounting_marks_unseen_media_seen_once_for_the_viewer(): void
+    private function isNew(User $viewer, Media $item): bool
+    {
+        $this->actingAs($viewer);
+        Livewire::withoutLazyLoading();
+
+        return collect(Livewire::test(Main::class)->instance()->library['items'])->firstWhere('id', $item->id)['is_new'];
+    }
+
+    public function test_opening_the_library_never_writes_and_keeps_a_series_new_and_episodes_never(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $viewer = User::factory()->create(['status' => 'active']);
+        $series = $this->media($owner, ['kind' => 'series']);
+        $episode = $this->media($owner, ['parent_id' => $series->id]);
+        $this->actingAs($viewer);
+        Livewire::withoutLazyLoading();
+        $first = Livewire::test(Main::class);
+        $row = collect($first->instance()->library['items'])->firstWhere('id', $series->id);
+        $this->assertTrue($row['is_new']);
+        $this->assertSame([$series->id], $first->get('newIds'));
+        $first->assertSee('جدید');
+        $this->assertArrayNotHasKey('is_new', $row['episodes'][0]);
+        $this->assertNotContains($episode->id, $first->get('newIds'));
+        $this->assertNull($series->fresh()->seen_by);
+        $this->assertTrue($this->isNew($viewer, $series));
+        $this->assertTrue($this->isNew($viewer, $series));
+    }
+
+    public function test_playing_clears_new_for_a_single_and_an_episode_clears_its_series(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $viewer = User::factory()->create(['status' => 'active']);
+        $single = $this->media($owner);
+        $series = $this->media($owner, ['kind' => 'series']);
+        $episode = $this->media($owner, ['parent_id' => $series->id]);
+        $this->assertTrue($this->isNew($viewer, $single));
+        $this->assertTrue($this->isNew($viewer, $series));
+        KnowledgeProgress::create(['user_id' => $viewer->id, 'media_id' => $single->id, 'position' => 5, 'last_position' => 5]);
+        KnowledgeProgress::create(['user_id' => $viewer->id, 'media_id' => $episode->id, 'position' => 5, 'last_position' => 5]);
+        $this->assertFalse($this->isNew($viewer, $single));
+        $this->assertFalse($this->isNew($viewer, $series));
+        $this->assertTrue($this->isNew(User::factory()->create(['status' => 'active']), $series));
+    }
+
+    public function test_items_older_than_new_days_are_never_new(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $viewer = User::factory()->create(['status' => 'active']);
+        $dated = $this->media($owner, ['report_date' => now()->subDays(31)->toDateString()]);
+        $recent = $this->media($owner, ['report_date' => now()->subDays(29)->toDateString()]);
+        $created = $this->media($owner);
+        DB::table('media')->where('id', $created->id)->update(['created_at' => now()->subDays(40)]);
+        $this->assertFalse($this->isNew($viewer, $dated));
+        $this->assertTrue($this->isNew($viewer, $recent));
+        $this->assertFalse($this->isNew($viewer, $created));
+        config(['media.new_days' => 60]);
+        $this->assertTrue($this->isNew($viewer, $dated));
+    }
+
+    public function test_is_new_is_per_user_and_never_part_of_the_cached_catalog(): void
     {
         $owner = User::factory()->create(['status' => 'active']);
         $viewer = User::factory()->create(['status' => 'active']);
@@ -99,10 +158,9 @@ class MediaTest extends TestCase
         $this->actingAs($viewer);
         Livewire::withoutLazyLoading();
         Livewire::test(Main::class);
-        $this->assertSame([$viewer->id], $item->fresh()->seen_by);
-        Livewire::withoutLazyLoading();
-        Livewire::test(Main::class);
-        $this->assertSame([$viewer->id], $item->fresh()->seen_by);
+        $cached = Media::cachedCatalog($viewer->fresh()->profile?->department_id, fn () => []);
+        $this->assertContains($item->id, array_column($cached, 'id'));
+        $this->assertStringNotContainsString('is_new', json_encode($cached));
     }
 
     public function test_locked_episodes_never_expose_file_or_track_urls(): void
@@ -202,6 +260,27 @@ class MediaTest extends TestCase
         $this->assertSame(Carbon::parse('2026-01-01 00:00:00')->timestamp, ((array) $presenter->library($user)['progress'])[$item->id]['updated_at']);
     }
 
+    public function test_description_html_is_sanitized_inside_the_cached_catalog_and_keeps_rich_editor_markup(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $html = '<h2>عنوان</h2><p>متن <strong>پررنگ</strong> و <em>کج</em></p><ul><li>یک</li></ul><ol><li>دو</li></ol>'
+            . '<a href="https://example.com/a">پیوند</a><table><thead><tr><th>ستون</th></tr></thead><tbody><tr><td>سلول</td></tr></tbody></table>'
+            . '<script>alert(1)</script><img src="x" onerror="alert(2)"><a href="javascript:alert(3)">بد</a>';
+        $item = $this->media($user, ['description' => $html]);
+        $presenter = app(MediaPresenter::class);
+        $presenter->library($user);
+        $cached = Media::cachedCatalog($user->fresh()->profile?->department_id, fn () => []);
+        $clean = collect($cached)->firstWhere('id', $item->id)['description_html'];
+        $this->assertSame($clean, collect($presenter->library($user)['items'])->firstWhere('id', $item->id)['description_html']);
+        $this->assertStringNotContainsString('<script', $clean);
+        $this->assertStringNotContainsString('alert(1)', $clean);
+        $this->assertStringNotContainsString('onerror', $clean);
+        $this->assertStringNotContainsString('javascript:', $clean);
+        foreach (['<h2>', '<p>', '<strong>', '<em>', '<ul>', '<ol>', '<li>', '<table>', '<thead>', '<tbody>', '<th>', '<td>', 'href="https://example.com/a"'] as $kept) {
+            $this->assertStringContainsString($kept, $clean);
+        }
+    }
+
     public function test_department_label_falls_back_to_the_audience_departments(): void
     {
         $user = User::factory()->create(['status' => 'active']);
@@ -238,6 +317,24 @@ class MediaTest extends TestCase
         $payload = app(MediaPresenter::class)->library($user);
         $row = collect($payload['items'])->firstWhere('id', $series->id);
         $this->assertSame([$visible->id], array_column($row['episodes'], 'id'));
+    }
+
+    public function test_root_exposes_the_authenticated_user_id_for_the_player_storage_keys(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->media($user);
+        $this->actingAs($user);
+        Livewire::withoutLazyLoading();
+        Livewire::test(Main::class)->assertSeeHtml('data-user-id="' . $user->id . '"');
+    }
+
+    public function test_workspace_renders_the_notes_and_lesson_controls(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->media($user);
+        $this->actingAs($user);
+        Livewire::withoutLazyLoading();
+        Livewire::test(Main::class)->assertSeeHtml('copyNotes()')->assertSeeHtml('canMarkDone(')->assertSeeHtml('togglePictureInPicture()')->assertSeeHtml('toggleHeaderDeclutter()')->assertSeeHtml('wire:key="media-recent"');
     }
 
     public function test_deep_link_accepts_visible_episode_but_rejects_hidden_parent_chain(): void

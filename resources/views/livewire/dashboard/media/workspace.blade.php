@@ -4,18 +4,19 @@
     @foreach($this->library['items'] as $item)
         <template wire:key="media-workspace-{{ $item['id'] }}" data-id="{{ $item['id'] }}" x-if="selectedId === Number($el.dataset.id)">
         <section>
-            <header class="relative flex flex-wrap items-end gap-4 md:gap-7 p-4 md:p-7 bg-gradient-to-b from-[var(--md-sys-color-primary-container)] to-[var(--md-sys-color-background)]">
+            <header class="relative flex flex-wrap items-end gap-4 md:gap-7 p-4 md:p-7 bg-gradient-to-b from-[var(--md-sys-color-primary-container)] to-[var(--md-sys-color-background)]"
+                    :class="headerDeclutter ? 'md:h-0! md:py-0! md:overflow-hidden! md:pointer-events-none!' : ''">
                 <x-ui.buttons.form variant="ghost" size="icon" x-on:click="backToList()" class="md:hidden" aria-label="بازگشت به کتابخانه"><span class="material-symbols-rounded">arrow_forward</span></x-ui.buttons.form>
-                <div class="w-28 h-28 md:w-[184px] md:h-[184px] rounded-2xl shrink-0 flex items-center justify-center overflow-hidden" data-accent="{{ $item['accent'] }}" :style="accentStyle($el.dataset.accent)">
+                <div class="w-28 h-28 md:w-44 md:h-44 rounded-2xl shrink-0 flex items-center justify-center overflow-hidden" data-accent="{{ $item['accent'] }}" :style="accentStyle($el.dataset.accent)">
                     @if($item['cover_url'])
                         <img wire:key="media-hero-cover" src="{{ $item['cover_url'] }}" alt="" loading="lazy" class="w-full h-full object-cover">
                     @else
-                        <span wire:key="media-hero-icon" class="material-symbols-rounded text-[52px] md:text-[76px]">{{ $item['icon'] }}</span>
+                        <span wire:key="media-hero-icon" class="material-symbols-rounded text-5xl md:text-7xl">{{ $item['icon'] }}</span>
                     @endif
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="flex gap-2 mb-3"><x-ui.badge>{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }}</x-ui.badge><x-ui.badge>{{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }}</x-ui.badge></div>
-                    <h2 class="text-2xl md:text-[34px] font-extrabold text-[var(--md-sys-color-on-surface)] mb-2">{{ $item['title'] }}</h2>
+                    <div class="flex gap-2 mb-3"><x-ui.badge>{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }}</x-ui.badge><x-ui.badge>{{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }}</x-ui.badge>@if($item['is_new'])<x-ui.badge wire:key="media-hero-new" x-show="!played({{ $item['id'] }})" variant="info">جدید</x-ui.badge>@endif</div>
+                    <h2 class="text-2xl md:text-4xl font-extrabold text-[var(--md-sys-color-on-surface)] mb-2">{{ $item['title'] }}</h2>
                     <div class="text-[13px] leading-6 text-[var(--md-sys-color-on-surface-variant)] mb-3 prose rich-colors max-w-none">{!! $item['description_html'] !!}</div>
                     <p class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--md-sys-color-on-surface-variant)]"><b>{{ $item['unit'] }}</b><span>{{ $item['department'] }}</span><span>{{ $item['date_label'] }}</span><span x-text="time({{ $item['total_duration'] }})"></span></p>
                 </div>
@@ -24,6 +25,7 @@
                 <x-ui.buttons.form variant="primary" x-on:click="heroPlay()" x-bind:disabled="!selected?.episodes.some(ep => ep.file_url)"><span class="material-symbols-rounded" x-text="playing && cur.sid === selectedId ? 'pause' : 'play_arrow'"></span><span x-text="heroLabel()"></span></x-ui.buttons.form>
                 <x-ui.buttons.bookmark :id="$item['id']" scope="media" class="w-10 h-10" />
                 <x-ui.buttons.form variant="ghost" size="icon" x-on:click="copyMoment()" title="پیوند این لحظه" aria-label="پیوند این لحظه"><span class="material-symbols-rounded">share</span></x-ui.buttons.form>
+                <x-ui.buttons.form variant="ghost" size="icon" x-on:click="toggleHeaderDeclutter()" x-bind:aria-pressed="headerDeclutter" x-bind:title="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'" x-bind:aria-label="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'" class="max-md:hidden"><span class="material-symbols-rounded rotate-90" x-text="headerDeclutter ? 'unfold_more' : 'unfold_less'"></span></x-ui.buttons.form>
                 <x-ui.modals.maximize-button size="lg" />
                 <div class="hidden md:flex items-center gap-3 ms-auto">
                     <div class="relative inline-flex items-center justify-center shrink-0 w-14 h-14">
@@ -69,6 +71,7 @@
                                 <td class="hidden md:table-cell px-3 py-3 text-xs" x-text="time({{ $episode['duration'] ?? 0 }})"></td>
                                 <td class="hidden md:table-cell px-3 py-3 text-xs"><span x-text="episodeState({{ $item['id'] }}, {{ $index }}) === 'done' ? 'تمام‌شده' : (episodeState({{ $item['id'] }}, {{ $index }}) === 'locked' ? 'قفل‌شده' : (episodeState({{ $item['id'] }}, {{ $index }}) === 'current' ? 'در حال پخش' : 'آمادهٔ پخش'))"></span><div class="mt-2 h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden" role="progressbar" aria-label="پیشرفت" aria-valuemin="0" aria-valuemax="100" x-bind:aria-valuenow="percent(episodeProgress({{ $item['id'] }}, {{ $index }}))"><div class="h-full rounded-full transition-all duration-500 bg-[var(--md-sys-color-primary)]" x-bind:style="{ width: percent(episodeProgress({{ $item['id'] }}, {{ $index }})) + '%' }"></div></div></td>
                                 <td class="px-3 py-3">
+                                    <x-ui.buttons.form variant="ghost" size="icon" x-on:click="markDone({{ $item['id'] }}, {{ $index }})" x-show="canMarkDone({{ $item['id'] }}, {{ $index }})" x-cloak title="پایان‌یافته" aria-label="پایان‌یافته"><span class="material-symbols-rounded">done_all</span></x-ui.buttons.form>
                                     @if($episode['download_url'])
                                         <div wire:key="media-episode-download"><x-ui.buttons.form href="{{ $episode['download_url'] }}" variant="ghost" size="icon" download aria-label="دانلود جلسه"><span class="material-symbols-rounded">download</span></x-ui.buttons.form></div>
                                     @else
@@ -92,7 +95,7 @@
                 </div>
                 <div wire:key="media-notes" x-show="tab === 'notes'" x-cloak class="space-y-3 px-2">
                     <x-ui.forms.textarea label="یادداشت این لحظه" name="media-note" x-model="noteBody" maxlength="500" :rows="3" />
-                    <div class="flex flex-wrap gap-2"><x-ui.buttons.form variant="primary" x-on:click="addNote()" x-bind:disabled="noteBusy || !noteBody.trim()"><span class="material-symbols-rounded">bookmark_add</span><span x-text="noteBusy ? 'در حال ذخیره…' : 'افزودن یادداشت'"></span></x-ui.buttons.form><x-ui.buttons.form variant="tonal" x-on:click="copyMoment()">پیوند این لحظه</x-ui.buttons.form></div>
+                    <div class="flex flex-wrap gap-2"><x-ui.buttons.form variant="primary" x-on:click="addNote()" x-bind:disabled="noteBusy || !noteBody.trim()"><span class="material-symbols-rounded">bookmark_add</span><span x-text="noteBusy ? 'در حال ذخیره…' : 'افزودن یادداشت'"></span></x-ui.buttons.form><x-ui.buttons.form variant="tonal" x-on:click="copyMoment()">پیوند این لحظه</x-ui.buttons.form><x-ui.buttons.form variant="tonal" x-on:click="copyNotes()" x-show="currentNotes.length" x-cloak><span class="material-symbols-rounded">content_copy</span>کپی یادداشت‌ها</x-ui.buttons.form></div>
                     <template x-for="note in currentNotes" :key="note.id"><div class="flex items-start gap-3 p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]"><x-ui.buttons.form variant="ghost" x-on:click="seekContext(note.position)"><span x-text="time(note.position)"></span></x-ui.buttons.form><p class="flex-1 text-[13px] leading-6 whitespace-pre-wrap break-words" x-text="note.body"></p><x-ui.buttons.form variant="ghost" size="icon" x-on:click="deleteNote(note.id)" x-bind:disabled="noteBusy" aria-label="حذف یادداشت"><span class="material-symbols-rounded">delete</span></x-ui.buttons.form></div></template>
                 </div>
                 <div wire:key="media-materials" x-show="tab === 'materials'" x-cloak class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3">

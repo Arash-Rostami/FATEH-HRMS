@@ -7,6 +7,7 @@ use App\Models\Media;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
+use App\Services\Menu\StateService;
 use Illuminate\Support\Facades\DB;
 
 class SaveProgressAction
@@ -87,9 +88,15 @@ class SaveProgressAction
             }
         }
 
-        DB::transaction(function () use ($mediaRows, $reportRows, $durations) {
+        $firstPlay = array_filter($mediaRows, fn (array $row) => !$existing->has('media:'.$row['media_id'])) !== [];
+
+        DB::transaction(function () use ($mediaRows, $reportRows, $durations, $firstPlay) {
             self::upsert('media_id', $mediaRows);
             self::upsert('report_id', $reportRows);
+
+            if ($firstPlay) {
+                DB::afterCommit(fn () => StateService::flush());
+            }
 
             if ($durations !== []) {
                 Media::writeSystemDurations($durations);

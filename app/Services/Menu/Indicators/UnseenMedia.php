@@ -26,6 +26,6 @@ class UnseenMedia implements MenuBadge
     {
         $user = auth()->user();
 
-        return $user !== null && Media::query()->unseenBy((int) $user->id)->exists();
+        return $user !== null && Media::query()->newFor((int) $user->id)->exists();
     }
 }

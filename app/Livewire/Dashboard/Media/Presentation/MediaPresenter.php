@@ -11,6 +11,7 @@ use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class MediaPresenter
 {
@@ -99,7 +100,7 @@ class MediaPresenter
                 'kind' => $kind,
                 'type' => $item->kind === 'series' ? 'series' : 'single',
                 'title' => $item->title,
-                'description_html' => $item->description ?? '',
+                'description_html' => Str::sanitizeHtml($item->description ?? ''),
                 'cover_url' => $item->cover_url ?: null,
                 'icon' => $this->icon($item, $kind),
                 'accent' => ['p', 't', 'ok', 'w', 'sec'][$item->id % 5],

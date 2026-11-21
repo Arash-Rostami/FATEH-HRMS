@@ -28,6 +28,15 @@
         <x-ui.forms.select label="ترتیب" name="media-sort" x-model="sort"><option value="recent">تازه‌ترین</option><option value="title">عنوان</option><option value="duration">مدت</option></x-ui.forms.select>
         <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="self-end !flex" />
     </div>
+    <div wire:key="media-recent" x-show="recentItems.length" x-cloak class="sb-fold flex-shrink-0 px-4 pb-3">
+        <p class="mb-1.5 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">اخیراً پخش‌شده</p>
+        <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
+            <template x-for="row in recentItems" :key="row.id">
+                <button type="button" x-on:click="choose(row.id)" :title="row.title" :aria-selected="selectedId === row.id" x-text="row.title"
+                        class="max-w-40 truncate px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200 whitespace-nowrap text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] aria-selected:bg-[var(--md-sys-color-primary-container)] aria-selected:text-[var(--md-sys-color-on-primary-container)]"></button>
+            </template>
+        </div>
+    </div>
     <div id="media-list" x-effect="rankRows()" class="flex flex-col flex-1 min-h-0 overflow-y-auto py-1 contact-scrollbar" role="listbox" aria-label="رسانه‌ها">
         @foreach($this->library['items'] as $item)
             <div wire:key="media-row-{{ $item['id'] }}" data-id="{{ $item['id'] }}" data-rf="media-{{ $item['id'] }}"
@@ -44,8 +53,15 @@
                     <span x-show="playing && cur.sid === {{ $item['id'] }}" x-cloak class="absolute bottom-0 flex gap-0.5 items-end" aria-label="در حال پخش"><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i></span>
                 </div>
                 <div class="sb-fade flex-1 min-w-0">
-                    <p class="truncate text-[13px] font-semibold text-[var(--md-sys-color-on-surface)]" data-title="{{ $item['title'] }}" x-html="highlight($el.dataset.title, query)"></p>
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <p class="truncate text-[13px] font-semibold text-[var(--md-sys-color-on-surface)]" data-title="{{ $item['title'] }}" x-html="highlight($el.dataset.title, query)"></p>
+                        @if($item['is_new'])
+                            <x-ui.badge wire:key="media-row-new" x-show="!played({{ $item['id'] }})" variant="info" class="shrink-0">جدید</x-ui.badge>
+                        @endif
+                    </div>
                     <p class="text-[11px] truncate text-[var(--md-sys-color-on-surface-variant)]">{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }} · {{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }} · {{ convertToPersian((string) count($item['episodes'])) }} جلسه</p>
+                    <button type="button" data-id="{{ $item['id'] }}" x-show="episodeHit($el.dataset.id)" x-cloak x-on:click.stop="chooseEpisode($el.dataset.id)"
+                            class="block w-full truncate text-right text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-html="highlight(episodeHit($el.dataset.id)?.title, query)"></button>
                     <div class="mt-2 h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden" role="progressbar" aria-label="پیشرفت" aria-valuemin="0" aria-valuemax="100" x-bind:aria-valuenow="percent(progressOf({{ $item['id'] }}))">
                         <div class="h-full rounded-full transition-all duration-500 bg-[var(--md-sys-color-primary)]" x-bind:style="{ width: percent(progressOf({{ $item['id'] }})) + '%' }"></div>
                     </div>
