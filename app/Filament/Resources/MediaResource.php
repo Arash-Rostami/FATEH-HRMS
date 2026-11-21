@@ -13,7 +13,6 @@ use App\Traits\Filament\AuthorizesByPermission;
 use App\Traits\Filament\FilamentActions;
 use App\Traits\Filament\FilamentAdminGuide;
 use App\Traits\Filament\FilamentFilters;
-use App\Traits\Filament\FilamentResourceSwitch;
 use App\Traits\Filament\FilamentVisibility;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -28,7 +27,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MediaResource extends Resource
 {
-    use FilamentAdminGuide, FilamentActions, FilamentFilters, FilamentVisibility, AuthorizesByPermission, FilamentResourceSwitch;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, FilamentVisibility, AuthorizesByPermission;
 
     public static function shouldRegisterNavigation(): bool
     {

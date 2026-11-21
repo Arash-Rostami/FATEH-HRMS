@@ -9,14 +9,13 @@ use App\Models\KnowledgeProgress;
 use App\Traits\Filament\AuthorizesByPermission;
 use App\Traits\Filament\FilamentActions;
 use App\Traits\Filament\FilamentFilters;
-use App\Traits\Filament\FilamentResourceSwitch;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class KnowledgeProgressResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission, FilamentResourceSwitch;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     public static function shouldRegisterNavigation(): bool
     {

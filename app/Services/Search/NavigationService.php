@@ -132,6 +132,17 @@ class NavigationService
                 ],
             ],
             [
+                'id' => 'media',
+                'title' => 'رسانه',
+                'subtitle' => 'صوت و ویدیوی آموزشی، جلسه‌های پیاپی و ادامهٔ پخش',
+                'icon' => 'video_library',
+                'action' => 'route:media',
+                'keywords' => [
+                    'media', 'video', 'audio', 'podcast', 'course', 'lesson', 'training', 'library', 'knowledge',
+                    'رسانه', 'ویدیو', 'ویدئو', 'فیلم', 'صوت', 'پادکست', 'آموزش', 'دوره', 'جلسه', 'کتابخانه', 'دانش سازمانی', 'آموزشی',
+                ],
+            ],
+            [
                 'id' => 'ai-report',
                 'title' => 'گزارش ساز هوشمند',
                 'subtitle' => 'ساخت گزارش ساختاریافته از درخواست و فایل‌ها با هوش مصنوعی',

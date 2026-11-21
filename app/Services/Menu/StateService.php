@@ -20,6 +20,7 @@ use App\Services\Menu\Indicators\UnreadMessages;
 use App\Services\Menu\Indicators\CorrespondenceBadge;
 use App\Services\Menu\Indicators\UnseenAiReports;
 use App\Services\Menu\Indicators\UnseenLaunchpads;
+use App\Services\Menu\Indicators\UnseenMedia;
 use Illuminate\Support\Facades\Cache;
 
 class StateService
@@ -45,6 +46,7 @@ class StateService
         UnseenAiReports::class,
         CorrespondenceBadge::class,
         UnseenLaunchpads::class,
+        UnseenMedia::class,
     ];
 
     public function __construct(
