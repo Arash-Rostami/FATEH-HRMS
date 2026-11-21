@@ -36,6 +36,7 @@ class ReportResource extends Resource
         return array_values(array_filter(
             [self::class, MediaResource::class, KnowledgeProgressResource::class, AiReportResource::class],
             fn (string $resource) => ! tenantOffName($resource::getSlug())
+                && ! (in_array($resource, [MediaResource::class, KnowledgeProgressResource::class], true) && tenantOff('knowledge:media'))
         ));
     }
 
