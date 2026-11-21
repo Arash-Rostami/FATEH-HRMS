@@ -275,12 +275,13 @@ class SearchServiceTest extends TestCase
 
         $this->assertContains($active->id, $ids);
         $this->assertNotContains($inactive->id, $ids);
+        $this->assertSame('url:/knowledge?open=' . $active->id, (new ReportResource())->action($active));
     }
 
     public function test_media_search_resource_lists_only_a_visible_released_parent_and_links_to_media(): void
     {
-        if (!Route::has('media')) {
-            Route::get('/media', fn () => '')->name('media');
+        if (!Route::has('knowledge')) {
+            Route::get('/knowledge', fn () => '')->name('knowledge');
         }
 
         $token = $this->token();
@@ -295,7 +296,11 @@ class SearchServiceTest extends TestCase
         $this->assertNotContains($episode->id, $ids);
         $this->assertNotContains($expired->id, $ids);
         $this->assertNotContains($foreign->id, $ids);
-        $this->assertSame('url:/media?open=' . $series->id, (new MediaResource())->action($series));
+        $this->assertSame('url:/knowledge?tab=media&open=' . $series->id, (new MediaResource())->action($series));
+
+        config(['app.off' => ['knowledge:media']]);
+        $this->assertSame([], $this->runResource(MediaResource::class, $token));
+        config(['app.off' => []]);
     }
 
     public function test_feed_post_gallery_and_report_search_exclude_inactive_and_other_department_rows(): void

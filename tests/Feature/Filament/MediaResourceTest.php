@@ -340,6 +340,21 @@ class MediaResourceTest extends TestCase
         $this->assertContains(KnowledgeProgressResource::class, $group);
     }
 
+    public function test_the_media_view_off_drops_media_and_progress_from_the_switch_group_but_keeps_reports(): void
+    {
+        config(['app.off' => ['knowledge:media']]);
+
+        try {
+            $group = $this->switchGroupOf(ReportResource::class);
+
+            $this->assertContains(ReportResource::class, $group);
+            $this->assertNotContains(MediaResource::class, $group);
+            $this->assertNotContains(KnowledgeProgressResource::class, $group);
+        } finally {
+            config(['app.off' => []]);
+        }
+    }
+
     private function switchGroupOf(string $resource): array
     {
         $method = new ReflectionMethod($resource, 'switchGroup');
