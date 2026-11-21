@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MediaResource\Exports;
 
+use App\Filament\Resources\KnowledgeProgressResource\Schemas\KnowledgeProgressTablePresenter;
 use App\Models\KnowledgeProgress;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
@@ -39,9 +40,7 @@ class ProgressExporter extends Exporter
 
             ExportColumn::make('completed')
                 ->label(__('resources/media/strings.progress.export.completed'))
-                ->state(fn($record) => $record->completed_at
-                    ? __('resources/media/strings.progress.export.completed_yes')
-                    : __('resources/media/strings.progress.export.completed_no')),
+                ->state(fn($record) => KnowledgeProgressTablePresenter::statusLabel($record)),
 
             ExportColumn::make('last_seen_at')
                 ->label(__('resources/media/strings.progress.export.last_seen_at'))

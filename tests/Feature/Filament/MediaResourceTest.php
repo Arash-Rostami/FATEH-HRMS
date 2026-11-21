@@ -12,6 +12,7 @@ use App\Filament\Resources\MediaResource\Exports\ProgressExporter;
 use App\Filament\Resources\MediaResource\Pages\CreateMedia;
 use App\Filament\Resources\MediaResource\Pages\EditMedia;
 use App\Filament\Resources\KnowledgeProgressResource\Pages\ListKnowledgeProgress;
+use App\Filament\Resources\KnowledgeProgressResource\Schemas\KnowledgeProgressTablePresenter;
 use App\Filament\Resources\MediaResource\Pages\ListMedia;
 use App\Filament\Resources\MediaResource\Schemas\MediaFormPresenter;
 use App\Filament\Resources\MediaResource\RelationManagers\EpisodesRelationManager;
@@ -537,5 +538,28 @@ class MediaResourceTest extends TestCase
         $page->filterTable('completed_at', true)
             ->assertCanSeeTableRecords([$done])
             ->assertCanNotSeeTableRecords([$open]);
+    }
+
+    public function test_progress_status_reads_received_for_report_rows_and_completed_for_media_rows(): void
+    {
+        $admin = $this->developer();
+        $media = Media::factory()->create(['title' => '0-Status Media Title']);
+        $report = Report::factory()->create(['title' => '0-Status Report Title']);
+        $mediaRow = KnowledgeProgress::create(['user_id' => $admin->id, 'media_id' => $media->id, 'position' => 10, 'last_position' => 10, 'completed_at' => now(), 'last_seen_at' => now()]);
+        $reportRow = KnowledgeProgress::create(['user_id' => $admin->id, 'report_id' => $report->id, 'position' => 0, 'last_position' => 0, 'completed_at' => now(), 'last_seen_at' => now()]);
+        $openMediaRow = KnowledgeProgress::create(['user_id' => $admin->id, 'media_id' => $media->id, 'position' => 5, 'last_position' => 5, 'last_seen_at' => now()]);
+
+        $this->assertSame(__('resources/media/strings.progress.export.received'), KnowledgeProgressTablePresenter::statusLabel($reportRow));
+        $this->assertSame(__('resources/media/strings.progress.export.completed_yes'), KnowledgeProgressTablePresenter::statusLabel($mediaRow));
+        $this->assertSame(__('resources/media/strings.progress.export.completed_no'), KnowledgeProgressTablePresenter::statusLabel($openMediaRow));
+
+        Livewire::actingAs($admin)->test(ListKnowledgeProgress::class)
+            ->assertCanSeeTableRecords([$mediaRow, $reportRow])
+            ->assertTableColumnStateSet('completed_at', __('resources/media/strings.progress.export.received'), $reportRow)
+            ->assertTableColumnStateSet('completed_at', __('resources/media/strings.progress.export.completed_yes'), $mediaRow);
+
+        $exported = collect(ProgressExporter::getColumns())->first(fn ($column) => $column->getName() === 'completed');
+        $this->assertSame(__('resources/media/strings.progress.export.received'), $exported->record($reportRow)->getState());
+        $this->assertSame(__('resources/media/strings.progress.export.completed_yes'), $exported->record($mediaRow)->getState());
     }
 }

@@ -4,7 +4,6 @@ namespace App\Filament\Resources\KnowledgeProgressResource\Schemas;
 
 use App\Models\User;
 use App\Traits\Filament\FilamentFilters;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -59,15 +58,22 @@ class KnowledgeProgressTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
-    public static function completed(): IconColumn
+    public static function statusLabel(Model $record): string
     {
-        return IconColumn::make('completed_at')
+        return match (true) {
+            $record->completed_at === null => __('resources/media/strings.progress.export.completed_no'),
+            $record->report_id !== null => __('resources/media/strings.progress.export.received'),
+            default => __('resources/media/strings.progress.export.completed_yes'),
+        };
+    }
+
+    public static function completed(): TextColumn
+    {
+        return TextColumn::make('completed_at')
             ->label(__('resources/media/strings.progress.table.completed'))
-            ->boolean()
-            ->trueIcon('heroicon-o-check-circle')
-            ->falseIcon('heroicon-o-x-circle')
-            ->trueColor('success')
-            ->falseColor('gray')
+            ->state(fn(Model $record): string => self::statusLabel($record))
+            ->badge()
+            ->color(fn(Model $record): string => $record->completed_at ? 'success' : 'gray')
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
@@ -100,9 +106,7 @@ class KnowledgeProgressTablePresenter
     {
         return Group::make('completed_at')
             ->label(__('resources/media/strings.progress.table.completed'))
-            ->getTitleFromRecordUsing(fn(Model $record): string => $record->completed_at
-                ? __('resources/media/strings.progress.export.completed_yes')
-                : __('resources/media/strings.progress.export.completed_no'))
+            ->getTitleFromRecordUsing(fn(Model $record): string => self::statusLabel($record))
             ->collapsible();
     }
 
@@ -110,7 +114,7 @@ class KnowledgeProgressTablePresenter
     {
         return TernaryFilter::make('completed_at')
             ->label(__('resources/media/strings.progress.table.completed'))
-            ->trueLabel(__('resources/media/strings.progress.export.completed_yes'))
+            ->trueLabel(__('resources/media/strings.progress.export.completed_or_received'))
             ->falseLabel(__('resources/media/strings.progress.export.completed_no'))
             ->nullable()
             ->native(false);
