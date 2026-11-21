@@ -62,7 +62,7 @@ return [
         'id' => 'media',
         'icon' => 'video_library',
         'nav' => ['type' => 'route', 'target' => 'media'],
-        'aliases' => ['media-controller'],
+        'aliases' => ['media-controller', 'knowledge-progress'],
         'title' => 'دانش سازمانی',
         'nav_category' => 'دانش سازمانی',
         'cms_hint' => 'برای هر سری ابتدا رسانهٔ اصلی را بسازید، سپس جلسه‌ها را از زبانهٔ «جلسه‌ها» اضافه و با کشیدن مرتب کنید. جلسهٔ آیندهٔ تاریخ‌دار تا زمان انتشار قفل می‌ماند.',

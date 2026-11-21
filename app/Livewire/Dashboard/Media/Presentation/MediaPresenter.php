@@ -83,7 +83,7 @@ class MediaPresenter
             ->orderByDesc('pinned')->latest()->orderByDesc('id')->get();
 
         $reportIds = $library->flatMap(fn (Media $item) => $item->report_ids ?? [])->unique()->values();
-        $reports = $reportIds->isEmpty() ? collect() : Report::forViewer($user)->notExpired()
+        $reports = $reportIds->isEmpty() || tenantOff('reports') ? collect() : Report::forViewer($user)->notExpired()
             ->whereIn('id', $reportIds)->get(['id', 'title', 'file_path'])
             ->mapWithKeys(fn (Report $report) => [$report->id => $this->material($report)]);
 

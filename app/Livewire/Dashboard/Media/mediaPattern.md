@@ -54,6 +54,6 @@ The shared model and Actions were re-read for query waste. The existing batched 
 
 ## Master tests
 
-`tests/Feature/Livewire/Dashboard/MediaTest.php` owns payload, parent audience, expiry, lock URL protection, viewer-owned state and deep-link assertions. Reports tests own the route pills, optional download progress and missing-file non-completion. ReportModelTest retains the Office-file thumbnail fallback. `data/__tests__/media.test.js` owns pure client filtering, pin ordering, selection, moment links, lock refresh, notes and teardown.
+`tests/Feature/Livewire/Dashboard/MediaTest.php` owns payload, parent audience, expiry, lock URL protection, viewer-owned state and deep-link assertions. ReportModelTest retains the Office-file thumbnail fallback. `data/__tests__/media.test.js` owns pure client filtering, pin ordering, selection, moment links, lock refresh, notes and teardown.
 
 Player correctness is not certified by this slice: its transport, persistence, video host, sync queue and duration rules are owned by the admin/player slice and must pass its own master tests and the integration browser check.

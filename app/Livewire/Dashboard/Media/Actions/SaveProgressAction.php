@@ -88,8 +88,7 @@ class SaveProgressAction
             }
         }
 
-        $firstPlay = array_filter($mediaRows, fn (array $row) => !$existing->has('media:'.$row['media_id'])) !== []
-            && Media::query()->newFor($user->id)->exists();
+        $firstPlay = array_filter($mediaRows, fn (array $row) => !$existing->has('media:'.$row['media_id'])) !== [];
 
         DB::transaction(function () use ($mediaRows, $reportRows, $durations, $firstPlay) {
             self::upsert('media_id', $mediaRows);

@@ -272,7 +272,7 @@ class MenuServiceTest extends TestCase
         $this->assertCount(5, $grouped);
         $this->assertSame(['notifications', 'content', 'opportunities', 'tasks', 'compliance'], array_column($grouped, 'id'));
         $total = array_sum(array_map(fn($g) => count($g['items']), $grouped));
-        $this->assertSame(33, $total);
+        $this->assertSame(34, $total);
         $expectedLabels = array_map(fn($g) => BadgeLegendCatalog::groups()[$g['id']]['label'], $grouped);
         $this->assertSame($expectedLabels, array_column($grouped, 'label'));
         foreach ($grouped as $g) {
@@ -292,7 +292,7 @@ class MenuServiceTest extends TestCase
         $this->assertSame(['notifications', 'content', 'compliance', 'tasks'], array_keys($defs));
         $this->assertSame(['list', 'deadline', 'approval', 'projects', 'workflow', 'tickets', 'reminders', 'reminders-badge'], array_keys($defs['tasks']));
         $this->assertSame(['direct', 'channels'], array_keys($defs['notifications']));
-        $this->assertSame(['calendar', 'media'], array_keys($defs['content']));
+        $this->assertSame(['calendar', 'media', 'library'], array_keys($defs['content']));
         $this->assertSame(['tracking', 'reports', 'tasksheet', 'ai-report', 'correspondence', 'launchpad'], array_keys($defs['compliance']));
 
         foreach ($grouped as $group) {

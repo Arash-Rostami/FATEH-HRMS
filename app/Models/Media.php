@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasAudience;
 use App\Models\Concerns\HasDepartment;
+use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasModelCache;
 use App\Models\Concerns\HasPublicAssetUrl;
 use App\Models\Concerns\HasUser;
@@ -31,6 +32,7 @@ class Media extends Model
         HasDepartment,
         HasUser,
         HasModelCache,
+        HasMenuState,
         HasMediaHooks;
 
     public const MAX_SECONDS = 172800;

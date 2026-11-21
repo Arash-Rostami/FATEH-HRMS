@@ -547,7 +547,8 @@ class MediaResourceTest extends TestCase
         $report = Report::factory()->create(['title' => '0-Status Report Title']);
         $mediaRow = KnowledgeProgress::create(['user_id' => $admin->id, 'media_id' => $media->id, 'position' => 10, 'last_position' => 10, 'completed_at' => now(), 'last_seen_at' => now()]);
         $reportRow = KnowledgeProgress::create(['user_id' => $admin->id, 'report_id' => $report->id, 'position' => 0, 'last_position' => 0, 'completed_at' => now(), 'last_seen_at' => now()]);
-        $openMediaRow = KnowledgeProgress::create(['user_id' => $admin->id, 'media_id' => $media->id, 'position' => 5, 'last_position' => 5, 'last_seen_at' => now()]);
+        $openMedia = Media::factory()->create(['title' => '0-Status Open Media']);
+        $openMediaRow = KnowledgeProgress::create(['user_id' => $admin->id, 'media_id' => $openMedia->id, 'position' => 5, 'last_position' => 5, 'last_seen_at' => now()]);
 
         $this->assertSame(__('resources/media/strings.progress.export.received'), KnowledgeProgressTablePresenter::statusLabel($reportRow));
         $this->assertSame(__('resources/media/strings.progress.export.completed_yes'), KnowledgeProgressTablePresenter::statusLabel($mediaRow));
