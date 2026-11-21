@@ -5,7 +5,7 @@
 
     <x-ui.title icon="show_chart" title="گزارشات" :count="$this->totalReports" countLabel="گزارش">
         <x-slot:actions>
-            <x-ui.buttons.view-toggle module="reports" />
+            <x-ui.buttons.view-toggle />
             <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
             <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'card'" x-cloak />
 
@@ -46,13 +46,13 @@
     />
 
     <x-ui.modals.dialog name="reports-legend" title="راهنمای گزارشات">
-        @include('livewire.dashboard.tab.reports.legend')
+        @include('livewire.dashboard.knowledge.reports.legend')
     </x-ui.modals.dialog>
 
     @include('components.dashboard.header.focus-chip')
 
 
-    @include('livewire.dashboard.tab.reports.navigations')
+    @include('livewire.dashboard.knowledge.reports.navigations')
 
     <div x-show="view === 'card'"
          x-transition:enter="transition ease-out duration-300"
@@ -65,7 +65,7 @@
 
         <x-ui.buttons.rail-arrows />
 
-        @include('livewire.dashboard.tab.reports.cards')
+        @include('livewire.dashboard.knowledge.reports.cards')
 
     </div>
 
@@ -121,8 +121,8 @@
             </div>
         </section>
 
-        @include('livewire.dashboard.tab.reports.list')
+        @include('livewire.dashboard.knowledge.reports.list')
     </div>
 
-    @include('livewire.dashboard.tab.reports.modal')
+    @include('livewire.dashboard.knowledge.reports.modal')
 </div>
