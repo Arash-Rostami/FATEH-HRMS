@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Traits\Filament;
 
+use App\Enums\MediaIcon;
 use App\Enums\ResourceTypeIcon;
 use App\Traits\Filament\FilamentIconOptions;
 use Tests\TestCase;
@@ -21,6 +22,16 @@ class FilamentIconOptionsTest extends TestCase
             public function labelFor(string $value): string
             {
                 return self::curatedIconOptionLabel($value);
+            }
+
+            public function optionsFor(string $enum): array
+            {
+                return self::curatedIconOptions($enum);
+            }
+
+            public function labelForEnum(string $value, string $enum): string
+            {
+                return self::curatedIconOptionLabel($value, $enum);
             }
         };
     }
@@ -80,5 +91,20 @@ class FilamentIconOptionsTest extends TestCase
         $this->assertStringContainsString('<svg class="w-4 h-4"', $output);
         $this->assertStringNotContainsString('width="24"', $output);
         $this->assertStringNotContainsString('height="24"', $output);
+    }
+
+    public function test_curated_icon_options_accept_another_enum_and_keep_the_default(): void
+    {
+        $host = $this->host();
+
+        $this->assertSame(
+            array_map(fn (ResourceTypeIcon $icon) => $icon->value, ResourceTypeIcon::cases()),
+            array_keys($host->options())
+        );
+        $this->assertSame(
+            array_map(fn (MediaIcon $icon) => $icon->value, MediaIcon::cases()),
+            array_keys($host->optionsFor(MediaIcon::class))
+        );
+        $this->assertStringContainsString('<span>شنیداری</span>', $host->labelForEnum(MediaIcon::Headphones->value, MediaIcon::class));
     }
 }

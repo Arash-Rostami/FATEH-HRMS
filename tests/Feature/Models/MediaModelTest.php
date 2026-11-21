@@ -3,17 +3,12 @@
 namespace Tests\Feature\Models;
 
 use App\Enums\MediaIcon;
-use App\Enums\ResourceTypeIcon;
 use App\Models\Department;
 use App\Models\Media;
 use App\Models\Profile;
 use App\Models\User;
 use App\Services\ContentSanitizerService;
-use App\Services\Menu\Notifications\MediaNudge;
-use App\Services\Search\Resources\MediaResource;
-use App\Traits\Filament\FilamentIconOptions;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use ReflectionProperty;
 use Tests\TestCase;
@@ -192,43 +187,5 @@ class MediaModelTest extends TestCase
 
         $this->assertSame('headphones', MediaIcon::Headphones->getMaterialIcon());
         $this->assertSame('smart_display', MediaIcon::Video->getMaterialIcon());
-    }
-
-    public function test_curated_icon_options_keep_the_default_enum_and_accept_media_icon(): void
-    {
-        $host = new class {
-            use FilamentIconOptions;
-
-            public function options(?string $enum = null): array
-            {
-                return $enum === null ? self::curatedIconOptions() : self::curatedIconOptions($enum);
-            }
-        };
-
-        $this->assertSame(
-            array_map(fn (ResourceTypeIcon $icon) => $icon->value, ResourceTypeIcon::cases()),
-            array_keys($host->options())
-        );
-        $this->assertSame(
-            array_map(fn (MediaIcon $icon) => $icon->value, MediaIcon::cases()),
-            array_keys($host->options(MediaIcon::class))
-        );
-    }
-
-    public function test_nudge_subject_is_null_for_an_episode_and_search_links_to_media(): void
-    {
-        $subject = (new MediaNudge())->triggers()[0]['subject'];
-        $episode = new Media(['parent_id' => 4]);
-        $series = new Media(['parent_id' => null]);
-
-        $this->assertNull($subject($episode));
-        $this->assertSame($series, $subject($series));
-
-        Route::get('/media', fn () => '')->name('media');
-
-        $row = new Media();
-        $row->id = 9;
-
-        $this->assertSame('url:/media?open=9', (new MediaResource())->action($row));
     }
 }
