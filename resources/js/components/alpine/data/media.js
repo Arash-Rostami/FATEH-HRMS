@@ -9,7 +9,7 @@ import { normalize } from './memberPicker.js';
 
 export default function media() {
     let observer, controller, unlockTimer, trackHost, trackSequence = 0;
-    let clockOffset = 0, hydrated = false, destroyed = false, previousFocus = false;
+    let clockOffset = 0, hydrated = false, destroyed = false, unlockFailures = 0;
     const unlocked = new Set();
     const searchIndex = new Map();
     const itemOrder = new Map();
@@ -48,7 +48,6 @@ export default function media() {
         ranks: {},
         refreshing: false,
         refreshError: '',
-        theatre: false,
 
         init() {
             controller = new AbortController();
@@ -88,6 +87,11 @@ export default function media() {
                 searchIndex.set(item.id, normalize([item.title, item.department, item.unit, ...item.episodes.map(ep => `${ep.title} ${ep.topic}`)].join(' ')));
             }
             this.loadLibrary(payload);
+            if (this.cur?.sid && !this.accessible(this.cur.sid, this.cur.idx)) {
+                if (this.playing) this.toggle();
+                this.cur = { sid: null, idx: 0 };
+                this.playing = false;
+            }
             if (!hydrated) {
                 hydrated = true;
                 const params = new URLSearchParams(location.search);
@@ -95,7 +99,7 @@ export default function media() {
                 const remembered = this._readLastOpenId();
                 const found = this.items.find(item => item.id === requested || item.episodes.some(ep => ep.id === requested));
                 const fallback = this.items.find(item => item.id === remembered) ?? this.items[0];
-                const item = found ?? fallback;
+                const item = found ?? this.items.find(item => item.id === this.cur?.sid) ?? fallback;
                 if (item) {
                     this.choose(item.id, !!found);
                     const idx = found?.episodes.findIndex(ep => ep.id === requested) ?? -1;
@@ -191,31 +195,46 @@ export default function media() {
             return !!episode?.unlock_at && (episode.unlock_at * 1000 > Date.now() + clockOffset || !episode.file_url);
         },
 
+        accessible(sid, index) {
+            const episode = this.items.find(item => item.id === sid)?.episodes[index];
+            return !!episode?.file_url && !this.isLocked(episode);
+        },
+
         scheduleUnlock() {
             clearTimeout(unlockTimer);
+            if (destroyed || this.refreshing) return;
             const now = Date.now() + clockOffset;
             const waiting = this.items.flatMap(item => item.episodes).filter(ep => ep.unlock_at && !ep.file_url && !unlocked.has(ep.unlock_at));
             const due = waiting.filter(ep => ep.unlock_at * 1000 <= now);
             if (due.length) {
-                for (const ep of due) unlocked.add(ep.unlock_at);
-                this.refreshLibrary();
+                this.refreshLibrary(due.map(ep => ep.unlock_at));
                 return;
             }
             const next = Math.min(...waiting.map(ep => ep.unlock_at * 1000));
             if (Number.isFinite(next)) unlockTimer = setTimeout(() => this.scheduleUnlock(), Math.min(2147483647, Math.max(1, next - now)));
         },
 
-        async refreshLibrary() {
+        async refreshLibrary(stamps = []) {
             if (this.refreshing || destroyed) return;
             this.refreshing = true;
             this.refreshError = '';
+            let failed = false;
             try {
                 await this.$wire.$refresh();
-                if (!destroyed) this.readLibrary();
+                if (destroyed) return;
+                for (const stamp of stamps) unlocked.add(stamp);
+                unlockFailures = 0;
             } catch {
+                failed = true;
                 this.refreshError = 'به‌روزرسانی کتابخانه انجام نشد؛ دوباره تلاش کنید.';
             } finally {
                 this.refreshing = false;
+            }
+            if (failed && stamps.length) {
+                unlockTimer = setTimeout(() => this.scheduleUnlock(), Math.min(240000, 30000 * 2 ** unlockFailures++));
+            } else if (!failed) {
+                this.readLibrary();
+                this.scheduleUnlock();
             }
         },
 
@@ -431,20 +450,6 @@ export default function media() {
             return this.cues.filter(cue => !query || normalize(cue.text).includes(query));
         },
 
-        toggleTheatre() {
-            this.theatre = !this.theatre;
-            if (this.$store.focus) {
-                if (this.theatre) previousFocus = this.$store.focus.active;
-                this.$store.focus.active = this.theatre || previousFocus;
-            }
-        },
-
-        closeOverlays() {
-            if (!this.theatre) return false;
-            this.toggleTheatre();
-            return true;
-        },
-
         destroy() {
             destroyed = true;
             observer?.disconnect();
@@ -452,7 +457,6 @@ export default function media() {
             clearTimeout(unlockTimer);
             this.clearTracks();
             this.destroyPlayer();
-            if (this.theatre) this.toggleTheatre();
             if (this.maxOn) this.applyMaximize(false);
         },
     }));
