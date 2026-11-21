@@ -1,23 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../mixins/player.js', () => ({
-    default: () => ({
-        library: { items: [], progress: {}, notes: {} },
-        cur: { sid: null, idx: 0 }, t: 0, playing: false,
-        loadLibrary: vi.fn(), selectItem: vi.fn(), playEpisode: vi.fn(),
-        toggle: vi.fn(), seek: vi.fn(), destroyPlayer: vi.fn(), toast: vi.fn(),
-        faTime: value => String(value),
-        progressOf: () => 0, episodeState: () => 'new', resumeAt: () => 0,
-    }),
-}));
+const mixin = vi.hoisted(() => ({ real: false }));
+
+vi.mock('../../mixins/player.js', async importOriginal => {
+    const actual = await importOriginal();
+    return {
+        default: () => mixin.real ? actual.default() : ({
+            library: { items: [], progress: {}, notes: {} },
+            cur: { sid: null, idx: 0 }, t: 0, playing: false,
+            loadLibrary: vi.fn(), selectItem: vi.fn(), playEpisode: vi.fn(),
+            toggle: vi.fn(), seek: vi.fn(), destroyPlayer: vi.fn(), toast: vi.fn(),
+            faTime: value => String(value),
+            progressOf: () => 0, episodeState: () => 'new', resumeAt: () => 0,
+        }),
+    };
+});
 
 import media from '../media.js';
 
 const episode = (id, values = {}) => ({ id, title: 'جلسه', topic: '', duration: 300, file_url: '/storage/example.mp3', unlock_at: null, ...values });
 const item = (id, values = {}) => ({ id, title: `رسانه ${id}`, kind: 'audio', type: 'single', department: 'فناوری', episodes: [episode(id)], materials: [], total_duration: 300, ...values });
 
-function component(items) {
-    const root = media();
+function component(items, factory = media) {
+    const root = factory();
     root.$el = document.createElement('div');
     root.$el.dataset.library = JSON.stringify({ serverNow: Date.now() / 1000, items, notes: {}, progress: {} });
     root.$store = { pinned: { isPinned: () => false } };
@@ -214,5 +219,159 @@ describe('media library', () => {
         root.noteBody = 'الف'.repeat(501);
         await root.addNote();
         expect(root.noteRequest).not.toHaveBeenCalled();
+    });
+
+    it('marks an unlock handled only after a successful refresh and backs off failed ones', async () => {
+        const unlock = Math.floor(Date.now() / 1000) + 10;
+        const root = component([item(1, { episodes: [episode(1, { file_url: null, unlock_at: unlock })] })]);
+        root.$wire.$refresh.mockRejectedValueOnce(new Error('offline')).mockRejectedValueOnce(new Error('offline'));
+        await vi.advanceTimersByTimeAsync(10001);
+        expect(root.$wire.$refresh).toHaveBeenCalledTimes(1);
+        await vi.advanceTimersByTimeAsync(28000);
+        expect(root.$wire.$refresh).toHaveBeenCalledTimes(1);
+        await vi.advanceTimersByTimeAsync(3000);
+        expect(root.$wire.$refresh).toHaveBeenCalledTimes(2);
+        await vi.advanceTimersByTimeAsync(57000);
+        expect(root.$wire.$refresh).toHaveBeenCalledTimes(2);
+        await vi.advanceTimersByTimeAsync(3000);
+        expect(root.$wire.$refresh).toHaveBeenCalledTimes(3);
+        await vi.advanceTimersByTimeAsync(600000);
+        expect(root.$wire.$refresh).toHaveBeenCalledTimes(3);
+    });
+
+    it('stops retrying failed unlocks after teardown', async () => {
+        const unlock = Math.floor(Date.now() / 1000) + 10;
+        const root = component([item(1, { episodes: [episode(1, { file_url: null, unlock_at: unlock })] })]);
+        root.$wire.$refresh.mockRejectedValue(new Error('offline'));
+        await vi.advanceTimersByTimeAsync(10001);
+        root.destroy();
+        await vi.advanceTimersByTimeAsync(600000);
+        expect(root.$wire.$refresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('maximizes through the shared mixin without touching the focus store', () => {
+        const root = component([item(1)]);
+        let writes = 0;
+        root.$store.focus = new Proxy({ active: false }, { set(target, key, value) { writes++; target[key] = value; return true; } });
+        root.toggleMaximize();
+        expect(root.max).toBe(true);
+        root.toggleMaximize();
+        root.destroy();
+        expect(writes).toBe(0);
+        expect(root.toggleTheatre).toBeUndefined();
+    });
+});
+
+describe('media composed with the real player mixin', () => {
+    let build, playing;
+
+    beforeEach(async () => {
+        mixin.real = true;
+        vi.resetModules();
+        ({ default: build } = await import('../media.js'));
+        playing = false;
+        localStorage.clear();
+        history.replaceState({}, '', '/media');
+        document.head.innerHTML = '<meta name="csrf-token" content="token-1">';
+        vi.spyOn(HTMLMediaElement.prototype, 'paused', 'get').mockImplementation(() => !playing);
+        vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue('maybe');
+        vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {});
+        vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(() => { playing = true; return Promise.resolve(); });
+        vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => { playing = false; });
+    });
+    afterEach(() => {
+        mixin.real = false;
+        vi.restoreAllMocks();
+        document.head.innerHTML = '';
+    });
+
+    const start = async items => {
+        const old = component(items, build);
+        old.playEpisode(1, 0);
+        await Promise.resolve();
+        old.destroy();
+        return old;
+    };
+
+    it('keeps the mixin getters live after composition', () => {
+        const root = component([item(1)], build);
+        expect(typeof Object.getOwnPropertyDescriptor(root, 'progressRatio').get).toBe('function');
+        root.t = 30;
+        root.duration = 60;
+        expect(root.progressRatio).toBe(0.5);
+    });
+
+    it('reads the csrf token at send time, not at composition time', () => {
+        const root = component([item(1)], build);
+        const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+        vi.stubGlobal('fetch', fetchMock);
+        document.head.innerHTML = '<meta name="csrf-token" content="token-2">';
+        root._sendProgress('/media/progress', { items: [{ id: 1, position: 10, last_position: 10 }] }, false);
+        expect(JSON.parse(fetchMock.mock.calls[0][1].body)._token).toBe('token-2');
+        vi.unstubAllGlobals();
+    });
+
+    it('updates the ring, the done count and the continue filter from the patched library progress', () => {
+        const root = component([item(1)], build);
+        expect(root.progressOf(1)).toBe(0);
+        root._markProgress(1, 150, 150, false);
+        expect(root.progressOf(1)).toBe(0.5);
+        expect(root.episodeProgress(1, 0)).toBe(0.5);
+        root.filter = 'continue';
+        expect(root.visibleItems.map(row => row.id)).toEqual([1]);
+        root._markProgress(1, 300, 300, true);
+        expect(root.doneCount()).toBe(1);
+        expect(root.episodeState(1, 0)).toBe('done');
+        expect(root.visibleItems).toEqual([]);
+    });
+
+    it('re-adopts audio that is still playing when a new component mounts', async () => {
+        await start([item(1)]);
+        const fresh = component([item(1)], build);
+        expect(fresh.cur).toEqual({ sid: 1, idx: 0 });
+        expect(fresh.playing).toBe(true);
+        expect(fresh.selectedId).toBe(1);
+        fresh.toggle();
+        expect(playing).toBe(false);
+    });
+
+    it('stops a playing episode that a library refresh makes inaccessible', async () => {
+        await start([item(1)]);
+        const fresh = component([item(1)], build);
+        expect(fresh.playing).toBe(true);
+        fresh.$el.dataset.library = JSON.stringify({ serverNow: Date.now() / 1000, items: [item(2)], notes: {}, progress: {} });
+        fresh.readLibrary();
+        expect(fresh.cur.sid).toBeNull();
+        expect(playing).toBe(false);
+    });
+
+    it('does not restore a locked episode', async () => {
+        await start([item(1)]);
+        const locked = item(1, { episodes: [episode(1, { file_url: null, unlock_at: Math.floor(Date.now() / 1000) + 3600 })] });
+        const fresh = component([locked], build);
+        expect(fresh.cur.sid).toBeNull();
+        expect(fresh.playing).toBe(false);
+        expect(playing).toBe(false);
+    });
+
+    it('does not restore an episode that is no longer visible', async () => {
+        await start([item(1)]);
+        const fresh = component([item(2)], build);
+        expect(fresh.cur.sid).toBeNull();
+        expect(fresh.playing).toBe(false);
+        expect(playing).toBe(false);
+    });
+
+    it('follows the current episode, not the series kind, for the stage and the element', () => {
+        const series = item(1, { type: 'series', kind: 'video', episodes: [episode(11, { mime: 'video/mp4' }), episode(12, { mime: 'audio/mpeg' })] });
+        const root = component([series], build);
+        root.cur = { sid: 1, idx: 0 };
+        expect(root.isVideo).toBe(true);
+        root.cur = { sid: 1, idx: 1 };
+        expect(root.isVideo).toBe(false);
+        series.kind = 'audio';
+        root.library = { ...root.library, items: [series] };
+        root.cur = { sid: 1, idx: 0 };
+        expect(root.isVideo).toBe(true);
     });
 });

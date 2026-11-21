@@ -100,6 +100,7 @@ class MediaTest extends TestCase
         Livewire::withoutLazyLoading();
         Livewire::test(Main::class);
         $this->assertSame([$viewer->id], $item->fresh()->seen_by);
+        Livewire::withoutLazyLoading();
         Livewire::test(Main::class);
         $this->assertSame([$viewer->id], $item->fresh()->seen_by);
     }
