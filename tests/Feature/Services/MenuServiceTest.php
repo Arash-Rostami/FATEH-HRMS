@@ -918,7 +918,10 @@ class MenuServiceTest extends TestCase
         $this->assertFalse($unseen->contains($expired->id));
         $this->assertFalse($unseen->contains($inactive->id));
 
+        $stamp = DB::table('media')->where('id', $series->id)->value('updated_at');
+
         $this->assertGreaterThan(0, MarkMediaSeenAction::execute($viewer));
+        $this->assertSame($stamp, DB::table('media')->where('id', $series->id)->value('updated_at'));
         $this->assertFalse(Media::unseenBy($viewer->id)->whereKey($series->id)->exists());
         $this->assertSame([$viewer->id], array_values(array_map('intval', $series->fresh()->seen_by ?? [])));
         $this->assertNull($episode->fresh()->seen_by);
