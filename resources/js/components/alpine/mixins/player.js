@@ -48,6 +48,8 @@ const emitStateCoalesced = (ui) => {
     });
 };
 
+const rev = (i) => i.id + ':' + i.position + ':' + i.last_position + ':' + (i.completed ? 1 : 0);
+
 const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
 function ensureElement(ui, kind) {
@@ -84,7 +86,7 @@ function bindElement(ui) {
     });
 
     el.addEventListener('pause', () => {
-        if (!shared.ui || shared.selfPause) return;
+        if (!shared.ui || !el.paused) return;
         shared.ui.playing = false;
         stopSafetyInterval();
         shared.ui.flush('pause');
@@ -203,6 +205,8 @@ export default function playerMixin() {
         sync: { local_seconds: 5, safety_seconds: 90, min_delta: 10, prebuffer_remaining_seconds: 120 },
         _lastPersist: 0,
         _lastFlush: 0,
+        _loadedAt: 0,
+        _host: null,
         _synced: {},
 
         get timeLabel() {
@@ -224,6 +228,7 @@ export default function playerMixin() {
         loadLibrary(payload) {
             this.library = payload ?? { items: [], progress: {}, notes: {} };
             this.ready = true;
+            this._loadedAt = Date.now();
             if (shared.ui && shared.ui !== this) this.adoptPlayback();
             this._drainPending();
         },
@@ -277,12 +282,12 @@ export default function playerMixin() {
         resumeAt(sid, idx) {
             const ep = this.episode(sid, idx);
             if (!ep) return 0;
-            const local = this._loadState(PROGRESS_KEY, {})[ep.id]?.position ?? 0;
+            const local = this._loadState(PROGRESS_KEY, {})[ep.id];
             const server = this.library.progress?.[ep.id];
-            const serverPos = server?.position ?? 0;
-            const furthest = Math.max(local, serverPos);
-            if (furthest < 5) return 0;
-            return Math.max(server?.last_position ?? 0, local);
+            if (Math.max(local?.position ?? 0, server?.position ?? 0) < 5) return 0;
+            const localStop = local?.last_position ?? local?.position ?? 0;
+            const stop = local && local.updatedAt > this._loadedAt ? localStop : (server?.last_position ?? localStop);
+            return ep.duration > 0 ? Math.min(stop, ep.duration) : stop;
         },
 
         selectItem(id) {
@@ -298,7 +303,7 @@ export default function playerMixin() {
                 this.toggle();
                 return;
             }
-            if (live() || this.playing) this.flush('switch');
+            if (shared.ui?.cur.sid) shared.ui.flush('switch');
             shared.selfPause = true;
             window.dispatchEvent(new CustomEvent(EVENT_PAUSE_REQ));
             shared.selfPause = false;
@@ -437,10 +442,10 @@ export default function playerMixin() {
                 completed,
                 duration: Math.floor(this.duration) || null,
             };
-            this._storeLocal(ep.id, position);
+            this._storeLocal(ep.id, position, lastPosition);
             this._markProgress(ep.id, position, lastPosition, completed);
             this._lastFlush = this.t;
-            this._sendProgress(this.progressUrl, { items: [entry] });
+            this._sendProgress(this.progressUrl, { items: [entry] }, reason === 'pagehide' || reason === 'freeze');
         },
 
         destroyPlayer() {
@@ -454,6 +459,8 @@ export default function playerMixin() {
             if (shared.kind === 'video' && shared.element?.parentNode) {
                 shared.element.parentNode.removeChild(shared.element);
             }
+            if (this._host && shared.host === this._host) shared.host = null;
+            this._host = null;
             if (shared.ui === this && shared.kind === 'video') {
                 shared.ui = null;
                 if (shared.element) shared.element.pause();
@@ -464,7 +471,8 @@ export default function playerMixin() {
             const attach = (node) => {
                 if (!node) return;
                 shared.host = node;
-                if (shared.kind === 'video' && shared.element && !shared.element.parentNode) {
+                this._host = node;
+                if (shared.kind === 'video' && shared.element && shared.element.parentNode !== node) {
                     node.appendChild(shared.element);
                 }
             };
@@ -536,11 +544,10 @@ export default function playerMixin() {
             return Math.max(server, local);
         },
 
-        _storeLocal(id, position) {
+        _storeLocal(id, position, lastPosition = position) {
             const stored = this._loadState(PROGRESS_KEY, {});
-            const prev = stored[id];
-            if (prev && prev.position >= position && (Date.now() - prev.updatedAt) < 86400000) return;
-            this._saveState(PROGRESS_KEY, { ...stored, [id]: { position, updatedAt: Date.now() } });
+            const furthest = Math.max(stored[id]?.position ?? 0, position);
+            this._saveState(PROGRESS_KEY, { ...stored, [id]: { position: furthest, last_position: lastPosition, updatedAt: Date.now() } });
         },
 
         _markProgress(id, position, lastPosition, completed) {
@@ -616,45 +623,50 @@ export default function playerMixin() {
             this._saveState(PENDING_KEY, merged.slice(-PENDING_CAP));
         },
 
-        _drainPending() {
-            const pending = this._coalescePending(this._loadState(PENDING_KEY, []));
-            if (!pending.length || !this.progressUrl) return;
-            const remaining = [...pending];
-            while (remaining.length) {
-                const chunk = remaining.splice(0, CHUNK_SIZE);
-                const ok = this._sendProgress(this.progressUrl, { items: chunk }, { keepalive: false, drain: true });
-                if (!ok) {
-                    this._saveState(PENDING_KEY, remaining);
-                    return;
-                }
-            }
-            this._saveState(PENDING_KEY, []);
+        _dequeue(items) {
+            const sent = new Set(items.map(rev));
+            this._saveState(PENDING_KEY, this._loadState(PENDING_KEY, []).filter((i) => !sent.has(rev(i))));
         },
 
-        _sendProgress(url, body, { keepalive = false, drain = false } = {}) {
-            if (!url) return false;
-            const payload = { ...body, _token: csrfToken() };
-            if (navigator.sendBeacon && !keepalive && !drain) {
-                try {
-                    navigator.sendBeacon(url, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-                    this._ack(body.items);
-                    return true;
-                } catch {
-                }
+        async _drainPending() {
+            if (!this.progressUrl) return;
+            const pending = this._coalescePending(this._loadState(PENDING_KEY, []));
+            for (let i = 0; i < pending.length; i += CHUNK_SIZE) {
+                const chunk = pending.slice(i, i + CHUNK_SIZE);
+                if (await this._post(this.progressUrl, chunk) === 'retry') return;
+                this._dequeue(chunk);
             }
-            fetch(url, {
+        },
+
+        _post(url, items) {
+            return fetch(url, {
                 method: 'POST',
                 keepalive: true,
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(payload),
-            }).then((r) => {
-                if (r.ok) {
-                    this._ack(body.items);
-                } else if (r.status === 401 || r.status === 419 || r.status === 422) {
-                    this._queuePending(body.items ?? []);
+                body: JSON.stringify({ items, _token: csrfToken() }),
+            }).then((r) => (r.ok ? 'ok' : (r.status === 422 ? 'drop' : 'retry'))).catch(() => 'retry');
+        },
+
+        _sendProgress(url, body, beacon = false) {
+            if (!url) return false;
+            const items = body.items ?? [];
+            if (beacon && navigator.sendBeacon) {
+                try {
+                    const blob = new Blob([JSON.stringify({ ...body, _token: csrfToken() })], { type: 'application/json' });
+                    if (navigator.sendBeacon(url, blob)) {
+                        this._queuePending(items);
+                        return true;
+                    }
+                } catch {
                 }
-            }).catch(() => {
-                this._queuePending(body.items ?? []);
+            }
+            this._post(url, items).then((res) => {
+                if (res === 'retry') {
+                    this._queuePending(items);
+                    return;
+                }
+                if (res === 'ok') this._ack(items);
+                this._dequeue(items);
             });
             return true;
         },

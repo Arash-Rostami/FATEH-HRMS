@@ -1,4 +1,5 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import radio from '../radio.js'
 
 class FakeAudio {
     constructor() {
@@ -18,6 +19,7 @@ class FakeAudio {
         this.setAttribute = () => {}
         this.removeAttribute = () => {}
         this.appendChild = () => {}
+        this.parentNode = null
     }
 
     addEventListener(type, fn) {
@@ -72,6 +74,34 @@ const library = () => ({
 
 const dispatchSpy = vi.fn()
 const realDispatch = window.dispatchEvent.bind(window)
+const realCreateElement = document.createElement.bind(document)
+const realQuerySelector = document.querySelector.bind(document)
+const realAudio = global.Audio
+const settle = async () => {
+    for (let i = 0; i < 8; i++) await Promise.resolve()
+}
+const okFetch = () => vi.fn().mockResolvedValue({ ok: true, status: 204 })
+const videoFactory = () => {
+    document.createElement = (tag) => {
+        const el = new FakeAudio()
+        el.tagName = tag.toUpperCase()
+        return el
+    }
+}
+const makeHost = () => {
+    const host = {
+        children: [],
+        appendChild(node) {
+            node.parentNode = host
+            host.children.push(node)
+        },
+        removeChild(node) {
+            host.children = host.children.filter((n) => n !== node)
+            node.parentNode = null
+        },
+    }
+    return host
+}
 
 let playerMixin
 
@@ -81,6 +111,8 @@ beforeEach(async () => {
     FakeAudio.instances = []
     global.Audio = FakeAudio
     global.BroadcastChannel = undefined
+    global.fetch = okFetch()
+    navigator.sendBeacon = vi.fn(() => true)
     window.dispatchEvent = dispatchSpy
     dispatchSpy.mockImplementation(realDispatch)
     dispatchSpy.mockClear()
@@ -92,6 +124,12 @@ beforeEach(async () => {
 afterEach(() => {
     vi.useRealTimers()
     window.dispatchEvent = realDispatch
+    document.createElement = realCreateElement
+    document.querySelector = realQuerySelector
+    global.Audio = realAudio
+    delete global.fetch
+    delete navigator.sendBeacon
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => false })
 })
 
 const makePlayer = () => {
@@ -104,13 +142,15 @@ const makePlayer = () => {
 const sharedElement = () => FakeAudio.instances[FakeAudio.instances.length - 1]
 
 describe('playerMixin — library, item and episode lookup', () => {
-    test('loadLibrary stores the payload, flags ready and drains the pending queue', () => {
+    test('loadLibrary stores the payload, flags ready and drains the pending queue', async () => {
         const p = playerMixin()
         p.progressUrl = '/media/progress'
         p._queuePending([{ type: 'media', id: 99, position: 10, last_position: 10, completed: false, duration: null }])
         p.loadLibrary(library())
         expect(p.ready).toBe(true)
-        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
+        await vi.waitFor(() => {
+            expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
+        })
     })
 
     test('item()/episode() resolve by id and by cur defaults', () => {
@@ -161,8 +201,24 @@ describe('playerMixin — episodeState / progressOf / resumeAt', () => {
 
     test('resumeAt takes the higher local position when server last_position is lower', () => {
         const p = makePlayer()
+        vi.advanceTimersByTime(10)
         p._saveState('media_progress', { '11': { position: 900, updatedAt: Date.now() } })
         expect(p.resumeAt(1, 0)).toBe(900)
+    })
+
+    test('resumeAt resumes from a newer lower local stop while the furthest stays', () => {
+        const p = makePlayer()
+        vi.advanceTimersByTime(10)
+        p._saveState('media_progress', { '11': { position: 900, last_position: 120, updatedAt: Date.now() } })
+        expect(p.resumeAt(1, 0)).toBe(120)
+        expect(p.library.progress['11'].position).toBe(400)
+    })
+
+    test('resumeAt clamps the stop to the episode duration', () => {
+        const p = makePlayer()
+        vi.advanceTimersByTime(10)
+        p._saveState('media_progress', { '11': { position: 900, last_position: 5000, updatedAt: Date.now() } })
+        expect(p.resumeAt(1, 0)).toBe(1000)
     })
 })
 
@@ -208,30 +264,99 @@ describe('playerMixin — playEpisode', () => {
 
     test('video kind creates a video element through document.createElement', () => {
         const p = makePlayer()
-        const created = []
-        document.createElement = (tag) => {
-            const el = new FakeAudio()
-            el.tagName = tag.toUpperCase()
-            created.push(el)
-            return el
-        }
+        videoFactory()
         p.playEpisode(2, 0)
-        expect(created.at(-1)?.tagName).toBe('VIDEO')
+        expect(sharedElement().tagName).toBe('VIDEO')
     })
 
     test('mountVideo appends the shared video element to the host', () => {
         const p = makePlayer()
-        const created = []
-        document.createElement = (tag) => {
-            const el = new FakeAudio()
-            el.tagName = tag.toUpperCase()
-            created.push(el)
-            return el
-        }
+        videoFactory()
         p.playEpisode(2, 0)
-        const host = { children: [], appendChild(node) { this.children.push(node) } }
+        const host = makeHost()
         p.mountVideo(host)
-        expect(host.children).toContain(created.at(-1))
+        expect(host.children).toContain(sharedElement())
+    })
+
+    test('a video still parented to a removed host moves into the new host and the old host is unregistered', () => {
+        const p = makePlayer()
+        videoFactory()
+        p.playEpisode(2, 0)
+        const oldHost = makeHost()
+        p.mountVideo(oldHost)
+        const next = playerMixin()
+        next.progressUrl = '/media/progress'
+        next.loadLibrary(library())
+        const newHost = makeHost()
+        next.mountVideo(newHost)
+        expect(newHost.children).toContain(sharedElement())
+        expect(sharedElement().parentNode).toBe(newHost)
+        next.destroyPlayer()
+        expect(next._host).toBeNull()
+    })
+
+    test('switching from audio to video re-binds a new video element and flushes the audio', async () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        const audio = sharedElement()
+        audio._trigger('playing')
+        p.t = 120
+        videoFactory()
+        p.playEpisode(2, 0)
+        const video = sharedElement()
+        expect(video).not.toBe(audio)
+        expect(video.tagName).toBe('VIDEO')
+        expect(audio.paused).toBe(true)
+        video._trigger('playing')
+        expect(p.playing).toBe(true)
+        await settle()
+        expect(p._synced['11']).toEqual({ position: 400, last_position: 120 })
+    })
+})
+
+describe('playerMixin — seekFromEvent', () => {
+    const track = (direction) => {
+        const el = realCreateElement('div')
+        el.getBoundingClientRect = () => ({ left: 100, width: 200 })
+        el.style.direction = direction
+        document.body.appendChild(el)
+        return el
+    }
+
+    test('LTR click maps the x offset to the time ratio', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 1)
+        p.duration = 1000
+        const el = track('ltr')
+        p.seekFromEvent({ clientX: 150 }, el)
+        expect(p.t).toBe(250)
+        el.remove()
+    })
+
+    test('RTL click mirrors the ratio', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 1)
+        p.duration = 1000
+        const el = track('rtl')
+        p.seekFromEvent({ clientX: 150 }, el)
+        expect(p.t).toBe(750)
+        el.remove()
+    })
+
+    test('dragging follows pointermove until pointerup and then stops seeking', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 1)
+        p.duration = 1000
+        const el = track('ltr')
+        p.seekFromEvent({ clientX: 100 }, el)
+        expect(p.seeking).toBe(true)
+        window.dispatchEvent(Object.assign(new Event('pointermove'), { clientX: 300 }))
+        expect(p.t).toBe(1000)
+        window.dispatchEvent(new Event('pointerup'))
+        expect(p.seeking).toBe(false)
+        window.dispatchEvent(Object.assign(new Event('pointermove'), { clientX: 100 }))
+        expect(p.t).toBe(1000)
+        el.remove()
     })
 })
 
@@ -335,61 +460,99 @@ describe('playerMixin — local-first progress and flush', () => {
         expect(stored['11'].updatedAt).toBeGreaterThan(0)
     })
 
-    test('flush sends a beacon with token and acks via _synced (no pending write)', () => {
+    test('a pause flush goes through fetch and acks via _synced only after the response', async () => {
         const p = makePlayer()
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
         p.t = 300
         p.flush('pause')
-        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toBeNull()
+        expect(navigator.sendBeacon).not.toHaveBeenCalled()
+        expect(p._synced['11']).toBeUndefined()
+        await settle()
         expect(p._synced['11']).toEqual({ position: 400, last_position: 300 })
+        expect(JSON.parse(localStorage.getItem('media_progress_pending') ?? '[]')).toHaveLength(0)
     })
 
-    test('a second pause flush with no change is a no-op (deduped against server-ack)', () => {
+    test('a second pause flush with no change is a no-op (deduped against server-ack)', async () => {
         const p = makePlayer()
-        const send = vi.spyOn(navigator, 'sendBeacon').mockReturnValue(true)
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
         p.t = 300
         p.flush('pause')
-        send.mockClear()
+        await settle()
+        global.fetch.mockClear()
         p.flush('pause')
-        expect(send).not.toHaveBeenCalled()
-        send.mockRestore()
+        expect(global.fetch).not.toHaveBeenCalled()
     })
 
-    test('safety flush respects min_delta against the acked position', () => {
+    test('safety flush respects min_delta against the acked position', async () => {
         const p = makePlayer()
-        const send = vi.spyOn(navigator, 'sendBeacon').mockReturnValue(true)
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
         p.t = 300
         p.flush('pause')
-        send.mockClear()
+        await settle()
+        global.fetch.mockClear()
         p.t = 305
         p.flush('safety')
-        expect(send).not.toHaveBeenCalled()
+        expect(global.fetch).not.toHaveBeenCalled()
         p.t = 330
         p.flush('safety')
-        expect(send).toHaveBeenCalled()
-        send.mockRestore()
+        expect(global.fetch).toHaveBeenCalled()
     })
 
-    test('flush clamps position to duration + tolerance and marks completed at 95%', () => {
+    test('flush clamps position to duration + tolerance and marks completed at 95%', async () => {
         const p = makePlayer()
         p.playEpisode(1, 1)
         sharedElement()._trigger('playing')
         p.duration = 1000
         p.t = 999
         p.flush('pause')
-        expect(p._synced['12'].position).toBeLessThanOrEqual(1005)
+        await settle()
         expect(p._synced['12'].position).toBe(999)
         p.library.progress['12'].position = 0
         p.library.progress['12'].completed = false
         p.t = 2000
         p.duration = 1000
         p.flush('pagehide')
-        expect(p._synced['12'].position).toBeLessThanOrEqual(1005)
+        const queued = JSON.parse(localStorage.getItem('media_progress_pending'))
+        expect(queued.find((i) => i.id === 12).position).toBeLessThanOrEqual(1005)
+    })
+
+    test('ended flushes completion so library.progress and the server update without a pause event', async () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        const el = sharedElement()
+        el._trigger('playing')
+        el.duration = 1000
+        el.currentTime = 1000
+        el._trigger('ended')
+        expect(p.library.progress['11'].completed).toBe(true)
+        expect(p.library.progress['11'].position).toBe(1000)
+        await settle()
+        expect(JSON.parse(global.fetch.mock.calls[0][1].body).items[0]).toMatchObject({ id: 11, completed: true })
+    })
+
+    test('adoption keeps playing across kinds: a new component takes over a playing video', () => {
+        const p = makePlayer()
+        videoFactory()
+        p.playEpisode(2, 0)
+        sharedElement()._trigger('playing')
+        const next = playerMixin()
+        next.progressUrl = '/media/progress'
+        next.loadLibrary(library())
+        expect(next.cur).toEqual({ sid: 2, idx: 0 })
+        expect(next.playing).toBe(true)
+    })
+
+    test('a newer LOWER stop is stored while the furthest stays monotonic', () => {
+        const p = makePlayer()
+        p._storeLocal(11, 500, 500)
+        vi.advanceTimersByTime(10)
+        p._storeLocal(11, 100, 100)
+        const stored = JSON.parse(localStorage.getItem('media_progress'))['11']
+        expect(stored.position).toBe(500)
+        expect(stored.last_position).toBe(100)
     })
 
     test('completed is flagged at >= 95% of the episode duration', () => {
@@ -432,33 +595,103 @@ describe('playerMixin — local-first progress and flush', () => {
 describe('playerMixin — pending queue, CSRF and HTTP statuses', () => {
     test('_csrf is read from meta[name=csrf-token] at send time', () => {
         const p = makePlayer()
-        const send = vi.spyOn(navigator, 'sendBeacon').mockImplementation((url, blob) => {
-            blob.text().then((text) => {
-                expect(JSON.parse(text)._token).toBe('tok')
-            })
-            return true
-        })
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
         p.t = 30
         p.flush('pause')
-        expect(send).toHaveBeenCalled()
-        send.mockRestore()
+        expect(JSON.parse(global.fetch.mock.calls[0][1].body)._token).toBe('tok')
     })
 
-    test('a 419/401/422 response queues the items back into the pending queue', async () => {
+    test('pagehide uses the beacon and keeps the entry pending until an acknowledged fetch drains it', async () => {
         const p = makePlayer()
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
         p.t = 30
+        p.flush('pagehide')
+        expect(navigator.sendBeacon).toHaveBeenCalled()
+        expect(p._synced['11']).toBeUndefined()
+        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(1)
+        p.loadLibrary(library())
+        await vi.waitFor(() => {
+            expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
+        })
+    })
+
+    test('a beacon returning false is treated as failure and falls back to fetch', async () => {
+        const p = makePlayer()
+        navigator.sendBeacon = vi.fn(() => false)
+        p.playEpisode(1, 0)
+        sharedElement()._trigger('playing')
+        p.t = 30
+        p.flush('pagehide')
+        expect(global.fetch).toHaveBeenCalled()
+        await settle()
+        expect(p._synced['11']).toBeDefined()
+    })
+
+    test('a beacon false-return with a failing fetch queues the entry', async () => {
+        const p = makePlayer()
+        navigator.sendBeacon = vi.fn(() => false)
+        global.fetch = vi.fn().mockRejectedValue(new Error('offline'))
+        p.playEpisode(1, 0)
+        sharedElement()._trigger('playing')
+        p.t = 30
+        p.flush('pagehide')
+        await settle()
+        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(1)
+        expect(p._synced['11']).toBeUndefined()
+    })
+
+    test('a 419/401 response queues the items back into the pending queue', async () => {
+        const p = makePlayer()
         global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 419 })
-        p._sendProgress('/media/progress', { items: [{ id: 11, position: 30 }] }, { keepalive: true })
+        p._sendProgress('/media/progress', { items: [{ id: 11, position: 30, last_position: 30 }] })
         await vi.waitFor(() => {
             expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(1)
         })
     })
 
-    test('pending queue coalesces by episode id and drains in 50-item chunks', () => {
+    test('a 422 poison item is dropped from the queue instead of requeued forever', async () => {
+        const p = makePlayer()
+        const poison = { type: 'media', id: 77, position: 1, last_position: 1, completed: false, duration: null }
+        p._saveState('media_progress_pending', [poison])
+        global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 422 })
+        p.loadLibrary(library())
+        await vi.waitFor(() => {
+            expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
+        })
+        expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+
+    test('drain removes only acknowledged revisions and keeps entries added meanwhile', async () => {
+        const p = makePlayer()
+        const a = { type: 'media', id: 1, position: 10, last_position: 10, completed: false, duration: null }
+        const late = { type: 'media', id: 2, position: 20, last_position: 20, completed: false, duration: null }
+        p._saveState('media_progress_pending', [a])
+        let release
+        global.fetch = vi.fn().mockImplementation(() => new Promise((resolve) => { release = () => resolve({ ok: true, status: 204 }) }))
+        p.loadLibrary(library())
+        p._queuePending([late])
+        release()
+        await settle()
+        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toEqual([late])
+    })
+
+    test('a newer revision of the same episode queued during the drain survives the ack of the old one', async () => {
+        const p = makePlayer()
+        const old = { type: 'media', id: 1, position: 10, last_position: 10, completed: false, duration: null }
+        const fresh = { ...old, position: 50, last_position: 50 }
+        p._saveState('media_progress_pending', [old])
+        let release
+        global.fetch = vi.fn().mockImplementation(() => new Promise((resolve) => { release = () => resolve({ ok: true, status: 204 }) }))
+        p.loadLibrary(library())
+        p._queuePending([fresh])
+        release()
+        await settle()
+        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toEqual([fresh])
+    })
+
+    test('pending queue coalesces by episode id and drains in 50-item chunks', async () => {
         const p = makePlayer()
         const chunks = []
         global.fetch = vi.fn().mockImplementation((url, opts) => {
@@ -472,8 +705,10 @@ describe('playerMixin — pending queue, CSRF and HTTP statuses', () => {
         p._saveState('media_progress_pending', items)
         p.progressUrl = '/media/progress'
         p.loadLibrary(library())
+        await vi.waitFor(() => {
+            expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
+        })
         expect(chunks).toEqual([50, 50, 20])
-        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
     })
 
     test('a failed drain puts every chunk back into the queue for the next load', async () => {
@@ -518,20 +753,55 @@ describe('playerMixin — audio-pause-request coordination and radio/ambient exc
         expect(sharedElement().paused).toBe(true)
     })
 
-    test('radio pauses when media:state arrives with playing true (radio.js listener contract)', () => {
-        const listenerRef = window.addEventListener.bind(window)
-        let radioListener = null
-        window.addEventListener = (type, fn) => {
-            if (type === 'media:state') radioListener = fn
-            listenerRef(type, fn)
-        }
-        const fakeRadio = { playing: true, audio: new FakeAudio() }
-        fakeRadio.audio.paused = false
-        window.addEventListener('media:state', (e) => {
-            if (e.detail?.playing === true && fakeRadio.playing) fakeRadio.audio.pause()
-        })
+    test('the real radio.js media:state listener pauses a playing radio and is removed on destroy', () => {
+        const r = radio('r')
+        r.$watch = vi.fn()
+        r.init()
+        const audio = new FakeAudio()
+        r.playing = true
+        r.audio = audio
         window.dispatchEvent(new CustomEvent('media:state', { detail: { playing: true } }))
-        expect(fakeRadio.audio.paused).toBe(true)
+        expect(audio.paused).toBe(true)
+        audio.paused = false
+        r.destroy()
+        window.dispatchEvent(new CustomEvent('media:state', { detail: { playing: true } }))
+        expect(audio.paused).toBe(false)
+    })
+
+    test('a stale native pause event from the previous episode does not stop or flush the new one', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        const el = sharedElement()
+        el._trigger('playing')
+        p.t = 200
+        p.playEpisode(1, 1)
+        el._trigger('playing')
+        global.fetch.mockClear()
+        el._trigger('pause')
+        expect(p.playing).toBe(true)
+        expect(p.cur).toEqual({ sid: 1, idx: 1 })
+        expect(global.fetch).not.toHaveBeenCalled()
+    })
+
+    test('a real pause event while the element is paused stops and flushes', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        const el = sharedElement()
+        el._trigger('playing')
+        p.t = 200
+        el.pause()
+        el._trigger('pause')
+        expect(p.playing).toBe(false)
+        expect(global.fetch).toHaveBeenCalled()
+    })
+
+    test('switching saves the outgoing episode before the new one starts', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        sharedElement()._trigger('playing')
+        p.t = 220
+        p.playEpisode(1, 1)
+        expect(JSON.parse(global.fetch.mock.calls[0][1].body).items[0]).toMatchObject({ id: 11, last_position: 220 })
     })
 
     test('media:state carries playing/sid/idx/t/duration; audio-play-state is never emitted', () => {
@@ -624,15 +894,12 @@ describe('playerMixin — destroyPlayer and key handling', () => {
 describe('playerMixin — sync triggers', () => {
     test('visibilitychange hidden while playing flushes', () => {
         const p = makePlayer()
-        const send = vi.spyOn(navigator, 'sendBeacon').mockReturnValue(true)
         p.playEpisode(1, 0)
         sharedElement()._trigger('playing')
         p.t = 200
         Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
         document.dispatchEvent(new Event('visibilitychange'))
-        expect(send).toHaveBeenCalled()
-        Object.defineProperty(document, 'hidden', { configurable: true, get: () => false })
-        send.mockRestore()
+        expect(global.fetch).toHaveBeenCalled()
     })
 
     test('livewire:navigating pauses VIDEO but keeps audio playing', () => {
