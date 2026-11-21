@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Livewire\Dashboard\Media;
+namespace App\Livewire\Dashboard\Knowledge;
 
-use App\Livewire\Dashboard\Media\Presentation\MediaPresenter;
+use App\Livewire\Dashboard\Knowledge\Presentation\MediaPresenter;
 use App\Models\Media;
 use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\View\View;
@@ -12,16 +12,18 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Lazy]
-class Main extends Component
+class Library extends Component
 {
     use FocusOnRecord;
 
     #[Locked]
     public array $newIds = [];
 
-    public function mount(): void
+    public function mount(?int $open = null): void
     {
-        abort_if(tenantOff('media'), 404);
+        abort_if(tenantOff('knowledge:media'), 404);
+
+        $this->open = $open;
 
         $this->newIds = Media::newFor(auth()->id())->pluck('media.id')->map(fn ($id) => (int) $id)->all();
     }
@@ -55,13 +57,13 @@ class Main extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.media.placeholder');
+        return view('livewire.dashboard.knowledge.library.placeholder');
     }
 
     public function render(): View
     {
-        abort_if(tenantOff('media'), 404);
+        abort_if(tenantOff('knowledge:media'), 404);
 
-        return view('livewire.dashboard.media');
+        return view('livewire.dashboard.knowledge.library');
     }
 }

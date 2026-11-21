@@ -31,7 +31,7 @@ class MediaResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return ! ReportResource::canViewAny() && ! tenantOffName(static::getSlug()) && static::canViewAny();
+        return ! ReportResource::canViewAny() && ! tenantOffName(static::getSlug()) && ! tenantOff('knowledge:media') && static::canViewAny();
     }
 
     protected static ?string $model = Media::class;

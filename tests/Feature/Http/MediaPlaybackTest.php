@@ -4,8 +4,8 @@ namespace Tests\Feature\Http;
 
 use App\Http\Controllers\MediaNoteController;
 use App\Http\Controllers\MediaProgressController;
-use App\Livewire\Dashboard\Media\Actions\SaveNoteAction;
-use App\Livewire\Dashboard\Media\Actions\SaveProgressAction;
+use App\Livewire\Dashboard\Knowledge\Actions\SaveNoteAction;
+use App\Livewire\Dashboard\Knowledge\Actions\SaveProgressAction;
 use App\Models\Department;
 use App\Models\KnowledgeProgress;
 use App\Models\Media;

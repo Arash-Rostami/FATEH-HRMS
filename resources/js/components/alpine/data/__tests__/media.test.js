@@ -40,7 +40,7 @@ describe('media library', () => {
     beforeEach(() => {
         vi.useFakeTimers();
         localStorage.clear();
-        history.replaceState({}, '', '/media');
+        history.replaceState({}, '', '/knowledge?tab=media');
     });
     afterEach(() => {
         vi.useRealTimers();
@@ -74,7 +74,7 @@ describe('media library', () => {
     });
 
     it('opens an episode moment without autoplay', () => {
-        history.replaceState({}, '', '/media?open=12&t=45');
+        history.replaceState({}, '', '/knowledge?tab=media&open=12&t=45');
         const root = component([item(1, { type: 'series', episodes: [episode(11), episode(12)] })]);
         expect(root.selectedId).toBe(1);
         expect(root.pendingMoment).toEqual({ sid: 1, idx: 1, seconds: 45 });
@@ -107,7 +107,7 @@ describe('media library', () => {
         root.t = 42.9;
         root.copyText = vi.fn();
         root.copyMoment();
-        expect(root.copyText.mock.calls[0][0]).toContain('open=1&t=42');
+        expect(root.copyText.mock.calls[0][0]).toContain('tab=media&open=1&t=42');
     });
 
     it('copies the lesson notes as timed Persian lines and does nothing without notes', () => {
@@ -137,7 +137,7 @@ describe('media library', () => {
     });
 
     it('reuses the player resume hook for a moment link on first play', () => {
-        history.replaceState({}, '', '/media?open=1&t=45');
+        history.replaceState({}, '', '/knowledge?tab=media&open=1&t=45');
         const root = component([item(1)]);
         root.playEpisode = vi.fn((sid, index) => {
             expect(root.resumeAt(sid, index)).toBe(45);
@@ -333,7 +333,7 @@ describe('media composed with the real player mixin', () => {
         ({ default: build } = await import('../media.js'));
         playing = false;
         localStorage.clear();
-        history.replaceState({}, '', '/media');
+        history.replaceState({}, '', '/knowledge?tab=media');
         document.head.innerHTML = '<meta name="csrf-token" content="token-1">';
         vi.spyOn(HTMLMediaElement.prototype, 'paused', 'get').mockImplementation(() => !playing);
         vi.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue('maybe');

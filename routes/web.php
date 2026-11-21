@@ -14,7 +14,7 @@ use App\Livewire\Dashboard\Correspondence\Main as Correspondence;
 use App\Livewire\Dashboard\Dms\Main as Dms;
 use App\Livewire\Dashboard\Energy\Main as Energy;
 use App\Livewire\Dashboard\Launchpad\Main as Launchpad;
-use App\Livewire\Dashboard\Media\Main as Media;
+use App\Livewire\Dashboard\Knowledge\Main as Knowledge;
 use App\Livewire\Dashboard\Profile\Main as Profile;
 use App\Livewire\Dashboard\AiReport\Main as AiReport;
 use App\Livewire\Dashboard\Project\Main as Project;
@@ -35,6 +35,7 @@ use App\Http\Controllers\MediaProgressController;
 use App\Http\Middleware\UpdateLastSeen;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
@@ -86,8 +87,8 @@ Route::middleware('throttle:launchpad-file')
     ->get('/launchpad/{launchpad}/{token}/{file}', LaunchpadFileController::class)
     ->name('launchpad.file');
 
-Route::post('/media/progress', MediaProgressController::class)->middleware('throttle:media-progress')->name('media.progress');
-Route::post('/media/notes', MediaNoteController::class)->middleware('throttle:media-notes')->name('media.notes');
+Route::post('/media/progress', MediaProgressController::class)->middleware(['throttle:media-progress', 'tenant.on:knowledge:media'])->name('media.progress');
+Route::post('/media/notes', MediaNoteController::class)->middleware(['throttle:media-notes', 'tenant.on:knowledge:media'])->name('media.notes');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
@@ -109,7 +110,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tasksheet', Tasksheet::class)->name('tasksheet');
     Route::get('/tasksheet/shared/{subject}', Tasksheet::class)->middleware('signed')->name('tasksheet.shared');
     Route::get('/launchpad', Launchpad::class)->name('launchpad');
-    Route::get('/media', Media::class)->name('media');
+    Route::get('/knowledge', Knowledge::class)->name('knowledge');
+    Route::get('/media', fn (Request $request) => redirect()->route('knowledge', ['tab' => 'media'] + $request->only('open', 't'), 301));
     Route::get('/launchpad/{launchpad}/go', LaunchpadGoController::class)->middleware('throttle:30,1')->where('launchpad', '[1-9][0-9]{0,9}')->name('launchpad.go');
     Route::get('/ai-report', AiReport::class)->name('ai-report');
     Route::get('/ai-report/shared/{report}', AiReport::class)->middleware('signed')->name('ai-report.shared');

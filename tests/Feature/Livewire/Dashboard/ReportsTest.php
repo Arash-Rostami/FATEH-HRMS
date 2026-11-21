@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
-use App\Livewire\Dashboard\Tab\Reports;
+use App\Livewire\Dashboard\Knowledge\Reports;
 use App\Models\Department;
 use App\Models\Profile;
 use App\Models\Report;
@@ -422,7 +422,7 @@ class ReportsTest extends TestCase
         $report = Report::factory()->create(['user_id' => $user->id, 'active' => true]);
 
         Livewire::withoutLazyLoading();
-        $component = Livewire::actingAs($user)->withQueryParams(['open' => $report->id])->test(Reports::class);
+        $component = Livewire::actingAs($user)->test(Reports::class, ['open' => $report->id]);
 
         $this->assertTrue($component->instance()->showModal);
         $this->assertSame($report->id, $component->instance()->activeReportId);
@@ -434,7 +434,7 @@ class ReportsTest extends TestCase
         $report = Report::factory()->create(['user_id' => $user->id, 'active' => false]);
 
         Livewire::withoutLazyLoading();
-        $component = Livewire::actingAs($user)->withQueryParams(['open' => $report->id])->test(Reports::class);
+        $component = Livewire::actingAs($user)->test(Reports::class, ['open' => $report->id]);
 
         $this->assertFalse($component->instance()->showModal);
         $this->assertNull($component->instance()->activeReportId);
@@ -511,14 +511,14 @@ class ReportsTest extends TestCase
         $hrTotal = Report::forViewer($hr)->notExpired()->count();
 
         Livewire::withoutLazyLoading();
-        $itPage = Livewire::actingAs($it)->withQueryParams(['open' => $restricted->id])->test(Reports::class);
+        $itPage = Livewire::actingAs($it)->test(Reports::class, ['open' => $restricted->id]);
         $this->assertFalse($itPage->instance()->showModal);
         $this->assertSame($itBefore, $itTotal);
         $this->assertSame($itTotal, $itPage->instance()->totalReports);
         $itPage->call('download', $restricted->id)->assertDispatched('toast', message: 'گزارش در دسترس نیست!', type: 'error');
 
         Livewire::withoutLazyLoading();
-        $hrPage = Livewire::actingAs($hr)->withQueryParams(['open' => $restricted->id])->test(Reports::class);
+        $hrPage = Livewire::actingAs($hr)->test(Reports::class, ['open' => $restricted->id]);
         $this->assertTrue($hrPage->instance()->showModal);
         $this->assertSame($hrTotal, $hrPage->instance()->totalReports);
         $this->assertSame($hrBefore + 1, $hrTotal);

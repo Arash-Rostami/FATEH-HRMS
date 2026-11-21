@@ -144,14 +144,6 @@ class TabPresenter
                 'text' => 'var(--tool-sapphire-text)',
             ],
             [
-                'title' => 'گزارشات',
-                'icon' => 'show_chart',
-                'action' => 'reports',
-                'color' => 'var(--tool-sage-color)',
-                'bg' => 'var(--tool-sage-bg)',
-                'text' => 'var(--tool-sage-text)',
-            ],
-            [
                 'title' => 'وضعیت همکاران',
                 'icon' => 'group',
                 'action' => 'status',

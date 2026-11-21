@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
-use App\Livewire\Dashboard\Media\Main;
-use App\Livewire\Dashboard\Media\Presentation\MediaPresenter;
+use App\Livewire\Dashboard\Knowledge\Library;
+use App\Livewire\Dashboard\Knowledge\Presentation\MediaPresenter;
 use App\Models\Department;
 use App\Models\KnowledgeProgress;
 use App\Models\Media;
@@ -13,7 +13,6 @@ use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -25,11 +24,6 @@ class MediaTest extends TestCase
         $this->useMysql();
         DB::beginTransaction();
         config(['app.off' => []]);
-        if (! Route::has('media')) {
-            Route::get('/media', Main::class)->name('media');
-            Route::post('/media/progress', fn () => response()->noContent())->name('media.progress');
-            Route::post('/media/notes', fn () => response()->noContent())->name('media.notes');
-        }
     }
 
     protected function tearDown(): void
@@ -77,7 +71,7 @@ class MediaTest extends TestCase
         MediaNote::create(['user_id' => $other->id, 'media_id' => $item->id, 'position' => 10, 'body' => 'یادداشت دیگری']);
         $this->actingAs($user);
         Livewire::withoutLazyLoading();
-        $component = Livewire::test(Main::class)->assertHasNoErrors();
+        $component = Livewire::test(Library::class)->assertHasNoErrors();
         $payload = $component->instance()->library;
         $row = collect($payload['items'])->firstWhere('id', $item->id);
         $this->assertSame('single', $row['type']);
@@ -96,7 +90,7 @@ class MediaTest extends TestCase
         $this->actingAs($viewer);
         Livewire::withoutLazyLoading();
 
-        return collect(Livewire::test(Main::class)->instance()->library['items'])->firstWhere('id', $item->id)['is_new'];
+        return collect(Livewire::test(Library::class)->instance()->library['items'])->firstWhere('id', $item->id)['is_new'];
     }
 
     public function test_opening_the_library_never_writes_and_keeps_a_series_new_and_episodes_never(): void
@@ -107,7 +101,7 @@ class MediaTest extends TestCase
         $episode = $this->media($owner, ['parent_id' => $series->id]);
         $this->actingAs($viewer);
         Livewire::withoutLazyLoading();
-        $first = Livewire::test(Main::class);
+        $first = Livewire::test(Library::class);
         $row = collect($first->instance()->library['items'])->firstWhere('id', $series->id);
         $this->assertTrue($row['is_new']);
         $this->assertSame([$series->id], $first->get('newIds'));
@@ -156,7 +150,7 @@ class MediaTest extends TestCase
         $item = $this->media($owner);
         $this->actingAs($viewer);
         Livewire::withoutLazyLoading();
-        Livewire::test(Main::class);
+        Livewire::test(Library::class);
         $cached = Media::cachedCatalog($viewer->fresh()->profile?->department_id, fn () => []);
         $this->assertContains($item->id, array_column($cached, 'id'));
         $this->assertStringNotContainsString('is_new', json_encode($cached));
@@ -173,7 +167,7 @@ class MediaTest extends TestCase
         ]);
         $this->actingAs($user);
         Livewire::withoutLazyLoading();
-        $payload = Livewire::test(Main::class)->instance()->library;
+        $payload = Livewire::test(Library::class)->instance()->library;
         $row = collect($payload['items'])->firstWhere('id', $series->id)['episodes'][0];
         $this->assertSame($episode->id, $row['id']);
         foreach (['file_url', 'download_url', 'transcript_url', 'chapters_url'] as $key) {
@@ -216,7 +210,7 @@ class MediaTest extends TestCase
         $visible = $this->media($user, ['report_ids' => [$publicReport->id, $hiddenReport->id, 2147483647]]);
         $this->actingAs($user);
         Livewire::withoutLazyLoading();
-        $payload = Livewire::test(Main::class)->instance()->library;
+        $payload = Livewire::test(Library::class)->instance()->library;
         $this->assertNotContains($hidden->id, array_column($payload['items'], 'id'));
         $this->assertNotContains($child->id, array_column($payload['items'], 'id'));
         $row = collect($payload['items'])->firstWhere('id', $visible->id);
@@ -324,7 +318,7 @@ class MediaTest extends TestCase
         $this->media($user);
         $this->actingAs($user);
         Livewire::withoutLazyLoading();
-        Livewire::test(Main::class)->assertSeeHtml('data-user-id="' . $user->id . '"');
+        Livewire::test(Library::class)->assertSeeHtml('data-user-id="' . $user->id . '"');
     }
 
     public function test_workspace_renders_the_notes_and_lesson_controls(): void
@@ -333,7 +327,7 @@ class MediaTest extends TestCase
         $this->media($user);
         $this->actingAs($user);
         Livewire::withoutLazyLoading();
-        Livewire::test(Main::class)->assertSeeHtml('copyNotes()')->assertSeeHtml('canMarkDone(')->assertSeeHtml('togglePictureInPicture()')->assertSeeHtml('toggleHeaderDeclutter()')->assertSeeHtml('wire:key="media-recent"');
+        Livewire::test(Library::class)->assertSeeHtml('copyNotes()')->assertSeeHtml('canMarkDone(')->assertSeeHtml('togglePictureInPicture()')->assertSeeHtml('toggleHeaderDeclutter()')->assertSeeHtml('wire:key="media-recent"');
     }
 
     public function test_deep_link_accepts_visible_episode_but_rejects_hidden_parent_chain(): void
@@ -345,12 +339,12 @@ class MediaTest extends TestCase
         $hiddenEpisode = $this->media($user, ['parent_id' => $hidden->id]);
         $this->actingAs($user);
         Livewire::withoutLazyLoading();
-        Livewire::withQueryParams(['open' => $episode->id, 't' => 25])->test(Main::class)
+        Livewire::test(Library::class, ['open' => $episode->id])
             ->assertSet('open', $episode->id)->assertSeeHtml('data-rf="media-' . $series->id . '"');
         Livewire::withoutLazyLoading();
-        Livewire::withQueryParams(['open' => $hiddenEpisode->id])->test(Main::class)->assertSet('open', null);
+        Livewire::test(Library::class, ['open' => $hiddenEpisode->id])->assertSet('open', null);
         $locked = $this->media($user, ['parent_id' => $series->id, 'report_date' => now()->addDays(2)->toDateString()]);
         Livewire::withoutLazyLoading();
-        Livewire::withQueryParams(['open' => $locked->id])->test(Main::class)->assertSet('open', null);
+        Livewire::test(Library::class, ['open' => $locked->id])->assertSet('open', null);
     }
 }

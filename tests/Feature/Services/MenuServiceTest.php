@@ -1067,7 +1067,8 @@ class MenuServiceTest extends TestCase
         ], $nudge->triggers());
         $this->assertTrue($nudge->refresh());
         $url = $nudge->url($report);
-        $this->assertStringContainsString('tab=reports', $url);
+        $this->assertStringContainsString('/knowledge', $url);
+        $this->assertStringNotContainsString('tab=', $url);
         $this->assertStringContainsString('open=8', $url);
     }
 

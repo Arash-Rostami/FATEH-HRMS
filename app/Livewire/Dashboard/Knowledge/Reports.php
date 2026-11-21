@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Dashboard\Tab;
+namespace App\Livewire\Dashboard\Knowledge;
 
 use App\Models\Department;
 use App\Models\Report;
@@ -72,20 +72,20 @@ class Reports extends Component
         unset($this->reports, $this->hasMorePages);
     }
 
-    public function mount()
+    public function mount(?int $open = null)
     {
-        $view = session('reports_view_mode', 'card');
-        $this->view = tenantOff("reports:{$view}") ? 'card' : $view;
+        $this->open = $open;
+        $this->view = session('reports_view_mode', 'card');
     }
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.tab.reports.placeholder');
+        return view('livewire.dashboard.knowledge.reports.placeholder');
     }
 
     public function render()
     {
-        return view('livewire.dashboard.tab.reports');
+        return view('livewire.dashboard.knowledge.reports');
     }
 
     #[Computed]
@@ -134,7 +134,7 @@ class Reports extends Component
 
     public function toggleView($view)
     {
-        if (in_array($view, ['card', 'list']) && !tenantOff("reports:{$view}")) {
+        if (in_array($view, ['card', 'list'])) {
             $this->view = $view;
             session(['reports_view_mode' => $view]);
         }

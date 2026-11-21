@@ -214,4 +214,50 @@ class ModulesConfigTest extends TestCase
             config(['app.off' => $off]);
         }
     }
+
+    public function test_knowledge_is_one_route_module_with_reports_and_media_views_and_no_legacy_modules(): void
+    {
+        $modules = collect(config('modules'));
+        $module = $modules->firstWhere('id', 'knowledge');
+
+        $this->assertNotNull($module);
+        $this->assertNull($modules->firstWhere('id', 'reports'));
+        $this->assertNull($modules->firstWhere('id', 'media'));
+        $this->assertSame('route', data_get($module, 'nav.type'));
+        $this->assertSame('knowledge', data_get($module, 'nav.target'));
+        $this->assertSame(['reports', 'media'], $module['views']);
+        $this->assertEqualsCanonicalizing(['reports', 'media', 'media-controller'], $module['aliases']);
+    }
+
+    public function test_knowledge_off_hides_everything_and_its_media_view_hides_only_the_media_surfaces(): void
+    {
+        $off = config('app.off');
+
+        try {
+            config(['app.off' => ['knowledge']]);
+
+            foreach (['knowledge', 'knowledge:media', 'reports', 'media', 'media-controller'] as $key) {
+                $this->assertTrue(tenantOff($key), $key);
+            }
+
+            foreach (['knowledge', 'reports-controller', 'media.progress', 'media.notes', 'filament.admin.resources.reports.index', 'filament.admin.resources.media.index', 'filament.admin.resources.knowledge-progress.index'] as $name) {
+                $this->assertTrue(tenantOffName($name), $name);
+            }
+
+            config(['app.off' => ['knowledge:media']]);
+
+            $this->assertTrue(tenantOff('knowledge:media'));
+            $this->assertFalse(tenantOff('knowledge'));
+            $this->assertFalse(tenantOff('reports'));
+            $this->assertFalse(tenantOffName('knowledge'));
+            $this->assertFalse(tenantOffName('reports-controller'));
+
+            config(['app.off' => ['knowledge:reports']]);
+
+            $this->assertFalse(tenantOff('knowledge'));
+            $this->assertFalse(tenantOff('knowledge:reports'));
+        } finally {
+            config(['app.off' => $off]);
+        }
+    }
 }
