@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'letter.link' => SecureLetterLink::class,
         ]);
         $middleware->appendToGroup('web', [UpdateLastSeen::class]);
+        $middleware->validateCsrfTokens(except: ['media/progress', 'media/notes']);
 
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
     })

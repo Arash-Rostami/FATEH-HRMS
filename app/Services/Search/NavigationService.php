@@ -120,15 +120,17 @@ class NavigationService
                 ],
             ],
             [
-                'id' => 'reports',
-                'title' => 'گزارشات',
-                'subtitle' => 'آمار، تحلیل عملکرد و اسناد بخش‌ها',
-                'icon' => 'show_chart',
-                'action' => 'tab:reports',
+                'id' => 'knowledge',
+                'title' => 'دانش سازمانی',
+                'subtitle' => 'گزارشات، اسناد بخش‌ها و صوت و ویدیوی آموزشی',
+                'icon' => 'video_library',
+                'action' => 'route:knowledge',
                 'keywords' => [
                     'report', 'reports', 'analytic', 'analysis', 'statistic', 'data', 'chart', 'metric', 'kpi', 'dashboard',
+                    'media', 'video', 'audio', 'podcast', 'course', 'lesson', 'training', 'library', 'knowledge',
                     'گزارش', 'گزارشات', 'آمار', 'تحلیل', 'تحلیل داده', 'داده', 'نمودار', 'عملکرد', 'شاخص',
                     'سند', 'سنجش', 'آمار عملکرد', 'پرفورمنس', 'عملیاتی', 'مالی', 'مدیریتی',
+                    'رسانه', 'ویدیو', 'ویدئو', 'فیلم', 'صوت', 'پادکست', 'آموزش', 'دوره', 'جلسه', 'کتابخانه', 'دانش سازمانی', 'آموزشی',
                 ],
             ],
             [

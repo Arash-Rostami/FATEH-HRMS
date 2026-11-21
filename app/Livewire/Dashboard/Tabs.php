@@ -10,7 +10,6 @@ use App\Livewire\Dashboard\Tab\Home;
 use App\Livewire\Dashboard\Tab\Links;
 use App\Livewire\Dashboard\Tab\Posts;
 use App\Livewire\Dashboard\Tab\Presentation\TabPresenter;
-use App\Livewire\Dashboard\Tab\Reports;
 use App\Livewire\Dashboard\Tab\Status;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -30,6 +29,12 @@ class Tabs extends Component
 
     public function mount(): void
     {
+        if ($this->activeTab === 'reports' && ! tenantOff('knowledge')) {
+            $this->redirectRoute('knowledge', array_filter(['open' => request('open')]), navigate: true);
+
+            return;
+        }
+
         $this->activeTab = $this->normalizeTab($this->activeTab);
     }
 
@@ -113,12 +118,6 @@ class Tabs extends Component
                 'label' => 'گالری',
                 'icon' => 'photo_library',
                 'bg' => 'bg-surface-container-high'
-            ],
-            'reports' => [
-                'component' => Reports::class,
-                'label' => 'گزارش‌ها',
-                'icon' => 'show_chart',
-                'bg' => 'bg-secondary-container'
             ],
             'links' => [
                 'component' => Links::class,

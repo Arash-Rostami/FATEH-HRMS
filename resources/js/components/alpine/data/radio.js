@@ -114,6 +114,11 @@ export default function radio(id) {
             window.addEventListener('radio', this._windowRadioListener);
             window.addEventListener('keydown', this._windowKeydownListener);
 
+            this._mediaStateListener = (e) => {
+                if (e.detail?.playing === true && this.playing) this.audio.pause();
+            };
+            window.addEventListener('media:state', this._mediaStateListener);
+
             this.$watch('currentStationUrl', (url) => { this.handleStationChange(url); this.updateDisplay(); });
             this.$watch('currentGenre', (n, o) => { if (n !== o) this.fetchStations(true); });
 
@@ -123,6 +128,7 @@ export default function radio(id) {
         destroy() {
             window.removeEventListener('radio', this._windowRadioListener);
             window.removeEventListener('keydown', this._windowKeydownListener);
+            window.removeEventListener('media:state', this._mediaStateListener);
 
             if (this.audio) {
                 this.audio.pause();

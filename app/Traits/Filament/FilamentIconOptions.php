@@ -6,16 +6,16 @@ use App\Enums\ResourceTypeIcon;
 
 trait FilamentIconOptions
 {
-    protected static function curatedIconOptions(): array
+    protected static function curatedIconOptions(string $enum = ResourceTypeIcon::class): array
     {
-        return collect(ResourceTypeIcon::cases())
-            ->mapWithKeys(fn(ResourceTypeIcon $icon) => [$icon->value => static::renderCuratedIconOption($icon->value, $icon->getLabel())])
+        return collect($enum::cases())
+            ->mapWithKeys(fn ($icon) => [$icon->value => static::renderCuratedIconOption($icon->value, $icon->getLabel())])
             ->all();
     }
 
-    protected static function curatedIconOptionLabel(string $value): string
+    protected static function curatedIconOptionLabel(string $value, string $enum = ResourceTypeIcon::class): string
     {
-        $icon = ResourceTypeIcon::tryFrom($value);
+        $icon = $enum::tryFrom($value);
 
         if ($icon) {
             return static::renderCuratedIconOption($icon->value, $icon->getLabel());

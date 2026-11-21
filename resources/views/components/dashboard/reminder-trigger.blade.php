@@ -1,9 +1,9 @@
-@props(['for', 'tooltipPosition' => 'bottom', 'variant' => 'icon'])
+@props(['for', 'tooltipPosition' => 'bottom', 'variant' => 'icon', 'keySuffix' => null])
 
 @unless(tenantOff('reminder'))
 <livewire:dashboard.reminder.main
     :for="$for"
     :tooltip-position="$tooltipPosition"
     :variant="$variant"
-    wire:key="reminder-{{ strtolower(class_basename($for)) }}-{{ $for->getKey() }}"/>
+    wire:key="reminder-{{ strtolower(class_basename($for)) }}-{{ $for->getKey() }}{{ $keySuffix ? '-'.$keySuffix : '' }}"/>
 @endunless

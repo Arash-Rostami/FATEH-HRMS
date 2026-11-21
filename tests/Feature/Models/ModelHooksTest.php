@@ -58,8 +58,8 @@ class ModelHooksTest extends TestCase
         ];
 
         $relationTraits = [
-            'HasUser' => ['AiReport', 'Authority', 'ChannelMember', 'Comment', 'Correspondence', 'Credential', 'EnergyTest', 'Event', 'FAQ', 'Feed', 'Launchpad', 'Onboarding', 'Permission', 'Poll', 'Post', 'Profile', 'Reaction', 'ReleaseRequest', 'Reminder', 'Reply', 'Report', 'Reservation', 'Review', 'SkillUser', 'Suggestion'],
-            'HasDepartment' => ['Authority', 'FAQ', 'Launchpad', 'Photo', 'Profile', 'Report', 'Review', 'TaskDetail'],
+            'HasUser' => ['AiReport', 'Authority', 'ChannelMember', 'Comment', 'Correspondence', 'Credential', 'EnergyTest', 'Event', 'FAQ', 'Feed', 'Launchpad', 'Media', 'Onboarding', 'Permission', 'Poll', 'Post', 'Profile', 'Reaction', 'ReleaseRequest', 'Reminder', 'Reply', 'Report', 'Reservation', 'Review', 'SkillUser', 'Suggestion'],
+            'HasDepartment' => ['Authority', 'FAQ', 'Launchpad', 'Media', 'Photo', 'Profile', 'Report', 'Review', 'TaskDetail'],
         ];
 
         foreach ($relationTraits as $trait => $models) {

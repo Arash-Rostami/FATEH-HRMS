@@ -19,6 +19,8 @@ use App\Models\EnergyTest;
 use App\Models\Event;
 use App\Models\EventShare;
 use App\Models\Feed;
+use App\Models\KnowledgeProgress;
+use App\Models\Media;
 use App\Models\Message;
 use App\Models\Photo;
 use App\Models\Post;
@@ -57,6 +59,7 @@ use App\Services\Menu\Notifications\AdNudge;
 use App\Services\Menu\Notifications\ChannelNudge;
 use App\Services\Menu\Notifications\ContactNudge;
 use App\Services\Menu\Notifications\DmsNudge;
+use App\Services\Menu\Indicators\UnseenMedia;
 use App\Services\Menu\Notifications\FeedNudge;
 use App\Services\Menu\Notifications\PhotoNudge;
 use App\Services\Menu\Notifications\PostNudge;
@@ -269,7 +272,7 @@ class MenuServiceTest extends TestCase
         $this->assertCount(5, $grouped);
         $this->assertSame(['notifications', 'content', 'opportunities', 'tasks', 'compliance'], array_column($grouped, 'id'));
         $total = array_sum(array_map(fn($g) => count($g['items']), $grouped));
-        $this->assertSame(33, $total);
+        $this->assertSame(34, $total);
         $expectedLabels = array_map(fn($g) => BadgeLegendCatalog::groups()[$g['id']]['label'], $grouped);
         $this->assertSame($expectedLabels, array_column($grouped, 'label'));
         foreach ($grouped as $g) {
@@ -289,7 +292,7 @@ class MenuServiceTest extends TestCase
         $this->assertSame(['notifications', 'content', 'compliance', 'tasks'], array_keys($defs));
         $this->assertSame(['list', 'deadline', 'approval', 'projects', 'workflow', 'tickets', 'reminders', 'reminders-badge'], array_keys($defs['tasks']));
         $this->assertSame(['direct', 'channels'], array_keys($defs['notifications']));
-        $this->assertSame(['calendar', 'media'], array_keys($defs['content']));
+        $this->assertSame(['calendar', 'media', 'library'], array_keys($defs['content']));
         $this->assertSame(['tracking', 'reports', 'tasksheet', 'ai-report', 'correspondence', 'launchpad'], array_keys($defs['compliance']));
 
         foreach ($grouped as $group) {
@@ -890,6 +893,40 @@ class MenuServiceTest extends TestCase
         $this->assertNotContains($maUser->id, $ids);
     }
 
+    public function test_unseen_media_badge_lights_for_a_new_series_and_clears_when_played(): void
+    {
+        $viewer = $this->activeUser();
+        $owner = $this->activeUser();
+        $this->actingAs($viewer);
+
+        $series = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true]);
+        $episode = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $owner->id]);
+        $expired = Media::factory()->series()->expired()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true]);
+        $inactive = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => false]);
+
+        $old = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true, 'created_at' => now()->subDays(40)]);
+        $other = $this->activeUser();
+        $empty = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true]);
+
+        $new = Media::newFor($viewer->id)->pluck('id');
+
+        $this->assertFalse($new->contains($empty->id));
+
+        $this->assertTrue((new UnseenMedia())->isActive());
+        $this->assertFalse($new->contains($old->id));
+        $this->assertTrue($new->contains($series->id));
+        $this->assertFalse($new->contains($episode->id));
+        $this->assertFalse($new->contains($expired->id));
+        $this->assertFalse($new->contains($inactive->id));
+
+        KnowledgeProgress::create(['user_id' => $viewer->id, 'media_id' => $episode->id, 'position' => 10, 'last_position' => 10]);
+
+        $this->assertFalse(Media::newFor($viewer->id)->whereKey($series->id)->exists());
+        $this->assertTrue(Media::newFor($other->id)->whereKey($series->id)->exists());
+
+        $this->assertFalse((new UnseenMedia())->isActive());
+    }
+
     public function test_feed_post_photo_and_report_nudges_show_only_while_the_subject_is_active(): void
     {
         $user = $this->activeUser();
@@ -1033,7 +1070,8 @@ class MenuServiceTest extends TestCase
         ], $nudge->triggers());
         $this->assertTrue($nudge->refresh());
         $url = $nudge->url($report);
-        $this->assertStringContainsString('tab=reports', $url);
+        $this->assertStringContainsString('/knowledge', $url);
+        $this->assertStringNotContainsString('tab=', $url);
         $this->assertStringContainsString('open=8', $url);
     }
 
@@ -1265,7 +1303,7 @@ class MenuServiceTest extends TestCase
         $overdue = Task::factory()->create(['assigned_to' => $owner->id, 'status' => 'todo', 'deadline' => now()->subDays(2), 'title' => 'Late']);
         $this->assertSame([$owner->id], $nudge->for($overdue)->pluck('id')->all());
         $this->assertTrue($nudge->show($overdue, $owner));
-        $this->assertStringContainsString('سررسید گذشته', $nudge->title($overdue, $owner));
+        $this->assertStringContainsString('مهلت کار گذشته', $nudge->title($overdue, $owner));
         $this->assertStringContainsString('Late', $nudge->body($overdue, $owner));
 
         $future = Task::factory()->create(['assigned_to' => $owner->id, 'status' => 'todo', 'deadline' => now()->addDays(2)]);
@@ -1423,7 +1461,7 @@ class MenuServiceTest extends TestCase
         $indicator = new TasksImminent();
 
         $this->assertSame('tasks-deadline', $indicator->getKey());
-        $this->assertSame('وظیفهٔ نزدیک به سررسید', $indicator->getTitle());
+        $this->assertSame('مهلت کاری نزدیک است یا گذشته', $indicator->getTitle());
         $this->assertNotEmpty($indicator->getBody());
         $this->assertFalse($indicator->isActive());
 
@@ -1896,18 +1934,18 @@ class MenuServiceTest extends TestCase
         $task = $this->nudgeTask($doer, $creator);
         $this->taskReply($task, $creator, TaskActivityType::Assignment, ['from' => $doer->id, 'to' => $newDoer->id]);
         $nudge->for($task);
-        $this->assertStringContainsString('گرفته شد', $nudge->title($task, $doer));
+        $this->assertStringContainsString('مسئول انجام تغییر کرد', $nudge->title($task, $doer));
         $this->assertStringContainsString('وظیفه جدید', $nudge->title($task, $newDoer));
 
         $this->taskReply($task, $creator, TaskActivityType::Assignment, ['added' => [$helper->id], 'removed' => [$oldHelper->id]]);
         $nudge->for($task);
         $this->assertStringContainsString('اضافه شدید', $nudge->title($task, $helper));
-        $this->assertStringContainsString('حذف شدید', $nudge->title($task, $oldHelper));
+        $this->assertStringContainsString('نقش شما در وظیفه', $nudge->title($task, $oldHelper));
 
         $this->taskReply($task, $creator, TaskActivityType::ResponsibleChange, ['from' => $oldHelper->id, 'to' => $helper->id]);
         $nudge->for($task);
-        $this->assertStringContainsString('جوابگوی', $nudge->title($task, $helper));
-        $this->assertStringContainsString('حذف شدید', $nudge->title($task, $oldHelper));
+        $this->assertStringContainsString('مسئول پیگیری', $nudge->title($task, $helper));
+        $this->assertStringContainsString('نقش شما در وظیفه', $nudge->title($task, $oldHelper));
     }
 
     public function test_task_overdue_nudge_escalates_to_the_accountable_only_after_the_escalation_window(): void

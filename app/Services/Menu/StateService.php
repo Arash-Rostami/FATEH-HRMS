@@ -20,6 +20,7 @@ use App\Services\Menu\Indicators\UnreadMessages;
 use App\Services\Menu\Indicators\CorrespondenceBadge;
 use App\Services\Menu\Indicators\UnseenAiReports;
 use App\Services\Menu\Indicators\UnseenLaunchpads;
+use App\Services\Menu\Indicators\UnseenMedia;
 use Illuminate\Support\Facades\Cache;
 
 class StateService
@@ -45,6 +46,7 @@ class StateService
         UnseenAiReports::class,
         CorrespondenceBadge::class,
         UnseenLaunchpads::class,
+        UnseenMedia::class,
     ];
 
     public function __construct(
@@ -56,6 +58,14 @@ class StateService
     public static function flush(): void
     {
         Cache::forever(self::VERSION_KEY, now()->getPreciseTimestamp());
+    }
+
+    public static function lit(int $userId, string $key): bool
+    {
+        $version = Cache::get(self::VERSION_KEY);
+        $map = $version === null ? null : Cache::get('menu_state:v'.(int) $version.":u{$userId}");
+
+        return ($map[$key] ?? true) !== false;
     }
 
     public static function markViewed(string $tab): void

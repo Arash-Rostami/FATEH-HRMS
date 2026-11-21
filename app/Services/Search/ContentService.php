@@ -15,6 +15,7 @@ use App\Services\Search\Resources\FaqResource;
 use App\Services\Search\Resources\FeedResource;
 use App\Services\Search\Resources\GalleryResource;
 use App\Services\Search\Resources\LinkResource;
+use App\Services\Search\Resources\MediaResource;
 use App\Services\Search\Resources\MessageResource;
 use App\Services\Search\Resources\OnboardingResource;
 use App\Services\Search\Resources\PeopleResource;
@@ -39,13 +40,14 @@ class ContentService
         PostResource::class,
         FeedResource::class,
         EventResource::class,
-        ReportResource::class,
         AiReportResource::class,
         GalleryResource::class,
         FaqResource::class,
         LinkResource::class,
 
         // ===== PAGE modules (own route ?open=...) =====
+        ReportResource::class,
+        MediaResource::class,
         DmsResource::class,
         CorrespondenceResource::class,
         TicketResource::class,

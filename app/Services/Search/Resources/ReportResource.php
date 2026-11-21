@@ -18,7 +18,7 @@ class ReportResource extends SearchResource
 
     public function action($row): string
     {
-        return $this->tab('reports', $row->getKey());
+        return $this->route('knowledge', $row->getKey());
     }
 
     protected function scope(Builder $query): void

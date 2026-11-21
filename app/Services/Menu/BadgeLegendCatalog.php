@@ -30,6 +30,7 @@ class BadgeLegendCatalog
             'content' => [
                 'calendar' => ['label' => 'تقویم', 'icon' => 'event'],
                 'media' => ['label' => 'اخبار و گالری', 'icon' => 'rss_feed'],
+                'library' => ['label' => 'کتابخانهٔ رسانه', 'icon' => 'video_library'],
             ],
             'compliance' => [
                 'tracking' => ['label' => 'پیگیری', 'icon' => 'fact_check'],
@@ -299,6 +300,13 @@ class BadgeLegendCatalog
                 'clears' => 'با باز کردن برنامه خاموش می‌شود. اگر چند برنامهٔ بازنشده دارید، باید همهٔ آن‌ها را باز کنید تا نقطه خاموش شود. با حذف یا غیرفعال شدن برنامه، پایان مهلت دسترسی یا برداشتن دسترسی شما نیز نشانگر آن برنامه پاک می‌شود.',
                 'surface' => 'نقطهٔ کنار گزینهٔ «پیشخوان برنامه‌ها» در منوی اصلی.',
             ],
-        ], fn (string $key) => !tenantOffName($key), ARRAY_FILTER_USE_KEY);
+            'media-controller' => [
+                'group' => 'content', 'subgroup' => 'library', 'tone' => 'gold', 'icon' => 'video_library',
+                'label' => 'رسانه‌های پخش‌نشده',
+                'lights' => 'رسانه‌ای در ۳۰ روز اخیر منتشر شده که هنوز آن را پخش نکرده‌اید. این نقطه برای رسانه‌ای که خودتان منتشر کرده‌اید یا برای جلسهٔ تازهٔ یک سری قدیمی روشن نمی‌شود.',
+                'clears' => 'از هر رسانهٔ تازه یک جلسه پخش کنید. وقتی مورد تازه‌ای باقی نماند، نقطه خاموش می‌شود. رسانه پس از ۳۰ روز یا با پایان دسترسی از شمار موارد تازه خارج می‌شود.',
+                'surface' => 'نقطهٔ کنار «دانش سازمانی» در منوی اصلی. موارد تازه در زبانهٔ «رسانه» نشان «جدید» دارند.',
+            ],
+        ], fn (string $key) => !tenantOffName($key) && !($key === 'media-controller' && tenantOff('knowledge:media')), ARRAY_FILTER_USE_KEY);
     }
 }

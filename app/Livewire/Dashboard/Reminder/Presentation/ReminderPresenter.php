@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Reminder\Presentation;
 
 use App\Models\DMS;
+use App\Models\Media;
 use App\Models\Project;
 use App\Models\Reminder;
 use App\Models\Reservation;
@@ -113,6 +114,7 @@ class ReminderPresenter
             Project::class => 'workspaces',
             DMS::class => 'description',
             Reservation::class => 'event',
+            Media::class => 'video_library',
             default => 'public',
         };
     }
@@ -131,6 +133,7 @@ class ReminderPresenter
             Project::class => 'پروژه',
             DMS::class => 'سند',
             Reservation::class => 'رزرو',
+            Media::class => 'رسانه',
             default => 'مورد',
         };
 

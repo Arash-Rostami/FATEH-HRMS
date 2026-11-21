@@ -61,6 +61,7 @@ export default defineConfig({
                 'resources/js/components/alpine/modules/tasksheet.js',
                 'resources/js/components/alpine/modules/ai-report.js',
                 'resources/js/components/alpine/modules/correspondence.js',
+                'resources/js/components/alpine/modules/knowledge.js',
             ],
             refresh: true,
         }),

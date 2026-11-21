@@ -17,6 +17,7 @@ const BASE_ITEMS = [
     {id: 'correspondence-controller', href: '/correspondence', icon: 'mail', title: 'مکاتبات', sub: 'نامه‌های اداری', module: 'correspondence', group: 'خدمات', aiView: 'correspondence:ai'},
     {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس', module: 'dms', group: 'خدمات'},
     {id: 'launchpad-controller', href: '/launchpad', icon: 'rocket_launch', title: 'پیشخوان برنامه‌ها', sub: 'برنامه‌های تعاملی', module: 'launchpad', group: 'خدمات', ai: true},
+    {id: 'media-controller', href: '/knowledge', icon: 'video_library', title: 'دانش سازمانی', sub: 'گزارش‌ها و رسانه', module: 'knowledge', group: 'سازمان'},
     {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری', module: 'ths', group: 'خدمات', aiView: 'ths:ai'},
     {id: 'suggestion-controller', href: '/suggestion', icon: 'lightbulb', title: 'پیشنهادات', sub: 'کانون نقاط نظر سازمانی', group: 'سازمان'},
     {id: 'reservation-seat', href: '/reservation?tab=seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری', resourceType: 'seat', module: 'reservation', group: 'رزرواسیون'},
@@ -38,8 +39,10 @@ const BASE_ITEMS = [
 
 const FOLD_MAP = {'ي': 'ی', 'ك': 'ک', '\u200c': ''};
 
+const foldChar = (c) => FOLD_MAP[c];
+
 function foldSearch(value) {
-    return String(value || '').trim().toLowerCase().replace(/[يك\u200c]/g, (c) => FOLD_MAP[c]);
+    return String(value || '').trim().toLowerCase().replace(/[يك\u200c]/g, foldChar);
 }
 
 const HOME_TABS = [
@@ -49,7 +52,6 @@ const HOME_TABS = [
     {id: 'calendar', label: 'تقویم', alias: 'calendar'},
     {id: 'status', label: 'وضعیت', alias: 'status'},
     {id: 'gallery', label: 'گالری', alias: 'gallery'},
-    {id: 'reports', label: 'گزارش‌ها', alias: 'report reports'},
     {id: 'links', label: 'لینک‌ها', alias: 'link links'},
     {id: 'faqs', label: 'پرسش‌های متداول', alias: 'faq faqs', off: ['faq', 'faqs']},
 ].map((tab) => ({...tab, _searchKey: foldSearch(`${tab.label} ${tab.alias}`)}));
@@ -66,10 +68,22 @@ const MQ_LARGE = '(min-width: 640px)';
 const SWIPE_THRESHOLD = 50;
 const VIEW_MODES = new Set(['grid', 'list', 'grouped']);
 const COLLATOR = new Intl.Collator('fa');
+const byTitle = (a, b) => COLLATOR.compare(a.title, b.title);
 const SYNTHETIC_EVENT = Object.freeze({preventDefault() {}, ctrlKey: false, metaKey: false});
+const NO_HINTS = Object.freeze([]);
 const perPageFor = (large) => (large ? 12 : 8);
 
 export default function menu(options = {}) {
+    const itemMap = new Map();
+    let sortedKey = '', sortedCache = null;
+    let groupedSource = null, groupedCache = null;
+    let pagedSource = null, pagedPerPage = null, pagedCache = null;
+    let recentFor = null, recentCache = null;
+    let filterSource = null, filterQuery = null, filterCache = null;
+    let pagesFor = null, pagesCache = null;
+    let hintsTabs = null, hintsQuery = null, hintsCache = NO_HINTS;
+    let mql = null, mediaListener = null, declutterListener = null;
+
     return {
         ...fancyboxMixin(),
         ...highlightMatchMixin(),
@@ -91,39 +105,30 @@ export default function menu(options = {}) {
         touchStartX: 0,
         touchEndX: 0,
 
-        _itemMap: new Map(),
         _pinsVersion: 0,
-
-        _sortedKey: '',
-        _sortedCache: null,
-        _groupedSourceRef: null,
-        _groupedCache: null,
-        _paginatedSourceRef: null,
-        _paginatedPerPage: null,
-        _paginatedCache: null,
-
-        _mql: null,
-        _mediaListener: null,
 
         get sortedItems() {
             const pins = this.$store.pinned.sets.menu;
             const alpha = this.sortAlpha;
-            if (!alpha && (!pins || pins.size === 0)) return this.items;
+            if (!alpha && !pins?.size) return this.items;
 
             const key = (alpha ? '1|' : '0|') + this._pinsVersion;
-            if (this._sortedKey === key) return this._sortedCache;
+            if (sortedKey === key) return sortedCache;
 
-            const pinned = (item) => (pins && pins.has(item.id) ? 1 : 0);
-            this._sortedCache = this.items.slice().sort((a, b) =>
-                pinned(b) - pinned(a) || (alpha ? COLLATOR.compare(a.title, b.title) : 0)
-            );
-            this._sortedKey = key;
-            return this._sortedCache;
+            const top = [], rest = [];
+            for (const item of this.items) (pins?.has(item.id) ? top : rest).push(item);
+            if (alpha) {
+                top.sort(byTitle);
+                rest.sort(byTitle);
+            }
+            sortedCache = top.concat(rest);
+            sortedKey = key;
+            return sortedCache;
         },
 
         get groupedItems() {
             const visible = this.allVisibleItems;
-            if (this._groupedSourceRef === visible) return this._groupedCache;
+            if (groupedSource === visible) return groupedCache;
 
             const groups = new Map();
             for (const item of visible) {
@@ -133,39 +138,55 @@ export default function menu(options = {}) {
                 else groups.set(label, {label, items: [item]});
             }
 
-            this._groupedSourceRef = visible;
-            this._groupedCache = [...groups.values()];
-            return this._groupedCache;
+            groupedSource = visible;
+            groupedCache = [...groups.values()];
+            return groupedCache;
         },
 
         get paginatedData() {
             const items = this.sortedItems;
             const pp = this.perPage;
-            if (this._paginatedSourceRef === items && this._paginatedPerPage === pp) return this._paginatedCache;
+            if (pagedSource === items && pagedPerPage === pp) return pagedCache;
 
             const pages = [];
             for (let i = 0; i < items.length; i += pp) pages.push(items.slice(i, i + pp));
 
-            this._paginatedSourceRef = items;
-            this._paginatedPerPage = pp;
-            this._paginatedCache = pages;
+            pagedSource = items;
+            pagedPerPage = pp;
+            pagedCache = pages;
             return pages;
         },
 
         _filteredItems() {
             if (this.showRecentOnly) {
-                return this.recentIds.map((id) => this._itemMap.get(id)).filter(Boolean);
+                const ids = this.recentIds;
+                if (recentFor !== ids) {
+                    recentFor = ids;
+                    recentCache = ids.map((id) => itemMap.get(id)).filter(Boolean);
+                }
+                return recentCache;
             }
 
             const q = this.search.trim().toLowerCase();
             if (!q) return null;
 
-            return this.sortedItems.filter((item) => item._searchKey.includes(q));
+            const source = this.sortedItems;
+            if (filterSource !== source || filterQuery !== q) {
+                filterSource = source;
+                filterQuery = q;
+                filterCache = source.filter((item) => item._searchKey.includes(q));
+            }
+            return filterCache;
         },
 
         get activePages() {
             const filtered = this._filteredItems();
-            return filtered !== null ? [filtered] : this.paginatedData;
+            if (filtered === null) return this.paginatedData;
+            if (pagesFor !== filtered) {
+                pagesFor = filtered;
+                pagesCache = [filtered];
+            }
+            return pagesCache;
         },
 
         get allVisibleItems() {
@@ -174,8 +195,14 @@ export default function menu(options = {}) {
 
         get tabHints() {
             const q = foldSearch(this.search);
-            if (!q || this.showRecentOnly) return [];
-            return this.homeTabs.filter((tab) => tab._searchKey.includes(q));
+            if (!q || this.showRecentOnly) return NO_HINTS;
+            const tabs = this.homeTabs;
+            if (hintsTabs !== tabs || hintsQuery !== q) {
+                hintsTabs = tabs;
+                hintsQuery = q;
+                hintsCache = tabs.filter((tab) => tab._searchKey.includes(q));
+            }
+            return hintsCache;
         },
 
         get tabHintText() {
@@ -200,7 +227,9 @@ export default function menu(options = {}) {
         },
 
         get notifiedCount() {
-            return this.items.reduce((count, item) => count + (item.hasNotification ? 1 : 0), 0);
+            let count = 0;
+            for (const item of this.items) if (item.hasNotification) count++;
+            return count;
         },
 
         _pageForItem(id) {
@@ -347,11 +376,12 @@ export default function menu(options = {}) {
         handleGlobalKeydown(e) {
             if (!this.menuOpen) return;
 
-            const input = this.searchEl;
-            const inSearch = document.activeElement === input;
             const {key} = e;
 
             if (key === 'Escape') { e.preventDefault(); return this.closeMenu(); }
+
+            const input = this.searchEl;
+            const inSearch = document.activeElement === input;
 
             if (key === '/' && !inSearch) {
                 e.preventDefault();
@@ -384,7 +414,7 @@ export default function menu(options = {}) {
         toggleMenu() {
             this.menuOpen = !this.menuOpen;
             if (this.menuOpen) {
-                this.perPage = perPageFor(this._mql.matches);
+                this.perPage = perPageFor(mql.matches);
                 this.current = this._pageForItem(this._loadState(LAST_ITEM_KEY, null));
             }
         },
@@ -423,23 +453,23 @@ export default function menu(options = {}) {
             for (const base of BASE_ITEMS) {
                 if ((!base.adminOnly || canAdmin) && !off.has(base.module) && !off.has(base.id.split('-')[0]) && (!base.requires || options[base.requires] === true)) {
                     const {id} = base;
-                    const item = {
+                    const item = Object.freeze({
                         ...base,
                         ai: base.aiView ? options.aiOn === true && !off.has(base.aiView) : base.ai,
                         disabled: !!base.resourceType && disabledTypes.has(base.resourceType),
                         get hasNotification() {
                             return globalThis.Alpine?.store('menuBadges')?.on(id, menuState[id]) ?? !!menuState[id];
                         },
-                    };
+                    });
                     items.push(item);
-                    this._itemMap.set(id, item);
+                    itemMap.set(id, item);
                 }
             }
-            this.items = items;
+            this.items = Object.freeze(items);
 
-            this.homeTabs = HOME_TABS
+            this.homeTabs = Object.freeze(HOME_TABS
                 .filter((tab) => !tabIsOff(tab, off))
-                .map(({id, label, _searchKey}) => ({id, label, _searchKey}));
+                .map(({id, label, _searchKey}) => Object.freeze({id, label, _searchKey})));
 
             this.recentIds = this._loadState(RECENT_KEY, []);
 
@@ -448,8 +478,8 @@ export default function menu(options = {}) {
 
             this.sortAlpha = !!this._loadState(SORT_ALPHA_KEY, false);
             this.declutter = !!this._loadState(DECLUTTER_KEY, false);
-            this._declutterListener = (e) => { this.declutter = !!e?.detail?.on; };
-            window.addEventListener('declutter', this._declutterListener);
+            declutterListener = (e) => { this.declutter = !!e?.detail?.on; };
+            window.addEventListener('declutter', declutterListener);
 
             if (window.ThemeManager?.getUserMode) {
                 this.isDark = window.ThemeManager.getUserMode() === 'dark';
@@ -457,10 +487,10 @@ export default function menu(options = {}) {
 
             this.initFancybox();
 
-            this._mql = window.matchMedia(MQ_LARGE);
-            this.perPage = perPageFor(this._mql.matches);
-            this._mediaListener = (e) => this.updatePerPage(e);
-            this._mql.addEventListener('change', this._mediaListener);
+            mql = window.matchMedia(MQ_LARGE);
+            this.perPage = perPageFor(mql.matches);
+            mediaListener = (e) => this.updatePerPage(e);
+            mql.addEventListener('change', mediaListener);
 
             this.current = this._pageForItem(this._loadState(LAST_ITEM_KEY, null));
 
@@ -480,8 +510,8 @@ export default function menu(options = {}) {
         },
 
         destroy() {
-            if (this._declutterListener) window.removeEventListener('declutter', this._declutterListener);
-            if (this._mql && this._mediaListener) this._mql.removeEventListener('change', this._mediaListener);
+            if (declutterListener) window.removeEventListener('declutter', declutterListener);
+            if (mql && mediaListener) mql.removeEventListener('change', mediaListener);
         },
     };
 }

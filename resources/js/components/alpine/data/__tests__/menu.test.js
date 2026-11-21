@@ -94,13 +94,15 @@ describe('menu.paginatedData', () => {
 describe('menu._filteredItems / allVisibleItems / activePages', () => {
     test('recent-only mode maps recentIds through the item map, silently skipping unknown ids', () => {
         const m = menu()
+        m.$watch = vi.fn()
+        m.initFancybox = vi.fn()
+        vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+        m.init()
         m.$store = { pinned: withPins([]) }
-        m.items = [item('a'), item('b')]
-        m._itemMap = new Map(m.items.map((i) => [i.id, i]))
         m.showRecentOnly = true
-        m.recentIds = ['b', 'missing', 'a']
+        m.recentIds = ['channels', 'missing', 'dashboard-controller']
 
-        expect(m.allVisibleItems.map((i) => i.id)).toEqual(['b', 'a'])
+        expect(m.allVisibleItems.map((i) => i.id)).toEqual(['channels', 'dashboard-controller'])
         expect(m.activePages).toEqual([m.allVisibleItems])
     })
 
@@ -720,7 +722,11 @@ describe('menu.toggleRecentOnly / toggleMenu / prev / next / updatePerPage', () 
 
     test('toggleMenu opening recalculates perPage from the cached media query and restores the last-viewed page', () => {
         const m = menu()
-        m._mql = { matches: true }
+        m.$watch = vi.fn()
+        m.initFancybox = vi.fn()
+        vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+        m.init()
+        m.perPage = 8
         m._pageForItem = vi.fn(() => 2)
         m._loadState = vi.fn(() => 'last-id')
         m.toggleMenu()

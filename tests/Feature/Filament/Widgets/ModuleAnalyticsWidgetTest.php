@@ -8,6 +8,8 @@ use App\Livewire\Dashboard\AiReport\Presentation\AiReportPresenter;
 use App\Models\AiReport;
 use App\Models\Department;
 use App\Models\EnergyTest;
+use App\Models\KnowledgeProgress;
+use App\Models\Media;
 use App\Models\NotifyRule;
 use App\Models\Permission;
 use App\Models\Profile;
@@ -85,6 +87,7 @@ class ModuleAnalyticsWidgetTest extends TestCase
             'channelsData' => ['channelsData'],
             'contactsData' => ['contactsData'],
             'faqsData' => ['faqsData'],
+            'mediaData' => ['mediaData'],
             'linksData' => ['linksData'],
             'notifyData' => ['notifyData'],
             'permissionsData' => ['permissionsData'],
@@ -233,6 +236,33 @@ class ModuleAnalyticsWidgetTest extends TestCase
         $expected = User::currentStaff(DB::table('profiles')->join('users', 'profiles.user_id', '=', 'users.id'))->count();
 
         $this->assertSame($expected, $stats[0]->getValue());
+    }
+
+    public function test_media_data_separates_roots_from_episodes_and_windows_the_weekly_learners(): void
+    {
+        $nums = fn (array $stats, int $card): array => array_map('intval', preg_split('/\D+/', (string) $stats[$card]->getDescription(), -1, PREG_SPLIT_NO_EMPTY));
+        $before = $this->invoke($this->widget(), 'mediaData');
+
+        $series = Media::factory()->create(['kind' => 'series', 'title' => '0-Analytics Series']);
+        $episodeA = Media::factory()->create(['kind' => 'audio', 'parent_id' => $series->id, 'title' => '0-Analytics Ep A']);
+        $episodeB = Media::factory()->create(['kind' => 'audio', 'parent_id' => $series->id, 'title' => '0-Analytics Ep B']);
+        Media::factory()->create(['kind' => 'audio', 'title' => '0-Analytics Solo']);
+
+        $fresh = User::factory()->create(['status' => 'active', 'role' => 'user']);
+        $stale = User::factory()->create(['status' => 'active', 'role' => 'user']);
+
+        KnowledgeProgress::create(['user_id' => $fresh->id, 'media_id' => $episodeA->id, 'position' => 600, 'last_position' => 600, 'completed_at' => now(), 'last_seen_at' => now()]);
+        KnowledgeProgress::create(['user_id' => $stale->id, 'media_id' => $episodeA->id, 'position' => 300, 'last_position' => 300, 'last_seen_at' => now()->subDays(8)]);
+        KnowledgeProgress::create(['user_id' => $stale->id, 'media_id' => $episodeB->id, 'position' => 90, 'last_position' => 90, 'last_seen_at' => now()->subDays(8)]);
+
+        $after = $this->invoke($this->widget(), 'mediaData');
+
+        $this->assertCount(5, $after);
+        $this->assertSame((int) $before[0]->getValue() + 2, (int) $after[0]->getValue());
+        $this->assertSame($nums($before, 1)[0] + 2, $nums($after, 1)[0]);
+        $this->assertSame((int) $before[2]->getValue() + 2, (int) $after[2]->getValue());
+        $this->assertSame($nums($before, 2)[0] + 1, $nums($after, 2)[0]);
+        $this->assertSame((int) $before[3]->getValue() + 1, (int) $after[3]->getValue());
     }
 
     public function test_active_tab_defaults_to_users_and_is_mutable(): void

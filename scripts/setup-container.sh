@@ -98,6 +98,9 @@ cat > /etc/apache2/conf-available/perf.conf << 'EOF'
 <LocationMatch "^/audio/">
     Header set Cache-Control "public, max-age=604800"
 </LocationMatch>
+<LocationMatch "^/storage/media/">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+</LocationMatch>
 <LocationMatch "^/module-features\.json$">
     Header set Cache-Control "public, max-age=300"
     Header set Access-Control-Allow-Origin "*"

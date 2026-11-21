@@ -12,6 +12,7 @@
         "php": "^8.2",
         "ext-pdo": "*",
         "filament/filament": "~5.0",
+        "james-heinrich/getid3": "^1.9",
         "laravel/fortify": "^1.34",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.48",

@@ -66,7 +66,7 @@
                         class="inline-flex items-center justify-center gap-2 rounded-md bg-[var(--md-sys-color-primary)] px-8 py-2.5 text-sm font-bold text-[var(--md-sys-color-on-primary)] shadow-md transition-all hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:shadow-xl active:scale-95 active:shadow-sm"
                     >
                         <span class="material-symbols-rounded text-xl">download</span>
-                        <span>دانلود فایل کامل</span>
+                        <span>دانلود فایل گزارش</span>
                     </button>
                 </div>
             </div>

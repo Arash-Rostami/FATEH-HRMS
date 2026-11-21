@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
-use App\Livewire\Dashboard\Tab\Reports;
+use App\Livewire\Dashboard\Knowledge\Reports;
 use App\Models\Department;
 use App\Models\Profile;
 use App\Models\Report;
@@ -124,17 +124,7 @@ class ReportsTest extends TestCase
     public function test_mount_restores_view_mode_from_session()
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
-        Session::put('reports_view_mode', 'list');
-
-        Livewire::withoutLazyLoading();
-        $component = Livewire::actingAs($user)->test(Reports::class);
-
-        $this->assertSame('list', $component->instance()->view);
-    }
-
-    public function test_mount_defaults_to_card_view_when_session_unset()
-    {
-        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        Session::put('reports_view_mode', 'card');
 
         Livewire::withoutLazyLoading();
         $component = Livewire::actingAs($user)->test(Reports::class);
@@ -142,9 +132,20 @@ class ReportsTest extends TestCase
         $this->assertSame('card', $component->instance()->view);
     }
 
+    public function test_mount_defaults_to_list_view_when_session_unset()
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Reports::class);
+
+        $this->assertSame('list', $component->instance()->view);
+    }
+
     public function test_toggle_view_to_list_sets_view_and_persists_to_session()
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        Session::put('reports_view_mode', 'card');
 
         Livewire::withoutLazyLoading();
         $component = Livewire::actingAs($user)->test(Reports::class)
@@ -174,7 +175,7 @@ class ReportsTest extends TestCase
         $component = Livewire::actingAs($user)->test(Reports::class)
             ->call('toggleView', 'grid');
 
-        $this->assertSame('card', $component->instance()->view);
+        $this->assertSame('list', $component->instance()->view);
         $this->assertNull(session('reports_view_mode'));
     }
 
@@ -422,7 +423,7 @@ class ReportsTest extends TestCase
         $report = Report::factory()->create(['user_id' => $user->id, 'active' => true]);
 
         Livewire::withoutLazyLoading();
-        $component = Livewire::actingAs($user)->withQueryParams(['open' => $report->id])->test(Reports::class);
+        $component = Livewire::actingAs($user)->test(Reports::class, ['open' => $report->id]);
 
         $this->assertTrue($component->instance()->showModal);
         $this->assertSame($report->id, $component->instance()->activeReportId);
@@ -434,7 +435,7 @@ class ReportsTest extends TestCase
         $report = Report::factory()->create(['user_id' => $user->id, 'active' => false]);
 
         Livewire::withoutLazyLoading();
-        $component = Livewire::actingAs($user)->withQueryParams(['open' => $report->id])->test(Reports::class);
+        $component = Livewire::actingAs($user)->test(Reports::class, ['open' => $report->id]);
 
         $this->assertFalse($component->instance()->showModal);
         $this->assertNull($component->instance()->activeReportId);
@@ -452,7 +453,7 @@ class ReportsTest extends TestCase
         Livewire::withoutLazyLoading();
         Livewire::actingAs($user)->test(Reports::class)
             ->call('download', $report->id)
-            ->assertDispatched('toast', message: 'فایل موجود نیست!', type: 'error');
+            ->assertDispatched('toast', message: 'فایل گزارش پیدا نشد.', type: 'error');
     }
 
     public function test_download_inactive_report_dispatches_error_toast()
@@ -467,7 +468,7 @@ class ReportsTest extends TestCase
         Livewire::withoutLazyLoading();
         Livewire::actingAs($user)->test(Reports::class)
             ->call('download', $report->id)
-            ->assertDispatched('toast', message: 'گزارش در دسترس نیست!', type: 'error');
+            ->assertDispatched('toast', message: 'گزارش در دسترس نیست.', type: 'error');
     }
 
     public function test_public_report_visible_to_user_in_any_department()
@@ -511,14 +512,14 @@ class ReportsTest extends TestCase
         $hrTotal = Report::forViewer($hr)->notExpired()->count();
 
         Livewire::withoutLazyLoading();
-        $itPage = Livewire::actingAs($it)->withQueryParams(['open' => $restricted->id])->test(Reports::class);
+        $itPage = Livewire::actingAs($it)->test(Reports::class, ['open' => $restricted->id]);
         $this->assertFalse($itPage->instance()->showModal);
         $this->assertSame($itBefore, $itTotal);
         $this->assertSame($itTotal, $itPage->instance()->totalReports);
-        $itPage->call('download', $restricted->id)->assertDispatched('toast', message: 'گزارش در دسترس نیست!', type: 'error');
+        $itPage->call('download', $restricted->id)->assertDispatched('toast', message: 'گزارش در دسترس نیست.', type: 'error');
 
         Livewire::withoutLazyLoading();
-        $hrPage = Livewire::actingAs($hr)->withQueryParams(['open' => $restricted->id])->test(Reports::class);
+        $hrPage = Livewire::actingAs($hr)->test(Reports::class, ['open' => $restricted->id]);
         $this->assertTrue($hrPage->instance()->showModal);
         $this->assertSame($hrTotal, $hrPage->instance()->totalReports);
         $this->assertSame($hrBefore + 1, $hrTotal);
@@ -597,7 +598,7 @@ class ReportsTest extends TestCase
         Livewire::withoutLazyLoading();
         Livewire::actingAs($user)->test(Reports::class)
             ->call('download', $report->id)
-            ->assertDispatched('toast', message: 'گزارش در دسترس نیست!', type: 'error');
+            ->assertDispatched('toast', message: 'گزارش در دسترس نیست.', type: 'error');
     }
 
     public function test_download_restricted_report_passes_guard_for_audience_user()
@@ -615,6 +616,6 @@ class ReportsTest extends TestCase
         Livewire::withoutLazyLoading();
         Livewire::actingAs($user)->test(Reports::class)
             ->call('download', $report->id)
-            ->assertDispatched('toast', message: 'فایل موجود نیست!', type: 'error');
+            ->assertDispatched('toast', message: 'فایل گزارش پیدا نشد.', type: 'error');
     }
 }

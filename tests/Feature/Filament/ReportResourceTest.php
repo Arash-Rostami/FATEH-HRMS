@@ -5,6 +5,9 @@ namespace Tests\Feature\Filament;
 use App\Filament\Pages\CreateRecord;
 use App\Filament\Pages\EditRecord;
 use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\AiReportResource;
+use App\Filament\Resources\MediaResource;
+use App\Filament\Resources\KnowledgeProgressResource;
 use App\Filament\Resources\ReportResource;
 use App\Filament\Resources\ReportResource\Pages\CreateReport;
 use App\Filament\Resources\ReportResource\Pages\EditReport;
@@ -519,6 +522,45 @@ class ReportResourceTest extends TestCase
         $this->assertNotSame('resources/general/strings.notifications.export_completed', $body);
         $this->assertStringContainsString('1,234', $body);
         $this->assertStringNotContainsString(':count', $body);
+    }
+
+    public function test_switch_group_carries_media_and_progress_after_reports(): void
+    {
+        $method = new \ReflectionMethod(ReportResource::class, 'switchGroup');
+        $method->setAccessible(true);
+        $group = $method->invoke(null);
+
+        $this->assertContains(MediaResource::class, $group);
+        $this->assertContains(KnowledgeProgressResource::class, $group);
+        $this->assertSame(ReportResource::class, $group[0]);
+    }
+
+    public function test_the_knowledge_sidebar_entry_is_single_labelled_and_follows_permissions(): void
+    {
+        $this->actingAs($this->developer());
+
+        $this->assertSame(ReportResource::class, ReportResource::knowledgeEntry());
+        $this->assertTrue(ReportResource::shouldRegisterNavigation());
+        $this->assertFalse(MediaResource::shouldRegisterNavigation());
+        $this->assertFalse(KnowledgeProgressResource::shouldRegisterNavigation());
+        $this->assertFalse(AiReportResource::shouldRegisterNavigation());
+
+        foreach ([ReportResource::class, MediaResource::class, KnowledgeProgressResource::class] as $resource) {
+            $this->assertSame(__('resources/report/strings.nav_label'), $resource::getNavigationLabel());
+        }
+
+        $mediaOnly = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        Permission::create(['user_id' => $mediaOnly->id, 'is_super_admin' => false, 'abilities' => [['module' => 'media', 'actions' => ['view']]]]);
+        $this->actingAs($mediaOnly);
+
+        $this->assertSame(MediaResource::class, ReportResource::knowledgeEntry());
+        $this->assertFalse(ReportResource::shouldRegisterNavigation());
+        $this->assertTrue(MediaResource::shouldRegisterNavigation());
+        $this->assertFalse(KnowledgeProgressResource::shouldRegisterNavigation());
+
+        config(['app.off' => ['knowledge:media']]);
+
+        $this->assertNull(ReportResource::knowledgeEntry());
     }
 
     public function test_group_and_query_closures_use_correct_param_names(): void

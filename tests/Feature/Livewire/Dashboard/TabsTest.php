@@ -78,10 +78,23 @@ class TabsTest extends TestCase
             ->assertSeeHtml('data-peek-card')
             ->assertSeeHtml('sandbox="allow-same-origin"')
             ->assertSeeHtml("show('post', \$el)")
-            ->assertSeeHtml("show('reports', \$el)")
+            ->assertDontSeeHtml("show('reports', \$el)")
             ->assertSeeHtml("show('gallery', \$el)")
             ->assertSeeHtml("show('home', \$el)")
             ->assertSeeHtml("show('faqs', \$el)");
+    }
+
+    public function test_legacy_reports_tab_url_redirects_to_knowledge_and_keeps_the_open_id()
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::actingAs($user)->withQueryParams(['tab' => 'reports'])->test(Tabs::class)
+            ->assertRedirectToRoute('knowledge');
+
+        Livewire::actingAs($user)->withQueryParams(['tab' => 'reports', 'open' => 7])->test(Tabs::class)
+            ->assertRedirectToRoute('knowledge', ['open' => 7]);
+
+        $this->assertArrayNotHasKey('reports', Livewire::actingAs($user)->withQueryParams(['tab' => 'home'])->test(Tabs::class)->instance()->tabs);
     }
 
     public function test_off_tab_is_absent_and_query_tab_falls_back_to_home_and_returns_when_on()
