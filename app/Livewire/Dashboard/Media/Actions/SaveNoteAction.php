@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Media\Actions;
 use App\Models\Media;
 use App\Models\MediaNote;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class SaveNoteAction
 {
@@ -54,16 +55,24 @@ class SaveNoteAction
 
         [$mediaId, $position, $body] = $input;
 
-        if (Media::playableFor($user, [$mediaId])->isEmpty() || self::atCap($user, $mediaId)) {
+        if (Media::playableFor($user, [$mediaId])->isEmpty()) {
             return null;
         }
 
-        return MediaNote::create([
-            'user_id' => $user->id,
-            'media_id' => $mediaId,
-            'position' => $position,
-            'body' => $body,
-        ]);
+        return DB::transaction(function () use ($user, $mediaId, $position, $body) {
+            User::query()->whereKey($user->id)->lockForUpdate()->value('id');
+
+            if (self::atCap($user, $mediaId)) {
+                return null;
+            }
+
+            return MediaNote::create([
+                'user_id' => $user->id,
+                'media_id' => $mediaId,
+                'position' => $position,
+                'body' => $body,
+            ]);
+        });
     }
 
     private static function delete(User $user, array $data): ?MediaNote

@@ -2,7 +2,6 @@
 
 namespace App\Models\Concerns\Hooks;
 
-use App\Services\ContentSanitizerService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -12,12 +11,13 @@ trait HasMediaHooks
 
     protected static function bootHasMediaHooks(): void
     {
-        static::saving(self::sanitizeDescriptionOnSaving(...));
         static::saving(self::guardExpiryBeforeDateOnSaving(...));
+        static::saving(self::guardStructureOnSaving(...));
+        static::saving(self::normalizeDurationOnSaving(...));
         static::saving(self::clearEpisodeSeenByOnSaving(...));
-        static::updating(self::cleanReplacedFilesOnUpdating(...));
+        static::updated(self::cleanReplacedFilesOnUpdated(...));
         static::deleting(self::deleteEpisodesOnDeleting(...));
-        static::deleting(self::deleteFilesOnDeleting(...));
+        static::deleted(self::deleteFilesOnDeleted(...));
     }
 
     public static function writeSystemDurations(array $secondsById): void
@@ -56,7 +56,7 @@ trait HasMediaHooks
         $query = DB::table((new static())->getTable())->whereIn('id', array_keys($clean));
 
         if ($onlyNull) {
-            $query->whereNull($column);
+            $query->where(fn ($inner) => $inner->whereNull($column)->orWhere($column, '<', 1));
         }
 
         $query->update([$column => DB::raw($case.' ELSE `'.$column.'` END')]);
@@ -69,13 +69,33 @@ trait HasMediaHooks
         }
     }
 
-    private static function sanitizeDescriptionOnSaving(self $media): void
+    private static function normalizeDurationOnSaving(self $media): void
     {
-        if (!$media->isDirty('description')) {
+        if (($media->duration_seconds ?? 1) < 1) {
+            $media->duration_seconds = null;
+        }
+    }
+
+    private static function guardStructureOnSaving(self $media): void
+    {
+        if (!$media->isDirty(['parent_id', 'kind'])) {
             return;
         }
 
-        $media->attributes['description'] = ContentSanitizerService::clean($media->attributes['description'] ?? null);
+        $isSeries = $media->kind === self::KIND_SERIES;
+
+        if ($media->parent_id !== null) {
+            $validParent = !$isSeries
+                && static::query()->whereKey($media->parent_id)->where('kind', self::KIND_SERIES)->whereNull('parent_id')->exists();
+
+            if (!$validParent) {
+                throw ValidationException::withMessages(['data.parent_id' => 'والد باید یک سری مستقل باشد و یک سری نمی‌تواند والد داشته باشد.']);
+            }
+        }
+
+        if ($media->exists && !$isSeries && $media->getOriginal('kind') === self::KIND_SERIES && $media->episodes()->exists()) {
+            throw ValidationException::withMessages(['data.kind' => 'سری دارای قسمت را نمی‌توان به نوع دیگر تغییر داد.']);
+        }
     }
 
     private static function guardExpiryBeforeDateOnSaving(self $media): void
@@ -85,30 +105,38 @@ trait HasMediaHooks
         }
     }
 
-    private static function cleanReplacedFilesOnUpdating(self $media): void
+    private static function cleanReplacedFilesOnUpdated(self $media): void
     {
-        foreach (self::FILE_FIELDS as $field) {
-            if (!$media->isDirty($field)) {
-                continue;
-            }
+        $replaced = [];
 
+        foreach (self::FILE_FIELDS as $field) {
             $previous = $media->getOriginal($field);
 
-            if (is_string($previous) && $previous !== $media->{$field}) {
-                static::deleteStoredFiles($previous);
+            if ($media->wasChanged($field) && is_string($previous)) {
+                $replaced[] = $previous;
             }
+        }
+
+        if ($replaced !== []) {
+            DB::afterCommit(fn () => static::deleteStoredFiles($replaced));
         }
     }
 
     private static function deleteEpisodesOnDeleting(self $media): void
     {
-        $media->episodes()->get()->each(fn (self $episode) => $episode->delete());
+        if ($media->kind !== self::KIND_SERIES) {
+            return;
+        }
+
+        static::query()->where('parent_id', $media->id)->lazyById()->each(fn (self $episode) => $episode->delete());
     }
 
-    private static function deleteFilesOnDeleting(self $media): void
+    private static function deleteFilesOnDeleted(self $media): void
     {
-        foreach (self::FILE_FIELDS as $field) {
-            static::deleteStoredFiles($media->{$field});
+        $paths = array_values(array_filter(array_map(fn (string $field) => $media->{$field}, self::FILE_FIELDS), 'is_string'));
+
+        if ($paths !== []) {
+            DB::afterCommit(fn () => static::deleteStoredFiles($paths));
         }
     }
 }

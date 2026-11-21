@@ -139,14 +139,14 @@ class Media extends Model
         );
     }
 
-    public static function probeDuration(string $absolutePath): ?int
+    public static function probeDuration(mixed $path): ?int
     {
-        try {
-            if ($absolutePath === '' || !is_file($absolutePath)) {
-                return null;
-            }
+        if (!is_string($path) || $path === '' || !is_file($path)) {
+            return null;
+        }
 
-            $seconds = (new getID3())->analyze($absolutePath)['playtime_seconds'] ?? null;
+        try {
+            $seconds = (new getID3())->analyze($path)['playtime_seconds'] ?? null;
 
             if (!is_numeric($seconds) || (float) $seconds <= 0) {
                 return null;

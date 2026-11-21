@@ -25,11 +25,20 @@ class MediaNoteController extends Controller
         }
 
         $data = $request->only(['media_id', 'position', 'body', 'id']);
-        $note = SaveNoteAction::execute($request->user(), $action, $data);
 
         if ($action === 'delete') {
+            $id = filter_var($data['id'] ?? null, FILTER_VALIDATE_INT);
+
+            if ($id === false || $id < 1) {
+                return $this->malformed('invalid');
+            }
+
+            SaveNoteAction::execute($request->user(), $action, $data);
+
             return response()->noContent();
         }
+
+        $note = SaveNoteAction::execute($request->user(), $action, $data);
 
         if ($note === null) {
             return $this->malformed(SaveNoteAction::capReached($request->user(), $data) ? 'cap' : 'invalid');

@@ -13,7 +13,8 @@ trait GuardsJsonEndpoint
             return response()->json(['message' => 'احراز هویت نشده است.'], 401);
         }
 
-        $token = (string) $request->input('_token', '');
+        $token = $request->input('_token');
+        $token = is_string($token) ? $token : '';
         $sessionToken = $request->hasSession() ? (string) $request->session()->token() : '';
 
         if ($token === '' || $sessionToken === '' || !hash_equals($sessionToken, $token)) {

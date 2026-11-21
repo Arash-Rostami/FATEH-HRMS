@@ -14,6 +14,8 @@ return [
 
     'notes_max' => 100,
 
+    'unknown_duration_advance' => 600,
+
     'sync' => [
         'local_seconds' => 5,
         'safety_seconds' => 90,

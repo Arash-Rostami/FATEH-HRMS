@@ -61,15 +61,15 @@ class SaveProgressAction
             }
 
             $sent = self::sane($item['duration']);
-            $duration = $row->duration_seconds ?: $sent;
-            $built = self::build($user->id, $item, $existing->get('media:'.$item['id']), $duration, $stamp, 'media_id');
+            $stored = $row->duration_seconds >= 1 ? $row->duration_seconds : null;
+            $built = self::build($user->id, $item, $existing->get('media:'.$item['id']), $stored ?? $sent, $stamp, 'media_id');
 
             if ($built !== null) {
                 $built['report_id'] = null;
                 $mediaRows[] = $built;
             }
 
-            if ($row->duration_seconds === null && $sent !== null) {
+            if ($stored === null && $sent !== null) {
                 $durations[$item['id']] = $sent;
             }
         }
@@ -87,13 +87,15 @@ class SaveProgressAction
             }
         }
 
-        self::upsert('media_id', $mediaRows);
-        self::upsert('report_id', $reportRows);
+        DB::transaction(function () use ($mediaRows, $reportRows, $durations) {
+            self::upsert('media_id', $mediaRows);
+            self::upsert('report_id', $reportRows);
 
-        if ($durations !== []) {
-            Media::writeSystemDurations($durations);
-            ModelCacheVersion::bump(Media::class);
-        }
+            if ($durations !== []) {
+                Media::writeSystemDurations($durations);
+                DB::afterCommit(fn () => ModelCacheVersion::bump(Media::class));
+            }
+        });
 
         return count($mediaRows) + count($reportRows);
     }
@@ -151,11 +153,11 @@ class SaveProgressAction
 
     private static function build(int $userId, array $item, ?KnowledgeProgress $stored, ?int $duration, string $stamp, string $idColumn): ?array
     {
-        $position = self::clamp($item['position'], $duration);
-        $last = self::clamp($item['last_position'], $duration);
+        $storedPosition = (int) ($stored->position ?? 0);
+        $position = self::clamp($item['position'], $duration, $storedPosition);
+        $last = self::clamp($item['last_position'], $duration, $storedPosition);
         $completing = $item['completed']
             || ($duration !== null && $position >= (int) floor($duration * (float) config('media.completion_ratio', 0.95)));
-        $storedPosition = (int) ($stored->position ?? 0);
         $storedLast = (int) ($stored->last_position ?? -1);
         $alreadyDone = $stored?->completed_at !== null;
 
@@ -175,11 +177,13 @@ class SaveProgressAction
         ];
     }
 
-    private static function clamp(int $position, ?int $duration): int
+    private static function clamp(int $position, ?int $duration, int $storedPosition): int
     {
-        $tolerance = (int) config('media.position_tolerance', 5);
+        $ceiling = $duration !== null
+            ? $duration + (int) config('media.position_tolerance', 5)
+            : $storedPosition + (int) config('media.unknown_duration_advance', 600);
 
-        return min($position, ($duration ?? Media::MAX_SECONDS) + $tolerance);
+        return min($position, $ceiling);
     }
 
     private static function sane(mixed $value): ?int
