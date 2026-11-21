@@ -7,15 +7,18 @@
         aria-label="پخش‌کنندهٔ رسانه"
         wire:ignore
     >
-        <span
-            class="absolute inset-x-0 top-0 h-[3px] bg-[var(--md-sys-color-surface-variant)] overflow-hidden md:hidden"
+        <div
+            class="absolute inset-x-0 top-0 z-10 h-3 cursor-pointer touch-none md:hidden"
             aria-hidden="true"
+            @pointerdown="seekFromEvent($event, $el)"
         >
-            <span
-                class="block h-full bg-[var(--md-sys-color-primary)] transition-[width] duration-100 ease-linear"
-                :style="`width: ${progressRatio * 100}%`"
-            ></span>
-        </span>
+            <span class="block h-[3px] bg-[var(--md-sys-color-surface-variant)] overflow-hidden">
+                <span
+                    class="block h-full bg-[var(--md-sys-color-primary)] transition-[width] duration-100 ease-linear"
+                    :style="`width: ${progressRatio * 100}%`"
+                ></span>
+            </span>
+        </div>
 
         <template x-if="currentEpisode">
             <div class="flex min-w-0 flex-1 items-center gap-3">
@@ -39,20 +42,20 @@
         </template>
 
         <div class="flex items-center justify-center gap-1">
-            <div class="hidden items-center gap-1 md:flex">
+            <div class="flex items-center gap-1">
                 <x-ui.buttons.form variant="none" icon="skip_previous" x-on:click="prev()" aria-label="جلسهٔ قبل"
-                                   class="w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"/>
+                                   class="max-md:hidden w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"/>
                 <x-ui.buttons.form variant="none" icon="replay_10" x-on:click="skip(-10)" aria-label="۱۰ ثانیه عقب"
                                    class="w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"/>
             </div>
             <x-ui.buttons.form size="icon" x-on:click="toggle()" aria-label="پخش یا توقف">
                 <span class="material-symbols-rounded text-[20px] font-fill" x-text="playing ? 'pause' : 'play_arrow'">play_arrow</span>
             </x-ui.buttons.form>
-            <div class="hidden items-center gap-1 md:flex">
+            <div class="flex items-center gap-1">
                 <x-ui.buttons.form variant="none" icon="forward_10" x-on:click="skip(10)" aria-label="۱۰ ثانیه جلو"
                                    class="w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"/>
                 <x-ui.buttons.form variant="none" icon="skip_next" x-on:click="next()" aria-label="جلسهٔ بعد"
-                                   class="w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"/>
+                                   class="max-md:hidden w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"/>
             </div>
         </div>
 
