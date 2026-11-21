@@ -314,6 +314,34 @@ describe('playerMixin — playEpisode', () => {
     })
 })
 
+describe('playerMixin — element kind follows the episode mime', () => {
+    test('a video episode inside an audio series plays in a video element and flags the stage', () => {
+        const p = makePlayer()
+        videoFactory()
+        p.library.items[0].episodes[1].mime = 'video/mp4'
+        p.playEpisode(1, 1)
+        expect(sharedElement().tagName).toBe('VIDEO')
+        expect(p.isVideo).toBe(true)
+    })
+
+    test('an audio episode inside a video-kind item plays in an audio element', () => {
+        const p = makePlayer()
+        videoFactory()
+        p.library.items[1].episodes[0].mime = 'audio/mpeg'
+        p.playEpisode(2, 0)
+        expect(sharedElement().tagName).toBeUndefined()
+        expect(p.isVideo).toBe(false)
+    })
+
+    test('a null mime falls back to the item kind', () => {
+        const p = makePlayer()
+        videoFactory()
+        p.library.items[1].episodes[0].mime = null
+        p.playEpisode(2, 0)
+        expect(sharedElement().tagName).toBe('VIDEO')
+    })
+})
+
 describe('playerMixin — seekFromEvent', () => {
     const track = (direction) => {
         const el = realCreateElement('div')
