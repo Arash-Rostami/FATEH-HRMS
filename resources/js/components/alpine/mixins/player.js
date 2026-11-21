@@ -95,6 +95,8 @@ function bindElement(ui) {
         if (!shared.ui) return;
         shared.ui.playing = false;
         stopSafetyInterval();
+        if (Number.isFinite(el.duration) && el.duration > 0) shared.ui.t = el.duration;
+        shared.ui.flush('ended');
         emitState(shared.ui);
         window.dispatchEvent(new CustomEvent(EVENT_ENDED, { detail: { sid: shared.ui.cur.sid, idx: shared.ui.cur.idx } }));
         shared.ui.next(true);
