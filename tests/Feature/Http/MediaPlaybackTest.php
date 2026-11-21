@@ -399,9 +399,6 @@ class MediaPlaybackTest extends TestCase
             DB::table('media')->where('id', $this->episode->id)->update(['duration_seconds' => null]);
         };
 
-        DB::commit();
-        DB::beginTransaction();
-
         $reset();
         $stamp(false);
         $this->assertFalse(StateService::lit($this->viewer->id, 'media-controller'));

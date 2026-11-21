@@ -1303,7 +1303,7 @@ class MenuServiceTest extends TestCase
         $overdue = Task::factory()->create(['assigned_to' => $owner->id, 'status' => 'todo', 'deadline' => now()->subDays(2), 'title' => 'Late']);
         $this->assertSame([$owner->id], $nudge->for($overdue)->pluck('id')->all());
         $this->assertTrue($nudge->show($overdue, $owner));
-        $this->assertStringContainsString('سررسید گذشته', $nudge->title($overdue, $owner));
+        $this->assertStringContainsString('مهلت کار گذشته', $nudge->title($overdue, $owner));
         $this->assertStringContainsString('Late', $nudge->body($overdue, $owner));
 
         $future = Task::factory()->create(['assigned_to' => $owner->id, 'status' => 'todo', 'deadline' => now()->addDays(2)]);
@@ -1461,7 +1461,7 @@ class MenuServiceTest extends TestCase
         $indicator = new TasksImminent();
 
         $this->assertSame('tasks-deadline', $indicator->getKey());
-        $this->assertSame('وظیفهٔ نزدیک به سررسید', $indicator->getTitle());
+        $this->assertSame('مهلت کاری نزدیک است یا گذشته', $indicator->getTitle());
         $this->assertNotEmpty($indicator->getBody());
         $this->assertFalse($indicator->isActive());
 
@@ -1934,18 +1934,18 @@ class MenuServiceTest extends TestCase
         $task = $this->nudgeTask($doer, $creator);
         $this->taskReply($task, $creator, TaskActivityType::Assignment, ['from' => $doer->id, 'to' => $newDoer->id]);
         $nudge->for($task);
-        $this->assertStringContainsString('گرفته شد', $nudge->title($task, $doer));
+        $this->assertStringContainsString('مسئول انجام تغییر کرد', $nudge->title($task, $doer));
         $this->assertStringContainsString('وظیفه جدید', $nudge->title($task, $newDoer));
 
         $this->taskReply($task, $creator, TaskActivityType::Assignment, ['added' => [$helper->id], 'removed' => [$oldHelper->id]]);
         $nudge->for($task);
         $this->assertStringContainsString('اضافه شدید', $nudge->title($task, $helper));
-        $this->assertStringContainsString('حذف شدید', $nudge->title($task, $oldHelper));
+        $this->assertStringContainsString('نقش شما در وظیفه', $nudge->title($task, $oldHelper));
 
         $this->taskReply($task, $creator, TaskActivityType::ResponsibleChange, ['from' => $oldHelper->id, 'to' => $helper->id]);
         $nudge->for($task);
-        $this->assertStringContainsString('جوابگوی', $nudge->title($task, $helper));
-        $this->assertStringContainsString('حذف شدید', $nudge->title($task, $oldHelper));
+        $this->assertStringContainsString('مسئول پیگیری', $nudge->title($task, $helper));
+        $this->assertStringContainsString('نقش شما در وظیفه', $nudge->title($task, $oldHelper));
     }
 
     public function test_task_overdue_nudge_escalates_to_the_accountable_only_after_the_escalation_window(): void
