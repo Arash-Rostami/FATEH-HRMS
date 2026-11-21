@@ -154,12 +154,13 @@ describe('media library', () => {
         const root = component([item(1)]);
         root.noteBody = 'متن';
         const messages = [];
-        for (const status of ['401', '419', '422', '500']) {
-            root.noteRequest = vi.fn().mockRejectedValue(new Error(status));
+        for (const [status, reason] of [['401'], ['419'], ['422'], ['422', 'cap'], ['500']]) {
+            root.noteRequest = vi.fn().mockRejectedValue(Object.assign(new Error(status), { reason }));
             await root.addNote();
             messages.push(root.toast.mock.calls.at(-1)[0]);
         }
-        expect(new Set(messages).size).toBe(4);
+        expect(new Set(messages).size).toBe(5);
+        expect(messages[3]).toBe('به سقف یادداشت‌های این جلسه رسیده‌اید.');
         expect(root.toast).toHaveBeenLastCalledWith(expect.any(String), 'error');
     });
 

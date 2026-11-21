@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
+use ReflectionMethod;
 use Tests\TestCase;
 
 class MediaTest extends TestCase
@@ -119,6 +120,7 @@ class MediaTest extends TestCase
         foreach (['file_url', 'download_url', 'transcript_url', 'chapters_url'] as $key) {
             $this->assertNull($row[$key]);
         }
+        $this->assertNull($row['mime']);
         $this->assertGreaterThan(now()->timestamp, $row['unlock_at']);
         $this->assertNotEmpty($row['unlock_label']);
         $this->assertStringNotContainsString('locked-secret', json_encode($payload));
@@ -204,6 +206,21 @@ class MediaTest extends TestCase
         $item = $this->media($user, ['departments' => [$department->code]]);
         $row = collect(app(MediaPresenter::class)->library($user->fresh())['items'])->firstWhere('id', $item->id);
         $this->assertSame($department->name, $row['department']);
+    }
+
+    public function test_unit_is_the_owner_name_and_falls_back_to_the_department(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $department = Department::factory()->create();
+        Profile::updateOrCreate(['user_id' => $owner->id], ['department_id' => $department->code]);
+        $item = $this->media($owner, ['departments' => [$department->code]]);
+        $presenter = app(MediaPresenter::class);
+        $row = collect($presenter->library($owner->fresh())['items'])->firstWhere('id', $item->id);
+        $this->assertSame($owner->name, $row['unit']);
+        $this->assertSame('audio/mpeg', $row['episodes'][0]['mime']);
+        $labelled = new ReflectionMethod($presenter, 'labelled');
+        $fallback = $labelled->invoke($presenter, ['unit' => null, 'department_code' => $department->code, 'audience' => []], Department::getCachedModels());
+        $this->assertSame($department->name, $fallback['unit']);
     }
 
     public function test_inactive_and_expired_children_are_not_listed_in_a_visible_series(): void

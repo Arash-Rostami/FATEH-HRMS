@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 class MediaPresenter
 {
     private const COLUMNS = [
-        'id', 'parent_id', 'kind', 'title', 'topic', 'description', 'cover_image',
+        'id', 'user_id', 'parent_id', 'kind', 'title', 'topic', 'description', 'cover_image',
         'file_path', 'transcript_path', 'chapters_path', 'icon', 'duration_seconds',
         'position', 'active', 'pinned', 'department_id', 'departments', 'report_date', 'report_ids', 'created_at',
     ];
@@ -68,6 +68,7 @@ class MediaPresenter
         unset($item['department_code'], $item['audience']);
         $item['department'] = $departments->get((string) $code)?->name
             ?? ($departments->only($audience)->pluck('name')->join('، ') ?: 'همهٔ بخش‌ها');
+        $item['unit'] ??= $item['department'];
 
         return $item;
     }
@@ -84,7 +85,9 @@ class MediaPresenter
             ->whereIn('id', $reportIds)->get(['id', 'title', 'file_path'])
             ->mapWithKeys(fn (Report $report) => [$report->id => $this->material($report)]);
 
-        return $library->map(function (Media $item) use ($reports): array {
+        $owners = User::whereIn('id', $library->pluck('user_id')->unique())->pluck('name', 'id');
+
+        return $library->map(function (Media $item) use ($reports, $owners): array {
             $episodes = $item->kind === 'series' ? $item->episodes : collect([$item]);
             $kind = $item->kind === 'series'
                 ? ($episodes->first(fn (Media $episode) => $episode->kind === 'video') ? 'video' : 'audio')
@@ -99,7 +102,7 @@ class MediaPresenter
                 'cover_url' => $item->cover_url ?: null,
                 'icon' => $this->icon($item, $kind),
                 'accent' => ['p', 't', 'ok', 'w', 'sec'][$item->id % 5],
-                'unit' => 'دانش سازمانی',
+                'unit' => $owners->get($item->user_id),
                 'department_code' => $item->department_id,
                 'audience' => $item->audienceCodes(),
                 'date_label' => convertToPersian(toJalali($item->report_date ?? $item->created_at, 'j F Y')),
@@ -125,7 +128,7 @@ class MediaPresenter
             'duration' => $episode->duration_seconds === null ? null : (int) $episode->duration_seconds,
             'file_url' => $url,
             'download_url' => $url,
-            'mime' => match ($extension) {
+            'mime' => $locked ? null : match ($extension) {
                 'mp3' => 'audio/mpeg', 'm4a' => 'audio/mp4', 'wav' => 'audio/wav',
                 'ogg' => 'audio/ogg', 'mp4' => 'video/mp4', 'webm' => 'video/webm', default => null,
             },

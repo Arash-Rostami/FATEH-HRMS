@@ -324,7 +324,11 @@ export default function media() {
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
                 body: JSON.stringify({ _token: document.querySelector('meta[name="csrf-token"]')?.content, action, ...data }),
             });
-            if (!response.ok) throw new Error(String(response.status));
+            if (!response.ok) {
+                const failure = new Error(String(response.status));
+                failure.reason = (await response.json().catch(() => null))?.reason;
+                throw failure;
+            }
             return response.status === 204 ? null : response.json();
         },
 
@@ -333,7 +337,7 @@ export default function media() {
             this.toast({
                 401: 'نشست شما پایان یافته؛ دوباره وارد شوید.',
                 419: 'صفحه منقضی شده؛ آن را دوباره بارگذاری کنید.',
-                422: 'متن یادداشت معتبر نیست.',
+                422: error.reason === 'cap' ? 'به سقف یادداشت‌های این جلسه رسیده‌اید.' : 'متن یادداشت معتبر نیست.',
             }[error.message] ?? fallback, 'error');
         },
 
