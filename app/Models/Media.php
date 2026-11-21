@@ -60,10 +60,8 @@ class Media extends Model
         'icon',
         'duration_seconds',
         'position',
-        'active',
         'pinned',
         'department_id',
-        'departments',
         'report_date',
         'expires_at',
         'report_ids',
@@ -112,17 +110,15 @@ class Media extends Model
             return new Collection();
         }
 
-        $parents = fn () => static::library($user)->select('media.id');
+        $parents = static::library($user)->select('media.id');
 
         return static::query()
             ->whereIn('id', $ids)
+            ->whereIn('kind', [self::KIND_AUDIO, self::KIND_VIDEO])
             ->active()
             ->notExpired()
             ->released()
-            ->where(function (Builder $query) use ($parents) {
-                $query->where(fn (Builder $single) => $single->whereNull('parent_id')->whereIn('id', $parents())->whereIn('kind', [self::KIND_AUDIO, self::KIND_VIDEO]))
-                    ->orWhereIn('parent_id', $parents());
-            })
+            ->where(fn (Builder $query) => $query->whereIn('id', $parents)->orWhereIn('parent_id', $parents))
             ->get(['id', 'duration_seconds']);
     }
 
