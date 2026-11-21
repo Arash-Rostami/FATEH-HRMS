@@ -53,7 +53,12 @@
                     <span x-show="playing && cur.sid === {{ $item['id'] }}" x-cloak class="absolute bottom-0 flex gap-0.5 items-end" aria-label="در حال پخش"><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i></span>
                 </div>
                 <div class="sb-fade flex-1 min-w-0">
-                    <p class="truncate text-[13px] font-semibold text-[var(--md-sys-color-on-surface)]" data-title="{{ $item['title'] }}" x-html="highlight($el.dataset.title, query)"></p>
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <p class="truncate text-[13px] font-semibold text-[var(--md-sys-color-on-surface)]" data-title="{{ $item['title'] }}" x-html="highlight($el.dataset.title, query)"></p>
+                        @if($item['is_new'])
+                            <x-ui.badge wire:key="media-row-new" variant="info" class="shrink-0">جدید</x-ui.badge>
+                        @endif
+                    </div>
                     <p class="text-[11px] truncate text-[var(--md-sys-color-on-surface-variant)]">{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }} · {{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }} · {{ convertToPersian((string) count($item['episodes'])) }} جلسه</p>
                     <div class="mt-2 h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden" role="progressbar" aria-label="پیشرفت" aria-valuemin="0" aria-valuemax="100" x-bind:aria-valuenow="percent(progressOf({{ $item['id'] }}))">
                         <div class="h-full rounded-full transition-all duration-500 bg-[var(--md-sys-color-primary)]" x-bind:style="{ width: percent(progressOf({{ $item['id'] }})) + '%' }"></div>

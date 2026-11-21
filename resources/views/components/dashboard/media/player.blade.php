@@ -107,7 +107,7 @@
     </footer>
 @elseif($part === 'stage')
     <template x-if="currentEpisode && isVideo">
-        <div class="relative mx-4 mt-4 aspect-video max-h-[360px] w-[calc(100%-2rem)] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-primary)_45%,var(--md-sys-color-surface))] shadow-sm md:mx-7 md:w-[calc(100%-3.5rem)]"
+        <div class="relative mx-4 mt-4 aspect-video max-h-96 w-[calc(100%-2rem)] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-primary)_45%,var(--md-sys-color-surface))] shadow-sm md:mx-7 md:w-[calc(100%-3.5rem)]"
              :class="playing ? '' : 'paused'"
              x-init="mountVideo()"
              wire:ignore>

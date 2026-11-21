@@ -4,10 +4,12 @@ namespace App\Livewire\Dashboard\Media;
 
 use App\Livewire\Dashboard\Media\Actions\MarkMediaSeenAction;
 use App\Livewire\Dashboard\Media\Presentation\MediaPresenter;
+use App\Models\Media;
 use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Lazy]
@@ -15,17 +17,25 @@ class Main extends Component
 {
     use FocusOnRecord;
 
+    #[Locked]
+    public array $newIds = [];
+
     public function mount(): void
     {
         abort_if(tenantOff('reports:media'), 404);
 
-        MarkMediaSeenAction::execute(auth()->user());
+        $user = auth()->user();
+        $this->newIds = Media::unseenBy($user->id)->pluck('id')->map(fn ($id) => (int) $id)->all();
+        MarkMediaSeenAction::execute($user);
     }
 
     #[Computed]
     public function library(): array
     {
-        return app(MediaPresenter::class)->library();
+        $library = app(MediaPresenter::class)->library();
+        $library['items'] = array_map(fn (array $item) => $item + ['is_new' => in_array($item['id'], $this->newIds, true)], $library['items']);
+
+        return $library;
     }
 
     protected function recordFocusType(): string

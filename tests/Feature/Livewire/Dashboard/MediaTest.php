@@ -105,6 +105,40 @@ class MediaTest extends TestCase
         $this->assertSame([$viewer->id], $item->fresh()->seen_by);
     }
 
+    public function test_unseen_series_is_new_on_the_first_mount_only_and_episodes_never(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $viewer = User::factory()->create(['status' => 'active']);
+        $series = $this->media($owner, ['kind' => 'series']);
+        $episode = $this->media($owner, ['parent_id' => $series->id]);
+        $this->actingAs($viewer);
+        Livewire::withoutLazyLoading();
+        $first = Livewire::test(Main::class);
+        $row = collect($first->instance()->library['items'])->firstWhere('id', $series->id);
+        $this->assertTrue($row['is_new']);
+        $this->assertSame([$series->id], $first->get('newIds'));
+        $first->assertSee('جدید');
+        $this->assertArrayNotHasKey('is_new', $row['episodes'][0]);
+        $this->assertNotContains($episode->id, $first->get('newIds'));
+        Livewire::withoutLazyLoading();
+        $second = Livewire::test(Main::class);
+        $this->assertFalse(collect($second->instance()->library['items'])->firstWhere('id', $series->id)['is_new']);
+        $this->assertSame([], $second->get('newIds'));
+    }
+
+    public function test_is_new_is_per_user_and_never_part_of_the_cached_catalog(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $viewer = User::factory()->create(['status' => 'active']);
+        $item = $this->media($owner);
+        $this->actingAs($viewer);
+        Livewire::withoutLazyLoading();
+        Livewire::test(Main::class);
+        $cached = Media::cachedCatalog($viewer->fresh()->profile?->department_id, fn () => []);
+        $this->assertContains($item->id, array_column($cached, 'id'));
+        $this->assertStringNotContainsString('is_new', json_encode($cached));
+    }
+
     public function test_locked_episodes_never_expose_file_or_track_urls(): void
     {
         $user = User::factory()->create(['status' => 'active']);

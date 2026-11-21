@@ -7,16 +7,16 @@
             <header class="relative flex flex-wrap items-end gap-4 md:gap-7 p-4 md:p-7 bg-gradient-to-b from-[var(--md-sys-color-primary-container)] to-[var(--md-sys-color-background)]"
                     :class="headerDeclutter ? 'md:h-0! md:py-0! md:overflow-hidden! md:pointer-events-none!' : ''">
                 <x-ui.buttons.form variant="ghost" size="icon" x-on:click="backToList()" class="md:hidden" aria-label="بازگشت به کتابخانه"><span class="material-symbols-rounded">arrow_forward</span></x-ui.buttons.form>
-                <div class="w-28 h-28 md:w-[184px] md:h-[184px] rounded-2xl shrink-0 flex items-center justify-center overflow-hidden" data-accent="{{ $item['accent'] }}" :style="accentStyle($el.dataset.accent)">
+                <div class="w-28 h-28 md:w-44 md:h-44 rounded-2xl shrink-0 flex items-center justify-center overflow-hidden" data-accent="{{ $item['accent'] }}" :style="accentStyle($el.dataset.accent)">
                     @if($item['cover_url'])
                         <img wire:key="media-hero-cover" src="{{ $item['cover_url'] }}" alt="" loading="lazy" class="w-full h-full object-cover">
                     @else
-                        <span wire:key="media-hero-icon" class="material-symbols-rounded text-[52px] md:text-[76px]">{{ $item['icon'] }}</span>
+                        <span wire:key="media-hero-icon" class="material-symbols-rounded text-5xl md:text-7xl">{{ $item['icon'] }}</span>
                     @endif
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="flex gap-2 mb-3"><x-ui.badge>{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }}</x-ui.badge><x-ui.badge>{{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }}</x-ui.badge></div>
-                    <h2 class="text-2xl md:text-[34px] font-extrabold text-[var(--md-sys-color-on-surface)] mb-2">{{ $item['title'] }}</h2>
+                    <div class="flex gap-2 mb-3"><x-ui.badge>{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }}</x-ui.badge><x-ui.badge>{{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }}</x-ui.badge>@if($item['is_new'])<x-ui.badge wire:key="media-hero-new" variant="info">جدید</x-ui.badge>@endif</div>
+                    <h2 class="text-2xl md:text-4xl font-extrabold text-[var(--md-sys-color-on-surface)] mb-2">{{ $item['title'] }}</h2>
                     <div class="text-[13px] leading-6 text-[var(--md-sys-color-on-surface-variant)] mb-3 prose rich-colors max-w-none">{!! $item['description_html'] !!}</div>
                     <p class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--md-sys-color-on-surface-variant)]"><b>{{ $item['unit'] }}</b><span>{{ $item['department'] }}</span><span>{{ $item['date_label'] }}</span><span x-text="time({{ $item['total_duration'] }})"></span></p>
                 </div>
