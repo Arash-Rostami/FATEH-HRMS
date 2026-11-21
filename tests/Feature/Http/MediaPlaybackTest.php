@@ -15,6 +15,7 @@ use App\Models\Profile;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
+use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +32,12 @@ class MediaPlaybackTest extends TestCase
         parent::setUp();
         $this->useMysql();
         DB::beginTransaction();
+        DB::connection()->setTransactionManager(new class extends DatabaseTransactionsManager {
+            public function afterCommitCallbacksShouldBeExecuted($level)
+            {
+                return $level <= 1;
+            }
+        });
 
         Department::firstOrCreate(['code' => 'KMDA'], ['name' => 'KMDA', 'description' => '']);
         Department::firstOrCreate(['code' => 'KMDB'], ['name' => 'KMDB', 'description' => '']);
@@ -140,9 +147,76 @@ class MediaPlaybackTest extends TestCase
         $this->episode->update(['duration_seconds' => null]);
         KnowledgeProgress::query()->where('user_id', $this->viewer->id)->delete();
 
-        SaveProgressAction::execute($this->viewer, [$this->item(900, 900, false, null)]);
-        $this->assertSame(900, $this->progress()->position);
+        SaveProgressAction::execute($this->viewer, [$this->item(172000, 172000, false, null)]);
+        $this->assertSame(600, $this->progress()->position);
         $this->assertNull($this->progress()->completed_at);
+
+        SaveProgressAction::execute($this->viewer, [$this->item(172000, 172000, false, null)]);
+        $this->assertSame(1200, $this->progress()->position);
+
+        config(['media.unknown_duration_advance' => 50]);
+        SaveProgressAction::execute($this->viewer, [$this->item(172000, 172000, false, null)]);
+        $this->assertSame(1250, $this->progress()->position);
+    }
+
+    public function test_a_zero_stored_duration_is_treated_as_unknown_and_backfilled(): void
+    {
+        DB::table('media')->where('id', $this->episode->id)->update(['duration_seconds' => 0]);
+
+        SaveProgressAction::execute($this->viewer, [$this->item(20, 20, false, 80)]);
+
+        $this->assertSame(80, (int) $this->episode->fresh()->duration_seconds);
+
+        DB::table('media')->where('id', $this->episode->id)->update(['duration_seconds' => 0]);
+
+        SaveProgressAction::execute($this->viewer, [$this->item(30, 30, false, 0)]);
+
+        $this->assertSame(0, (int) $this->episode->fresh()->duration_seconds);
+    }
+
+    public function test_a_note_is_added_at_the_cap_boundary_only_below_it(): void
+    {
+        config(['media.notes_max' => 2]);
+        $note = fn (string $body) => SaveNoteAction::execute($this->viewer, 'add', ['media_id' => $this->episode->id, 'position' => 1, 'body' => $body]);
+
+        $this->assertNotNull($note('a'));
+        $this->assertFalse(SaveNoteAction::capReached($this->viewer, ['media_id' => $this->episode->id, 'position' => 1, 'body' => 'x']));
+        $this->assertNotNull($note('b'));
+        $this->assertTrue(SaveNoteAction::capReached($this->viewer, ['media_id' => $this->episode->id, 'position' => 1, 'body' => 'x']));
+        $this->assertNull($note('c'));
+        $this->assertSame(2, MediaNote::query()->where('user_id', $this->viewer->id)->count());
+    }
+
+    public function test_a_non_string_token_is_a_419_on_both_controllers(): void
+    {
+        foreach ([MediaProgressController::class => '/media/progress', MediaNoteController::class => '/media/notes'] as $controller => $uri) {
+            foreach ([['x'], null, 123, ''] as $token) {
+                $request = Request::create($uri, 'POST', ['_token' => $token, 'items' => [], 'action' => 'delete', 'id' => 1]);
+                $request->headers->set('Accept', 'application/json');
+                $session = $this->app['session.store'];
+                $session->start();
+                $request->setLaravelSession($session);
+                $request->setUserResolver(fn () => $this->viewer);
+
+                $this->assertSame(419, $this->app->make($controller)($request)->getStatusCode());
+            }
+        }
+    }
+
+    public function test_note_delete_needs_a_positive_integer_id(): void
+    {
+        $note = MediaNote::create(['user_id' => $this->viewer->id, 'media_id' => $this->episode->id, 'position' => 1, 'body' => 'x']);
+
+        foreach ([['action' => 'delete'], ['action' => 'delete', 'id' => 0], ['action' => 'delete', 'id' => -3], ['action' => 'delete', 'id' => 'abc'], ['action' => 'delete', 'id' => [1]]] as $payload) {
+            $response = $this->invoke(MediaNoteController::class, '/media/notes', $payload, $this->viewer, true);
+            $this->assertSame(422, $response->getStatusCode());
+            $this->assertSame('invalid', json_decode($response->getContent(), true)['reason']);
+        }
+
+        $this->assertNotNull(MediaNote::find($note->id));
+        $this->assertSame(204, $this->invoke(MediaNoteController::class, '/media/notes', ['action' => 'delete', 'id' => 999999999], $this->viewer, true)->getStatusCode());
+        $this->assertSame(204, $this->invoke(MediaNoteController::class, '/media/notes', ['action' => 'delete', 'id' => $note->id], $this->viewer, true)->getStatusCode());
+        $this->assertNull(MediaNote::find($note->id));
     }
 
     public function test_the_completed_flag_stamps_completion_even_when_the_duration_is_unknown(): void

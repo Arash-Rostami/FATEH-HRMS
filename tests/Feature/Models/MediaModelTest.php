@@ -10,9 +10,12 @@ use App\Models\Report;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\ContentSanitizerService;
+use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use ReflectionProperty;
+use RuntimeException;
 use Tests\TestCase;
 
 class MediaModelTest extends TestCase
@@ -23,6 +26,12 @@ class MediaModelTest extends TestCase
         $this->useMysql();
         $this->resetDbCharsetCache();
         DB::beginTransaction();
+        DB::connection()->setTransactionManager(new class extends DatabaseTransactionsManager {
+            public function afterCommitCallbacksShouldBeExecuted($level)
+            {
+                return $level <= 1;
+            }
+        });
     }
 
     protected function tearDown(): void
@@ -172,8 +181,119 @@ class MediaModelTest extends TestCase
 
     public function test_probe_duration_returns_null_instead_of_throwing(): void
     {
-        $this->assertNull(Media::probeDuration(''));
-        $this->assertNull(Media::probeDuration(base_path('missing-media-file.mp3')));
+        foreach ([false, null, '', 12, ['x'], base_path('missing-media-file.mp3')] as $path) {
+            $this->assertNull(Media::probeDuration($path));
+        }
+    }
+
+    public function test_a_rolled_back_update_or_delete_keeps_the_files_and_a_commit_removes_them(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('media/files/old.mp3', 'old');
+        Storage::disk('public')->put('media/files/new.mp3', 'new');
+
+        $media = Media::factory()->create(['file_path' => 'media/files/old.mp3']);
+
+        try {
+            DB::transaction(function () use ($media) {
+                $media->update(['file_path' => 'media/files/new.mp3']);
+
+                throw new RuntimeException('fail');
+            });
+        } catch (RuntimeException) {
+        }
+
+        Storage::disk('public')->assertExists('media/files/old.mp3');
+
+        $media = Media::find($media->id);
+
+        try {
+            DB::transaction(function () use ($media) {
+                $media->delete();
+
+                throw new RuntimeException('fail');
+            });
+        } catch (RuntimeException) {
+        }
+
+        Storage::disk('public')->assertExists('media/files/old.mp3');
+
+        DB::transaction(fn () => Media::find($media->id)->update(['file_path' => 'media/files/new.mp3']));
+
+        Storage::disk('public')->assertMissing('media/files/old.mp3');
+        Storage::disk('public')->assertExists('media/files/new.mp3');
+
+        DB::transaction(fn () => Media::find($media->id)->delete());
+
+        Storage::disk('public')->assertMissing('media/files/new.mp3');
+    }
+
+    public function test_a_parent_must_be_a_different_root_series_and_a_series_cannot_have_a_parent(): void
+    {
+        $series = Media::factory()->series()->create();
+        $other = Media::factory()->series()->create();
+        $episode = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $series->user_id]);
+        $audio = Media::factory()->create();
+
+        $this->assertValidationFails('data.parent_id', fn () => $other->update(['parent_id' => $series->id]));
+        $this->assertValidationFails('data.parent_id', fn () => $series->update(['parent_id' => $series->id]));
+        $this->assertValidationFails('data.parent_id', fn () => Media::factory()->series()->create(['parent_id' => $series->id]));
+        $this->assertValidationFails('data.parent_id', fn () => Media::factory()->create(['parent_id' => $audio->id]));
+        $this->assertValidationFails('data.parent_id', fn () => Media::factory()->create(['parent_id' => $episode->id]));
+        $this->assertValidationFails('data.parent_id', fn () => $audio->update(['parent_id' => 999999999]));
+
+        $audio->update(['parent_id' => $series->id]);
+
+        $this->assertSame($series->id, $audio->fresh()->parent_id);
+    }
+
+    public function test_a_series_with_episodes_cannot_change_kind(): void
+    {
+        $series = Media::factory()->series()->create();
+        $empty = Media::factory()->series()->create();
+        Media::factory()->create(['parent_id' => $series->id, 'user_id' => $series->user_id]);
+
+        $this->assertValidationFails('data.kind', fn () => $series->update(['kind' => Media::KIND_AUDIO]));
+
+        $empty->update(['kind' => Media::KIND_AUDIO]);
+
+        $this->assertSame(Media::KIND_AUDIO, $empty->fresh()->kind);
+    }
+
+    public function test_a_non_series_delete_runs_no_children_query(): void
+    {
+        $episode = Media::factory()->create();
+        $queries = [];
+        DB::listen(function ($query) use (&$queries) {
+            $queries[] = $query->sql;
+        });
+
+        $episode->delete();
+
+        $this->assertCount(0, array_filter($queries, fn (string $sql) => str_contains($sql, '`parent_id` = ?') && str_starts_with($sql, 'select')));
+    }
+
+    public function test_a_stored_zero_or_negative_duration_becomes_null(): void
+    {
+        $zero = Media::factory()->create(['duration_seconds' => 0]);
+        $negative = Media::factory()->create(['duration_seconds' => 90]);
+        $negative->update(['duration_seconds' => -5]);
+
+        $this->assertNull($zero->fresh()->duration_seconds);
+        $this->assertNull($negative->fresh()->duration_seconds);
+    }
+
+    private function assertValidationFails(string $key, callable $write): void
+    {
+        try {
+            $write();
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey($key, $e->errors());
+
+            return;
+        }
+
+        $this->fail('Expected a ValidationException for '.$key);
     }
 
     public function test_catalog_cache_is_department_scoped_and_changes_with_the_day(): void
