@@ -119,7 +119,9 @@ class Media extends Model
 
     public function scopeUnseenBy(Builder $query, int $userId): Builder
     {
-        return $query->library(User::query()->find($userId))
+        $user = (int) auth()->id() === $userId ? auth()->user() : User::query()->find($userId);
+
+        return $query->library($user)
             ->where('user_id', '!=', $userId)
             ->where('created_at', '>=', now()->subDays(HasNudgeTracking::FRESHNESS_DAYS))
             ->where(fn (Builder $inner) => $inner->whereNull('seen_by')->orWhereJsonDoesntContain('seen_by', $userId));
