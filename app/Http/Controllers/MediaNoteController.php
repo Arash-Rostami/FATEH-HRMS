@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\GuardsJsonEndpoint;
-use App\Livewire\Dashboard\Media\Actions\SaveNoteAction;
+use App\Livewire\Dashboard\Knowledge\Actions\SaveNoteAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

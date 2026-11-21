@@ -1,4 +1,4 @@
-# Media user-panel pattern
+# Knowledge user-panel pattern (shell `Main`, panes `Reports` and `Library`)
 
 ## Scope and source of truth
 
@@ -6,7 +6,7 @@ The user-panel slice follows the frozen Knowledge contracts and their §13 reuse
 
 ## Library and access
 
-`Main` is lazy, uses `FocusOnRecord`, and exposes one computed `library`. Its placeholder has the identical app-shell height and constant `x-data="media()"` expression. A disabled `media` module returns 404 before building the library (the route-name guard also covers it). `mount()` writes nothing: «new» is derived, never stored. `Media::scopeNewFor` marks a parent as new when it is library-visible, not the viewer's own, released within `media.new_days` (30; `report_date`, else `created_at`) and neither it nor any episode has a progress row for the viewer. `mount()` plucks those ids once (live, class L) into the `#[Locked]` `$newIds`, and `library()` merges `is_new` outside the cached catalog; the client hides a chip as soon as the item is played (`played()`). `SaveProgressAction` flushes the menu state only when a first play happens while something was new. The older `seen_by` column and `MarkMediaSeenAction` no longer exist.
+`Library` is lazy, uses `FocusOnRecord`, and exposes one computed `library`. Its placeholder has the identical app-shell height and constant `x-data="media()"` expression. A disabled `knowledge:media` view returns 404 before building the library (the route-name guard also covers it). `mount()` writes nothing: «new» is derived, never stored. `Media::scopeNewFor` marks a parent as new when it is library-visible, not the viewer's own, released within `media.new_days` (30; `report_date`, else `created_at`) and neither it nor any episode has a progress row for the viewer. `mount()` plucks those ids once (live, class L) into the `#[Locked]` `$newIds`, and `library()` merges `is_new` outside the cached catalog; the client hides a chip as soon as the item is played (`played()`). `SaveProgressAction` flushes the menu state only when a first play happens while something was new. The older `seen_by` column and `MarkMediaSeenAction` no longer exist.
 
 `MediaPresenter` reaches roots only through `Media::library($user)`. It eager-loads department and ordered, active, unexpired episodes. Episode reads do not apply an independent audience scope: the visible parent grants access. Future episodes remain listed, but every file and track URL is null. Progress and notes are queried only for the current viewer and the listed episode IDs.
 
@@ -24,7 +24,7 @@ Unlock timers use the server clock offset. All locks due together cause one libr
 
 ## Reused UI
 
-The shell, rail, row grammar and collapse include mirror Channel; route navigation and download behavior mirror `Tab/Reports`. Title, route and Alpine tabs, form buttons and fields, semantic table, bookmark, row-actions, saved-empty, quota meter, progress ring, empty states, skeletons, dialogs and maximize backdrop all use the shared components. The cinema view is the standard maximize (`maximize` mixin, maximize button, `max-backdrop`); the media code never writes the focus store. The video stage and the video/audio element follow the current episode (`isVideo`), never the series-level `kind`, which is presentation only. Rich descriptions use `rich-colors`.
+The shell, rail, row grammar and collapse include mirror Channel; route navigation and download behavior mirror `Knowledge/Reports`. Title, route and Alpine tabs, form buttons and fields, semantic table, bookmark, row-actions, saved-empty, quota meter, progress ring, empty states, skeletons, dialogs and maximize backdrop all use the shared components. The cinema view is the standard maximize (`maximize` mixin, maximize button, `max-backdrop`); the media code never writes the focus store. The video stage and the video/audio element follow the current episode (`isVideo`), never the series-level `kind`, which is presentation only. Rich descriptions use `rich-colors`.
 
 No custom player skin, progress SVG, loading spinner, toast shell, normalizer or clipboard implementation is introduced. The existing quota-meter and ring markup are updated in place by small browser adapters because they accept server-side scalar props, not reactive Alpine expressions.
 
@@ -49,8 +49,8 @@ The shared model and Actions were re-read for query waste. The existing batched 
 - `Grep 'quota|meter|progress|ring|table|sort' resources/views/components/ui` found `quota-meter`, `decor/progress-ring` and `table`; all were adopted.
 - `Grep 'normalize|toPersian|convertToPersian|formatTime|formatDuration|animate-eq' resources/js` found the exported Persian normalizer in `memberPicker.js`; the player's `faTime` is adopted for durations.
 - `Grep 'media|keyboard|register|keydown|shortcut' resources/js/components/alpine/data/shortcut.js` found no transport-shortcut registry; `bindPlayerKeys` from the player is used instead of adding a document handler.
-- `Grep 'size\\(|bytes|filesize|Number::' resources/views/livewire/dashboard/tab/reports` and `Grep 'bytes|[Ff]ile[Ss]ize|humanReadable|Number::' app/Helpers` found no report file-size formatter; the presenter uses one local size-to-kilobytes expression and `convertToPersian`.
-- `Grep 'file_path|@js|wire:click|wire:model|localStorage|<script|rounded-full|#[0-9a-fA-F]{3,8}' resources/views/livewire/dashboard/media` found no matches.
+- `Grep 'size\\(|bytes|filesize|Number::' resources/views/livewire/dashboard/knowledge/reports` and `Grep 'bytes|[Ff]ile[Ss]ize|humanReadable|Number::' app/Helpers` found no report file-size formatter; the presenter uses one local size-to-kilobytes expression and `convertToPersian`.
+- `Grep 'file_path|@js|wire:click|wire:model|localStorage|<script|rounded-full|#[0-9a-fA-F]{3,8}' resources/views/livewire/dashboard/knowledge/library` found no matches.
 
 ## Master tests
 

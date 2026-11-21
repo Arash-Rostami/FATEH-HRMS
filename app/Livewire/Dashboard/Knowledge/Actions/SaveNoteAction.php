@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Dashboard\Media\Actions;
+namespace App\Livewire\Dashboard\Knowledge\Actions;
 
 use App\Models\Media;
 use App\Models\MediaNote;

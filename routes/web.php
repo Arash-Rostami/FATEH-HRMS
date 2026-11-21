@@ -87,8 +87,8 @@ Route::middleware('throttle:launchpad-file')
     ->get('/launchpad/{launchpad}/{token}/{file}', LaunchpadFileController::class)
     ->name('launchpad.file');
 
-Route::post('/media/progress', MediaProgressController::class)->middleware('throttle:media-progress')->name('media.progress');
-Route::post('/media/notes', MediaNoteController::class)->middleware('throttle:media-notes')->name('media.notes');
+Route::post('/media/progress', MediaProgressController::class)->middleware(['throttle:media-progress', 'tenant.on:knowledge:media'])->name('media.progress');
+Route::post('/media/notes', MediaNoteController::class)->middleware(['throttle:media-notes', 'tenant.on:knowledge:media'])->name('media.notes');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
