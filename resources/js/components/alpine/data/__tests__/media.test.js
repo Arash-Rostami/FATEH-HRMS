@@ -101,6 +101,26 @@ describe('media library', () => {
         expect(root.visibleItems.map(row => row.id)).toEqual([2]);
     });
 
+    it('computes progress only for the continue filter', () => {
+        const root = component([item(1), item(2)]);
+        root.progressOf = vi.fn(() => 0.5);
+        expect(root.visibleItems.map(row => row.id)).toEqual([1, 2]);
+        expect(root.progressOf).not.toHaveBeenCalled();
+        root.filter = 'continue';
+        expect(root.visibleItems).toHaveLength(2);
+        expect(root.progressOf).toHaveBeenCalledTimes(2);
+    });
+
+    it('prunes local progress of episodes that are no longer in the catalog', () => {
+        const stamp = { position: 10, last_position: 10, updatedAt: 1 };
+        localStorage.setItem('media_progress', JSON.stringify({ 1: stamp, 999: stamp }));
+        const root = component([item(1)]);
+        expect(Object.keys(JSON.parse(localStorage.getItem('media_progress')))).toEqual(['1']);
+        root.$el.dataset.library = JSON.stringify({ serverNow: Date.now() / 1000, items: [], notes: {}, progress: {} });
+        root.readLibrary();
+        expect(Object.keys(JSON.parse(localStorage.getItem('media_progress')))).toEqual(['1']);
+    });
+
     it('copies a real episode moment using the clipboard mixin', () => {
         const root = component([item(1)]);
         root.cur = { sid: 1, idx: 0 };
@@ -320,6 +340,8 @@ describe('media library', () => {
         expect(root.selectedId).toBe(1);
         expect(root.viewedEpisodeIndex).toBe(1);
         root.query = 'دوره';
+        expect(root.episodeHit(1)).toBeNull();
+        root.query = '';
         expect(root.episodeHit(1)).toBeNull();
     });
 });
