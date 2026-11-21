@@ -3,19 +3,20 @@
 namespace App\Traits\Filament;
 
 use App\Enums\ResourceTypeIcon;
+use BackedEnum;
 
 trait FilamentIconOptions
 {
-    protected static function curatedIconOptions(): array
+    protected static function curatedIconOptions(string $enumClass = ResourceTypeIcon::class): array
     {
-        return collect(ResourceTypeIcon::cases())
-            ->mapWithKeys(fn(ResourceTypeIcon $icon) => [$icon->value => static::renderCuratedIconOption($icon->value, $icon->getLabel())])
+        return collect($enumClass::cases())
+            ->mapWithKeys(fn(BackedEnum $icon) => [$icon->value => static::renderCuratedIconOption($icon->value, $icon->getLabel())])
             ->all();
     }
 
-    protected static function curatedIconOptionLabel(string $value): string
+    protected static function curatedIconOptionLabel(string $value, string $enumClass = ResourceTypeIcon::class): string
     {
-        $icon = ResourceTypeIcon::tryFrom($value);
+        $icon = $enumClass::tryFrom($value);
 
         if ($icon) {
             return static::renderCuratedIconOption($icon->value, $icon->getLabel());

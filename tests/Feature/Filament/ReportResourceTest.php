@@ -5,6 +5,8 @@ namespace Tests\Feature\Filament;
 use App\Filament\Pages\CreateRecord;
 use App\Filament\Pages\EditRecord;
 use App\Filament\Pages\ListRecords;
+use App\Filament\Resources\MediaResource;
+use App\Filament\Resources\KnowledgeProgressResource;
 use App\Filament\Resources\ReportResource;
 use App\Filament\Resources\ReportResource\Pages\CreateReport;
 use App\Filament\Resources\ReportResource\Pages\EditReport;
@@ -519,6 +521,17 @@ class ReportResourceTest extends TestCase
         $this->assertNotSame('resources/general/strings.notifications.export_completed', $body);
         $this->assertStringContainsString('1,234', $body);
         $this->assertStringNotContainsString(':count', $body);
+    }
+
+    public function test_switch_group_carries_media_and_progress_after_reports(): void
+    {
+        $method = new \ReflectionMethod(ReportResource::class, 'switchGroup');
+        $method->setAccessible(true);
+        $group = $method->invoke(null);
+
+        $this->assertContains(MediaResource::class, $group);
+        $this->assertContains(KnowledgeProgressResource::class, $group);
+        $this->assertSame(ReportResource::class, $group[0]);
     }
 
     public function test_group_and_query_closures_use_correct_param_names(): void
