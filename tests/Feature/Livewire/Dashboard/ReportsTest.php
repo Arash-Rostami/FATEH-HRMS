@@ -60,10 +60,12 @@ class ReportsTest extends TestCase
         config(['media.track_reports' => false]);
         Livewire::withoutLazyLoading();
         $component = Livewire::actingAs($user)->test(Reports::class);
+        $component->assertDontSee('دانلود موفق از دکمهٔ دانلود، گزارش را در پیشرفت شما ثبت می‌کند');
         $component->call('download', $report->id);
         $this->assertFalse(KnowledgeProgress::where('user_id', $user->id)->where('report_id', $report->id)->exists());
         config(['media.track_reports' => true]);
-        $component->call('download', $report->id);
+        $component->call('download', $report->id)
+            ->assertSee('دانلود موفق از دکمهٔ دانلود، گزارش را در پیشرفت شما ثبت می‌کند');
         $this->assertTrue(KnowledgeProgress::where('user_id', $user->id)->where('report_id', $report->id)->whereNotNull('completed_at')->exists());
     }
 

@@ -124,6 +124,12 @@
     </div>
 
     <div x-show="tab === 'notes'" x-cloak class="space-y-2">
+        @if(config('media.track_reports'))
+            <div wire:key="reports-tracking-note" class="flex items-start gap-2 px-1">
+                <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>
+                <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">دانلود موفق از دکمهٔ دانلود، گزارش را در پیشرفت شما ثبت می‌کند؛ باز کردن جزئیات یا نبودن فایل، پیشرفت ثبت نمی‌کند.</p>
+            </div>
+        @endif
         @foreach($notes as $note)
             <div class="flex items-start gap-2 px-1">
                 <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>
