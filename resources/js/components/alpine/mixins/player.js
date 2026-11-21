@@ -291,6 +291,21 @@ export default function playerMixin() {
             return 'new';
         },
 
+        canMarkDone(sid, idx) {
+            const ep = this.episode(sid, idx);
+            return !!ep?.file_url && ep.duration > 0 && !this.library.progress?.[ep.id]?.completed;
+        },
+
+        markDone(sid, idx) {
+            if (!this.canMarkDone(sid, idx)) return;
+            const ep = this.episode(sid, idx);
+            const position = Math.floor(ep.duration);
+            this._storeLocal(ep.id, position);
+            this._markProgress(ep.id, position, position, true);
+            this._queuePending([{ type: 'media', id: ep.id, position, last_position: position, completed: true, duration: position }]);
+            this._drainPending();
+        },
+
         progressOf(sid) {
             const item = this.item(sid);
             if (!item?.episodes?.length) return 0;

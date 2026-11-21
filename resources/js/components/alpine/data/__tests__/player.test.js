@@ -1114,3 +1114,36 @@ describe('playerMixin — per-user scoping, safety timer, rewind, last lesson, l
         expect(global.fetch).not.toHaveBeenCalled()
     })
 })
+
+describe('playerMixin — mark a lesson done', () => {
+    test('records completion at the duration locally and queues the normal progress item', async () => {
+        const p = makePlayer()
+        expect(p.canMarkDone(1, 1)).toBe(true)
+        p.markDone(1, 1)
+        expect(p.library.progress['12']).toMatchObject({ position: 2000, last_position: 2000, completed: true })
+        expect(p.episodeState(1, 1)).toBe('done')
+        expect(JSON.parse(localStorage.getItem('media_progress'))['12']).toMatchObject({ position: 2000, last_position: 2000 })
+        await settle()
+        const body = JSON.parse(global.fetch.mock.calls[0][1].body)
+        expect(body.items).toEqual([{ type: 'media', id: 12, position: 2000, last_position: 2000, completed: true, duration: 2000 }])
+        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
+    })
+
+    test('is refused for locked, finished or duration-less lessons and queues on a failed request', async () => {
+        const p = makePlayer()
+        expect(p.canMarkDone(1, 2)).toBe(false)
+        p.markDone(1, 2)
+        p.markDone(1, 1)
+        expect(p.canMarkDone(1, 1)).toBe(false)
+        const calls = global.fetch.mock.calls.length
+        p.markDone(1, 1)
+        expect(global.fetch.mock.calls.length).toBe(calls)
+        p.library.items[0].episodes[0].duration = 0
+        expect(p.canMarkDone(1, 0)).toBe(false)
+        const failing = makePlayer()
+        global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 })
+        failing.markDone(1, 0)
+        await settle()
+        expect(JSON.parse(localStorage.getItem('media_progress_pending')).some((i) => i.id === 11)).toBe(true)
+    })
+})
