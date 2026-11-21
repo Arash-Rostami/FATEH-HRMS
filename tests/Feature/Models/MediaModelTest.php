@@ -103,7 +103,7 @@ class MediaModelTest extends TestCase
         $this->assertSame('سری', $series->kind_label);
     }
 
-    public function test_file_url_is_a_public_url_and_the_storage_path_is_hidden(): void
+    public function test_file_url_is_a_public_url_not_the_storage_path(): void
     {
         Storage::fake('public');
         Storage::disk('public')->put('media/files/a.mp3', 'audio');
@@ -113,7 +113,6 @@ class MediaModelTest extends TestCase
 
         $this->assertNotSame('media/files/a.mp3', $media->file_url);
         $this->assertStringStartsWith('http', $media->file_url);
-        $this->assertArrayNotHasKey('file_path', $media->toArray());
     }
 
     public function test_series_delete_removes_episodes_and_their_files(): void

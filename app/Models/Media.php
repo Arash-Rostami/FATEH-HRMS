@@ -39,13 +39,6 @@ class Media extends Model
 
     protected $table = 'media';
 
-    protected $hidden = [
-        'file_path',
-        'cover_image',
-        'transcript_path',
-        'chapters_path',
-    ];
-
     protected $fillable = [
         'user_id',
         'parent_id',
