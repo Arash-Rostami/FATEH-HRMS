@@ -29,7 +29,7 @@ class Tabs extends Component
 
     public function mount(): void
     {
-        if ($this->activeTab === 'reports') {
+        if ($this->activeTab === 'reports' && ! tenantOff('knowledge')) {
             $this->redirectRoute('knowledge', array_filter(['open' => request('open')]), navigate: true);
 
             return;

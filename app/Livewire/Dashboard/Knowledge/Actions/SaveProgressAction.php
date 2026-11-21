@@ -70,7 +70,7 @@ class SaveProgressAction
                 $mediaRows[] = $built;
             }
 
-            if ($stored === null && $sent !== null) {
+            if ($stored === null && $sent !== null && $sent >= 10 && $sent >= (int) ($item['position'] ?? 0)) {
                 $durations[$item['id']] = $sent;
             }
         }

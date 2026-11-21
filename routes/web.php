@@ -111,7 +111,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tasksheet/shared/{subject}', Tasksheet::class)->middleware('signed')->name('tasksheet.shared');
     Route::get('/launchpad', Launchpad::class)->name('launchpad');
     Route::get('/knowledge', Knowledge::class)->name('knowledge');
-    Route::get('/media', fn (Request $request) => redirect()->route('knowledge', ['tab' => 'media'] + $request->only('open', 't'), 301));
+    Route::get('/media', fn (Request $request) => redirect()->route('knowledge', ['tab' => 'media'] + $request->only('open', 't'), 302));
     Route::get('/launchpad/{launchpad}/go', LaunchpadGoController::class)->middleware('throttle:30,1')->where('launchpad', '[1-9][0-9]{0,9}')->name('launchpad.go');
     Route::get('/ai-report', AiReport::class)->name('ai-report');
     Route::get('/ai-report/shared/{report}', AiReport::class)->middleware('signed')->name('ai-report.shared');

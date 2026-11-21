@@ -135,11 +135,11 @@ class KnowledgeTest extends TestCase
         $user = $this->user();
 
         $this->actingAs($user)->get('/media')
-            ->assertStatus(301)
+            ->assertStatus(302)
             ->assertRedirect(route('knowledge', ['tab' => 'media']));
 
         $this->actingAs($user)->get('/media?open=3&t=9&junk=1')
-            ->assertStatus(301)
+            ->assertStatus(302)
             ->assertRedirect(route('knowledge', ['tab' => 'media', 'open' => 3, 't' => 9]));
     }
 

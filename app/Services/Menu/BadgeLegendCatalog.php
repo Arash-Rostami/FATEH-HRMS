@@ -307,6 +307,6 @@ class BadgeLegendCatalog
                 'clears' => 'باز کردن صفحهٔ رسانه نقطه را خاموش نمی‌کند؛ با پخش اولین جلسهٔ هر مورد تازه نشانگر آن پاک می‌شود و وقتی همهٔ موارد تازه را پخش کردید نقطه خاموش می‌شود. پس از حدود ۳۰ روز از انتشار، یا با حذف، غیرفعال شدن یا پایان مهلت رسانه نیز پاک می‌شود.',
                 'surface' => 'نقطهٔ کنار گزینهٔ «رسانه» در منوی اصلی.',
             ],
-        ], fn (string $key) => !tenantOffName($key), ARRAY_FILTER_USE_KEY);
+        ], fn (string $key) => !tenantOffName($key) && !($key === 'media-controller' && tenantOff('knowledge:media')), ARRAY_FILTER_USE_KEY);
     }
 }

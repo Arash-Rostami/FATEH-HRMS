@@ -175,6 +175,17 @@ class MediaPlaybackTest extends TestCase
         $this->assertSame(0, (int) $this->episode->fresh()->duration_seconds);
     }
 
+    public function test_a_client_cannot_backfill_a_tiny_or_position_contradicting_duration(): void
+    {
+        DB::table('media')->where('id', $this->episode->id)->update(['duration_seconds' => null]);
+
+        SaveProgressAction::execute($this->viewer, [$this->item(1, 1, false, 1)]);
+        $this->assertNull($this->episode->fresh()->duration_seconds);
+
+        SaveProgressAction::execute($this->viewer, [$this->item(500, 500, false, 60)]);
+        $this->assertNull($this->episode->fresh()->duration_seconds);
+    }
+
     public function test_a_note_is_added_at_the_cap_boundary_only_below_it(): void
     {
         config(['media.notes_max' => 2]);
