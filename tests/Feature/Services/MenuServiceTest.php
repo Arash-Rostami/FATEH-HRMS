@@ -905,9 +905,13 @@ class MenuServiceTest extends TestCase
         $expired = Media::factory()->series()->expired()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true]);
         $inactive = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => false]);
 
+        $old = Media::factory()->series()->create(['user_id' => $owner->id, 'departments' => null, 'active' => true, 'created_at' => now()->subDays(40)]);
+        $other = $this->activeUser();
+
         $unseen = Media::unseenBy($viewer->id)->pluck('id');
 
         $this->assertTrue((new UnseenMedia())->isActive());
+        $this->assertFalse($unseen->contains($old->id));
         $this->assertTrue($unseen->contains($series->id));
         $this->assertFalse($unseen->contains($episode->id));
         $this->assertFalse($unseen->contains($own->id));
@@ -918,6 +922,7 @@ class MenuServiceTest extends TestCase
         $this->assertFalse(Media::unseenBy($viewer->id)->whereKey($series->id)->exists());
         $this->assertSame([$viewer->id], array_values(array_map('intval', $series->fresh()->seen_by ?? [])));
         $this->assertNull($episode->fresh()->seen_by);
+        $this->assertTrue(Media::unseenBy($other->id)->whereKey($series->id)->exists());
 
         $this->assertSame(0, MarkMediaSeenAction::execute($viewer));
         $this->assertSame([$viewer->id], array_values(array_map('intval', $series->fresh()->seen_by ?? [])));
