@@ -113,7 +113,7 @@
             <div class="flex items-center gap-2 text-[12px] font-bold text-[var(--md-sys-color-error)]">
                 <span class="material-symbols-rounded text-[18px]">error</span>
                 <span>پخش نشد</span>
-                <a :href="currentEpisode?.download_url" class="text-[var(--md-sys-color-primary)] underline" x-show="currentEpisode?.download_url">دانلود فایل</a>
+                <a :href="currentEpisode?.file_url" class="text-[var(--md-sys-color-primary)] underline" x-show="currentEpisode?.file_url">دانلود فایل</a>
             </div>
         </template>
     </footer>

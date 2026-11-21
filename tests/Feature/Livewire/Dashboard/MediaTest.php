@@ -11,6 +11,7 @@ use App\Models\MediaNote;
 use App\Models\Profile;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -104,28 +105,30 @@ class MediaTest extends TestCase
         $first = Livewire::test(Library::class);
         $row = collect($first->instance()->library['items'])->firstWhere('id', $series->id);
         $this->assertTrue($row['is_new']);
-        $this->assertSame([$series->id], $first->get('newIds'));
         $first->assertSee('جدید');
         $this->assertArrayNotHasKey('is_new', $row['episodes'][0]);
-        $this->assertNotContains($episode->id, $first->get('newIds'));
+        $this->assertArrayNotHasKey('owner_id', $row);
+        $this->assertArrayNotHasKey('new_until', $row);
+        $this->assertArrayNotHasKey('download_url', $row['episodes'][0]);
         $this->assertTrue($this->isNew($viewer, $series));
         $this->assertTrue($this->isNew($viewer, $series));
     }
 
-    public function test_playing_clears_new_for_a_single_and_an_episode_clears_its_series(): void
+    public function test_the_owner_never_sees_new_and_played_state_is_left_to_the_client(): void
     {
         $owner = User::factory()->create(['status' => 'active']);
         $viewer = User::factory()->create(['status' => 'active']);
         $single = $this->media($owner);
         $series = $this->media($owner, ['kind' => 'series']);
         $episode = $this->media($owner, ['parent_id' => $series->id]);
+        $this->assertFalse($this->isNew($owner, $single));
         $this->assertTrue($this->isNew($viewer, $single));
-        $this->assertTrue($this->isNew($viewer, $series));
-        KnowledgeProgress::create(['user_id' => $viewer->id, 'media_id' => $single->id, 'position' => 5, 'last_position' => 5]);
         KnowledgeProgress::create(['user_id' => $viewer->id, 'media_id' => $episode->id, 'position' => 5, 'last_position' => 5]);
-        $this->assertFalse($this->isNew($viewer, $single));
-        $this->assertFalse($this->isNew($viewer, $series));
-        $this->assertTrue($this->isNew(User::factory()->create(['status' => 'active']), $series));
+        $this->actingAs($viewer);
+        Livewire::withoutLazyLoading();
+        $payload = Livewire::test(Library::class)->instance()->library;
+        $this->assertTrue(collect($payload['items'])->firstWhere('id', $series->id)['is_new']);
+        $this->assertArrayHasKey($episode->id, (array) $payload['progress']);
     }
 
     public function test_items_older_than_new_days_are_never_new(): void
@@ -140,6 +143,7 @@ class MediaTest extends TestCase
         $this->assertTrue($this->isNew($viewer, $recent));
         $this->assertFalse($this->isNew($viewer, $created));
         config(['media.new_days' => 60]);
+        ModelCacheVersion::bump(Media::class);
         $this->assertTrue($this->isNew($viewer, $dated));
     }
 
@@ -170,7 +174,7 @@ class MediaTest extends TestCase
         $payload = Livewire::test(Library::class)->instance()->library;
         $row = collect($payload['items'])->firstWhere('id', $series->id)['episodes'][0];
         $this->assertSame($episode->id, $row['id']);
-        foreach (['file_url', 'download_url', 'transcript_url', 'chapters_url'] as $key) {
+        foreach (['file_url', 'transcript_url', 'chapters_url'] as $key) {
             $this->assertNull($row[$key]);
         }
         $this->assertNull($row['mime']);

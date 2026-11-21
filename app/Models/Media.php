@@ -141,7 +141,8 @@ class Media extends Model
     {
         return static::cached(
             'catalog:'.($departmentCode ?? 'all').':'.today()->toDateString().':r'.ModelCacheVersion::version(Report::class).':u'.ModelCacheVersion::version(User::class),
-            $build
+            $build,
+            now()->addHour()
         );
     }
 
