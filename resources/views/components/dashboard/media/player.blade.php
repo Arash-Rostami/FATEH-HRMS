@@ -2,7 +2,7 @@
 
 @if($part === 'bar')
     <footer
-        {{ $attributes->merge(['class' => 'relative z-[5] flex items-center gap-3 bg-[var(--md-sys-color-surface)] border-t border-[var(--md-sys-color-outline-variant)]/30 shadow-[0_-8px_28px_color-mix(in_srgb,var(--md-sys-color-primary)_8%,transparent)] min-h-[68px] md:min-h-[76px] pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] px-4']) }}
+        {{ $attributes->merge(['class' => 'relative z-[5] flex items-center gap-3 bg-[var(--md-sys-color-surface)] border-t border-[var(--md-sys-color-outline-variant)]/30 shadow-[0_-8px_28px_color-mix(in_srgb,var(--md-sys-color-primary)_8%,transparent)] min-h-16 pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] px-4']) }}
         dir="rtl"
         aria-label="پخش‌کنندهٔ رسانه"
         wire:ignore
@@ -21,7 +21,7 @@
             <div class="flex min-w-0 flex-1 items-center gap-3">
                 <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
                     <span class="material-symbols-rounded text-[22px] font-fill"
-                          :class="playing ? 'animate-pulse' : ''"
+                          :class="playing ? 'animate-eq' : ''"
                           x-text="playing ? 'graphic_eq' : (item()?.kind === 'video' ? 'smart_display' : 'headphones')">headphones</span>
                 </div>
                 <div class="min-w-0">
@@ -121,7 +121,7 @@
     <template x-if="currentEpisode && item()?.kind === 'video'">
         <div class="relative mx-4 mt-4 aspect-video max-h-[360px] w-[calc(100%-2rem)] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-primary)_45%,var(--md-sys-color-surface))] shadow-sm md:mx-7 md:w-[calc(100%-3.5rem)]"
              :class="playing ? '' : 'paused'"
-             x-init="mountVideo($refs.videoHost)"
+             x-init="$nextTick(() => mountVideo($refs.videoHost))"
              wire:ignore>
             <span class="pointer-events-none absolute inset-0 grid place-items-center text-[96px] opacity-35 material-symbols-rounded font-fill" x-text="item()?.icon || 'smart_display'">smart_display</span>
 
@@ -131,13 +131,12 @@
                     class="absolute inset-0 grid place-items-center transition-opacity"
                     :class="playing ? 'opacity-0 pointer-events-none' : 'opacity-100'"
                     aria-label="پخش یا توقف">
-                <span class="grid h-20 w-20 place-items-center rounded-3xl bg-black/45 text-white transition-transform hover:scale-105">
+                <span class="grid h-20 w-20 place-items-center rounded-xl bg-black/45 text-white transition-transform hover:scale-105">
                     <span class="material-symbols-rounded text-[38px] font-fill" x-text="playing ? 'pause' : 'play_arrow'">play_arrow</span>
                 </span>
             </button>
 
-            <div class="absolute inset-x-0 bottom-0 flex flex-col gap-2 px-4 pb-3 pt-11 opacity-0 transition-opacity duration-200 [.paused_&]:opacity-100 hover:opacity-100 focus-within:opacity-100"
-                 style="background: linear-gradient(to top, rgba(0,0,0,.7), transparent); color: #fff;">
+            <div class="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-11 text-white opacity-0 transition-opacity duration-200 [.paused_&]:opacity-100 hover:opacity-100 focus-within:opacity-100">
                 <div class="h-1 overflow-hidden rounded-full bg-white/30">
                     <div class="block h-full bg-white" :style="`width: ${progressRatio * 100}%`"></div>
                 </div>
