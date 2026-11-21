@@ -39,6 +39,10 @@ class FakeAudio {
 
     load() {}
 
+    canPlayType() {
+        return 'maybe'
+    }
+
     play() {
         this.paused = false
         this.ended = false
@@ -1112,6 +1116,49 @@ describe('playerMixin — per-user scoping, safety timer, rewind, last lesson, l
         expect(p.library.progress['11']).toMatchObject({ position: 700, last_position: 700 })
         expect(p.progressOf(1)).toBeCloseTo(0.2)
         expect(global.fetch).not.toHaveBeenCalled()
+    })
+})
+
+describe('playerMixin — picture in picture', () => {
+    afterEach(() => {
+        delete document.pictureInPictureEnabled
+        delete document.pictureInPictureElement
+        delete document.exitPictureInPicture
+    })
+
+    test('requests and exits picture in picture on the shared video element and follows its events', async () => {
+        videoFactory()
+        const p = makePlayer()
+        p.playEpisode(2, 0)
+        const el = sharedElement()
+        el.requestPictureInPicture = vi.fn().mockResolvedValue()
+        document.exitPictureInPicture = vi.fn().mockResolvedValue()
+        document.pictureInPictureEnabled = true
+        expect(p.canPictureInPicture).toBe(true)
+        await p.togglePictureInPicture()
+        expect(el.requestPictureInPicture).toHaveBeenCalledOnce()
+        el._trigger('enterpictureinpicture')
+        expect(p.pictureInPicture).toBe(true)
+        document.pictureInPictureElement = el
+        await p.togglePictureInPicture()
+        expect(document.exitPictureInPicture).toHaveBeenCalledOnce()
+        el._trigger('leavepictureinpicture')
+        expect(p.pictureInPicture).toBe(false)
+    })
+
+    test('toasts a failure instead of throwing and ignores audio', async () => {
+        videoFactory()
+        const p = makePlayer()
+        p.toast = vi.fn()
+        p.playEpisode(2, 0)
+        sharedElement().requestPictureInPicture = vi.fn().mockRejectedValue(new Error('denied'))
+        await p.togglePictureInPicture()
+        expect(p.toast).toHaveBeenCalledWith(expect.any(String), 'error')
+        document.createElement = realCreateElement
+        p.toast.mockClear()
+        p.playEpisode(1, 0)
+        await p.togglePictureInPicture()
+        expect(p.toast).not.toHaveBeenCalled()
     })
 })
 

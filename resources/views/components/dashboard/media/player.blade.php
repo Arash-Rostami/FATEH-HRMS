@@ -135,6 +135,9 @@
                     <x-ui.buttons.form variant="none" icon="skip_next" x-on:click="next()" aria-label="بعدی" class="w-8 h-8 rounded-lg hover:bg-white/20"/>
                     <span class="tabular-nums" x-text="faTime(t) + ' / ' + faTime(duration)"></span>
                     <span class="ms-auto truncate" x-text="currentEpisode?.title"></span>
+                    <x-ui.buttons.form variant="none" x-show="canPictureInPicture" x-on:click="togglePictureInPicture()" x-bind:aria-pressed="pictureInPicture" aria-label="تصویر در تصویر" title="تصویر در تصویر" class="w-8 h-8 rounded-lg hover:bg-white/20">
+                        <span class="material-symbols-rounded text-[20px]">picture_in_picture_alt</span>
+                    </x-ui.buttons.form>
                 </div>
             </div>
         </div>

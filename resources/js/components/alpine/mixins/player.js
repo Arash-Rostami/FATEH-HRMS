@@ -134,6 +134,14 @@ function bindElement(ui) {
         emitStateCoalesced(shared.ui);
     });
 
+    el.addEventListener('enterpictureinpicture', () => {
+        if (shared.ui && shared.element === el) shared.ui.pictureInPicture = true;
+    });
+
+    el.addEventListener('leavepictureinpicture', () => {
+        if (shared.ui) shared.ui.pictureInPicture = false;
+    });
+
     el.addEventListener('loadedmetadata', () => {
         if (!shared.ui) return;
         if (Number.isFinite(el.duration) && el.duration > 0 && !shared.ui.duration) shared.ui.duration = el.duration;
@@ -205,6 +213,7 @@ export default function playerMixin() {
         ready: false,
         error: false,
         tapToPlay: false,
+        pictureInPicture: false,
         seeking: false,
         progressUrl: '',
         userId: '',
@@ -234,6 +243,10 @@ export default function playerMixin() {
 
         get fa() {
             return fa;
+        },
+
+        get canPictureInPicture() {
+            return !!document.pictureInPictureEnabled;
         },
 
         loadLibrary(payload) {
@@ -395,6 +408,17 @@ export default function playerMixin() {
                 shared.element.pause();
             } else {
                 shared.element.play().catch(() => { this.tapToPlay = true; });
+            }
+        },
+
+        async togglePictureInPicture() {
+            const el = shared.element;
+            if (!el || shared.kind !== 'video') return;
+            try {
+                if (document.pictureInPictureElement === el) await document.exitPictureInPicture();
+                else await el.requestPictureInPicture();
+            } catch {
+                this.toast('نمایش در پنجرهٔ شناور انجام نشد.', 'error');
             }
         },
 
