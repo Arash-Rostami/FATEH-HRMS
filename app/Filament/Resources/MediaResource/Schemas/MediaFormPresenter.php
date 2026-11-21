@@ -7,6 +7,7 @@ use App\Filament\Resources\ReportResource\Schemas\ReportFormPresenter;
 use App\Models\Media;
 use App\Models\Report;
 use App\Support\FileNamer;
+use App\Traits\Filament\FilamentIconOptions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -18,6 +19,8 @@ use Symfony\Component\Mime\MimeTypes;
 
 class MediaFormPresenter extends ReportFormPresenter
 {
+    use FilamentIconOptions;
+
     public static function kind(): Select
     {
         return Select::make('kind')

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Enums\MediaIcon;
 use App\Filament\Pages\CreateRecord;
 use App\Filament\Pages\EditRecord;
 use App\Filament\Pages\ListRecords;
@@ -115,6 +116,21 @@ class MediaResourceTest extends TestCase
             'kind' => 'series',
             'user_id' => $author->id,
         ]);
+    }
+
+    public function test_icon_select_offers_media_icon_options_and_labels_a_stored_value(): void
+    {
+        $options = MediaFormPresenter::icon()->getOptions();
+
+        $this->assertCount(count(MediaIcon::cases()), $options);
+        $this->assertStringContainsString('<svg', $options[MediaIcon::Idea->value]);
+        $this->assertStringContainsString(MediaIcon::Idea->getLabel(), $options[MediaIcon::Idea->value]);
+
+        $media = Media::factory()->create(['icon' => MediaIcon::Teach->value]);
+
+        Livewire::actingAs($this->developer())->test(EditMedia::class, ['record' => $media->getRouteKey()])
+            ->assertSuccessful()
+            ->assertSee(MediaIcon::Teach->getLabel());
     }
 
     public function test_create_media_requires_a_title()
