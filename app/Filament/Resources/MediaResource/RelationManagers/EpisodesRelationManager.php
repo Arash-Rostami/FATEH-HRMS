@@ -1,0 +1,134 @@
+<?php
+
+namespace App\Filament\Resources\MediaResource\RelationManagers;
+
+use App\Filament\RelationManagers\RelationManager;
+use App\Filament\Resources\MediaResource\Schemas\MediaFormPresenter;
+use App\Filament\Resources\MediaResource\Schemas\MediaTablePresenter;
+use App\Models\Media;
+use App\Services\Cache\ModelCacheVersion;
+use App\Traits\Filament\FilamentActions;
+use Filament\Actions\CreateAction;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Schema;
+use Filament\Tables\Enums\RecordActionsPosition;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+
+class EpisodesRelationManager extends RelationManager
+{
+    use FilamentActions;
+
+    protected static string $relationship = 'episodes';
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        return $ownerRecord->kind === 'series' && parent::canViewForRecord($ownerRecord, $pageClass);
+    }
+
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
+    {
+        return __('resources/media/strings.relation.episodes');
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/report/strings.form.tab_main'))
+                        ->icon('heroicon-o-information-circle')
+                        ->schema([
+                            Section::make(__('resources/report/strings.form.section_main'))
+                                ->description(__('resources/report/strings.form.section_description'))
+                                ->icon('heroicon-o-document-text')
+                                ->schema([
+                                    MediaFormPresenter::episodeKind(),
+                                    MediaFormPresenter::title(),
+                                    MediaFormPresenter::topic(),
+                                    MediaFormPresenter::icon(),
+                                    MediaFormPresenter::active(),
+                                    MediaFormPresenter::pinned(),
+                                    MediaFormPresenter::divider(),
+                                    MediaFormPresenter::reportDate(),
+                                    MediaFormPresenter::expiresAt(),
+                                    MediaFormPresenter::divider(),
+                                    MediaFormPresenter::description(),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull(),
+                        ]),
+
+                    Tab::make(__('resources/report/strings.form.tab_files'))
+                        ->icon('heroicon-o-paper-clip')
+                        ->schema([
+                            Section::make(__('resources/report/strings.form.section_files'))
+                                ->icon('heroicon-o-folder-open')
+                                ->schema([
+                                    MediaFormPresenter::coverImage(),
+                                    MediaFormPresenter::divider(),
+                                    MediaFormPresenter::filePath(),
+                                    MediaFormPresenter::durationSeconds(),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull(),
+
+                            Section::make(__('resources/media/strings.form.section_tracks'))
+                                ->icon('heroicon-o-document-text')
+                                ->schema([
+                                    MediaFormPresenter::transcriptPath(),
+                                    MediaFormPresenter::chaptersPath(),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull(),
+                        ]),
+                ])
+                ->columnSpanFull(),
+        ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->modifyQueryUsing(fn(Builder $query) => $query->with(['department']))
+            ->columns([
+                MediaTablePresenter::id(),
+                MediaTablePresenter::title(),
+                MediaTablePresenter::kind(),
+                MediaTablePresenter::duration(),
+                self::activeColumn(),
+                MediaTablePresenter::reportDate(),
+            ])
+            ->reorderable('position')
+            ->afterReordering(function (): void {
+                ModelCacheVersion::bump(Media::class);
+            })
+            ->defaultSort('position', 'asc')
+            ->headerActions([
+                CreateAction::make()
+                    ->icon('heroicon-o-sparkles')
+                    ->label(__('resources/media/strings.navigation.singular'))
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['user_id'] = auth()->id();
+                        $data['parent_id'] = $this->getOwnerRecord()->getKey();
+
+                        return $data;
+                    }),
+            ])
+            ->recordActions([
+                self::viewAction(),
+                self::editAction()->using(fn(Model $record, array $data): Model => $this->updateDeletingDroppedFiles($record, $data, [
+                    'cover_image' => [],
+                    'file_path' => [],
+                    'transcript_path' => [],
+                    'chapters_path' => [],
+                ])),
+                self::deleteAction(),
+            ], RecordActionsPosition::AfterCells)
+            ->emptyStateIcon('heroicon-o-bookmark')
+            ->striped();
+    }
+}

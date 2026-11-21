@@ -34,7 +34,7 @@ class ReportResource extends Resource
     protected static function switchGroup(): array
     {
         return array_values(array_filter(
-            [self::class, AiReportResource::class],
+            [self::class, MediaResource::class, KnowledgeProgressResource::class, AiReportResource::class],
             fn (string $resource) => ! tenantOffName($resource::getSlug())
         ));
     }
