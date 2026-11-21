@@ -37,7 +37,7 @@ class KnowledgeProgressTablePresenter
     {
         return TextColumn::make('item')
             ->label(__('resources/media/strings.progress.table.item'))
-            ->formatStateUsing(fn(?Model $record): string => $record?->media?->title ?? $record?->report?->title ?? '-')
+            ->state(fn(Model $record): string => $record->media?->title ?? $record->report?->title ?? '-')
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
@@ -45,7 +45,7 @@ class KnowledgeProgressTablePresenter
     {
         return TextColumn::make('media.parent.title')
             ->label(__('resources/media/strings.progress.table.series'))
-            ->formatStateUsing(fn(?Model $record): string => $record?->media?->parent?->title ?? '-')
+            ->state(fn(Model $record): string => $record->media?->parent?->title ?? '-')
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: true);
     }
@@ -112,6 +112,7 @@ class KnowledgeProgressTablePresenter
             ->label(__('resources/media/strings.progress.table.completed'))
             ->trueLabel(__('resources/media/strings.progress.export.completed_yes'))
             ->falseLabel(__('resources/media/strings.progress.export.completed_no'))
+            ->nullable()
             ->native(false);
     }
 

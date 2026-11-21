@@ -32,6 +32,8 @@ const fa = (s) => String(s).replace(DIGIT_REGEX, (d) => FA_DIGITS[d]);
 
 const faTime = (s) => fa(fmt(s));
 
+const isVideoEp = (ep, item) => (ep?.mime ? ep.mime.startsWith('video/') : item?.kind === 'video');
+
 const live = () => !!(shared.element && !shared.element.paused && !shared.element.ended);
 
 const emitState = (ui) => {
@@ -221,6 +223,10 @@ export default function playerMixin() {
             return this.episode();
         },
 
+        get isVideo() {
+            return isVideoEp(this.episode(), this.item());
+        },
+
         get fa() {
             return fa;
         },
@@ -307,7 +313,7 @@ export default function playerMixin() {
             shared.selfPause = true;
             window.dispatchEvent(new CustomEvent(EVENT_PAUSE_REQ));
             shared.selfPause = false;
-            const el = ensureElement(this, item.kind === 'video' ? 'video' : 'audio');
+            const el = ensureElement(this, isVideoEp(ep, item) ? 'video' : 'audio');
             shared.ui = this;
             this.cur = { sid, idx };
             this.t = 0;

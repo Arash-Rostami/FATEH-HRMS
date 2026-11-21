@@ -14,7 +14,7 @@ class ProgressExporter extends Exporter
 
     public static function modifyQuery(Builder $query): Builder
     {
-        return $query->with(['user', 'media', 'report']);
+        return $query->with(['user', 'media.parent', 'report']);
     }
 
     public static function getColumns(): array

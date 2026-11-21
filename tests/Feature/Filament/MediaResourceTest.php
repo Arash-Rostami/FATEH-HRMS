@@ -10,12 +10,16 @@ use App\Filament\Resources\MediaResource;
 use App\Filament\Resources\MediaResource\Exports\ProgressExporter;
 use App\Filament\Resources\MediaResource\Pages\CreateMedia;
 use App\Filament\Resources\MediaResource\Pages\EditMedia;
+use App\Filament\Resources\KnowledgeProgressResource\Pages\ListKnowledgeProgress;
 use App\Filament\Resources\MediaResource\Pages\ListMedia;
+use App\Filament\Resources\MediaResource\Schemas\MediaFormPresenter;
 use App\Filament\Resources\MediaResource\RelationManagers\EpisodesRelationManager;
 use App\Filament\Resources\ReportResource;
 use App\Models\Department;
+use App\Models\KnowledgeProgress;
 use App\Models\Media;
 use App\Models\Permission;
+use App\Models\Report;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Traits\Filament\HandlesActionExceptions;
@@ -26,7 +30,9 @@ use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Livewire;
+use Mockery;
 use ReflectionMethod;
 use Tests\TestCase;
 
@@ -435,5 +441,58 @@ class MediaResourceTest extends TestCase
             $offenders,
             "Closure param must be named \$record/\$query (or carry an explicit type hint) so Filament's by-name evaluate() injection binds correctly:\n" . implode("\n", $offenders),
         );
+    }
+
+    public function test_vtt_upload_replaces_the_generated_text_extension_with_vtt(): void
+    {
+        $file = Mockery::mock(TemporaryUploadedFile::class);
+        $file->shouldReceive('extension')->andReturn('txt');
+        $file->shouldReceive('getClientOriginalExtension')->andReturn('txt');
+
+        $name = MediaFormPresenter::transcriptPath()->getUploadedFileNameForStorage($file);
+
+        $this->assertStringEndsWith('.vtt', $name);
+        $this->assertStringNotContainsString('.txt', $name);
+    }
+
+    public function test_duration_probe_is_skipped_when_the_real_path_is_not_a_usable_string(): void
+    {
+        $file = Mockery::mock(TemporaryUploadedFile::class);
+        $file->shouldReceive('getRealPath')->andReturn(false);
+
+        $this->assertNull(MediaFormPresenter::probedDuration($file));
+        $this->assertNull(MediaFormPresenter::probedDuration(null));
+    }
+
+    public function test_switching_an_episode_to_a_series_clears_its_parent_on_save(): void
+    {
+        $admin = $this->developer();
+        $parent = Media::factory()->create(['kind' => 'series', 'title' => '0-Parent Probe']);
+        $episode = Media::factory()->create(['kind' => 'audio', 'parent_id' => $parent->id, 'title' => '0-Episode Probe']);
+
+        Livewire::actingAs($admin)->test(EditMedia::class, ['record' => $episode->getRouteKey()])
+            ->fillForm(['kind' => 'series'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull($episode->fresh()->parent_id);
+    }
+
+    public function test_progress_table_renders_media_and_report_titles_and_filters_completion(): void
+    {
+        $admin = $this->developer();
+        $media = Media::factory()->create(['title' => '0-Progress Media Title']);
+        $report = Report::factory()->create(['title' => '0-Progress Report Title']);
+        $done = KnowledgeProgress::create(['user_id' => $admin->id, 'media_id' => $media->id, 'position' => 10, 'last_position' => 10, 'completed_at' => now(), 'last_seen_at' => now()]);
+        $open = KnowledgeProgress::create(['user_id' => $admin->id, 'report_id' => $report->id, 'position' => 5, 'last_position' => 5, 'last_seen_at' => now()]);
+
+        $page = Livewire::actingAs($admin)->test(ListKnowledgeProgress::class)
+            ->assertCanSeeTableRecords([$done, $open])
+            ->assertSee('0-Progress Media Title')
+            ->assertSee('0-Progress Report Title');
+
+        $page->filterTable('completed_at', true)
+            ->assertCanSeeTableRecords([$done])
+            ->assertCanNotSeeTableRecords([$open]);
     }
 }

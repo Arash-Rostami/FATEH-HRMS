@@ -13,7 +13,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Symfony\Component\Mime\MimeTypes;
 
@@ -99,10 +98,20 @@ class MediaFormPresenter extends ReportFormPresenter
     {
         return Select::make('report_ids')
             ->label(__('resources/media/strings.fields.report_ids'))
-            ->options(fn() => Report::query()->select('id', 'title')->orderBy('title')->pluck('title', 'id')->all())
             ->multiple()
             ->searchable()
-            ->preload()
+            ->getSearchResultsUsing(fn(string $search): array => Report::query()
+                ->select('id', 'title')
+                ->where('title', 'like', '%' . $search . '%')
+                ->orderBy('title')
+                ->limit(50)
+                ->pluck('title', 'id')
+                ->all())
+            ->getOptionLabelsUsing(fn(array $values): array => Report::query()
+                ->select('id', 'title')
+                ->whereIn('id', $values)
+                ->pluck('title', 'id')
+                ->all())
             ->nullable()
             ->helperText(__('resources/media/strings.hints.report_ids'));
     }
@@ -122,7 +131,7 @@ class MediaFormPresenter extends ReportFormPresenter
             )
             ->live()
             ->afterStateUpdated(function (?TemporaryUploadedFile $state, Set $set): void {
-                $duration = $state ? Media::probeDuration($state->getRealPath()) : null;
+                $duration = static::probedDuration($state);
 
                 if ($duration !== null) {
                     $set('duration_seconds', $duration);
@@ -130,6 +139,13 @@ class MediaFormPresenter extends ReportFormPresenter
             })
             ->nullable()
             ->helperText(__('resources/media/strings.hints.file_path'));
+    }
+
+    public static function probedDuration(?TemporaryUploadedFile $file): ?int
+    {
+        $path = $file?->getRealPath();
+
+        return is_string($path) && $path !== '' ? Media::probeDuration($path) : null;
     }
 
     private static function mediaMimes(): array
@@ -212,10 +228,7 @@ class MediaFormPresenter extends ReportFormPresenter
             ->disk('public')
             ->directory('media/files')
             ->getUploadedFileNameForStorageUsing(
-                fn(TemporaryUploadedFile $file): string => Str::of(FileNamer::stored('media', $file))->replaceLast(
-                    $file->getClientOriginalExtension() ?: 'vtt',
-                    'vtt',
-                )->toString()
+                fn(TemporaryUploadedFile $file): string => pathinfo(FileNamer::stored('media', $file), PATHINFO_FILENAME) . '.vtt'
             )
             ->rules(['extensions:vtt'])
             ->downloadable()

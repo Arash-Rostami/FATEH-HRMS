@@ -14,6 +14,15 @@ class EditMedia extends EditRecord
 
     protected static string $resource = MediaResource::class;
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (($data['kind'] ?? null) === 'series') {
+            $data['parent_id'] = null;
+        }
+
+        return $data;
+    }
+
     protected function trackedFileColumns(): array
     {
         return ['cover_image' => [], 'file_path' => [], 'transcript_path' => [], 'chapters_path' => []];
