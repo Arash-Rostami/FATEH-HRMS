@@ -309,6 +309,19 @@ describe('media library', () => {
         expect(writes).toBe(0);
         expect(root.toggleTheatre).toBeUndefined();
     });
+
+    it('shows the matching episode under a series only when the series title itself did not match, and focuses it on click', () => {
+        const series = item(1, { type: 'series', title: 'دوره', episodes: [episode(11, { title: 'مقدمه' }), episode(12, { title: 'امنیت شبکه', topic: 'فایروال' })] });
+        const root = component([series, item(2, { title: 'فایروال تکی' })]);
+        root.query = 'فایروال';
+        expect(root.episodeHit(1)).toEqual({ index: 1, title: 'امنیت شبکه' });
+        expect(root.episodeHit(2)).toBeNull();
+        root.chooseEpisode(1);
+        expect(root.selectedId).toBe(1);
+        expect(root.viewedEpisodeIndex).toBe(1);
+        root.query = 'دوره';
+        expect(root.episodeHit(1)).toBeNull();
+    });
 });
 
 describe('media composed with the real player mixin', () => {
@@ -438,5 +451,114 @@ describe('media composed with the real player mixin', () => {
         root.library = { ...root.library, items: [series] };
         root.cur = { sid: 1, idx: 0 };
         expect(root.isVideo).toBe(true);
+    });
+
+    const series = () => item(1, { type: 'series', cover_url: '/cover.jpg', episodes: [episode(11), episode(12), episode(13)] });
+
+    it('remembers speed, volume and stop-after per user and ignores unknown stored values', () => {
+        const first = component([item(1)], build, '5');
+        first.setSpeed(1.5);
+        first.setVolume(0.3);
+        first.toggleStopAfter();
+        const again = component([item(1)], build, '5');
+        expect([again.speed, again.vol, again.stopAfter]).toEqual([1.5, 0.3, true]);
+        expect(component([item(1)], build, '6').speed).toBe(1);
+        localStorage.setItem('media_prefs:7', JSON.stringify({ speed: 3, vol: 9 }));
+        const bad = component([item(1)], build, '7');
+        expect([bad.speed, bad.vol]).toEqual([1, 1]);
+    });
+
+    it('resumes a few seconds back but never inside the first rewind-length seconds', () => {
+        const root = component([item(1)], build);
+        const at = position => {
+            root.library.progress = { 1: { position, last_position: position, updated_at: 0 } };
+            return root.resumeAt(1, 0);
+        };
+        expect(at(100)).toBe(90);
+        expect(at(12)).toBe(2);
+        expect(at(8)).toBe(8);
+        expect(at(3)).toBe(0);
+    });
+
+    it('stops once after the lesson when stop-after is on and then advances normally', () => {
+        const root = component([series()], build);
+        root.playEpisode = vi.fn();
+        root.cur = { sid: 1, idx: 0 };
+        root.stopAfter = true;
+        root.next(true);
+        expect(root.playEpisode).not.toHaveBeenCalled();
+        expect(root.stopAfter).toBe(false);
+        root.next(true);
+        expect(root.playEpisode).toHaveBeenCalledWith(1, 1);
+    });
+
+    it('adds the cover to the lock-screen metadata only when the item has one', () => {
+        vi.stubGlobal('MediaMetadata', class { constructor(values) { Object.assign(this, values); } });
+        Object.defineProperty(navigator, 'mediaSession', { value: { setActionHandler() {} }, configurable: true });
+        const root = component([series(), item(2)], build);
+        root.cur = { sid: 1, idx: 0 };
+        root.initMediaSession();
+        expect(navigator.mediaSession.metadata.artwork).toEqual([{ src: '/cover.jpg' }]);
+        root.cur = { sid: 2, idx: 0 };
+        root.initMediaSession();
+        expect(navigator.mediaSession.metadata.artwork).toBeUndefined();
+        delete navigator.mediaSession;
+        vi.unstubAllGlobals();
+    });
+
+    it('names the next open lesson only inside a series and hides it when locked or last', () => {
+        const locked = episode(23, { file_url: null, unlock_at: Math.floor(Date.now() / 1000) + 3600 });
+        const root = component([series(), item(2), item(3, { type: 'series', episodes: [episode(21), episode(22), locked] })], build);
+        root.cur = { sid: 1, idx: 0 };
+        expect(root.upNext.id).toBe(12);
+        root.cur = { sid: 1, idx: 2 };
+        expect(root.upNext).toBeNull();
+        root.cur = { sid: 2, idx: 0 };
+        expect(root.upNext).toBeNull();
+        root.cur = { sid: 3, idx: 1 };
+        expect(root.upNext).toBeNull();
+    });
+
+    it('takes the screen wake lock only while a video plays and releases it on pause', async () => {
+        const lock = { release: vi.fn().mockResolvedValue(), addEventListener: vi.fn() };
+        const request = vi.fn().mockResolvedValue(lock);
+        Object.defineProperty(navigator, 'wakeLock', { value: { request }, configurable: true });
+        const host = document.createElement('div');
+        const root = component([item(1, { kind: 'video', episodes: [episode(1, { mime: 'video/mp4' })] }), item(2)], build);
+        root.mountVideo(host);
+        root.playEpisode(1, 0);
+        await Promise.resolve();
+        host.querySelector('video').dispatchEvent(new Event('playing'));
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(request).toHaveBeenCalledWith('screen');
+        playing = false;
+        host.querySelector('video').dispatchEvent(new Event('pause'));
+        expect(lock.release).toHaveBeenCalledTimes(1);
+        root.playEpisode(2, 0);
+        await Promise.resolve();
+        expect(request).toHaveBeenCalledTimes(1);
+        delete navigator.wakeLock;
+    });
+
+    it('offers a timed way back to the previous lesson and restores its position', async () => {
+        vi.useFakeTimers();
+        const root = component([series()], build);
+        root.playEpisode(1, 0);
+        await Promise.resolve();
+        root.t = 42;
+        root.playEpisode(1, 1);
+        expect(root.undo).toEqual({ sid: 1, idx: 0, position: 42 });
+        vi.advanceTimersByTime(8000);
+        expect(root.undo).toBeNull();
+        await Promise.resolve();
+        root.t = 7;
+        root.playEpisode(1, 2);
+        expect(root.undo).toEqual({ sid: 1, idx: 1, position: 7 });
+        root.undoSwitch();
+        expect(root.cur).toEqual({ sid: 1, idx: 1 });
+        expect(root.undo).toBeNull();
+        root.destroy();
+        vi.useRealTimers();
     });
 });

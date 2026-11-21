@@ -6,6 +6,8 @@ const EVENT_STATE = 'media:state';
 const EVENT_ENDED = 'media:ended';
 const PROGRESS_KEY = 'media_progress';
 const PENDING_KEY = 'media_progress_pending';
+const PREFS_KEY = 'media_prefs';
+const UNDO_MS = 8000;
 const SPEEDS = [1, 1.25, 1.5, 2, 0.75];
 const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 const DIGIT_REGEX = /[0-9]/g;
@@ -17,6 +19,7 @@ const CHUNK_SIZE = 50;
 const shared = {
     element: null, kind: null, prebuffer: null, ui: null, bound: false,
     keydown: null, interval: null, stateRaf: null, resumeSeek: null, host: null, selfPause: false, userId: null,
+    wakeLock: null, wakePending: false, undoTimer: null,
 };
 
 const fmt = (s) => {
@@ -35,6 +38,29 @@ const faTime = (s) => fa(fmt(s));
 const isVideoEp = (ep, item) => (ep?.mime ? ep.mime.startsWith('video/') : item?.kind === 'video');
 
 const live = () => !!(shared.element && !shared.element.paused && !shared.element.ended);
+
+const wantsWake = () => live() && shared.kind === 'video';
+
+function releaseWakeLock() {
+    const lock = shared.wakeLock;
+    shared.wakeLock = null;
+    Promise.resolve(lock?.release()).catch(() => {});
+}
+
+async function syncWakeLock() {
+    if (!wantsWake()) return releaseWakeLock();
+    if (shared.wakeLock || shared.wakePending || document.hidden || !navigator.wakeLock) return;
+    shared.wakePending = true;
+    try {
+        const lock = await navigator.wakeLock.request('screen');
+        lock.addEventListener('release', () => { if (shared.wakeLock === lock) shared.wakeLock = null; });
+        shared.wakeLock = lock;
+        if (!wantsWake()) releaseWakeLock();
+    } catch {
+    } finally {
+        shared.wakePending = false;
+    }
+}
 
 const emitState = (ui) => {
     window.dispatchEvent(new CustomEvent(EVENT_STATE, {
@@ -71,6 +97,7 @@ function ensureElement(ui, kind) {
     shared.element.setAttribute('playsinline', '');
     bindElement(ui);
     if (kind === 'video' && shared.host) shared.host.appendChild(shared.element);
+    syncWakeLock();
     return shared.element;
 }
 
@@ -85,12 +112,14 @@ function bindElement(ui) {
         shared.ui.playing = true;
         emitState(shared.ui);
         startSafetyInterval();
+        syncWakeLock();
     });
 
     el.addEventListener('pause', () => {
         if (!shared.ui || shared.element !== el || !el.paused) return;
         shared.ui.playing = false;
         stopSafetyInterval();
+        releaseWakeLock();
         shared.ui.flush('pause');
         emitState(shared.ui);
     });
@@ -99,6 +128,7 @@ function bindElement(ui) {
         if (!shared.ui || shared.element !== el) return;
         shared.ui.playing = false;
         stopSafetyInterval();
+        releaseWakeLock();
         if (Number.isFinite(el.duration) && el.duration > 0) shared.ui.t = el.duration;
         shared.ui.flush('ended');
         emitState(shared.ui);
@@ -112,6 +142,7 @@ function bindElement(ui) {
         shared.ui.buffering = false;
         shared.ui.error = true;
         stopSafetyInterval();
+        releaseWakeLock();
         emitState(shared.ui);
     });
 
@@ -183,6 +214,7 @@ window.addEventListener(EVENT_PLAY_STATE, (e) => {
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && shared.ui?.playing) shared.ui.flush('hidden');
+    if (!document.hidden) syncWakeLock();
 });
 
 window.addEventListener('pagehide', () => { if (shared.ui) shared.ui.flush('pagehide'); });
@@ -217,7 +249,9 @@ export default function playerMixin() {
         seeking: false,
         progressUrl: '',
         userId: '',
-        sync: { local_seconds: 5, safety_seconds: 90, min_delta: 10, prebuffer_remaining_seconds: 120 },
+        stopAfter: false,
+        undo: null,
+        sync: { local_seconds: 5, safety_seconds: 90, min_delta: 10, prebuffer_remaining_seconds: 120, resume_rewind: 10 },
         _lastPersist: 0,
         _lastFlush: 0,
         _loadedAt: 0,
@@ -251,6 +285,7 @@ export default function playerMixin() {
 
         loadLibrary(payload) {
             this.library = payload ?? { items: [], progress: {}, notes: {} };
+            this._loadPrefs();
             this.ready = true;
             this._loadedAt = Date.now();
             if (shared.ui && shared.ui !== this) {
@@ -341,7 +376,9 @@ export default function playerMixin() {
             const localStop = local?.last_position ?? local?.position ?? 0;
             const serverAt = server?.updated_at ? server.updated_at * 1000 : this._loadedAt;
             const stop = local && local.updatedAt > serverAt ? localStop : (server?.last_position ?? localStop);
-            return ep.duration > 0 ? Math.min(stop, ep.duration) : stop;
+            const at = ep.duration > 0 ? Math.min(stop, ep.duration) : stop;
+            const back = this.sync.resume_rewind ?? 10;
+            return at > back ? at - back : at;
         },
 
         selectItem(id) {
@@ -357,6 +394,7 @@ export default function playerMixin() {
                 this.toggle();
                 return;
             }
+            if (this.playing && this.cur.sid) this._offerUndo();
             if (shared.ui?.cur.sid) shared.ui.flush('switch');
             shared.selfPause = true;
             window.dispatchEvent(new CustomEvent(EVENT_PAUSE_REQ));
@@ -438,6 +476,12 @@ export default function playerMixin() {
         next(auto = false) {
             const item = this.item();
             const nextIdx = this._nextPlayable(this.cur.idx + 1);
+            if (auto && this.stopAfter) {
+                this.stopAfter = false;
+                this._savePrefs();
+                this.playing = false;
+                return;
+            }
             if (!item || nextIdx === null) {
                 if (auto) this.playing = false;
                 else this.toast('آخرین جلسه است');
@@ -460,6 +504,21 @@ export default function playerMixin() {
             const next = SPEEDS.includes(Number(v)) ? Number(v) : SPEEDS[(SPEEDS.indexOf(this.speed) + 1) % SPEEDS.length];
             this.speed = next;
             if (shared.element) shared.element.playbackRate = next;
+            this._savePrefs();
+        },
+
+        toggleStopAfter() {
+            this.stopAfter = !this.stopAfter;
+            this._savePrefs();
+        },
+
+        undoSwitch() {
+            const back = this.undo;
+            this._clearUndo();
+            if (!back) return;
+            this.playEpisode(back.sid, back.idx);
+            this._clearUndo();
+            if (shared.element && back.position > 0) this._seekOnMeta(shared.element, back.position);
         },
 
         setVolume(v) {
@@ -469,6 +528,7 @@ export default function playerMixin() {
                 shared.element.volume = this.vol;
                 shared.element.muted = this.muted;
             }
+            this._savePrefs();
         },
 
         toggleMute() {
@@ -520,6 +580,8 @@ export default function playerMixin() {
 
         destroyPlayer() {
             this.flush('destroy');
+            this._clearUndo();
+            releaseWakeLock();
             this._releasePrebuffer();
             if (shared.keydown) {
                 document.removeEventListener('keydown', shared.keydown);
@@ -610,6 +672,30 @@ export default function playerMixin() {
 
         _k(key) {
             return this.userId ? key + ':' + this.userId : key;
+        },
+
+        _loadPrefs() {
+            const prefs = this._loadState(this._k(PREFS_KEY), {}) ?? {};
+            const vol = Number(prefs.vol);
+            if (SPEEDS.includes(prefs.speed)) this.speed = prefs.speed;
+            if (prefs.vol !== undefined && Number.isFinite(vol)) this.vol = Math.max(0, Math.min(1, vol));
+            this.stopAfter = prefs.stopAfter === true;
+        },
+
+        _savePrefs() {
+            this._saveState(this._k(PREFS_KEY), { speed: this.speed, vol: this.vol, stopAfter: this.stopAfter });
+        },
+
+        _offerUndo() {
+            this._clearUndo();
+            this.undo = { sid: this.cur.sid, idx: this.cur.idx, position: Math.floor(this.t) };
+            shared.undoTimer = setTimeout(() => { this.undo = null; }, UNDO_MS);
+        },
+
+        _clearUndo() {
+            clearTimeout(shared.undoTimer);
+            shared.undoTimer = null;
+            this.undo = null;
         },
 
         _trackLocal(ep, t) {
@@ -790,6 +876,7 @@ export default function playerMixin() {
                     title: ep.title,
                     artist: item.title,
                     album: item.title,
+                    ...(item.cover_url ? { artwork: [{ src: item.cover_url }] } : {}),
                 });
                 navigator.mediaSession.setActionHandler('play', () => this.toggle());
                 navigator.mediaSession.setActionHandler('pause', () => this.toggle());

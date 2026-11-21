@@ -164,6 +164,12 @@ export default function media() {
             });
         },
 
+        get upNext() {
+            const item = this.item();
+            const next = item?.type === 'series' ? item.episodes[this.cur.idx + 1] : null;
+            return next?.file_url && !this.isLocked(next) ? next : null;
+        },
+
         get recentItems() {
             const touched = this.library.progress ?? {};
             const owners = new Map(this.items.flatMap(item => item.episodes.map(ep => [ep.id, [item, ep]])));
@@ -199,6 +205,28 @@ export default function media() {
             this.noteBody = '';
             this.transcriptQuery = '';
             this.clearTracks();
+        },
+
+        episodeHit(id) {
+            const query = normalize(this.query);
+            const item = this.items.find(row => row.id === Number(id));
+            if (!query || item?.type !== 'series' || normalize(item.title).includes(query)) return null;
+            const index = item.episodes.findIndex(ep => normalize(`${ep.title} ${ep.topic}`).includes(query));
+            return index < 0 ? null : { index, title: item.episodes[index].title };
+        },
+
+        chooseEpisode(id) {
+            const hit = this.episodeHit(id);
+            this.choose(id);
+            if (hit) this.viewedEpisodeIndex = hit.index;
+        },
+
+        undoSwitch() {
+            const back = this.undo;
+            player.undoSwitch.call(this);
+            if (!back) return;
+            if (this.selectedId !== back.sid) this.choose(back.sid, false);
+            this.viewedEpisodeIndex = back.idx;
         },
 
         backToList() { this.mobileDetail = false; },

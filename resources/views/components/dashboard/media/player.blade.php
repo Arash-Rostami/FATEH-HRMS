@@ -27,6 +27,7 @@
                 <div class="min-w-0">
                     <p class="truncate text-[13px] font-bold text-[var(--md-sys-color-on-surface)]" x-text="currentEpisode?.title"></p>
                     <p class="truncate text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="item()?.title"></p>
+                    <p x-show="upNext" x-cloak class="truncate text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="'بعدی: ' + upNext?.title"></p>
                 </div>
             </div>
         </template>
@@ -81,6 +82,11 @@
         </div>
 
         <div class="hidden items-center justify-end gap-1 md:flex">
+            <x-ui.buttons.form variant="none" x-on:click="toggleStopAfter()" x-bind:aria-pressed="stopAfter" title="توقف پس از این جلسه" aria-label="توقف پس از این جلسه"
+                               class="w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"
+                               x-bind:class="stopAfter && 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'">
+                <span class="material-symbols-rounded text-[20px]">bedtime</span>
+            </x-ui.buttons.form>
             <x-ui.buttons.form variant="tonal" x-on:click="setSpeed()" aria-label="سرعت پخش" x-text="fa(speed) + '×'"/>
             <x-ui.buttons.form variant="none" x-on:click="toggleMute()" x-bind:aria-label="muted ? 'باصدا کردن' : 'بی‌صدا کردن'"
                                class="w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]">
@@ -94,6 +100,12 @@
         <template x-if="tapToPlay && currentEpisode && !error">
             <div class="absolute -top-12 left-1/2 -translate-x-1/2 shadow-lg">
                 <x-ui.buttons.form variant="tonal" x-on:click="toggle()">برای ادامه لمس کنید</x-ui.buttons.form>
+            </div>
+        </template>
+
+        <template x-if="undo">
+            <div class="absolute -top-12 start-4 shadow-lg">
+                <x-ui.buttons.form variant="tonal" x-on:click="undoSwitch()">بازگشت به لحظهٔ قبل</x-ui.buttons.form>
             </div>
         </template>
 

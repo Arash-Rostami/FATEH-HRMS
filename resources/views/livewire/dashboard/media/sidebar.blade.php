@@ -60,6 +60,8 @@
                         @endif
                     </div>
                     <p class="text-[11px] truncate text-[var(--md-sys-color-on-surface-variant)]">{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }} · {{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }} · {{ convertToPersian((string) count($item['episodes'])) }} جلسه</p>
+                    <button type="button" data-id="{{ $item['id'] }}" x-show="episodeHit($el.dataset.id)" x-cloak x-on:click.stop="chooseEpisode($el.dataset.id)"
+                            class="block w-full truncate text-right text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-html="highlight(episodeHit($el.dataset.id)?.title, query)"></button>
                     <div class="mt-2 h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden" role="progressbar" aria-label="پیشرفت" aria-valuemin="0" aria-valuemax="100" x-bind:aria-valuenow="percent(progressOf({{ $item['id'] }}))">
                         <div class="h-full rounded-full transition-all duration-500 bg-[var(--md-sys-color-primary)]" x-bind:style="{ width: percent(progressOf({{ $item['id'] }})) + '%' }"></div>
                     </div>

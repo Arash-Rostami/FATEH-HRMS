@@ -21,5 +21,6 @@ return [
         'safety_seconds' => 90,
         'min_delta' => 10,
         'prebuffer_remaining_seconds' => 120,
+        'resume_rewind' => 10,
     ],
 ];
