@@ -4,6 +4,7 @@ namespace Tests\Feature\Http;
 
 use App\Http\Controllers\MediaNoteController;
 use App\Http\Controllers\MediaProgressController;
+use App\Livewire\Dashboard\Media\Actions\MarkMediaSeenAction;
 use App\Livewire\Dashboard\Media\Actions\SaveNoteAction;
 use App\Livewire\Dashboard\Media\Actions\SaveProgressAction;
 use App\Models\Department;
@@ -13,6 +14,7 @@ use App\Models\MediaNote;
 use App\Models\Profile;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -254,6 +256,49 @@ class MediaPlaybackTest extends TestCase
         ], $this->viewer, true);
 
         $this->assertSame(204, $deleted->getStatusCode());
+    }
+
+    public function test_a_duration_backfill_invalidates_the_catalog_but_plain_progress_never_does(): void
+    {
+        ModelCacheVersion::bump(Media::class);
+        $this->assertSame(['v' => 1], Media::cachedCatalog('KMDA', fn () => ['v' => 1]));
+
+        SaveProgressAction::execute($this->viewer, [$this->item(10, 10)]);
+
+        $this->assertSame(['v' => 1], Media::cachedCatalog('KMDA', fn () => ['v' => 'stale-check']));
+
+        DB::table('media')->where('id', $this->episode->id)->update(['duration_seconds' => null]);
+        SaveProgressAction::execute($this->viewer, [$this->item(20, 20, false, 100)]);
+
+        $this->assertSame(100, (int) $this->episode->fresh()->duration_seconds);
+        $this->assertSame(['v' => 2], Media::cachedCatalog('KMDA', fn () => ['v' => 2]));
+    }
+
+    public function test_per_user_data_never_enters_the_catalog_cache_and_seen_marking_does_not_bump(): void
+    {
+        ModelCacheVersion::bump(Media::class);
+        $this->assertSame(['v' => 1], Media::cachedCatalog('KMDA', fn () => ['v' => 1]));
+
+        SaveProgressAction::execute($this->viewer, [$this->item(40, 30)]);
+        SaveNoteAction::execute($this->viewer, 'add', ['media_id' => $this->episode->id, 'position' => 5, 'body' => 'note']);
+        MarkMediaSeenAction::execute($this->viewer);
+
+        $this->assertSame(['v' => 1], Media::cachedCatalog('KMDA', fn () => ['v' => 'stale-check']));
+    }
+
+    public function test_playable_for_and_unseen_by_always_read_live_rows(): void
+    {
+        $this->assertSame(100, (int) Media::playableFor($this->viewer, [$this->episode->id])->first()->duration_seconds);
+
+        DB::table('media')->where('id', $this->episode->id)->update(['duration_seconds' => 77]);
+
+        $this->assertSame(77, (int) Media::playableFor($this->viewer, [$this->episode->id])->first()->duration_seconds);
+
+        $this->assertTrue(Media::unseenBy($this->viewer->id)->exists());
+
+        MarkMediaSeenAction::execute($this->viewer);
+
+        $this->assertFalse(Media::unseenBy($this->viewer->id)->exists());
     }
 
     private function item(int $position, int $last, bool $completed = false, ?int $duration = 100): array

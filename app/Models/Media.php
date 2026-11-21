@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Models\Concerns\HasAudience;
 use App\Models\Concerns\HasDepartment;
+use App\Models\Concerns\HasModelCache;
 use App\Models\Concerns\HasNudgeTracking;
 use App\Models\Concerns\HasPublicAssetUrl;
 use App\Models\Concerns\HasUser;
 use App\Models\Concerns\Hooks\HasMediaHooks;
+use App\Services\Cache\ModelCacheVersion;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
+use Closure;
 use getID3;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -28,6 +31,7 @@ class Media extends Model
         HasAudience,
         HasDepartment,
         HasUser,
+        HasModelCache,
         HasMediaHooks;
 
     public const MAX_SECONDS = 172800;
@@ -125,6 +129,14 @@ class Media extends Model
             ->where('user_id', '!=', $userId)
             ->where('created_at', '>=', now()->subDays(HasNudgeTracking::FRESHNESS_DAYS))
             ->where(fn (Builder $inner) => $inner->whereNull('seen_by')->orWhereJsonDoesntContain('seen_by', $userId));
+    }
+
+    public static function cachedCatalog(?string $departmentCode, Closure $build): array
+    {
+        return static::cached(
+            'catalog:'.($departmentCode ?? 'all').':'.today()->toDateString().':r'.ModelCacheVersion::version(Report::class).':u'.ModelCacheVersion::version(User::class),
+            $build
+        );
     }
 
     public static function probeDuration(string $absolutePath): ?int

@@ -6,7 +6,9 @@ use App\Enums\MediaIcon;
 use App\Models\Department;
 use App\Models\Media;
 use App\Models\Profile;
+use App\Models\Report;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use App\Services\ContentSanitizerService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -172,6 +174,41 @@ class MediaModelTest extends TestCase
     {
         $this->assertNull(Media::probeDuration(''));
         $this->assertNull(Media::probeDuration(base_path('missing-media-file.mp3')));
+    }
+
+    public function test_catalog_cache_is_department_scoped_and_changes_with_the_day(): void
+    {
+        ModelCacheVersion::bump(Media::class);
+
+        $this->assertSame(['d' => 'A'], Media::cachedCatalog('KMDA', fn () => ['d' => 'A']));
+        $this->assertSame(['d' => 'B'], Media::cachedCatalog('KMDB', fn () => ['d' => 'B']));
+        $this->assertSame(['d' => 'all'], Media::cachedCatalog(null, fn () => ['d' => 'all']));
+        $this->assertSame(['d' => 'A'], Media::cachedCatalog('KMDA', fn () => ['d' => 'changed']));
+
+        $this->travelTo(now()->addDay());
+
+        $this->assertSame(['d' => 'next-day'], Media::cachedCatalog('KMDA', fn () => ['d' => 'next-day']));
+
+        $this->travelBack();
+    }
+
+    public function test_catalog_cache_is_invalidated_by_a_media_save_and_a_dependent_model_version(): void
+    {
+        ModelCacheVersion::bump(Media::class);
+
+        $this->assertSame(['v' => 1], Media::cachedCatalog('KMDA', fn () => ['v' => 1]));
+
+        Media::factory()->series()->create();
+
+        $this->assertSame(['v' => 2], Media::cachedCatalog('KMDA', fn () => ['v' => 2]));
+
+        ModelCacheVersion::bump(Report::class);
+
+        $this->assertSame(['v' => 3], Media::cachedCatalog('KMDA', fn () => ['v' => 3]));
+
+        ModelCacheVersion::bump(User::class);
+
+        $this->assertSame(['v' => 4], Media::cachedCatalog('KMDA', fn () => ['v' => 4]));
     }
 
     public function test_media_icon_has_a_heroicon_a_persian_label_and_a_material_name(): void

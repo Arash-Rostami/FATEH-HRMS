@@ -6,6 +6,7 @@ use App\Models\KnowledgeProgress;
 use App\Models\Media;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Facades\DB;
 
 class SaveProgressAction
@@ -88,7 +89,11 @@ class SaveProgressAction
 
         self::upsert('media_id', $mediaRows);
         self::upsert('report_id', $reportRows);
-        Media::writeSystemDurations($durations);
+
+        if ($durations !== []) {
+            Media::writeSystemDurations($durations);
+            ModelCacheVersion::bump(Media::class);
+        }
 
         return count($mediaRows) + count($reportRows);
     }
