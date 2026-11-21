@@ -52,10 +52,10 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">visibility</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کاربر در زبانهٔ «گزارش‌ها» چه می‌بیند؟</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کاربر در بخش «گزارش‌ها» در دانش سازمانی چه می‌بیند؟</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        زبانهٔ «گزارش‌ها» در داشبورد کاربر، فقط گزارش‌های «فعال» را نشان می‌دهد — هیچ‌گاه گزارش‌های غیرفعال یا حذف‌شده ظاهر نمی‌شوند. وقتی کاربری می‌گوید «گزارشی که می‌خواستم نیامد» یا «دانلود نمی‌شود»، این زبانه مرجعِ شما برای فهمیدنِ آنچه در صفحهٔ خودش می‌بیند است.
+        بخش «گزارش‌ها» در دانش سازمانی در داشبورد کاربر، فقط گزارش‌های «فعال» را نشان می‌دهد — هیچ‌گاه گزارش‌های غیرفعال یا حذف‌شده ظاهر نمی‌شوند. وقتی کاربری می‌گوید «گزارشی که می‌خواستم نیامد» یا «دانلود نمی‌شود»، این زبانه مرجعِ شما برای فهمیدنِ آنچه در صفحهٔ خودش می‌بیند است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -89,7 +89,7 @@
     <div class="flex items-start gap-4 rounded-2xl bg-[var(--md-sys-color-tertiary-container)] p-5">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-on-tertiary-container)] mt-0.5">help</span>
         <p class="text-[12px] leading-relaxed font-bold text-[var(--md-sys-color-on-tertiary-container)]">
-            کاربر در زبانهٔ «گزارش‌ها» خودش یک راهنمای آماده دارد: دکمهٔ راهنما بالای زبانه، یک راهنمای تب‌دار باز می‌کند که نماها، فیلتر واحد، تایم‌لاین و دانلود را توضیح می‌دهد. اگر کاربر سؤالی دربارهٔ نحوهٔ استفاده دارد، به همان دکمه ارجاع دهید.
+            کاربر در بخش «گزارش‌ها» در دانش سازمانی خودش یک راهنمای آماده دارد: دکمهٔ راهنما بالای زبانه، یک راهنمای تب‌دار باز می‌کند که نماها، فیلتر واحد، تایم‌لاین و دانلود را توضیح می‌دهد. اگر کاربر سؤالی دربارهٔ نحوهٔ استفاده دارد، به همان دکمه ارجاع دهید.
         </p>
     </div>
 </div>

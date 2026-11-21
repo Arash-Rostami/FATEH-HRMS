@@ -147,7 +147,7 @@
                     </span>
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">پنل کاربر (صفحهٔ رسانه)</p>
+                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">پنل کاربر (دانش سازمانی › رسانه)</p>
                     <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">کاربران رسانه‌های «فعال» و «منتشرشده» را در صفحهٔ «رسانه» داشبورد می‌بینند: فهرست سری‌ها و موارد، پخش با نوار پایین، رونوشت، فصل‌ها و مواد همراه. جزئیات در زبانهٔ «تجربهٔ کاربر».</p>
                 </div>
             </div>

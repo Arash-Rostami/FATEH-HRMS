@@ -43,7 +43,7 @@
         [
             'icon' => 'monitoring',
             'label' => 'پیشرفت من',
-            'hint' => 'کاربر نوار پیشرفت هر سری و درصد جلسه‌های تمام‌شده را در همان صفحهٔ رسانه می‌بیند؛ گزارش پیشرفت برای ادمین در بخش «پیشرفت» پنل مدیریت است.',
+            'hint' => 'کاربر نوار پیشرفت هر سری و درصد جلسه‌های تمام‌شده را در همان بخش «رسانه» می‌بیند؛ گزارش پیشرفت برای ادمین در بخش «پیشرفت» پنل مدیریت است.',
         ],
     ];
 @endphp
@@ -89,7 +89,7 @@
     <div class="flex items-start gap-4 rounded-2xl bg-[var(--md-sys-color-tertiary-container)] p-5">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-on-tertiary-container)] mt-0.5">help</span>
         <p class="text-[12px] leading-relaxed font-bold text-[var(--md-sys-color-on-tertiary-container)]">
-            کاربر در صفحهٔ رسانه خودش راهنمای آماده دارد؛ اگر پرسشی دربارهٔ نحوهٔ استفاده دارد، به همان دکمهٔ راهنما ارجاع دهید.
+            کاربر در بخش «رسانه» دانش سازمانی خودش راهنمای آماده دارد؛ اگر پرسشی دربارهٔ نحوهٔ استفاده دارد، به همان دکمهٔ راهنما ارجاع دهید.
         </p>
     </div>
 </div>
