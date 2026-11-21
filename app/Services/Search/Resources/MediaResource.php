@@ -25,7 +25,7 @@ class MediaResource extends SearchResource
 
     public function search(SearchContext $context): array
     {
-        if (tenantOff('media')) {
+        if (tenantOff('knowledge:media')) {
             return [];
         }
 
@@ -34,7 +34,7 @@ class MediaResource extends SearchResource
 
     public function action($row): string
     {
-        return $this->route('media', $row->getKey());
+        return $this->url(route('knowledge', ['tab' => 'media', 'open' => $row->getKey()], false));
     }
 
     protected function scope(Builder $query): void

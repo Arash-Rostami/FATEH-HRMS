@@ -47,6 +47,6 @@ class ReportNudge implements MenuNudge
 
     public function url($subject): ?string
     {
-        return route('dashboard', ['tab' => 'reports', 'open' => $subject->getKey()]);
+        return route('knowledge', ['open' => $subject->getKey()]);
     }
 }

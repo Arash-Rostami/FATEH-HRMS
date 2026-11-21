@@ -40,13 +40,13 @@ class ContentService
         PostResource::class,
         FeedResource::class,
         EventResource::class,
-        ReportResource::class,
         AiReportResource::class,
         GalleryResource::class,
         FaqResource::class,
         LinkResource::class,
 
         // ===== PAGE modules (own route ?open=...) =====
+        ReportResource::class,
         MediaResource::class,
         DmsResource::class,
         CorrespondenceResource::class,

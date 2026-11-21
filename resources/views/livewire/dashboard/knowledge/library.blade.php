@@ -1,7 +1,7 @@
 <div dir="rtl" data-media-root x-data="media()" x-on:keydown.escape.window="onEscape($event)"
      data-library="{{ json_encode($this->library, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}"
      data-progress-url="{{ route('media.progress') }}" data-user-id="{{ auth()->id() }}" data-notes-url="{{ route('media.notes') }}"
-     data-sync="{{ json_encode(config('media.sync')) }}"
+     data-sync="{{ json_encode(config('media.sync')) }}" data-open="{{ $open }}"
      class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] relative overflow-hidden animate-fade"
      role="region" aria-label="کتابخانهٔ رسانه">
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">

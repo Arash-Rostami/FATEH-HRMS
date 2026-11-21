@@ -47,8 +47,8 @@
                                            x-on:click="copy()"/>
                     @endif
 
-                    @unless(tenantOff('reports'))
-                        <a wire:key="ai-report-reports-link" href="{{ route('dashboard', ['tab' => 'reports']) }}" wire:navigate
+                    @unless(tenantOff('knowledge'))
+                        <a wire:key="ai-report-reports-link" href="{{ route('knowledge') }}" wire:navigate
                            title="گزارشات سازمانی" aria-label="گزارشات سازمانی"
                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
                             <span class="material-symbols-rounded text-lg">show_chart</span>

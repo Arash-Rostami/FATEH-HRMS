@@ -102,7 +102,7 @@ export default function media() {
             if (!hydrated) {
                 hydrated = true;
                 const params = new URLSearchParams(location.search);
-                const requested = Number(params.get('open'));
+                const requested = Number(this.$el.dataset.open ?? params.get('open'));
                 const remembered = this._readLastOpenId();
                 const found = this.items.find(item => item.id === requested || item.episodes.some(ep => ep.id === requested));
                 const fallback = this.items.find(item => item.id === remembered) ?? this.items[0];
@@ -388,6 +388,7 @@ export default function media() {
             if (!this.contextEpisode) return;
             const url = new URL(location.href);
             url.search = '';
+            url.searchParams.set('tab', 'media');
             url.searchParams.set('open', this.contextEpisode.id);
             url.searchParams.set('t', Math.floor(this.contextTime()));
             this.copyText(url.href, 'پیوند این لحظه کپی شد.');
