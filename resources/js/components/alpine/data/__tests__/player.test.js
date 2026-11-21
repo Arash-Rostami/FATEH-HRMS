@@ -214,6 +214,17 @@ describe('playerMixin — episodeState / progressOf / resumeAt', () => {
         expect(p.library.progress['11'].position).toBe(400)
     })
 
+    test('resumeAt prefers an older offline local stop over a stale server row only when the server updated_at is older', () => {
+        const p = makePlayer()
+        vi.advanceTimersByTime(10)
+        const local = Date.now() - 86400000
+        p.library.progress['11'] = { position: 400, last_position: 350, completed: false, updated_at: Math.floor((local - 3600000) / 1000) }
+        p._saveState('media_progress', { '11': { position: 400, last_position: 120, updatedAt: local } })
+        expect(p.resumeAt(1, 0)).toBe(120)
+        p.library.progress['11'].updated_at = Math.floor((local + 3600000) / 1000)
+        expect(p.resumeAt(1, 0)).toBe(350)
+    })
+
     test('resumeAt clamps the stop to the episode duration', () => {
         const p = makePlayer()
         vi.advanceTimersByTime(10)
@@ -643,6 +654,30 @@ describe('playerMixin — pending queue, CSRF and HTTP statuses', () => {
         await vi.waitFor(() => {
             expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
         })
+    })
+
+    test('an acknowledged fetch also removes older pending revisions of the same episode', async () => {
+        const p = makePlayer()
+        p._queuePending([{ type: 'media', id: 11, position: 50, last_position: 50, completed: false, duration: null }])
+        p.playEpisode(1, 0)
+        sharedElement()._trigger('playing')
+        p.t = 30
+        p.flush('pause')
+        await settle()
+        expect(JSON.parse(localStorage.getItem('media_progress_pending'))).toHaveLength(0)
+    })
+
+    test('events from a replaced element are ignored', () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        const audio = sharedElement()
+        audio._trigger('playing')
+        videoFactory()
+        p.playEpisode(2, 0)
+        sharedElement()._trigger('playing')
+        audio.currentTime = 300
+        audio._trigger('timeupdate')
+        expect(p.t).toBe(0)
     })
 
     test('a beacon returning false is treated as failure and falls back to fetch', async () => {

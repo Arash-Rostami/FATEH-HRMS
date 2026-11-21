@@ -80,7 +80,7 @@ function bindElement(ui) {
     shared.bound = true;
 
     el.addEventListener('playing', () => {
-        if (!shared.ui) return;
+        if (!shared.ui || shared.element !== el) return;
         shared.ui.buffering = false;
         shared.ui.playing = true;
         emitState(shared.ui);
@@ -88,7 +88,7 @@ function bindElement(ui) {
     });
 
     el.addEventListener('pause', () => {
-        if (!shared.ui || !el.paused) return;
+        if (!shared.ui || shared.element !== el || !el.paused) return;
         shared.ui.playing = false;
         stopSafetyInterval();
         shared.ui.flush('pause');
@@ -96,7 +96,7 @@ function bindElement(ui) {
     });
 
     el.addEventListener('ended', () => {
-        if (!shared.ui) return;
+        if (!shared.ui || shared.element !== el) return;
         shared.ui.playing = false;
         stopSafetyInterval();
         if (Number.isFinite(el.duration) && el.duration > 0) shared.ui.t = el.duration;
@@ -107,7 +107,7 @@ function bindElement(ui) {
     });
 
     el.addEventListener('error', () => {
-        if (!shared.ui) return;
+        if (!shared.ui || shared.element !== el) return;
         shared.ui.playing = false;
         shared.ui.buffering = false;
         shared.ui.error = true;
@@ -119,7 +119,7 @@ function bindElement(ui) {
     el.addEventListener('canplay', () => { if (shared.ui) shared.ui.buffering = false; });
 
     el.addEventListener('timeupdate', () => {
-        if (!shared.ui) return;
+        if (!shared.ui || shared.element !== el) return;
         shared.ui.t = el.currentTime;
         if (Number.isFinite(el.duration) && el.duration > 0) shared.ui.duration = el.duration;
         const ep = shared.ui.episode();
@@ -292,7 +292,8 @@ export default function playerMixin() {
             const server = this.library.progress?.[ep.id];
             if (Math.max(local?.position ?? 0, server?.position ?? 0) < 5) return 0;
             const localStop = local?.last_position ?? local?.position ?? 0;
-            const stop = local && local.updatedAt > this._loadedAt ? localStop : (server?.last_position ?? localStop);
+            const serverAt = server?.updated_at ? server.updated_at * 1000 : this._loadedAt;
+            const stop = local && local.updatedAt > serverAt ? localStop : (server?.last_position ?? localStop);
             return ep.duration > 0 ? Math.min(stop, ep.duration) : stop;
         },
 
@@ -666,13 +667,15 @@ export default function playerMixin() {
                 } catch {
                 }
             }
+            const ids = new Set(items.map((i) => i.id));
+            const older = this._loadState(PENDING_KEY, []).filter((i) => ids.has(i.id));
             this._post(url, items).then((res) => {
                 if (res === 'retry') {
                     this._queuePending(items);
                     return;
                 }
                 if (res === 'ok') this._ack(items);
-                this._dequeue(items);
+                this._dequeue([...items, ...older]);
             });
             return true;
         },
