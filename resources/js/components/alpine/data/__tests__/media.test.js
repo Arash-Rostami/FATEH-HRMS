@@ -5,7 +5,7 @@ vi.mock('../../mixins/player.js', () => ({
         cur: { sid: null, idx: 0 }, t: 0, playing: false,
         loadLibrary: vi.fn(), selectItem: vi.fn(), playEpisode: vi.fn(),
         toggle: vi.fn(), seek: vi.fn(), destroyPlayer: vi.fn(),
-        fa: value => Number(value).toLocaleString('fa-IR'), faTime: value => String(value),
+        faTime: value => String(value),
         progressOf: () => 0, episodeState: () => 'new', resumeAt: () => 0,
     }),
 }));
@@ -135,6 +135,18 @@ describe('media library', () => {
         root.init();
         root.destroy();
         expect(root.destroyPlayer).toHaveBeenCalledOnce();
+    });
+
+    it('formats digits itself and hands the csrf token to the player', () => {
+        document.head.innerHTML = '<meta name="csrf-token" content="token-1">';
+        const root = component([item(1)]);
+        root.initMaximize = vi.fn();
+        root.bindPlayerKeys = vi.fn();
+        root.init();
+        expect(root.number(12)).toBe('۱۲');
+        expect(root._csrf).toBe('token-1');
+        root.destroy();
+        document.head.innerHTML = '';
     });
 
     it('rejects empty and oversized notes without a request', async () => {

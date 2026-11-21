@@ -52,7 +52,8 @@ export default function media() {
 
         init() {
             controller = new AbortController();
-            observer = new MutationObserver(() => this.readLibrary());
+            this._csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+            observer =new MutationObserver(() => this.readLibrary());
             observer.observe(this.$el, { attributes: true, attributeFilter: ['data-library'] });
             this.bindPlayerKeys('[data-media-root]');
             this.readLibrary();
@@ -270,7 +271,7 @@ export default function media() {
             return this.selected?.episodes.filter((ep, idx) => this.episodeState(this.selectedId, idx) === 'done').length ?? 0;
         },
 
-        number(value) { return this.fa(value ?? 0); },
+        number(value) { return Number(value ?? 0).toLocaleString('fa-IR'); },
 
         time(seconds) { return this.faTime(Number(seconds)); },
 
