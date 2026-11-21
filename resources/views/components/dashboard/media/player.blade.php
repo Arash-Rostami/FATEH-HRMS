@@ -103,7 +103,7 @@
         </div>
 
         <template x-if="tapToPlay && currentEpisode && !error">
-            <button type="button" @click="toggle(); tapToPlay = false"
+            <button type="button" @click="toggle()"
                     class="absolute -top-12 left-1/2 -translate-x-1/2 rounded-xl bg-[var(--md-sys-color-on-surface)] px-4 py-2 text-[12px] font-bold text-[var(--md-sys-color-surface)] shadow-lg">
                 برای ادامه لمس کنید
             </button>
@@ -121,7 +121,7 @@
     <template x-if="currentEpisode && item()?.kind === 'video'">
         <div class="relative mx-4 mt-4 aspect-video max-h-[360px] w-[calc(100%-2rem)] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-primary)_45%,var(--md-sys-color-surface))] shadow-sm md:mx-7 md:w-[calc(100%-3.5rem)]"
              :class="playing ? '' : 'paused'"
-             x-init="$nextTick(() => mountVideo($refs.videoHost))"
+             x-init="mountVideo()"
              wire:ignore>
             <span class="pointer-events-none absolute inset-0 grid place-items-center text-[96px] opacity-35 material-symbols-rounded font-fill" x-text="item()?.icon || 'smart_display'">smart_display</span>
 

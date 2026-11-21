@@ -60,6 +60,7 @@ function ensureElement(ui, kind) {
     }
     shared.element = kind === 'video' ? document.createElement('video') : new Audio();
     shared.kind = kind;
+    shared.bound = false;
     shared.element.preload = 'metadata';
     shared.element.volume = ui.vol;
     shared.element.muted = ui.muted;
@@ -156,7 +157,7 @@ function cancelResumeSeek(el) {
 }
 
 window.addEventListener(EVENT_PAUSE_REQ, () => {
-    if (live()) shared.element.pause();
+    if (!shared.selfPause && live()) shared.element.pause();
 });
 
 window.addEventListener(EVENT_PLAY_STATE, (e) => {
@@ -221,15 +222,17 @@ export default function playerMixin() {
         loadLibrary(payload) {
             this.library = payload ?? { items: [], progress: {}, notes: {} };
             this.ready = true;
-            if (shared.ui === null && this.cur.sid !== null && shared.element) shared.ui = this;
+            if (shared.ui && shared.ui !== this) this.adoptPlayback();
             this._drainPending();
         },
 
         adoptPlayback() {
-            if (!shared.element) return false;
-            if (shared.ui) this._synced = shared.ui._synced;
+            const prev = shared.ui;
+            if (!shared.element || !prev || prev === this) return false;
+            this._synced = prev._synced;
+            this._lastFlush = prev._lastFlush;
+            this.cur = { ...prev.cur };
             shared.ui = this;
-            this.cur = shared.ui === this ? shared.uiCur ?? this.cur : this.cur;
             this.t = shared.element.currentTime;
             this.duration = Number.isFinite(shared.element.duration) ? shared.element.duration : this.duration;
             this.playing = live();
@@ -337,6 +340,7 @@ export default function playerMixin() {
 
         toggle() {
             if (!shared.element || !this.cur.sid || this.error) return;
+            this.tapToPlay = false;
             if (live()) {
                 shared.element.pause();
             } else {
@@ -448,17 +452,44 @@ export default function playerMixin() {
             if (shared.kind === 'video' && shared.element?.parentNode) {
                 shared.element.parentNode.removeChild(shared.element);
             }
-            if (shared.ui === this) {
+            if (shared.ui === this && shared.kind === 'video') {
                 shared.ui = null;
-                if (shared.kind === 'video' && shared.element) shared.element.pause();
+                if (shared.element) shared.element.pause();
             }
         },
 
         mountVideo(host) {
-            shared.host = host ?? null;
-            if (shared.kind === 'video' && shared.element && shared.host && !shared.element.parentNode) {
-                shared.host.appendChild(shared.element);
-            }
+            const attach = (node) => {
+                if (!node) return;
+                shared.host = node;
+                if (shared.kind === 'video' && shared.element && !shared.element.parentNode) {
+                    node.appendChild(shared.element);
+                }
+            };
+            if (host) attach(host);
+            else this.$nextTick(() => attach(this.$refs.videoHost));
+        },
+
+        seekFromEvent(e, track) {
+            if (!track || !(this.duration > 0)) return;
+            const apply = (ev) => {
+                const rect = track.getBoundingClientRect();
+                if (!rect.width) return;
+                const raw = (ev.clientX - rect.left) / rect.width;
+                const ratio = getComputedStyle(track).direction === 'rtl' ? 1 - raw : raw;
+                this.seek(Math.max(0, Math.min(1, ratio)) * this.duration);
+            };
+            const stop = () => {
+                this.seeking = false;
+                window.removeEventListener('pointermove', apply);
+                window.removeEventListener('pointerup', stop);
+                window.removeEventListener('pointercancel', stop);
+            };
+            this.seeking = true;
+            apply(e);
+            window.addEventListener('pointermove', apply);
+            window.addEventListener('pointerup', stop);
+            window.addEventListener('pointercancel', stop);
         },
 
         bindPlayerKeys(rootSelector) {
@@ -617,7 +648,6 @@ export default function playerMixin() {
             }).then((r) => {
                 if (r.ok) {
                     this._ack(body.items);
-                    if (drain) this._saveState(PENDING_KEY, []);
                 } else if (r.status === 401 || r.status === 419 || r.status === 422) {
                     this._queuePending(body.items ?? []);
                 }
