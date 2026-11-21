@@ -228,6 +228,36 @@ class MediaModelTest extends TestCase
         Storage::disk('public')->assertMissing('media/files/new.mp3');
     }
 
+    public function test_a_series_delete_removes_episode_files_only_after_the_outer_commit(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('media/files/ep.mp3', 'ep');
+
+        $series = Media::factory()->series()->create();
+        $episode = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $series->user_id, 'file_path' => 'media/files/ep.mp3']);
+
+        try {
+            DB::transaction(function () use ($series) {
+                $series->delete();
+
+                throw new RuntimeException('fail');
+            });
+        } catch (RuntimeException) {
+        }
+
+        Storage::disk('public')->assertExists('media/files/ep.mp3');
+        $this->assertNotNull(Media::find($episode->id));
+
+        DB::transaction(function () use ($series) {
+            Media::find($series->id)->delete();
+
+            Storage::disk('public')->assertExists('media/files/ep.mp3');
+        });
+
+        Storage::disk('public')->assertMissing('media/files/ep.mp3');
+        $this->assertNull(Media::find($episode->id));
+    }
+
     public function test_a_parent_must_be_a_different_root_series_and_a_series_cannot_have_a_parent(): void
     {
         $series = Media::factory()->series()->create();
