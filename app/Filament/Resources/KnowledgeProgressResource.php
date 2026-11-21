@@ -33,7 +33,7 @@ class KnowledgeProgressResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['user', 'media.parent', 'report']);
+        return parent::getEloquentQuery()->with(['user:id,name', 'media:id,title,parent_id', 'media.parent:id,title', 'report:id,title']);
     }
 
     public static function getModelLabel(): string
