@@ -57,7 +57,7 @@ class Reports extends Component
         }
 
         if (config('media.track_reports') && auth()->user()) {
-            app(SaveProgressAction::class)->execute(auth()->user(), [[
+            SaveProgressAction::execute(auth()->user(), [[
                 'type' => 'report', 'id' => $report->id, 'position' => 0,
                 'last_position' => 0, 'completed' => true, 'duration' => null,
             ]]);
