@@ -58,6 +58,7 @@ return new class extends Migration {
                 $table->collation('utf8mb4_unicode_ci');
                 $table->unique(['user_id', 'media_id']);
                 $table->unique(['user_id', 'report_id']);
+                $table->index('last_seen_at');
             });
         }
 

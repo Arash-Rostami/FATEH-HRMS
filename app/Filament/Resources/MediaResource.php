@@ -112,7 +112,7 @@ class MediaResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['department', 'user', 'parent']);
+        return parent::getEloquentQuery()->with(['department', 'user:id,name', 'parent:id,title']);
     }
 
     public static function getRelations(): array

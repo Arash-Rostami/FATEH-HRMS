@@ -3,12 +3,10 @@
 namespace App\Livewire\Dashboard\Knowledge;
 
 use App\Livewire\Dashboard\Knowledge\Presentation\MediaPresenter;
-use App\Models\Media;
 use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
-use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Lazy]
@@ -16,25 +14,17 @@ class Library extends Component
 {
     use FocusOnRecord;
 
-    #[Locked]
-    public array $newIds = [];
-
     public function mount(?int $open = null): void
     {
         abort_if(tenantOff('knowledge:media'), 404);
 
         $this->open = $open;
-
-        $this->newIds = Media::newFor(auth()->id())->pluck('media.id')->map(fn ($id) => (int) $id)->all();
     }
 
     #[Computed]
     public function library(): array
     {
-        $library = app(MediaPresenter::class)->library();
-        $library['items'] = array_map(fn (array $item) => $item + ['is_new' => in_array($item['id'], $this->newIds, true)], $library['items']);
-
-        return $library;
+        return app(MediaPresenter::class)->library();
     }
 
     protected function recordFocusType(): string

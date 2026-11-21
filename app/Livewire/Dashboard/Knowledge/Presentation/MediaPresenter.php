@@ -38,7 +38,7 @@ class MediaPresenter
         $user->loadMissing('profile');
         $departments = Department::getCachedModels();
         $payload['items'] = array_map(
-            fn (array $item) => $this->labelled($item, $departments),
+            fn (array $item) => $this->labelled($item, $departments, (int) $user->id),
             Media::cachedCatalog($user->profile?->department_id, fn () => $this->catalog($user))
         );
         $episodeIds = collect($payload['items'])->pluck('episodes.*.id')->flatten()->all();
@@ -64,10 +64,11 @@ class MediaPresenter
         return $payload;
     }
 
-    private function labelled(array $item, Collection $departments): array
+    private function labelled(array $item, Collection $departments, int $viewerId): array
     {
-        ['department_code' => $code, 'audience' => $audience] = $item;
-        unset($item['department_code'], $item['audience']);
+        ['department_code' => $code, 'audience' => $audience, 'owner_id' => $ownerId, 'new_until' => $newUntil] = $item;
+        unset($item['department_code'], $item['audience'], $item['owner_id'], $item['new_until']);
+        $item['is_new'] = $ownerId !== $viewerId && $newUntil >= now()->timestamp;
         $item['department'] = $departments->get((string) $code)?->name
             ?? ($departments->only($audience)->pluck('name')->join('، ') ?: 'همهٔ بخش‌ها');
         $item['unit'] = $item['unit'] ?: $item['department'];
@@ -107,6 +108,8 @@ class MediaPresenter
                 'unit' => $owners->get($item->user_id),
                 'department_code' => $item->department_id,
                 'audience' => $item->audienceCodes(),
+                'owner_id' => (int) $item->user_id,
+                'new_until' => ($item->report_date?->copy()->endOfDay() ?? $item->created_at->copy())->addDays((int) config('media.new_days', 30))->timestamp,
                 'date_label' => convertToPersian(toJalali($item->report_date ?? $item->created_at, 'j F Y')),
                 'pinned' => (bool) $item->pinned,
                 'total_duration' => (int) $episodes->sum('duration_seconds'),
@@ -129,7 +132,6 @@ class MediaPresenter
             'icon' => $this->icon($episode, $episode->kind),
             'duration' => $episode->duration_seconds === null ? null : (int) $episode->duration_seconds,
             'file_url' => $url,
-            'download_url' => $url,
             'mime' => $locked ? null : match ($extension) {
                 'mp3' => 'audio/mpeg', 'm4a' => 'audio/mp4', 'wav' => 'audio/wav',
                 'ogg' => 'audio/ogg', 'mp4' => 'video/mp4', 'webm' => 'video/webm', default => null,

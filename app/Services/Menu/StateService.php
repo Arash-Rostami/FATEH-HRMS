@@ -60,6 +60,14 @@ class StateService
         Cache::forever(self::VERSION_KEY, now()->getPreciseTimestamp());
     }
 
+    public static function lit(int $userId, string $key): bool
+    {
+        $version = Cache::get(self::VERSION_KEY);
+        $map = $version === null ? null : Cache::get("menu_state:v{$version}:u{$userId}");
+
+        return ($map[$key] ?? true) !== false;
+    }
+
     public static function markViewed(string $tab): void
     {
         $user = auth()->user();

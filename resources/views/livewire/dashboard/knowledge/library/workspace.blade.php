@@ -72,8 +72,8 @@
                                 <td class="hidden md:table-cell px-3 py-3 text-xs"><span x-text="episodeState({{ $item['id'] }}, {{ $index }}) === 'done' ? 'تمام‌شده' : (episodeState({{ $item['id'] }}, {{ $index }}) === 'locked' ? 'قفل‌شده' : (episodeState({{ $item['id'] }}, {{ $index }}) === 'current' ? 'در حال پخش' : 'آمادهٔ پخش'))"></span><div class="mt-2 h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden" role="progressbar" aria-label="پیشرفت" aria-valuemin="0" aria-valuemax="100" x-bind:aria-valuenow="percent(episodeProgress({{ $item['id'] }}, {{ $index }}))"><div class="h-full rounded-full transition-all duration-500 bg-[var(--md-sys-color-primary)]" x-bind:style="{ width: percent(episodeProgress({{ $item['id'] }}, {{ $index }})) + '%' }"></div></div></td>
                                 <td class="px-3 py-3">
                                     <x-ui.buttons.form variant="ghost" size="icon" x-on:click="markDone({{ $item['id'] }}, {{ $index }})" x-show="canMarkDone({{ $item['id'] }}, {{ $index }})" x-cloak title="پایان‌یافته" aria-label="پایان‌یافته"><span class="material-symbols-rounded">done_all</span></x-ui.buttons.form>
-                                    @if($episode['download_url'])
-                                        <div wire:key="media-episode-download"><x-ui.buttons.form href="{{ $episode['download_url'] }}" variant="ghost" size="icon" download aria-label="دانلود جلسه"><span class="material-symbols-rounded">download</span></x-ui.buttons.form></div>
+                                    @if($episode['file_url'])
+                                        <div wire:key="media-episode-download"><x-ui.buttons.form href="{{ $episode['file_url'] }}" variant="ghost" size="icon" download aria-label="دانلود جلسه"><span class="material-symbols-rounded">download</span></x-ui.buttons.form></div>
                                     @else
                                         <span wire:key="media-episode-no-download" class="material-symbols-rounded text-[var(--md-sys-color-on-surface-variant)]" aria-label="هنوز منتشر نشده">lock</span>
                                     @endif

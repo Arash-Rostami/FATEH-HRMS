@@ -14,8 +14,10 @@ use App\Models\Profile;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
+use App\Services\Menu\StateService;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
@@ -377,6 +379,26 @@ class MediaPlaybackTest extends TestCase
 
         $this->assertSame(100, (int) $this->episode->fresh()->duration_seconds);
         $this->assertSame(['v' => 2], Media::cachedCatalog('KMDA', fn () => ['v' => 2]));
+    }
+
+    public function test_a_first_play_flushes_the_menu_state_only_while_the_badge_is_lit(): void
+    {
+        $stamp = fn (bool $lit) => Cache::put('menu_state:v'.StateService::version().':u'.$this->viewer->id, ['media-controller' => $lit], 60);
+        $reset = function () {
+            KnowledgeProgress::where('user_id', $this->viewer->id)->delete();
+            DB::table('media')->where('id', $this->episode->id)->update(['duration_seconds' => null]);
+        };
+
+        $reset();
+        $stamp(false);
+        $version = StateService::version();
+        SaveProgressAction::execute($this->viewer, [$this->item(10, 10)]);
+        $this->assertSame($version, StateService::version());
+
+        $reset();
+        $stamp(true);
+        SaveProgressAction::execute($this->viewer, [$this->item(10, 10)]);
+        $this->assertNotSame($version, StateService::version());
     }
 
     public function test_per_user_data_never_enters_the_catalog_cache(): void

@@ -88,9 +88,10 @@ class SaveProgressAction
             }
         }
 
-        $firstPlay = array_filter($mediaRows, fn (array $row) => !$existing->has('media:'.$row['media_id'])) !== [];
+        $firstPlay = array_filter($mediaRows, fn (array $row) => !$existing->has('media:'.$row['media_id'])) !== []
+            && StateService::lit($user->id, 'media-controller');
 
-        DB::transaction(function () use ($mediaRows, $reportRows, $durations, $firstPlay) {
+        $write = function () use ($mediaRows, $reportRows, $durations, $firstPlay) {
             self::upsert('media_id', $mediaRows);
             self::upsert('report_id', $reportRows);
 
@@ -102,7 +103,9 @@ class SaveProgressAction
                 Media::writeSystemDurations($durations);
                 DB::afterCommit(fn () => ModelCacheVersion::bump(Media::class));
             }
-        });
+        };
+
+        $durations !== [] || ($mediaRows !== [] && $reportRows !== []) ? DB::transaction($write) : $write();
 
         return count($mediaRows) + count($reportRows);
     }

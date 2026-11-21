@@ -56,6 +56,23 @@ class StateServiceTest extends TestCase
         config(['database.default' => 'mysql']);
     }
 
+    public function test_lit_peeks_the_cached_map_and_defaults_to_true_when_unknown(): void
+    {
+        $this->assertTrue(StateService::lit(7, 'media-controller'));
+
+        $version = StateService::version();
+        $this->assertTrue(StateService::lit(7, 'media-controller'));
+
+        Cache::put("menu_state:v{$version}:u7", ['media-controller' => false, 'ths-controller' => true], 60);
+        $this->assertFalse(StateService::lit(7, 'media-controller'));
+        $this->assertTrue(StateService::lit(7, 'ths-controller'));
+        $this->assertTrue(StateService::lit(7, 'unknown-key'));
+        $this->assertTrue(StateService::lit(8, 'media-controller'));
+
+        Cache::put("menu_state:v{$version}:u7", ['media-controller' => true], 60);
+        $this->assertTrue(StateService::lit(7, 'media-controller'));
+    }
+
     public function test_viewed_today_is_false_for_guest_and_before_marking(): void
     {
         $this->assertFalse(StateService::viewedToday('home'));

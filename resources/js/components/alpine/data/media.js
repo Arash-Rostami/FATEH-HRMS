@@ -17,6 +17,7 @@ export default function media() {
     const unlocked = new Set();
     const searchIndex = new Map();
     const itemOrder = new Map();
+    const owners = new Map();
     let loadedTracksKey = null, lastPayload = null;
     const player = playerMixin();
     const root = Object.defineProperties({}, Object.getOwnPropertyDescriptors(player));
@@ -89,11 +90,14 @@ export default function media() {
             this.libraryNotes = payload.notes ?? {};
             searchIndex.clear();
             itemOrder.clear();
+            owners.clear();
             for (const [index, item] of this.items.entries()) {
                 itemOrder.set(item.id, index);
                 searchIndex.set(item.id, normalize([item.title, item.department, item.unit, ...item.episodes.map(ep => `${ep.title} ${ep.topic}`)].join(' ')));
+                for (const ep of item.episodes) owners.set(ep.id, [item, ep]);
             }
             this.loadLibrary(payload);
+            this.pruneLocalProgress();
             if (this.cur?.sid && !this.accessible(this.cur.sid, this.cur.idx)) {
                 if (this.playing) this.toggle();
                 this.cur = { sid: null, idx: 0 };
@@ -126,6 +130,13 @@ export default function media() {
             this.scheduleUnlock();
         },
 
+        pruneLocalProgress() {
+            if (!owners.size) return;
+            const stored = this._loadState(this._k(PROGRESS_KEY), {}) ?? {};
+            const kept = Object.entries(stored).filter(([id]) => owners.has(Number(id)));
+            if (kept.length !== Object.keys(stored).length) this._saveState(this._k(PROGRESS_KEY), Object.fromEntries(kept));
+        },
+
         get selected() {
             return this.items.find(item => item.id === this.selectedId) ?? null;
         },
@@ -147,13 +158,12 @@ export default function media() {
         get visibleItems() {
             const query = normalize(this.query);
             return this.items.filter(item => {
-                const progress = this.progressOf(item.id);
                 return (!query || searchIndex.get(item.id)?.includes(query))
                     && (!this.department || item.department === this.department)
                     && (!this.onlySaved || this.$store.pinned.isPinned(item.id, 'media'))
                     && (this.filter === 'all'
                         || this.filter === 'series' && item.type === 'series'
-                        || this.filter === 'continue' && progress > 0 && progress < 1
+                        || this.filter === 'continue' && ((progress) => progress > 0 && progress < 1)(this.progressOf(item.id))
                         || this.filter === item.kind);
             }).sort((a, b) => {
                 const pin = Number(this.pinned(b)) - Number(this.pinned(a));
@@ -172,7 +182,6 @@ export default function media() {
 
         get recentItems() {
             const touched = this.library.progress ?? {};
-            const owners = new Map(this.items.flatMap(item => item.episodes.map(ep => [ep.id, [item, ep]])));
             const stamps = Object.entries(this._loadState(this._k(PROGRESS_KEY), {}) ?? {})
                 .filter(([id]) => id in touched)
                 .sort(([, a], [, b]) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
@@ -213,8 +222,9 @@ export default function media() {
 
         episodeHit(id) {
             const query = normalize(this.query);
+            if (!query) return null;
             const item = this.items.find(row => row.id === Number(id));
-            if (!query || item?.type !== 'series' || normalize(item.title).includes(query)) return null;
+            if (item?.type !== 'series' || normalize(item.title).includes(query)) return null;
             const index = item.episodes.findIndex(ep => normalize(`${ep.title} ${ep.topic}`).includes(query));
             return index < 0 ? null : { index, title: item.episodes[index].title };
         },

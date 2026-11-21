@@ -528,6 +528,35 @@ describe('playerMixin — local-first progress and flush', () => {
         expect(global.fetch).not.toHaveBeenCalled()
     })
 
+    test('an identical flush while the first is in flight sends once, a changed one sends, pagehide always sends', async () => {
+        const p = makePlayer()
+        p.playEpisode(1, 0)
+        sharedElement()._trigger('playing')
+        p.t = 300
+        p.flush('pause')
+        p.flush('switch')
+        expect(global.fetch).toHaveBeenCalledTimes(1)
+        p.t = 340
+        p.flush('pause')
+        expect(global.fetch).toHaveBeenCalledTimes(2)
+        p.flush('pagehide')
+        expect(navigator.sendBeacon).toHaveBeenCalledTimes(1)
+        await settle()
+        expect(p._inflight).toEqual({})
+    })
+
+    test('a failed send clears the in-flight state so the same flush can retry', async () => {
+        const p = makePlayer()
+        global.fetch = vi.fn().mockRejectedValue(new Error('offline'))
+        p.playEpisode(1, 0)
+        sharedElement()._trigger('playing')
+        p.t = 300
+        p.flush('pause')
+        await settle()
+        p.flush('pause')
+        expect(global.fetch).toHaveBeenCalledTimes(2)
+    })
+
     test('safety flush respects min_delta against the acked position', async () => {
         const p = makePlayer()
         p.playEpisode(1, 0)
