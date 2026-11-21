@@ -11,6 +11,8 @@ use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 class MediaPresenter
 {
@@ -87,8 +89,9 @@ class MediaPresenter
             ->mapWithKeys(fn (Report $report) => [$report->id => $this->material($report)]);
 
         $owners = User::getCachedAllOptions();
+        $sanitizer = new HtmlSanitizer((new HtmlSanitizerConfig)->allowSafeElements()->allowRelativeLinks());
 
-        return $library->map(function (Media $item) use ($reports, $owners): array {
+        return $library->map(function (Media $item) use ($reports, $owners, $sanitizer): array {
             $episodes = $item->kind === 'series' ? $item->episodes : collect([$item]);
             $kind = $item->kind === 'series'
                 ? ($episodes->first(fn (Media $episode) => $episode->kind === 'video') ? 'video' : 'audio')
@@ -99,7 +102,7 @@ class MediaPresenter
                 'kind' => $kind,
                 'type' => $item->kind === 'series' ? 'series' : 'single',
                 'title' => $item->title,
-                'description_html' => $item->description ?? '',
+                'description_html' => $sanitizer->sanitize($item->description ?? ''),
                 'cover_url' => $item->cover_url ?: null,
                 'icon' => $this->icon($item, $kind),
                 'accent' => ['p', 't', 'ok', 'w', 'sec'][$item->id % 5],

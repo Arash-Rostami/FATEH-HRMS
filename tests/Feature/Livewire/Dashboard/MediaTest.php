@@ -202,6 +202,27 @@ class MediaTest extends TestCase
         $this->assertSame(Carbon::parse('2026-01-01 00:00:00')->timestamp, ((array) $presenter->library($user)['progress'])[$item->id]['updated_at']);
     }
 
+    public function test_description_html_is_sanitized_inside_the_cached_catalog_and_keeps_rich_editor_markup(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $html = '<h2>عنوان</h2><p>متن <strong>پررنگ</strong> و <em>کج</em></p><ul><li>یک</li></ul><ol><li>دو</li></ol>'
+            . '<a href="https://example.com/a">پیوند</a><table><thead><tr><th>ستون</th></tr></thead><tbody><tr><td>سلول</td></tr></tbody></table>'
+            . '<script>alert(1)</script><img src="x" onerror="alert(2)"><a href="javascript:alert(3)">بد</a>';
+        $item = $this->media($user, ['description' => $html]);
+        $presenter = app(MediaPresenter::class);
+        $presenter->library($user);
+        $cached = Media::cachedCatalog($user->fresh()->profile?->department_id, fn () => []);
+        $clean = collect($cached)->firstWhere('id', $item->id)['description_html'];
+        $this->assertSame($clean, collect($presenter->library($user)['items'])->firstWhere('id', $item->id)['description_html']);
+        $this->assertStringNotContainsString('<script', $clean);
+        $this->assertStringNotContainsString('alert(1)', $clean);
+        $this->assertStringNotContainsString('onerror', $clean);
+        $this->assertStringNotContainsString('javascript:', $clean);
+        foreach (['<h2>', '<p>', '<strong>', '<em>', '<ul>', '<ol>', '<li>', '<table>', '<thead>', '<tbody>', '<th>', '<td>', 'href="https://example.com/a"'] as $kept) {
+            $this->assertStringContainsString($kept, $clean);
+        }
+    }
+
     public function test_department_label_falls_back_to_the_audience_departments(): void
     {
         $user = User::factory()->create(['status' => 'active']);
