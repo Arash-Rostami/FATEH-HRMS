@@ -79,7 +79,7 @@ trait ForwardsMessages
         $userId = (int) auth()->id();
         $query = $this->forwardDestinationType === 'contact'
             ? User::visibleOnBoard()->where('id', '!=', $userId)
-            : Channel::query()->whereHas('memberUsers', fn ($q) => $q->where('users.id', $userId));
+            : Channel::query()->writableBy($userId);
 
         return $query->select(['id', 'name'])
             ->when($this->forwardDestinationType === $this->forwardSourceType(), fn ($q) => $q->where('id', '!=', $this->forwardPreview['thread'] ?? 0))

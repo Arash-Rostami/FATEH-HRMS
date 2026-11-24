@@ -36,7 +36,7 @@ class EventResource extends Resource
         ['label' => 'بررسی', 'icon' => 'calendar_month', 'view' => 'filament.resources.event.guide.overview'],
         ['label' => 'شمارش معکوس', 'icon' => 'hourglass_top', 'view' => 'filament.resources.event.guide.countdown'],
         ['label' => 'فهرست و فیلترها', 'icon' => 'filter_list', 'view' => 'filament.resources.event.guide.list-tabs'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.event.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.event.guide.admin-ops'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.event.guide.user'],
     ];
 

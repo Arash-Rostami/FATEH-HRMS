@@ -97,6 +97,7 @@ class Main extends Component
 
     public function render()
     {
+        $this->form->descriptionDepts += array_fill_keys($this->form->departments, '');
         return view('livewire.dashboard.suggestion', [
             'rules' => Suggestion::RULES,
             'purposes' => Suggestion::PURPOSES,

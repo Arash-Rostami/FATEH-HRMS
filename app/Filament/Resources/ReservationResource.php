@@ -39,7 +39,7 @@ class ReservationResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.reservation.guide.overview'],
         ['label' => 'وضعیت‌ها', 'icon' => 'flag', 'view' => 'filament.resources.reservation.guide.statuses'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.reservation.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.reservation.guide.admin-ops'],
         ['label' => 'تقویم', 'icon' => 'calendar_today', 'view' => 'filament.resources.reservation.guide.calendar'],
         ['label' => 'قابلیت‌های هوشمند', 'icon' => 'tips_and_updates', 'view' => 'filament.resources.reservation.guide.smart'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.reservation.guide.user'],

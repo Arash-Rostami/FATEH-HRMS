@@ -56,17 +56,15 @@
                         @endif
                     </button>
                 @endforeach
-                @if(count($pageTwo) < $perPage)
-                    <div wire:key="btm-labels-editor" class="shrink-0 flex items-center gap-1 max-h-[48px]">
-                        <div class="h-7 w-px bg-[var(--md-sys-color-outline-variant)]/40"></div>
-                        <button type="button" @click="labelsOpen = !labelsOpen" title="حالت برچسب‌ها"
-                                class="w-9 h-9 rounded-lg bg-[var(--md-sys-color-surface)]/70 border border-[var(--md-sys-color-outline-variant)]/40 flex items-center justify-center transition-all duration-200 active:scale-90"
-                                :class="labelsOpen ? 'text-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)]/60' : 'text-[var(--md-sys-color-on-surface-variant)]'">
-                            <span class="material-symbols-rounded text-[20px]">text_fields</span>
-                        </button>
-                    </div>
-                @endif
-                @for($i = count($pageTwo) + (count($pageTwo) < $perPage ? 1 : 0); $i < $perPage; $i++)
+                <div wire:key="btm-labels-editor" class="shrink-0 flex items-center gap-1 max-h-[48px]">
+                    <div class="h-7 w-px bg-[var(--md-sys-color-outline-variant)]/40"></div>
+                    <button type="button" @click="labelsOpen = !labelsOpen" title="حالت برچسب‌ها"
+                            class="w-9 h-9 rounded-lg bg-[var(--md-sys-color-surface)]/70 border border-[var(--md-sys-color-outline-variant)]/40 flex items-center justify-center transition-all duration-200 active:scale-90"
+                            :class="labelsOpen ? 'text-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)]/60' : 'text-[var(--md-sys-color-on-surface-variant)]'">
+                        <span class="material-symbols-rounded text-[20px]">text_fields</span>
+                    </button>
+                </div>
+                @for($i = count($pageTwo) + 1; $i < $perPage; $i++)
                     <div class="flex-1"></div>
                 @endfor
             </div>
@@ -82,19 +80,20 @@
         <span class="material-symbols-rounded text-[22px]">apps</span>
     </div>
 
-    <div x-show="labelsOpen" x-cloak x-transition.opacity.duration.200ms @click.outside="labelsOpen = false"
+    <div dir="rtl"
+        x-show="labelsOpen" x-cloak x-transition.opacity.duration.200ms @click.outside="labelsOpen = false"
          class="absolute bottom-full right-6 mb-3 w-44 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/30 shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)] p-1.5 z-50">
         <button type="button" @click="setLabelPreset('all')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-colors duration-200" :class="labelPreset === 'all' ? 'bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'">
             <span class="material-symbols-rounded text-[16px]">visibility</span>
-            <span>آیکون + برچسب (پیش‌فرض)</span>
+            <span>آیکون و نام (پیش‌فرض)</span>
         </button>
         <button type="button" @click="setLabelPreset('icons')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-colors duration-200" :class="labelPreset === 'icons' ? 'bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'">
             <span class="material-symbols-rounded text-[16px]">visibility_off</span>
             <span>فقط آیکون</span>
         </button>
-        <button type="button" @click="setLabelPreset('smart')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-colors duration-200" :class="labelPreset === 'smart' ? 'bg-[var(--ai-bg)] text-[var(--ai-text)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'">
-            <span class="material-symbols-rounded text-[16px] text-[var(--ai-color)]">auto_awesome</span>
-            <span>هوشمند (نوار خودپنهان)</span>
+        <button type="button" @click="setLabelPreset('smart')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-colors duration-200 bg-[var(--ai-bg)] text-[var(--ai-text)]" :class="labelPreset === 'smart' ? 'bg-[color-mix(in_srgb,var(--ai-bg)_78%,var(--ai-color))]' : 'hover:bg-[color-mix(in_srgb,var(--ai-bg)_78%,var(--ai-color))]'">
+            <span class="material-symbols-rounded !text-[16px] text-[var(--ai-color)]" aria-hidden="true">auto_awesome</span>
+            <span>پنهان شدن خودکار نوار</span>
         </button>
     </div>
 </aside>

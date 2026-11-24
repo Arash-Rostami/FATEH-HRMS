@@ -2369,6 +2369,16 @@ class CalendarTest extends TestCase
         $this->assertSame(convertToPersian('09:00') . '–' . convertToPersian('10:30'), $b['rangeLabel']);
     }
 
+    public function test_event_type_counts_group_by_type_in_first_seen_order_and_first_pill_top_ignores_missing_tops()
+    {
+        $p = new CalendarPresenter();
+        $this->assertSame(['event' => 2, 'default' => 1, 'holiday' => 1], $p->eventTypeCounts(collect([
+            ['type' => 'event'], [], ['type' => 'event'], ['type' => 'holiday'],
+        ])));
+        $this->assertSame(60, $p->firstPillTop([['top' => 120], ['id' => 1], ['top' => 60]]));
+        $this->assertNull($p->firstPillTop([]));
+    }
+
     public function test_event_block_data_hides_end_time_when_duration_is_thirty_minutes_or_less()
     {
         $p = new CalendarPresenter();

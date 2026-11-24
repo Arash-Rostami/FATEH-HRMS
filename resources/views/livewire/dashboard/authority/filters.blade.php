@@ -1,5 +1,5 @@
 <x-ui.forms.filters
-    placeholder="جستجوی اعضا..."
+    placeholder="جست‌وجو در شرح وظایف…"
     searchModel="search"
     activeCondition="this.$wire.get('search') !== ''"
     clearAction="this.$wire.set('search', '')"

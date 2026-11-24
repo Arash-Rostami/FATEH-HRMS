@@ -1,5 +1,6 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
 import { calendarDay, calendarNow, calendarView, calendarDrag, calendarResize } from '../calendar.js'
+import { smsMemoryMixin } from '../../mixins/persistentState.js'
 
 beforeEach(() => {
     vi.useFakeTimers()
@@ -179,6 +180,14 @@ describe('calendar SMS memory', () => {
         vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('full') })
         expect(() => c.rememberSms({ source: 'calendar', senderId: 7, key: 'birthday-12-1405' })).not.toThrow()
         expect(c.smsAlreadySent('birthday-12-1405')).toBe(true)
+    })
+
+    test('a greeting remembered by the Contacts page hides the calendar icon after reload', () => {
+        const contactSide = smsMemoryMixin({ senderId: 7, smsYear: 1405 })
+        contactSide.rememberSms({ source: 'calendar', senderId: 7, key: 'birthday-12-1405' })
+        const calendar = calendarView({ senderId: 7, smsYear: 1405 })
+        calendar.loadSmsMemory()
+        expect(calendar.smsAlreadySent('birthday-12-1405')).toBe(true)
     })
 })
 

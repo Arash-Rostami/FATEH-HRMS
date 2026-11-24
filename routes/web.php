@@ -32,6 +32,7 @@ use App\Http\Controllers\LaunchpadFileController;
 use App\Http\Controllers\LaunchpadGoController;
 use App\Http\Controllers\MediaNoteController;
 use App\Http\Controllers\MediaProgressController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Middleware\UpdateLastSeen;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -54,6 +55,17 @@ Route::get('/site.webmanifest', fn () => response()
     ->header('Content-Type', 'application/manifest+json; charset=utf-8')
     ->header('Cache-Control', 'no-store'))
     ->name('manifest');
+
+Route::get('/offline', fn () => response()->view('errors.offline')->header('Cache-Control', 'public, max-age=3600'))
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        ValidateCsrfToken::class,
+        UpdateLastSeen::class,
+    ])
+    ->name('offline');
 
 
 Route::post('/icon-miss', IconMissController::class)->middleware('throttle:icon-miss')->name('icon.miss');
@@ -113,6 +125,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/knowledge', Knowledge::class)->name('knowledge');
     Route::get('/media', fn (Request $request) => redirect()->route('knowledge', ['tab' => 'media'] + $request->only('open', 't'), 302));
     Route::get('/launchpad/{launchpad}/go', LaunchpadGoController::class)->middleware('throttle:30,1')->where('launchpad', '[1-9][0-9]{0,9}')->name('launchpad.go');
+    Route::post('/push/subscription', PushSubscriptionController::class)->middleware('throttle:20,1')->name('push.subscription');
     Route::get('/ai-report', AiReport::class)->name('ai-report');
     Route::get('/ai-report/shared/{report}', AiReport::class)->middleware('signed')->name('ai-report.shared');
     Route::get('/correspondence', Correspondence::class)->name('correspondence');

@@ -95,7 +95,7 @@
                                 <div class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] flex items-center justify-center">
                                     <span class="material-symbols-rounded text-base font-fill">info</span>
                                 </div>
-                                <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">جزئیات موقعیت</h3>
+                                <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">شرایط استخدام</h3>
                             </div>
                             <label for="flip-{{ $ad->id }}"
                                    class="shrink-0 w-11 h-11 flex items-center justify-center bg-[var(--md-sys-color-surface)] rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_10%,transparent)] hover:border-[color-mix(in_srgb,var(--md-sys-color-error-container)_40%,transparent)] hover:text-[var(--md-sys-color-error-container)] active:scale-[0.97] transition-all cursor-pointer">
@@ -108,7 +108,7 @@
                             <div class="bg-[var(--md-sys-color-secondary-container)] rounded-2xl p-4">
                                 <div class="flex items-center gap-2 mb-2">
                                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">work_history</span>
-                                    <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">سابقه کار:</h4>
+                                    <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">سابقهٔ کاری</h4>
                                 </div>
                                 <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-right whitespace-pre-wrap">
                                     {{ strip_tags($ad->experience ?? '') }}
@@ -132,7 +132,7 @@
                                    class="h-11 flex-1 bg-[var(--md-sys-color-surface-variant)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] rounded-xl px-4 font-mono text-sm dir-ltr text-[var(--md-sys-color-on-surface)] truncate focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] transition-all cursor-text"
                                    readonly value="{{ strip_tags($ad->link) }}"
                                    onclick="event.stopPropagation(); this.select()">
-                            <x-ui.buttons.copy :text="strip_tags($ad->link)" message="لینک کپی شد"/>
+                            <x-ui.buttons.copy :text="strip_tags($ad->link)" message="پیوند ثبت‌نام کپی شد."/>
                         </div>
                     </div>
 

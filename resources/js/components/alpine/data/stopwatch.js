@@ -158,8 +158,8 @@ export default function stopwatch(mp3) {
         notifyAlarm() {
             if (typeof Notification === 'undefined') return;
             if (Notification.permission !== 'granted') return;
-            const body = this.reminderTitle ? `یادآوری: ${this.reminderTitle}` : 'زمان‌سنج شما به پایان رسید';
-            new Notification('⏰ زمان تمام شد', {body});
+            const body = this.reminderTitle ? `یادآوری: ${this.reminderTitle}` : 'زمان تعیین‌شده به پایان رسید.';
+            new Notification('زمان تمام شد', {body});
         },
         snooze(minutes = 5) {
             this.stopAlarm();

@@ -4,6 +4,7 @@ namespace Tests\Feature\Livewire\Dashboard;
 
 use App\Livewire\Dashboard\Energy\Chart;
 use App\Livewire\Dashboard\Energy\Main;
+use App\Livewire\Dashboard\Energy\Presentation\ChartPresenter;
 use App\Models\Department;
 use App\Models\EnergyTest as EnergyModel;
 use App\Models\Profile;
@@ -67,6 +68,14 @@ class EnergyTest extends TestCase
 
         $test = EnergyModel::where('user_id', $user->id)->latest('id')->firstOrFail();
         $this->assertSame(1, (int) $test->mind_score);
+    }
+
+    public function test_chart_presenter_history_extremes_pick_highest_and_lowest_overall(): void
+    {
+        $extremes = (new ChartPresenter())->historyExtremes([['overall' => 5], ['overall' => 12], ['overall' => 2]]);
+
+        $this->assertSame(12, $extremes['best']['overall']);
+        $this->assertSame(2, $extremes['worst']['overall']);
     }
 
     public function test_active_tab_is_remembered_across_mounts(): void

@@ -11,7 +11,7 @@
     $reservations = $grid['allReservations'];
 
     $allDayCount = count($meta['dayAllDay'] ?? []);
-    $firstEventTop = collect($meta['dayPills'] ?? [])->pluck('top')->filter(fn ($top) => $top !== null)->min();
+    $firstEventTop = $presenter->firstPillTop($meta['dayPills'] ?? []);
     $dayConfig = ['hourHeight' => (int) $hourHeight, 'startHour' => (int) $startHour, 'endHour' => (int) $endHour, 'isToday' => (bool) $meta['isToday'], 'firstTop' => $firstEventTop];
 @endphp
 

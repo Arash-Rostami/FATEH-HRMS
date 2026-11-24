@@ -16,6 +16,7 @@
     <script src="{{ asset('js/mode-manager.js') }}"></script>
     <script src="{{ asset('js/prefs-manager.js') }}"></script>
     <x-dashboard.meta-tags/>
+    @if(config('services.webpush.public') && config('services.webpush.private') && config('services.webpush.subject'))<meta name="vapid-key" content="{{ config('services.webpush.public') }}">@endif
     <x-dashboard.module-chunks/>
     <script>window.__tenantBackdrop = @json($backdrop);</script>
     @if(config('app.off'))<style>{!! tenantOffCss() !!}</style>@endif

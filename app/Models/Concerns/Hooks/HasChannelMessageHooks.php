@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns\Hooks;
 
+use App\Jobs\SendChatPushJob;
 use App\Models\Project;
 use App\Services\Messaging\PollDigestService;
 use App\Services\ProjectTask\ProjectHeartbeat;
@@ -13,6 +14,7 @@ trait HasChannelMessageHooks
     {
         static::forceDeleted(self::deleteMessageDirectoryOnForceDeleted(...));
         static::created(self::bumpChannelThreadDigestAfterCommit(...));
+        static::created(fn(self $message) => SendChatPushJob::fire('channel', (int) $message->channel_id, (int) $message->sender_id));
         static::updated(self::bumpChannelThreadDigestAfterCommit(...));
         static::deleted(self::bumpChannelThreadDigestAfterCommit(...));
     }

@@ -85,7 +85,7 @@ class SummarizeChannelAction
             return $this->generate($channelId, $userId, $config, $mode === 'ask' ? $question : '');
         } finally {
             if ($this->called) {
-                Cache::put($cooldown, 1, (int) config('ai.channel.cooldown'));
+                Cache::put($cooldown, 1, (int) AiClient::setting('channel', 'cooldown'));
             }
 
             $lock->release();
@@ -120,7 +120,7 @@ class SummarizeChannelAction
             $code = $e instanceof DomainException ? $e->getMessage() : 'unreachable';
 
             if ($e instanceof RequestException ? ($e->response->status() >= 500 || $e->response->status() === 429) : $code === 'unreachable') {
-                Cache::put('channel:ai:down', 1, (int) config('ai.channel.down_for'));
+                Cache::put('channel:ai:down', 1, (int) AiClient::setting('channel', 'down_for'));
             }
 
             Channel::refundQuota($userId, $day);
@@ -223,7 +223,7 @@ class SummarizeChannelAction
         $started = microtime(true);
 
         for ($attempt = 0; $attempt < 2; $attempt++) {
-            if ($attempt > 0 && microtime(true) - $started > (int) config('ai.channel.retry_within')) {
+            if ($attempt > 0 && microtime(true) - $started > (int) AiClient::setting('channel', 'retry_within')) {
                 break;
             }
 

@@ -25,7 +25,7 @@
                     <div wire:key="reminder-empty-list" class="flex min-h-[300px] items-center justify-center rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
                         <x-ui.empty icon="alarm_off"
                                     title="یادآوری‌ای یافت نشد"
-                                    description="{{ $variant === 'embedded' ? 'یادآوری‌های شما اینجا نمایش داده می‌شوند.' : 'برای ساختن یادآوری از دکمه + یا تب «یادآوری جدید» استفاده کنید' }}"
+                                    description="{{ $variant === 'embedded' ? 'یادآوری‌های شما اینجا نمایش داده می‌شوند.' : 'برای ساختن یادآوری، روی «+» یا «یادآوری جدید» بزنید.' }}"
                                     fill />
                     </div>
                 @else

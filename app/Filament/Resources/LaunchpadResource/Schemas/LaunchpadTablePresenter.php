@@ -73,7 +73,7 @@ class LaunchpadTablePresenter
     public static function department(): TextColumn
     {
         return TextColumn::make('department_id')
-            ->label('دپارتمان')
+            ->label('واحد سازمانی')
             ->formatStateUsing(fn ($state) => Department::getCachedOptions()->get((string) $state) ?? '—')
             ->toggleable(isToggledHiddenByDefault: false);
     }
@@ -81,7 +81,7 @@ class LaunchpadTablePresenter
     public static function departmentFilter(): SelectFilter
     {
         return SelectFilter::make('department_id')
-            ->label('دپارتمان')
+            ->label('واحد سازمانی')
             ->options(fn () => Department::getCachedOptions()->toArray())
             ->searchable();
     }
@@ -89,7 +89,7 @@ class LaunchpadTablePresenter
     public static function departmentGroup(): Group
     {
         return Group::make('department_id')
-            ->label('دپارتمان')
+            ->label('واحد سازمانی')
             ->getTitleFromRecordUsing(function (Launchpad $record): string {
                 $label = Department::getCachedOptions()->get((string) $record->department_id) ?? '—';
                 $used = self::departmentCounts()[$record->department_id] ?? 0;
@@ -102,7 +102,7 @@ class LaunchpadTablePresenter
     public static function expiry(): TextColumn
     {
         return TextColumn::make('expire_at')
-            ->label('آخرین روز نگهداری')
+            ->label('مهلت نگهداری')
             ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d') : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->alignRight()

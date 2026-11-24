@@ -49,7 +49,7 @@
         </div>
     @elseif(!$embed)
         <div wire:key="launchpad-module" class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-4">
-            <x-ui.title icon="apps" title="پیشخوان برنامه‌ها">
+            <x-ui.title icon="apps" title="پیشخوان برنامه‌ها" guide="launchpad">
                 <x-slot:actions>
                     <div class="flex flex-wrap items-center gap-2">
                         <x-ui.buttons.view-toggle

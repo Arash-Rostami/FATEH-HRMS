@@ -24,13 +24,13 @@ const BASE_ITEMS = [
     {id: 'reservation-spot', href: '/reservation?tab=spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک', resourceType: 'spot', module: 'reservation', group: 'رزرواسیون'},
     {id: 'reservation-car', href: '/reservation?tab=car', icon: 'directions_car', title: 'رزرو خودرو', sub: 'ماشین شرکت', resourceType: 'car', module: 'reservation', group: 'رزرواسیون'},
     {id: 'reservation-appointment', href: '/reservation?tab=meeting', icon: 'event_available', title: 'رزرو ملاقات', sub: 'جلسه کاری', resourceType: 'meeting', module: 'reservation', group: 'رزرواسیون'},
-    {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین (پیام‌رسان)', sub: 'پیام‌رسان داخلی', module: 'contact', group: 'ارتباطات'},
+    {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین (پیام‌رسان)', sub: 'پیام‌رسان داخلی', module: 'contact', group: 'ارتباطات', aiView: 'contact:ai'},
     {id: 'channels', href: '/channels', icon: 'campaign', title: 'گروه‌ها', sub: 'گروه‌های موضوعی', module: 'channel', group: 'ارتباطات', aiView: 'channel:ai'},
     {id: 'ads-controller', href: '/ads', icon: 'work', title: 'فرصت‌های شغلی', sub: 'استخدامی', group: 'سازمان'},
     {id: 'authority-controller', href: '/authority', icon: 'verified_user', title: 'اختیارات', sub: 'واحدهای سازمانی', group: 'سازمان'},
     {id: 'energy-controller', href: '/energy', icon: 'energy', title: 'پرسشنامه انرژی', sub: 'ارزیابی فردی', module: 'energy', group: 'سازمان'},
-    {id: 'calculator-controller', href: '-', icon: 'computer', title: 'ماشین حساب', sub: 'محاسبات شخصی', action: 'calculate', group: 'ابزارها'},
-    {id: 'stopwatch-controller', href: '-', icon: 'timer', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch', group: 'ابزارها'},
+    {id: 'calculator-controller', href: '-', icon: 'computer', title: 'ماشین‌حساب', sub: 'محاسبه و مرور نتیجه‌ها', action: 'calculate', group: 'ابزارها'},
+    {id: 'stopwatch-controller', href: '-', icon: 'timer', title: 'زمان‌سنج', sub: 'شمارش معکوس با زنگ', action: 'stopwatch', group: 'ابزارها'},
     {id: 'radio-controller', href: '-', icon: 'radio', title: 'رادیو', sub: 'موسیقی آنلاین', action: 'radio', group: 'ابزارها'},
     {id: 'documents-controller', href: '/profile?tab=documents', icon: 'folder_open', title: 'مدارک و اسناد', sub: 'آپلود و دانلود', module: 'profile', group: 'پروفایل'},
     {id: 'credentials-controller', href: '/profile?tab=credentials', icon: 'verified_user', title: 'دسترس', sub: 'مجوزها و رمزها', module: 'profile', group: 'پروفایل'},
@@ -451,12 +451,13 @@ export default function menu(options = {}) {
 
             const items = [];
             for (const base of BASE_ITEMS) {
-                if ((!base.adminOnly || canAdmin) && !off.has(base.module) && !off.has(base.id.split('-')[0]) && (!base.requires || options[base.requires] === true)) {
+                if ((!base.adminOnly || canAdmin) && !off.has(base.module) && !off.has(base.id.split('-')[0]) && (!base.requires || options[base.requires] === true) && !(base.resourceType && disabledTypes.has(base.resourceType))) {
                     const {id} = base;
+                    const ai = base.aiView ? !!(options.aiViews && options.aiViews[base.aiView.split(':')[0]]) && !off.has(base.aiView) : base.ai;
                     const item = Object.freeze({
                         ...base,
-                        ai: base.aiView ? options.aiOn === true && !off.has(base.aiView) : base.ai,
-                        disabled: !!base.resourceType && disabledTypes.has(base.resourceType),
+                        ai,
+                        aiIcon: ai === true,
                         get hasNotification() {
                             return globalThis.Alpine?.store('menuBadges')?.on(id, menuState[id]) ?? !!menuState[id];
                         },

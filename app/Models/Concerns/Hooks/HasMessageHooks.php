@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns\Hooks;
 
+use App\Jobs\SendChatPushJob;
 use App\Services\Messaging\PollDigestService;
 use Illuminate\Support\Facades\DB;
 
@@ -11,6 +12,7 @@ trait HasMessageHooks
     {
         static::forceDeleted(self::deleteAttachmentsOnForceDeleted(...));
         static::created(fn(self $message) => self::bumpDmThreadDigestAfterCommit($message, false));
+        static::created(fn(self $message) => SendChatPushJob::fire('contact', (int) $message->recipient_id, (int) $message->sender_id));
         static::updated(self::bumpDmThreadDigestAfterCommit(...));
         static::deleted(self::bumpDmThreadDigestAfterCommit(...));
     }

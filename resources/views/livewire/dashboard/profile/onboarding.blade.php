@@ -3,7 +3,7 @@
 
     @if(!$presenter->hasContent($onboarding))
         <div class="flex flex-col items-center justify-center py-24 text-center bg-[var(--md-sys-color-surface)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]">
-            <x-ui.empty icon="apartment" title="محتوایی بارگذاری نشده است" description="اطلاعات آنبوردینگ (آشنایی با شرکت) توسط مدیر سیستم هنوز تنظیم نشده است." variant="welcome" :fill="true" />
+            <x-ui.empty icon="apartment" title="محتوایی بارگذاری نشده است" description="مدیر سامانه هنوز راهنمای شروع همکاری را منتشر نکرده است." variant="welcome" :fill="true" />
         </div>
     @else
 
@@ -115,7 +115,7 @@
                                 class="w-10 h-10 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center">
                                 <span class="material-symbols-rounded text-[20px]">rocket_launch</span>
                             </div>
-                            <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">ماموریت ما</h3>
+                            <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">مأموریت ما</h3>
                         </header>
                         <div class="p-6 onb-prose rich-colors">
                             {!! $onboarding->mission !!}

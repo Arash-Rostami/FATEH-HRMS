@@ -26,7 +26,7 @@
                         rate(val) { this.currentRating = val; $wire.rate(val); }
                     }">
                     <label class="block text-sm font-semibold text-[var(--md-sys-color-on-surface)] mb-4">
-                        امتیاز شما به نحوه رسیدگی:
+                        امتیاز شما به نحوهٔ رسیدگی
                     </label>
 
                     <div class="flex items-center justify-center gap-2 sm:gap-4" dir="ltr" @mouseleave="resetHover()">
@@ -55,7 +55,7 @@
                 <div class="space-y-2 text-right">
                     <label for="satisfactionComment" class="flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-on-surface)] ml-auto">
                         <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">chat</span>
-                        توضیح شما (اختیاری):
+                        توضیح ارزیابی (اختیاری)
                     </label>
                     <textarea id="satisfactionComment" wire:model="rating.comment"
                               class="w-full bg-[var(--md-sys-color-surface-container-lowest)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-4 shadow-inner transition-colors placeholder:text-[var(--md-sys-color-on-surface-variant)]/50 min-h-[120px] resize-y"

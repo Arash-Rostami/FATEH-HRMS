@@ -598,6 +598,33 @@ class HomeTest extends TestCase
         $this->assertSame([$alice->id], $remaining->pluck('id')->all());
     }
 
+    public function test_presenter_recent_update_respects_the_84_hour_window()
+    {
+        Config::set('app.last_update', now()->subHours(10)->toDateTimeString());
+        $this->assertNotNull((new TabPresenter())->recentUpdate());
+
+        Config::set('app.last_update', now()->subHours(100)->toDateTimeString());
+        $this->assertNull((new TabPresenter())->recentUpdate());
+
+        Config::set('app.last_update', 'not a date');
+        $this->assertNull((new TabPresenter())->recentUpdate());
+    }
+
+    public function test_presenter_gadget_picker_builds_rows_and_tabs_per_group()
+    {
+        $catalog = [
+            ['title' => 'A', 'icon' => 'x', 'src' => '/a', 'group' => 'module', 'badge' => null, 'subtitle' => null],
+            ['title' => 'B', 'icon' => 'x', 'src' => '/b', 'group' => 'sso', 'badge' => 'Site', 'subtitle' => 'host'],
+        ];
+
+        $picker = (new TabPresenter())->gadgetPicker($catalog);
+
+        $this->assertTrue($picker['multi']);
+        $this->assertSame(['module', 'sso'], array_column($picker['tabs'], 'id'));
+        $this->assertSame(['g' => 'sso', 's' => '/b', 'f' => 'b host site'], $picker['rows'][1]);
+        $this->assertFalse((new TabPresenter())->gadgetPicker([$catalog[0]])['multi']);
+    }
+
     public function test_load_more_team_increments_team_show_count_by_ten_each_call()
     {
         $user = User::factory()->create(['status' => 'active']);

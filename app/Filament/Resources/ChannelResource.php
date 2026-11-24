@@ -37,7 +37,7 @@ class ChannelResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.channel.guide.overview'],
         ['label' => 'نوع و دسترسی', 'icon' => 'lock', 'view' => 'filament.resources.channel.guide.type-access'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.channel.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.channel.guide.admin-ops'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.channel.guide.user'],
     ];
 

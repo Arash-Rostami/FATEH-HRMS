@@ -110,7 +110,7 @@ class ReleaseRequestTest extends TestCase
         $user = User::factory()->create(['status' => 'active', 'presence' => 'remote']);
 
         Livewire::actingAs($user)->test(Main::class)
-            ->assertSee('پشتیبانی نرم افزار')
+            ->assertSee('پشتیبانی نرم‌افزار')
             ->assertSee('پیشنهاد ماژول')
             ->assertSee('گزارش باگ')
             ->call('open', ReleaseRequestType::Bug->value)
@@ -644,7 +644,7 @@ class ReleaseRequestTest extends TestCase
         $support = $presenter->typeMeta(ReleaseRequestType::Support->value);
         $this->assertSame('support_agent', $support['icon']);
         $this->assertSame('var(--md-sys-color-primary)', $support['color']);
-        $this->assertSame('پشتیبانی نرم افزار', $support['label']);
+        $this->assertSame('پشتیبانی نرم‌افزار', $support['label']);
 
         $recommendation = $presenter->typeMeta(ReleaseRequestType::Recommendation->value);
         $this->assertSame('lightbulb', $recommendation['icon']);

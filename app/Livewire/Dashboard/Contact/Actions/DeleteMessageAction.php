@@ -11,6 +11,7 @@ class DeleteMessageAction
         $message = Message::withoutTrashed()
             ->where('id', $messageId)
             ->where('sender_id', auth()->id())
+            ->toActivePeer()
             ->first();
 
         if (!$message || $message->created_at->diffInSeconds(now()) > $editTimeLimit) {

@@ -35,7 +35,7 @@ class OnboardingResource extends Resource
         ['label' => 'بررسی', 'icon' => 'info', 'view' => 'filament.resources.onboarding.guide.overview'],
         ['label' => 'محتوا و زبانه‌ها', 'icon' => 'edit_note', 'view' => 'filament.resources.onboarding.guide.content'],
         ['label' => 'مخاطب و اولویت', 'icon' => 'groups', 'view' => 'filament.resources.onboarding.guide.audience'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.onboarding.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.onboarding.guide.admin-ops'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.onboarding.guide.user'],
     ];
 

@@ -3,7 +3,7 @@
     activeCondition="this.$wire.get('selectedCategory') !== null || this.$wire.get('selectedDepartment') !== null"
     clearAction="this.$wire.resetFilters()"
     filterTitle=" "
-    placeholder="جستجو در سوالات..."
+    placeholder="جست‌وجو در پرسش‌ها و پاسخ‌ها…"
     open="{{ false }}"
 >
     <div class="flex flex-col gap-6 w-full pt-1">

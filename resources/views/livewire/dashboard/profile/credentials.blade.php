@@ -12,9 +12,9 @@
                 <span class="material-symbols-rounded text-[22px]">gpp_bad</span>
             </div>
             <div>
-                <h3 class="text-sm font-bold tracking-tight mb-0.5">هشدار امنیتی بسیار مهم</h3>
-                <p class="text-xs opacity-90 leading-relaxed">این داده‌ها را کاملاً محرمانه نگه‌داشته و از اشتراک‌گذاری
-                    آن‌ها با سایر همکاران جداً خودداری نمایید.</p>
+                <h3 class="text-sm font-bold tracking-tight mb-0.5">محرمانگی اطلاعات ورود</h3>
+                <p class="text-xs opacity-90 leading-relaxed">اطلاعات ورود را محرمانه نگه دارید و
+                    در اختیار دیگران نگذارید.</p>
             </div>
         </div>
     </div>
@@ -93,7 +93,7 @@
         <div class="relative max-w-sm">
             <x-ui.forms.input
                     wire:model.live.debounce.300ms="search"
-                    label="جستجو در سامانه‌ها..."
+                    label="جست‌وجوی نام سامانه…"
                     name="search"
                     icon="search"
             />

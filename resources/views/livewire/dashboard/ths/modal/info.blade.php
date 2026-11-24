@@ -90,7 +90,7 @@
             <div class="{{ $rowClass }} !px-2.5 !gap-2.5">
                 <div class="{{ $iconClass }}"><span class="material-symbols-rounded text-base" aria-hidden="true">badge</span></div>
                 <div class="min-w-0 flex-1">
-                    <p class="{{ $labelClass }}">درخواست‌کننده</p>
+                    <p class="{{ $labelClass }}">درخواست‌دهنده</p>
                     <div class="{{ $valueClass }}">
                         @if(!empty($selectedTicket['requester_avatar']))
                             <x-ui.avatar :existingImage="$selectedTicket['requester_avatar']" :alt="$selectedTicket['requester']['name'] ?? ''" size="xs"/>
@@ -190,7 +190,7 @@
 
         @if($score > 0)
             <div wire:key="ths-info-rating" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] bg-[var(--md-sys-color-surface-container-low)] text-[11px] font-bold text-[var(--md-sys-color-on-surface)]">
-                <span>{{ $isRequester ? 'ارزیابی شما' : 'ارزیابی درخواست‌کننده' }}</span>
+                <span>{{ $isRequester ? 'ارزیابی شما' : 'ارزیابی درخواست‌دهنده' }}</span>
                 <span class="inline-flex gap-0.5" dir="ltr" aria-label="امتیاز {{ convertToPersian($score) }} از ۵">
                     @for($i = 1; $i <= 5; $i++)
                         <span class="material-symbols-rounded text-[16px] {{ $score >= $i ? 'text-[var(--md-sys-color-warning)] font-variation-fill' : 'text-[var(--md-sys-color-outline-variant)]/60' }}">star</span>

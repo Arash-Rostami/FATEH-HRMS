@@ -235,9 +235,9 @@
     </div>
 
     @if(channelAiOn())
-        <div x-show="aiOpen" x-cloak class="flex flex-1 min-h-0 flex-col overflow-hidden bg-[var(--md-sys-color-surface)]" role="tabpanel" aria-label="منشی هوشمند">
+        <div x-show="aiOpen" x-cloak class="ai-halo rounded-2xl flex flex-1 min-h-0 flex-col overflow-hidden bg-[var(--md-sys-color-surface)]" role="tabpanel" aria-label="منشی هوشمند">
             <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto contact-scrollbar p-4">
-                <div x-show="aiMeter" x-cloak x-html="aiMeter" aria-live="polite"></div>
+                <div wire:ignore x-show="aiMeter" x-cloak x-html="aiMeter" aria-live="polite"></div>
                 <p x-show="!aiMeter" x-cloak class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">سهمیه نمایش داده نشد.</p>
 
                 <div class="flex items-start gap-2 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-warning)_35%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-warning)_12%,transparent)] px-3 py-2">
@@ -261,11 +261,11 @@
                     </div>
 
                     <div x-show="aiAnswer" x-cloak class="flex flex-col gap-1.5" :class="aiBusy ? 'opacity-50' : ''">
-                        <div class="whitespace-pre-line rounded-xl border border-[color-mix(in_srgb,var(--ai-color)_40%,transparent)] bg-[var(--ai-bg)] px-3 py-2.5 text-xs leading-6 text-[var(--ai-text)]" x-text="aiAnswer"></div>
-                        <p x-show="aiNote" x-cloak class="px-1 text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]" x-text="aiNote"></p>
+                        <div wire:ignore class="whitespace-pre-line rounded-xl border border-[color-mix(in_srgb,var(--ai-color)_40%,transparent)] bg-[var(--ai-bg)] px-3 py-2.5 text-xs leading-6 text-[var(--ai-text)]" x-text="aiAnswer"></div>
+                        <p wire:ignore x-show="aiNote" x-cloak class="px-1 text-[11px] leading-5 text-[var(--md-sys-color-on-surface-variant)]" x-text="aiNote"></p>
                     </div>
 
-                    <p x-show="aiMessage && !aiBusy" x-cloak
+                    <p wire:ignore x-show="aiMessage && !aiBusy" x-cloak
                        class="rounded-xl px-3 py-2 text-[11px] leading-5"
                        :class="aiSoft ? 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' : 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'"
                        x-text="aiMessage"></p>

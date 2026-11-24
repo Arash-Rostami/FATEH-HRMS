@@ -50,7 +50,7 @@
             <div wire:key="ths-modal-rating" class="flex-1 min-w-0 flex items-center gap-2 max-[359px]:w-full">
                 <span class="{{ $labelClass }}">
                     <span class="material-symbols-rounded text-[14px]">star_rate</span>
-                    {{ $isRequester ? 'رضایت شما' : 'رضایت درخواست‌کننده' }}
+                    {{ $isRequester ? 'رضایت شما' : 'رضایت درخواست‌دهنده' }}
                 </span>
                 @if($score > 0)
                     <span wire:key="ths-rating-stars" class="inline-flex gap-0.5 shrink-0" dir="ltr" aria-label="امتیاز {{ convertToPersian($score) }} از ۵">
@@ -63,7 +63,7 @@
                         <span wire:key="ths-modal-rating-comment" class="min-w-0 truncate text-[11px] italic text-[var(--md-sys-color-on-surface-variant)]" title="{{ $comment }}">«{{ $comment }}»</span>
                     @endif
                 @else
-                    <span wire:key="ths-rating-pending" class="min-w-0 truncate text-[11px] italic opacity-70 text-[var(--md-sys-color-on-surface-variant)]">در انتظار ارزیابی شما — از زبانهٔ «ارزیابی»</span>
+                    <span wire:key="ths-rating-pending" class="min-w-0 truncate text-[11px] italic opacity-70 text-[var(--md-sys-color-on-surface-variant)]">برای ثبت رضایت، زبانهٔ «ارزیابی» را باز کنید.</span>
                 @endif
             </div>
         @endif

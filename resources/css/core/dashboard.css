@@ -2860,14 +2860,14 @@ html.declutter .right-rail:hover button:not(.rail-home) {
     pointer-events: auto;
     transition-delay: calc(var(--seq, 0) * 60ms);
 }
-.right-rail button:nth-child(2) { --slide: 56px; --seq: 0; }
-.right-rail button:nth-child(3) { --slide: 112px; --seq: 1; }
-.right-rail button:nth-child(4) { --slide: 168px; --seq: 2; }
-.right-rail button:nth-child(5) { --slide: 224px; --seq: 3; }
-.right-rail button:nth-child(6) { --slide: 280px; --seq: 4; }
-.right-rail button:nth-child(7) { --slide: 336px; --seq: 5; }
-.right-rail button:nth-child(8) { --slide: 392px; --seq: 6; }
-.right-rail button:nth-child(9) { --slide: 448px; --seq: 7; }
+.right-rail button:nth-child(2) { --slide: 52px; --seq: 0; }
+.right-rail button:nth-child(3) { --slide: 104px; --seq: 1; }
+.right-rail button:nth-child(4) { --slide: 156px; --seq: 2; }
+.right-rail button:nth-child(5) { --slide: 208px; --seq: 3; }
+.right-rail button:nth-child(6) { --slide: 260px; --seq: 4; }
+.right-rail button:nth-child(7) { --slide: 312px; --seq: 5; }
+.right-rail button:nth-child(8) { --slide: 364px; --seq: 6; }
+.right-rail button:nth-child(9) { --slide: 416px; --seq: 7; }
 .stat-tile .stat-icon { position: relative; transition: background-color .3s, border-color .3s, box-shadow .3s; }
 .stat-tile .stat-glyph { transition: color .3s, opacity .3s, transform .3s; }
 .stat-tile .stat-num { transition: color .3s, opacity .3s; }

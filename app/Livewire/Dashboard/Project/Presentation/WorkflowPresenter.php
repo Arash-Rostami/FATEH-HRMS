@@ -9,6 +9,11 @@ use Illuminate\Support\Collection;
 
 class WorkflowPresenter
 {
+    public function memberNames(array $candidates): Collection
+    {
+        return collect($candidates)->pluck('name', 'id');
+    }
+
     public function isStuck(Workflow $workflow): bool
     {
         $step = $workflow->currentStep();

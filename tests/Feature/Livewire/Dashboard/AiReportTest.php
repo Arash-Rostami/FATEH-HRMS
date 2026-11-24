@@ -69,7 +69,7 @@ class AiReportTest extends TestCase
         Livewire::withoutLazyLoading();
         app()->setLocale('fa');
         Storage::fake('local');
-        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'ai.report.daily_cap' => 10]);
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'ai.report.daily_cap' => 10, 'ai.report.cooldown' => 0]);
     }
 
     protected function tearDown(): void
@@ -1027,6 +1027,7 @@ class AiReportTest extends TestCase
         $this->assertSame(20, $fresh['quotaPct']);
         $this->assertSame(8, $fresh['quotaLeft']);
         $this->assertSame('text-[var(--md-sys-color-on-surface-variant)]', $fresh['quotaTone']['text']);
+        $this->assertSame('bg-[var(--ai-color)]', $fresh['quotaTone']['fill']);
 
         $warn = $presenter->composerState(null, true, $quota(8), false, null, $limits);
         $this->assertSame('text-[var(--tool-gold-color)]', $warn['quotaTone']['text']);
@@ -1364,6 +1365,53 @@ class AiReportTest extends TestCase
         } catch (ValidationException $e) {
             $this->assertArrayHasKey('form.prompt', $e->errors());
         }
+    }
+
+    public function test_a_second_generation_inside_the_cooldown_is_busy_and_works_after_it_clears(): void
+    {
+        Bus::fake();
+        config(['ai.report.cooldown' => 3]);
+        $owner = $this->user();
+        $form = Livewire::actingAs($owner)->test(Main::class)->instance()->form;
+        $form->prompt = 'a prompt that is long enough';
+
+        $report = app(GenerateReportAction::class)->execute($form, $owner);
+        $this->assertTrue(Cache::has("report:ai:cooldown:{$owner->id}"));
+
+        $report->update(['status' => AiReport::STATUS_READY]);
+        try {
+            app(GenerateReportAction::class)->execute($form, $owner);
+            $this->fail('the cooldown did not block the second run');
+        } catch (ValidationException $e) {
+            $this->assertSame([__('resources/ai_report/strings.errors.busy')], $e->errors()['form.prompt']);
+        }
+        $this->assertSame(1, AiReport::quotaUsed($owner->id));
+        Bus::assertDispatchedTimes(GenerateReportJob::class, 1);
+
+        Cache::forget("report:ai:cooldown:{$owner->id}");
+        app(GenerateReportAction::class)->execute($form, $owner);
+        $this->assertSame(2, AiReport::quotaUsed($owner->id));
+    }
+
+    public function test_ai_client_setting_falls_back_to_the_gateway_for_cooldown_and_retry_keys(): void
+    {
+        foreach (['cooldown', 'down_for', 'retry_within'] as $key) {
+            config(["ai.gateway.{$key}" => 9, "ai.report.{$key}" => null]);
+            $this->assertSame(9, AiClient::setting('report', $key));
+        }
+    }
+
+    public function test_ai_client_json_reads_its_limits_from_the_settings_key_when_given(): void
+    {
+        config(['ai.gateway.max_output' => 111, 'ai.report.max_output' => 222, 'ai.channel.enhance.max_output' => 333, 'ai.gateway.model' => 'm']);
+        Http::swap(new HttpClientFactory);
+        Http::fake(['*' => Http::response(['choices' => [['finish_reason' => 'stop', 'message' => ['content' => '{}']]]])]);
+
+        app(AiClient::class)->json([['role' => 'user', 'content' => 'x']], ['type' => 'object'], 'report');
+        app(AiClient::class)->json([['role' => 'user', 'content' => 'x']], ['type' => 'object'], 'report', 'channel.enhance');
+
+        Http::assertSent(fn ($request) => $request['max_tokens'] === 222 && $request['response_format']['json_schema']['name'] === 'report');
+        Http::assertSent(fn ($request) => $request['max_tokens'] === 333 && $request['response_format']['json_schema']['name'] === 'report');
     }
 
     public function test_a_quota_race_past_the_cap_fails_the_row_with_quota_and_refunds_once(): void
@@ -2721,7 +2769,7 @@ class AiReportTest extends TestCase
             ->assertSeeHtml('<bdi>گزارش بودجه و هزینه</bdi>')
             ->assertSeeHtml('<bdi>مفصل (حدود ۲ تا ۴ صفحه)</bdi>')
             ->assertSeeHtml('<bdi>کارشناسان</bdi>')
-            ->assertDontSeeHtml('<bdi>آزاد (طبق درخواست شما)</bdi>');
+            ->assertDontSeeHtml('<bdi>گزارش سفارشی</bdi>');
         $html = $table->html();
         $this->assertSame(3, substr_count($html, '<bdi>—</bdi>'));
         foreach (['type', 'length', 'audience'] as $col) {

@@ -32,7 +32,7 @@ class FeedResource extends Resource
 
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'newspaper', 'view' => 'filament.resources.feed.guide.overview'],
-        ['label' => 'عملیات ادمین', 'icon' => 'build', 'view' => 'filament.resources.feed.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'build', 'view' => 'filament.resources.feed.guide.admin-ops'],
         ['label' => 'فهرست و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.feed.guide.list-filters'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.feed.guide.user'],
     ];

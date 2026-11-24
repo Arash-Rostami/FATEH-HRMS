@@ -7,7 +7,7 @@
 >
     <div
         class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.title
+        <x-ui.title guide="ths"
             icon="support_agent"
             title="تیکتینگ"
             :count="$this->totalTickets"
@@ -24,7 +24,7 @@
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'ths-legend' })"
-                    title="راهنمای گردش‌کار تیکتینگ"
+                    title="راهنمای ثبت و پیگیری تیکت"
                     class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
                 >
                     <span class="material-symbols-rounded text-lg">help</span>
@@ -37,7 +37,7 @@
             :items="array_values(array_filter([\App\Services\Menu\BadgeLegendCatalog::get('ths-controller'), \App\Services\Menu\BadgeLegendCatalog::get('ths-controller:nudge')]))"
         />
 
-        <x-ui.modals.dialog name="ths-legend" title="راهنمای گردش‌کار تیکتینگ">
+        <x-ui.modals.dialog name="ths-legend" title="راهنمای ثبت و پیگیری تیکت">
             @include('livewire.dashboard.ths.legend')
         </x-ui.modals.dialog>
 

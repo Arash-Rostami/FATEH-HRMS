@@ -28,7 +28,12 @@ final class ChannelAccessPolicy
                 ->where('user_id', $user->id)
                 ->value('role');
 
-        return $role === null ? null : (ChannelRole::tryFrom($role)?->value ?? ChannelRole::Member->value);
+        return $role === null ? null : (ChannelRole::tryFrom($role)?->value ?? ChannelRole::Viewer->value);
+    }
+
+    private static function allowsPost(?string $role): bool
+    {
+        return $role !== null && $role !== ChannelRole::Viewer->value;
     }
 
     public static function isOwner(?Channel $channel, ?User $user): bool
@@ -44,6 +49,11 @@ final class ChannelAccessPolicy
     public static function canManageMembers(Channel $channel, ?User $user): bool
     {
         return in_array(self::role($channel, $user), [self::OWNER, ChannelRole::Admin->value], true);
+    }
+
+    public static function canPost(?Channel $channel, ?User $user): bool
+    {
+        return self::allowsPost(self::role($channel, $user));
     }
 
     public static function canChangeType(Channel $channel, ?User $user): bool
@@ -79,6 +89,7 @@ final class ChannelAccessPolicy
         $free = $manage && !$channel->isProjectLinked();
 
         return [
+            'post' => self::allowsPost($role),
             'manageMembers' => $manage,
             'changeType' => $free,
             'manageAdmins' => $owner && $free,

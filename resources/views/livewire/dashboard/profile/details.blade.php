@@ -4,7 +4,7 @@
         <div class="flex items-center gap-3 rounded-2xl border border-[var(--md-sys-color-error)]/40 bg-[var(--md-sys-color-error-container)]/40 p-4 text-[var(--md-sys-color-on-error-container)]">
             <span class="material-symbols-rounded shrink-0">info</span>
             <p class="text-sm font-medium">
-                برای ثبت اطلاعات تکمیلی، ابتدا باید تب «اطلاعات فردی» را تکمیل و ذخیره کنید.
+                ابتدا اطلاعاتتان را در تب «اطلاعات فردی» ذخیره کنید. سپس به اینجا برگردید و اطلاعات تکمیلی را وارد کنید.
             </p>
         </div>
     @endunless
@@ -79,7 +79,7 @@
         <div class="sticky bottom-4 z-30 flex items-center justify-end">
             <div class="rounded-xl p-2">
                 <x-ui.buttons.form type="submit" loading="save" loading-text="در حال ذخیره..." icon="save" variant="primary">
-                    ذخیره اطلاعات تکمیلی
+                    ذخیرهٔ اطلاعات تکمیلی
                 </x-ui.buttons.form>
             </div>
         </div>

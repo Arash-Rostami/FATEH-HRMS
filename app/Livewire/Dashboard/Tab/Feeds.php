@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Livewire\Dashboard\Tab\Actions\AddCommentAction;
 use App\Livewire\Dashboard\Tab\Actions\DeleteCommentAction;
 use App\Livewire\Dashboard\Tab\Actions\MarkFeedsAsReadAction;
+use App\Livewire\Dashboard\Tab\Actions\SuggestFeedReplyAction;
 use App\Livewire\Dashboard\Tab\Actions\ToggleReactionAction;
 use App\Livewire\Dashboard\Tab\Actions\UpdateCommentAction;
 use App\Livewire\Dashboard\Tab\Actions\VotePollAction;
@@ -62,6 +63,28 @@ class Feeds extends Component
         data_forget($this, $parentId ? "replyComments.$parentId" : "newComments.$feedId");
         $this->commentForm->reset('content');
         unset($this->feeds);
+    }
+
+    public function suggestReply($feedId, SuggestFeedReplyAction $action, $parentId = null): void
+    {
+        if (!Auth::check() || !in_array($feedId, $this->feedIds, true)) return;
+
+        $parentId = $parentId ? (int) $parentId : null;
+        $field = $parentId ? "replyComments.{$parentId}" : "newComments.{$feedId}";
+
+        if (trim((string) data_get($this, $field)) !== '') {
+            $this->dispatch('toast', message: config('ai.feed.errors.draft'), type: 'warning');
+
+            return;
+        }
+
+        $result = $action->execute((int) $feedId, $parentId);
+
+        if ($result['error'] === null) {
+            data_set($this, $field, $result['reply']);
+        } elseif ($result['message']) {
+            $this->dispatch('toast', message: $result['message'], type: 'warning');
+        }
     }
 
     #[Computed]
@@ -221,6 +244,8 @@ class Feeds extends Component
 
     public function render()
     {
+        $this->newComments += array_fill_keys($this->feedIds, '');
+
         return view('livewire.dashboard.tab.feeds', ['presenter' => new FeedPresenter()]);
     }
 

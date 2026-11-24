@@ -1735,4 +1735,14 @@ class SuggestionTest extends TestCase
             ->test(Detail::class, ['suggestionId' => $suggestion->id])
             ->assertViewIs('livewire.dashboard.suggestion.detail.gone');
     }
+
+    public function test_department_description_entangle_keys_are_seeded_for_the_picked_departments(): void
+    {
+        $user = $this->deptUser('TST', 'expert');
+
+        Livewire::actingAs($user)
+            ->test(Main::class)
+            ->set('form.departments', ['TST', 'ZZ'])
+            ->assertSet('form.descriptionDepts', ['TST' => '', 'ZZ' => '']);
+    }
 }

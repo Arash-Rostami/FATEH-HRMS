@@ -6,10 +6,10 @@
 
     @php($viewModes = [
         ['value' => 'rail', 'icon' => 'view_carousel', 'title' => 'نمای ریلی'],
-        ['value' => 'launch', 'icon' => 'apps', 'title' => 'نمای صفحه‌انداز'],
+        ['value' => 'launch', 'icon' => 'apps', 'title' => 'نمای شبکه‌ای'],
     ])
 
-    <x-ui.title icon="open_in_new" title="لینک‌ها و مسیرهای دیجیتال سازمان" :count="$this->totalLinks" countLabel="لینک">
+    <x-ui.title guide="links" icon="open_in_new" title="لینک‌ها و مسیرهای دیجیتال سازمان" :count="$this->totalLinks" countLabel="لینک">
         <x-slot:actions>
             <x-ui.buttons.view-toggle module="links" :modes="$viewModes" />
             <button

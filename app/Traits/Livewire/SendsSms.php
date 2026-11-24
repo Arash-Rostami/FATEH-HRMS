@@ -44,7 +44,7 @@ trait SendsSms
             return false;
         }
 
-        $result = $action->execute($userId, $sms, $text, $context['source']);
+        $result = $action->execute($userId, $sms, $text, $context['source'], $context['key']);
         $this->dispatch('toast', message: $result['message'], type: $result['type']);
 
         if ($result['type'] === 'success') {

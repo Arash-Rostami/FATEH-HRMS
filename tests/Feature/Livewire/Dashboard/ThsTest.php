@@ -148,6 +148,13 @@ class ThsTest extends TestCase
         $this->assertSame(4.0, (float) $ticket->satisfaction_score);
     }
 
+    public function test_presenter_ai_limits_are_capped_by_the_shared_input_max()
+    {
+        config(['ai.ticket.input_max' => 100, 'ai.ticket.subject_max' => 60, 'ai.ticket.description_max' => 900]);
+
+        $this->assertSame(['subject' => 60, 'description' => 100], (new TicketPresenter())->aiLimits());
+    }
+
     public function test_submit_ticket_persists_attachment_when_file_added()
     {
         Storage::fake('public');
@@ -1236,7 +1243,7 @@ class ThsTest extends TestCase
         $this->assertSame('check_circle', $closed['icon']);
         $this->assertSame('text-[var(--md-sys-color-secondary)]', $closed['textColor']);
         $this->assertSame('bg-[var(--md-sys-color-secondary-container)]', $closed['bg']);
-        $this->assertSame('بسته شده', $closed['title']);
+        $this->assertSame('بسته‌شده', $closed['title']);
         $this->assertFalse($closed['pulse']);
         $this->assertFalse($closed['spin']);
 
@@ -2252,7 +2259,7 @@ class ThsTest extends TestCase
         $code = $head->profile->department_id;
         $requester = User::factory()->create(['status' => 'active', 'role' => 'user']);
         $ticket = $this->openTicketFor($code, $requester);
-        $warning = 'این توضیح برای درخواست‌دهنده نیز قابل مشاهده است.';
+        $warning = 'درخواست‌دهنده هم این توضیح را می‌بیند.';
 
         Livewire::actingAs($head)->test(Workspace::class, ['ticketId' => $ticket->id])->assertSee($warning);
         Livewire::actingAs($requester)->test(Workspace::class, ['ticketId' => $ticket->id])->assertDontSee($warning);
@@ -2377,7 +2384,7 @@ class ThsTest extends TestCase
         $this->assertSame(4, $state['score']);
         $this->assertSame($ticket['timeline'], $state['timeline']);
         $this->assertSame([
-            ['name' => 'a.pdf', 'by' => 'درخواست‌کننده', 'group' => 'requester'],
+            ['name' => 'a.pdf', 'by' => 'درخواست‌دهنده', 'group' => 'requester'],
             ['name' => 'b.png', 'by' => 'مسئول رسیدگی', 'group' => 'assignee'],
         ], $state['files']);
 
@@ -2611,7 +2618,7 @@ class ThsTest extends TestCase
             ->assertSeeHtml('wire:key="ths-reply-closed"')
             ->assertSee('این تیکت بسته شده و امکان ارسال پاسخ جدید وجود ندارد.')
             ->assertSeeHtml('wire:key="ths-modal-rating"')
-            ->assertSee('رضایت درخواست‌کننده')
+            ->assertSee('رضایت درخواست‌دهنده')
             ->assertSee('عالی بود')
             ->assertDontSeeHtml('data-ths-composer')
             ->assertDontSeeHtml('wire:key="ths-drop-overlay"');
@@ -3339,7 +3346,7 @@ class ThsTest extends TestCase
         Http::assertSent(fn($request) => $request->hasHeader('Authorization', 'apikey test-key')
             && $request->url() === 'https://gateway.test/v1/chat/completions'
             && $request['model'] === 'Gemini-3-Flash-Preview'
-            && $request['max_tokens'] === 900
+            && $request['max_tokens'] === 2048
             && $request['temperature'] === 0.2
             && $request['messages'][0]['role'] === 'system'
             && $request['response_format']['type'] === 'json_schema'
@@ -3600,8 +3607,8 @@ class ThsTest extends TestCase
 
     public function test_ticket_ai_connect_timeout_resolves_through_the_shared_client_setting(): void
     {
-        $this->assertSame(10, AiClient::setting('ticket', 'timeout'));
-        $this->assertSame(3, AiClient::setting('ticket', 'connect_timeout'));
+        $this->assertSame(45, AiClient::setting('ticket', 'timeout'));
+        $this->assertSame(10, AiClient::setting('ticket', 'connect_timeout'));
         $this->assertSame(10, AiClient::setting('report', 'connect_timeout'));
     }
 
@@ -3675,7 +3682,7 @@ class ThsTest extends TestCase
             ->set('ticket.subject', str_repeat('م', (int) config('ai.ticket.subject_max') + 1))
             ->call('suggestTicketText')
             ->assertReturned(fn(array $data) => $data['source'] === 'none')
-            ->assertDispatched('toast', message: 'متن شما برای دستیار طولانی است؛ آن را کوتاه‌تر کنید.', type: 'warning');
+            ->assertDispatched('toast', message: 'برای دریافت پیشنهاد، متن را کوتاه‌تر کنید.', type: 'warning');
 
         Http::assertNothingSent();
         $this->assertSame(0, Ticket::quotaUsed($user->id));
@@ -3845,7 +3852,7 @@ class ThsTest extends TestCase
             ->assertSet('ticket.description', $long)
             ->assertSet('ticket.subject', 'vpn kar nemikone')
             ->assertReturned(['source' => 'none', 'question' => null, 'blanks' => 0, 'left' => Ticket::quotaCap()])
-            ->assertDispatched('toast', message: 'متن شما برای دستیار طولانی است؛ آن را کوتاه‌تر کنید.', type: 'warning');
+            ->assertDispatched('toast', message: 'برای دریافت پیشنهاد، متن را کوتاه‌تر کنید.', type: 'warning');
 
         Http::assertNothingSent();
         $this->assertSame(0, Ticket::quotaUsed($user->id));
@@ -4015,7 +4022,7 @@ class ThsTest extends TestCase
         $this->aiForm($user)
             ->set('ticket.targetDepartment', 'N/A')
             ->assertSee('نوشتن هوشمند')
-            ->assertSee('بار دیگر امروز')
+            ->assertSee('سهمیهٔ نوشتن هوشمند')
             ->assertSee('data-ai-blank', false)
             ->assertSee('data-ai-chips', false)
             ->assertSee('data-ai-next="ticket.description"', false)
@@ -4028,7 +4035,7 @@ class ThsTest extends TestCase
             ->assertSee('پیشنهاد دیگر')
             ->assertSee('جاهای خالی تکمیل شد')
             ->assertSee('aiAgain()', false)
-            ->assertSee('بار دیگر امروز');
+            ->assertSee('سهمیهٔ نوشتن هوشمند');
     }
 
     public function test_plain_form_components_render_without_any_ai_markup_or_padding(): void
@@ -4055,7 +4062,7 @@ class ThsTest extends TestCase
 
         $this->aiForm($user)
             ->set('ticket.targetDepartment', 'N/A')
-            ->assertSee('محتوای تیکت')
+            ->assertSee('موضوع و شرح درخواست')
             ->assertDontSee('نوشتن هوشمند')
             ->assertDontSee('data-ai-need', false)
             ->assertDontSee('data-ai-blank-text', false)
@@ -4075,7 +4082,7 @@ class ThsTest extends TestCase
 
         $this->aiForm($user)
             ->set('ticket.targetDepartment', 'N/A')
-            ->assertSee('محتوای تیکت')
+            ->assertSee('موضوع و شرح درخواست')
             ->assertDontSee('نوشتن هوشمند')
             ->assertDontSee('data-ai-need', false)
             ->assertDontSee('data-ai-blank-text', false)

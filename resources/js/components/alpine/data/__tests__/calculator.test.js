@@ -243,7 +243,7 @@ describe('calculator.copyLedger / copyToClipboard', () => {
         c.copyText = vi.fn()
         c.history = [{ eq: '2+3', res: '5' }, { eq: '1+1', res: '2' }]
         c.copyLedger()
-        expect(c.copyText).toHaveBeenCalledWith('1+1 = 2\n2+3 = 5', 'رسید محاسبات کپی شد.')
+        expect(c.copyText).toHaveBeenCalledWith('1+1 = 2\n2+3 = 5', 'محاسبات کپی شد.')
     })
 
     test('copyToClipboard is a no-op with an empty display, otherwise copies the raw display', () => {
@@ -255,7 +255,7 @@ describe('calculator.copyLedger / copyToClipboard', () => {
 
         c.display = '42'
         c.copyToClipboard()
-        expect(c.copyText).toHaveBeenCalledWith('42', 'با موفقیت کپی شد.')
+        expect(c.copyText).toHaveBeenCalledWith('42', 'نتیجه کپی شد.')
     })
 })
 

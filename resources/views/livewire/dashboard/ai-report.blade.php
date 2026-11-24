@@ -12,7 +12,7 @@
     <div class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-4 print:gap-3">
 
         <div class="print:hidden">
-        <x-ui.title icon="auto_awesome" :ai="true" title="گزارش ساز هوشمند">
+        <x-ui.title icon="auto_awesome" :ai="true" title="گزارش ساز هوشمند" guide="ai-report">
             <x-slot:actions>
                 <div class="flex flex-wrap items-center gap-2">
                     <x-ui.buttons.view-toggle

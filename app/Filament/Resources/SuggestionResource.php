@@ -38,7 +38,7 @@ class SuggestionResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'lightbulb', 'view' => 'filament.resources.suggestion.guide.overview'],
         ['label' => 'چرخهٔ بررسی', 'icon' => 'account_tree', 'view' => 'filament.resources.suggestion.guide.workflow'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.suggestion.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.suggestion.guide.admin-ops'],
         ['label' => 'فهرست و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.suggestion.guide.list-filters'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.suggestion.guide.user'],
     ];

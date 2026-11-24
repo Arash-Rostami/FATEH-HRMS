@@ -35,12 +35,16 @@ class SyncChannelAdminsAction
                 ? User::query()->visibleOnBoard()->whereKey($ids)->pluck('id')->all()
                 : [];
 
+            if ($ids && ! $eligible) {
+                return ['promoted' => 0, 'demoted' => 0];
+            }
+
             return [
                 'promoted' => $eligible
                     ? $members()
                         ->whereIn('user_id', $eligible)
                         ->whereNotNull('entered_at')
-                        ->where('role', '!=', $admin)
+                        ->where('role', ChannelRole::Member->value)
                         ->update(['role' => $admin])
                     : 0,
                 'demoted' => $members()

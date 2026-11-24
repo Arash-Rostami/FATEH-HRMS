@@ -53,6 +53,7 @@ class Media extends Model
         'kind',
         'title',
         'topic',
+        'module',
         'description',
         'cover_image',
         'file_path',
@@ -131,6 +132,17 @@ class Media extends Model
         return $candidates->filter(fn (self $media) => in_array($media->parent_id ?? $media->id, $visible, true))->values();
     }
 
+    public function scopePlayable(Builder $query): Builder
+    {
+        return $query->where(fn (Builder $playable) => $playable->where(fn (Builder $own) => $own->where('media.kind', '!=', self::KIND_SERIES)->whereNotNull('media.file_path'))
+            ->orWhereExists(fn ($sub) => $sub->from('media as playable')->selectRaw('1')
+                ->whereColumn('playable.parent_id', 'media.id')
+                ->where('playable.active', true)
+                ->whereNotNull('playable.file_path')
+                ->where(fn ($expires) => $expires->whereNull('playable.expires_at')->orWhere('playable.expires_at', '>', now()))
+                ->where(fn ($date) => $date->whereNull('playable.report_date')->orWhere('playable.report_date', '<=', today()->toDateString()))));
+    }
+
     public function scopeNewFor(Builder $query, int $userId): Builder
     {
         $user = (int) auth()->id() === $userId ? auth()->user() : User::query()->find($userId);
@@ -139,13 +151,7 @@ class Media extends Model
 
         return $query->library($user)
             ->where('media.user_id', '!=', $userId)
-            ->where(fn (Builder $playable) => $playable->where(fn (Builder $own) => $own->where('media.kind', '!=', self::KIND_SERIES)->whereNotNull('media.file_path'))
-                ->orWhereExists(fn ($sub) => $sub->from('media as playable')->selectRaw('1')
-                    ->whereColumn('playable.parent_id', 'media.id')
-                    ->where('playable.active', true)
-                    ->whereNotNull('playable.file_path')
-                    ->where(fn ($expires) => $expires->whereNull('playable.expires_at')->orWhere('playable.expires_at', '>', now()))
-                    ->where(fn ($date) => $date->whereNull('playable.report_date')->orWhere('playable.report_date', '<=', today()->toDateString()))))
+            ->playable()
             ->where(fn (Builder $inner) => $inner->where('media.report_date', '>=', $since->toDateString())
                 ->orWhere(fn (Builder $created) => $created->whereNull('media.report_date')->where('media.created_at', '>=', $since)))
             ->whereNotExists(fn ($sub) => $played($sub)->whereColumn('knowledge_progress.media_id', 'media.id'))
@@ -161,6 +167,37 @@ class Media extends Model
             $build,
             now()->addHour()
         );
+    }
+
+    public static function guideMap(?string $departmentCode): array
+    {
+        return static::cached(
+            'guides:'.($departmentCode ?? 'all').':'.today()->toDateString(),
+            fn (): array => static::query()
+                ->active()
+                ->visibleTo($departmentCode)
+                ->notExpired()
+                ->released()
+                ->whereNull('parent_id')
+                ->playable()
+                ->whereNotNull('module')
+                ->whereIn('kind', [self::KIND_VIDEO, self::KIND_SERIES])
+                ->orderByDesc('pinned')
+                ->orderBy('position')
+                ->orderBy('id')
+                ->get(['id', 'module'])
+                ->unique('module')
+                ->pluck('id', 'module')
+                ->all(),
+            now()->addHour()
+        );
+    }
+
+    public static function guideFor(?string $module, ?User $user): ?int
+    {
+        $id = $module ? (static::guideMap($user?->profile?->department_id)[$module] ?? null) : null;
+
+        return $id ? (int) $id : null;
     }
 
     public static function probeDuration(mixed $path): ?int

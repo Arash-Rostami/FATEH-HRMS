@@ -7,7 +7,7 @@
     <x-ui.modals.max-backdrop state="maximizedColumn" close="toggleMaximize(null)"/>
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.title
+        <x-ui.title guide="taskboard"
             icon="dashboard"
             title="برد وظایف"
             :count="array_sum($totalCount)"

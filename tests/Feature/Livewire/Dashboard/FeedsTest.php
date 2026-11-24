@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire\Dashboard;
 
+use App\Livewire\Dashboard\Tab\Actions\SuggestFeedReplyAction;
 use App\Livewire\Dashboard\Tab\Feeds;
 use App\Livewire\Dashboard\Tab\Presentation\FeedPresenter;
 use App\Models\Comment;
@@ -14,6 +15,7 @@ use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -991,5 +993,203 @@ class FeedsTest extends TestCase
         $video = $p->mediaCellData('http://x/y.mp4');
         $this->assertFalse($video['isImage']);
         $this->assertStringNotContainsString('cursor-zoom-in', $video['cellClass']);
+    }
+
+    public function test_composer_entangle_keys_are_seeded_for_every_loaded_feed(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        $feeds = $this->createFeedsFor($user, 2);
+
+        Livewire::withoutLazyLoading();
+        Livewire::test(Feeds::class)
+            ->assertSet('newComments', array_fill_keys(array_map(fn ($feed) => $feed->id, $feeds), ''));
+    }
+
+    private function feedAiUserWithFeed(string $content = 'جلسهٔ معرفی محصول فردا برگزار می‌شود'): array
+    {
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'ai.gateway.model' => 'Gemini-3-Flash-Preview', 'ai.feed.cooldown' => 0, 'app.off' => []]);
+
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        $feed = Feed::factory()->create(['user_id' => $user->id, 'content' => $content]);
+
+        $forget = function () use ($user) {
+            Cache::forget(Feed::quotaKey($user->id));
+            Cache::forget("feed:ai:cooldown:{$user->id}");
+        };
+        $forget();
+        $this->beforeApplicationDestroyed($forget);
+
+        return [$user, $feed];
+    }
+
+    private function feedAiReply(string $reply): array
+    {
+        return [
+            'choices' => [['finish_reason' => 'stop', 'message' => ['content' => json_encode(['reply' => $reply], JSON_UNESCAPED_UNICODE)]]],
+            'usage' => ['total_tokens' => 10],
+        ];
+    }
+
+    public function test_suggest_reply_drafts_a_comment_into_the_composer_and_charges_one_quota_unit(): void
+    {
+        [$user, $feed] = $this->feedAiUserWithFeed();
+        Http::fake(['*' => Http::response($this->feedAiReply('حتماً شرکت می‌کنم'))]);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Feeds::class)
+            ->call('suggestReply', $feed->id)
+            ->assertSet('newComments.' . $feed->id, 'حتماً شرکت می‌کنم');
+
+        $this->assertSame(1, Feed::quotaUsed($user->id));
+    }
+
+    public function test_suggest_reply_inside_the_cooldown_is_busy_without_calling_the_gateway_and_works_after_it_clears(): void
+    {
+        [$user, $feed] = $this->feedAiUserWithFeed();
+        config(['ai.feed.cooldown' => 3]);
+        $this->actingAs($user);
+        Http::fake(['*' => Http::response($this->feedAiReply('x'))]);
+        $action = app(SuggestFeedReplyAction::class);
+
+        $this->assertNull($action->execute($feed->id)['error']);
+
+        $result = $action->execute($feed->id);
+        $this->assertSame('busy', $result['error']);
+        $this->assertSame(config('ai.feed.errors.busy'), $result['message']);
+        $this->assertSame(1, Feed::quotaUsed($user->id));
+        Http::assertSentCount(1);
+
+        Cache::forget("feed:ai:cooldown:{$user->id}");
+        $this->assertNull($action->execute($feed->id)['error']);
+        Http::assertSentCount(2);
+    }
+
+    public function test_suggest_reply_answers_a_parent_comment_into_the_reply_box(): void
+    {
+        [$user, $feed] = $this->feedAiUserWithFeed();
+        $colleague = User::factory()->create(['status' => 'active']);
+        $parent = Comment::factory()->create(['feed_id' => $feed->id, 'user_id' => $colleague->id, 'content' => 'نظر همکار']);
+        Http::fake(['*' => Http::response($this->feedAiReply('پاسخ پیشنهادی'))]);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Feeds::class)
+            ->call('suggestReply', $feed->id, $parent->id)
+            ->assertSet('replyComments.' . $parent->id, 'پاسخ پیشنهادی');
+    }
+
+    public function test_suggest_reply_never_overwrites_a_draft_and_charges_no_quota(): void
+    {
+        [$user, $feed] = $this->feedAiUserWithFeed();
+        $colleague = User::factory()->create(['status' => 'active']);
+        $parent = Comment::factory()->create(['feed_id' => $feed->id, 'user_id' => $colleague->id, 'content' => 'نظر همکار']);
+        Http::fake(['*' => Http::response($this->feedAiReply('x'))]);
+
+        Livewire::withoutLazyLoading();
+        Livewire::actingAs($user)->test(Feeds::class)
+            ->set('newComments.' . $feed->id, 'پیش‌نویس من')
+            ->call('suggestReply', $feed->id)
+            ->assertSet('newComments.' . $feed->id, 'پیش‌نویس من')
+            ->assertDispatched('toast', message: config('ai.feed.errors.draft'), type: 'warning')
+            ->set('replyComments.' . $parent->id, 'پاسخ ناتمام')
+            ->call('suggestReply', $feed->id, $parent->id)
+            ->assertSet('replyComments.' . $parent->id, 'پاسخ ناتمام');
+
+        $this->assertSame(0, Feed::quotaUsed($user->id));
+        Http::assertNothingSent();
+    }
+
+    public function test_comment_meta_carries_a_relative_time_and_the_full_jalali_date_for_the_tooltip(): void
+    {
+        $comment = Comment::factory()->create(['created_at' => now()->subHours(2)]);
+
+        $meta = (new FeedPresenter())->commentMeta($comment, null);
+
+        $this->assertSame(convertToPersian('2 ساعت پیش'), $meta['ago']);
+        $this->assertSame(convertToPersian(toJalali($comment->created_at, 'j F Y')), $meta['date']);
+    }
+
+    public function test_comment_thread_ux_hooks_stay_wired_in_the_comments_partial(): void
+    {
+        $view = file_get_contents(resource_path('views/livewire/dashboard/tab/feeds/comments.blade.php'));
+
+        $this->assertStringContainsString('x-data="feedComposer(', $view);
+        $this->assertStringContainsString('lg:opacity-0 lg:group-hover:opacity-100', $view);
+        $this->assertStringNotContainsString('showReplies', $view);
+        $this->assertStringContainsString('data-reply-input=', $view);
+        $this->assertStringContainsString('@keydown.escape.stop="closeReply()"', $view);
+        $this->assertStringContainsString('wire:keydown.escape.stop="$set(\'editingCommentId\', null)"', $view);
+        $this->assertStringContainsString('@keydown.enter="onReplyEnter($event,', $view);
+        $this->assertStringNotContainsString('.exact', $view);
+        $this->assertStringContainsString('wire:keydown.ctrl.enter="updateComment"', $view);
+        $this->assertStringContainsString('x-on:click="openReply(', $view);
+    }
+
+    public function test_suggest_reply_refuses_a_guest_or_a_tenant_that_switched_it_off_without_charging_quota(): void
+    {
+        [$user, $feed] = $this->feedAiUserWithFeed();
+        Http::fake(['*' => Http::response($this->feedAiReply('x'))]);
+        $action = app(SuggestFeedReplyAction::class);
+
+        $this->assertSame('unreachable', $action->execute($feed->id)['error']);
+
+        $this->actingAs($user);
+        config(['app.off' => ['feed:ai']]);
+        $this->assertSame('unreachable', $action->execute($feed->id)['error']);
+        $this->assertSame(0, Feed::quotaUsed($user->id));
+        Http::assertNothingSent();
+    }
+
+    public function test_suggest_reply_stops_at_the_daily_cap_or_an_empty_feed_without_calling_the_gateway(): void
+    {
+        [$user, $feed] = $this->feedAiUserWithFeed();
+        $this->actingAs($user);
+        Http::fake(['*' => Http::response($this->feedAiReply('x'))]);
+        $action = app(SuggestFeedReplyAction::class);
+
+        for ($i = 0; $i < Feed::quotaCap(); $i++) {
+            Feed::consumeQuota($user->id);
+        }
+
+        $result = $action->execute($feed->id);
+        $this->assertSame('quota', $result['error']);
+        $this->assertSame(Feed::quotaCap(), Feed::quotaUsed($user->id));
+
+        Cache::forget(Feed::quotaKey($user->id));
+        $bare = Feed::factory()->create(['user_id' => $user->id, 'content' => null]);
+        $result = $action->execute($bare->id);
+        $this->assertSame('none', $result['error']);
+        $this->assertSame(0, Feed::quotaUsed($user->id));
+
+        Http::assertNothingSent();
+    }
+
+    public function test_suggest_reply_refunds_the_daily_quota_when_the_gateway_is_unreachable(): void
+    {
+        [$user, $feed] = $this->feedAiUserWithFeed();
+        $this->actingAs($user);
+        Http::fake(['*' => Http::failedConnection()]);
+
+        $result = app(SuggestFeedReplyAction::class)->execute($feed->id);
+
+        $this->assertSame('unreachable', $result['error']);
+        $this->assertSame(config('ai.feed.errors.unreachable'), $result['message']);
+        $this->assertSame(0, Feed::quotaUsed($user->id));
+
+        Http::assertSentCount(1);
+        app(SuggestFeedReplyAction::class)->execute($feed->id);
+        Http::assertSentCount(1);
+        Cache::forget('feed:ai:down');
+    }
+
+    public function test_feed_ai_buttons_sit_behind_the_gate_helper_in_the_comments_partial(): void
+    {
+        $view = file_get_contents(resource_path('views/livewire/dashboard/tab/feeds/comments.blade.php'));
+
+        $this->assertMatchesRegularExpression('/@if\(feedAiOn\(\)\)\s*<x-ui\.buttons\.form wire:key="feed-ai-suggest" variant="ai" size="sm".{0,400}wire:click="suggestReply\(/s', $view);
+        $this->assertMatchesRegularExpression('/@if\(feedAiOn\(\) && !\$meta\[\'isOwner\'\]\)\s*<x-ui\.buttons\.form wire:key="feed-ai-reply" variant="ai" size="sm".{0,400}wire:click="suggestReply\(/s', $view);
+        $this->assertSame(2, substr_count($view, 'loading="suggestReply('));
+        $this->assertSame(2, substr_count($view, '<x-ui.loaders.ai-shimmer'));
     }
 }

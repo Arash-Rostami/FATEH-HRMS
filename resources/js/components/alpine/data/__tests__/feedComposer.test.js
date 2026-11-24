@@ -2,7 +2,19 @@ import { describe, expect, test, vi } from 'vitest'
 import feedComposer from '../feedComposer.js'
 
 function mockTextarea(value, start, end) {
-    return { value, selectionStart: start, selectionEnd: end, focus: vi.fn(), setSelectionRange: vi.fn(), dispatchEvent: vi.fn(), style: {} };
+    return {
+        value,
+        selectionStart: start,
+        selectionEnd: end,
+        focus: vi.fn(),
+        setSelectionRange: vi.fn(),
+        dispatchEvent: vi.fn(),
+        style: {},
+        setRangeText(text, s, e) {
+            this.value = this.value.slice(0, s) + text + this.value.slice(e);
+            this.selectionStart = this.selectionEnd = s + text.length;
+        },
+    };
 }
 
 describe('feedComposer.insertEmoji', () => {
@@ -139,6 +151,118 @@ describe('feedComposer.onEnter', () => {
         expect(ta.selectionStart).toBe(2);
         expect(ta.selectionEnd).toBe(2);
         expect(c.$wire.addComment).not.toHaveBeenCalled();
+    });
+});
+
+describe('feedComposer — reply box and thread state', () => {
+    function withDom() {
+        const c = feedComposer(7);
+        const input = { focus: vi.fn() };
+        c.$root = { querySelector: vi.fn(() => input) };
+        c.$nextTick = (fn) => fn();
+        return { c, input };
+    }
+
+    test('openReply selects the comment and focuses its reply input', () => {
+        const { c, input } = withDom();
+
+        c.openReply(5);
+
+        expect(c.replyingTo).toBe(5);
+        expect(c.$root.querySelector).toHaveBeenCalledWith('[data-reply-input="5"]');
+        expect(input.focus).toHaveBeenCalled();
+    });
+
+    test('toggleReply opens, then closes on the second call, and switching comments moves the box', () => {
+        const { c } = withDom();
+
+        c.toggleReply(5);
+        expect(c.replyingTo).toBe(5);
+        c.toggleReply(9);
+        expect(c.replyingTo).toBe(9);
+        c.toggleReply(9);
+        expect(c.replyingTo).toBeNull();
+    });
+
+    test('toggleThread flips a single comment thread without touching the others', () => {
+        const { c } = withDom();
+
+        c.toggleThread(1);
+        c.toggleThread(2);
+        c.toggleThread(1);
+
+        expect(c.isThreadOpen(1)).toBe(false);
+        expect(c.isThreadOpen(2)).toBe(true);
+    });
+
+    test('a successful sendReply closes the box and expands that thread so the new reply is visible', async () => {
+        const { c } = withDom();
+        c.replyingTo = 5;
+        c.$wire = { addComment: vi.fn(() => Promise.resolve()), get: vi.fn(() => null) };
+
+        await c.sendReply(7, 5);
+
+        expect(c.$wire.addComment).toHaveBeenCalledWith(7, 5);
+        expect(c.replyingTo).toBeNull();
+        expect(c.isThreadOpen(5)).toBe(true);
+        expect(c.sendingReply).toBeNull();
+    });
+
+    test('a rejected reply (text kept by the server) leaves the box open and the thread closed', async () => {
+        const { c } = withDom();
+        c.replyingTo = 5;
+        c.$wire = { addComment: vi.fn(() => Promise.resolve()), get: vi.fn(() => 'still here') };
+
+        await c.sendReply(7, 5);
+
+        expect(c.replyingTo).toBe(5);
+        expect(c.isThreadOpen(5)).toBe(false);
+    });
+
+    test('plain Enter in a reply box prevents the newline and sends that reply', () => {
+        const { c } = withDom();
+        c.$wire = { addComment: vi.fn(() => Promise.resolve()), get: vi.fn(() => 'x') };
+        const e = { shiftKey: false, isComposing: false, preventDefault: vi.fn() };
+
+        c.onReplyEnter(e, 7, 5);
+
+        expect(e.preventDefault).toHaveBeenCalled();
+        expect(c.$wire.addComment).toHaveBeenCalledWith(7, 5);
+    });
+
+    test('Shift+Enter and IME composition Enter in a reply box do not send', () => {
+        const { c } = withDom();
+        c.$wire = { addComment: vi.fn(() => Promise.resolve()), get: vi.fn(() => 'x') };
+        const shift = { shiftKey: true, isComposing: false, preventDefault: vi.fn() };
+        const ime = { shiftKey: false, isComposing: true, preventDefault: vi.fn() };
+
+        c.onReplyEnter(shift, 7, 5);
+        c.onReplyEnter(ime, 7, 5);
+
+        expect(c.$wire.addComment).not.toHaveBeenCalled();
+        expect(shift.preventDefault).not.toHaveBeenCalled();
+    });
+
+    test('growOn resizes the given textarea on the next tick and ignores a missing element', () => {
+        const { c } = withDom();
+        const el = { style: {}, scrollHeight: 90 };
+
+        c.growOn('v', el);
+        c.growOn('v', null);
+
+        expect(el.style.height).toBe('90px');
+    });
+
+    test('sendReply ignores a second call while one is in flight and recovers from a thrown request', async () => {
+        const { c } = withDom();
+        c.$wire = { addComment: vi.fn(() => Promise.reject(new Error('x'))), get: vi.fn(() => null) };
+
+        const first = c.sendReply(7, 5);
+        await c.sendReply(7, 5);
+        await first;
+
+        expect(c.$wire.addComment).toHaveBeenCalledTimes(1);
+        expect(c.sendingReply).toBeNull();
     });
 });
 

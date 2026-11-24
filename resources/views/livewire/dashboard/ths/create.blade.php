@@ -1,11 +1,12 @@
 @php
     $aiOn = thsAiOn();
     $aiTip = fn () => 'نوشتن هوشمند · ' . convertToPersian($this->aiLeft) . ' بار دیگر امروز';
-    $aiNeedArea = 'ابتدا حوزه درخواست را انتخاب کنید';
-    $aiLong = 'متن شما برای دستیار طولانی است؛ آن را کوتاه‌تر کنید.';
+    $aiNeedArea = 'ابتدا حوزهٔ درخواست را انتخاب کنید';
+    $aiLong = 'برای دریافت پیشنهاد، متن را کوتاه‌تر کنید.';
     $aiShort = 'برای استفاده از دستیار، متن را کوتاه‌تر کنید';
-    $aiLimitSubject = min((int) config('ai.ticket.input_max'), (int) config('ai.ticket.subject_max'));
-    $aiLimitDescription = min((int) config('ai.ticket.input_max'), (int) config('ai.ticket.description_max'));
+    $aiLimits = $presenter->aiLimits();
+    $aiLimitSubject = $aiLimits['subject'];
+    $aiLimitDescription = $aiLimits['description'];
 @endphp
 
 <form wire:submit.prevent="submitTicket" class="space-y-6"
@@ -35,7 +36,7 @@
                         <option value="{{ $code }}">{{ $name }}</option>
                     @endforeach
                 </x-ui.forms.select>
-                <p class="mt-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">واحدی را انتخاب کنید که باید به درخواست رسیدگی کند؛ سپس نوع و حوزهٔ درخواست را مشخص کنید.</p>
+                <p class="mt-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">واحدی را انتخاب کنید که باید به درخواست شما رسیدگی کند. سپس نوع و حوزهٔ درخواست را مشخص کنید.</p>
             </div>
 
             @if($this->ticket->targetDepartment !== '')
@@ -49,7 +50,7 @@
 
 
                 <div class="space-y-1.5">
-                    <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
+                    <x-ui.forms.select label="حوزهٔ درخواست" name="ticket.requestArea"
                                        wire:model.live="ticket.requestArea"
                                        :icon="$presenter->requestAreaIcon($this->ticket->requestArea, $this->ticket->targetDepartment)">
                         @foreach($requestAreas as $value => $label)
@@ -93,7 +94,7 @@
                             </label>
                         @endforeach
                     </div>
-                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">اولویت را بر اساس فوریت واقعی انتخاب کنید؛ پس از ثبت، خودتان نمی‌توانید آن را تغییر دهید.</p>
+                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">اولویت را بر اساس فوریت درخواست انتخاب کنید. پس از ثبت، فقط مدیر می‌تواند آن را تغییر دهد.</p>
                     @error('ticket.priority') <p
                         class="text-[10px] text-[var(--md-sys-color-error)] mt-1">{{ $message }}</p> @enderror
                 </div>
@@ -108,22 +109,22 @@
         {{-- ── Section 2: Content + Attachments ── --}}
         <div wire:key="ths-create-content" class="space-y-4">
 
-            <x-ui.title icon="edit_note" title="محتوای تیکت"/>
+            <x-ui.title icon="edit_note" title="موضوع و شرح درخواست"/>
             @if($aiOn)
-                <p wire:key="ths-create-ai-help" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">«نوشتن هوشمند» موضوع و شرح را پیشنهاد می‌دهد. متن را بررسی کنید و جاهای خالی را پر کنید؛ پذیرش پیشنهاد، تیکت را ارسال نمی‌کند.</p>
+                <p wire:key="ths-create-ai-help" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">«نوشتن هوشمند» موضوع و شرح را پیشنهاد می‌دهد. متن و انتخاب‌های فرم به سرویس هوش مصنوعی فرستاده می‌شوند. اطلاعات محرمانه وارد نکنید.</p>
             @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
                 <div class="lg:col-span-3 space-y-5">
                     <div @if($aiOn) class="relative" data-ai-blank="«____»" data-ai-next="ticket.description" x-bind:inert="aiLoading"
-                         x-bind:class="{ 'ai-suggested': aiSuggested }" x-bind:aria-busy="aiLoading"
+                         x-bind:class="{ 'ai-suggested': aiSuggested, 'ai-halo': aiLoading }" x-bind:aria-busy="aiLoading"
                          x-on:keydown.tab="!$event.shiftKey && aiBlanks > 0 && aiNextBlank($event.target) && $event.preventDefault()" @endif>
                         <x-ui.forms.input label="موضوع تیکت *" name="ticket.subject"
                                           wire:model="ticket.subject" icon="label">
                             @if($aiOn)
                                 <x-slot:actions>
-                                    <x-ui.forms.ai-trigger class="inset-y-0 left-0 -ml-3.5"
+                                    <x-ui.forms.ai-trigger class="inset-y-0 left-0 -ml-3"
                                                            :tip="$aiTip()"
                                                            :need="$aiNeedArea"
                                                            :long="$aiLong"
@@ -141,13 +142,13 @@
 
                     <div>
                         <div @if($aiOn) class="relative" data-ai-blank="«____»" x-bind:inert="aiLoading"
-                             x-bind:class="{ 'ai-suggested': aiSuggested }" x-bind:aria-busy="aiLoading"
+                             x-bind:class="{ 'ai-suggested': aiSuggested, 'ai-halo': aiLoading }" x-bind:aria-busy="aiLoading"
                              x-on:keydown.tab="!$event.shiftKey && aiBlanks > 0 && aiNextBlank($event.target) && $event.preventDefault()" @endif>
                             <x-ui.forms.textarea label="شرح درخواست *" name="ticket.description"
                                                  wire:model="ticket.description" icon="description" rows="5" :maximizable="true">
                                 @if($aiOn)
                                     <x-slot:actions>
-                                        <x-ui.forms.ai-trigger class="bottom-3 left-0 -mb-3.5 -ml-3.5"
+                                        <x-ui.forms.ai-trigger class="bottom-2 left-0 -ml-3"
                                                                :tip="$aiTip()"
                                                                :need="$aiNeedArea"
                                                                :long="$aiLong"
@@ -157,7 +158,7 @@
                                     </x-slot:actions>
                                 @endif
                             </x-ui.forms.textarea>
-                            <p class="mt-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">بگویید چه اتفاقی افتاده، کجا رخ داده و چه نتیجه‌ای می‌خواهید. اگر پیام خطایی دارید، متن یا تصویر آن را پیوست کنید.</p>
+                            <p class="mt-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">بنویسید در کدام بخش چه کاری انجام دادید و چه اتفاقی افتاد. اگر خطایی دیدید، متن آن را بنویسید یا تصویرش را پیوست کنید.</p>
                             @if($aiOn)
                                 <x-ui.loaders.ai-shimmer x-show="aiLoading" style="display: none;" class="rounded-t-lg"/>
                             @endif
@@ -212,9 +213,10 @@
                                         <span x-text="aiQuestion"></span>
                                     </x-ui.badge>
                                 </button>
-                                <span x-show="aiRemaining !== null" style="display: none;" class="mr-auto text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
-                                    <span x-text="(aiRemaining ?? 0).toLocaleString('fa-IR')"></span> بار دیگر امروز
-                                </span>
+                                <x-ui.quota-meter wire:key="ths-ai-quota-usage" class="mr-auto w-48" :icon="null"
+                                                  label="سهمیهٔ نوشتن هوشمند" aria="سهمیهٔ نوشتن هوشمند"
+                                                  :used="$this->aiMeter['used']" :cap="$this->aiMeter['cap']"
+                                                  :pct="$this->aiMeter['pct']" :tone="$this->aiMeter['tone']"/>
                             </div>
                         @endif
                     </div>
@@ -318,7 +320,7 @@
             class="flex items-center justify-between gap-3 pt-2 border-t border-[var(--md-sys-color-outline-variant)]/50">
             <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] hidden sm:flex items-center gap-1.5">
                 <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">info</span>
-                فیلدهای * (ضروری) را تکمیل کنید
+                کادرهای ستاره‌دار را پر کنید.
             </p>
             <x-ui.buttons.submit
                 target="submitTicket"

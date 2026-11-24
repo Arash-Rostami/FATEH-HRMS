@@ -13,6 +13,7 @@ use App\Models\Report;
 use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -365,5 +366,46 @@ class MediaTest extends TestCase
         $locked = $this->media($user, ['parent_id' => $series->id, 'report_date' => now()->addDays(2)->toDateString()]);
         Livewire::withoutLazyLoading();
         Livewire::test(Library::class, ['open' => $locked->id])->assertSet('open', null);
+    }
+
+    public function test_module_guide_picks_a_visible_playable_video_and_the_header_button_deep_links_to_it(): void
+    {
+        if (tenantOff('knowledge:media')) {
+            $this->markTestSkipped('knowledge:media is off for this tenant');
+        }
+
+        $user = User::factory()->create(['status' => 'active']);
+        $this->actingAs($user);
+        $tag = 'zz-' . uniqid();
+        [$cal, $ths, $chan, $none, $bare, $ser] = array_map(fn (string $suffix) => $tag . '-' . $suffix, ['cal', 'ths', 'chan', 'none', 'bare', 'ser']);
+
+        $this->media($user, ['module' => $cal]);
+        $this->media($user, ['kind' => 'video', 'module' => $cal, 'expires_at' => now()->subDay()->toDateString()]);
+        $this->media($user, ['kind' => 'video', 'module' => $cal, 'position' => 2]);
+        $pinned = $this->media($user, ['kind' => 'video', 'module' => $cal, 'position' => 5, 'pinned' => true]);
+        $other = $this->media($user, ['kind' => 'video', 'module' => $chan]);
+        $restricted = $this->media($user, ['kind' => 'video', 'module' => $ths, 'pinned' => true, 'departments' => ['ZZZ-NOT-MINE']]);
+        $publicTop = $this->media($user, ['kind' => 'video', 'module' => $ths, 'position' => 9]);
+        $this->media($user, ['kind' => 'video', 'module' => $bare, 'file_path' => null]);
+        $this->media($user, ['kind' => 'series', 'module' => $bare, 'file_path' => null]);
+        $series = $this->media($user, ['kind' => 'series', 'module' => $ser, 'file_path' => null]);
+        $this->media($user, ['parent_id' => $series->id]);
+        ModelCacheVersion::bump(Media::class);
+
+        $this->assertNotSame($restricted->id, Media::guideFor($ths, $user), 'a guide restricted to another department is never offered');
+        $this->assertSame($publicTop->id, Media::guideFor($ths, $user), 'the winner is chosen among guides the viewer can see');
+        $this->assertSame($pinned->id, Media::guideFor($cal, $user), 'audio and expired items are ignored and the pinned video wins');
+        $this->assertSame($other->id, Media::guideFor($chan, $user));
+        $this->assertNull(Media::guideFor($bare, $user), 'a video without a file and a series without a playable episode are never offered');
+        $this->assertSame($series->id, Media::guideFor($ser, $user), 'a series with a playable episode qualifies');
+        $this->assertNull(Media::guideFor($none, $user));
+        $this->assertNull(Media::guideFor(null, $user));
+
+        $html = Blade::render('<x-ui.video-guide module="' . $cal . '"/>');
+        $this->assertStringContainsString('tab=media', $html);
+        $this->assertStringContainsString('open=' . $pinned->id, $html);
+        $this->assertStringNotContainsString('play_circle', Blade::render('<x-ui.video-guide module="' . $none . '"/>'), 'a module without a guide renders nothing');
+
+        ModelCacheVersion::bump(Media::class);
     }
 }

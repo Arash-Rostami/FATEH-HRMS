@@ -513,10 +513,10 @@ class ReservationTest extends TestCase
         $component = Livewire::actingAs($user)->test(Main::class);
 
         $this->assertNull($component->set('date', '2026-10-11')->get('bookingBlockReason'));
-        $this->assertStringContainsString('ساعت دیگر شروع', (string) $component->set('date', '2026-10-13')->get('bookingBlockReason'));
+        $this->assertStringContainsString('رزرو لحظه‌آخری برای شروع تا ۲۴ ساعت آینده', (string) $component->set('date', '2026-10-13')->get('bookingBlockReason'));
 
         $this->setPolicy('seat', 'last_minute_hours', null);
-        $this->assertStringNotContainsString('ساعت دیگر شروع', (string) $component->set('date', '2026-10-14')->get('bookingBlockReason'));
+        $this->assertStringNotContainsString('رزرو لحظه‌آخری برای شروع تا ۲۴ ساعت آینده', (string) $component->set('date', '2026-10-14')->get('bookingBlockReason'));
         $this->travelBack();
     }
 
@@ -3385,7 +3385,7 @@ class ReservationTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(Main::class)
-            ->assertSee('راهنمای وضعیت رزرو')
+            ->assertSee('راهنمای رزرو')
             ->assertSee('فعال')
             ->assertSee('آزادشده')
             ->assertSee('لغو توسط کاربر')

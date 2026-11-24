@@ -4,7 +4,7 @@
      wire:ignore.self>
 
     <div dir="rtl">
-        <x-ui.title
+        <x-ui.title guide="status"
             icon="badge"
             title="وضعیت همکاران"
             :count="array_sum($this->stats)"

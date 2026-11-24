@@ -17,6 +17,19 @@ describe('chatScaleMixin', () => {
         expect(c.canGrowScale()).toBe(true)
     })
 
+    test('aborting the init signal removes the scale listener at once instead of waiting for the next scale event', () => {
+        const ac = new AbortController()
+        const c = chatScaleMixin()
+        c.initChatScale(ac.signal)
+
+        window.dispatchEvent(new CustomEvent('chat-scale-changed', { detail: 4 }))
+        expect(c.scaleIndex).toBe(4)
+
+        ac.abort()
+        window.dispatchEvent(new CustomEvent('chat-scale-changed', { detail: 0 }))
+        expect(c.scaleIndex).toBe(4)
+    })
+
     test('restores a stored step and ignores out-of-range or garbage values', () => {
         localStorage.setItem('chat-ui-scale', '0')
         const a = chatScaleMixin()
@@ -79,6 +92,21 @@ describe('chatScaleMixin', () => {
         localStorage.setItem('chat-ui-scale', 'sentinel')
         c.resetScale()
         expect(localStorage.getItem('chat-ui-scale')).toBe('sentinel')
+    })
+
+    test('the chat-scale-changed event refreshes an initialised instance and ignores one whose root is gone', () => {
+        const live = chatScaleMixin()
+        live.initChatScale()
+        const gone = chatScaleMixin()
+        gone.$root = { isConnected: false }
+        gone.initChatScale()
+
+        window.dispatchEvent(new CustomEvent('chat-scale-changed', { detail: 4 }))
+        expect(live.scaleIndex).toBe(4)
+        expect(gone.scaleIndex).toBe(2)
+
+        live.stepScale(-1)
+        expect(live.scaleIndex).toBe(3)
     })
 
     test('a second instance (another module) picks up the persisted step', () => {

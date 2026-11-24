@@ -61,7 +61,7 @@ class TicketPresenter
         return match ($status) {
             'open'        => ['icon' => 'pending', 'textColor' => 'text-[var(--md-sys-color-primary)]', 'bg' => 'bg-[var(--md-sys-color-primary-container)]', 'title' => 'باز', 'pulse' => true, 'spin' => false],
             'in-progress' => ['icon' => 'sync', 'textColor' => 'text-[var(--md-sys-color-tertiary)]', 'bg' => 'bg-[var(--md-sys-color-tertiary-container)]', 'title' => 'در حال بررسی', 'pulse' => false, 'spin' => true],
-            'closed'      => ['icon' => 'check_circle', 'textColor' => 'text-[var(--md-sys-color-secondary)]', 'bg' => 'bg-[var(--md-sys-color-secondary-container)]', 'title' => 'بسته شده', 'pulse' => false, 'spin' => false],
+            'closed'      => ['icon' => 'check_circle', 'textColor' => 'text-[var(--md-sys-color-secondary)]', 'bg' => 'bg-[var(--md-sys-color-secondary-container)]', 'title' => 'بسته‌شده', 'pulse' => false, 'spin' => false],
             default       => null,
         };
     }
@@ -171,6 +171,16 @@ class TicketPresenter
         };
     }
 
+    public function aiLimits(): array
+    {
+        $max = (int) config('ai.ticket.input_max');
+
+        return [
+            'subject' => min($max, (int) config('ai.ticket.subject_max')),
+            'description' => min($max, (int) config('ai.ticket.description_max')),
+        ];
+    }
+
     public function quickReplies(): array
     {
         return self::QUICK_REPLIES;
@@ -212,7 +222,7 @@ class TicketPresenter
             'timeline' => $ticket['timeline'] ?? [],
             'isRequester' => ($ticket['requester_id'] ?? null) === auth()->id(),
             'files' => [
-                ...array_map(fn ($f) => [...$f, 'by' => 'درخواست‌کننده', 'group' => 'requester'], $ticket['requester_files'] ?? []),
+                ...array_map(fn ($f) => [...$f, 'by' => 'درخواست‌دهنده', 'group' => 'requester'], $ticket['requester_files'] ?? []),
                 ...array_map(fn ($f) => [...$f, 'by' => 'مسئول رسیدگی', 'group' => 'assignee'], $ticket['assignee_files'] ?? []),
             ],
             'score' => (int) ($ticket['satisfaction_score'] ?? 0),
@@ -264,7 +274,7 @@ class TicketPresenter
         );
 
         return match (true) {
-            $this->isWithdrawn($ticket) => $this->ball('error', 'cancel', 'لغو شد', 'این درخواست توسط درخواست‌کننده لغو شد.'),
+            $this->isWithdrawn($ticket) => $this->ball('error', 'cancel', 'لغو شد', 'درخواست‌دهنده این تیکت را لغو کرده است.'),
             $status === 'closed' && $isRequester && !($ticket['satisfaction_score'] ?? 0) => $this->ball('rate', 'star', 'لطفاً ارزیابی کنید', 'نظر شما کیفیت پشتیبانی را بهتر می‌کند.', ['ثبت ارزیابی', 'rate']),
             $status === 'closed' => $this->ball('closed', 'check_circle', 'بسته شد', implode(' · ', array_filter([
                 !empty($ticket['completion_date']) ? 'در ' . toJalali($ticket['completion_date'], 'j F Y') : null,

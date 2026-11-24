@@ -69,6 +69,7 @@ class MediaResource extends Resource
                                     MediaFormPresenter::kind(),
                                     MediaFormPresenter::title(),
                                     MediaFormPresenter::topic(),
+                                    MediaFormPresenter::module(),
                                     MediaFormPresenter::icon(),
                                     MediaFormPresenter::divider(),
                                     MediaFormPresenter::departmentId(),

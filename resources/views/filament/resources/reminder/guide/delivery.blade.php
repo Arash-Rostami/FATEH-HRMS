@@ -22,7 +22,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">چه زمانی و چگونه یادآوری به کاربر می‌رسد</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        اگر کاربری می‌گوید «یادآوری‌ام نیامد»، اول این قواعد را بررسی کنید. این صفحه فقط توضیح می‌دهد؛ هیچ‌کدام از این رفتارها از فرم ادمین تغییر نمی‌کند.
+        اگر کاربری می‌گوید «یادآوری‌ام نیامد»، اول این قواعد را بررسی کنید. این صفحه فقط توضیح می‌دهد؛ هیچ‌کدام از این رفتارها از فرم مدیر سامانه تغییر نمی‌کند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

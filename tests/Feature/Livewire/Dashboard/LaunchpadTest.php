@@ -2399,7 +2399,7 @@ B7n05Bmpzmfzd+I7+y+mec8=
 
         $manager = Livewire::actingAs($owner)->test(Main::class)->call('showDetails', $row->id)
             ->assertDispatched('open-modal')
-            ->assertSee('برگه‌ای با این نام وجود ندارد')
+            ->assertSee('این برگه پیدا نشد. نام آن را دقیقاً از فایل گوگل‌شیت کپی کنید.')
             ->assertSee("داشبورد، پایش تیم\u{200C}ها")
             ->assertSee('Google Sheets — عمومی')
             ->assertDontSee($sheet)
@@ -2415,7 +2415,7 @@ B7n05Bmpzmfzd+I7+y+mec8=
         $this->assertNotContains('وضعیت', array_column($manager->get('details')['rows'], 0));
 
         $seen = Livewire::actingAs($viewer)->test(Main::class)->call('showDetails', $row->id)
-            ->assertDontSee('برگه‌ای با این نام وجود ندارد')
+            ->assertDontSee('این برگه پیدا نشد. نام آن را دقیقاً از فایل گوگل‌شیت کپی کنید.')
             ->assertDontSee('Google Sheets — عمومی');
         $this->assertNull($seen->get('details')['source']);
         $this->assertNotEmpty($seen->get('details')['rows']);

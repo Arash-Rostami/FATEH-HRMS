@@ -8,7 +8,9 @@ use App\Models\Concerns\HasAvatar;
 use App\Models\Profile;
 use App\Traits\Livewire\BuildsChatBubbles;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Morilog\Jalali\Jalalian;
 
 class ContactPresenter
 {
@@ -32,6 +34,7 @@ class ContactPresenter
     {
         $last = $c['last_message'] ?? null;
         $occasion = $c['occasion'] ?? null;
+        $key = $occasion ? $this->occasionKey($occasion, $c['id'], Jalalian::now()->getYear()) : null;
 
         return [
             'id' => $c['id'],
@@ -45,7 +48,13 @@ class ContactPresenter
             'unread' => (int) ($c['unread_count'] ?? 0),
             'occasion' => $occasion,
             'occasion_tone' => $occasion ? Profile::occasionTone($occasion) : null,
-            'org_title' => implode(' › ', array_filter([$c['unit'] ?? null, $c['section'] ?? null])),
+            'sms_key' => $key,
+            'can_sms' => $occasion
+                && ! tenantOff('notify:sms')
+                && $c['id'] !== $authId
+                && ! ($c['inactive'] ?? false)
+                && filled($c['profile']['cellphone'] ?? null)
+                && ! presence($c['presence'] ?? null)->isObscured(),            'org_title' => implode(' › ', array_filter([$c['unit'] ?? null, $c['section'] ?? null])),
             'last_message' => $last ? [
                 'body' => $this->lastMessagePreview($last),
                 'time' => toJalaliRelative($last['created_at'], short: true),
@@ -54,6 +63,11 @@ class ContactPresenter
                 'is_read' => ! empty($last['read_at']),
             ] : null,
         ];
+    }
+
+    private function occasionKey(string $type, int $userId, int $year): string
+    {
+        return $type . '-' . $userId . '-' . $year;
     }
 
     public function firstUnreadId(array $messages, int $authId): ?int
@@ -103,6 +117,17 @@ class ContactPresenter
             $canModify = $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds($now) <= $editTimeLimit;
 
             $parts = ForwardMessageAction::parts($body);
+            $attachments = array_map(function (array $file) use ($isMine, $names) {
+                $viewers = [];
+                foreach ($isMine ? ($file['views'] ?? []) : [] as $uid => $at) {
+                    $meta = $names[(int) $uid] ?? null;
+                    if ($meta !== null) {
+                        $viewers[] = ['name' => $meta['name'] ?? '—', 'avatar' => $meta['avatar'] ?? null, 'viewed_at' => $at, 'inactive' => $meta['inactive'] ?? false];
+                    }
+                }
+
+                return [...Arr::except($file, 'views'), ...($viewers ? ['viewers' => $viewers, 'viewer_count' => count($viewers)] : [])];
+            }, $this->attachments($msg['attachments'] ?? []));
 
             return [
                 'id' => $id,
@@ -126,7 +151,8 @@ class ContactPresenter
                 'sender_inactive' => (bool) ($sender['inactive'] ?? false),
                 'can_edit' => $canModify,
                 'can_delete' => $canModify,
-                'attachments' => $this->attachments($msg['attachments'] ?? []),
+                'attachments' => $attachments,
+                'viewed_files' => array_values(array_filter($attachments, fn(array $file) => ! empty($file['viewers']))),
                 'reactions' => $this->reactionChips($msg['reactions'] ?? [], $authId, $names),
                 'type_flags' => $this->typeFlags($msg),
                 'gap_class' => $isFirst ? 'mt-4' : 'mt-1',

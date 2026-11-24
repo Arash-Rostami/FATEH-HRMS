@@ -11,9 +11,9 @@
             </div>
 
             <div class="flex-1">
-                <h3 class="text-sm font-bold tracking-tight mb-2">راهنمای بارگذاری مدارک و الزامات پرونده</h3>
+                <h3 class="text-sm font-bold tracking-tight mb-2">مدارک لازم برای تکمیل پرونده</h3>
                 <p class="text-xs opacity-90 leading-relaxed mb-4">
-                    تصاویر اسکن‌شده باید باکیفیت و کمتر از ۱۰ مگابایت باشند. پس از تأیید نهایی، نمی‌توانید مدارک را ویرایش کنید. برای تکمیل پرونده، موارد زیر را رعایت کنید:
+                    فایل خوانا با قالب PDF، JPG یا PNG و حداکثر حجم ۱۰ مگابایت انتخاب کنید. قبل از ثبت نهایی، فایل را بررسی کنید. پس از ثبت، تغییر فایل از این صفحه ممکن نیست.
                 </p>
 
                 <ul class="text-xs opacity-90 leading-relaxed space-y-3">
@@ -43,7 +43,7 @@
             <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">folder_open</span>
             <div>
                 <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">بارگذاری مدارک هویتی</h3>
-                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">تصاویر اسکن‌شده مدارک خود را با کیفیت مناسب بارگذاری کنید.</p>
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">برای هر مدرک، تصویر کامل و خوانای آن را بارگذاری کنید.</p>
             </div>
         </div>
         <div class="p-6">
@@ -149,7 +149,7 @@
                     <div class="flex items-center gap-2 mb-4">
                         <span
                             class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-lg">folder_special</span>
-                        <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">سایر مدارک بارگذاری شده</h3>
+                        <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">مدارک دیگر</h3>
                         <span
                             class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">{{ convertToPersian($customDocs->count()) }}</span>
                     </div>
@@ -194,7 +194,7 @@
             }
         }" class="space-y-5 bg-[var(--md-sys-color-primary-container)]">
             <x-ui.forms.input label="عنوان مدرک" name="form.customType" wire:model="form.customType"
-                              placeholder="مثال: گواهی دوره آموزشی" icon="label"/>
+                              placeholder="برای نمونه، گواهی دورهٔ آموزشی" icon="label"/>
 
             <div>
                 <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2">فایل مدرک</label>

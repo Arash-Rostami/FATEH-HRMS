@@ -34,18 +34,18 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">گزینه‌های روش اجرا، تکرار، اثر و تفویض</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        چهار گزینهٔ «روش اجرایی»، «فراوانی تکرار»، «شاخص اثر» و دو گزینهٔ «تفویض» همگی انتخابی‌اند و مقدارهایشان از فهرستی ثابت می‌آید. این مقادیر در جدول به‌صورت نشان رنگی و در خروجی اکسل به‌صورت برچسبِ فارسی نمایش داده می‌شوند. اگر اختیاری مقداری نداشته باشد، «ثبت نشده» جای آن می‌نشیند.
+        روش اجرایی، دفعات تکرار، میزان اثرگذاری و سطح تفویض اختیار را از فهرست هر کادر انتخاب کنید. اگر کادری خالی بماند، «ثبت نشده» نمایش داده می‌شود.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">gavel</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">سطح تفویض اختیار — پیشنهادی در برابر مصوب</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">اختیار پیشنهادی و اختیار تأییدشده</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             <div class="flex items-start gap-4 p-5">
                 <div class="flex-1 flex flex-col gap-2">
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">«تفویض پیشنهادی» سطحی است که هنوز به تأیید نرسیده، و «تفویض مصوب» سطحی است که رسماً تأیید و قابل اجراست. هر دو از همین چهار مقدار استفاده می‌کنند:</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">در «تفویض پیشنهادی»، سطح اختیار موردنظر را وارد کنید. پس از تأیید رسمی، سطح قابل اجرا را در «تفویض مصوب» ثبت کنید.</p>
                     <div class="flex flex-wrap gap-2">
                         @foreach($delegation as $d)
                             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold {{ $d['color'] }}">
@@ -87,7 +87,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">trending_up</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">شاخص اثر</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">میزان اثرگذاری</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             <div class="flex items-start gap-4 p-5">
@@ -106,7 +106,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">event_repeat</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">فراوانی تکرار</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">دفعات تکرار</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($repeat as $r)

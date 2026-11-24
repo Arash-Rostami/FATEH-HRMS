@@ -78,10 +78,10 @@ class FeedInfolistPresenter
             ->columnSpan(2)
             ->prefixAction(
                 Action::make('preview')
-                    ->tooltip('مشاهده ویدیو')
+                    ->tooltip('مشاهدهٔ ویدیو')
                     ->icon('heroicon-o-play-circle')
                     ->color('primary')
-                    ->modalHeading('مشاهده ویدیو')
+                    ->modalHeading('مشاهدهٔ ویدیو')
                     ->modalContent(fn($record) => view('filament.resources.feed.video-preview', ['videos' => $record->videos]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('بستن')

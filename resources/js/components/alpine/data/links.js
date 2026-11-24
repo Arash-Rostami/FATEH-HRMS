@@ -1,18 +1,14 @@
-const RECENT_KEY = 'fateh_links_recent';
-const RECENT_MAX = 6;
+import recentListMixin from "../mixins/recentList.js";
+
 const FA_DIGITS = {'۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'};
 
 export default function links() {
     return {
-        recent: [],
+        ...recentListMixin({key: 'fateh_links_recent', max: 6}),
         view: 'rail',
 
         init() {
-            try {
-                this.recent = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-            } catch (e) {
-                this.recent = [];
-            }
+            this.loadRecent();
 
             this.view = this.$wire.get('view') || 'rail';
         },
@@ -28,21 +24,7 @@ export default function links() {
 
         recordClick(item) {
             if (!item || !item.id) return;
-            this.recent = this.recent.filter((r) => r.id !== item.id);
-            this.recent.unshift({id: item.id, title: item.title || '', url: item.url || '', icon: item.icon || '', internal: !!item.internal});
-            this.recent = this.recent.slice(0, RECENT_MAX);
-            try {
-                localStorage.setItem(RECENT_KEY, JSON.stringify(this.recent));
-            } catch (e) {
-            }
-        },
-
-        clearRecent() {
-            this.recent = [];
-            try {
-                localStorage.removeItem(RECENT_KEY);
-            } catch (e) {
-            }
+            this.pushRecent({id: item.id, title: item.title || '', url: item.url || '', icon: item.icon || '', internal: !!item.internal});
         },
     }
 }

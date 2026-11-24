@@ -6,6 +6,7 @@ use App\Jobs\GenerateReportJob;
 use App\Livewire\Dashboard\AiReport\Forms\ComposerForm;
 use App\Models\AiReport;
 use App\Models\User;
+use App\Services\Ai\AiClient;
 use App\Services\AiReport\BlockCatalog;
 use App\Services\AiReport\FileExtractor;
 use App\Support\AiReportAccessPolicy;
@@ -28,6 +29,9 @@ class GenerateReportAction
         $form->validated();
         if (!AiReportAccessPolicy::canGenerate($user) || ($parent && !AiReportAccessPolicy::canRefine($parent, $user))) {
             throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.generate_denied')]);
+        }
+        if (AiClient::cooldownActive('report', $user->id)) {
+            throw ValidationException::withMessages(['form.prompt' => __('resources/ai_report/strings.errors.busy')]);
         }
         $staged = $this->stage($form);
         if (AiReport::quotaUsed($user->id) >= AiReport::quotaCap()) {
@@ -125,6 +129,7 @@ class GenerateReportAction
 
         try {
             GenerateReportJob::dispatch($report->id, $token);
+            AiClient::startCooldown('report', $user->id);
         } catch (Throwable $e) {
             $report->markFailed('exception');
             throw $e;

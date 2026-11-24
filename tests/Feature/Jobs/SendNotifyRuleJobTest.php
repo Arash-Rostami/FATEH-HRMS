@@ -442,7 +442,7 @@ class SendNotifyRuleJobTest extends TestCase
         $this->assertSame('sms', $failed[0]->channel);
         $this->assertSame(2, (int)$failed[0]->count);
         $this->assertNull($failed[0]->user_id);
-        $this->assertStringContainsString('پیکربندی نشده', $failed[0]->error);
+        $this->assertStringContainsString('تنظیمات سرویس', $failed[0]->error);
     }
 
     public function test_chunks_are_dispatched_per_channel_with_delays_that_run_across_channels(): void

@@ -46,13 +46,25 @@ class NotifyLog extends Model
         'error',
     ];
 
-    public static function audit(string $source, int $senderId, ?int $recipientId, string $recipient, bool $ok, ?string $error = null): void
+    public static function sentOccasionKeys(int $senderId, array $keys): array
+    {
+        return $keys === [] ? [] : static::query()
+            ->where('source', self::SOURCE_CALENDAR)
+            ->where('sender_id', $senderId)
+            ->where('status', self::STATUS_SENT)
+            ->whereIn('record_id', $keys)
+            ->pluck('record_id')
+            ->all();
+    }
+
+    public static function audit(string $source, int $senderId, ?int $recipientId, string $recipient, bool $ok, ?string $error = null, ?string $key = null): void
     {
         try {
             static::insert([
                 'source' => $source,
                 'sender_id' => $senderId,
                 'user_id' => $recipientId,
+                'record_id' => $key,
                 'recipient' => Str::mask($recipient, '*', 0, -4),
                 'channel' => 'sms',
                 'status' => $ok ? self::STATUS_SENT : self::STATUS_FAILED,

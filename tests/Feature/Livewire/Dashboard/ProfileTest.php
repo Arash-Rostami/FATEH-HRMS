@@ -1060,7 +1060,7 @@ class ProfileTest extends TestCase
 
         $missing = (new ProfilePresenter())->missingFieldLabels($user->fresh());
 
-        $this->assertSame(['شماره ملی', 'تلفن ضروری'], $missing);
+        $this->assertSame(['شماره ملی', 'شمارهٔ تماس اضطراری'], $missing);
     }
 
     public function test_profile_header_shows_a_clickable_missing_fields_popover_only_when_incomplete(): void
@@ -2459,6 +2459,78 @@ class ProfileTest extends TestCase
 
         $component->call('switchTab', 'bogus-section')
             ->assertSet('activeSection', 'focus');
+    }
+
+    public function test_settings_chat_section_renders_its_card_only_on_its_own_tab(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::actingAs($user)
+            ->test(Settings::class)
+            ->assertSee('گفتگو')
+            ->assertDontSee('profile-settings-chat-card')
+            ->call('switchTab', 'chat')
+            ->assertSet('activeSection', 'chat')
+            ->assertSee('profile-settings-chat-card')
+            ->assertSee('فونت پیام‌ها')
+            ->assertSee('بازنشانی گفتگو')
+            ->call('switchTab', 'bogus')
+            ->assertSet('activeSection', 'chat')
+            ->call('switchTab', 'app')
+            ->assertDontSee('profile-settings-chat-card');
+    }
+
+    public function test_settings_layout_card_renders_on_appearance_and_project_toggles_on_notifications(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::actingAs($user)
+            ->test(Settings::class)
+            ->assertSet('activeSection', 'appearance')
+            ->assertSee('profile-settings-layout-card')
+            ->assertSee('منو و چیدمان')
+            ->assertSee('بازنشانی منو و چیدمان')
+            ->assertDontSee('صدای پروژه‌ها')
+            ->call('switchTab', 'notifications')
+            ->assertDontSee('profile-settings-layout-card')
+            ->assertDontSee('منو و چیدمان')
+            ->assertSee('صدای پروژه‌ها')
+            ->assertSee('اعلان پروژه‌ها')
+            ->call('switchTab', 'chat')
+            ->assertDontSee('profile-settings-layout-card')
+            ->assertDontSee('صدای پروژه‌ها');
+    }
+
+    public function test_settings_app_section_renders_the_install_and_access_card_and_notifications_does_not(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::actingAs($user)
+            ->test(Settings::class)
+            ->assertDontSee('نصب برنامه و دسترسی‌ها')
+            ->call('switchTab', 'notifications')
+            ->assertDontSee('profile-settings-app-card')
+            ->assertSee('اعلان‌ها در این دستگاه')
+            ->assertSee('profile-settings-notify-card')
+            ->assertSee('ارسال اعلان آزمایشی')
+            ->call('switchTab', 'app')
+            ->assertSet('activeSection', 'app')
+            ->assertSee('نصب برنامه و دسترسی‌ها')
+            ->assertSee('profile-settings-app-card')
+            ->assertSee('فعال‌سازی همه')
+            ->assertDontSee('ارسال اعلان آزمایشی');
+    }
+
+    public function test_settings_app_section_renders_the_windows_shortcut_with_the_configured_site_url(): void
+    {
+        config(['app.url' => 'https://team.example.test']);
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::actingAs($user)
+            ->test(Settings::class)
+            ->call('switchTab', 'app')
+            ->assertSee('میان‌بر ویندوز')
+            ->assertSeeHtml('data-site-url="https://team.example.test"');
     }
 
     public function test_sign_code_card_saves_and_clears_only_the_protected_hash(): void

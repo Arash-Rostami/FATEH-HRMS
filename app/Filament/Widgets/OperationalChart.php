@@ -54,21 +54,13 @@ class OperationalChart extends ChartWidget
     public function getDescription(): ?string
     {
         return match ($this->activeModule()) {
-            'module_a' => 'داده از پرسشنامه انرژی («امتیاز کلی» هر پرسنل در ۳۰ روز اخیر) و تسک بورد (وظایف در «وضعیت» «انجام نشده» یا «در حال انجام») به تفکیک «واحد» سازمانی کنار هم قرار می‌گیرد. '
-                . 'اگر واحدی هم‌زمان انرژی پایین و وظایف انباشته داشت، احتمال فرسودگی شغلی در آن واحد بالاست. '
-                . '(منابع: پرسشنامه انرژی ← «امتیاز کلی»، «تکمیل شده در» | تسک بورد ← «وضعیت»، «مسئول انجام» | پروفایل پرسنلی ← «واحد»)',
+            'module_a' => 'برای هر واحد، میانگین امتیاز پرسش‌نامهٔ انرژی در ۳۰ روز اخیر و تعداد وظایف انجام‌نشده یا در حال انجام را کنار هم ببینید. امتیاز بالاتر یعنی نشانه‌های بیشتری در پرسش‌نامه انتخاب شده است.',
 
-            'module_b' => 'از سیستم تیکت، «تاریخ ثبت» و «تاریخ بسته‌شدن» هر تیکت کنار هم قرار می‌گیرند و اختلاف روزهای آن‌ها به تفکیک «واحد سازمانی» درخواست‌دهنده میانگین‌گیری می‌شود. '
-                . 'هر واحدی که عدد بالاتری دارد مدت بیشتری برای دریافت پشتیبانی منتظر مانده است. '
-                . '(منابع: سیستم تیکت ← «تاریخ ثبت»، «تاریخ بسته‌شدن»، «درخواست‌دهنده» | پروفایل پرسنلی ← «واحد»)',
+            'module_b' => 'میانگین فاصلهٔ ثبت تا بسته‌شدن تیکت‌ها را به روز نشان می‌دهد. تیکت‌ها بر اساس واحد درخواست‌دهنده گروه‌بندی می‌شوند.',
 
-            'module_c' => 'از سیستم پیشنهادات، «مرحله» جاری هر پیشنهاد گرفته و تعداد پیشنهادات در هر مرحله شمارش می‌شود. '
-                . 'اگر بیشتر پیشنهادات در «منتظر تصمیم» گیر کرده باشند، گلوگاه تصمیم‌گیری در سطح مدیریت است. '
-                . '(منابع: پیشنهادها ← «مرحله»)',
+            'module_c' => 'تعداد پیشنهادها را در هر مرحلهٔ فعلی نشان می‌دهد. برای پیدا کردن پیشنهادهای منتظر تصمیم یا اجرا، به همان مرحله نگاه کنید.',
 
-            'module_d' => 'از سیستم رزرو، ساعت «زمان شروع» هر رزرو (جای پارک، صندلی، خودرو یا جلسه) استخراج و تعداد رزروها در هر ساعت از شبانه‌روز جمع‌بندی می‌شود. '
-                . 'ساعات شلوغ نشان می‌دهد کجا باید منابع بیشتری اضافه یا زمان‌بندی‌ها پراکنده‌تر شوند. '
-                . '(منابع: رزروها ← «زمان شروع»)',
+            'module_d' => 'تعداد رزروهایی را نشان می‌دهد که در هر ساعت از شبانه‌روز شروع می‌شوند.',
 
             default => __('resources/dashboard/strings.chart_widgets.default_description'),
         };
@@ -120,7 +112,7 @@ class OperationalChart extends ChartWidget
 
             return [
                 'datasets' => [
-                    ['label' => 'میانگین انرژی (۳۰ روز اخیر)', 'data' => $results->pluck('avg_energy')->toArray(), 'type' => 'line', 'borderColor' => '#10b981'],
+                    ['label' => 'میانگین امتیاز پرسش‌نامهٔ انرژی در ۳۰ روز اخیر', 'data' => $results->pluck('avg_energy')->toArray(), 'type' => 'line', 'borderColor' => '#10b981'],
                     ['label' => 'وظایف باز یا در حال انجام', 'data' => $results->pluck('pending_tasks')->toArray(), 'type' => 'bar', 'backgroundColor' => '#f59e0b'],
                 ],
                 'labels' => $results->pluck('department_name')->toArray(),
@@ -151,7 +143,7 @@ class OperationalChart extends ChartWidget
 
             return [
                 'datasets' => [
-                    ['label' => 'میانگین روزهای رفع تیکت', 'data' => $results->pluck('avg_resolution_days')->toArray(), 'backgroundColor' => '#ef4444'],
+                    ['label' => 'میانگین زمان تا بسته‌شدن تیکت (روز)', 'data' => $results->pluck('avg_resolution_days')->toArray(), 'backgroundColor' => '#ef4444'],
                 ],
                 'labels' => $results->pluck('origin')->toArray(),
             ];
@@ -189,7 +181,7 @@ class OperationalChart extends ChartWidget
 
             return [
                 'datasets' => [
-                    ['label' => 'تعداد پیشنهادات', 'data' => $data, 'backgroundColor' => '#3b82f6'],
+                    ['label' => 'تعداد پیشنهادها', 'data' => $data, 'backgroundColor' => '#3b82f6'],
                 ],
                 'labels' => $labels,
             ];
@@ -214,7 +206,7 @@ class OperationalChart extends ChartWidget
 
             return [
                 'datasets' => [
-                    ['label' => 'تراکم رزرو منابع (ساعت)', 'data' => $data, 'backgroundColor' => 'rgba(139, 92, 246, 0.4)', 'borderColor' => '#8b5cf6', 'fill' => true],
+                    ['label' => 'تعداد رزروها', 'data' => $data, 'backgroundColor' => 'rgba(139, 92, 246, 0.4)', 'borderColor' => '#8b5cf6', 'fill' => true],
                 ],
                 'labels' => $labels,
             ];

@@ -27,7 +27,7 @@ class ReleaseRequestForm extends Form
     {
         return function ($attribute, $value, $fail) use ($min) {
             if (mb_strlen(trim(strip_tags((string) $value))) < $min) {
-                $fail("حداقل {$min} کاراکتر معتبر الزامی است.");
+                $fail('دست‌کم ' . convertToPersian($min) . ' نویسه بنویسید.');
             }
         };
     }

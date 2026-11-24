@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Services\Ai\AiClient;
 use Illuminate\Support\Facades\Cache;
 
 trait HasDailyQuota
@@ -18,7 +19,7 @@ trait HasDailyQuota
 
     public static function quotaCap(): int
     {
-        return (int) config('ai.' . static::quotaFeature() . '.daily_cap');
+        return (int) AiClient::setting(static::quotaFeature(), 'daily_cap');
     }
 
     public static function quotaUsed(int $userId): int
@@ -39,7 +40,7 @@ trait HasDailyQuota
             'tone' => match (true) {
                 $used >= $cap => ['text' => 'text-[var(--md-sys-color-error)]', 'fill' => 'bg-[var(--md-sys-color-error)]'],
                 $pct >= 80 => ['text' => 'text-[var(--tool-gold-color)]', 'fill' => 'bg-[var(--tool-gold-color)]'],
-                default => ['text' => 'text-[var(--md-sys-color-on-surface-variant)]', 'fill' => 'bg-[var(--md-sys-color-primary)]'],
+                default => ['text' => 'text-[var(--md-sys-color-on-surface-variant)]', 'fill' => 'bg-[var(--ai-color)]'],
             },
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAudience;
+use App\Models\Concerns\HasDailyQuota;
 use App\Models\Concerns\HasModelCache;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasNudgeTracking;
@@ -27,6 +28,7 @@ class Feed extends Model
         HasPublicAssetUrl,
         CleansAttachedFiles,
         HasAudience,
+        HasDailyQuota,
         HasNotifyEvents,
         HasUser,
         HasFeedHooks;
@@ -34,6 +36,11 @@ class Feed extends Model
     public const NUDGE_KEY = 'feeds:nudge';
     public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     public const VIDEO_EXTENSIONS = ['mp4', 'mov', 'webm', 'avi', 'mkv'];
+
+    protected static function quotaFeature(): string
+    {
+        return 'feed';
+    }
 
     protected $fillable = [
         'user_id',

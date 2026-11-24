@@ -12,7 +12,7 @@
                     wire:model="form.bio"
                     name="form.bio"
                     label="من همانم که در ایام حیات..."
-                    placeholder="روایت خلاصه‌ای از تولد، تحصیل، کار، مهارت و چندتا چیز دیگر که با من است..."
+                    placeholder="در چند جمله خودتان و زمینهٔ کارتان را معرفی کنید."
                     rows="4"
                     icon="auto_stories"
                     :maximizable="true"
@@ -24,7 +24,7 @@
                     wire:model="form.movies"
                     name="form.movies"
                     label=" فیلم و سریال و تاتر"
-                    placeholder="مثلا: معمولا فیلم در موضوع و مخصوصا ژانر ..."
+                    placeholder="برای نمونه، فیلم‌های تاریخی یا سریال‌های کمدی"
                     icon="movie"
                 />
 
@@ -32,7 +32,7 @@
                     wire:model="form.music"
                     name="form.music"
                     label="موسیقی و پادکست"
-                    placeholder="مثلا: نوع موسیقی، خواننده ویا نوع پادکست مورد علاقم ..."
+                    placeholder="سبک موسیقی، خواننده یا پادکست دلخواهتان"
                     icon="headphones"
                 />
 
@@ -40,7 +40,7 @@
                     wire:model="form.hobbies"
                     name="form.hobbies"
                     label="با اینا خستگیمو در می‌کنم"
-                    placeholder="رنگ، غذا، سرگرمی و هنرهای مورد علاقه..."
+                    placeholder="برای نمونه، عکاسی، کتاب‌خوانی یا باغبانی"
                     icon="palette"
                 />
 
@@ -48,7 +48,7 @@
                     wire:model="form.food"
                     name="form.food"
                     label="غذا و خوراکی"
-                    placeholder="مثلا: خیلی به میزان کالری غذا توجه میکنم..."
+                    placeholder="غذاهای مورد علاقه یا عادت‌های غذایی شما"
                     icon="restaurant"
                 />
 
@@ -56,7 +56,7 @@
                     wire:model="form.sports"
                     name="form.sports"
                     label="ورزش و تفریح"
-                    placeholder="مثلا: سایکل توریست هستم..."
+                    placeholder="برای نمونه، دوچرخه‌سواری یا کوه‌پیمایی"
                     icon="directions_bike"
                 />
 

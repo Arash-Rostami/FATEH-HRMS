@@ -4,7 +4,7 @@
     activeCondition="this.$wire.get('selectedCategory') !== null"
     clearAction="this.$wire.resetFilters()"
     filterTitle=" "
-    placeholder="جستجو در فیدها..."
+    placeholder="جست‌وجو در خبرها…"
     :open="false"
 >
     <div class="flex flex-col gap-2">

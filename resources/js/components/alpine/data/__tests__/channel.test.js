@@ -219,7 +219,7 @@ describe('channel() pickMention / openMentionPicker — textarea splice logic', 
 
         c.pickMention(0);
 
-        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'hi @Alireza ');
+        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'hi @Alireza ', false);
         expect(c.mentionOpen).toBe(false);
         expect(ta.selectionStart).toBe('hi @Alireza '.length);
     });
@@ -322,6 +322,70 @@ describe('channel() island-scoped action wiring — wire-capture correctness', (
         expect(c.$wire._islands.sidebar.refreshUnread).toHaveBeenCalledOnce();
     });
 
+    test('selectChannel ignores a click on the open channel unless the browse or create view is showing', async () => {
+        const c = channel();
+        c.$wire = createWireMock({ activeChannelId: 3, mobileShowChat: true, browseMode: false, createMode: false });
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c.scrollToBottom = vi.fn();
+        c.scheduleChipsFade = vi.fn();
+        c.resetAutoResize = vi.fn();
+        c._repollNow = vi.fn();
+
+        await c.selectChannel(3);
+        expect(c.$wire._islands.messages.selectChannel).not.toHaveBeenCalled();
+
+        c.$wire.browseMode = true;
+        await c.selectChannel(3);
+        expect(c.$wire._islands.messages.selectChannel).toHaveBeenCalledWith(3);
+    });
+
+    test('a failed send keeps the reply preview and only message-sent clears it', async () => {
+        const c = channel();
+        c.$wire = createWireMock({ composer: { attachments: [] } });
+        c.$wire._islands.messages = { send: vi.fn(() => Promise.resolve()) };
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c._syncSidebarAfterOwnAction = vi.fn();
+        c.scrollToBottom = vi.fn();
+        c.replyingTo = { id: 4 };
+        const el = document.createElement('textarea');
+        el.value = 'سلام';
+        vi.spyOn(document, 'getElementById').mockReturnValue(el);
+
+        await c.sendMessage();
+
+        expect(c.replyingTo).toEqual({ id: 4 });
+        document.getElementById.mockRestore();
+    });
+
+    test('onComposerKeydown ignores Enter while an IME is composing a word and sends on the next Enter', () => {
+        const c = channel();
+        c.sendMessage = vi.fn();
+        const press = (isComposing) => ({ key: 'Enter', shiftKey: false, isComposing, preventDefault: vi.fn() });
+
+        c.onComposerKeydown(press(true));
+        expect(c.sendMessage).not.toHaveBeenCalled();
+
+        c.onComposerKeydown(press(false));
+        expect(c.sendMessage).toHaveBeenCalledOnce();
+    });
+
+    test('backToList asks for a second press before dropping an unsaved inline edit', () => {
+        const c = channel();
+        c.$wire = createWireMock({ composer: { attachments: [] } });
+        c.toast = vi.fn();
+        c.isEditing = true;
+        c.editingMsgId = 3;
+        c.editingOriginal = 'original';
+        c.editingBody = 'changed';
+
+        c.backToList();
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(c.$wire.set).not.toHaveBeenCalled();
+
+        c.backToList();
+        expect(c.$wire.set).toHaveBeenCalledWith('mobileShowChat', false, false);
+    });
+
     test('selectChannel guards a falsy id', async () => {
         const c = channel();
         c.$wire = createWireMock();
@@ -365,7 +429,10 @@ describe('channel() edit flow', () => {
     test('startEdit populates local edit state and requests the server-authoritative reload', () => {
         const c = channel();
         c.$wire = createWireMock();
-        c.startEdit(7, 'original body');
+        const sent = Promise.resolve('done');
+        c.$wire.editMessage = vi.fn(() => sent);
+
+        expect(c.startEdit(7, 'original body')).toBe(sent);
 
         expect(c.isEditing).toBe(true);
         expect(c.editingMsgId).toBe(7);
@@ -465,6 +532,91 @@ describe('channel() edit flow', () => {
         await c.saveEdit(7);
 
         expect(c.toast).toHaveBeenCalledWith('خطا در ارتباط با سرور.', 'error');
+    });
+});
+
+describe('channel() smart edit — shared aiEdit mixin', () => {
+    test('wires the mixin state and methods', () => {
+        const c = channel();
+
+        expect(c.aiEditBusy).toBe(false);
+        expect(c.aiEditMeter).toBe('');
+        expect(typeof c.enhanceEdit).toBe('function');
+        expect(typeof c.enhanceFromMenu).toBe('function');
+        expect(typeof c.resetAiEdit).toBe('function');
+    });
+
+    test('hooks return the edited id only while editing, and the edit box textarea', () => {
+        const c = channel();
+        expect(c.aiEditCurrentId()).toBeNull();
+
+        c.editingMsgId = 7;
+        expect(c.aiEditCurrentId()).toBeNull();
+        c.isEditing = true;
+        expect(c.aiEditCurrentId()).toBe(7);
+
+        const box = document.createElement('div');
+        box.setAttribute('data-edit-box', '7');
+        const ta = document.createElement('textarea');
+        box.appendChild(ta);
+        document.body.appendChild(box);
+        expect(c.aiEditBox(7)).toBe(ta);
+        box.remove();
+    });
+
+    test('aiEditApply writes the suggestion into the editing body', () => {
+        const c = channel();
+        c.aiEditApply('بهبود متن');
+        expect(c.editingBody).toBe('بهبود متن');
+    });
+
+    test('startEdit and cancelEdit reset the AI note and ok flag', () => {
+        const c = channel();
+        c.$wire = createWireMock();
+        c.aiEditNote = 'x';
+        c.aiEditOk = true;
+        c.startEdit(7, 'body');
+        expect(c.aiEditNote).toBe('');
+        expect(c.aiEditOk).toBe(false);
+
+        c.aiEditNote = 'y';
+        c.aiEditOk = true;
+        c.cancelEdit();
+        expect(c.aiEditNote).toBe('');
+        expect(c.aiEditOk).toBe(false);
+    });
+
+    test('a server-confirmed save clears the AI state through the editingMsg watcher path', () => {
+        const c = channel();
+        c.aiEditNote = 'x';
+        c.aiEditOk = true;
+
+        c._clearEdit();
+
+        expect(c.aiEditNote).toBe('');
+        expect(c.aiEditOk).toBe(false);
+    });
+
+    test('enhanceEdit rewrites the draft through the channel island and the editing body', async () => {
+        const c = channel();
+        c.$wire = createWireMock();
+        c.$wire._islands.messages.enhanceEdit = vi.fn(() => Promise.resolve({ answer: 'بهبود متن', note: 'ok', soft: false, meter: '<i></i>' }));
+        c.startEdit(7, 'متن خام');
+        const box = document.createElement('div');
+        box.setAttribute('data-edit-box', '7');
+        const ta = document.createElement('textarea');
+        ta.value = 'متن خام';
+        ta.focus = vi.fn();
+        box.appendChild(ta);
+        document.body.appendChild(box);
+
+        await c.enhanceEdit(7);
+
+        expect(c.$wire._islands.messages.enhanceEdit).toHaveBeenCalledWith(7, 'متن خام');
+        expect(c.editingBody).toBe('بهبود متن');
+        expect(c.aiEditOk).toBe(true);
+        expect(c.aiEditMeter).toBe('<i></i>');
+        box.remove();
     });
 });
 

@@ -8,7 +8,7 @@
     @keydown.escape.window="onEscape($event)"
     @confirmation-confirmed.window="if (($event.detail || {}).method === 'deleteEvent') $wire.call('deleteEvent', $event.detail.params)">
 
-    <x-ui.title icon="calendar_month" title="تقویم کاری">
+    <x-ui.title icon="calendar_month" title="تقویم کاری" guide="calendar">
         <x-slot:actions>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <x-ui.buttons.view-toggle module="calendar" state="view" :modes="[

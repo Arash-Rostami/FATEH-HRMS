@@ -37,7 +37,7 @@ class SkillResource extends Resource
         ['label' => 'بررسی', 'icon' => 'bolt', 'view' => 'filament.resources.skill.guide.overview'],
         ['label' => 'جستجوی تأمین‌نشده', 'icon' => 'auto_awesome', 'view' => 'filament.resources.skill.guide.ghost'],
         ['label' => 'اشتراک نام و فعال‌سازی', 'icon' => 'verified_user', 'view' => 'filament.resources.skill.guide.collision'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.skill.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.skill.guide.admin-ops'],
     ];
 
     public static function form(Schema $schema): Schema

@@ -40,10 +40,9 @@ describe('report.recordOpen', () => {
         expect(c.recent.map(r => r.id)).toEqual([7, 6, 5, 4, 3, 2])
     })
 
-    test('persists the updated recent list to localStorage (microtask-deferred)', async () => {
+    test('persists the updated recent list to localStorage', () => {
         const c = report()
         c.recordOpen({ id: 1 })
-        await Promise.resolve()
         expect(JSON.parse(localStorage.getItem(RECENT_KEY))).toEqual([{ id: 1, payload: { id: 1 } }])
     })
 })
@@ -62,15 +61,13 @@ describe('report.openRecent / clearRecent', () => {
         expect(c.activeReport).toEqual({ id: 1, title: 'y' })
     })
 
-    test('clearRecent empties the list and removes it from localStorage', async () => {
+    test('clearRecent empties the list and removes it from localStorage', () => {
         localStorage.setItem(RECENT_KEY, JSON.stringify([{ id: 1 }]))
         const c = report()
         c.recent = [{ id: 1 }]
 
         c.clearRecent()
         expect(c.recent).toEqual([])
-
-        await Promise.resolve()
         expect(localStorage.getItem(RECENT_KEY)).toBeNull()
     })
 })

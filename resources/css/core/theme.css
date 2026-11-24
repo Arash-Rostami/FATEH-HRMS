@@ -26,9 +26,10 @@
     --theme-transition-duration: 500ms;
     --theme-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
     --online: var(--tool-sapphire-color);
-    --ai-color: var(--tool-amethyst-color);
-    --ai-bg: var(--tool-amethyst-bg);
-    --ai-text: var(--tool-amethyst-text);
+    --ai-dim: 0%;
+    --ai-color: color-mix(in srgb, var(--md-sys-color-tertiary), var(--md-sys-color-on-surface) var(--ai-dim));
+    --ai-bg: color-mix(in oklab, var(--ai-color) 16%, var(--md-sys-color-surface));
+    --ai-text: color-mix(in oklab, var(--ai-color) 22%, var(--md-sys-color-on-surface));
     --online-container: color-mix(in srgb, var(--md-sys-color-tertiary) 12%, transparent);
     --ripple-x: 50%;
     --ripple-y: 50%;
@@ -652,6 +653,7 @@ html.theme-switching *::after {
         --md-sys-color-on-primary-container: #3A2F00;
         --md-sys-color-secondary: #8C7A2F;
         --md-sys-color-tertiary: #E6C15A;
+        --ai-dim: 50%;
         --md-sys-color-surface: #FAFAF7;
         --md-sys-color-surface-variant: #EEEDE6;
         --header-bg: #1A1500;
@@ -659,6 +661,7 @@ html.theme-switching *::after {
     }
 
     [data-theme='obsidian'].dark {
+        --ai-dim: 0%;
         --md-sys-color-primary: #F5D57A;
         --md-sys-color-on-primary: #2B2100;
         --md-sys-color-primary-container: #3A2F00;

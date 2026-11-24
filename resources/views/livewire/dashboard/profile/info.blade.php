@@ -56,8 +56,7 @@
                 <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">person</span>
                 <div>
                     <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">اطلاعات پایه</h3>
-                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">نام، ایمیل و تصویر
-                        پروفایل خود را مدیریت کنید.</p>
+                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">اینجا می‌توانید نام و ایمیل حساب را ببینید و تصویر پروفایل خود را تغییر دهید.</p>
                 </div>
             </div>
             <div class="p-4 md:p-6">
@@ -141,7 +140,7 @@
                 <div>
                     <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">اطلاعات هویتی</h3>
                     <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">لطفاً مشخصات هویتی خود
-                        را با دقت وارد نمایید.</p>
+                        را مطابق مدارک هویتی وارد کنید.</p>
                 </div>
             </div>
             <div class="p-4 md:p-6">
@@ -152,7 +151,7 @@
                         <option value="female">زن</option>
                     </x-ui.forms.select>
 
-                    <x-ui.forms.select label="وضعیت تاهل" name="form.marital_status" wire:model="form.marital_status"
+                    <x-ui.forms.select label="وضعیت تأهل" name="form.marital_status" wire:model="form.marital_status"
                                        icon="diversity_2">
                         <option value="">انتخاب کنید</option>
                         <option value="single">مجرد</option>
@@ -202,9 +201,9 @@
                     <x-ui.forms.input label="تلفن ثابت" name="form.landline" wire:model="form.landline" icon="call"/>
                     <x-ui.forms.input label="کد پستی" name="form.zip_code" wire:model="form.zip_code"
                                       icon="markunread_mailbox"/>
-                    <x-ui.forms.input label="تلفن ضروری" name="form.emergency_phone" wire:model="form.emergency_phone"
+                    <x-ui.forms.input label="شمارهٔ تماس اضطراری" name="form.emergency_phone" wire:model="form.emergency_phone"
                                       icon="emergency"/>
-                    <x-ui.forms.input label="نسبت فرد ضروری"
+                    <x-ui.forms.input label="نسبت فرد تماس اضطراری"
                                       @input="(e) => setDirection(e)"
                                       x-init="(e) => setDirection(e)"
                                       name="form.emergency_relationship"
@@ -213,7 +212,7 @@
                     <x-ui.forms.input label="شماره پلاک خودرو" name="form.license_plate" wire:model="form.license_plate"
                                       icon="directions_car"/>
                     <div class="col-span-1 md:col-span-2 lg:col-span-3">
-                        <x-ui.forms.textarea label="آدرس دقیق"
+                        <x-ui.forms.textarea label="نشانی محل سکونت"
                                              name="form.address"
                                              @input="(e) => setDirection(e)"
                                              x-init="(el) => { el.addEventListener('load', (e) => setDirection(e)); setDirection(el); }"

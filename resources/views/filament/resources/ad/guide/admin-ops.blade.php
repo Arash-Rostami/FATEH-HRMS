@@ -40,7 +40,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما در این صفحه: تعریف آگهی، کنترل وضعیت و خروجی اکسل</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        سه دکمهٔ عملیات روی هر ردیف موجود است (پس از سلول‌ها): مشاهده، ویرایش، حذف. دکمهٔ «ساخت فرصت شغلی» در هدر صفحه قرار دارد. ستون «وضعیت» مستقیماً در جدول قابل روشن/خاموش‌شدن است و نیازی به باز کردن فرم نیست.
+        سه دکمهٔ عملیات روی هر ردیف موجود است (پس از سلول‌ها): مشاهده، ویرایش، حذف. دکمهٔ «ساخت فرصت شغلی» در بالای صفحه قرار دارد. ستون «وضعیت» مستقیماً در جدول قابل روشن/خاموش‌شدن است و نیازی به باز کردن فرم نیست.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

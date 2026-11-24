@@ -1,7 +1,7 @@
 <div class="space-y-6" dir="rtl">
     <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)] shadow-sm">
         <h3 class="text-[var(--md-sys-color-on-surface-variant)] mb-6 leading-relaxed">
-            مهارت‌های خود را از فهرست شرکت انتخاب کنید یا در صورت نبود، مهارت جدیدی پیشنهاد دهید. پس از تأیید مدیریت، مهارت شما در دایرکتوری همکاران قابل مشاهده خواهد بود.
+            مهارت خود را از فهرست انتخاب کنید. اگر در فهرست نیست، نام آن را برای بررسی پیشنهاد دهید. پس از تأیید، مهارت‌های عمومی شما در فهرست همکاران دیده می‌شوند.
         </h3>
 
         <form wire:submit.prevent="requestSkill" class="grid grid-cols-1 md:grid-cols-2 gap-5" dir="rtl">
@@ -18,7 +18,7 @@
                 wire:model="form.proposedName"
                 name="form.proposedName"
                 label="یا پیشنهاد مهارت جدید"
-                placeholder="نام مهارتی که در فهرست نیست..."
+                placeholder="نام مهارتی را بنویسید که در فهرست نیست"
                 icon="add_circle"
             />
 
@@ -115,7 +115,7 @@
             <x-ui.forms.textarea
                 wire:model="markUsedContext"
                 name="markUsedContext"
-                label="در چه زمینه‌ای استفاده کردید؟ (اختیاری)"
+                label="این مهارت را کجا به کار بردید؟ (اختیاری)"
                 rows="3"
                 icon="edit_note"
                 maxlength="255"

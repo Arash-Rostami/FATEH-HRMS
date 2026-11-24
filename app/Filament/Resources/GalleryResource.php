@@ -33,7 +33,7 @@ class GalleryResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'photo_library', 'view' => 'filament.resources.gallery.guide.overview'],
         ['label' => 'دسترسی و اشتراک', 'icon' => 'lock', 'view' => 'filament.resources.gallery.guide.visibility'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.gallery.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.gallery.guide.admin-ops'],
         ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.gallery.guide.list-tabs'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.gallery.guide.user'],
     ];

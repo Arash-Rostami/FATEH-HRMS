@@ -4,7 +4,7 @@
 
 <div
     class="{{ $isNestedView ? 'mt-3 mr-5 space-y-3 border-r-2 border-[var(--md-sys-color-primary)]/20 pr-3' : 'mt-2 flex flex-col h-full' }}"
-    x-data="{ replyingTo: null, sendingReply: null, async sendReply(feedId, commentId) { if (this.sendingReply) return; this.sendingReply = commentId; try { await $wire.addComment(feedId, commentId); if ($wire.get('replyComments.' + commentId) == null) this.replyingTo = null; } catch {} finally { this.sendingReply = null; } } }"
+    x-data="feedComposer({{ $feed?->id ?? 'null' }})"
 >
     {{--  Comment Input (top) --}}
     @if(!$isNestedView)
@@ -14,13 +14,26 @@
                 $authUser     = $c['authUser'];
             @endphp
 
-            <div class="shrink-0 mx-1 mt-1 mb-3 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-xl overflow-hidden transition-all duration-200 focus-within:border-[var(--md-sys-color-primary)]/60 focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]">
+            <div wire:loading.class="ai-halo" wire:target="suggestReply" class="shrink-0 mx-1 mt-1 mb-3 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-xl overflow-hidden transition-all duration-200 focus-within:border-[var(--md-sys-color-primary)]/60 focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]">
+                @if($c['aiMeter'])
+                    <x-ui.quota-meter wire:key="feed-ai-quota-usage" class="px-3 py-1.5 border-b border-[var(--md-sys-color-outline-variant)]/30"
+                                      :icon="null" label="سهمیهٔ پیشنهاد امروز" aria="سهمیهٔ پیشنهاد امروز" :used="$c['aiMeter']['used']" :cap="$c['aiMeter']['cap']"
+                                      :pct="$c['aiMeter']['pct']" :tone="$c['aiMeter']['tone']"/>
+                @endif
+
                 {{-- Row 1: Avatar + label --}}
                 <div class="flex items-center gap-2 px-3 py-2 bg-[var(--md-sys-color-surface-variant)]/40 border-b border-[var(--md-sys-color-outline-variant)]/30">
                     <x-dashboard.user-avatar :user="$authUser" size="xs" :badge="false"/>
 
                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]">edit_note</span>
                     <span class="text-[11.5px] font-medium text-[var(--md-sys-color-on-surface-variant)] tracking-wide">نظر خود را بنویسید</span>
+
+                    @if(feedAiOn())
+                        <x-ui.buttons.form wire:key="feed-ai-suggest" variant="ai" size="sm"
+                                           class="ms-auto" loading="suggestReply({{ $feed?->id ?? 'null' }})"
+                                           wire:click="suggestReply({{ $feed?->id ?? 'null' }})"
+                                           title="پیشنهاد هوشمند برای نظر. از این امکان برای مطالب محرمانه استفاده نکنید." aria-label="پیشنهاد هوشمند برای نظر">پیشنهاد</x-ui.buttons.form>
+                    @endif
                 </div>
 
                 {{-- Row 2: Textarea + Send --}}
@@ -28,6 +41,7 @@
                     <div
                         class="flex-1 relative"
                         x-data="{ value: @entangle('newComments.' . ($feed?->id ?? 'null')).live, ...feedComposer({{ $feed?->id ?? 'null' }}) }"
+                        x-effect="growOn(value, $refs.commentInput)"
                         @keydown.escape.window="showEmoji = false"
                     >
                         <textarea
@@ -35,10 +49,14 @@
                             wire:model="newComments.{{ $feed?->id ?? 'null' }}"
                             @keydown.enter.prevent="onEnter($event)"
                             @input="autoGrow($el)"
-                            placeholder="نظرت رو بنویس..."
+                            placeholder="نظر خود را بنویسید…"
                             rows="1"
                             class="w-full bg-transparent border-none outline-none resize-none pl-8 pr-16 py-2.5 text-[13px] leading-relaxed text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]/50 overflow-hidden"
                         ></textarea>
+
+                        @if(feedAiOn())
+                            <x-ui.loaders.ai-shimmer wire:loading wire:target="suggestReply({{ $feed?->id ?? 'null' }})" class="rounded-lg"/>
+                        @endif
 
                         <button
                             type="button"
@@ -160,14 +178,14 @@
                                 <span class="font-bold text-[12px] text-[var(--md-sys-color-primary)] truncate">
                                     {!! superClean($meta['user']?->name) ?? 'کاربر حذف شده' !!}
                                 </span>
-                                <sup class="!text-[10px] opacity-70 shrink-0 font-medium" dir="rtl">
-                                    {{ $comment?->created_at ? convertToPersian(toJalali($comment->created_at, 'j F Y')) : 'زمان نامشخص' }}
+                                <sup class="!text-[10px] opacity-70 shrink-0 font-medium" dir="rtl" title="{{ $meta['date'] }}">
+                                    {{ $meta['ago'] ?: 'زمان نامشخص' }}
                                 </sup>
                             </div>
 
                             {{-- Body: Edit or Read --}}
                             @if($meta['isEditing'])
-                                <div class="flex flex-col gap-2 py-1">
+                                <div wire:key="feed-comment-edit" class="flex flex-col gap-2 py-1" wire:keydown.escape.stop="$set('editingCommentId', null)" wire:keydown.ctrl.enter="updateComment" wire:keydown.meta.enter="updateComment">
                                     <x-ui.forms.textarea
                                         wire:model="commentForm.content"
                                         label="ویرایش نظر"
@@ -179,12 +197,14 @@
                                     <div class="flex justify-end gap-2">
                                         <button
                                             wire:click="updateComment"
+                                            title="ذخیره (Ctrl+Enter)"
                                             class="px-3.5 py-1.5 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-lg text-[11px] font-bold shadow-sm"
                                         >
                                             ذخیره
                                         </button>
                                         <button
                                             wire:click="$set('editingCommentId', null)"
+                                            title="لغو (Esc)"
                                             class="px-3.5 py-1.5 text-[var(--md-sys-color-primary)] text-[11px] font-medium hover:bg-[var(--md-sys-color-primary-container)] rounded-lg transition-colors"
                                         >
                                             لغو
@@ -192,31 +212,41 @@
                                     </div>
                                 </div>
                             @else
-                                <p class="leading-relaxed text-[13.5px] tracking-wide text-[var(--md-sys-color-on-surface)] [&_strong]:font-bold [&_strong]:text-[var(--md-sys-color-on-surface)] rich-colors">
+                                <p wire:key="feed-comment-body" class="leading-relaxed text-[13.5px] tracking-wide text-[var(--md-sys-color-on-surface)] [&_strong]:font-bold [&_strong]:text-[var(--md-sys-color-on-surface)] rich-colors">
                                     {!! renderComment($comment?->content) !!}
                                 </p>
                             @endif
 
                             {{-- Hover Actions --}}
-                            <div class="mt-2.5 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-0.5 group-hover:translate-y-0">
+                            <div class="mt-2.5 flex items-center justify-end gap-1 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100 transition-all duration-200 lg:translate-y-0.5 lg:group-hover:translate-y-0 lg:focus-within:translate-y-0">
                                 <button
-                                    @click="replyingTo = replyingTo === {{ $comment->id }} ? null : {{ $comment->id }}"
+                                    @click="toggleReply({{ $comment->id }})"
                                     class="flex items-center gap-1 px-2.5 py-1 text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] rounded-full transition-colors text-[11px] font-semibold"
                                 >
                                     <span class="material-symbols-rounded !text-[13px]">reply</span>
                                     <span>پاسخ</span>
                                 </button>
 
+                                @if(feedAiOn() && !$meta['isOwner'])
+                                    <x-ui.buttons.form wire:key="feed-ai-reply" variant="ai" size="sm"
+                                                       loading="suggestReply({{ $feed?->id ?? 'null' }}, {{ $comment->id }})"
+                                                       wire:click="suggestReply({{ $feed?->id ?? 'null' }}, {{ $comment->id }})"
+                                                       x-on:click="openReply({{ $comment->id }})"
+                                                       title="پیشنهاد هوشمند برای پاسخ. از این امکان برای مطالب محرمانه استفاده نکنید." aria-label="پیشنهاد هوشمند برای پاسخ">پیشنهاد</x-ui.buttons.form>
+                                @endif
+
                                 @if($meta['isOwner'])
                                     <button
                                         wire:click="startEditing({{ $comment->id }})"
+                                        title="ویرایش نظر" aria-label="ویرایش نظر"
                                         class="p-1.5 text-[var(--md-sys-color-secondary)] hover:bg-[var(--md-sys-color-secondary-container)] rounded-full transition-colors"
                                     >
                                         <span class="material-symbols-rounded !text-[13px]">edit</span>
                                     </button>
 
                                     <button
-                                        @click="{{ confirmDialog('delete-comment-confirmed', 'حذف نظر', 'آیا از حذف این نظر مطمئن هستید؟ این عملیات غیرقابل بازگشت است.', $comment->id, 'js', 'danger') }}"
+                                        @click="{{ confirmDialog('delete-comment-confirmed', 'حذف نظر', 'نظر برای همیشه حذف می‌شود. پاسخ‌های آن باقی می‌مانند.', $comment->id, 'js', 'danger') }}"
+                                        title="حذف نظر" aria-label="حذف نظر"
                                         class="p-1.5 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] rounded-full transition-colors"
                                     >
                                         <span class="material-symbols-rounded !text-[13px]">delete</span>
@@ -226,21 +256,29 @@
                         </div>
 
                         {{-- Reply Input --}}
-                        <div x-show="replyingTo === {{ $comment?->id ?? 'null' }}" x-collapse class="mt-2" style="display:none">
-                            <div class="flex items-center gap-2 bg-[var(--md-sys-color-primary-container)]/40 border border-[var(--md-sys-color-primary)]/30 rounded-xl px-3.5 py-2.5">
+                        <div x-show="replyingTo === {{ $comment?->id ?? 'null' }}" x-collapse @keydown.escape.stop="closeReply()" class="mt-2" style="display:none">
+                            <div class="relative flex items-center gap-2 bg-[var(--md-sys-color-primary-container)]/40 border border-[var(--md-sys-color-primary)]/30 rounded-xl px-3.5 py-2.5">
+                                @if(feedAiOn() && !$meta['isOwner'])
+                                    <x-ui.loaders.ai-shimmer wire:loading wire:target="suggestReply({{ $feed?->id ?? 'null' }}, {{ $comment->id }})" class="rounded-xl"/>
+                                @endif
                                 <span class="material-symbols-rounded text-sm text-[var(--md-sys-color-primary)] shrink-0">subdirectory_arrow_left</span>
 
-                                <input
-                                    type="text"
+                                <textarea
+                                    rows="1"
+                                    data-reply-input="{{ $comment?->id ?? 'null' }}"
                                     wire:model="replyComments.{{ $comment?->id ?? 'null' }}"
-                                    @keydown.enter="sendReply({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }})"
+                                    @keydown.enter="onReplyEnter($event, {{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }})"
+                                    x-effect="growOn($wire.get('replyComments.{{ $comment?->id ?? 'null' }}'), $el)"
                                     placeholder="پاسخ به {{ superClean($meta['user']?->name ?? 'کاربر') }}..."
-                                    class="flex-1 bg-transparent border-none text-[13px] focus:ring-0 outline-none placeholder:text-[var(--md-sys-color-primary)]/50 text-[var(--md-sys-color-on-surface)]"
-                                >
+                                    style="field-sizing: content; max-height: 8rem"
+                                    class="flex-1 min-w-0 resize-none bg-transparent border-none text-[13px] leading-relaxed focus:ring-0 outline-none placeholder:text-[var(--md-sys-color-primary)]/50 text-[var(--md-sys-color-on-surface)]"
+                                ></textarea>
 
                                 <button
                                     @click="sendReply({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }})"
-                                    class="w-7 h-7 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] flex items-center justify-center shrink-0 hover:brightness-110 active:scale-90 transition-all shadow-sm"
+                                    :disabled="sendingReply === {{ $comment?->id ?? 'null' }}"
+                                    title="ارسال پاسخ"
+                                    class="disabled:opacity-50 w-7 h-7 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] flex items-center justify-center shrink-0 hover:brightness-110 active:scale-90 transition-all shadow-sm"
                                 >
                                     <span class="material-symbols-rounded text-sm rotate-180">send</span>
                                 </button>
@@ -253,19 +291,19 @@
 
                         {{-- Nested Replies --}}
                         @if($comment?->children?->isNotEmpty())
-                            <div x-data="{ showReplies: false }">
+                            <div wire:key="feed-comment-thread">
                                 <button
-                                    @click="showReplies = !showReplies"
+                                    @click="toggleThread({{ $comment->id }})"
                                     class="mt-2 flex items-center gap-1.5 text-[var(--md-sys-color-primary)] text-[11px] font-semibold hover:opacity-80 transition-opacity px-1"
                                 >
-                                    <span x-text="showReplies ? 'بستن پاسخ‌ها' : '{{ $comment->children->count() }} پاسخ'"></span>
+                                    <span x-text="isThreadOpen({{ $comment->id }}) ? 'بستن پاسخ‌ها' : '{{ $comment->children->count() }} پاسخ'"></span>
                                     <span
                                         class="material-symbols-rounded !text-[14px] transition-transform duration-300"
-                                        :class="showReplies ? 'rotate-90' : ''"
+                                        :class="isThreadOpen({{ $comment->id }}) ? 'rotate-90' : ''"
                                     >chevron_left</span>
                                 </button>
 
-                                <div x-show="showReplies" x-collapse style="display:none">
+                                <div x-show="isThreadOpen({{ $comment->id }})" x-collapse style="display:none">
                                     @include('livewire.dashboard.tab.feeds.comments', [
                                         'comments'         => $comment->children,
                                         'feed'             => $feed,

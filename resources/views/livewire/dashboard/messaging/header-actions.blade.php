@@ -66,6 +66,7 @@
              :style="{ position: 'fixed', top: (pos.bottom + 8) + 'px', left: pos.left + 'px' }"
              class="p-1.5 rounded-xl z-40 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]"
              role="menu" aria-label="ابزارهای بیشتر">
+            {{ $leadingOverflow ?? '' }}
             <button type="button" x-on:click="open = false; openMessageSearch()"
                     class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
                 <span class="material-symbols-rounded text-[16px]">search</span>

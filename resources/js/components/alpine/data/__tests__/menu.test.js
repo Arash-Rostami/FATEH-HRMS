@@ -362,23 +362,28 @@ describe('menu AI assistant entry — tenancy gate, accent flag and click action
     })
 })
 
-describe('menu ticketing AI pulse — follows the ths:ai tenant key and the provider flag', () => {
+describe('menu ticketing AI pulse — follows the ths:ai tenant key and the per-view availability', () => {
     const ths = (m) => m.items.find((i) => i.id === 'ths-controller')
 
-    test('pulses when the provider is configured and ths:ai is not switched off', () => {
-        withBootedMenu({ aiOn: true }, (m) => expect(ths(m).ai).toBe(true))
+    test('pulses when the view is available and ths:ai is not switched off', () => {
+        withBootedMenu({ aiViews: { ths: true } }, (m) => {
+            expect(ths(m).ai).toBe(true)
+            expect(ths(m).aiIcon).toBe(true)
+            expect(m.items.find((i) => i.id === 'ai-report-controller').aiIcon).toBe(true)
+        })
     })
 
     test('does not pulse when ths:ai is switched off', () => {
-        withBootedMenu({ aiOn: true, off: ['ths:ai'] }, (m) => expect(ths(m).ai).toBe(false))
+        withBootedMenu({ aiViews: { ths: true }, off: ['ths:ai'] }, (m) => expect(ths(m).ai).toBe(false))
     })
 
-    test('does not pulse when the provider is not configured', () => {
+    test('does not pulse when the view is unavailable, absent or another view is on', () => {
         withBootedMenu({}, (m) => expect(ths(m).ai).toBe(false))
-        withBootedMenu({ aiOn: false }, (m) => expect(ths(m).ai).toBe(false))
+        withBootedMenu({ aiViews: { ths: false } }, (m) => expect(ths(m).ai).toBe(false))
+        withBootedMenu({ aiViews: { contact: true } }, (m) => expect(ths(m).ai).toBe(false))
     })
 
-    test('items with a static ai flag are untouched by aiOn', () => {
+    test('items with a static ai flag are untouched by the per-view availability', () => {
         withBootedMenu({ aiAssistant: true }, (m) => {
             expect(m.items.find((i) => i.id === 'ai-report-controller').ai).toBe(true)
             expect(m.items.find((i) => i.id === 'ai-assistant').ai).toBe(true)
@@ -389,12 +394,12 @@ describe('menu ticketing AI pulse — follows the ths:ai tenant key and the prov
 
 describe('menu correspondence entry', () => {
     test('uses the correspondence route, services group and separate AI tenant key', () => {
-        withBootedMenu({ aiOn: true }, (m) => {
+        withBootedMenu({ aiViews: { correspondence: true } }, (m) => {
             const entry = m.items.find((i) => i.id === 'correspondence-controller')
             expect(entry).toMatchObject({ module: 'correspondence', href: '/correspondence', icon: 'mail', group: 'خدمات', aiView: 'correspondence:ai', ai: true })
         })
 
-        withBootedMenu({ aiOn: true, off: ['correspondence:ai'] }, (m) => {
+        withBootedMenu({ aiViews: { correspondence: true }, off: ['correspondence:ai'] }, (m) => {
             const entry = m.items.find((i) => i.id === 'correspondence-controller')
             expect(entry).toBeDefined()
             expect(entry.ai).toBe(false)

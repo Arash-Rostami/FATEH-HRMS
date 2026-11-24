@@ -1,10 +1,10 @@
 <div
     dir="rtl"
     x-data="channel()"
-    x-init="init()"
     data-outgoing-sound="{{ asset('build/assets/audio/outgoing.mp3') }}"
     data-incoming-sound="{{ asset('build/assets/audio/incoming.mp3') }}"
     x-on:keydown.escape.window="onEscape($event)"
+    x-on:smart-edit.window="enhanceFromMenu($event.detail.id, $event.detail.body)"
     x-on:message-forwarded="_syncSidebarAfterOwnAction($wire)"
     x-on:confirmation-confirmed.window="if ($event.detail.method === 'leaveChannel') leaveChannel($event.detail.params); else if ($event.detail.method === 'deleteChannel') doDeleteChannel($event.detail.params); else if ($event.detail.method === 'changeChannelType') doChangeType(...$event.detail.params); else if ($event.detail.method === 'cancelInvite') doCancelInvite(...$event.detail.params)"
     role="region"
@@ -14,7 +14,7 @@
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">
 
-        <x-ui.title icon="campaign" title="گروه‌ها">
+        <x-ui.title icon="campaign" title="گروه‌ها" guide="channel">
             <x-slot:actions>
                 <x-ui.buttons.chat-scale/>
                 @include('livewire.dashboard.messaging.font-picker')
@@ -80,7 +80,14 @@
                             </button>
                             <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
                             @include('livewire.dashboard.channel.messages')
-                            @include('livewire.dashboard.channel.composer')
+                            @if($this->abilities['post'])
+                                <div wire:key="channel-composer" class="contents">@include('livewire.dashboard.channel.composer')</div>
+                            @else
+                                <footer wire:key="channel-readonly" class="flex-shrink-0 flex items-center justify-center gap-2 px-4 py-4 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] bg-[var(--md-sys-color-surface-container-low)] text-xs text-[var(--md-sys-color-on-surface-variant)]">
+                                    <span class="material-symbols-rounded text-[18px]">visibility</span>
+                                    <span>خوشحالیم که در این گروه همراه ما هستید. در حال حاضر امکان مشاهده و جست‌وجوی پیام‌ها برای شما فراهم است</span>
+                                </footer>
+                            @endif
                             @include('livewire.dashboard.channel.info')
                         </div>
                     @else

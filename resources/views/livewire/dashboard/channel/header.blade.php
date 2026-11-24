@@ -5,7 +5,7 @@
     [
         'canLeave' => $canLeave, 'typingMembers' => $typingMembers, 'typingCount' => $typingCount,
         'channelIdJs' => $channelIdJs, 'onlineCount' => $onlineCount, 'lastActivity' => $lastActivity,
-    ] = $p->headerState($channel, $header, $this->typingMembers, $this->channelMembers, $this->channels);
+    ] = $p->headerState($channel, $header, $this->typingMembers, $this->channelMembers);
 @endphp
 
 <header class="chat-scale relative z-20 flex h-16 flex-shrink-0 items-center justify-between gap-2.5 md:gap-4 border-b px-3 md:px-5 transition-all duration-300
@@ -39,7 +39,7 @@
             <div class="flex min-w-0 items-center gap-2">
                 <h2 class="truncate text-sm md:text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] cursor-pointer transition-opacity hover:opacity-80"
                     title="{{ $header['slug'] }}"
-                    x-on:click="copyText(@js($header['slug']), 'اسلاگ گروه کپی شد', 'info')">
+                    x-on:click="copyText(@js($header['slug']), 'کد گروه کپی شد.', 'info')">
                     {{ $header['name'] }}
                 </h2>
 
@@ -167,7 +167,7 @@
     </div>
 
     @if(channelAiOn())
-        <div wire:key="channel-ai-entry" x-show="!headerDeclutter" class="flex flex-shrink-0 items-center">
+        <div wire:key="channel-ai-entry" x-show="!headerDeclutter" class="hidden md:flex flex-shrink-0 items-center">
             <x-ui.buttons.form type="button"
                                variant="ai"
                                class="!h-8 !gap-1.5 !px-3 !text-xs"
@@ -190,6 +190,16 @@
                     <span class="material-symbols-rounded text-base"
                           x-text="$store.sound.isMuted({{ $channelIdJs }}) ? 'volume_off' : 'volume_up'"></span>
                 </button>
+            @endslot
+            @slot('leadingOverflow')
+                @if(channelAiOn())
+                    <x-ui.buttons.form variant="none" wire:key="channel-ai-overflow"
+                                       x-on:click="open = false; openAiPanel()"
+                                       class="w-full !justify-start !gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--ai-text)] hover:bg-[var(--ai-bg)]">
+                        <span class="material-symbols-rounded text-[16px] text-[var(--ai-color)]" aria-hidden="true">auto_awesome</span>
+                        <span>منشی هوشمند</span>
+                    </x-ui.buttons.form>
+                @endif
             @endslot
             @slot('overflow')
                 <button type="button"

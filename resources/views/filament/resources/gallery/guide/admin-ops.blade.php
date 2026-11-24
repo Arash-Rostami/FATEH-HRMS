@@ -38,7 +38,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما در این صفحه: بارگذاری گالری، تعیین دسترسی و نظارت بر محتوا</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر ردیف در جدول یک گالری است. سه دکمهٔ عملیات روی هر ردیف موجود است (پس از سلول‌ها): مشاهده، ویرایش، حذف. دکمهٔ «ساخت گالری» در هدر صفحه قرار دارد و خروجی اکسل از منوی عملیات گروهی در دسترس است.
+        هر ردیف در جدول یک گالری است. سه دکمهٔ عملیات روی هر ردیف موجود است (پس از سلول‌ها): مشاهده، ویرایش، حذف. دکمهٔ «ساخت گالری» در بالای صفحه قرار دارد و خروجی اکسل از منوی عملیات گروهی در دسترس است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

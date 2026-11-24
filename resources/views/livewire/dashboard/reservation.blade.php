@@ -8,7 +8,7 @@
 >
     <div class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">
 
-        <x-ui.title
+        <x-ui.title guide="reservation"
             icon="event_available"
             title="سامانه رزرواسیون هوشمند"
             :count="count($this->resources)"

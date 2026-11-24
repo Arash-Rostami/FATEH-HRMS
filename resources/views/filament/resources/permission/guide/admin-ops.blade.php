@@ -27,10 +27,10 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">admin_panel_settings</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما در این صفحه: اختصاص دسترسی به کاربرانِ ادمین</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما در این صفحه: اختصاص دسترسی به کاربرانِ مدیر سامانه</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر مورد در جدول یک کاربر ادمین و سطح دسترسی اوست. سه دکمهٔ عملیات روی هر ردیف موجود است (پس از سلول‌ها): مشاهده، ویرایش، حذف. دکمهٔ «ساخت دسترسی» در هدر صفحه قرار دارد. جستجوی سراسری پنل نیز ردیف‌ها را با نام یا ایمیل کاربر پیدا می‌کند و مستقیم به ویرایش می‌رود.
+        هر مورد در جدول یک کاربر مدیر سامانه و سطح دسترسی اوست. سه دکمهٔ عملیات روی هر ردیف موجود است (پس از سلول‌ها): مشاهده، ویرایش، حذف. دکمهٔ «ساخت دسترسی» در بالای صفحه قرار دارد. جستجوی سراسری پنل نیز ردیف‌ها را با نام یا ایمیل کاربر پیدا می‌کند و مستقیم به ویرایش می‌رود.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -56,7 +56,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                فیلد «کاربر» فقط کاربران ادمین را نشان می‌دهد (نه توسعه‌دهنده و نه کاربر عادی). به هر کاربر فقط یک دسترسی می‌توان داد.
+                فیلد «کاربر» فقط کاربران مدیر سامانه را نشان می‌دهد (نه توسعه‌دهنده و نه کاربر عادی). به هر کاربر فقط یک دسترسی می‌توان داد.
             </p>
         </div>
     </div>

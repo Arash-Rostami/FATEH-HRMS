@@ -576,6 +576,16 @@ class CalendarPresenter
         ];
     }
 
+    public function eventTypeCounts(Collection $events): array
+    {
+        return $events->countBy(fn ($e) => $e['type'] ?? 'default')->all();
+    }
+
+    public function firstPillTop(array $pills): int|float|null
+    {
+        return collect($pills)->pluck('top')->filter(fn ($top) => $top !== null)->min();
+    }
+
     public function dayEventRangeLabel(array $event): string
     {
         if ($event['time'] === '00:00' && in_array($event['type'] ?? '', ['birthday', 'anniversary', 'holiday'], true)) {

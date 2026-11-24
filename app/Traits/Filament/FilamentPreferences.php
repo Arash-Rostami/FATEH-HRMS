@@ -85,7 +85,7 @@ trait FilamentPreferences
         return [
             Toggle::make('sidebar_collapsible')
                 ->label('نوار کناری تاشو')
-                ->helperText('امکان جمع کردن منوی کناری برای فضای بیشتر.')
+                ->helperText('برای باز کردن فضای بیشتر، می‌توانید منوی کناری را جمع کنید.')
                 ->onIcon('heroicon-o-bars-3-bottom-right')
                 ->offIcon('heroicon-o-x-mark')
                 ->reactive()
@@ -93,20 +93,20 @@ trait FilamentPreferences
 
             Toggle::make('sidebar_fully_collapsible')
                 ->label('جمع شدن کامل')
-                ->helperText('منوی کناری به طور کامل مخفی شود؛ در صورت فعال بودن «نوار کناری تاشو»، این گزینه بی‌اثر است.')
+                ->helperText('با این گزینه، منوی کناری هنگام جمع شدن کاملاً پنهان می‌شود. برای استفاده، «نوار کناری تاشو» را خاموش کنید.')
                 ->onIcon('heroicon-o-arrows-pointing-in')
                 ->offIcon('heroicon-o-arrows-pointing-out')
                 ->disabled(fn (Get $get) => (bool) $get('nav_dock') || (bool) $get('sidebar_collapsible')),
 
             Toggle::make('breadcrumbs')
                 ->label('نمایش مسیر راهنما')
-                ->helperText('نمایش موقعیت فعلی در بالای صفحات.')
+                ->helperText('نام صفحه و بخش‌های بالادست آن را بالای صفحه نشان می‌دهد.')
                 ->onIcon('heroicon-o-chevron-double-right')
                 ->offIcon('heroicon-o-chevron-double-left'),
 
             Toggle::make('spa_enabled')
-                ->label('حالت SPA')
-                ->helperText('بارگذاری سریع‌تر صفحات بدون رفرش کامل مرورگر.')
+                ->label('جابه‌جایی سریع بین صفحه‌ها')
+                ->helperText('برای باز کردن صفحهٔ بعدی، مرورگر فقط محتوای لازم را دوباره بارگذاری می‌کند.')
                 ->onIcon('heroicon-o-bolt')
                 ->offIcon('heroicon-o-bolt'),
 
@@ -134,15 +134,15 @@ trait FilamentPreferences
 
             Toggle::make('topbar_pinned')
                 ->label('ثابت نگه‌داشتن نوار بالا')
-                ->helperText('در صورت غیرفعال بودن، نوار بالا به‌طور خودکار مخفی می‌شود و تنها با هاور کردن نمایش داده خواهد شد (فقط دسکتاپ).')
+                ->helperText('در رایانه، اگر این گزینه خاموش باشد، برای دیدن نوار بالا نشانگر ماوس را به بالای صفحه ببرید.')
                 ->onIcon('heroicon-o-map-pin')
                 ->offIcon('heroicon-o-eye')
                 ->default(true)
                 ->disabled(fn (Get $get) => !$get('topbar')),
 
             Toggle::make('nav_dock')
-                ->label('نوار ناوبری به حالت داک پایین')
-                ->helperText('نمایش منو به‌صورت نوار شناور در پایین صفحه به‌جای نوار کناری (دسکتاپ)؛ در صورت فعال بودن «منوی بالا»، این گزینه بی‌اثر است.')
+                ->label('منوی شناور پایین صفحه')
+                ->helperText('در رایانه، منوی کناری به پایین صفحه منتقل می‌شود. برای استفاده، «منوی بالا» را خاموش کنید.')
                 ->onIcon('heroicon-o-view-columns')
                 ->offIcon('heroicon-o-bars-3')
                 ->reactive()
@@ -157,13 +157,13 @@ trait FilamentPreferences
 
             Toggle::make('unsaved_changes_alerts')
                 ->label('هشدار تغییرات ذخیره‌نشده')
-                ->helperText('نمایش پیغام تایید هنگام خروج از صفحه در صورت وجود فرم‌های ذخیره‌نشده.')
+                ->helperText('اگر فرم را ذخیره نکرده باشید، هنگام خروج از صفحه از شما تأیید می‌خواهد.')
                 ->onIcon('heroicon-o-shield-exclamation')
                 ->offIcon('heroicon-o-shield-check'),
 
             Toggle::make('show_list_tabs')
-                ->label('نمایش آمار/فیلتر')
-                ->helperText('نمایش یا عدم نمایش تب‌های آماری در صفحات لیست.')
+                ->label('نمایش زبانه‌های آمار و فیلتر')
+                ->helperText('زبانه‌های آمار و فیلتر را بالای فهرست‌ها نشان می‌دهد.')
                 ->onIcon('heroicon-o-chart-bar')
                 ->offIcon('heroicon-o-chart-bar-square')
                 ->default(true),
@@ -176,22 +176,22 @@ trait FilamentPreferences
                 ->default(true),
 
             Toggle::make('row_click_edit')
-                ->label('کلیک روی ردیف مستقیم به صفحهٔ ویرایش برود')
-                ->helperText('اگر فعال باشد، کلیک روی ردیف جدول مستقیماً صفحهٔ ویرایش را باز می‌کند؛ در حالت غیرفعال (پیش‌فرض) پنجرهٔ نمایش (اطلاعات رکورد) باز می‌شود. رکوردی که قابل ویرایش نیست همیشه با پنجرهٔ نمایش باز می‌شود.')
+                ->label('باز کردن ویرایش با انتخاب ردیف')
+                ->helperText('با روشن کردن این گزینه، انتخاب ردیف صفحهٔ ویرایش را باز می‌کند. اگر گزینه خاموش باشد یا اجازهٔ ویرایش نداشته باشید، جزئیات ردیف باز می‌شود.')
                 ->onIcon('heroicon-o-pencil-square')
                 ->offIcon('heroicon-o-eye')
                 ->default(false),
 
             Toggle::make('persist_table_state')
-                ->label('به‌خاطر سپردن جست‌وجو، فیلتر و مرتب‌سازی جداول')
-                ->helperText('جست‌وجو، فیلترها و ترتیب هر جدول در نشست شما حفظ می‌شود تا هنگام بازگشت به همان جدول دوباره تنظیم نکنید.')
+                ->label('به‌خاطر سپردن تنظیمات جدول')
+                ->helperText('تا وقتی در همین نشست هستید، با بازگشت به جدول، جست‌وجو، فیلترها و ترتیب ردیف‌ها حفظ می‌شوند.')
                 ->onIcon('heroicon-o-bookmark')
                 ->offIcon('heroicon-o-bookmark-slash')
                 ->default(false),
 
             Slider::make('records_per_page')
                 ->label('تعداد ردیف در هر صفحه')
-                ->helperText('تعداد پیش‌فرض رکوردها در جداول سراسر پنل مدیریت.')
+                ->helperText('تعداد ردیف‌های هر صفحه را برای جدول‌های پنل مدیریت تعیین کنید.')
                 ->range(minValue: 0, maxValue: count(self::RECORDS_PER_PAGE_OPTIONS) - 1)
                 ->step(1)
                 ->live()
@@ -206,8 +206,8 @@ trait FilamentPreferences
                 ->beforeContent(fn (Get $get): string => (self::RECORDS_PER_PAGE_OPTIONS[(int) ($get('records_per_page') ?? 0)] ?? 25) . ' ردیف'),
 
             Slider::make('cache_ttl')
-                ->label('مدت تازگی کش')
-                ->helperText('بازه به‌روزرسانی داده‌های تحلیلی کاربر؛ بالاتر = سریع‌تر ولی قدیمی‌تر.')
+                ->label('فاصلهٔ به‌روزرسانی آمار')
+                ->helperText('هرچه این زمان بیشتر باشد، آمار ذخیره‌شده مدت بیشتری نمایش داده می‌شود و محاسبهٔ دوباره دیرتر انجام می‌شود.')
                 ->range(minValue: 0, maxValue: count(self::CACHE_TTL_OPTIONS) - 1)
                 ->step(1)
                 ->live()
@@ -222,8 +222,8 @@ trait FilamentPreferences
                 ->beforeContent(fn (Get $get): string => (self::CACHE_TTL_MINUTES[(int) ($get('cache_ttl') ?? 0)] ?? 5) . ' دقیقه'),
 
             Toggle::make('screen_saver')
-                ->label('اسکرین سیور')
-                ->helperText('فعال‌سازی اسکرین سیور پس از مدتی عدم فعالیت.')
+                ->label('محافظ صفحه')
+                ->helperText('پس از مدتی که از پنل استفاده نکنید، محافظ صفحه نمایش داده می‌شود.')
                 ->onIcon('heroicon-o-computer-desktop')
                 ->offIcon('heroicon-o-computer-desktop')
                 ->reactive()
@@ -231,7 +231,7 @@ trait FilamentPreferences
 
             Slider::make('screen_saver_timeout')
                 ->hiddenLabel()
-                ->helperText('مدت زمان عدم فعالیت پیش از فعال شدن')
+                ->helperText('چند دقیقه بعد از آخرین فعالیت، محافظ صفحه باز شود؟')
                 ->range(minValue: 1, maxValue: 60)
                 ->step(1)
                 ->live()

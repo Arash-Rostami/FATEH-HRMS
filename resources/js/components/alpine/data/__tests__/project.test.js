@@ -156,6 +156,37 @@ describe('project.scrollToMessage (added 2026-10-09)', () => {
     })
 })
 
+describe('project._persistChatSettings merges into the stored blob', () => {
+    beforeEach(() => localStorage.clear())
+
+    test('keeps fields stored by Settings or other code and overwrites only its own four', () => {
+        localStorage.setItem('chat-settings:project', JSON.stringify({ messageFont: 'vazirmatn', fontSteps: { 4: 1 }, headerDeclutter: true, isHighlighted: false }))
+        const c = project()
+        c.isHighlighted = true
+        c.backgroundPattern = 'on'
+        c.backgroundPatternType = 'twill'
+
+        c._persistChatSettings()
+
+        expect(JSON.parse(localStorage.getItem('chat-settings:project'))).toEqual({
+            messageFont: 'vazirmatn',
+            fontSteps: { 4: 1 },
+            isHighlighted: true,
+            backgroundPattern: 'on',
+            backgroundPatternType: 'twill',
+            headerDeclutter: false
+        })
+    })
+
+    test('a corrupt stored blob is replaced instead of throwing', () => {
+        localStorage.setItem('chat-settings:project', '{broken')
+        const c = project()
+
+        expect(() => c._persistChatSettings()).not.toThrow()
+        expect(JSON.parse(localStorage.getItem('chat-settings:project')).backgroundPatternType).toBe('mesh')
+    })
+})
+
 describe('project pulse project-id guard (added 2026-11-02)', () => {
     afterEach(() => vi.unstubAllGlobals())
 

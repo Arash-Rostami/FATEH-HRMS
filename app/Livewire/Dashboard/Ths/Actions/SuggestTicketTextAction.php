@@ -55,7 +55,7 @@ class SuggestTicketTextAction
             return $this->result('none', null, 0, $userId, 'long');
         }
 
-        $cooldown = (int) config('ai.ticket.cooldown');
+        $cooldown = (int) AiClient::setting('ticket', 'cooldown');
         $window = 2 * ((int) AiClient::setting('ticket', 'timeout') + (int) AiClient::setting('ticket', 'connect_timeout')) + $cooldown;
 
         if (!Cache::add("ths:ai:busy:{$userId}", 1, $window)) {
@@ -95,7 +95,7 @@ class SuggestTicketTextAction
             $outcome = $e instanceof RequestException ? 'http_' . $e->response->status() : $code;
 
             if ($e instanceof RequestException ? ($e->response->status() >= 500 || $e->response->status() === 429) : $code === 'unreachable') {
-                Cache::put('ths:ai:down', 1, (int) config('ai.ticket.down_for'));
+                Cache::put('ths:ai:down', 1, (int) AiClient::setting('ticket', 'down_for'));
             }
 
             if (!in_array($code, (array) config('ai.ticket.no_refund'), true)) {

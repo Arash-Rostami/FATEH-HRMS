@@ -40,7 +40,7 @@ class DepartmentResource extends Resource
         ['label' => 'بررسی', 'icon' => 'apartment', 'view' => 'filament.resources.department.guide.overview'],
         ['label' => 'ساختار و سلسله‌مراتب', 'icon' => 'account_tree', 'view' => 'filament.resources.department.guide.hierarchy'],
         ['label' => 'گزینه‌های تیکت', 'icon' => 'confirmation_number', 'view' => 'filament.resources.department.guide.ticket-options'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.department.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.department.guide.admin-ops'],
     ];
 
     public static function form(Schema $schema): Schema

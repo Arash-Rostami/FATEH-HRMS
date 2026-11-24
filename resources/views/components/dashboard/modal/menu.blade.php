@@ -247,7 +247,9 @@
                                                            :class="[
                                                                item.disabled
                                                                    ? 'bg-[var(--md-sys-color-surface-container-low)] opacity-40 grayscale-[40%] cursor-not-allowed'
-                                                                   : 'bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] border border-transparent hover:border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] hover:shadow-[0_8px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-0.5 cursor-pointer',
+                                                                   : (item.ai
+                                                                       ? 'bg-[var(--md-sys-color-surface-container-low)] hover:bg-[color-mix(in_srgb,var(--ai-bg)_45%,var(--md-sys-color-surface))] border border-transparent hover:border-[color-mix(in_srgb,var(--ai-color)_35%,transparent)] hover:shadow-[0_10px_24px_color-mix(in_srgb,var(--ai-color)_32%,transparent)] hover:-translate-y-0.5 cursor-pointer'
+                                                                       : 'bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] border border-transparent hover:border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] hover:shadow-[0_8px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-0.5 cursor-pointer'),
                                                                (typeof focusIndex !== 'undefined' && focusIndex === item.id)
                                                                    ? 'ring-2 ring-inset ring-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface-container)]'
                                                                    : ''
@@ -267,12 +269,12 @@
                                                             </button>
 
                                                             <div class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-[color-mix(in_srgb,var(--md-sys-color-primary)_8%,var(--md-sys-color-surface))] border border-[color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)] shadow-sm transition-all duration-200"
-                                                                 :class="[item.ai ? '!bg-[color-mix(in_srgb,var(--ai-bg)_70%,var(--md-sys-color-surface))] !border-[color-mix(in_srgb,var(--ai-color)_35%,transparent)]' : '', item.disabled ? '' : 'group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary)] group-hover:shadow-[0_4px_14px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)]', pinEditMode ? 'animate-shiver' : '']">
+                                                                 :class="[item.ai ? 'ai-halo !border-[color-mix(in_srgb,var(--ai-color)_25%,transparent)] ' + (item.disabled ? '' : 'group-hover:scale-110 group-hover:!bg-[var(--ai-color)] group-hover:!border-transparent group-hover:shadow-[0_4px_14px_color-mix(in_srgb,var(--ai-color)_45%,transparent)]') : '', item.ai ? '' : (item.disabled ? '' : 'group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary)] group-hover:shadow-[0_4px_14px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)]'), pinEditMode ? 'animate-shiver' : '']">
                                                                 <template x-if="item.ai">
-                                                                    <span aria-hidden="true" class="absolute inset-0 rounded-xl animate-alert-soft bg-[color-mix(in_srgb,var(--ai-color)_25%,transparent)]"></span>
+                                                                    <span aria-hidden="true" :class="item.disabled ? '' : 'group-hover:text-[var(--md-sys-color-surface)]'" class="absolute top-1 left-1 z-10 material-symbols-rounded !text-[11px] text-[var(--ai-color)] transition-colors duration-200 pointer-events-none">auto_awesome</span>
                                                                 </template>
                                                                 <span class="relative material-symbols-rounded text-[20px] sm:text-[22px] text-[var(--md-sys-color-primary)] transition-colors duration-200"
-                                                                      :class="[item.disabled ? '' : 'group-hover:text-[var(--md-sys-color-on-primary)]', item.ai ? '!text-[var(--ai-color)]' : '']"
+                                                                      :class="[item.aiIcon || item.disabled ? '' : 'group-hover:text-[var(--md-sys-color-on-primary)]', item.aiIcon ? '!text-[var(--ai-color)]' : '', item.ai && !item.disabled ? 'group-hover:!text-[var(--md-sys-color-surface)]' : '']"
                                                                       x-text="item.icon"></span>
                                                                 <template x-if="$store.menuBadges.on(item.id, @js($menuState)[item.id])">
                                                                     <x-ui.notification-badge />
@@ -285,7 +287,7 @@
                                                             </div>
                                                             <div class="text-center w-full">
                                                                 <div class="text-[13px] sm:text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-0.5 truncate px-1 transition-colors duration-200"
-                                                                     :class="item.disabled ? '' : 'group-hover:text-[var(--md-sys-color-primary)]'"
+                                                                     :class="item.disabled || item.ai ? '' : 'group-hover:text-[var(--md-sys-color-primary)]'"
                                                                      x-html="highlight(item.title, search)"></div>
                                                                 <div class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] hidden sm:block leading-tight truncate px-1 opacity-75"
                                                                      x-html="highlight(item.sub, search)"></div>

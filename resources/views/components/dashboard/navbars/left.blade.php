@@ -9,48 +9,14 @@
      @touchend.passive="handleTouchEnd"
      class="relative">
 
-    <aside x-cloak
+    <aside x-cloak x-ref="rail" wire:ignore.self
            @mouseenter="expand"
            @mouseleave="collapse"
-           x-data="{
-               ty: 0, raf: 0, until: 0,
-               init() { this.$el.removeAttribute('x-cloak'); this.upd(); this.$nextTick(() => this.upd()); },
-               destroy() { cancelAnimationFrame(this.raf); },
-               upd() {
-                   const el = this.$el;
-                   const f = document.getElementById('footer');
-                   const r = el.getBoundingClientRect();
-                   const base = r.top - this.ty;
-                   const dpr = window.devicePixelRatio || 1;
-                   let y;
-                   if (window.innerWidth >= 1024) {
-                       const nb = document.getElementById('navbar');
-                       const vh = document.documentElement.clientHeight;
-                       const lo = Math.max(0, nb ? nb.getBoundingClientRect().bottom : 0);
-                       const hi = Math.min(vh, f ? f.getBoundingClientRect().top : vh);
-                       y = lo + Math.max(0, (hi - lo - r.height) / 2) - base;
-                   } else {
-                       y = f ? -Math.max(0, base + r.height - f.getBoundingClientRect().top + 8) : 0;
-                   }
-                   y = Math.round(y * dpr) / dpr;
-                   if (y === this.ty) return;
-                   this.ty = y;
-                   el.style.transform = `translate3d(0,${y}px,0)`;
-               },
-               kick() {
-                   this.until = performance.now() + 450;
-                   if (this.raf) return;
-                   const step = () => {
-                       this.upd();
-                       this.raf = performance.now() < this.until ? requestAnimationFrame(step) : 0;
-                   };
-                   this.raf = requestAnimationFrame(step);
-               }
-           }"
            @scroll.window.passive="kick()"
-           @resize.window.passive="kick()"
-           @declutter.window="kick()"
-           @load.window="upd()"
+           @resize.window.passive="resize()"
+           @declutter.window="resize()"
+           @tab-switched.window="settle()"
+           @load.window="resize()"
            :class="{'w-[84px]': isExpanded, 'w-[8px] md:w-[12px] lg:w-[58px]': !isExpanded, 'focus-dim': $store.focus.active}"
            class="fixed left-0 z-50 flex flex-col shrink-0 gap-0.5 pt-8 md:gap-1 md:pt-10 lg:pt-0 top-[128px] lg:top-[148px] will-change-transform transition-[width,opacity] duration-700 {{ $ease }}">
 
@@ -71,7 +37,7 @@
                @mouseenter="setHover('{{ $item['id'] }}')"
                @mouseleave="clearHover()"
                :class="isExpanded ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-               class="relative flex flex-col items-center justify-center min-h-[84px] md:min-h-[100px] lg:min-h-[80px] px-2 py-5 md:py-6 lg:py-[18px] overflow-hidden cursor-pointer touch-manipulation rounded-r-2xl rounded-l-none lg:translate-x-0 will-change-[transform,translate,scale] transition-[transform,translate,scale,background-color,color,box-shadow] duration-500 {{ $ease }} animate-slide-in-left {{ $item['delay'] }} bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[4px_0_16px_var(--md-sys-color-primary)]/15 active:scale-[0.94] active:shadow-none hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:shadow-[6px_0_24px_var(--md-sys-color-primary)]/20">
+               class="relative flex flex-col lg:flex-auto items-center justify-center min-h-[84px] md:min-h-[100px] lg:min-h-[80px] px-2 py-5 md:py-6 lg:py-2 overflow-hidden cursor-pointer touch-manipulation rounded-r-2xl rounded-l-none lg:translate-x-0 will-change-[transform,translate,scale] transition-[transform,translate,scale,background-color,color,box-shadow] duration-500 {{ $ease }} animate-slide-in-left {{ $item['delay'] }} bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[4px_0_16px_var(--md-sys-color-primary)]/15 active:scale-[0.94] active:shadow-none hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:shadow-[6px_0_24px_var(--md-sys-color-primary)]/20">
 
                 <span class="mb-2 md:mb-2.5 lg:mb-1.5 transition-[transform,scale,rotate,color,filter] duration-500 {{ $ease }} text-[24px] md:text-[28px] lg:text-[25px] material-symbols-rounded"
                       :class="isHovered('{{ $item['id'] }}') ? 'scale-110 rotate-[8deg]' : 'scale-100'"

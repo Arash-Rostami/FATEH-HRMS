@@ -78,6 +78,10 @@ class ViewConventionTest extends TestCase
     private const ALLOWED_AI_SPARKLE = [
         'livewire/dashboard/ai-report/legend.blade.php',
         'livewire/dashboard/correspondence/composer.blade.php',
+        'livewire/dashboard/tab/feeds/legend.blade.php',
+        'components/dashboard/navbars/right.blade.php',
+        'components/dashboard/modal/menu.blade.php',
+        'components/dashboard/modal/menu/item.blade.php',
         'components/dashboard/ai-assistant.blade.php',
         'components/dashboard/navbars/top/ai-assistant.blade.php',
         'components/dashboard/ai-report.blade.php',
@@ -85,13 +89,14 @@ class ViewConventionTest extends TestCase
         'components/ui/forms/ai-trigger.blade.php',
         'livewire/dashboard/ai-report.blade.php',
         'livewire/dashboard/launchpad.blade.php',
+        'livewire/dashboard/channel/header.blade.php',
         'livewire/dashboard/channel/info.blade.php',
+        'livewire/dashboard/messaging/message-actions.blade.php',
+        'livewire/dashboard/messaging/feature-legend.blade.php',
     ];
 
     private const ALLOWED_SMART_SPARKLE = [
         'components/dashboard/navbars/bottom.blade.php',
-        'livewire/dashboard/contact/sidebar.blade.php',
-        'livewire/dashboard/messaging/feature-legend.blade.php',
         'livewire/dashboard/tab/home.blade.php',
         'livewire/dashboard/tab/status/filters.blade.php',
         'livewire/dashboard/tab/status/occasions.blade.php',
@@ -233,7 +238,6 @@ class ViewConventionTest extends TestCase
         $ai = Blade::render('<x-ui.buttons.form variant="ai">Go</x-ui.buttons.form>');
         $this->assertStringContainsString('bg-[var(--ai-bg)]', $ai);
         $this->assertStringContainsString('text-[var(--ai-text)]', $ai);
-        $this->assertStringContainsString('border-[color-mix(in_srgb,var(--ai-color)_40%,transparent)]', $ai);
         $this->assertStringContainsString('auto_awesome', $ai);
         $this->assertStringContainsString('rounded-xl h-10 px-4 text-sm font-bold', $ai);
         $this->assertStringNotContainsString('md3-btn', $ai);
@@ -247,13 +251,13 @@ class ViewConventionTest extends TestCase
         $this->assertStringNotContainsString('--ai-', $plain);
     }
 
-    public function test_ai_tokens_alias_the_amethyst_family_once_and_no_theme_redefines_them(): void
+    public function test_ai_tokens_derive_from_the_theme_tertiary_once_and_no_theme_redefines_them(): void
     {
         $css = (string) file_get_contents(base_path('resources/css/core/theme.css'));
 
-        $this->assertSame(1, substr_count($css, '--ai-color: var(--tool-amethyst-color);'));
-        $this->assertSame(1, substr_count($css, '--ai-bg: var(--tool-amethyst-bg);'));
-        $this->assertSame(1, substr_count($css, '--ai-text: var(--tool-amethyst-text);'));
+        $this->assertSame(1, substr_count($css, '--ai-color: color-mix(in srgb, var(--md-sys-color-tertiary), var(--md-sys-color-on-surface) var(--ai-dim));'));
+        $this->assertSame(1, substr_count($css, '--ai-bg: color-mix(in oklab, var(--ai-color) 16%, var(--md-sys-color-surface));'));
+        $this->assertSame(1, substr_count($css, '--ai-text: color-mix(in oklab, var(--ai-color) 22%, var(--md-sys-color-on-surface));'));
         $this->assertSame(3, preg_match_all('/^\s*--ai-(color|bg|text)\s*:/m', $css));
     }
 
@@ -271,6 +275,21 @@ class ViewConventionTest extends TestCase
         $this->assertStringContainsString('width: 33%', $html);
         $this->assertStringContainsString('نزدیک سقف', $html);
         $this->assertStringContainsString('توضیح', $html);
+    }
+
+    public function test_alpine_roots_with_their_own_init_method_do_not_call_it_a_second_time(): void
+    {
+        foreach ([
+            'livewire/dashboard/contact.blade.php',
+            'livewire/dashboard/channel.blade.php',
+            'livewire/dashboard/analytics.blade.php',
+            'components/dashboard/tools/calculator.blade.php',
+            'components/dashboard/tools/stopwatch.blade.php',
+            'components/dashboard/tools/radio.blade.php',
+            'components/dashboard/modal/menu/player.blade.php',
+        ] as $file) {
+            $this->assertStringNotContainsString('x-init="init()"', file_get_contents(resource_path("views/{$file}")), $file);
+        }
     }
 
     public function test_form_button_with_href_renders_an_anchor_and_maps_disabled_to_aria(): void

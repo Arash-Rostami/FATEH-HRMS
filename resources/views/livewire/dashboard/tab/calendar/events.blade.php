@@ -5,10 +5,7 @@
 >
     @php
         $d = $this->activeDate;
-        $eventTypes = collect($this->selectedDayEvents)
-            ->map(fn($e) => $e['type'] ?? 'default')
-            ->unique()
-            ->values();
+        $typeCounts = $presenter->eventTypeCounts($this->selectedDayEvents);
     @endphp
 
     <div class="flex items-center justify-between mb-4 pb-4 shrink-0 gap-4 border-b border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]">
@@ -39,17 +36,14 @@
     </div>
 
     {{-- Enhancement 1: Auto-appearing Client-Side Filter Pills (only shows when multiple event types exist) --}}
-    @if($eventTypes->count() > 1)
+    @if(count($typeCounts) > 1)
         <div class="flex items-center gap-1.5 mb-3.5 shrink-0 overflow-x-auto scrollbar-hide pb-0.5">
             <button type="button" x-on:click="activeFilter = 'all'"
                     :class="activeFilter === 'all' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-xs' : 'bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-high)_65%,transparent)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]'"
                     class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all duration-200 shrink-0">
                 همه ({{ convertToPersian(count($this->selectedDayEvents)) }})
             </button>
-            @foreach($eventTypes as $type)
-                @php
-                    $typeCount = collect($this->selectedDayEvents)->filter(fn($e) => ($e['type'] ?? 'default') === $type)->count();
-                @endphp
+            @foreach($typeCounts as $type => $typeCount)
                 <button type="button" x-on:click="activeFilter = '{{ $type }}'"
                         :class="activeFilter === '{{ $type }}' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-xs' : 'bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-high)_65%,transparent)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]'"
                         class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all duration-200 shrink-0">

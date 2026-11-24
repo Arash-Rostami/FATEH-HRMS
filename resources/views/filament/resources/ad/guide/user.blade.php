@@ -8,7 +8,7 @@
         [
             'icon' => 'verified',
             'label' => 'فیلتر فعال / بایگانی شده',
-            'hint' => 'دو دکمهٔ بالا: «فعال» (primary) و «بایگانی شده» (secondary). «بایگانی شده» همان آگهی‌های غیرفعالِ شماست (active=false) — حذف نشده‌اند، فقط پنهان شده‌اند. تعداد هر دکمه همیشه به‌روز است.',
+            'hint' => 'آگهی‌های جاری در «فعال» و آگهی‌های غیرفعال در «بایگانی شده» دیده می‌شوند. عدد کنار هر گزینه تعداد آگهی‌های آن بخش را نشان می‌دهد.',
         ],
         [
             'icon' => 'search',
@@ -23,7 +23,7 @@
         [
             'icon' => 'next_plan',
             'label' => 'حالت تمرکز',
-            'hint' => 'با پارامتر <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">?open=&lt;id&gt;</code> در URL، فهرست فقط روی یک آگهی متمرکز می‌شود. تغییر فیلتر یا جستجو، تمرکز را لغو می‌کند.',
+            'hint' => 'با باز کردن آگهی از جست‌وجوی سراسری، فقط همان آگهی دیده می‌شود. برای دیدن فهرست دوباره، عبارت جست‌وجو یا فیلتر را تغییر دهید.',
         ],
     ];
 
@@ -56,7 +56,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کاربر در صفحهٔ /ads چه می‌بیند؟</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/ads</code> کاربر یک تختهٔ فرصت‌های شغلی است — کارت‌های برگشت‌پذیر، فیلتر فعال/بایگانی، جستجو و کپیِ لینک. وقتی کاربری از یک آگهی یا پنهان بودن آن شکایت می‌کند، این زبانه مرجعِ شما برای فهمیدنِ آنچه در صفحهٔ خودش می‌بیند است.
+        صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/ads</code> در پنل کاربر، آگهی‌های شغلی را به شکل کارت نشان می‌دهد. کاربر می‌تواند بین آگهی‌های فعال و بایگانی‌شده جابه‌جا شود، آگهی‌ها را جست‌وجو کند و پیوند هر آگهی را کپی کند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -104,7 +104,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                اگر کاربر می‌گوید «آگهی را نمی‌بینم»، ابتدا ستون «وضعیت» همین رکورد را بررسی کنید — «غیرفعال» در پنل کاربر همان «بایگانی شده» است و از فهرستِ فعال خارج می‌شود.
+                اگر کاربر می‌گوید «آگهی را نمی‌بینم»، ابتدا ستون «وضعیت» همین مورد را بررسی کنید — «غیرفعال» در پنل کاربر همان «بایگانی شده» است و از فهرستِ فعال خارج می‌شود.
             </p>
         </div>
     </div>

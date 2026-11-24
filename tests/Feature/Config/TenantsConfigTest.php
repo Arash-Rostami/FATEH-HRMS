@@ -267,6 +267,15 @@ class TenantsConfigTest extends TestCase
 
         $this->assertFalse($modules['ths:ai'] ?? true);
         $this->assertFalse($modules['channel:ai'] ?? true);
+        $this->assertFalse($modules['contact:ai'] ?? true);
+        $this->assertFalse($modules['feed:ai'] ?? true);
         $this->assertFalse($modules['ai-report'] ?? true);
+    }
+
+    public function test_persol_keeps_the_contact_ai_view_on_deliberately(): void
+    {
+        $tenants = require base_path('config/tenants.php');
+
+        $this->assertArrayNotHasKey('contact:ai', $tenants['persol']['modules'] ?? []);
     }
 }

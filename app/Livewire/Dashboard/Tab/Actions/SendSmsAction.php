@@ -6,16 +6,21 @@ use App\Models\NotifyLog;
 use App\Models\User;
 use App\Services\Notify\Channels\SmsChannel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 
 class SendSmsAction
 {
     public const DEFAULT_TEXT = 'لطفاً با من تماس بگیرید.';
 
-    public function execute(string $userId, SmsChannel $sms, ?string $text = null, string $source = NotifyLog::SOURCE_STATUS): array
+    public function execute(string $userId, SmsChannel $sms, ?string $text = null, string $source = NotifyLog::SOURCE_STATUS, ?string $occasionKey = null): array
     {
         if (tenantOff('notify:sms')) {
             return ['message' => 'ارسال پیامک در این سامانه فعال نیست.', 'type' => 'error'];
+        }
+
+        if ($occasionKey && NotifyLog::sentOccasionKeys((int) Auth::id(), [$occasionKey]) !== []) {
+            return ['message' => 'پیامک این مناسبت پیش‌تر ارسال شده است.', 'type' => 'error'];
         }
 
         $key = "sms-send:" . Auth::id();
@@ -60,6 +65,10 @@ class SendSmsAction
         }
 
         if ($user->sms_number) {
+            if ($occasionKey && !Cache::add("sms-occasion:" . Auth::id() . ":{$occasionKey}", 1, 60)) {
+                return ['message' => 'پیامک این مناسبت پیش‌تر ارسال شده است.', 'type' => 'error'];
+            }
+
             RateLimiter::hit($key, 60);
             RateLimiter::hit($perRecipient, 3600);
 
@@ -67,7 +76,7 @@ class SendSmsAction
             $body = ($name ? $name . ': ' : '') . (filled($text) ? mb_substr(trim($text), 0, 140) : self::DEFAULT_TEXT);
 
             $delivered = $sms->text($user->sms_number, $body);
-            NotifyLog::audit($source, (int) Auth::id(), $user->id, $user->sms_number, $delivered);
+            NotifyLog::audit($source, (int) Auth::id(), $user->id, $user->sms_number, $delivered, null, $occasionKey);
 
             if (!$delivered) {
                 return [

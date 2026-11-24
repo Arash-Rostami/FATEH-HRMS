@@ -5,6 +5,7 @@ namespace App\Services\Ai;
 use DomainException;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use JsonException;
 use RuntimeException;
@@ -23,25 +24,26 @@ class AiClient
         return $this->tokens;
     }
 
-    public function json(array $messages, array $schema, string $feature): array
+    public function json(array $messages, array $schema, string $feature, ?string $settings = null): array
     {
         $this->tokens = 0;
+        $settings ??= $feature;
 
         try {
             $response = Http::withHeaders([
                 'Authorization' => 'apikey ' . (string) config('ai.gateway.key'),
-            ])->timeout((int) self::setting($feature, 'timeout'))
-                ->connectTimeout((int) self::setting($feature, 'connect_timeout'))
+            ])->timeout((int) self::setting($settings, 'timeout'))
+                ->connectTimeout((int) self::setting($settings, 'connect_timeout'))
                 ->acceptJson()
                 ->post(rtrim((string) config('ai.gateway.url'), '/') . '/chat/completions', [
-                    'model' => (string) self::setting($feature, 'model'),
+                    'model' => (string) self::setting($settings, 'model'),
                     'messages' => $messages,
                     'response_format' => [
                         'type' => 'json_schema',
                         'json_schema' => ['name' => $feature, 'strict' => true, 'schema' => $schema],
                     ],
-                    'max_tokens' => (int) self::setting($feature, 'max_output'),
-                    'temperature' => (float) (config("ai.{$feature}.temperature") ?? 0.2),
+                    'max_tokens' => (int) self::setting($settings, 'max_output'),
+                    'temperature' => (float) (config("ai.{$settings}.temperature") ?? 0.2),
                 ]);
             $response->throw();
         } catch (GuzzleException | ConnectionException) {
@@ -86,6 +88,16 @@ class AiClient
     {
         return config("ai.{$feature}.{$key}") ?? config("ai.gateway.{$key}")
             ?? throw new RuntimeException("AI setting missing: ai.{$feature}.{$key} and ai.gateway.{$key} are both unset; run `php artisan config:clear` and check config/ai.php.");
+    }
+
+    public static function cooldownActive(string $feature, int $userId): bool
+    {
+        return Cache::has("{$feature}:ai:cooldown:{$userId}");
+    }
+
+    public static function startCooldown(string $feature, int $userId): void
+    {
+        Cache::put("{$feature}:ai:cooldown:{$userId}", 1, (int) self::setting($feature, 'cooldown'));
     }
 
     private function read(array $json): array

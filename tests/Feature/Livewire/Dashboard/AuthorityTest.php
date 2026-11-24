@@ -403,7 +403,7 @@ class AuthorityTest extends TestCase
             ->test(Main::class)
             ->set('search', 'NONEXISTENT-SEARCH-TERM-XYZ')
             ->assertDontSee('PRESENT-DUTY-TOKEN')
-            ->assertSee('هیچ اختیاری یافت نشد')
+            ->assertSee('اختیاری پیدا نشد')
             ->assertSeeHtml('wire:key="authority-empty"');
     }
 

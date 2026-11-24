@@ -48,7 +48,7 @@ class ReviewsRelationManager extends RelationManager
                         ->label('نظر')
                         ->formatStateUsing(fn ($state) => \App\Models\Review::FEEDBACKS[$state] ?? $state),
                     IconEntry::make('complete')
-                        ->label('تکمیل شده')
+                        ->label('بررسی تکمیل شد')
                         ->boolean(),
                     TextEntry::make('comments')->label('توضیحات')->formatStateUsing(fn (?string $state): ?string => $state === Review::AUTO_RESOLVE_COMMENT ? 'این واحد در مهلت بررسی پاسخ نداد؛ سامانه «بدون نظر قطعی» ثبت کرد. این نظر به معنی موافقت نیست.' : $state)->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])->columnSpanFull(),
                     TextEntry::make('actions')->label('اقدامات')->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])->columnSpanFull(),
@@ -76,7 +76,7 @@ class ReviewsRelationManager extends RelationManager
                     ->label('نظر')
                     ->formatStateUsing(fn ($state) => \App\Models\Review::FEEDBACKS[$state] ?? $state),
                 IconColumn::make('complete')
-                    ->label('تکمیل')
+                    ->label('وضعیت بررسی')
                     ->boolean(),
                 TextColumn::make('created_at')
                     ->label('تاریخ')

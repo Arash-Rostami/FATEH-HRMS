@@ -34,6 +34,13 @@ class ChartPresenter extends BaseEnergyPresenter
         };
     }
 
+    public function historyExtremes(array $history): array
+    {
+        $entries = collect($history);
+
+        return ['best' => $entries->sortByDesc('overall')->first(), 'worst' => $entries->sortBy('overall')->first()];
+    }
+
     public function getScoreLabel(int $score): string
     {
         $labels = [

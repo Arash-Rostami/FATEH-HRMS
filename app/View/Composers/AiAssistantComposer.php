@@ -12,6 +12,12 @@ class AiAssistantComposer
         $view->with([
             'aiAccess' => config('app.ai_assistant_access'),
             'aiAssistantBaseSrc' => aiAssistantOn() ? $this->baseSrc() : null,
+            'aiViews' => [
+                'ths' => thsAiOn(),
+                'channel' => channelAiOn(),
+                'correspondence' => correspondenceAiOn(),
+                'contact' => contactAiOn(),
+            ],
         ]);
     }
 

@@ -34,7 +34,7 @@ class CredentialResource extends Resource
 
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'vpn_key', 'view' => 'filament.resources.credential.guide.overview'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.credential.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.credential.guide.admin-ops'],
         ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'tab', 'view' => 'filament.resources.credential.guide.list-tabs'],
     ];
 
@@ -174,7 +174,11 @@ class CredentialResource extends Resource
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->striped()
-            ->groupedBulkActions(self::bulkActions(CredentialExporter::class))
+            ->groupedBulkActions([
+                self::bulkDeleteAction(),
+                self::bulkExportAction(CredentialExporter::class)
+                    ->modalDescription(__('resources/credential/strings.export.warning')),
+            ])
             ->emptyStateIcon('heroicon-o-bookmark')
             ->defaultSort('created_at', 'desc');
     }

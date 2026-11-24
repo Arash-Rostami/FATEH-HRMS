@@ -8,19 +8,19 @@
 
     <div class="relative">
         <div x-show="emojiOpen" x-on:click.outside="emojiOpen = false"
-             class="absolute bottom-full end-4 mb-2 p-3 rounded-xl z-40 min-w-[272px] bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]"
+             class="absolute bottom-full end-4 mb-2 p-3 rounded-xl z-40 w-[26.875rem] max-w-[calc(100vw-1rem)] bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]"
              role="dialog" aria-label="ایموجی">
-            <div class="flex items-center gap-0.5 mb-2.5 pb-2 border-b border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
+            <div class="grid grid-cols-12 gap-0.5 mb-2.5 pb-2 border-b border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
                 <template x-for="(cat, idx) in emojis" :key="idx">
                     <button x-on:click="activeCat=idx" x-text="cat.cat"
-                            class="w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all duration-150"
+                            class="aspect-square w-full min-w-0 rounded-lg flex items-center justify-center text-[clamp(0.8rem,4vw,1rem)] transition-all duration-150"
                             :class="activeCat===idx ? 'bg-[var(--md-sys-color-primary-container)] scale-110' : 'opacity-50 hover:opacity-80'"></button>
                 </template>
             </div>
-            <div class="grid grid-cols-8 gap-0.5">
+            <div class="grid grid-cols-12 gap-0.5">
                 <template x-for="(e, i) in emojis[activeCat].items" :key="i">
                     <button x-on:click="insertEmoji(e)" x-text="e"
-                            class="w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-[var(--md-sys-color-surface-variant)] transition-colors"></button>
+                            class="aspect-square w-full min-w-0 rounded-lg flex items-center justify-center text-[clamp(0.9rem,4.5vw,1.125rem)] hover:bg-[var(--md-sys-color-surface-variant)] transition-colors"></button>
                 </template>
             </div>
         </div>
@@ -80,7 +80,7 @@
 
         <div class="flex flex-wrap items-center gap-1.5 px-4 py-2.5">
             <div x-data="{ len: 0 }"
-                 x-effect="len = ($wire.composer.body || '').length"
+                 x-effect="len = chars($wire.composer.body)"
                  class="flex-1 min-w-0 order-1 relative rounded-xl overflow-hidden transition-all duration-200 bg-[var(--md-sys-color-surface-variant)] border"
                  :class="[
                      replyingTo ? 'rounded-t-none' : '',
@@ -93,7 +93,7 @@
                           wire:loading.attr="disabled" wire:target="send"
                           x-on:keydown="onComposerKeydown($event)"
                           x-init="initAutoResize($el)"
-                          x-on:input="len = $el.value.length; autoGrow($el, 160); autoDirection($el); detectMention($event)"
+                          x-on:input="len = chars($el.value); autoGrow($el, 160); autoDirection($el); detectMention($event)"
                           x-on:paste="pasteImage($event, 'composer-cattachments')"
                           rows="1" placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
                           class="w-full bg-transparent px-3 py-2.5 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[280px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]"></textarea>
@@ -143,11 +143,11 @@
             </div>
             <div class="hidden md:flex items-center justify-center w-full h-[14px]" title="کاراکتر باقی‌مانده" aria-hidden="true">
                 <span class="text-[10px] leading-[11px] font-medium tabular-nums whitespace-nowrap"
-                      :class="(4000 - (($wire.composer.body || '').length)) < 100 ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-60'"
-                      x-text="(4000 - (($wire.composer.body || '').length)).toLocaleString('fa-IR') + ' باقی‌مانده'"></span>
+                      :class="(4000 - chars($wire.composer.body)) < 100 ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-60'"
+                      x-text="(4000 - chars($wire.composer.body)).toLocaleString('fa-IR') + ' باقی‌مانده'"></span>
             </div>
             <span class="sr-only" aria-live="polite"
-                  x-text="(4000 - (($wire.composer.body || '').length)) < 100 ? (4000 - (($wire.composer.body || '').length)) + ' کاراکتر باقی‌مانده' : ''"></span>
+                  x-text="(4000 - chars($wire.composer.body)) < 100 ? (4000 - chars($wire.composer.body)) + ' کاراکتر باقی‌مانده' : ''"></span>
             </div>
             <input id="composer-cattachments" type="file" multiple wire:model="composer.attachments" class="hidden"
                    accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.mp4,.webm,.mov"/>

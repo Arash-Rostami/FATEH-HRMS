@@ -46,6 +46,12 @@
             'label' => 'عضو عادی',
             'hint' => 'عضو می‌تواند گفتگو کند یا از گروه خارج شود. برای اضافه کردن فرد به گروه خصوصی، از مالک یا مدیر کمک بگیرد.',
         ],
+        [
+            'icon' => 'visibility',
+            'chip' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
+            'label' => 'همراه',
+            'hint' => 'عضو با نقش «همراه» می‌تواند پیام‌ها را بخواند، جست‌وجو کند و از گروه خارج شود. برای ارسال پیام، واکنش یا سنجاق کردن باید اجازهٔ نوشتن داشته باشد.',
+        ],
     ];
 @endphp
 
@@ -104,7 +110,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                اگر کاربر می‌گوید «خروج از گروه را نمی‌بینم»، احتمالاً مالکِ آن گروه است — مالک نمی‌تواند خارج شود. فقط ادمین می‌تواند با حذفِ گروه یا تغییر مالک، این وضعیت را برطرف کند.
+                اگر کاربر می‌گوید «خروج از گروه را نمی‌بینم»، احتمالاً مالکِ آن گروه است — مالک نمی‌تواند خارج شود. فقط مدیر سامانه می‌تواند با حذفِ گروه یا تغییر مالک، این وضعیت را برطرف کند.
             </p>
         </div>
     </div>

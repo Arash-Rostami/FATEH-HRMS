@@ -41,7 +41,7 @@ class ForwardMessageAction
         $query = match ($type) {
             'contact' => Message::query()->where(fn ($q) => $q
                 ->where('sender_id', $userId)->orWhere('recipient_id', $userId)),
-            'channel' => ChannelMessage::query()->whereHas('channel.memberUsers', fn ($q) => $q->where('users.id', $userId)),
+            'channel' => ChannelMessage::query()->writableBy($userId),
             default => abort(404),
         };
 
@@ -58,7 +58,7 @@ class ForwardMessageAction
             User::visibleOnBoard()->where('id', '!=', $userId)->findOrFail($destinationId);
             $sameThread = $source instanceof Message && in_array($destinationId, [(int) $source->sender_id, (int) $source->recipient_id], true);
         } elseif ($destinationType === 'channel') {
-            $channel = Channel::query()->whereHas('memberUsers', fn ($q) => $q->where('users.id', $userId))->findOrFail($destinationId);
+            $channel = Channel::query()->writableBy($userId)->findOrFail($destinationId);
             $sameThread = $source instanceof ChannelMessage && (int) $source->channel_id === $destinationId;
         } else {
             abort(422);

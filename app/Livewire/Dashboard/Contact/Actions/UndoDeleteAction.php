@@ -3,23 +3,29 @@
 namespace App\Livewire\Dashboard\Contact\Actions;
 
 use App\Models\Message;
+use App\Models\User;
 
 class UndoDeleteAction
 {
-    public function execute(array $lastDeleted): void
+    public function execute(array $lastDeleted): bool
     {
         $userId = auth()->id();
 
         $restored = Message::withTrashed()
             ->where('sender_id', $userId)
+            ->toActivePeer()
             ->find($lastDeleted['original_id'] ?? null)
             ?->restore();
 
-        if ($restored || ($lastDeleted['sender_id'] ?? null) !== $userId) {
-            return;
+        if ($restored) {
+            return true;
         }
 
-        (new Message)->forceFill([
+        if (($lastDeleted['sender_id'] ?? null) !== $userId || !User::visibleOnBoard()->whereKey($lastDeleted['recipient_id'] ?? 0)->exists()) {
+            return false;
+        }
+
+        return (new Message)->forceFill([
             'sender_id' => $userId,
             'recipient_id' => $lastDeleted['recipient_id'],
             'body' => $lastDeleted['body'],

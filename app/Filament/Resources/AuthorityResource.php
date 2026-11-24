@@ -31,7 +31,7 @@ class AuthorityResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'policy', 'view' => 'filament.resources.authority.guide.overview'],
         ['label' => 'فیلدها و مقادیر', 'icon' => 'tune', 'view' => 'filament.resources.authority.guide.fields'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.authority.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.authority.guide.admin-ops'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.authority.guide.user'],
     ];
 

@@ -13,5 +13,7 @@
             <span dir="auto" class="block text-[11px] truncate opacity-90">{{ $pin['body'] }}</span>
         </span>
     </button>
-    <x-ui.modals.close-button size="sm" label="برداشتن سنجاق" close="$wire.$island('messages').toggleGroupPin({{ $pin['id'] }}, true)"/>
+    @if($canUnpin ?? true)
+        <x-ui.modals.close-button size="sm" label="برداشتن سنجاق" close="$wire.$island('messages').toggleGroupPin({{ $pin['id'] }}, true)"/>
+    @endif
 </div>

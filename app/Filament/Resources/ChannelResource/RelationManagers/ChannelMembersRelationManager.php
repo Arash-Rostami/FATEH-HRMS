@@ -50,7 +50,8 @@ class ChannelMembersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         $ownerId = (int)$this->getOwnerRecord()->owner_id;
-        $canToggleRole = ChannelResource::canEdit($this->getOwnerRecord()) && !$this->getOwnerRecord()->isProjectLinked();
+        $canEdit = ChannelResource::canEdit($this->getOwnerRecord());
+        $canToggleRole = $canEdit && !$this->getOwnerRecord()->isProjectLinked();
 
         return $table
             ->modifyQueryUsing(fn(Builder $query) => $query->addSelect([
@@ -123,16 +124,34 @@ class ChannelMembersRelationManager extends RelationManager
                     ->iconButton()
                     ->visible(fn(Model $record): bool => (int)$record->id !== $ownerId
                         && $canToggleRole
-                        && ($record->pivot->role === ChannelRole::Admin->value || ($record->pivot->entered_at !== null && $record->isActive())))
+                        && ($record->pivot->role === ChannelRole::Admin->value || ($record->pivot->role === ChannelRole::Member->value && $record->pivot->entered_at !== null && $record->isActive())))
                     ->action(function (Model $record): void {
                         $channel = $this->getOwnerRecord();
                         $demote = $record->pivot->role === ChannelRole::Admin->value;
 
-                        if (!ChannelResource::canEdit($channel) || (!$demote && ($record->pivot->entered_at === null || !$record->isActive()))) {
+                        if (!ChannelResource::canEdit($channel) || (!$demote && ($record->pivot->role !== ChannelRole::Member->value || $record->pivot->entered_at === null || !$record->isActive()))) {
                             return;
                         }
 
                         $role = $demote ? ChannelRole::Member : ChannelRole::Admin;
+                        $channel->memberUsers()->updateExistingPivot($record->id, ['role' => $role->value]);
+                        PollDigestService::bump("ch:rv:{$channel->id}");
+                    }),
+                Action::make('toggleWriting')
+                    ->label(fn(Model $record): string => $record->pivot->role === ChannelRole::Viewer->value ? 'اجازهٔ نوشتن' : 'تغییر نقش به همراه')
+                    ->icon(fn(Model $record): string => $record->pivot->role === ChannelRole::Viewer->value ? 'heroicon-o-pencil-square' : 'heroicon-o-eye')
+                    ->iconButton()
+                    ->visible(fn(Model $record): bool => (int)$record->id !== $ownerId
+                        && $canToggleRole
+                        && in_array($record->pivot->role, [ChannelRole::Member->value, ChannelRole::Viewer->value], true))
+                    ->action(function (Model $record): void {
+                        $channel = $this->getOwnerRecord();
+
+                        if (!ChannelResource::canEdit($channel) || $channel->isProjectLinked()) {
+                            return;
+                        }
+
+                        $role = $record->pivot->role === ChannelRole::Viewer->value ? ChannelRole::Member : ChannelRole::Viewer;
                         $channel->memberUsers()->updateExistingPivot($record->id, ['role' => $role->value]);
                         PollDigestService::bump("ch:rv:{$channel->id}");
                     }),

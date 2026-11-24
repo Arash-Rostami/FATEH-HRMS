@@ -1,3 +1,5 @@
+import recentListMixin from "../mixins/recentList.js";
+
 const REPORT_ID_SELECTOR = '[data-report-id]';
 const ATTR_REPORT_ID = 'data-report-id';
 const MOBILE_BREAKPOINT = 768;
@@ -7,11 +9,10 @@ const FILTER_SELECTOR = '[x-data^="filters"]';
 const SCROLL_TOP_THRESHOLD = 30;
 const SCROLL_HIDE_DELTA = 10;
 const SCROLL_SHOW_DELTA = -10;
-const RECENT_KEY = 'fateh_reports_recent';
-const RECENT_MAX = 6;
 
 export default function report() {
     return {
+        ...recentListMixin({key: 'fateh_reports_recent', max: 6, accept: (v) => Array.isArray(v) && v.length > 0}),
         showModal: false,
         activeReport: null,
         view: null,
@@ -19,7 +20,6 @@ export default function report() {
         showTimeline: false,
         onlySaved: false,
         loading: false,
-        recent: [],
 
         _isDestroyed: false,
         _enforce: null,
@@ -39,15 +39,7 @@ export default function report() {
             this.view = this.$wire.get('view');
             this.$watch('onlySaved', () => this.$nextTick(() => this.updateActiveItem()));
 
-            try {
-                const saved = localStorage.getItem(RECENT_KEY);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    this.recent = Array.isArray(parsed) && parsed.length > 0 ? parsed : [];
-                }
-            } catch {
-                this.recent = [];
-            }
+            this.loadRecent();
 
             this._enforce = () => {
                 if (window.innerWidth < MOBILE_BREAKPOINT && this.view !== 'list') {
@@ -156,42 +148,12 @@ export default function report() {
         recordOpen(item) {
             if (!item || !item.id) return;
 
-            const arr = this.recent;
-            const id = item.id;
-            const len = arr.length;
-
-            for (let i = 0; i < len; i++) {
-                if (arr[i].id === id) {
-                    arr.splice(i, 1);
-                    break;
-                }
-            }
-
-            arr.unshift({ id, payload: item });
-
-            if (arr.length > RECENT_MAX) {
-                arr.length = RECENT_MAX;
-            }
-
-            queueMicrotask(() => {
-                try {
-                    localStorage.setItem(RECENT_KEY, JSON.stringify(this.recent));
-                } catch {}
-            });
+            this.pushRecent({ id: item.id, payload: item });
         },
 
         openRecent(item) {
             this.activeReport = item.payload || item;
             this.showModal = true;
-        },
-
-        clearRecent() {
-            this.recent = [];
-            queueMicrotask(() => {
-                try {
-                    localStorage.removeItem(RECENT_KEY);
-                } catch {}
-            });
         },
 
         setupFilterCompact() {

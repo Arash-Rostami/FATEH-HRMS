@@ -11,7 +11,7 @@
     >
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.title
+        <x-ui.title guide="energy"
             icon="energy"
             title="پرسشنامه انرژی"
             count="{{ $this->userTestCount }}"

@@ -1,4 +1,4 @@
-@props(['icon', 'title', 'count' => null, 'countLabel' => 'مورد', 'ai' => false])
+@props(['icon', 'title', 'count' => null, 'countLabel' => 'مورد', 'ai' => false, 'guide' => null])
 
 <div class="flex flex-wrap items-center gap-3 mb-8">
     <div
@@ -7,9 +7,14 @@
     </div>
     <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">{{ $title }}</h2>
     <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)]/50"></div>
-    @if(isset($actions))
+    @if(isset($actions) || $guide)
         <div class="flex items-center gap-2">
-            {{ $actions }}
+            @isset($actions)
+                {{ $actions }}
+            @endisset
+            @if($guide)
+                <x-ui.video-guide :module="$guide"/>
+            @endif
         </div>
     @endif
     @if($count !== null)

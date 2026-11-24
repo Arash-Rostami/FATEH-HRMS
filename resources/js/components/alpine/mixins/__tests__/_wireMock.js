@@ -12,7 +12,7 @@ function createIslandMock() {
 }
 
 export function createWireMock(props = {}) {
-    const islands = {};
+    const islands = { messages: createIslandMock() };
     const wire = {
         set: vi.fn(),
         on: vi.fn(),

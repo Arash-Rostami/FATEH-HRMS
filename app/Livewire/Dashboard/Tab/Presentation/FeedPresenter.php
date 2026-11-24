@@ -13,6 +13,8 @@ class FeedPresenter
 {
     use HasTimelineMonths;
 
+    private array $meterMemo = [];
+
     public function categoryValue(mixed $category): string
     {
         return (string) (($category?->value ?? $category) ?? '');
@@ -94,6 +96,8 @@ class FeedPresenter
             'user'      => $comment?->user,
             'isOwner'   => auth()->id() === $comment->user_id,
             'isEditing' => $editingCommentId === ($comment?->id ?? null),
+            'ago'       => convertToPersian(toJalaliRelative($comment->created_at)),
+            'date'      => $comment->created_at ? convertToPersian(toJalali($comment->created_at, 'j F Y')) : '',
         ];
     }
 
@@ -168,6 +172,7 @@ class FeedPresenter
 
         return [
             'authUser' => $authUser,
+            'aiMeter' => $authUser && feedAiOn() ? ($this->meterMemo[$authUser->id] ??= Feed::quotaMeter((int) $authUser->id)) : null,
         ];
     }
 }

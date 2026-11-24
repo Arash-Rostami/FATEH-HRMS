@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ChannelRole;
 use App\Enums\ChannelType;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
 use App\Models\Concerns\HasPrunableStatus;
@@ -91,6 +92,18 @@ class Channel extends Model
             'pinned_body' => ChannelMessage::select('body')->whereColumn('channel_messages.id', 'channels.pinned_message_id')->limit(1),
             'pinned_sender_id' => ChannelMessage::select('sender_id')->whereColumn('channel_messages.id', 'channels.pinned_message_id')->limit(1),
         ]);
+    }
+
+    public function scopeWithLastMessageAt(Builder $query): Builder
+    {
+        return $query->addSelect([
+            'last_message_at' => ChannelMessage::select('created_at')->whereColumn('channel_messages.channel_id', 'channels.id')->latest('id')->limit(1),
+        ]);
+    }
+
+    public function scopeWritableBy(Builder $query, int $userId): Builder
+    {
+        return $query->whereHas('memberUsers', fn ($q) => $q->where('users.id', $userId)->whereIn('channel_members.role', [ChannelRole::Member->value, ChannelRole::Admin->value]));
     }
 
     public function scopeWithViewerRole(Builder $query, int $userId): Builder

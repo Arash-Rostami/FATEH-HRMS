@@ -173,7 +173,7 @@ class SendNotifyChunkJobTest extends TestCase
         $failed = $this->rows(NotifyLog::STATUS_FAILED);
         $this->assertCount(1, $failed);
         $this->assertSame(3, (int)$failed[0]->count);
-        $this->assertStringContainsString('پیکربندی نشده', $failed[0]->error);
+        $this->assertStringContainsString('تنظیمات سرویس', $failed[0]->error);
         $this->assertSame('42', $failed[0]->record_id);
         $this->assertSame('updated', $failed[0]->event);
         $this->assertSame($this->rule->id, (int)$failed[0]->notify_rule_id);

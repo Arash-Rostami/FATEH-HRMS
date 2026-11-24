@@ -7,6 +7,8 @@
         :tabs="[
             ['id' => 'appearance', 'icon' => 'palette', 'label' => 'ظاهر'],
             ['id' => 'notifications', 'icon' => 'notifications_active', 'label' => 'اعلان‌ها'],
+            ['id' => 'chat', 'icon' => 'forum', 'label' => 'گفتگو'],
+            ['id' => 'app', 'icon' => 'download', 'label' => 'نصب برنامه'],
             ['id' => 'tables', 'icon' => 'view_column', 'label' => 'جدول‌ها'],
             ['id' => 'focus', 'icon' => 'self_improvement', 'label' => 'تمرکز'],
         ]"
@@ -28,7 +30,7 @@
             <p class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] mb-1">فشردگی و خوانایی <span class="opacity-60">(این مرورگر)</span></p>
             <x-dashboard.settings.font-size-control/>
             <x-dashboard.settings.toggle-row icon="format_ink_highlighter" label="خط‌کش خواندن" color="violet" active="readingRuler" action="toggleReadingRuler()"/>
-            <x-dashboard.settings.toggle-row icon="content_copy" label="کپی خودکار انتخاب" color="emerald" active="doubleClickCopy" action="toggleDoubleClickCopy()"/>
+            <x-dashboard.settings.toggle-row icon="content_copy" label="کپی خودکار متن انتخاب‌شده" color="emerald" active="doubleClickCopy" action="toggleDoubleClickCopy()"/>
             <x-dashboard.settings.toggle-row icon="density_medium" label="نمایش فشرده جدول‌ها" color="teal" active="$store.density.compact" action="$store.density.toggle()"/>
         </div>
 
@@ -36,6 +38,8 @@
             <p class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] mb-1">پس‌زمینه <span class="opacity-60">(این مرورگر)</span></p>
             <x-dashboard.settings.background-picker/>
         </div>
+
+        @include('livewire.dashboard.profile.settings.layout-card')
 
         <x-ui.buttons.form @click="resetAppearance()" variant="tonal" icon="restart_alt">
             بازنشانی ظاهر
@@ -59,9 +63,10 @@
              $watch('$store.sound.mutedContacts', (ids) => refresh('contact', ids));
              $watch('$store.sound.mutedProjects', (ids) => refresh('project', ids));
          ">
+        @include('livewire.dashboard.profile.settings.notify-card')
 
         <div class="p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container)]/40 space-y-3">
-            <p class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">ردپای شما در این مرورگر</p>
+            <p class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">اعلان و صدا برای هر گفتگو در این مرورگر</p>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
@@ -74,7 +79,7 @@
                             <div class="flex items-center justify-between gap-2 text-[11px] text-[var(--md-sys-color-on-surface)]">
                                 <span class="truncate" x-text="name"></span>
                                 <button type="button" @click="$store.sound.toggleMute(id, 'channel')"
-                                        :aria-label="$store.sound.isAllMuted('channel') ? 'بی‌صدا کردن' : 'باصدا کردن'" :title="$store.sound.isAllMuted('channel') ? 'بی‌صدا کردن' : 'باصدا کردن'"
+                                        :aria-label="$store.sound.isAllMuted('channel') ? 'بی‌صدا کردن' : 'روشن کردن صدا'" :title="$store.sound.isAllMuted('channel') ? 'بی‌صدا کردن' : 'روشن کردن صدا'"
                                         class="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
                                     <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted('channel') ? 'volume_up' : 'volume_off'"></span>
                                 </button>
@@ -93,7 +98,7 @@
                             <div class="flex items-center justify-between gap-2 text-[11px] text-[var(--md-sys-color-on-surface)]">
                                 <span class="truncate" x-text="name"></span>
                                 <button type="button" @click="$store.sound.toggleMute(id, 'contact')"
-                                        :aria-label="$store.sound.isAllMuted('contact') ? 'بی‌صدا کردن' : 'باصدا کردن'" :title="$store.sound.isAllMuted('contact') ? 'بی‌صدا کردن' : 'باصدا کردن'"
+                                        :aria-label="$store.sound.isAllMuted('contact') ? 'بی‌صدا کردن' : 'روشن کردن صدا'" :title="$store.sound.isAllMuted('contact') ? 'بی‌صدا کردن' : 'روشن کردن صدا'"
                                         class="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
                                     <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted('contact') ? 'volume_up' : 'volume_off'"></span>
                                 </button>
@@ -112,7 +117,7 @@
                             <div class="flex items-center justify-between gap-2 text-[11px] text-[var(--md-sys-color-on-surface)]">
                                 <span class="truncate" x-text="name"></span>
                                 <button type="button" @click="$store.sound.toggleMute(id, 'project')"
-                                        :aria-label="$store.sound.isAllMuted('project') ? 'بی‌صدا کردن' : 'باصدا کردن'" :title="$store.sound.isAllMuted('project') ? 'بی‌صدا کردن' : 'باصدا کردن'"
+                                        :aria-label="$store.sound.isAllMuted('project') ? 'بی‌صدا کردن' : 'روشن کردن صدا'" :title="$store.sound.isAllMuted('project') ? 'بی‌صدا کردن' : 'روشن کردن صدا'"
                                         class="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
                                     <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted('project') ? 'volume_up' : 'volume_off'"></span>
                                 </button>
@@ -128,11 +133,25 @@
             <x-dashboard.settings.toggle-row icon="notifications_active" label="صدای اعلان‌ها (در صفحهٔ چت پخش نمی‌شود)" color="amber" active="!$store.sound.notificationMuted" action="$store.sound.toggleNotification()"/>
             <x-dashboard.settings.toggle-row icon="forum" label="صدای چنل‌ها" color="amber" active="!$store.sound.isAllMuted('channel')" action="$store.sound.toggleAll('channel')"/>
             <x-dashboard.settings.toggle-row icon="chat" label="صدای مخاطبین" color="amber" active="!$store.sound.isAllMuted('contact')" action="$store.sound.toggleAll('contact')"/>
+            <x-dashboard.settings.toggle-row icon="workspaces" label="صدای پروژه‌ها" color="amber" active="!$store.sound.isAllMuted('project')" action="$store.sound.toggleAll('project')"/>
+            <x-dashboard.settings.toggle-row icon="workspaces" label="اعلان پروژه‌ها" color="amber" active="$store.push.isEnabled('project')" action="$store.push.toggle('project')"/>
         </div>
 
         <x-ui.buttons.form @click="resetNotifications()" variant="tonal" icon="notifications_off">
             لغو سکوت همه
         </x-ui.buttons.form>
+    </div>
+    @endif
+
+    @if($activeSection === 'chat')
+    <div wire:key="profile-settings-section-chat" class="space-y-5 mt-5">
+        @include('livewire.dashboard.profile.settings.chat-card')
+    </div>
+    @endif
+
+    @if($activeSection === 'app')
+    <div wire:key="profile-settings-section-app" class="space-y-5 mt-5">
+        @include('livewire.dashboard.profile.settings.app-card')
     </div>
     @endif
 
@@ -161,7 +180,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container)]/40 border border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between gap-2">
                 <div class="space-y-1.5">
-                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">چگالی فشرده</p>
+                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">نمایش فشردهٔ جدول‌ها</p>
                     <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="tableState.compact ? 'روشن' : 'خاموش'"></p>
                 </div>
                 <button type="button" @click="resetDensity()"
@@ -182,7 +201,7 @@
         </div>
 
         <x-ui.buttons.form @click="resetTables()" variant="tonal" icon="restart_alt">
-            بازنشانی همه (جدول‌ها، چگالی و حالت خلوت)
+            بازنشانی جدول‌ها، نمایش فشرده و حالت خلوت منو
         </x-ui.buttons.form>
     </div>
     @endif
@@ -191,7 +210,7 @@
     <div wire:key="profile-settings-section-focus" class="space-y-5 mt-5">
 
         <div class="p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container)]/40 space-y-3">
-            <p class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">حالت تمرکز <span class="opacity-60">(همگام و برای همکاران قابل مشاهده)</span></p>
+            <p class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">حالت تمرکز <span class="opacity-60">(قابل مشاهده برای همکاران)</span></p>
 
             <div x-show="!$store.focus.active" class="space-y-3">
                 <div class="flex flex-wrap gap-2">
@@ -233,12 +252,12 @@
         </div>
 
         <div class="p-4 rounded-2xl border-2 border-rose-500/30 bg-rose-500/5 space-y-2">
-            <p class="text-xs font-bold text-rose-700 dark:text-rose-300">بازنشانی کامل برنامه</p>
-            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">تمام تنظیمات محلی این مرورگر (ظاهر، اعلان‌ها، ستون‌ها) حذف و به حالت پیش‌فرض بازمی‌گردد.</p>
+            <p class="text-xs font-bold text-rose-700 dark:text-rose-300">بازنشانی تنظیمات این مرورگر</p>
+            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">تنظیمات این مرورگر، مانند ظاهر، صدا و ستون‌های جدول، به حالت پیش‌فرض برمی‌گردند.</p>
             <button type="button" @click="resetApp()"
                     class="inline-flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-bold bg-rose-700 text-white dark:bg-rose-400 dark:text-rose-950 hover:brightness-110 transition-all active:scale-95">
                 <span class="material-symbols-rounded text-[20px]">warning</span>
-                بازنشانی کامل برنامه
+                بازنشانی تنظیمات این مرورگر
             </button>
         </div>
     </div>

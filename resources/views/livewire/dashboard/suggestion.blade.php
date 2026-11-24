@@ -3,7 +3,7 @@
     >
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.title
+        <x-ui.title guide="suggestion"
             icon="lightbulb"
             title="پیشنهادات"
             count="{{  $this->suggestions->total() }}"

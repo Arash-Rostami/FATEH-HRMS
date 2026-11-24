@@ -84,6 +84,24 @@ describe('chatBase pure-logic helpers (resources/js/scriptPattern.md: no JS test
         expect(el.dir).toBe('rtl');
     });
 
+    test('message downloads wait for each response, ignore repeat clicks and stop on chat switch', async () => {
+        const c = chatBase('channel');
+        let next;
+        const downloadAttachment = vi.fn(() => new Promise(resolve => { next = resolve; }));
+        c.$wire = { activeChannelId: 7, $el: document.body, $island: () => ({ downloadAttachment }) };
+        const pending = c.downloadMessageFiles(42, [0, 3, 4]);
+        await c.downloadMessageFiles(42, [0, 3, 4]);
+        expect(downloadAttachment.mock.calls).toEqual([[42, 0]]);
+        next();
+        await Promise.resolve();
+        expect(downloadAttachment.mock.calls).toEqual([[42, 0], [42, 3]]);
+        c.$wire.activeChannelId = 8;
+        next();
+        await pending;
+        expect(downloadAttachment).toHaveBeenCalledTimes(2);
+        expect(c.downloadingAttachments).toBe(false);
+    });
+
     test('autoDirection no-ops on a null element', () => {
         expect(() => base.autoDirection(null)).not.toThrow();
     });
@@ -369,6 +387,34 @@ describe('chatBase polling lifecycle', () => {
         expect(c._timer).toBeNull();
     });
 
+    test('a wire:navigate click stops polling and no tick or restart happens during the page swap', async () => {
+        const c = chatBase('contact');
+        c._pollTick = vi.fn();
+        c.startPolling();
+        expect(c._timer).not.toBeNull();
+
+        document.dispatchEvent(new Event('livewire:navigate'));
+
+        expect(c._timer).toBeNull();
+        c.startPolling();
+        expect(c._timer).toBeNull();
+        await c._runPollTick(true);
+        expect(c._pollTick).not.toHaveBeenCalled();
+    });
+
+    test('polling resumes when a started navigation fails or is aborted', () => {
+        const c = chatBase('contact');
+        c._pollTick = vi.fn();
+        c.startPolling();
+
+        document.dispatchEvent(new Event('livewire:navigate'));
+        expect(c._timer).toBeNull();
+
+        document.dispatchEvent(new Event('livewire:navigate-failed'));
+        expect(c._timer).not.toBeNull();
+        c.stopPolling();
+    });
+
     test('resetPollInterval restores the base interval', () => {
         const c = chatBase('contact');
         c._pollIntervalMs = 30000;
@@ -395,6 +441,48 @@ describe('chatBase polling lifecycle', () => {
         expect(c._pollInFlight).toBe(false);
         expect(c._repollQueued).toBe(false);
         expect(c._repollNow).toHaveBeenCalledOnce();
+    });
+
+    test('_runPollTick stops a hidden tab whose bell is off, and leaves a tab without the push store alone', async () => {
+        const hidden = (value) => Object.defineProperty(document, 'hidden', { configurable: true, value });
+        const c = chatBase('contact');
+        c._pollTick = vi.fn(async () => {});
+        c.startPolling();
+        c.$store = { push: { pollsHidden: vi.fn(() => false) } };
+        hidden(true);
+
+        await c._runPollTick(false);
+        expect(c._pollTick).not.toHaveBeenCalled();
+        expect(c._timer).toBeNull();
+
+        c.$store = { push: { pollsHidden: vi.fn(() => true) } };
+        await c._runPollTick(false);
+        expect(c._pollTick).toHaveBeenCalledTimes(1);
+
+        c.$store = {};
+        await c._runPollTick(false);
+        expect(c._pollTick).toHaveBeenCalledTimes(2);
+
+        hidden(false);
+        c.stopPolling();
+    });
+
+    test('a hidden tab with live Web Push keeps only a slow five-minute safety poll', () => {
+        vi.useFakeTimers();
+        const hidden = (value) => Object.defineProperty(document, 'hidden', { configurable: true, value });
+        const c = chatBase('contact');
+        c._pollTick = vi.fn(async () => {});
+        c.$store = { push: { live: true, pollsHidden: () => true } };
+        hidden(true);
+
+        c._schedulePollTick();
+        vi.advanceTimersByTime(200000);
+        expect(c._pollTick).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(180000);
+        expect(c._pollTick).toHaveBeenCalledTimes(1);
+
+        hidden(false);
+        c.stopPolling();
     });
 
     test('_runPollTick announces every real tick as messaging-poll (the switcher badge rides it), stays silent while a tick is in flight, and tolerates a missing Livewire', async () => {
@@ -576,6 +664,20 @@ describe('chatBase header declutter', () => {
         expect(c.headerBtnClass(false, 'block')).toBe('hidden');
         expect(c.headerBtnClass(true)).toBe('hidden');
         c.headerDeclutter = false;
+    });
+
+    test('aborting the bridge signal stops an old room from reacting to the menu declutter switch', () => {
+        localStorage.removeItem('menu_declutter');
+        const ac = new AbortController();
+        const c = chatBase('contact');
+        c.headerDeclutterMenuBridge(ac.signal);
+
+        window.dispatchEvent(new CustomEvent('declutter', { detail: { on: true } }));
+        expect(c.headerDeclutter).toBe(true);
+
+        ac.abort();
+        window.dispatchEvent(new CustomEvent('declutter', { detail: { on: false } }));
+        expect(c.headerDeclutter).toBe(true);
     });
 
     test('the hamburger-menu declutter bridge is unconditional both ways and persists, cancelling a mid-exit timer', async () => {
@@ -1046,7 +1148,8 @@ describe('chatBase insertEmoji', () => {
 
         c.insertEmoji('😀');
 
-        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'hi 😀!');
+        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'hi 😀!', false);
+        expect(ta.value).toBe('hi 😀!');
         expect(c.emojiOpen).toBe(true);
         expect(ta.focus).toHaveBeenCalledOnce();
     });
@@ -1673,6 +1776,49 @@ describe('chatBase send ghost', () => {
     });
 });
 
+describe('poll marker and day-picker fixes (2026-11-24)', () => {
+    test('chars counts Unicode code points like the server max rule, so an emoji is one character', () => {
+        const c = chatBase('contact');
+        expect(c.chars('🙂')).toBe(1);
+        expect(c.chars('a'.repeat(1999) + '🙂')).toBe(2000);
+        expect(c.chars(null)).toBe(0);
+    });
+
+    test('a deleted last message is not an advance: only a larger row id counts as new', () => {
+        const c = chatBase('contact');
+        expect(c._markerAdvanced('message-13', 'message-12')).toBe(true);
+        expect(c._markerAdvanced('message-12', 'message-13')).toBe(false);
+        expect(c._markerAdvanced('message-12', 'message-12')).toBe(false);
+    });
+
+    test('dropping the Files cache always voids a pending request; an open panel that was loading is replaced by one fresh request', () => {
+        const c = chatBase('contact');
+        c.retryFiles = vi.fn();
+        c._filesCache = { conv: 1, at: Date.now(), list: [1] };
+        c._filesToken = 4;
+        c.filesLoading = false;
+        c.filesOpen = false;
+        c._dropFiles();
+        expect(c._filesCache).toBeNull();
+        expect(c._filesToken).toBe(5);
+        expect(c.retryFiles).not.toHaveBeenCalled();
+
+        c.filesLoading = true;
+        c.filesOpen = true;
+        c._dropFiles();
+        expect(c._filesToken).toBe(6);
+        expect(c.filesLoading).toBe(false);
+        expect(c.retryFiles).toHaveBeenCalledOnce();
+    });
+
+    test('two Jalali month headings never share a key even inside one Gregorian month', () => {
+        const rows = chatBase('contact')._dayRows([{ day: '2026-03-23', id: 2 }, { day: '2026-03-19', id: 1 }]);
+        const keys = rows.filter(r => r.header).map(r => r.day);
+        expect(keys.length).toBe(2);
+        expect(new Set(keys).size).toBe(2);
+    });
+});
+
 describe('swipe-to-reply (initSwipeReply — touch-only, direction-locked, chatBase shared by channel/contact)', () => {
     const fire = (target, type, props = {}) => {
         const e = new Event(type, { bubbles: true, cancelable: true });
@@ -1714,6 +1860,35 @@ describe('swipe-to-reply (initSwipeReply — touch-only, direction-locked, chatB
         expect(bubble.style.transform).toBe('');
     });
 
+    test('a read-only bubble (no Reply button) never moves during the drag and never replies', () => {
+        document.body.innerHTML = `<div id="msg-viewport"><div data-rf="message-12"><div class="msg-bubble"></div></div></div>`;
+        const bubble = document.querySelector('.msg-bubble');
+        const c = start();
+
+        fire(bubble, 'pointerdown', { clientX: 100, clientY: 100 });
+        fire(bubble, 'pointermove', { clientX: 160, clientY: 102 });
+        expect(bubble.style.transform).toBe('');
+
+        fire(bubble, 'pointerup', { clientX: 160, clientY: 102 });
+        expect(c.startReply).not.toHaveBeenCalled();
+    });
+
+    test('a second finger cannot move or finish the first finger drag', () => {
+        const bubble = fixture();
+        const c = start();
+
+        fire(bubble, 'pointerdown', { clientX: 100, clientY: 100, pointerId: 1 });
+        fire(bubble, 'pointermove', { clientX: 400, clientY: 100, pointerId: 2 });
+        expect(bubble.style.transform).toBe('');
+
+        fire(bubble, 'pointerup', { clientX: 400, clientY: 100, pointerId: 2 });
+        expect(c.startReply).not.toHaveBeenCalled();
+
+        fire(bubble, 'pointermove', { clientX: 150, clientY: 102, pointerId: 1 });
+        fire(bubble, 'pointerup', { clientX: 150, clientY: 102, pointerId: 1 });
+        expect(c.startReply).toHaveBeenCalledWith(12, 'Ali', 'plain text');
+    });
+
     test('a vertical drag never engages and never replies', () => {
         const bubble = fixture();
         const c = start();
@@ -1752,6 +1927,7 @@ describe('swipe-to-reply (initSwipeReply — touch-only, direction-locked, chatB
         fire(orphan, 'pointermove', { clientX: 150, clientY: 100 });
         fire(orphan, 'pointerup', { clientX: 150, clientY: 100 });
 
+        fixture();
         const button = document.querySelector('button[data-body]');
         fire(button, 'pointerdown', { clientX: 100, clientY: 100 });
         fire(button, 'pointermove', { clientX: 150, clientY: 100 });

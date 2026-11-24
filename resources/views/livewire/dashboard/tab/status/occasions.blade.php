@@ -35,7 +35,10 @@
                     <div class="flex flex-col items-start leading-tight">
                         <span class="flex items-center gap-1 text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">
                             {{ $user->name }}
-                            <span class="material-symbols-rounded text-[var(--ai-color)] text-[13px] animate-pulse-slow">auto_awesome</span>
+                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-[var(--ai-bg)] text-[var(--ai-text)] text-[10px] font-bold">
+                                <span class="material-symbols-rounded text-[var(--ai-color)] !text-[13px] animate-pulse-slow">auto_awesome</span>
+                                یادآوری
+                            </span>
                         </span>
                         <span class="text-[10px] {{ $tone['text'] }} font-medium">{{ $tone['label'] }}</span>
                     </div>

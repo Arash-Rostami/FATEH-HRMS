@@ -46,7 +46,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">build</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">اکشن‌های ردیف و بخش</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">کارهای قابل انجام</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($ops as $op)
@@ -66,7 +66,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                کاربر در پنل خود نمی‌تواند رویدادِ رزرو را ویرایش یا حذف کند — ولی ادمین از این صفحه می‌تواند. اگر چنین رویدادی را حذف کنید، رزرو در همگام‌سازی بعدی آن را دوباره می‌سازد؛ برای حذف دائمی، رزرو را لغو کنید.
+                کاربر در پنل خود نمی‌تواند رویدادِ رزرو را ویرایش یا حذف کند — ولی مدیر سامانه از این صفحه می‌تواند. اگر چنین رویدادی را حذف کنید، رزرو در همگام‌سازی بعدی آن را دوباره می‌سازد؛ برای حذف دائمی، رزرو را لغو کنید.
             </p>
         </div>
     </div>

@@ -55,7 +55,7 @@ class DashboardTabsSmokeTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertSee('نمای کلی');
-        $response->assertSee('تحلیل‌های نموداری');
+        $response->assertSee('نمودارهای تحلیلی');
         $response->assertSee('App\\Filament\\Widgets\\AccountWidget', false);
         $response->assertDontSee('App\\Filament\\Widgets\\HrDemographicsChart', false);
         $response->assertDontSee('App\\Filament\\Widgets\\StructuralChart', false);

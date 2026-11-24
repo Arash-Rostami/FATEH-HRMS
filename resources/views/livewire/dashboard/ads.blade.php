@@ -4,7 +4,7 @@
         dir="rtl">
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.title
+        <x-ui.title guide="ads"
                 icon="work"
                 title="فرصت‌های شغلی"
                 :count="$this->stats['active']"

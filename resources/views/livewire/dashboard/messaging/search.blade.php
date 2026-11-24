@@ -20,8 +20,15 @@
                         </span>
                     </button>
                 @empty
-                    <div wire:key="msg-search-empty" class="px-3 py-5 text-center text-[11px] text-[var(--md-sys-color-on-surface-variant)]">پیامی یافت نشد</div>
+                    @if(mb_strlen(trim($this->messageSearch)) < 3)
+                        <div wire:key="msg-search-short" class="px-3 py-5 text-center text-[11px] text-[var(--md-sys-color-on-surface-variant)]">برای جست‌وجو دست‌کم ۳ نویسه وارد کنید.</div>
+                    @else
+                        <div wire:key="msg-search-empty" class="px-3 py-5 text-center text-[11px] text-[var(--md-sys-color-on-surface-variant)]">پیامی پیدا نشد.</div>
+                    @endif
                 @endforelse
+                @if(count($this->messageSearchResults) >= 20)
+                    <div wire:key="msg-search-capped" class="px-3 py-2 text-center text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">تا ۲۰ نتیجهٔ تازه‌تر نمایش داده می‌شود. برای پیدا کردن پیام، عبارت دقیق‌تری بنویسید.</div>
+                @endif
             </div>
         @endif
     </div>

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Models;
 
 use App\Enums\FeedCategory;
+use App\Models\ChannelMessage;
 use App\Models\Comment;
 use App\Models\Department;
 use App\Models\Feed;
@@ -467,5 +468,37 @@ class FeedModelTest extends TestCase
         $this->assertContains($outside->id, $publicIds);
         $this->assertContains($inside->id, $restrictedIds);
         $this->assertNotContains($outside->id, $restrictedIds);
+    }
+
+    public function test_daily_quota_cap_falls_back_to_the_gateway_default_when_the_module_omits_it(): void
+    {
+        config(['ai.gateway.daily_cap' => 7, 'ai.feed.daily_cap' => null, 'ai.channel.enhance.daily_cap' => null]);
+
+        $this->assertSame(7, Feed::quotaCap());
+        $this->assertSame(7, ChannelMessage::quotaCap());
+    }
+
+    public function test_daily_quota_uses_the_feed_feature_key_and_the_config_cap(): void
+    {
+        config(['ai.feed.daily_cap' => 2]);
+
+        $user = User::factory()->create();
+        $forget = fn () => Cache::forget(Feed::quotaKey($user->id));
+        $forget();
+        $this->beforeApplicationDestroyed($forget);
+
+        $this->assertSame(2, Feed::quotaCap());
+        $this->assertSame('ai-feed:quota:' . $user->id . ':' . now()->format('Y-m-d'), Feed::quotaKey($user->id));
+
+        $this->assertSame(1, Feed::consumeQuota($user->id));
+        $this->assertSame(2, Feed::consumeQuota($user->id));
+        $this->assertSame(2, Feed::quotaUsed($user->id));
+
+        Feed::refundQuota($user->id);
+        $this->assertSame(1, Feed::quotaUsed($user->id));
+
+        Feed::refundQuota($user->id);
+        Feed::refundQuota($user->id);
+        $this->assertSame(0, Feed::quotaUsed($user->id));
     }
 }

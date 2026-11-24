@@ -13,10 +13,10 @@ class ChannelPresenter
 {
     use BuildsMessageGroups;
 
-    public function headerState(?Channel $channel, array $header, ?array $typingMembers, array $members, array $channels): array
+    public function headerState(?Channel $channel, array $header, ?array $typingMembers, array $members): array
     {
         $typingMembers ??= [];
-        $lastMsgAt = collect($channels)->firstWhere('id', $header['id'])['last_message']['created_at'] ?? null;
+        $lastMsgAt = $channel?->getAttribute('last_message_at');
 
         return [
             'isOwner' => ChannelAccessPolicy::isOwner($channel, auth()->user()),
@@ -86,6 +86,14 @@ class ChannelPresenter
             'type_color' => $type->getMaterialColor(),
             'owner_name' => $channel->owner?->name ?? '—',
             'members_count' => (int) ($channel->members_count ?? 0),
+        ];
+    }
+
+    public function memberTabs(): array
+    {
+        return [
+            ['id' => 'members', 'icon' => 'group', 'label' => 'اعضا', 'alpine' => "\$wire.memberTab = 'members'", 'activeExpr' => "\$wire.memberTab === 'members'"],
+            ['id' => 'writers', 'icon' => 'edit_note', 'label' => 'اجازهٔ نوشتن', 'alpine' => "\$wire.memberTab = 'writers'", 'activeExpr' => "\$wire.memberTab === 'writers'"],
         ];
     }
 

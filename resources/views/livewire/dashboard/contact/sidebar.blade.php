@@ -97,10 +97,10 @@
                  data-notify-name="{{ $contact['name'] }}" data-notify-body="{{ $contact['last_message']['body'] ?? '' }}"
                  data-notify-mine="{{ !empty($contact['last_message']['is_mine']) ? '1' : '0' }}" role="option" tabindex="0"
                  aria-selected="{{ $activeUserId === $contact['id'] ? 'true' : 'false' }}"
-                 :style="{ order: $store.pinned.isPinned({{ $contact['id'] }}, 'contact') ? -1 : 0 }"
+                 :style="{ order: $store.pinned.isPinned({{ $contact['id'] }}, 'contact') ? -2 : {{ $contact['occasion'] ? -1 : 0 }} }"
                  :title="sbCollapsed ? @js($contact['name']) : null"
                 @class([
-                    'sb-row group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
+                    'sb-row group ripple-effect after:pointer-events-none relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
                     'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeUserId === $contact['id'],
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeUserId !== $contact['id'],
                 ])>
@@ -129,12 +129,6 @@
                             @if($contact['inactive'])
                                 <x-ui.badge class="!px-1.5 !py-0.5 !text-[10px] shrink-0">غیرفعال</x-ui.badge>
                             @endif
-                            @if($contact['occasion'])
-                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-medium leading-none shrink-0 select-none {{ $contact['occasion_tone']['chip'] ?? 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' }}">
-                                    <span class="material-symbols-rounded text-[11px] shrink-0 leading-none animate-pulse-slow text-[var(--ai-color)]">auto_awesome</span>
-                                    <span>{{ $contact['occasion_tone']['label'] }}</span>
-                                </span>
-                            @endif
                         </div>
 
                         @if($contact['last_message'])
@@ -161,7 +155,7 @@
                                         'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]' => !$contact['last_message']['is_read'],
                                     ])>{{ $contact['last_message']['is_read'] ? 'done_all' : 'done' }}</span>
                                 @endif
-                                {{ $contact['last_message']['body'] }}
+                                <span dir="auto" class="min-w-0 truncate [unicode-bidi:plaintext]">{{ $contact['last_message']['body'] }}</span>
                             </p>
                         @else
                             <p class="text-[11px] truncate text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]"
@@ -178,6 +172,30 @@
                             </span>
                         @endif
                     </div>
+                    @if($contact['occasion'])
+                        <div wire:key="contact-occasion" class="flex justify-end mt-1" x-on:click.stop>
+                            @if($contact['can_sms'])
+                                <x-ui.buttons.form variant="none" wire:key="contact-occasion-sms" aria-label="ارسال پیامک تبریک"
+                                    data-sms="{{ json_encode(['scope' => 'contact', 'id' => $contact['id'], 'name' => $contact['name'], 'type' => $contact['occasion'], 'key' => $contact['sms_key']]) }}"
+                                    x-bind:disabled="smsAlreadySent(JSON.parse($el.dataset.sms).key)"
+                                    x-bind:title="smsAlreadySent(JSON.parse($el.dataset.sms).key) ? 'پیامک تبریک ارسال شد' : 'ارسال پیامک تبریک'"
+                                    x-on:click.stop="$dispatch('open-sms', JSON.parse($el.dataset.sms))"
+                                    x-on:keydown.enter.stop x-on:keydown.space.stop
+                                    class="!gap-0 rounded-md shrink-0 cursor-pointer transition-opacity hover:opacity-80 disabled:hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--md-sys-color-primary)]">
+                                    <x-ui.badge variant="info" class="gap-1 !px-1.5 !py-0.5 !text-[10px]">
+                                        <span>{{ $contact['occasion_tone']['label'] }}</span>
+                                        <span class="material-symbols-rounded !text-[11px] shrink-0 !leading-none" aria-hidden="true"
+                                              x-text="smsAlreadySent(JSON.parse($el.closest('button').dataset.sms).key) ? 'done_all' : 'sms'">sms</span>
+                                    </x-ui.badge>
+                                </x-ui.buttons.form>
+                            @else
+                                <x-ui.badge variant="info" wire:key="contact-occasion-chip" title="ارسال پیامک برای این مخاطب در دسترس نیست" class="gap-1 !px-1.5 !py-0.5 !text-[10px] shrink-0 select-none cursor-default">
+                                    <span>{{ $contact['occasion_tone']['label'] }}</span>
+                                    <span class="material-symbols-rounded !text-[11px] shrink-0 !leading-none" aria-hidden="true">{{ $contact['occasion_tone']['icon'] }}</span>
+                                </x-ui.badge>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
         @empty

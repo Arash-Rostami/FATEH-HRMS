@@ -16,6 +16,7 @@ class SaveEditChannelMessageAction
         $message = ChannelMessage::withoutTrashed()
             ->where('id', $messageId)
             ->where('sender_id', auth()->id())
+            ->writableBy((int) auth()->id())
             ->first();
 
         if (!$message || $message->created_at->diffInSeconds(now()) > self::EDIT_TIME_LIMIT) {

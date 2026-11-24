@@ -6,7 +6,7 @@
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
 
-        <x-ui.title
+        <x-ui.title guide="dms"
             icon="folder_open"
             :title="$activeTab === 'systematic' ? 'اسناد' : 'سوابق'"
             :count="$this->totalDocs"

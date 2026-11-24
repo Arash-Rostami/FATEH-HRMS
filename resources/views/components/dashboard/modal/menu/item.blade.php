@@ -15,11 +15,11 @@
            : ''
    ]">
     <div class="relative w-9 h-9 shrink-0 rounded-lg flex items-center justify-center bg-[color-mix(in_srgb,var(--md-sys-color-primary)_8%,var(--md-sys-color-surface))] border border-[color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]"
-         :class="[item.ai ? '!bg-[color-mix(in_srgb,var(--ai-bg)_70%,var(--md-sys-color-surface))] !border-[color-mix(in_srgb,var(--ai-color)_35%,transparent)]' : '', pinEditMode ? 'animate-shiver' : '']">
+         :class="[item.ai ? 'ai-halo !border-[color-mix(in_srgb,var(--ai-color)_25%,transparent)]' : '', pinEditMode ? 'animate-shiver' : '']">
         <template x-if="item.ai">
-            <span aria-hidden="true" class="absolute inset-0 rounded-lg animate-alert-soft bg-[color-mix(in_srgb,var(--ai-color)_25%,transparent)]"></span>
+            <span aria-hidden="true" class="absolute top-1 left-1 z-10 material-symbols-rounded !text-[11px] text-[var(--ai-color)] pointer-events-none">auto_awesome</span>
         </template>
-        <span class="relative material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]" :class="item.ai ? '!text-[var(--ai-color)]' : ''" x-text="item.icon"></span>
+        <span class="relative material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]" :class="item.aiIcon ? '!text-[var(--ai-color)]' : ''" x-text="item.icon"></span>
         <template x-if="$store.menuBadges.on(item.id, @js($menuState)[item.id])">
             <x-ui.notification-badge />
         </template>

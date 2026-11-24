@@ -250,6 +250,7 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
         c._repollNow = vi.fn();
         c.replyingTo = { id: 1 };
         c.editingMsg = { id: 2, body: 'x' };
+        c.$wire.edit = { editingBody: 'x' };
 
         await c.selectContact(5);
 
@@ -258,6 +259,88 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
         expect(c.$wire.cancelReply).toHaveBeenCalledOnce();
         expect(c.$wire._islands.messages.selectContact).toHaveBeenCalledWith(5);
         expect(c.$wire._islands.sidebar.refreshUnread).toHaveBeenCalledOnce();
+    });
+
+    test('selectContact holds an unsaved edit and warns instead of switching, then switches on the second press', async () => {
+        const c = contact();
+        c.$wire = createWireMock();
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c.toast = vi.fn();
+        c.scrollToBottom = vi.fn();
+        c.resetAutoResize = vi.fn();
+        c._repollNow = vi.fn();
+        c.editingMsg = { id: 2, body: 'x' };
+        c.$wire.edit = { editingBody: 'changed' };
+
+        await c.selectContact(5);
+
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(c.editingMsg).toEqual({ id: 2, body: 'x' });
+        expect(c.$wire._islands.messages.selectContact).not.toHaveBeenCalled();
+
+        await c.selectContact(5);
+
+        expect(c.editingMsg).toBeNull();
+        expect(c.$wire._islands.messages.selectContact).toHaveBeenCalledWith(5);
+    });
+
+    test('selectContact ignores a click on the open conversation but still shows it from the mobile list', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ activeUserId: 5, mobileShowChat: true });
+        c._repollNow = vi.fn();
+
+        await c.selectContact(5);
+        expect(c.$wire._islands.messages.selectContact).not.toHaveBeenCalled();
+
+        c.$wire.mobileShowChat = false;
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c.scrollToBottom = vi.fn();
+        c.resetAutoResize = vi.fn();
+        await c.selectContact(5);
+        expect(c.$wire._islands.messages.selectContact).toHaveBeenCalledWith(5);
+    });
+
+    test('selectContact asks twice before throwing away an unsent draft, and resets the room-scoped panels once it goes', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ activeUserId: 5, mobileShowChat: true, composer: { attachments: [] } });
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c.scrollToBottom = vi.fn();
+        c.resetAutoResize = vi.fn();
+        c._repollNow = vi.fn();
+        c.toast = vi.fn();
+        c.filesOpen = true;
+        c.filesList = [{ id: 1 }];
+        c.typeFilter = 'i';
+        const box = document.createElement('textarea');
+        box.id = 'contact-composer';
+        box.value = 'نیمه‌کاره';
+        document.body.appendChild(box);
+        const spy = vi.spyOn(document, 'getElementById').mockReturnValue(box);
+
+        await c.selectContact(9);
+        expect(c.$wire._islands.messages.selectContact).not.toHaveBeenCalled();
+
+        await c.selectContact(9);
+        expect(c.$wire._islands.messages.selectContact).toHaveBeenCalledWith(9);
+        expect(c.filesOpen).toBe(false);
+        expect(c.filesList).toEqual([]);
+        expect(c.typeFilter).toBe('');
+
+        spy.mockRestore();
+        box.remove();
+    });
+
+    test('saveEdit keeps the editor open when the server refuses the save', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ edit: { editingBody: 'y' } });
+        c.$wire._islands.messages = { saveEdit: vi.fn(() => Promise.resolve(false)) };
+        c.toast = vi.fn();
+        c._syncSidebarAfterOwnAction = vi.fn();
+        c.editingMsg = { id: 7, body: 'x' };
+
+        await c.saveEdit(7);
+
+        expect(c.editingMsg).toEqual({ id: 7, body: 'x' });
     });
 
     test('selectContact guards a falsy id', async () => {
@@ -790,6 +873,33 @@ describe('contact() _bindViewport — re-binds across conversation switches inst
 
         expect(c._msgViewportEl).toBe(vp);
         c.destroy();
+    });
+
+    test('backToList asks for a second press before dropping an unsent draft or an unsaved inline edit', () => {
+        const c = contact();
+        c.$wire = createWireMock({ composer: { attachments: [] }, edit: { editingBody: 'changed' } });
+        c.toast = vi.fn();
+        c.editingMsg = { id: 3, body: 'original' };
+
+        c.backToList();
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(c.$wire.set).not.toHaveBeenCalled();
+
+        c.backToList();
+        expect(c.$wire.set).toHaveBeenCalledWith('mobileShowChat', false, false);
+        expect(c.editingMsg).toBeNull();
+    });
+
+    test('backToList closes at once when there is no draft and the inline edit is unchanged', () => {
+        const c = contact();
+        c.$wire = createWireMock({ composer: { attachments: [] }, edit: { editingBody: 'original' } });
+        c.toast = vi.fn();
+        c.editingMsg = { id: 3, body: 'original' };
+
+        c.backToList();
+
+        expect(c.toast).not.toHaveBeenCalled();
+        expect(c.$wire.set).toHaveBeenCalledWith('mobileShowChat', false, false);
     });
 
     test('backToList clears _msgViewportEl so stale-element reads cannot happen while no conversation is open', () => {
@@ -1426,6 +1536,117 @@ describe('contact send ghost', () => {
         expect(c._ghost).toBeNull();
 
         resolveSend();
+        await pending;
+    });
+});
+
+describe('contact() enhanceEdit — the AI rewrite of the inline edit box', () => {
+    const aiReply = { answer: 'بهبود متن', error: null, message: null, soft: false, note: 'پیشنهاد را بخوانید و اگر مناسب است، «ذخیره» را بزنید.', meter: '<div>meter</div>' };
+
+    function withEditBox(value = 'متن خام', id = '7') {
+        const box = document.createElement('div');
+        box.setAttribute('data-edit-box', id);
+        const ta = document.createElement('textarea');
+        ta.value = value;
+        ta.focus = vi.fn();
+        const btn = document.createElement('button');
+        box.append(ta, btn);
+        document.body.appendChild(box);
+        withViewport();
+        return { box, ta, btn };
+    }
+
+    test('fills the textarea, syncs the wire model, and shows the meter + applied note', async () => {
+        const c = contact();
+        c.$wire = createWireMock();
+        c.editingMsg = { id: 7, body: 'x' };
+        c.$wire._islands.messages.enhanceEdit = vi.fn(() => Promise.resolve(aiReply));
+        const { ta, btn } = withEditBox();
+
+        await c.enhanceEdit(7, btn);
+
+        expect(ta.value).toBe('بهبود متن');
+        expect(c.$wire.set).toHaveBeenCalledWith('edit.editingBody', 'بهبود متن');
+        expect(c.aiEditMeter).toBe(aiReply.meter);
+        expect(c.aiEditOk).toBe(true);
+        expect(c.aiEditNote).toBe(aiReply.note);
+        expect(c.aiEditBusy).toBe(false);
+    });
+
+    test('wires the shared mixin: hooks read the editing message and the edit box', () => {
+        const c = contact();
+        expect(c.aiEditCurrentId()).toBeNull();
+        c.editingMsg = { id: 7, body: 'x' };
+        expect(c.aiEditCurrentId()).toBe(7);
+        const { ta } = withEditBox();
+        expect(c.aiEditBox(7)).toBe(ta);
+        expect(typeof c.resetAiEdit).toBe('function');
+    });
+
+    test('startEdit resets the AI note and ok flag', () => {
+        const c = contact();
+        c.$wire = createWireMock();
+        c.aiEditNote = 'x';
+        c.aiEditOk = true;
+
+        c.startEdit(7, 'body');
+
+        expect(c.aiEditNote).toBe('');
+        expect(c.aiEditOk).toBe(false);
+    });
+
+    test('saveEdit is inert while an enhance call is in flight (Enter cannot burn the unit)', async () => {
+        const c = contact();
+        c.$wire = createWireMock();
+        c.editingMsg = { id: 7, body: 'x' };
+        let resolveEnhance;
+        c.$wire._islands.messages.enhanceEdit = vi.fn(() => new Promise((r) => { resolveEnhance = r; }));
+        c.$wire._islands.messages.saveEdit = vi.fn(() => Promise.resolve());
+        const { ta, btn } = withEditBox();
+
+        const pending = c.enhanceEdit(7, btn);
+        ta.value = 'y';
+        c.$wire.edit = { editingBody: 'y' };
+        await c.saveEdit(7);
+        expect(c.$wire._islands.messages.saveEdit).not.toHaveBeenCalled();
+
+        resolveEnhance(aiReply);
+        await pending;
+    });
+
+    test('enhanceFromMenu opens the edit session, fills the textarea from the stored body, and runs the enhance without a button', async () => {
+        const c = contact();
+        c.$wire = createWireMock();
+        c.editingMsg = null;
+        c.$wire._islands.messages.enhanceEdit = vi.fn(() => Promise.resolve(aiReply));
+        withEditBox('');
+
+        await c.enhanceFromMenu(7, 'متن خام');
+
+        expect(c.editingMsg).toEqual({ id: 7, body: 'متن خام' });
+        const ta = document.querySelector('[data-edit-box="7"] textarea');
+        expect(ta.value).toBe('بهبود متن');
+        expect(c.$wire.set).toHaveBeenCalledWith('edit.editingBody', 'بهبود متن');
+    });
+
+    test('saveEdit of a DIFFERENT message is not blocked by an in-flight enhance', async () => {
+        const c = contact();
+        c.$wire = createWireMock();
+        c.editingMsg = { id: 7, body: 'x' };
+        let resolveEnhance;
+        c.$wire._islands.messages.enhanceEdit = vi.fn(() => new Promise((r) => { resolveEnhance = r; }));
+        c.$wire._islands.messages.saveEdit = vi.fn(() => Promise.resolve());
+        withEditBox();
+
+        const pending = c.enhanceEdit(7);
+        c.cancelEdit();
+        c.startEdit(8, 'other');
+        c.$wire.edit = { editingBody: 'edited' };
+        await c.saveEdit(8);
+
+        expect(c.$wire._islands.messages.saveEdit).toHaveBeenCalledWith(8);
+
+        resolveEnhance(aiReply);
         await pending;
     });
 });

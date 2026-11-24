@@ -6,7 +6,7 @@
     dir="rtl"
 >
     <div class="max-w-[88rem] mx-auto">
-        <x-ui.title
+        <x-ui.title guide="profile"
             :icon="$isProfileTab ? 'person' : 'apartment'"
             :title="$isProfileTab ? 'پروفایل کاربری' : 'آنبوردینگ'"
         >

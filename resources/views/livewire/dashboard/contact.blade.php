@@ -1,12 +1,14 @@
+@use('Morilog\Jalali\Jalalian')
 <div
     dir="rtl"
-    x-data="contact()"
-    x-init="init()"
+    x-data="contact({ senderId: @js(auth()->id()), smsYear: @js(Jalalian::now()->getYear()) })"
     data-outgoing-sound="{{ asset('build/assets/audio/outgoing.mp3') }}"
     data-incoming-sound="{{ asset('build/assets/audio/incoming.mp3') }}"
     x-on:keydown.ctrl.k.window="focusSearch()"
     x-on:keydown.escape.window="onEscape($event)"
+    x-on:smart-edit.window="enhanceFromMenu($event.detail.id, $event.detail.body)"
     x-on:message-forwarded="_syncSidebarAfterOwnAction($wire)"
+    x-on:sms-sent.window="rememberSms($event.detail)"
     role="region"
     aria-label="پیام‌رسان"
     class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
@@ -14,7 +16,7 @@
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">
 
-        <x-ui.title
+        <x-ui.title guide="contact"
             icon="perm_contact_calendar"
             :count="$this->totalStaff"
             title="مخاطبین (پیام‌رسان)"
@@ -91,4 +93,5 @@
     @include('livewire.dashboard.messaging.quote-chip')
     @include('livewire.dashboard.messaging.reaction-picker')
     @include('livewire.dashboard.messaging.forward')
+    <x-ui.modals.sms scope="contact" :templates="$this->smsTemplates" />
 </div>

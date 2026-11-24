@@ -23,7 +23,7 @@ class ReminderPresenter
     public static function filterOptions(): array
     {
         return [
-            'active' => 'همه فعال',
+            'active' => 'همهٔ فعال‌ها',
             'today' => 'امروز',
             'overdue' => 'دیرکرد',
             'week' => 'این هفته',
@@ -38,7 +38,7 @@ class ReminderPresenter
             ['label' => 'عنوان', 'align' => 'text-right'],
             ['label' => 'سررسید', 'align' => 'text-center'],
             ['label' => 'تکرار', 'align' => 'text-center'],
-            ['label' => 'کانال‌ها', 'align' => 'text-center'],
+            ['label' => 'روش اطلاع‌رسانی', 'align' => 'text-center'],
             ['label' => 'اقدامات', 'align' => 'text-center'],
         ];
     }

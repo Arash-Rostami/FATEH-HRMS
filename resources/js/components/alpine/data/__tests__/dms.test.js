@@ -28,6 +28,32 @@ describe('dms factory', () => {
         expect(c.recent).toEqual([])
     })
 
+    test('recordClick stores {id,title,url} first, dedupes, caps at 6 and clearRecent removes the key', () => {
+        const c = make()
+        c.init()
+        c.recordClick({})
+        expect(c.recent).toEqual([])
+        for (let i = 1; i <= 7; i++) c.recordClick({ id: i, title: 't' + i })
+        c.recordClick({ id: 5, url: '/u' })
+        expect(c.recent.map((r) => r.id)).toEqual([5, 7, 6, 4, 3, 2])
+        expect(c.recent[0]).toEqual({ id: 5, title: '', url: '/u' })
+        expect(JSON.parse(localStorage.getItem('fateh_dms_recent'))).toEqual(c.recent)
+        c.clearRecent()
+        expect(c.recent).toEqual([])
+        expect(localStorage.getItem('fateh_dms_recent')).toBeNull()
+    })
+
+    test('init restores stored recent and falls back to [] on invalid JSON', () => {
+        localStorage.setItem('fateh_dms_recent', JSON.stringify([{ id: 1, title: 'a', url: '' }]))
+        const c = make()
+        c.init()
+        expect(c.recent).toEqual([{ id: 1, title: 'a', url: '' }])
+        localStorage.setItem('fateh_dms_recent', '{bad')
+        const d = make()
+        d.init()
+        expect(d.recent).toEqual([])
+    })
+
     test('toggleMaximize opens with layout hidden, then closes via maxLeaving after the delay', () => {
         const c = make()
         c.init()

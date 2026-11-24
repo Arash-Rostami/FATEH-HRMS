@@ -3,7 +3,7 @@
         [
             'icon' => 'description',
             'label' => '«یک سند» چیست؟',
-            'hint' => 'هر ردیف از جدول <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">dms</code> یک سند رسمی است: عنوان، کد یکتا، نسخه، وضعیت، فایل اصلی، فایل‌های الحاقی، واحدهای مالک، کاربران اختصاصی، توضیحات بازبینی و دو فیلد کلید/مقدارِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra</code> و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">tags</code>. اسناد در پنل کاربری به‌صورت دو زبانهٔ «اسناد» و «سوابق» نمایش داده می‌شوند.',
+            'hint' => 'برای ثبت سند، عنوان، کد، نسخه و فایل اصلی را وارد کنید. مخاطبان سند را در «مالکیت و دسترسی» مشخص کنید. در صورت نیاز، پیوست یا توضیحات بازبینی اضافه کنید.',
         ],
         [
             'icon' => 'account_tree',
@@ -13,17 +13,17 @@
         [
             'icon' => 'sync',
             'label' => 'سه وضعیت: فعال / در بررسی / منسوخ',
-            'hint' => 'وضعیت از نوع <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">DocumentStatus</code> است. تنها اسنادِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">live</code> در پنل کاربری دیده می‌شوند (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">scopeVisibleToUser</code> وضعیت را فیلتر می‌کند). <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">under_review</code> و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">obsolete</code> از دسترس کاربر خارج‌اند ولی در فهرست ادمین با نشان زرد/قرمز دیده می‌شوند.',
+            'hint' => 'فقط سند «فعال» به مخاطبان نمایش داده می‌شود. سندهای «در حال بررسی» و «منسوخ شده» در فهرست پنل مدیریت باقی می‌مانند.',
         ],
         [
             'icon' => 'verified_user',
             'label' => 'دو تأیید جداگانه برای هر سند',
-            'hint' => 'هر کاربر برای هر سند دو مرحله دارد: «تأیید دریافت» (فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read=true</code> در جدول <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">reads</code>) و «تأیید مطالعه» (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read_count&gt;0</code>). تا هر دو ثبت نشود، سند در کارتابل کاربر «اقدام مورد نیاز» می‌ماند. این مدل در زبانهٔ «تجربهٔ کاربر» کامل توضیح داده شده است.',
+            'hint' => '«تأیید دریافت» و «تأیید مطالعه» جدا ثبت می‌شوند. تا انجام هر دو مرحله، سند در «اقدام مورد نیاز» باقی می‌ماند. جزئیات را در زبانهٔ «تجربهٔ کاربر» ببینید.',
         ],
         [
             'icon' => 'sync',
             'label' => 'تغییر فایل یا بازبینی، تأییدها را بازنشانی می‌کند',
-            'hint' => 'وقتی <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">file</code> یا <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">revision</code> در ویرایش تغییر کند، هookِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">updated</code> همهٔ رکوردهای <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">reads</code> آن سند را به <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read=false, read_count=0</code> برمی‌گرداند و <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">combined_read_count</code> را صفر می‌کند — یعنی کاربران باید سندِ جدید را از نو تأیید کنند.',
+            'hint' => 'با تغییر فایل اصلی یا توضیحات بازبینی، تأییدهای قبلی پاک می‌شوند و شمار مطالعه به صفر برمی‌گردد. کاربران باید نسخهٔ تازه را دوباره دریافت و مطالعه کنند.',
         ],
     ];
 @endphp
@@ -35,7 +35,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«مدیریت اسناد» سامانهٔ انتشار و تأیید اسناد رسمی سازمان است</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        شما (ادمین) سند را با کد، نسخه، فایل و مالکیت واحدها ثبت می‌کنید؛ کاربران آن را در پنل کاربری دیده و در دو مرحله تأیید می‌کنند. این صفحه نظارت کل‌سازمان است: همهٔ اسناد (فعال/در بررسی/منسوخ) را می‌بینید، آمار مطالعه را بازبینی می‌کنید، فایل‌ها را جایگزین می‌کنید و خروجی اکسل می‌گیرید.
+        شما (مدیر سامانه) سند را با کد، نسخه، فایل و مالکیت واحدها ثبت می‌کنید؛ کاربران آن را در پنل کاربری دیده و در دو مرحله تأیید می‌کنند. این صفحه نظارت کل‌سازمان است: همهٔ اسناد (فعال/در بررسی/منسوخ) را می‌بینید، آمار مطالعه را بازبینی می‌کنید، فایل‌ها را جایگزین می‌کنید و خروجی اکسل می‌گیرید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

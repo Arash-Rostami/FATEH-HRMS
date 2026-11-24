@@ -86,6 +86,8 @@ class SearchMessagesAction
                     ->where('recipient_id', $recipientId)
                     ->selectRaw('DATE(created_at) as day, MIN(id) as id')
                     ->groupBy('day')
+                    ->orderByDesc('day')
+                    ->limit(self::DAY_LIMIT)
                     ->get();
 
                 return $direction($authId, $userId)->concat($direction($userId, $authId))
@@ -116,13 +118,13 @@ class SearchMessagesAction
             return [];
         }
 
-        $names = User::getCachedAllOptions();
         $v = implode(':', PollDigestService::versions(["dm:sv:{$authId}", "dm:sv:{$userId}"]));
 
         return Cache::remember(
             "dm:files:{$authId}:{$userId}:{$v}",
             now()->addMinutes(10),
-            function () use ($userId, $authId, $names) {
+            function () use ($userId, $authId) {
+                $names = User::getCachedAllOptions();
                 $direction = fn(int $senderId, int $recipientId) => Message::query()
                     ->from(DB::raw('`messages` FORCE INDEX (`idx_sent_covering`)'))
                     ->select(['id', 'sender_id', 'attachments', 'created_at'])

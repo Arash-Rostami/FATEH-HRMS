@@ -203,6 +203,29 @@ class ChannelResourceTest extends TestCase
         $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $member->id)->value('role'));
     }
 
+    public function test_members_relation_manager_toggle_writing_flips_member_and_viewer_and_skips_the_owner_and_admin_rows()
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $channel = Channel::factory()->ownedBy($owner)->create(['name' => '0-test-rm-writing']);
+        [$member, $admin] = User::factory()->count(2)->create(['status' => 'active'])->all();
+        $channel->memberUsers()->attach($member->id, ['joined_at' => now(), 'entered_at' => now()]);
+        $channel->memberUsers()->attach($admin->id, ['joined_at' => now(), 'entered_at' => now(), 'role' => 'admin']);
+
+        $staff = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'role' => 'admin']);
+        Permission::create(['user_id' => $staff->id, 'is_super_admin' => false, 'abilities' => [['module' => 'channel', 'actions' => ['view', 'update']]]]);
+        $props = ['ownerRecord' => $channel, 'pageClass' => EditChannel::class];
+
+        $component = Livewire::actingAs($staff)->test(ChannelMembersRelationManager::class, $props);
+        $component->assertTableActionHidden('toggleWriting', $owner)->assertTableActionHidden('toggleWriting', $admin)->assertTableActionVisible('toggleWriting', $member);
+
+        $component->callTableAction('toggleWriting', $member);
+        $this->assertSame('viewer', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $member->id)->value('role'));
+        $component->assertTableActionHidden('toggleRole', $member);
+
+        $component->callTableAction('toggleWriting', $member);
+        $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $member->id)->value('role'));
+    }
+
     public function test_type_filter_scopes_list_to_matching_channels()
     {
         $admin = $this->developer();

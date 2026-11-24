@@ -1,25 +1,19 @@
 import maximizeMixin from "../mixins/maximize.js";
 import tableToolsMixin from "../mixins/tableTools.js";
+import recentListMixin from "../mixins/recentList.js";
 import settings from "./settings.js";
-
-const RECENT_KEY = 'fateh_dms_recent';
-const RECENT_MAX = 6;
 
 export default function dms() {
     return {
         ...maximizeMixin('dms'),
         ...tableToolsMixin('dms'),
+        ...recentListMixin({key: 'fateh_dms_recent', max: 6}),
         baseUrl: window.location.origin + '/',
-        recent: [],
 
         init() {
             this.initMaximize();
             this.initTableTools();
-            try {
-                this.recent = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-            } catch (e) {
-                this.recent = [];
-            }
+            this.loadRecent();
         },
 
         destroy() {
@@ -33,21 +27,7 @@ export default function dms() {
 
         recordClick(item) {
             if (!item || !item.id) return;
-            this.recent = this.recent.filter((r) => r.id !== item.id);
-            this.recent.unshift({id: item.id, title: item.title || '', url: item.url || ''});
-            this.recent = this.recent.slice(0, RECENT_MAX);
-            try {
-                localStorage.setItem(RECENT_KEY, JSON.stringify(this.recent));
-            } catch (e) {
-            }
-        },
-
-        clearRecent() {
-            this.recent = [];
-            try {
-                localStorage.removeItem(RECENT_KEY);
-            } catch (e) {
-            }
+            this.pushRecent({id: item.id, title: item.title || '', url: item.url || ''});
         },
 
         confirmAndSend(docId, file) {

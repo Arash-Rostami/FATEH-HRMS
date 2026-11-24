@@ -10,6 +10,7 @@
     ];
     $pin = $p->pinned($contact, $names);
     $canReact = !$this->activeContactArchived;
+    $aiOn = contactAiOn();
 @endphp
 
 <div x-show="typeFilterOpen || typeFilter" x-cloak x-transition
@@ -108,9 +109,12 @@
 
                     @if($msg['is_mine'])
                     <div x-show="editingMsg?.id === {{ $msg['id'] }}" style="display: none;"
-                        class="scroll-my-6 rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
+                        data-edit-box="{{ $msg['id'] }}"
+                        x-bind:class="aiEditBusy && aiEditId === {{ $msg['id'] }} ? 'ai-halo !ring-[color-mix(in_srgb,var(--ai-color)_25%,transparent)]' : ''"
+                        class="relative scroll-my-6 rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-primary)_45%,transparent)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
                         <textarea dir="auto" wire:ignore.self wire:model="edit.editingBody"
                                   aria-label="ویرایش پیام"
+                                  x-bind:disabled="aiEditBusy && aiEditId === {{ $msg['id'] }}"
                                   x-on:keydown.enter="if(!$event.shiftKey && !$event.isComposing){$event.preventDefault();saveEdit({{ $msg['id'] }})}"
                                   x-on:keydown.escape.stop="cancelEdit"
                                   x-effect="if (editingMsg?.id === {{ $msg['id'] }}) openEdit($el)"
@@ -123,6 +127,7 @@
                             <span class="material-symbols-rounded text-[10px]">error</span>{{ $message }}
                         </p>
                         @enderror
+                        @include('livewire.dashboard.messaging.ai-edit', ['msgId' => $msg['id'], 'scope' => 'contact', 'aiOn' => $aiOn, 'part' => 'status'])
                         <div
                             class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
                             <span
@@ -135,11 +140,13 @@
                                 <x-ui.buttons.form x-on:click.prevent="saveEdit({{ $msg['id'] }})"
                                         wire:loading.attr="disabled"
                                         loading="saveEdit"
+                                        x-bind:disabled="aiEditBusy && aiEditId === {{ $msg['id'] }}"
                                         class="px-3.5 py-1.5 h-auto rounded-lg text-[11px] font-semibold transition-all duration-150 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] hover:brightness-110 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
                                     ذخیره
                                 </x-ui.buttons.form>
                             </div>
                         </div>
+                        @include('livewire.dashboard.messaging.ai-edit', ['msgId' => $msg['id'], 'scope' => 'contact', 'aiOn' => $aiOn, 'part' => 'meter'])
                     </div>
                     @endif
 
@@ -162,14 +169,20 @@
                                     <span dir="auto" class="block break-words [unicode-bidi:plaintext]" :style="fontStyle({{ $msg['id'] }})">{!! $msg['body_html'] !!}</span>
                                 @endif
                                 @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])
-                                @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'canReact' => $canReact, 'pinnedId' => $pin['id'] ?? null, 'pinLabel' => 'سنجاق پیام'])
+                                @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'canReact' => $canReact, 'canWrite' => $canReact, 'canForward' => true, 'pinnedId' => $pin['id'] ?? null, 'pinLabel' => 'سنجاق پیام', 'canEnhance' => $aiOn])
                             </div>
 
                                 @include('livewire.dashboard.messaging.reactions', ['msg' => $msg, 'canReact' => $canReact])
 
-                            @if($msg['is_last'])
-                                <div
+                            @if($msg['is_edited'] && !$msg['is_last'])
+                                <div wire:key="contact-msg-edited" class="flex items-center gap-1.5 mt-1.5 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
+                                    <span class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>
+                                </div>
+                            @endif
+                            @if($msg['is_last'] || count($msg['viewed_files']))
+                                <div wire:key="contact-msg-footer"
                                     class="flex items-center gap-1.5 mt-1.5 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
+                                    @if($msg['is_last'])
                                     @if($msg['is_edited'])
                                         <span
                                             class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>
@@ -180,14 +193,66 @@
                                         class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60"
                                         datetime="{{ $msg['datetime'] }}"
                                         dir="ltr">{{ $msg['time'] }}</time>
+                                    @endif
                                     @if($msg['is_mine'])
-                                        <span @class([
-                                                    'material-symbols-rounded text-[13px] transition-colors duration-300',
-                                                    'text-[var(--md-sys-color-primary)]' => $msg['is_read'],
-                                                    'text-[var(--md-sys-color-on-surface-variant)] opacity-70' => !$msg['is_read']
-                                                ])
-                                              title="{{ $msg['is_read'] ? 'خوانده شد: ' . $msg['read_at_label'] : 'ارسال شد' }}">{{ $msg['is_read'] ? 'done_all' : 'done' }}
-                                            </span>
+                                        @if(!$msg['is_read'] && !count($msg['viewed_files']))
+                                            <span wire:key="contact-receipt-sent" class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-on-surface-variant)] opacity-70" title="ارسال شد">done</span>
+                                        @else
+                                            <x-ui.hover-popover wire:key="contact-receipt-{{ $msg['id'] }}" alignment="top-full left-0 mt-2 origin-top-left" width="w-64" surface="default">
+                                                <x-slot:trigger>
+                                                    <span class="flex items-center gap-1">
+                                                        <span @class([
+                                                            'material-symbols-rounded text-[13px]',
+                                                            'text-[var(--md-sys-color-primary)]' => $msg['is_read'],
+                                                            'text-[var(--md-sys-color-on-surface-variant)] opacity-70' => !$msg['is_read'],
+                                                        ])>{{ $msg['is_read'] ? 'done_all' : 'done' }}</span>
+                                                        @if(count($msg['viewed_files']))
+                                                            <span class="w-4 h-4 rounded-md bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] text-[8px] font-bold flex items-center justify-center ring-2 ring-[var(--md-sys-color-surface)]" dir="ltr">{{ convertToPersian(array_sum(array_column($msg['viewed_files'], 'viewer_count'))) }}</span>
+                                                        @endif
+                                                    </span>
+                                                </x-slot:trigger>
+                                                <x-slot:body>
+                                                    <div class="p-2.5 flex flex-col gap-2 max-h-[280px] overflow-y-auto">
+                                                        <div>
+                                                            <p class="px-1 pb-1 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                                                                {{ $msg['is_read'] ? 'خوانده شده توسط' : 'ارسال شد' }}
+                                                            </p>
+                                                            @if($msg['is_read'])
+                                                                <div class="flex items-center gap-2">
+                                                                    <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)] flex-shrink-0">
+                                                                        <x-ui.avatar :existingImage="$names[(int) $contact?->id]['avatar']" :alt="$contact?->name" :inactive="$names[(int) $contact?->id]['inactive']" icon="person" icon-size="text-[8px]" />
+                                                                    </span>
+                                                                    <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] truncate flex-1 min-w-0">{{ $contact?->name }}</span>
+                                                                    <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60 flex-shrink-0" dir="ltr">{{ $msg['read_at_label'] }}</span>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+
+                                                        @if(count($msg['viewed_files']))
+                                                            <div class="h-px bg-[var(--md-sys-color-outline-variant)]/40"></div>
+                                                            @foreach($msg['viewed_files'] as $att)
+                                                                <div>
+                                                                    <p class="px-1 pb-1 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                                                                        دیده شده توسط{{ count($msg['attachments']) > 1 ? ' · ' . $att['name'] : '' }}
+                                                                    </p>
+                                                                    <div class="flex flex-col gap-1.5">
+                                                                        @foreach($att['viewers'] as $viewer)
+                                                                            <div class="flex items-center gap-2">
+                                                                                <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)] flex-shrink-0">
+                                                                                    <x-ui.avatar :existingImage="$viewer['avatar']" :alt="$viewer['name']" :inactive="$viewer['inactive']" icon="person" icon-size="text-[8px]" />
+                                                                                </span>
+                                                                                <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] truncate flex-1 min-w-0">{{ $viewer['name'] }}</span>
+                                                                                <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60 flex-shrink-0" dir="ltr">{{ toJalali($viewer['viewed_at'], 'Y/m/d H:i') }}</span>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        @endif
+                                                    </div>
+                                                </x-slot:body>
+                                            </x-ui.hover-popover>
+                                        @endif
                                     @endif
                                 </div>
                             @endif

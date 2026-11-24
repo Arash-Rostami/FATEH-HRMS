@@ -25,7 +25,7 @@ class SendChannelMessageAction
 
         $channel = Channel::withoutTrashed()
             ->whereKey($channelId)
-            ->whereHas('memberUsers', fn($q) => $q->where('users.id', $senderId))
+            ->writableBy($senderId)
             ->first();
 
         $this->ensureMember($channel);

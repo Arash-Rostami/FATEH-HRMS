@@ -18,12 +18,12 @@ const FALLBACK_STATIONS = {
 
 const STATUS_CLASSES = {
     'در حال پخش':       'bg-green-100 text-green-800',
-    'در حال بافر...':   'bg-yellow-100 text-yellow-800',
-    'در حال تنظیم...':  'bg-blue-100 text-blue-800',
+    'در حال آماده‌سازی پخش…':   'bg-yellow-100 text-yellow-800',
+    'در حال اتصال به ایستگاه…':  'bg-blue-100 text-blue-800',
     'متوقف':            'bg-gray-100 text-gray-800',
     'آماده':            'bg-gray-100 text-gray-800',
-    'خطا':              'bg-red-100 text-red-800',
-    'آفلاین':           'bg-red-100 text-red-800',
+    'پخش ناموفق':              'bg-red-100 text-red-800',
+    'پخش در دسترس نیست':           'bg-red-100 text-red-800',
 };
 
 const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
@@ -151,7 +151,7 @@ export default function radio(id) {
             }
 
             this.isLoading = true;
-            this.status = 'در حال تنظیم...';
+            this.status = 'در حال اتصال به ایستگاه…';
             this.updateDisplay();
 
             let fetched = [];
@@ -206,7 +206,7 @@ export default function radio(id) {
                 }
                 this.status = 'آماده';
             } else {
-                this.status = 'آفلاین';
+                this.status = 'پخش در دسترس نیست';
                 this.updateDisplay();
             }
 
@@ -222,8 +222,8 @@ export default function radio(id) {
 
             const onPlay = () => { this.playing = true; this.status = 'در حال پخش'; this._autoSkipAttempts = 0; this.updateDisplay(); if (this.currentStationUrl) this.saveState(); };
             const onStop = () => { this.playing = false; this.status = 'متوقف';           this.updateDisplay(); if (this.currentStationUrl) this.saveState(); };
-            const onBuffer = () => {                      this.status = 'در حال بافر...'; this.updateDisplay(); };
-            const onError = () => { this.playing = false; this.status = 'خطا'; this.updateDisplay(); if (this.currentStationUrl) this.saveState(); if (this._playIntent) this.autoSkipOnFailure(); };
+            const onBuffer = () => {                      this.status = 'در حال آماده‌سازی پخش…'; this.updateDisplay(); };
+            const onError = () => { this.playing = false; this.status = 'پخش ناموفق'; this.updateDisplay(); if (this.currentStationUrl) this.saveState(); if (this._playIntent) this.autoSkipOnFailure(); };
 
             this.audio.addEventListener('playing', onPlay);
             this.audio.addEventListener('pause', onStop);
@@ -255,7 +255,7 @@ export default function radio(id) {
             this._autoSkipAttempts++;
             if (this._autoSkipAttempts > this.stations.length) {
                 this._autoSkipAttempts = 0;
-                this.status = 'آفلاین';
+                this.status = 'پخش در دسترس نیست';
                 this.updateDisplay();
                 return;
             }
@@ -271,7 +271,7 @@ export default function radio(id) {
             this.audio.play().catch((e) => {
                 if (e?.name === 'AbortError') return;
                 this.playing = false;
-                this.status = 'خطا';
+                this.status = 'پخش ناموفق';
                 this.updateDisplay();
             });
         },
@@ -288,7 +288,7 @@ export default function radio(id) {
             }
 
             const wasPlaying = this.playing;
-            this.status = 'در حال تنظیم...';
+            this.status = 'در حال اتصال به ایستگاه…';
             this.updateDisplay();
             if (wasPlaying) this.audio.pause();
 
@@ -299,7 +299,7 @@ export default function radio(id) {
                 this._playIntent = true;
                 this.audio.play().catch((e) => {
                     if (e?.name === 'AbortError') return;
-                    this.status = 'خطا';
+                    this.status = 'پخش ناموفق';
                     this.playing = false;
                     this.updateDisplay();
                 });
@@ -332,7 +332,7 @@ export default function radio(id) {
             this._playIntent = true;
             this.audio.play().catch((e) => {
                 if (e?.name === 'AbortError') return;
-                this.status = 'خطا';
+                this.status = 'پخش ناموفق';
                 this.playing = false;
                 this.updateDisplay();
             });

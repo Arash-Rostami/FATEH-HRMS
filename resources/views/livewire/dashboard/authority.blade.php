@@ -10,7 +10,7 @@
 >
     <div class="max-w-[88rem] mx-auto page-wrapper">
 
-        <x-ui.title
+        <x-ui.title guide="authority"
                 icon="verified_user"
                 title="اختیارات سازمانی"
                 :count="$this->totalCount"
@@ -40,8 +40,8 @@
 
             <x-ui.buttons.tab-selector
                     :tabs="[
-                        ['id' => 'employee', 'icon' => 'person',          'label' => 'منظر اجمالی'],
-                        ['id' => 'manager',  'icon' => 'manage_accounts', 'label' => 'منظر مدیریتی'],
+                        ['id' => 'employee', 'icon' => 'person',          'label' => 'نمای خلاصه'],
+                        ['id' => 'manager',  'icon' => 'manage_accounts', 'label' => 'نمای جزئیات'],
                     ]"
                     :activeTab="$activeTab"
             />

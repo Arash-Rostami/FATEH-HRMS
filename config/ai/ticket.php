@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'daily_cap' => 20,
-    'timeout' => 10,
-    'connect_timeout' => 3,
+    'daily_cap' => 5,
+    'timeout' => 45,
+    'connect_timeout' => 10,
     'down_for' => 30,
-    'max_output' => 900,
+    'max_output' => 2048,
     'cooldown' => 3,
     'input_max' => 1500,
     'no_refund' => ['blocked'],

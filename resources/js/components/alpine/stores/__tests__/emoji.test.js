@@ -14,6 +14,13 @@ describe('emoji.js — static data module (no Alpine.store registration, no logi
         }
     })
 
+    test('flower and office groups stay in the chat picker', () => {
+        const byCat = Object.fromEntries(emojis.map((group) => [group.cat, group.items]))
+
+        expect(byCat['🌸']).toEqual(['🌸', '🌹', '🌺', '🌻', '🌷', '💐', '🍀', '🌿'])
+        expect(byCat['📎']).toEqual(['📎', '📌', '📝', '📅', '⏰', '🔔', '🔒', '✉️'])
+    })
+
     test('feedEmojis is a flat non-empty array of emoji strings', () => {
         expect(Array.isArray(feedEmojis)).toBe(true)
         expect(feedEmojis.length).toBeGreaterThan(0)

@@ -16,9 +16,10 @@
  */
 
 return [
-    'daily_cap' => 6,
+    'daily_cap' => 5,
+    'cooldown' => 3,
     'model' => env('AI_CORRESPONDENCE_MODEL'),
-    'timeout' => 120,
+    'timeout' => 45,
     'connect_timeout' => 10,
     'max_output' => 16384,
     'stale_minutes' => 5,

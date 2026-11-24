@@ -69,7 +69,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                اگر کاربر می‌گوید «نمودار خالی است»، یا هنوز پاسخ‌نامه‌ای ثبت نکرده یا در ۱۸ ماه اخیر پاسخی ندارد. آخرین پاسخ‌نامهٔ او را در جدول ادمین بیابید و تاریخ تکمیل را بازبینی کنید.
+                اگر کاربر می‌گوید «نمودار خالی است»، یا هنوز پاسخ‌نامه‌ای ثبت نکرده یا در ۱۸ ماه اخیر پاسخی ندارد. آخرین پاسخ‌نامهٔ او را در جدول مدیر سامانه بیابید و تاریخ تکمیل را بازبینی کنید.
             </p>
         </div>
     </div>

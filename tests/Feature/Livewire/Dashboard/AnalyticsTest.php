@@ -99,10 +99,10 @@ class AnalyticsTest extends TestCase
         Livewire::actingAs($user)
             ->test(Main::class)
             ->assertSuccessful()
-            ->assertSee('تحلیل‌های ترکیب جمعیتی و جایگاه')
-            ->assertSee('تحلیل‌های صلاحیت، سابقه و تخصص')
-            ->assertSee('تحلیل‌های سلامت واحدها')
-            ->assertSee('تحلیل‌های حضور و مشارکت')
+            ->assertSee('ترکیب کارکنان و جایگاه سازمانی')
+            ->assertSee('تحصیلات، سابقه و تخصص')
+            ->assertSee('ترکیب کارکنان واحدها')
+            ->assertSee('حضور و اطلاعات کارکنان')
             ->assertSee('توزیع جایگاه سازمانی به تفکیک جنسیت');
     }
 

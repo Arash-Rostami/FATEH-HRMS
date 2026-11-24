@@ -14,7 +14,7 @@
         ];
     @endphp
 
-    <x-ui.title
+    <x-ui.title guide="gallery"
         icon="photo_library"
         title="گالری"
         :count="$this->totalPhotos"
@@ -23,7 +23,7 @@
             <x-ui.buttons.view-toggle module="gallery" :modes="$viewModes" />
             <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
             <x-ui.month-filter :months="$months" />
-            <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'filmstrip'" x-cloak/>
+            <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش یا پنهان‌کردن نوار تاریخ" x-show="view === 'filmstrip'" x-cloak/>
 
             <button
                 type="button"

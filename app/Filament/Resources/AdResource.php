@@ -38,7 +38,7 @@ class AdResource extends Resource
 
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'campaign', 'view' => 'filament.resources.ad.guide.overview'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.ad.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.ad.guide.admin-ops'],
         ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'view_list', 'view' => 'filament.resources.ad.guide.list-tabs'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.ad.guide.user'],
     ];

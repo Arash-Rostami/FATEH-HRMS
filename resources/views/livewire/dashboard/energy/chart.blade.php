@@ -176,8 +176,9 @@
                         {{ convertToPersian((string) count($personalHistory)) }}
                     </span>
                     @php
-                        $bestEntry = collect($personalHistory)->sortByDesc('overall')->first();
-                        $worstEntry = collect($personalHistory)->sortBy('overall')->first();
+                        $extremes = $presenter->historyExtremes($personalHistory);
+                        $bestEntry = $extremes['best'];
+                        $worstEntry = $extremes['worst'];
                     @endphp
                     <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)]/60 text-[var(--md-sys-color-on-primary-container)]"
                           title="بهترین امتیاز کل پاسخ‌نامه‌های شما">

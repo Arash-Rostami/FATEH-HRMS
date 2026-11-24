@@ -112,7 +112,12 @@ export default function mobile(initialPage = 0, pageTwoKeys = []) {
                 const detail = e.detail;
                 if (!detail || detail.on === undefined) return;
                 if (detail.on) {
-                    const preset = this.labelPreset;
+                    let stored = null;
+                    try {
+                        stored = localStorage.getItem(STORAGE_KEY);
+                    } catch (err) {
+                    }
+                    const preset = stored === PRESET_ALL || stored === PRESET_ICONS ? stored : this.labelPreset;
                     if (preset !== PRESET_SMART) this._preDeclutterPreset = preset;
                     this.setLabelPreset(PRESET_SMART);
                 } else {

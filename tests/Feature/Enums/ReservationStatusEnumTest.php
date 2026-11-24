@@ -47,7 +47,7 @@ class ReservationStatusEnumTest extends TestCase
         $this->assertSame('فعال', ReservationStatus::Active->getLabel());
         $this->assertSame('آزادشده', ReservationStatus::Released->getLabel());
         $this->assertSame('لغو توسط کاربر', ReservationStatus::CancelledUser->getLabel());
-        $this->assertSame('لغو توسط ادمین', ReservationStatus::CancelledAdmin->getLabel());
+        $this->assertSame('لغو توسط مدیریت', ReservationStatus::CancelledAdmin->getLabel());
     }
 
     public function test_get_color_returns_distinct_filament_color_per_case(): void

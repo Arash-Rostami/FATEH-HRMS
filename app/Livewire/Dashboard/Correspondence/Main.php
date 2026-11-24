@@ -439,7 +439,14 @@ class Main extends Component
 
     public function render(): View
     {
-        return view('livewire.dashboard.correspondence', ['presenter' => $this->presenter()])
+        $presenter = $this->presenter();
+
+        return view('livewire.dashboard.correspondence', [
+            'presenter' => $presenter,
+            'poll' => $presenter->pollSeconds(),
+            'classic' => $presenter->classicTabItems(),
+            'listTabs' => $presenter->listTabItems(),
+        ])
             ->extends('layouts.app')
             ->section('content');
     }

@@ -21,6 +21,7 @@ const INCOMING_DEDUPE_MS = 1500;
 const RETURN_RING_GRACE_MS = 8000;
 const POLL_JITTER = 0.2;
 const POLL_JITTER_HIDDEN = 0.5;
+const SAFETY_POLL_MS = 5 * 60 * 1000;
 const TYPING_PING_MS = 3000;
 
 const EVENT_TOAST = 'toast';
@@ -29,6 +30,7 @@ const GHOST_TICK_MS = 1000;
 const GHOST_BUBBLE_CLASS = 'px-4 py-2.5 text-sm leading-relaxed break-words whitespace-pre-wrap rounded-2xl bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)] [unicode-bidi:plaintext]';
 const GHOST_HTML = `<div class="flex-shrink-0 w-7"></div><div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%]"><div dir="auto" class="${GHOST_BUBBLE_CLASS}"></div><div class="flex items-center gap-1.5 mt-1.5 justify-start pl-1"><span class="material-symbols-rounded text-[13px] opacity-50">schedule</span><time dir="ltr" class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60"></time></div></div>`;
 const DAYS_CLIENT_TTL_MS = 300000;
+const LEAVE_DRAFT_MS = 4000;
 const SETTLE_STOP_EVENTS = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
 const MSG_ROW_SEL = '[data-rf*="message-"]';
 const UNREAD_ID_SEL = '[data-unread-id]';
@@ -71,6 +73,7 @@ const FONT_KEY_RE = /^[a-z][a-z0-9-]{0,40}$/;
 
 export default function chatBase(scope) {
     const settingsKey = 'chat-settings:' + scope;
+    const BOOKMARKS = scope === 'channel' ? 'channel-message' : 'message';
 
     return {
         ...highlightMatchMixin(),
@@ -169,6 +172,7 @@ export default function chatBase(scope) {
         filesFilter: 'all',
         filesList: [],
         filesLoading: false,
+        filesError: false,
         showUndo: false,
         undoTimeout: null,
         sending: false,
@@ -195,12 +199,18 @@ export default function chatBase(scope) {
         _loadingOlder: false,
         _loadingNewer: false,
         _selfMarker: null,
+        _markerAdvanced: (after, before) => idOf(after) > idOf(before),
+        chars: (text) => Array.from(text || '').length,
         _selRaf: null,
         _pollIntervalMs: POLL_BASE_MS,
         _lastTypingPing: 0,
         _pollInFlight: false,
         _repollQueued: false,
         _destroyed: false,
+        _navigating: false,
+        _leaveArm: null,
+        _leaveUntil: 0,
+        _navWatch: false,
         _ghost: null,
 
         pingTyping() {
@@ -211,7 +221,22 @@ export default function chatBase(scope) {
         },
 
         startPolling() {
-            if (this._destroyed || this._timer !== null) return;
+            if (this._destroyed || this._navigating || this._timer !== null) return;
+            if (!this._navWatch) {
+                this._navWatch = true;
+                const resume = () => {
+                    if (this._destroyed) return;
+                    this._navigating = false;
+                    this._navWatch = false;
+                    this.startPolling();
+                };
+                document.addEventListener('livewire:navigate', () => {
+                    this._navigating = true;
+                    this.stopPolling();
+                }, { once: true });
+                document.addEventListener('livewire:navigate-failed', resume, { once: true });
+                document.addEventListener('livewire:navigate-aborted', resume, { once: true });
+            }
             this._schedulePollTick();
         },
 
@@ -226,6 +251,11 @@ export default function chatBase(scope) {
         },
 
         async _runPollTick(force = false) {
+            if (this._navigating) return;
+            if (document.hidden && this.$store?.push && !this.$store.push.pollsHidden(scope)) {
+                this.stopPolling();
+                return;
+            }
             if (this._pollInFlight) {
                 if (force) this._repollQueued = true;
                 return;
@@ -256,6 +286,7 @@ export default function chatBase(scope) {
         },
 
         _syncSidebarAfterOwnAction(wire = this.$wire) {
+            this._dropFiles();
             this._repollNow(false);
             wire.$island('sidebar').refreshUnread().catch(() => {});
         },
@@ -346,7 +377,8 @@ export default function chatBase(scope) {
 
         _schedulePollTick() {
             const spread = document.hidden ? POLL_JITTER_HIDDEN : POLL_JITTER;
-            const delay = this._pollIntervalMs * (1 - spread / 2 + Math.random() * spread);
+            const base = document.hidden && this.$store?.push?.live ? SAFETY_POLL_MS : this._pollIntervalMs;
+            const delay = base * (1 - spread / 2 + Math.random() * spread);
             clearTimeout(this._timer);
             this._timer = setTimeout(() => {
                 this._runPollTick().finally(() => {
@@ -386,9 +418,7 @@ export default function chatBase(scope) {
             return n;
         },
 
-        _conv() {
-            const wire = this.$wire;
-
+        _conv(wire = this.$wire) {
             return [wire.activeChannelId, wire.activeUserId].find(Number.isInteger) ?? null;
         },
 
@@ -420,7 +450,7 @@ export default function chatBase(scope) {
             this._swipeAc?.abort();
             this._swipeAc = new AbortController();
             const { signal } = this._swipeAc;
-            const sw = { on: false, engaged: false, row: null, bubble: null, id: null, x0: 0, y0: 0, dx: 0 };
+            const sw = { on: false, engaged: false, row: null, bubble: null, id: null, pid: null, x0: 0, y0: 0, dx: 0 };
 
             const reset = () => {
                 if (!sw.on) return;
@@ -439,13 +469,13 @@ export default function chatBase(scope) {
                 const row = e.target.closest?.(MSG_ROW_SEL);
                 if (!row || !row.closest(`#${ID_VIEWPORT}`)) return;
                 const bubble = row.querySelector('.msg-bubble');
-                if (!bubble) return;
-                sw.on = true; sw.row = row; sw.bubble = bubble; sw.id = idOf(row.dataset.rf);
+                if (!bubble || !row.querySelector('button[data-body]')) return;
+                sw.on = true; sw.row = row; sw.bubble = bubble; sw.id = idOf(row.dataset.rf); sw.pid = e.pointerId;
                 sw.x0 = e.clientX; sw.y0 = e.clientY; sw.dx = 0;
             }, { passive: true, signal });
 
             document.addEventListener('pointermove', (e) => {
-                if (!sw.on) return;
+                if (!sw.on || e.pointerId !== sw.pid) return;
                 const dx = e.clientX - sw.x0;
                 const dy = e.clientY - sw.y0;
                 if (!sw.engaged && (Math.abs(dx) < SWIPE_ACTIVATE_PX || Math.abs(dx) <= Math.abs(dy))) return;
@@ -455,17 +485,18 @@ export default function chatBase(scope) {
                 sw.bubble.style.transform = `translateX(${sw.dx}px)`;
             }, { passive: true, signal });
 
-            document.addEventListener('pointerup', () => {
-                if (!sw.on) return;
+            document.addEventListener('pointerup', (e) => {
+                if (!sw.on || e.pointerId !== sw.pid) return;
                 const { row, id, dx, engaged } = sw;
                 const commit = engaged && Math.abs(dx) >= SWIPE_COMMIT_PX;
                 reset();
                 if (!commit) return;
                 const btn = row.querySelector('button[data-body]');
-                this.startReply(id, btn?.dataset.sender, btn?.dataset.body);
+                if (!btn) return;
+                this.startReply(id, btn.dataset.sender, btn.dataset.body);
             }, { signal });
 
-            document.addEventListener('pointercancel', reset, { signal });
+            document.addEventListener('pointercancel', (e) => { if (e.pointerId === sw.pid) reset(); }, { signal });
         },
 
         async loadOlderKeepingPlace(load) {
@@ -657,7 +688,7 @@ export default function chatBase(scope) {
             this.daysOpen = false;
             const found = [];
             const missing = [];
-            for (const id of this.$store.pinned.getPinned('message')) {
+            for (const id of this.$store.pinned.getPinned(BOOKMARKS)) {
                 const btn = document.querySelector(`[data-rf$="message-${id}"] button[data-sender]`);
                 if (btn) found.push({ id, body: btn.dataset.body, sender_name: btn.dataset.sender, time: '' });
                 else missing.push(id);
@@ -670,7 +701,7 @@ export default function chatBase(scope) {
             this.$wire?.$island('messages').bookmarks(missing)
                 .then(list => {
                     if (token !== this._bookmarkToken || !this.bookmarksOpen || !Array.isArray(list)) return;
-                    const live = (b) => this.$store.pinned.isPinned(b.id, 'message');
+                    const live = (b) => this.$store.pinned.isPinned(b.id, BOOKMARKS);
                     this.bookmarkList = [...found, ...list].filter(live).sort(byNewest);
                 })
                 .catch(() => {});
@@ -691,7 +722,7 @@ export default function chatBase(scope) {
             for (const { day, id } of days) {
                 const d = new Date(`${day}T00:00:00`);
                 const monthLabel = f.month.format(d);
-                if (monthLabel !== month) rows.push({ header: true, day: `m-${day.slice(0, 7)}`, label: month = monthLabel });
+                if (monthLabel !== month) rows.push({ header: true, day: `m-${monthLabel}`, label: month = monthLabel });
                 const diff = Math.round((today - d) / 864e5);
                 rows.push({
                     day, id,
@@ -766,6 +797,33 @@ export default function chatBase(scope) {
             chip._burstTimer = setTimeout(() => chip.classList.remove('burst-now'), 1100);
         },
 
+        resetRoomScoped() {
+            this.filesOpen = false;
+            this.filesList = [];
+            this.filesLoading = false;
+            this.filesError = false;
+            this._filesToken = (this._filesToken || 0) + 1;
+            this.bookmarkList = [];
+            this._bookmarkToken = (this._bookmarkToken || 0) + 1;
+            this.typeFilter = '';
+            this.typeFilterOpen = false;
+        },
+
+        _editDirty() { return false; },
+
+        holdDraft(id, el, wire = this.$wire) {
+            const dirty = (el?.value ?? '').trim() !== '' || (wire.composer?.attachments?.length ?? 0) > 0 || this._editDirty(wire);
+            if (!dirty) return false;
+            if (this._leaveArm === id && Date.now() < this._leaveUntil) {
+                this._leaveArm = null;
+                return false;
+            }
+            this._leaveArm = id;
+            this._leaveUntil = Date.now() + LEAVE_DRAFT_MS;
+            this.toast('تغییرهای ذخیره‌نشده یا پیام ارسال‌نشده پاک می‌شود. برای خروج از این گفتگو، دوباره بزنید.', 'warning');
+            return true;
+        },
+
         jumpToDay(item) {
             if (!item?.id) return;
             this.daysOpen = false;
@@ -791,6 +849,7 @@ export default function chatBase(scope) {
 
             this.filesList = stale ? [] : cached.list;
             this.filesLoading = stale;
+            this.filesError = false;
 
             this.$wire?.$island('messages').files()
                 .then(list => {
@@ -798,8 +857,40 @@ export default function chatBase(scope) {
                     this.filesList = list;
                     this._filesCache = { conv, at: Date.now(), list };
                 })
-                .catch(() => {})
+                .catch(() => { if (token === this._filesToken) this.filesError = true; })
                 .finally(() => { if (token === this._filesToken) this.filesLoading = false; });
+        },
+
+        _dropFiles() {
+            const loading = this.filesLoading;
+            this._filesCache = null;
+            this._filesToken = (this._filesToken || 0) + 1;
+            this.filesLoading = false;
+            if (loading && this.filesOpen) this.retryFiles();
+        },
+
+        retryFiles() {
+            this.filesOpen = false;
+            this.toggleFiles();
+        },
+
+        downloadingAttachments: false,
+        async downloadMessageFiles(msgId, indices) {
+            if (this.downloadingAttachments) return;
+            const wire = this.$wire;
+            const conv = this._conv(wire);
+            this.downloadingAttachments = true;
+            this.open = false;
+            try {
+                for (const index of indices) {
+                    if (!wire.$el.isConnected || conv !== this._conv(wire)) break;
+                    await wire.$island('messages').downloadAttachment(msgId, index);
+                }
+            } catch {
+                this.toast('دانلود متوقف شد. فایل‌های باقی‌مانده را جداگانه دانلود کنید.', 'error');
+            } finally {
+                this.downloadingAttachments = false;
+            }
         },
 
         downloadGalleryFile(msgId, index) {
@@ -807,7 +898,7 @@ export default function chatBase(scope) {
         },
 
         removeBookmark(id) {
-            if (this.$store.pinned.isPinned(id, 'message')) this.$store.pinned.togglePin(id, 'message');
+            if (this.$store.pinned.isPinned(id, BOOKMARKS)) this.$store.pinned.togglePin(id, BOOKMARKS);
             this.bookmarkList = this.bookmarkList.filter(b => b.id !== id);
         },
 
@@ -826,7 +917,9 @@ export default function chatBase(scope) {
             const s = ta.selectionStart;
             const val = ta.value;
 
-            this.$wire.set('composer.body', val.substring(0, s) + e + val.substring(s));
+            const next = val.substring(0, s) + e + val.substring(s);
+            ta.value = next;
+            this.$wire.set('composer.body', next, false);
 
             this.$nextTick(() => {
                 ta.focus();

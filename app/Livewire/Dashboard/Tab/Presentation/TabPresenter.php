@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\Menu\StateService;
 use App\Support\LaunchpadAccessPolicy;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -198,6 +199,24 @@ class TabPresenter
             ->sortBy(fn (array $item) => array_search($item['group'], array_keys(self::GADGET_GROUPS), true))
             ->values()
             ->all();
+    }
+
+    public function recentUpdate(): ?Carbon
+    {
+        $updatedAt = rescue(fn () => Carbon::parse(config('app.last_update')), null, false);
+
+        return $updatedAt && $updatedAt->gt(now()->subHours(84)) ? $updatedAt : null;
+    }
+
+    public function gadgetPicker(array $catalog): array
+    {
+        $counts = collect($catalog)->countBy('group');
+
+        return [
+            'multi' => $counts->count() > 1,
+            'rows' => collect($catalog)->map(fn ($i) => ['g' => $i['group'], 's' => $i['src'], 'f' => mb_strtolower(trim($i['title'] . ' ' . $i['subtitle'] . ' ' . $i['badge']))])->all(),
+            'tabs' => collect(self::GADGET_GROUPS)->filter(fn ($g, $key) => $counts->has($key))->map(fn ($g, $key) => ['id' => $key, 'icon' => $g['icon'], 'label' => $g['tab'], 'description' => $g['label'], 'alpine' => "tab = '{$key}'", 'activeExpr' => "tab === '{$key}'", 'countExpr' => "count('{$key}')"])->values()->all(),
+        ];
     }
 
     private function launchpadOptions(): Collection

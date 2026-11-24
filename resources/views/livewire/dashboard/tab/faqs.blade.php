@@ -8,7 +8,7 @@
 >
 
     <div class="pb-0 shrink-0">
-        <x-ui.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال">
+        <x-ui.title guide="faq" icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال">
             <x-slot:actions>
                 <x-ui.buttons.view-toggle module="faq"/>
                 <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>

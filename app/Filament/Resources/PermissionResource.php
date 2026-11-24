@@ -43,7 +43,7 @@ class PermissionResource extends Resource
         ['label' => 'بررسی', 'icon' => 'verified_user', 'view' => 'filament.resources.permission.guide.overview'],
         ['label' => 'دو سطح دسترسی', 'icon' => 'key', 'view' => 'filament.resources.permission.guide.tiers'],
         ['label' => 'قوانین دسترسی در عمل', 'icon' => 'policy', 'view' => 'filament.resources.permission.guide.access-rules'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.permission.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.permission.guide.admin-ops'],
         ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.permission.guide.list-tabs'],
     ];
 

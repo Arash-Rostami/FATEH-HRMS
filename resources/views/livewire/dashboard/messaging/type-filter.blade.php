@@ -8,7 +8,8 @@
     ];
 @endphp
 <div class="flex-shrink-0 flex items-center gap-1.5">
-    <span class="material-symbols-rounded text-[15px] text-[var(--md-sys-color-on-surface-variant)] opacity-50" title="فیلتر نوع محتوا">filter_alt</span>
+    <span class="material-symbols-rounded text-[15px] text-[var(--md-sys-color-on-surface-variant)] opacity-50" title="فیلتر نوع محتوا (فقط پیام‌های بارگذاری‌شده)">filter_alt</span>
+    <span class="hidden md:inline text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-60">فقط پیام‌های بارگذاری‌شده</span>
     @foreach($types as $t)
         <button type="button"
                 x-on:click="toggleTypeFilter('{{ $t['key'] }}')"

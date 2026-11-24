@@ -7,7 +7,7 @@
     gap="gap-0"
     dir="rtl"
 >
-    <x-ui.title
+    <x-ui.title guide="feed"
         icon="rss_feed"
         title="اخبار و فیدها"
         :count="$this->totalFeeds">
@@ -21,7 +21,7 @@
             @endphp
             <x-ui.buttons.view-toggle module="feed" :modes="$viewModes" />
             <x-ui.month-filter :months="$months" />
-            <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'filmstrip'" x-cloak/>
+            <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش یا پنهان‌کردن نوار تاریخ" x-show="view === 'filmstrip'" x-cloak/>
 
             <button
                 type="button"

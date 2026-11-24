@@ -4,7 +4,7 @@
     $historyWorkflows = $this->historyWorkflows;
     $templates = $this->templates;
     $memberCandidates = $this->memberCandidates;
-    $memberNames = collect($memberCandidates)->pluck('name', 'id');
+    $memberNames = $workflowPresenter->memberNames($memberCandidates);
     $batchedTasks = $this->batchedTasks;
     $batchedUserNames = $this->batchedUserNames;
     $templateAverages = $this->templateAverages;

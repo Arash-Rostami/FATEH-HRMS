@@ -52,4 +52,10 @@ return [
     'ai_assistant' => [
         'url' => config('app.ai_assistant_url'),
     ],
+
+    'webpush' => [
+        'public' => env('VAPID_PUBLIC_KEY'),
+        'private' => env('VAPID_PRIVATE_KEY'),
+        'subject' => env('VAPID_SUBJECT'),
+    ],
 ];

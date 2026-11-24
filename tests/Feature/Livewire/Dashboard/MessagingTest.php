@@ -147,6 +147,16 @@ class MessagingTest extends TestCase
         $this->assertStringContainsString('data-body="Original text"', $actions);
     }
 
+    public function test_copy_text_carries_the_original_characters_not_encoded_entities(): void
+    {
+        $msg = ['id' => 6, 'is_mine' => false, 'body' => 'Tom & Jerry <3', 'body_html' => 'Tom &amp; Jerry &lt;3', 'forwarded_html' => null, 'reactions' => [], 'can_edit' => false, 'can_delete' => false, 'sender_name' => 'S'];
+
+        $html = view('livewire.dashboard.messaging.message-actions', ['msg' => $msg])->render();
+
+        $this->assertStringContainsString('data-text="Tom &amp; Jerry &lt;3"', $html);
+        $this->assertStringNotContainsString('&amp;amp;', $html);
+    }
+
     public static function inaccessibleForwardSources(): array
     {
         return [

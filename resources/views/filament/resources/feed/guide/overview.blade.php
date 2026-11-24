@@ -5,7 +5,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«فید» یک پست سازمانی است: متن، رسانه و در صورت نیاز یک نظرسنجی</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر فید توسط یک کاربر منتشر می‌شود و در یکی از پنج دسته قرار می‌گیرد. کاربران فیدها را در پنل کاربری (زبانهٔ اخبار) می‌بینند و می‌توانند نظر بدهند، ریاکشن نشان دهند و در نظرسنجی رأی بدهند. شما در این صفحه کل فیدها را نظارت می‌کنید: محتوا را بازبینی، ویرایش یا حذف می‌کنید و خروجی اکسل می‌گیرید.
+        هر فید توسط یک کاربر منتشر می‌شود و در یکی از پنج دسته قرار می‌گیرد. کاربران فیدها را در پنل کاربری (زبانهٔ اخبار) می‌بینند و می‌توانند نظر بدهند، واکنش نشان دهند و در نظرسنجی رأی بدهند. شما در این صفحه کل فیدها را نظارت می‌کنید: محتوا را بازبینی، ویرایش یا حذف می‌کنید و خروجی اکسل می‌گیرید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -20,7 +20,7 @@
                     ['emoji' => '📅', 'label' => 'رویداد', 'hint' => 'اطلاع‌رسانی رویداد.'],
                     ['emoji' => '🎂', 'label' => 'تولد', 'hint' => 'تبریک تولد همکار.'],
                     ['emoji' => '🏆', 'label' => 'سالگرد کاری', 'hint' => 'جشن سالگرد استخدام.'],
-                    ['emoji' => '📊', 'label' => 'نظرسنجی', 'hint' => 'فقط این دسته نظرسنجی دارد: تک‌انتخابی/چندانتخابی و فعال/غیرفعال بودن نظر و ریاکشن.'],
+                    ['emoji' => '📊', 'label' => 'نظرسنجی', 'hint' => 'فقط این دسته نظرسنجی دارد: تک‌انتخابی/چندانتخابی و فعال/غیرفعال بودن نظر و واکنش.'],
                 ];
             @endphp
             @foreach($cats as $c)
@@ -73,7 +73,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">نظرسنجی (فقط دستهٔ نظرسنجی)</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">در دستهٔ نظرسنجی، گزینه‌ها و تنظیمات رأی‌گیری، نظر و ریاکشن را مشخص کنید.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">در دستهٔ نظرسنجی، گزینه‌ها و تنظیمات رأی‌گیری، نظر و واکنش را مشخص کنید.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
@@ -83,15 +83,15 @@
                     </span>
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">نظر، ریاکشن و رأی</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر فید سه بخش وابسته دارد: نظرات (با پاسخ‌ها)، نظرسنجی‌ها (رأی‌های کاربران) و ریاکشن‌ها (ایموجی). تعداد هر سه در جدول و صفحهٔ جزئیات دیده می‌شود.</p>
+                    <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">نظر، واکنش و رأی</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر فید سه بخش وابسته دارد: نظرات (با پاسخ‌ها)، نظرسنجی‌ها (رأی‌های کاربران) و واکنش‌ها (ایموجی). تعداد هر سه در جدول و صفحهٔ جزئیات دیده می‌شود.</p>
                 </div>
             </div>
         </div>
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                حذف یک فید، همهٔ نظرات، ریاکشن‌ها و رأی‌های آن را هم پاک می‌کند. خروجی اکسل فقط متن پاک‌شده و شمارش‌ها را صادر می‌کند، نه رسانه را.
+                حذف یک فید، همهٔ نظرات، واکنش‌ها و رأی‌های آن را هم پاک می‌کند. خروجی اکسل فقط متن پاک‌شده و شمارش‌ها را صادر می‌کند، نه رسانه را.
             </p>
         </div>
     </div>

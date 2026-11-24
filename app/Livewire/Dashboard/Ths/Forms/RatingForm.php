@@ -15,17 +15,17 @@ class RatingForm extends Form
 
     public function validationAttributes(): array
     {
-        return ['score' => 'امتیاز رضایت', 'comment' => 'توضیح رضایت'];
+        return ['score' => 'امتیاز رضایت', 'comment' => 'توضیح ارزیابی'];
     }
 
     protected function messages(): array
     {
         return [
-            'score.required' => 'لطفاً امتیاز رضایت را انتخاب کنید.',
-            'score.integer' => 'امتیاز باید یک عدد صحیح باشد.',
-            'score.min' => 'امتیاز باید حداقل ۱ باشد.',
-            'score.max' => 'امتیاز نمی‌تواند بیشتر از ۵ باشد.',
-            'comment.max' => 'توضیحات نمی‌تواند بیش از ۱۰۰۰ کاراکتر باشد.',
+            'score.required' => 'برای ثبت ارزیابی، یک امتیاز انتخاب کنید.',
+            'score.integer' => 'یکی از امتیازهای ۱ تا ۵ را انتخاب کنید.',
+            'score.min' => 'کمترین امتیاز ۱ است.',
+            'score.max' => 'بیشترین امتیاز ۵ است.',
+            'comment.max' => 'توضیح را در حداکثر ۱۰۰۰ نویسه بنویسید.',
         ];
     }
 

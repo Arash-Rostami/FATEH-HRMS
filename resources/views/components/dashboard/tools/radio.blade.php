@@ -1,6 +1,6 @@
 @props(['id' => 'jazz-radio'])
 
-<div x-data="radio('{{ $id }}')" x-init="init()" dir="rtl" x-cloak>
+<div x-data="radio('{{ $id }}')" dir="rtl" x-cloak>
 
     <x-ui.modals.backdrop x-show="open" :minimizable="true">
 
@@ -33,12 +33,12 @@
                         </template>
                     </div>
                     <span x-show="!(playing && volume > 0)" class="h-2.5 w-2.5 rounded-full shadow-inner"
-                          :style="playing ? 'background:var(--presence-onsite)' : (status==='خطا'||status==='آفلاین' ? 'background:var(--md-sys-color-error)' : 'background:var(--md-sys-color-outline)')"></span>
+                          :style="playing ? 'background:var(--presence-onsite)' : (status==='پخش ناموفق'||status==='پخش در دسترس نیست' ? 'background:var(--md-sys-color-error)' : 'background:var(--md-sys-color-outline)')"></span>
                 </div>
 
                 <div class="flex min-w-0 flex-1 flex-col">
                     <span class="truncate text-sm font-bold text-[var(--md-sys-color-on-surface)]"
-                          x-text="currentStationUrl ? currentStationName : 'آماده به کار'"></span>
+                          x-text="currentStationUrl ? currentStationName : 'یک ایستگاه انتخاب کنید'"></span>
                     <span class="truncate text-[11px] font-medium text-[var(--md-sys-color-outline)]"
                           x-text="currentStationUrl ? currentGenreLabel : status"></span>
                 </div>
@@ -78,7 +78,7 @@
 
                     {{-- Volume Fader --}}
                     <div class="flex flex-col items-center gap-3">
-                        <button @click="toggleMute()" :title="volume == 0 ? 'باصدا کردن' : 'بی‌صدا کردن'"
+                        <button @click="toggleMute()" :title="volume == 0 ? 'روشن کردن صدا' : 'بی‌صدا کردن'"
                                 class="group flex h-8 w-8 items-center justify-center rounded-lg text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-primary)] active:scale-95">
                             <span class="material-symbols-rounded text-[18px] transition-transform group-active:scale-90"
                                   x-text="volume == 0 ? 'volume_off' : (volume < 0.5 ? 'volume_down' : 'volume_up')"></span>
@@ -140,7 +140,7 @@
 
                     <div>
                         <div class="mb-2 flex items-center justify-between">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-[var(--md-sys-color-outline)]">انتخاب ژانر</label>
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-[var(--md-sys-color-outline)]">سبک موسیقی</label>
                         </div>
                         <div class="flex snap-x overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             <div class="flex gap-2">

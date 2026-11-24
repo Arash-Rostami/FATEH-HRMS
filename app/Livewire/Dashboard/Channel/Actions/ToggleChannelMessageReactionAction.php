@@ -17,7 +17,7 @@ class ToggleChannelMessageReactionAction
         $channelId = DB::transaction(function () use ($messageId, $emoji, $userId): ?int {
             $message = ChannelMessage::withoutTrashed()
                 ->whereKey($messageId)
-                ->whereHas('channel.memberUsers', fn ($q) => $q->whereKey($userId))
+                ->writableBy($userId)
                 ->lockForUpdate()
                 ->first();
 

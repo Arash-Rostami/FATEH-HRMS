@@ -14,7 +14,7 @@ app/Models/AiReport.php + Concerns/{HasVersionHistory,HasDailyQuota,HasGeneratio
 app/Support/AiReportAccessPolicy.php   (upload sizes are read directly from `config('ai.report.upload.*')`, the master source)
 app/Services/AiReport/{ReportAiService,BlockCatalog,FileExtractor}.php   (HTTP call delegated to app/Services/Ai/AiClient.php)
 app/Jobs/GenerateReportJob.php        payload = report id only
-config/ai/report.php                  every setting of the module as `ai.report.*` (daily_cap, timings, rules prompt, spec, upload); the shared gateway (key/url from env, model/timeouts/max_output) lives in config/ai.php
+config/ai/report.php                  every setting of the module as `ai.report.*` (daily_cap, timings, rules prompt, spec, upload); the shared gateway (key/url from env, model/timeouts/max_output, defaults table: `config/aiPattern.md` §9) lives in config/ai.php
 resources/views/livewire/dashboard/ai-report.blade.php (+ ai-report/{viewer,composer,list,table,legend,block-editor})
 resources/views/components/dashboard/ai-report.blade.php (+ ai-report/{title,kpi-row,section,table,callout,chart,state-badge}) — the block dispatcher; carries the per-block refine/manual toolbar; `state-badge` (`state` = saved|draft|inactive) is the shared draft/saved/inactive chip
 resources/views/components/ui/loaders/skeleton/report.blade.php — the generating-state skeleton (see loadingPattern.md)

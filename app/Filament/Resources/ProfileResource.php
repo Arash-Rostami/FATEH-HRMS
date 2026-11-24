@@ -37,7 +37,7 @@ class ProfileResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.profile.guide.overview'],
         ['label' => 'زبانه‌های فهرست', 'icon' => 'tab', 'view' => 'filament.resources.profile.guide.list-tabs'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.profile.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.profile.guide.admin-ops'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.profile.guide.user'],
     ];
 

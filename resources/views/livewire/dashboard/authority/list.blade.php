@@ -94,7 +94,7 @@
 
     @empty
         <div wire:key="authority-empty" class="contents">
-            <x-ui.empty icon="policy" title="هیچ اختیاری یافت نشد" variant="list" />
+            <x-ui.empty icon="policy" title="اختیاری پیدا نشد" description="واحد دیگری را انتخاب کنید یا عبارت جست‌وجو را تغییر دهید." variant="list" />
         </div>
     @endforelse
 

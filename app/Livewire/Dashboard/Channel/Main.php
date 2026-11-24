@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\Channel\Actions\CreateChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\DeleteChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\DeleteChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\DownloadChannelAttachmentAction;
+use App\Livewire\Dashboard\Channel\Actions\EnhanceChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\FetchChannelsAction;
 use App\Livewire\Dashboard\Channel\Actions\FetchJoinableChannelsAction;
 use App\Livewire\Dashboard\Channel\Actions\FocusChannelMessageAction;
@@ -108,6 +109,8 @@ class Main extends Component
 
     public bool $isManageMembersOpen = false;
     public array $memberRecipientIds = [];
+    public array $writerIds = [];
+    public string $memberTab = 'members';
     public array $createRecipientIds = [];
     public bool $isManageAdminsOpen = false;
     public array $adminRecipientIds = [];
@@ -125,7 +128,7 @@ class Main extends Component
     public function activeChannel(): ?Channel
     {
         return $this->activeChannelId
-            ? Channel::with('owner')->withCount('members')->withPinnedPreview()->withViewerRole((int) auth()->id())
+            ? Channel::with('owner')->withCount('members')->withPinnedPreview()->withLastMessageAt()->withViewerRole((int) auth()->id())
                 ->whereHas('memberUsers', fn($q) => $q->where('users.id', auth()->id()))
                 ->find($this->activeChannelId)
             : null;
@@ -140,6 +143,7 @@ class Main extends Component
 
         $messageIds = $rows->pluck('last_message_id')->filter()->unique();
         $lastMessages = ChannelMessage::withoutTrashed()
+            ->select(['id', 'sender_id', 'body', 'attachments', 'created_at'])
             ->with('sender:id,name')
             ->whereIn('id', $messageIds)
             ->get()
@@ -171,18 +175,7 @@ class Main extends Component
     #[Computed]
     public function totalUnread(): int
     {
-        return DB::table('channel_messages')
-            ->join('channel_members', function ($j) {
-                $j->on('channel_members.channel_id', '=', 'channel_messages.channel_id')
-                  ->where('channel_messages.id', '>', DB::raw('COALESCE(channel_members.last_read_message_id, 0)'));
-            })
-            ->join('channels', function ($j) {
-                $j->on('channels.id', '=', 'channel_messages.channel_id')
-                  ->whereNull('channels.deleted_at');
-            })
-            ->whereNull('channel_messages.deleted_at')
-            ->where('channel_members.user_id', auth()->id())
-            ->count();
+        return ChannelMessage::totalUnreadFor((int) auth()->id());
     }
 
     #[Computed]
@@ -240,7 +233,7 @@ class Main extends Component
             return [];
         }
 
-        $ids = Channel::invitedUserIds((int) $channel->id);
+        $ids = $this->activeChannelMemberUsers->filter(fn(User $user) => $user->pivot->entered_at === null)->pluck('id')->all();
         if (!$ids) {
             return [];
         }
@@ -275,7 +268,7 @@ class Main extends Component
             return;
         }
 
-        unset($this->pendingInvitees);
+        unset($this->pendingInvitees, $this->activeChannel, $this->activeChannelMemberUsers, $this->channelMembers, $this->readers, $this->channelMembersForMentions, $this->mentionMemberMap, $this->mentionMemberPresence);
         $this->dispatch('show-toast', message: 'دعوت لغو شد', type: 'info');
     }
 
@@ -293,6 +286,24 @@ class Main extends Component
         return User::getCachedActiveOptions()
             ->except(array_merge([auth()->id()], $this->lockedMemberIds($this->activeChannel)))
             ->map(fn($name, $id) => ['id' => (int)$id, 'name' => $name, 'dept' => $depts[(int)$id] ?? ''])
+            ->values()
+            ->all();
+    }
+
+    #[Computed]
+    public function writerCandidates(): array
+    {
+        if (!$this->isManageMembersOpen || $this->activeChannel?->isProjectLinked()) {
+            return [];
+        }
+
+        $skip = array_merge([(int) auth()->id()], $this->lockedMemberIds($this->activeChannel));
+        $depts = User::getCachedActiveDeptMap();
+
+        return $this->activeChannelMemberUsers
+            ->filter(fn(User $user) => !in_array((int) $user->id, $skip, true) && $user->isActive() && $user->pivot->role !== ChannelRole::Admin->value)
+            ->sortBy('name')
+            ->map(fn(User $user) => ['id' => (int) $user->id, 'name' => $user->name, 'dept' => $depts[(int) $user->id] ?? ''])
             ->values()
             ->all();
     }
@@ -344,7 +355,6 @@ class Main extends Component
             $anchor = (int) $this->focusAnchorId;
             $newer = ChannelMessage::withoutTrashed()
                 ->where('channel_id', $this->activeChannelId)
-                ->with(['sender.profile', 'replyTo.sender'])
                 ->where('id', '>=', $anchor)
                 ->oldest('id')
                 ->take($this->focusNewer + 2)
@@ -353,7 +363,6 @@ class Main extends Component
             $newer = $newer->take($this->focusNewer + 1);
             $older = ChannelMessage::withoutTrashed()
                 ->where('channel_id', $this->activeChannelId)
-                ->with(['sender.profile', 'replyTo.sender'])
                 ->where('id', '<', $anchor)
                 ->latest('id')
                 ->take($this->focusOlder + 1)
@@ -364,13 +373,18 @@ class Main extends Component
             $this->hasNewer = false;
             $rows = ChannelMessage::withoutTrashed()
                 ->where('channel_id', $this->activeChannelId)
-                ->with(['sender.profile', 'replyTo.sender'])
                 ->latest('id')
                 ->take($this->loadedLimit + 1)
                 ->get();
             $this->hasOlder = $rows->count() > $this->loadedLimit;
             $rows = $rows->take($this->loadedLimit)->sortBy('id')->values();
         }
+
+        $rows->load(['sender.profile', 'replyTo:id,sender_id,body', 'replyTo.sender:id,name']);
+
+        $shapeSender = fn($s) => ['name' => $s?->name ?? 'ناشناس', 'avatar' => $s?->getProfileImageUrl() ?? $s?->getInitialsAvatarUrl(), 'online' => $s?->isOnline() ?? false, 'presence' => $s?->presence, 'focus' => $s?->focusLabel(), 'inactive' => $s && !$s->isActive()];
+        $senders = $rows->pluck('sender')->filter()->unique('id')->mapWithKeys(fn($s) => [$s->id => $shapeSender($s)])->all();
+        $noSender = $shapeSender(null);
 
         return $rows->map(fn($m) => [
             'id' => (int)$m->id,
@@ -387,7 +401,7 @@ class Main extends Component
                 'body' => $m->replyTo->body,
                 'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
             ] : null,
-            'sender' => ['name' => $m->sender?->name ?? 'ناشناس', 'avatar' => $m->sender?->getProfileImageUrl() ?? $m->sender?->getInitialsAvatarUrl(), 'online' => $m->sender?->isOnline() ?? false, 'presence' => $m->sender?->presence, 'focus' => $m->sender?->focusLabel(), 'inactive' => $m->sender && !$m->sender->isActive()],
+            'sender' => $senders[$m->sender_id] ?? $noSender,
         ])->values()->all();
     }
 
@@ -427,14 +441,7 @@ class Main extends Component
     #[Computed]
     protected function channelMembersForMentions(): Collection
     {
-        if (!$this->activeChannel) {
-            return collect();
-        }
-
-        return $this->activeChannel->memberUsers()
-            ->select('users.id', 'users.name', 'users.presence', 'users.status')
-            ->orderBy('users.name')
-            ->get();
+        return $this->activeChannelMemberUsers->sortBy('name')->values();
     }
 
     #[Computed]
@@ -971,10 +978,10 @@ class Main extends Component
         if (!$this->lastDeleted) {
             return;
         }
-        $action->execute($this->lastDeleted);
+        $restored = $action->execute($this->lastDeleted);
         $this->lastDeleted = null;
         unset($this->messages);
-        $this->dispatch('show-toast', message: 'پیام بازیابی شد', type: 'success');
+        $this->dispatch('show-toast', message: $restored ? 'پیام بازیابی شد' : 'بازیابی این پیام ممکن نیست', type: $restored ? 'success' : 'error');
     }
 
     public function toggleReaction(ToggleChannelMessageReactionAction $action, int $messageId, string $emoji): void
@@ -1051,26 +1058,35 @@ class Main extends Component
 
     public function openManageMembers(int $channelId): void
     {
-        $channel = Channel::withoutTrashed()->find($channelId);
-        if (!$channel || $channelId !== (int) $this->activeChannelId || !ChannelAccessPolicy::canManageMembers($channel, auth()->user())) {
+        $channel = $this->activeChannel;
+        if (!$channel || $channelId !== (int) $channel->id || !ChannelAccessPolicy::canManageMembers($channel, auth()->user())) {
             return;
         }
 
-        $this->memberRecipientIds = $channel->memberUsers()
-            ->wherePivot('user_id', '!=', auth()->id())
-            ->whereNotIn('users.id', $this->lockedMemberIds($this->activeChannel))
-            ->pluck('users.id')
+        $locked = $this->lockedMemberIds($channel);
+        $members = $this->activeChannelMemberUsers;
+
+        $this->memberRecipientIds = $members
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->reject(fn(int $id) => $id === (int) auth()->id() || in_array($id, $locked, true))
+            ->values()
             ->all();
 
-        unset($this->memberCandidates);
+        $this->memberTab = 'members';
+        $this->writerIds = $members
+            ->filter(fn(User $user) => $user->pivot->role !== ChannelRole::Viewer->value)
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        unset($this->memberCandidates, $this->writerCandidates);
         $this->isManageMembersOpen = true;
     }
 
     public function saveManageMembers(SyncChannelMembersAction $action): void
     {
-        $channel = $this->activeChannelId
-            ? Channel::withoutTrashed()->find($this->activeChannelId)
-            : null;
+        $channel = $this->activeChannel;
 
         if (!$channel || !ChannelAccessPolicy::canManageMembers($channel, auth()->user())) {
             $this->isManageMembersOpen = false;
@@ -1078,13 +1094,24 @@ class Main extends Component
             return;
         }
 
-        $result = $action->execute((int) $this->activeChannelId, (int) auth()->id(), $this->memberRecipientIds);
+        $writers = collect($this->writerIds)->map(fn($id) => (int) $id);
+        $candidates = collect($this->writerCandidates)->pluck('id');
+        $viewers = $this->activeChannelMemberUsers->filter(fn(User $user) => $user->pivot->role === ChannelRole::Viewer->value)->pluck('id')->map(fn($id) => (int) $id);
+
+        $result = $action->execute(
+            (int) $this->activeChannelId,
+            (int) auth()->id(),
+            $this->memberRecipientIds,
+            $candidates->diff($writers)->diff($viewers)->values()->all(),
+            $candidates->intersect($writers)->intersect($viewers)->values()->all(),
+        );
 
         $this->isManageMembersOpen = false;
         $this->memberRecipientIds = [];
-        unset($this->channels, $this->activeChannel, $this->memberCandidates, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
+        $this->writerIds = [];
+        unset($this->channels, $this->activeChannel, $this->memberCandidates, $this->writerCandidates, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
 
-        if (($result['added'] ?? 0) || ($result['removed'] ?? 0)) {
+        if (($result['added'] ?? 0) || ($result['removed'] ?? 0) || ($result['silenced'] ?? 0)) {
             $this->dispatch('channel-members-updated')->self();
             $this->dispatch('show-toast', message: 'اعضای گروه به‌روزرسانی شد', type: 'success');
         }
@@ -1131,7 +1158,7 @@ class Main extends Component
         $depts = User::getCachedActiveDeptMap();
 
         return $this->activeChannelMemberUsers
-            ->filter(fn(User $user) => (int) $user->id !== $ownerId && $user->isActive() && $user->pivot->entered_at !== null)
+            ->filter(fn(User $user) => (int) $user->id !== $ownerId && $user->isActive() && $user->pivot->entered_at !== null && $user->pivot->role !== ChannelRole::Viewer->value)
             ->sortBy('name')
             ->map(fn(User $user) => ['id' => (int) $user->id, 'name' => $user->name, 'dept' => $depts[(int) $user->id] ?? ''])
             ->values()
@@ -1185,6 +1212,13 @@ class Main extends Component
         abort_unless($this->activeChannelId, 404);
 
         return $action->execute((int) $this->activeChannelId, (int) auth()->id(), $mode, mb_substr(trim($question), 0, (int) config('ai.channel.question_max')));
+    }
+
+    #[Renderless]
+    #[Async]
+    public function enhanceEdit(EnhanceChannelMessageAction $action, int $editingId, string $text): array
+    {
+        return $action->execute($editingId, (int) auth()->id(), $text, $this->editTimeLimit);
     }
 
     public function downloadAttachment(int $messageId, int $index): ?Response

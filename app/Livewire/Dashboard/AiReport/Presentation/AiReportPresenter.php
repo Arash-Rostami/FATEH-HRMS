@@ -267,7 +267,7 @@ final class AiReportPresenter
 
         return $quotaPct >= 80
             ? ['text' => 'text-[var(--tool-gold-color)]', 'fill' => 'bg-[var(--tool-gold-color)]']
-            : ['text' => 'text-[var(--md-sys-color-on-surface-variant)]', 'fill' => 'bg-[var(--md-sys-color-primary)]'];
+            : ['text' => 'text-[var(--md-sys-color-on-surface-variant)]', 'fill' => 'bg-[var(--ai-color)]'];
     }
 
     private function composerRules(array $quota, array $limits): array

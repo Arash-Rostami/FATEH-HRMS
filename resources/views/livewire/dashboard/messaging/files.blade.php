@@ -22,7 +22,15 @@
             <x-ui.loaders.spin-badge text="در حال بارگذاری پیوست‌ها…"/>
         </div>
 
-        <div x-show="!filesLoading && !filesList.length" class="flex h-full flex-col items-center justify-center gap-2 py-12 text-center">
+        <div x-show="!filesLoading && !filesList.length && filesError" class="flex h-full flex-col items-center justify-center gap-3 py-12 text-center">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">
+                <span class="material-symbols-rounded text-2xl">cloud_off</span>
+            </div>
+            <p class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">بارگذاری پیوست‌ها انجام نشد.</p>
+            <x-ui.buttons.form type="button" variant="tonal" size="sm" x-on:click="retryFiles()">تلاش دوباره</x-ui.buttons.form>
+        </div>
+
+        <div x-show="!filesLoading && !filesList.length && !filesError" class="flex h-full flex-col items-center justify-center gap-2 py-12 text-center">
             <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] opacity-70">
                 <span class="material-symbols-rounded text-2xl">folder_off</span>
             </div>

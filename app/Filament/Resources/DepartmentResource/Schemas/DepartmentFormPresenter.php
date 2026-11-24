@@ -112,6 +112,7 @@ class DepartmentFormPresenter
                 TextInput::make('area_key')
                     ->label(__('resources/department/strings.fields.area_key'))
                     ->placeholder(__('resources/department/strings.fields.area_key_placeholder'))
+                    ->helperText(__('resources/department/strings.hints.area_key'))
                     ->required()
                     ->regex('/^[a-zA-Z0-9_-]+$/'),
 

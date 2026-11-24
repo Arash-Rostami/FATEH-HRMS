@@ -243,7 +243,7 @@ describe('radio.autoSkipOnFailure', () => {
         expect(c.currentStationUrl).toBe('u1')
     })
 
-    test('a failing station cascades once per station via the error event, then gives up as آفلاین', async () => {
+    test('a failing station cascades once per station via the error event, then reports that playback is unavailable', async () => {
         const c = radio('r')
         c.stations = [
             { name: 'A', url_resolved: 'u1' },
@@ -264,7 +264,7 @@ describe('radio.autoSkipOnFailure', () => {
         expect(c.currentStationUrl).toBe('u1')
 
         c.audio._fire('error')
-        expect(c.status).toBe('آفلاین')
+        expect(c.status).toBe('پخش در دسترس نیست')
         expect(c._autoSkipAttempts).toBe(0)
     })
 
@@ -300,7 +300,7 @@ describe('radio.autoSkipOnFailure', () => {
         c.audio._fire('error')
 
         expect(c.currentStationUrl).toBe('u1')
-        expect(c.status).toBe('خطا')
+        expect(c.status).toBe('پخش ناموفق')
     })
 
     test('a successful play on a skipped station resets the attempt counter', () => {
@@ -460,10 +460,10 @@ describe('radio.setupAudio — event wiring updates status/display/persistence',
         expect(c.saveState).toHaveBeenCalled()
 
         c.audio._fire('waiting')
-        expect(c.status).toBe('در حال بافر...')
+        expect(c.status).toBe('در حال آماده‌سازی پخش…')
 
         c.audio._fire('error')
-        expect(c.status).toBe('خطا')
+        expect(c.status).toBe('پخش ناموفق')
         expect(c.playing).toBe(false)
     })
 
@@ -518,7 +518,7 @@ describe('radio.handleStationChange', () => {
         c.handleStationChange('u3')
         await new Promise((resolve) => setTimeout(resolve, 0))
 
-        expect(c.status).toBe('خطا')
+        expect(c.status).toBe('پخش ناموفق')
         expect(c.playing).toBe(false)
     })
 })
@@ -612,7 +612,7 @@ describe('radio.togglePlay', () => {
         c.togglePlay()
         await new Promise((resolve) => setTimeout(resolve, 0))
 
-        expect(c.status).toBe('خطا')
+        expect(c.status).toBe('پخش ناموفق')
         expect(c.playing).toBe(false)
     })
 })

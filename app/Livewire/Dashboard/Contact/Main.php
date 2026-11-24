@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Contact;
 
 use App\Livewire\Dashboard\Contact\Actions\DeleteMessageAction;
+use App\Livewire\Dashboard\Contact\Actions\EnhanceMessageAction;
 use App\Livewire\Dashboard\Contact\Actions\FetchArchivedContactsAction;
 use App\Livewire\Dashboard\Contact\Actions\FetchContactsAction;
 use App\Livewire\Dashboard\Contact\Actions\FocusMessageAction;
@@ -17,11 +18,14 @@ use App\Livewire\Dashboard\Contact\Forms\EditMessageForm;
 use App\Livewire\Dashboard\Contact\Forms\MessageComposerForm;
 use App\Livewire\Dashboard\Contact\Presentation\ContactPresenter;
 use App\Models\Message;
+use App\Models\NotifyLog;
 use App\Models\User;
 use App\Services\Messaging\PollDigestService;
+use App\Services\Template\Words\Sms;
 use App\Traits\Livewire\ChatComposer;
 use App\Traits\Livewire\FocusOnRecord;
 use App\Traits\Livewire\ForwardsMessages;
+use App\Traits\Livewire\SendsSms;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -35,6 +39,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Morilog\Jalali\Jalalian;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\View\View;
 
@@ -42,12 +47,37 @@ use Illuminate\View\View;
 #[Lazy]
 class Main extends Component
 {
-    use ChatComposer, ForwardsMessages, WithFileUploads;
+    use ChatComposer, ForwardsMessages, SendsSms, WithFileUploads;
     use FocusOnRecord {
         clearFocus as baseClearFocus;
     }
 
     protected function forwardSourceType(): string { return 'contact'; }
+
+    #[Computed]
+    public function smsTemplates(): array
+    {
+        return [
+            'birthday' => Sms::for('birthday'),
+            'anniversary' => Sms::for('anniversary'),
+        ];
+    }
+
+    protected function smsContext(int $userId): ?array
+    {
+        if ($userId === (int) auth()->id() || !in_array($this->smsType, ['birthday', 'anniversary'], true)) {
+            return null;
+        }
+
+        $profile = User::visibleOnBoard()->with('profile')->find($userId)?->profile;
+        if (!$profile || blank($profile->cellphone) || $profile->todaysOccasionType() !== $this->smsType) {
+            return null;
+        }
+
+        $key = $this->smsType . '-' . $userId . '-' . Jalalian::now()->getYear();
+
+        return $this->smsKey === $key ? ['source' => NotifyLog::SOURCE_CALENDAR, 'key' => $key] : null;
+    }
 
     public MessageComposerForm $composer;
     public EditMessageForm $edit;
@@ -124,6 +154,7 @@ class Main extends Component
 
         $messageIds = $users->pluck('last_message_id')->filter()->unique();
         $lastMessages = Message::withoutTrashed()
+            ->select(['id', 'sender_id', 'body', 'attachments', 'created_at', 'read_at'])
             ->whereIn('id', $messageIds)
             ->get()
             ->keyBy('id');
@@ -131,12 +162,22 @@ class Main extends Component
         return $users->map(fn(User $user) => [
             'id' => (int)$user->id,
             'name' => $user->name,
-            'profile' => $user->profile?->toArray(),
+            'profile' => $user->profile ? [
+                'image' => $user->profile->image,
+                'position' => $user->profile->position,
+                'cellphone' => $user->profile->cellphone,
+            ] : null,
             'display_position' => $user->profile?->display_position,
             'occasion' => $user->profile?->todaysOccasionType(),
-            'unit' => $user->profile?->detailsMap()->get('unit'),
-            'section' => $user->profile?->detailsMap()->get('section'),
-            'last_message' => $lastMessages->get($user->last_message_id)?->toArray(),
+            'unit' => ($details = $user->profile?->detailsMap())?->get('unit'),
+            'section' => $details?->get('section'),
+            'last_message' => ($last = $lastMessages->get($user->last_message_id)) ? [
+                'sender_id' => $last->sender_id,
+                'body' => $last->body,
+                'attachments' => $last->attachments,
+                'created_at' => $last->created_at?->toISOString(),
+                'read_at' => $last->read_at?->toISOString(),
+            ] : null,
             'unread_count' => (int)($user->unread_count ?? 0),
             'is_online' => $user->isOnline() ?? false,
             'presence' => $user->presence,
@@ -235,6 +276,25 @@ class Main extends Component
         $real = realpath($disk->path($attachment['path']));
 
         if ($root === false || $real === false || !is_file($real) || !str_starts_with($real, $root . DIRECTORY_SEPARATOR)) return null;
+
+        if ($me === (int) $message->recipient_id && !isset($attachment['views'][(string) $me])) {
+            $marked = DB::transaction(function () use ($message, $index, $me): bool {
+                $files = Message::withoutTrashed()->lockForUpdate()->find($message->id)?->attachments;
+
+                if (!isset($files[$index]) || isset($files[$index]['views'][(string) $me])) {
+                    return false;
+                }
+
+                $files[$index]['views'][(string) $me] = now()->toISOString();
+                DB::table('messages')->where('id', $message->id)->update(['attachments' => json_encode($files, JSON_UNESCAPED_UNICODE)]);
+
+                return true;
+            });
+
+            if ($marked) {
+                PollDigestService::bump(Message::pairVersionKey((int) $message->sender_id, $me));
+            }
+        }
 
         return tap(response()->download($real), fn($r) => $r->setContentDisposition(
             'attachment',
@@ -487,7 +547,11 @@ class Main extends Component
             $rows = $rows->take($this->messagesLimit)->sortBy('id')->values();
         }
 
-        $rows->load(['sender.profile', 'replyTo.sender']);
+        $rows->load(['replyTo:id,sender_id,body', 'replyTo.sender:id,name']);
+
+        $shapeSender = fn($s) => ['name' => $s?->name ?? '', 'avatar' => $s?->getProfileImageUrl() ?? $s?->getInitialsAvatarUrl(), 'online' => $s?->isOnline() ?? false, 'presence' => $s?->presence, 'focus' => $s?->focusLabel(), 'inactive' => $s && !$s->isActive()];
+        $senders = collect([auth()->user(), $this->activeContact])->filter()->unique('id')->mapWithKeys(fn($s) => [$s->id => $shapeSender($s)])->all();
+        $noSender = $shapeSender(null);
 
         return collect($rows)->map(fn($m) => [
                 'id' => (int)$m->id,
@@ -504,7 +568,7 @@ class Main extends Component
                     'body' => $m->replyTo->body,
                     'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
                 ] : null,
-                'sender' => ['name' => $m->sender?->name ?? '', 'avatar' => $m->sender?->getProfileImageUrl() ?? $m->sender?->getInitialsAvatarUrl(), 'online' => $m->sender?->isOnline() ?? false, 'presence' => $m->sender?->presence, 'focus' => $m->sender?->focusLabel(), 'inactive' => $m->sender && !$m->sender->isActive()],
+                'sender' => $senders[$m->sender_id] ?? $noSender,
             ])->values()->all();
     }
 
@@ -538,15 +602,23 @@ class Main extends Component
         return view('livewire.dashboard.contact.placeholder')->layout('layouts.app');
     }
 
-    public function saveEdit(SaveEditAction $action, int $editingId): void
+    public function saveEdit(SaveEditAction $action, int $editingId): bool
     {
         if (!$action->execute($this->edit, $editingId, $this->editTimeLimit)) {
             $this->dispatch('show-toast', message: 'مهلت ویرایش این پیام به پایان رسیده است.', type: 'error');
-            return;
+            return false;
         }
         $this->edit->reset();
         $this->invalidateMessageCache();
         $this->dispatch('show-toast', message: 'پیام ویرایش شد', type: 'success');
+        return true;
+    }
+
+    #[Renderless]
+    #[Async]
+    public function enhanceEdit(EnhanceMessageAction $action, int $editingId, string $text): array
+    {
+        return $action->execute($editingId, (int) auth()->id(), $text, $this->editTimeLimit);
     }
 
     public function selectContact(int $userId): void
@@ -650,11 +722,11 @@ class Main extends Component
     public function undoDelete(UndoDeleteAction $action): void
     {
         if (!$this->lastDeleted) return;
-        $action->execute($this->lastDeleted);
+        $restored = $action->execute($this->lastDeleted);
         $this->lastDeleted = null;
         $this->invalidateMessageCache();
         unset($this->contacts);
-        $this->dispatch('show-toast', message: 'پیام بازیابی شد', type: 'success');
+        $this->dispatch('show-toast', message: $restored ? 'پیام بازیابی شد' : 'بازیابی این پیام ممکن نیست', type: $restored ? 'success' : 'error');
     }
 
     protected function recordFocusType(): string { return 'people'; }

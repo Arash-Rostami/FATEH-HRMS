@@ -1,9 +1,10 @@
-const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation', 'ai-report', 'correspondence', 'faq', 'post', 'report', 'gallery', 'media', 'media-pin'];
+const SCOPES = ['contact', 'channel', 'message', 'channel-message', 'project', 'activity', 'menu', 'reservation', 'ai-report', 'correspondence', 'faq', 'post', 'report', 'gallery', 'media', 'media-pin'];
 
 const KEYS = {
     contact: 'pinned-contacts',
     channel: 'pinned-channels',
     message: 'pinned-messages',
+    'channel-message': 'pinned-channel-messages',
     project: 'pinned-projects',
     activity: 'pinned-activity',
     menu: 'pinned-menu-items',
@@ -18,10 +19,12 @@ const KEYS = {
     'media-pin': 'pinned-media'
 };
 
+const SEED_KEY = 'pinned-channel-messages-seeded';
+
 export default function pinned(Alpine) {
     Alpine.store('pinned', {
-        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null, 'ai-report': null, correspondence: null, faq: null, post: null, report: null, gallery: null, media: null, 'media-pin': null },
-        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [], 'ai-report': [], correspondence: [], faq: [], post: [], report: [], gallery: [], media: [], 'media-pin': [] },
+        sets: { contact: null, channel: null, message: null, 'channel-message': null, project: null, activity: null, menu: null, reservation: null, 'ai-report': null, correspondence: null, faq: null, post: null, report: null, gallery: null, media: null, 'media-pin': null },
+        lists: { contact: [], channel: [], message: [], 'channel-message': [], project: [], activity: [], menu: [], reservation: [], 'ai-report': [], correspondence: [], faq: [], post: [], report: [], gallery: [], media: [], 'media-pin': [] },
 
         init() {
             for (let i = 0; i < SCOPES.length; i++) {
@@ -30,6 +33,18 @@ export default function pinned(Alpine) {
                 this.sets[scope] = set;
                 this.lists[scope] = Array.from(set);
             }
+            this._seedChannelMessages();
+        },
+
+        _seedChannelMessages() {
+            try {
+                if (localStorage.getItem(SEED_KEY) !== null) return;
+                const merged = new Set([...this.sets['channel-message'], ...this._load('message')]);
+                this.sets['channel-message'] = merged;
+                this.lists['channel-message'] = Array.from(merged);
+                this._persist('channel-message');
+                localStorage.setItem(SEED_KEY, '1');
+            } catch {}
         },
 
         _load(scope) {

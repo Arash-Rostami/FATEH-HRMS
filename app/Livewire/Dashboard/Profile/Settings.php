@@ -16,7 +16,7 @@ class Settings extends Component
 
     public string $activeSection = 'appearance';
 
-    private const SECTIONS = ['appearance', 'notifications', 'tables', 'focus'];
+    private const SECTIONS = ['appearance', 'notifications', 'chat', 'app', 'tables', 'focus'];
 
     private const MAX_RESOLVE_IDS = 50;
 

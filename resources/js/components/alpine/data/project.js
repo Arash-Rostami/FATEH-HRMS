@@ -321,7 +321,10 @@ export default function project() {
 
         _persistChatSettings() {
             try {
+                let stored = {};
+                try { stored = JSON.parse(localStorage.getItem(LS_SETTINGS_KEY)) || {}; } catch {}
                 localStorage.setItem(LS_SETTINGS_KEY, JSON.stringify({
+                    ...stored,
                     isHighlighted: this.isHighlighted,
                     backgroundPattern: this.backgroundPattern,
                     backgroundPatternType: this.backgroundPatternType,

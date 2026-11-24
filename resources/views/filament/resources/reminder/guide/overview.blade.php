@@ -50,7 +50,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">check_circle</span>
-                وقتی یادآوری تکرارشونده «انجام شد» می‌شود، سیستم یک یادآوری جدید با سررسید بعدی می‌سازد؛ این کار فقط از اقدام «انجام شد» در پنل کاربر اتفاق می‌افتد، نه از ویرایش این فرم.
+                پس از ثبت یادآوری تکرارشونده به‌عنوان انجام‌شده در پنل کاربر، سامانه یادآوری بعدی را می‌سازد. بستن «پیام ثابت صفحه» نیز یادآوری را انجام‌شده ثبت می‌کند.
             </p>
         </div>
     </div>

@@ -83,7 +83,7 @@
 
             @if($this->canRelease)
                 <x-ui.buttons.form wire:key="ths-release-ticket" type="button" loading="releaseTicket" variant="tonal" icon="undo"
-                        x-on:click="{{ confirmDialog('releaseTicket', 'بازگشت به صف', 'مسئول فعلی برداشته می‌شود و تیکت برای تعیین مسئول جدید به صف همین واحد برمی‌گردد. ادامه می‌دهید؟') }}"
+                        x-on:click="{{ confirmDialog('releaseTicket', 'بازگشت به صف', 'تیکت به صف همین واحد برمی‌گردد تا دوباره برای آن مسئول تعیین شود. ادامه می‌دهید؟') }}"
                         x-bind:disabled="!$wire.replyForm.body.trim()"
                         class="!h-auto max-sm:min-h-[44px] !px-4 !py-2 rounded-xl text-xs font-bold">
                     بازگشت به صف
@@ -101,7 +101,7 @@
             @if($this->canReroute || $this->canRelease)
                 <p wire:key="ths-workspace-actions-hint" class="w-full flex items-center gap-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
                     <span class="material-symbols-rounded text-[14px]">info</span>
-                    برای ارجاع یا بازگشت به صف، دلیل را در کادر پاسخ پایین بنویسید و سپس دکمهٔ مربوط را بزنید؛ نیازی به ارسال جداگانهٔ پاسخ نیست.
+                    دلیل را در کادر پاسخ بنویسید و مستقیم «ارجاع به واحد دیگر» یا «بازگشت به صف» را بزنید. درخواست‌دهنده هم دلیل را می‌بیند.
                 </p>
             @endif
         </div>

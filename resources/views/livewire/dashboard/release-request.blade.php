@@ -68,6 +68,7 @@
                 <x-ui.forms.input label="عنوان" name="form.title" wire:model="form.title" icon="title" required />
 
                 <x-ui.forms.textarea label="متن درخواست" name="form.body" wire:model="form.body" icon="notes" rows="5" required />
+                <p class="text-xs leading-5 text-[var(--md-sys-color-on-surface-variant)]">نام بخش را بنویسید. برای گزارش خطا، بگویید چه کاری انجام دادید و چه اتفاقی افتاد. برای پیشنهاد، توضیح دهید چه تغییری می‌خواهید.</p>
 
                 <div>
                     <span class="block text-right text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)]/70 mb-2">پیوست (اختیاری)</span>
@@ -75,6 +76,8 @@
                     <input type="file" multiple wire:model="form.attachments"
                            class="w-full text-xs rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] p-2.5 file:ml-2 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-[var(--md-sys-color-primary-container)] file:text-[var(--md-sys-color-on-primary-container)] file:text-xs file:font-bold"
                     >
+
+                    <p class="mt-1.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">تا ۵ تصویر یا سند، هر فایل حداکثر ۱۰ مگابایت.</p>
 
                     <div wire:loading.delay wire:target="form.attachments">
                         <x-ui.loaders.bar/>
@@ -93,7 +96,7 @@
                                         {{ $file->getClientOriginalName() }}
                                     </span>
                                     <button type="button" wire:click="removeAttachment({{ $index }})"
-                                            class="text-[var(--md-sys-color-error)] flex items-center justify-center">
+                                            aria-label="برداشتن پیوست" class="text-[var(--md-sys-color-error)] flex items-center justify-center">
                                         <span class="material-symbols-rounded text-sm">close</span>
                                     </button>
                                 </li>
@@ -170,7 +173,7 @@
                         </div>
                     @empty
                         <div wire:key="release-request-empty" class="contents">
-                            <x-ui.empty icon="inbox" title="درخواستی ثبت نشده" description="درخواست‌های پشتیبانی، پیشنهاد و گزارش باگ شما اینجا نمایش داده می‌شود." variant="list" />
+                            <x-ui.empty icon="inbox" title="درخواستی ثبت نشده" description="پس از ثبت، وضعیت درخواست و پاسخ مدیر سامانه را در همین بخش ببینید." variant="list" />
                         </div>
                     @endforelse
                 </div>

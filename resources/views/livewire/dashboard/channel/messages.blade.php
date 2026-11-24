@@ -1,6 +1,7 @@
 @php
     $hasOlder = $this->hasOlder;
     $hasNewer = $this->hasNewer;
+    $aiOn = channelAiOn();
 @endphp
 
 @php $chipNames = count($this->groupedMessages) > 0 ? array_keys($this->mentionMemberMap) : []; @endphp
@@ -49,7 +50,7 @@
 </div>
 @php $pin = $this->presenter->pinned($this->activeChannel, $this->readers); @endphp
 @if($pin)
-    @include('livewire.dashboard.messaging.pin-banner')
+    @include('livewire.dashboard.messaging.pin-banner', ['canUnpin' => $this->abilities['post']])
 @endif
 <div id="msg-viewport"
      x-on:scroll.passive="$store.activityReactionPicker.close()"
@@ -127,9 +128,12 @@
 
                     @if($msg['is_mine'])
                     <div x-show="isEditing && editingMsgId === {{ $msg['id'] }}" style="display: none;"
-                         class="scroll-my-6 rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
+                         data-edit-box="{{ $msg['id'] }}"
+                         x-bind:class="aiEditBusy && aiEditId === {{ $msg['id'] }} ? 'ai-halo !ring-[color-mix(in_srgb,var(--ai-color)_25%,transparent)]' : ''"
+                         class="relative scroll-my-6 rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-primary)_45%,transparent)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
                         <textarea dir="auto" wire:ignore.self x-model="editingBody"
                                   aria-label="ویرایش پیام"
+                                  x-bind:disabled="aiEditBusy && aiEditId === {{ $msg['id'] }}"
                                   x-on:keydown.enter="if(!$event.shiftKey && !$event.isComposing){$event.preventDefault();saveEdit({{ $msg['id'] }})}"
                                   x-on:keydown.escape.stop="cancelEdit"
                                   x-effect="if (isEditing && editingMsgId === {{ $msg['id'] }}) openEdit($el)"
@@ -142,6 +146,7 @@
                             <span class="material-symbols-rounded text-[10px]">error</span>{{ $message }}
                         </p>
                         @enderror
+                        @include('livewire.dashboard.messaging.ai-edit', ['msgId' => $msg['id'], 'scope' => 'channel', 'aiOn' => $aiOn, 'part' => 'status'])
                         <div class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
                             <span class="hidden md:inline text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-70">Enter ذخیره · Esc انصراف</span>
                             <div class="flex items-center gap-1.5 ms-auto">
@@ -150,13 +155,14 @@
                                     انصراف
                                 </button>
                                 <button x-on:click.prevent="saveEdit({{ $msg['id'] }})"
-                                        :disabled="(editingBody || '') === editingOriginal"
+                                        :disabled="(editingBody || '') === editingOriginal || (aiEditBusy && aiEditId === {{ $msg['id'] }})"
                                         data-loading:class="opacity-50"
                                         class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] hover:brightness-110 active:scale-95 disabled:opacity-40 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
                                     ذخیره
                                 </button>
                             </div>
                         </div>
+                        @include('livewire.dashboard.messaging.ai-edit', ['msgId' => $msg['id'], 'scope' => 'channel', 'aiOn' => $aiOn, 'part' => 'meter'])
                     </div>
                     @endif
 
@@ -170,7 +176,7 @@
                                   'ring-2 ring-[var(--md-sys-color-tertiary)]' => $msg['mentions_you']
                               ])
                              :style="isEmojiOnly(@js($msg['forwarded_html'] === null ? $msg['body_html'] : '')) && 'font-size:2rem;background:none;border:none;box-shadow:none;padding:0'"
-                             :class="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? '!ring-2 !ring-[var(--md-sys-color-primary)]' : ''">
+                             :class="$store.pinned.isPinned(@js($msg['id']), @js('channel-message')) ? '!ring-2 !ring-[var(--md-sys-color-primary)]' : ''">
 
                             @if($msg['mentions_you'])
                                 <span class="mention-you">
@@ -188,11 +194,16 @@
                                 <span dir="auto" class="block break-words [unicode-bidi:plaintext]" :style="fontStyle({{ $msg['id'] }})">{!! $msg['body_html'] !!}</span>
                             @endif
                             @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])
-                            @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'canReact' => true, 'pinnedId' => $pin['id'] ?? null])
+                            @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'canReact' => $this->abilities['post'], 'canWrite' => $this->abilities['post'], 'pinnedId' => $pin['id'] ?? null, 'canEnhance' => $aiOn && $this->abilities['post'], 'pinScope' => 'channel-message'])
                         </div>
 
-                        @include('livewire.dashboard.messaging.reactions', ['msg' => $msg])
+                        @include('livewire.dashboard.messaging.reactions', ['msg' => $msg, 'canReact' => $this->abilities['post']])
 
+                        @if($msg['is_edited'] && !$msg['is_last'])
+                            <div wire:key="channel-msg-edited" class="flex items-center gap-1.5 mt-1.5 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
+                                <span class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>
+                            </div>
+                        @endif
                         @php
                             $viewedAttachments = collect($msg['attachments'] ?? [])->filter(fn($a) => !empty($a['viewers']))->values();
                         @endphp
@@ -203,7 +214,7 @@
                                         <span class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>
                                         <span class="w-[2px] h-[2px] rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-30"></span>
                                     @endif
-                                    <time class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ toJalali($msg['datetime'], 'Y/m/d H:i') }}</time>
+                                    <time class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ $msg['time'] }}</time>
                                 @endif
                                 @if($msg['is_mine'])
                                     @php
@@ -268,7 +279,7 @@
                                                     @foreach($viewedAttachments as $att)
                                                         <div>
                                                             <p class="px-1 pb-1 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
-                                                                دیده شده توسط{{ $viewedAttachments->count() > 1 ? ' · ' . $att['name'] : '' }}
+                                                                دیده شده توسط{{ count($msg['attachments'] ?? []) > 1 ? ' · ' . $att['name'] : '' }}
                                                             </p>
                                                             <div class="flex flex-col gap-1.5">
                                                                 @foreach($att['viewers'] as $viewer)
@@ -330,5 +341,5 @@
      x-transition:leave-start="opacity-100 translate-y-0"
      x-transition:leave-end="opacity-0 translate-y-4"
      class="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-5 py-3 rounded-lg shadow-2xl text-sm bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-    <button x-on:click="$wire.$island('messages').undoDelete()" class="font-bold transition-colors text-[var(--md-sys-color-on-primary)]">↻ بازگشت</button>
+    <button x-on:click="undoDelete()" class="font-bold transition-colors text-[var(--md-sys-color-on-primary)]">↻ بازگشت</button>
 </div>

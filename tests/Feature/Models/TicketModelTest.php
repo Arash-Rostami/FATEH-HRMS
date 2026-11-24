@@ -70,7 +70,7 @@ class TicketModelTest extends TestCase
 
         $this->assertSame('ai-ticket:quota:7:2026-01-02', Ticket::quotaKey(7, '2026-01-02'));
         $this->assertSame('ai-report:quota:7:2026-01-02', AiReport::quotaKey(7, '2026-01-02'));
-        $this->assertSame(20, Ticket::quotaCap());
+        $this->assertSame(5, Ticket::quotaCap());
 
         Ticket::refundQuota(7);
         $this->assertSame(0, Ticket::quotaUsed(7));

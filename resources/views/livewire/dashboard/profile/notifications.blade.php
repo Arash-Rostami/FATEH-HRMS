@@ -13,7 +13,7 @@
     <div wire:key="profile-notifications-section-notifications" class="space-y-5 mt-5">
 
     <div class="flex items-center justify-between px-1">
-        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">تاریخچه کامل اعلان‌های شما</p>
+        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">اعلان‌های خوانده‌شده و خوانده‌نشده</p>
         <x-ui.buttons.form
             wire:click="markAllRead"
             wire:loading.attr="disabled"
@@ -79,7 +79,7 @@
         @empty
             <tr wire:key="profile-notifications-empty-row">
                 <td colspan="4">
-                    <x-ui.empty icon="notifications_off" title="اعلانی وجود ندارد" description="هنوز اعلانی برای شما ثبت نشده است." variant="list"/>
+                    <x-ui.empty icon="notifications_off" title="اعلانی ندارید" description="اعلان‌های تازه در این فهرست نمایش داده می‌شوند." variant="list"/>
                 </td>
             </tr>
         @endforelse

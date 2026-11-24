@@ -8,6 +8,8 @@ import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
 import fancyboxMixin from "../mixins/fancybox.js";
+import aiEditMixin from "../mixins/aiEdit.js";
+import { smsMemoryMixin } from "../mixins/persistentState.js";
 
 const SCOPE = 'contact';
 const OPEN_POLL_CEILING_MS = 20000;
@@ -37,7 +39,7 @@ const INTERACTIVE_SEL = 'a,button,[role="button"],[contenteditable],input,textar
 
 const ta = () => document.getElementById(MSG_TEXTAREA_ID);
 
-export default function contact() {
+export default function contact({ senderId = null, smsYear = null } = {}) {
     let ac, vpAc, vpRo, scrollRaf, selRaf, unreadObs, digest, ticks = 0, selectSeq = 0;
 
     return {
@@ -49,32 +51,35 @@ export default function contact() {
         ...pasteImageMixin(),
         ...chatBase(SCOPE),
         ...fancyboxMixin(),
+        ...smsMemoryMixin({ senderId, smsYear }),
         bgOption: 'a',
+        ...aiEditMixin(),
         editingMsg: null,
         quoteChip: { visible: false, x: 0, y: 0, id: null, sender: '', snippet: '' },
 
         init() {
-            this.initChatScale();
+            ac = new AbortController();
+            const { signal } = ac;
+            this.initChatScale(signal);
             this.initFancybox();
             this.initPattern();
+            this.loadSmsMemory();
+            this.$watch('showInfo', (open) => { if (open && this.filesOpen && !this._filesCache) this.retryFiles(); });
             this.syncPushNotify();
 
             unreadObs = new MutationObserver(() => this.syncPushNotify());
             unreadObs.observe(document.body, { subtree: true, attributes: true, attributeFilter: [TOTAL_UNREAD_ATTR] });
 
             this._loadChatSettings();
-            this.headerDeclutterMenuBridge();
+            this.headerDeclutterMenuBridge(signal);
 
             this.startPolling();
-
-            ac = new AbortController();
-            const { signal } = ac;
 
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) {
                     this._flushPendingRing();
                     this._repollNow();
-                } else if (!this.$store.push.isEnabled(SCOPE)) this.stopPolling();
+                } else if (!this.$store.push.pollsHidden(SCOPE)) this.stopPolling();
             }, { signal });
 
             this._bindViewport();
@@ -100,6 +105,7 @@ export default function contact() {
 
             this.$wire.on('message-sent', () => {
                 this.sending = false;
+                this.replyingTo = null;
                 this.$store.sound?.playOutgoing(this.$wire.activeUserId, SCOPE);
             });
 
@@ -134,6 +140,7 @@ export default function contact() {
             this._destroyed = true;
             this.stopPolling();
             ac?.abort();
+            clearTimeout(this._declutterTimer);
             this._swipeAc?.abort();
             vpAc?.abort();
             vpRo?.disconnect();
@@ -206,7 +213,7 @@ export default function contact() {
         _sidebar() { return this.$wire.$island('sidebar').refreshUnread(); },
 
         _overLimit(body) {
-            if (body.length <= MAX_BODY_LENGTH) return false;
+            if (this.chars(body) <= MAX_BODY_LENGTH) return false;
             this.toast(TOO_LONG_MSG, 'warning');
             return true;
         },
@@ -238,7 +245,8 @@ export default function contact() {
                     await this._isl().refreshActive();
                     this.autoDirection(ta());
                     const lastAfter = this._readLastMessageMarker();
-                    const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null && lastAfter !== this._selfMarker;
+                    if (lastAfter !== lastBefore) this._dropFiles();
+                    const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null && lastAfter !== this._selfMarker && this._markerAdvanced(lastAfter, lastBefore);
                     const incoming = threadChanged && !this._lastMessageIsMine();
                     if (threadChanged) {
                         if (nearBottom) this.$nextTick(() => this.scrollToBottom(true));
@@ -329,7 +337,12 @@ export default function contact() {
         scrollToMessage(id) {
             if (!id) return;
             const el = document.querySelector(`[data-rf="${DATA_RF_MESSAGE_PREFIX}-${id}"]`);
-            if (!el) { this._isl().focusMessage(id).catch(() => {}); return; }
+            if (!el) { this.typeFilter = ''; this._isl().focusMessage(id).catch(() => {}); return; }
+            if (this.typeFilter && el.offsetParent === null) {
+                this.typeFilter = '';
+                this.$nextTick(() => this.scrollToMessage(id));
+                return;
+            }
 
             document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
             el.style.animation = 'none';
@@ -339,6 +352,8 @@ export default function contact() {
 
         selectContact(id) {
             if (!id) return;
+            if (id === this.$wire.activeUserId && this.$wire.mobileShowChat) return;
+            if (id !== this.$wire.activeUserId && this.holdDraft(id, ta())) return;
             const seq = ++selectSeq;
             this._persistLastOpen(id);
             this._repollNow(false);
@@ -348,6 +363,7 @@ export default function contact() {
             if (el) el.dir = 'rtl';
 
             this.resetUI();
+            this.resetRoomScoped();
             this.openActionsId = null;
             this.searchMessages = false;
             this.bookmarksOpen = false;
@@ -375,6 +391,8 @@ export default function contact() {
         },
 
         backToList() {
+            const wire = this.$wire;
+            if (this.holdDraft('back', ta(), wire)) return;
             this.searchMessages = false;
             this.bookmarksOpen = false;
             this.daysOpen = false;
@@ -384,7 +402,6 @@ export default function contact() {
             this._msgViewportEl = null;
             this.showScrollFab = false;
             this.newBelow = 0;
-            const wire = this.$wire;
             wire.set('mobileShowChat', false, false);
             wire.$island('messages').backToList().then(() => wire.$island('sidebar').refreshUnread());
         },
@@ -419,7 +436,7 @@ export default function contact() {
             if (node?.closest(EDITABLE_SEL)) return;
 
             const row = node?.closest(ROW_SEL);
-            if (!row) return;
+            if (!row || !row.querySelector('button[data-body]')) return;
 
             const text = sel.toString().trim();
             if (!text) return;
@@ -440,6 +457,7 @@ export default function contact() {
             this.replyingTo = null;
             this.deletingId = null;
             this.editingMsg = { id, body: body || '' };
+            this.resetAiEdit();
 
             this.$wire.cancelReply();
             this.$wire.set('edit.editingBody', body);
@@ -451,18 +469,21 @@ export default function contact() {
         },
 
         async saveEdit(id) {
-            if (!id || id !== this.editingMsg?.id || this._savingEdit) return;
+            if (!id || id !== this.editingMsg?.id || this._savingEdit || (this.aiEditBusy && this.aiEditId === id)) return;
 
             const wire = this.$wire;
             const body = wire.edit?.editingBody || '';
-            if (body === this.editingMsg.body) return this.cancelEdit();
+            if (body === this.editingMsg.body) {
+                this.toast('متن تغییری نکرده است؛ چیزی برای ذخیره نبود.', 'warning');
+                return this.cancelEdit();
+            }
             if (!body.trim()) return this.toast('متن پیام نباید خالی باشد.', 'warning');
             if (this._overLimit(body)) return;
 
             this._savingEdit = true;
             try {
-                await this._isl().saveEdit(id);
-                if (this.editingMsg?.id === id) this.cancelEdit();
+                const saved = await this._isl().saveEdit(id);
+                if (saved !== false && this.editingMsg?.id === id) this.cancelEdit();
                 this._syncSidebarAfterOwnAction(wire);
             } catch {
                 this.toast('خطا در ذخیره ویرایش پیام.', 'error');
@@ -470,6 +491,12 @@ export default function contact() {
                 this._savingEdit = false;
             }
         },
+
+        _editDirty(wire = this.$wire) { return !!this.editingMsg && (wire.edit?.editingBody ?? '') !== this.editingMsg.body; },
+
+        aiEditCurrentId() { return this.editingMsg?.id ?? null; },
+        aiEditBox(id) { return document.querySelector(`[data-edit-box="${id}"] textarea`); },
+        aiEditApply(text) { this.$wire.set('edit.editingBody', text); },
 
         confirmDelete(id) {
             if (!id) return;
@@ -502,7 +529,6 @@ export default function contact() {
                 : null;
             try {
                 await this._isl().send();
-                this.replyingTo = null;
                 this._syncSidebarAfterOwnAction(wire);
                 this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); this.autoGrow(ta(), 160); this.autoDirection(ta()); });
             } catch {

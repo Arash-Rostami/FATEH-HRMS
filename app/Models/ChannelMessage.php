@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelMessageAction;
+use App\Models\Concerns\HasDailyQuota;
 use App\Models\Concerns\HasPrunableStatus;
 use App\Models\Concerns\HasThreadMessages;
 use App\Models\Concerns\Hooks\HasChannelMessageHooks;
 use App\Traits\CleansAttachedFiles;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
@@ -22,7 +24,13 @@ class ChannelMessage extends Model
         HasPrunableStatus,
         CleansAttachedFiles,
         HasThreadMessages,
+        HasDailyQuota,
         HasChannelMessageHooks;
+
+    protected static function quotaFeature(): string
+    {
+        return 'channel.enhance';
+    }
 
     protected $fillable = [
         'channel_id',
@@ -36,6 +44,11 @@ class ChannelMessage extends Model
     public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);
+    }
+
+    public function scopeWritableBy(Builder $query, int $userId): Builder
+    {
+        return $query->whereHas('channel', fn ($q) => $q->writableBy($userId));
     }
 
     public static function lastIdForChannel(int $channelId): ?int

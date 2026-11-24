@@ -42,9 +42,9 @@ class DocumentForm extends Form
     public function messagesForCustomUpload(): array
     {
         return [
-            'customType.required' => 'لطفاً عنوان مدرک سفارشی را وارد کنید.',
-            'customType.max'      => 'عنوان مدرک نباید بیشتر از 100 کاراکتر باشد.',
-            'customFile.required' => 'لطفاً فایل مدرک سفارشی را انتخاب کنید.',
+            'customType.required' => 'برای مدرک عنوان بنویسید.',
+            'customType.max'      => 'عنوان مدرک را در حداکثر ۱۰۰ نویسه بنویسید.',
+            'customFile.required' => 'فایل مدرک را انتخاب کنید.',
             'customFile.mimes'    => 'فرمت فایل باید PDF، JPG، JPEG یا PNG باشد.',
             'customFile.max'      => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
         ];

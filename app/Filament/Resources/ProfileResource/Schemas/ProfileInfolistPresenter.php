@@ -196,7 +196,7 @@ class ProfileInfolistPresenter
 
             TextEntry::make('path')
                 ->hiddenLabel()
-                ->formatStateUsing(fn($state) => 'مشاهده فایل')
+                ->formatStateUsing(fn($state) => 'مشاهدهٔ فایل')
                 ->url(fn($state) => $state ? asset('storage/' . $state) : null)
                 ->openUrlInNewTab()
                 ->color('primary')

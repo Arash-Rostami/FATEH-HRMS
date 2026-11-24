@@ -8,7 +8,7 @@
         [
             'icon' => 'group',
             'label' => 'مدیریت اعضا',
-            'hint' => 'در ویرایش گروه، بخش «اعضا» را باز کنید. می‌توانید اعضا را اضافه یا حذف کنید. برای مدیر کردن یک نفر، او باید فعال باشد و دست‌کم یک بار وارد گروه شده باشد. نقش مالک و مدیران گروه پروژه از اینجا تغییر نمی‌کند.',
+            'hint' => 'در ویرایش گروه، بخش «اعضا» را باز کنید. می‌توانید اعضا را اضافه یا حذف کنید. برای مدیر کردن یک نفر، او باید فعال باشد و دست‌کم یک بار وارد گروه شده باشد. نقش مالک و مدیران گروه پروژه از اینجا تغییر نمی‌کند. با «تغییر نقش به همراه»، عضو در گروه می‌ماند و می‌تواند پیام‌ها را بخواند و جست‌وجو کند. برای بازگرداندن امکان ارسال پیام و واکنش، «اجازهٔ نوشتن» را بزنید. نقش فعلی هر عضو در ستون «نقش» دیده می‌شود. این دکمه برای گروه‌های مرتبط با پروژه نمایش داده نمی‌شود.',
         ],
         [
             'icon' => 'chat',
@@ -40,13 +40,13 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">عملیات مدیریتی شما روی گروه‌ها</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        شما به‌عنوان ادمین می‌توانید گروه‌ها را مشاهده و ویرایش کنید، اعضا وپیام‌ها را بازبینی کنید، گروه‌های نامناسب را حذف موقت کنید و در صورت نیاز بازگردانید. ساخت گروهِ جدید از این صفحه ممکن نیست — کاربران خودشان گروه می‌سازند.
+        شما به‌عنوان مدیر سامانه می‌توانید گروه‌ها را مشاهده و ویرایش کنید، اعضا وپیام‌ها را بازبینی کنید، گروه‌های نامناسب را حذف موقت کنید و در صورت نیاز بازگردانید. ساخت گروهِ جدید از این صفحه ممکن نیست — کاربران خودشان گروه می‌سازند.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">build</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">اکشن‌های ردیف و بخش</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">کارهای قابل انجام</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($ops as $op)
@@ -66,7 +66,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                حذفِ یک گروه از طرف ادمین، اعضا را از پنل کاربری‌شان خارج نمی‌کند — گروه دیده نمی‌شود ولی اطلاعات عضویت تا زمان حذف دائمی نگه داشته می‌شود.
+                حذفِ یک گروه از طرف مدیر سامانه، اعضا را از پنل کاربری‌شان خارج نمی‌کند — گروه دیده نمی‌شود ولی اطلاعات عضویت تا زمان حذف دائمی نگه داشته می‌شود.
             </p>
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2 mt-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>

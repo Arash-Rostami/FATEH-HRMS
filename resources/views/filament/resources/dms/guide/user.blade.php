@@ -3,12 +3,12 @@
         [
             'icon' => 'account_tree',
             'label' => 'دو زبانه: اسناد / سوابق',
-            'hint' => 'صفحهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">/dms</code> کاربر دو زبانه دارد: «اسناد» و «سوابق». کاربر فقط اسنادِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">live</code> را می‌بیند و فقط اسنادی که به واحدش (یا همهٔ واحدها) یا مستقیماً به خودش رسیده است (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">scopeVisibleToUser</code>). با تعویض زبانه، جستجو و فیلتر بازنشانی می‌شوند.',
+            'hint' => 'در پنل کاربر، «اسناد» و «سوابق» جدا هستند. کاربر اسناد فعالِ منتشرشده برای خودش، واحدش یا همهٔ واحدها را می‌بیند. با تغییر زبانه، جست‌وجو و فیلتر دوباره تنظیم می‌شوند.',
         ],
         [
             'icon' => 'edit_document',
             'label' => 'دو تأیید جداگانه',
-            'hint' => 'هر سند دو دکمه دارد: «تأیید دریافت» (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read=true</code>) یعنی «سند را دیده‌ام»، سپس «مشاهده و تأیید» (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read_count&gt;0</code>) یعنی «محتوای آن را خوانده و پذیرفته‌ام». تا هر دو ثبت نشود، سند در کارتابل «اقدام مورد نیاز» می‌ماند.',
+            'hint' => 'کاربر ابتدا «تأیید دریافت» را می‌زند. سپس از «مشاهده و تأیید»، فایل را باز می‌کند و پس از خواندن، «تأیید و ثبت مطالعه» را می‌زند. تا هر دو مرحله ثبت شوند، سند در «اقدام مورد نیاز» می‌ماند.',
         ],
         [
             'icon' => 'error',
@@ -23,7 +23,7 @@
         [
             'icon' => 'history',
             'label' => 'مشاهده‌های اخیر و اولویت‌بندی',
-            'hint' => 'کارتابل اسنادِ تأییدنشده/نخوانده را بالاتر می‌آورد (اولویت <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">COALESCE</code> روی <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">read_count</code>). فهرست با «بارگذاری بیشتر» صفحه‌بندی می‌شود. بخش «اخیراً مشاهده‌شده» آخرین سندهای بازشده را فقط در مرورگر خود کاربر نگه می‌دارد و قابل پاک‌کردن است.',
+            'hint' => 'اسنادی که به تأیید نیاز دارند بالاتر در فهرست دیده می‌شوند. بخش «اخیراً مشاهده‌شده» آخرین سندهای بازشده را در همین مرورگر نگه می‌دارد. کاربر می‌تواند این فهرست را پاک کند.',
         ],
         [
             'icon' => 'view_column',
@@ -37,7 +37,7 @@
             'icon' => 'verified_user',
             'chip' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
             'label' => 'دسترسی فایل از طریق مسیر امن',
-            'hint' => 'فایل‌ها از مسیر <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">/authorized/...</code> سرو می‌شوند نه از <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">storage/public</code> مستقیم. سرور قبل از ارسال، با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">DMS::visibleToUser()</code> چک می‌کند که سند واقعاً به کاربر قابل دسترس است — در غیر این صورت صفحهٔ ۴۰۴ می‌دهد. فایل‌های الحاقی هم از <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">/authorized-extra/...</code> با همان گارد و بررسیِ مسیر-traversal سرو می‌شوند.',
+            'hint' => 'دسترسی کاربر به فایل اصلی و پیوست‌ها هنگام باز کردن بررسی می‌شود. باز شدن فایل برای مدیر سامانه، دسترسی کاربر را تأیید نمی‌کند. اگر کاربر سند را می‌بیند و فایل باز نمی‌شود، وجود فایل اصلی یا پیوست را بررسی کنید.',
         ],
     ];
 @endphp
@@ -49,7 +49,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کاربر در صفحهٔ مدیریت اسناد چه می‌بیند؟</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        صفحهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">/dms</code> کاربر یک کارتابل اسناد است — نه ویرایشگر. کاربر سندی را که به‌اشتراک گذاشته‌اید دریافت، مطالعه و تأیید می‌کند. وقتی کاربری از دسترسی به سند یا وضعیت تأیید شکایت می‌کند، این زبانه مرجعِ شما برای فهمیدنِ آنچه در صفحهٔ خودش می‌بیند است.
+        کاربران در «مدیریت اسناد» فایل‌هایی را که برایشان منتشر کرده‌اید دریافت و مطالعه می‌کنند. از این راهنما برای بررسی دسترسی و وضعیت تأیید استفاده کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -97,7 +97,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                اگر کاربر می‌گوید «سند را می‌بینم ولی فایل باز نمی‌شود»، احتمالاً سند برای او قابل‌مشاهده نیست (واحدش مالک نیست و در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">users</code> هم نیست) یا وضعیت سند «فعال» نیست — صفحهٔ «پیدا نشد» نشان داده می‌شود.
+                اگر کاربر به سندی دسترسی ندارد، وضعیت انتشار و مخاطبان آن را بررسی کنید. اگر سند در فهرست او دیده می‌شود اما فایل باز نمی‌شود، وجود فایل را هم بررسی کنید.
             </p>
         </div>
     </div>

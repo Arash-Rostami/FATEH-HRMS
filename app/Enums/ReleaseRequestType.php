@@ -15,7 +15,7 @@ enum ReleaseRequestType: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::Support        => 'پشتیبانی نرم افزار',
+            self::Support        => 'پشتیبانی نرم‌افزار',
             self::Recommendation => 'پیشنهاد ماژول',
             self::Bug            => 'گزارش باگ',
             default              => ucfirst(str_replace('_', ' ', $this->value)),

@@ -41,7 +41,7 @@ class ReadsRelationManager extends RelationManager
             Section::make('جزئیات مطالعه')
                 ->schema([
                     TextEntry::make('user.name')->label('کاربر'),
-                    TextEntry::make('read_count')->label('تعداد مطالعه'),
+                    TextEntry::make('read_count')->label('دفعات مطالعه'),
                     TextEntry::make('updated_at')->label('آخرین مطالعه')->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—'),
                 ])
                 ->columnSpanFull()
@@ -58,7 +58,7 @@ class ReadsRelationManager extends RelationManager
                     ->label('کاربر')
                     ->searchable(),
                 IconColumn::make('read')
-                    ->label('خوانده‌شده')
+                    ->label('وضعیت مطالعه')
                     ->boolean(),
                 TextColumn::make('read_count')
                     ->label(__('resources/dms/strings.fields.read_count'))

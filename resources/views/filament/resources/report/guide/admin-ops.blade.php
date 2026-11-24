@@ -67,7 +67,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما: ساخت گزارش، بارگذاری فایل و انتشار</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        سه دکمه در انتهای هر ردیف قرار دارد: مشاهده، ویرایش، حذف. دکمهٔ «ساخت گزارش» در هدر صفحه است. جستجوی سراسری پنل گزارش‌ها را با عنوان یا توضیحات پیدا می‌کند و مستقیم به ویرایش می‌رود.
+        سه دکمه در انتهای هر ردیف قرار دارد: مشاهده، ویرایش، حذف. دکمهٔ «ساخت گزارش» در بالای صفحه است. جستجوی سراسری پنل گزارش‌ها را با عنوان یا توضیحات پیدا می‌کند و مستقیم به ویرایش می‌رود.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

@@ -84,6 +84,17 @@ class TabsTest extends TestCase
             ->assertSeeHtml("show('faqs', \$el)");
     }
 
+    public function test_feed_rail_tile_keeps_the_primary_fill_and_gains_a_tiny_ai_sparkle_only_while_its_view_is_on(): void
+    {
+        $rail = file_get_contents(resource_path('views/components/dashboard/navbars/right.blade.php'));
+
+        $this->assertStringContainsString("\$key === 'feed' && feedAiOn()", $rail);
+        $this->assertStringContainsString('wire:key="feed-ai-rail-sparkle"', $rail);
+        $this->assertStringContainsString('!text-[10px] absolute top-1.5 right-2 text-[color-mix(in_srgb,var(--ai-color)_55%,white)]', $rail);
+        $this->assertStringContainsString('bg-[var(--md-sys-color-primary)]', $rail);
+        $this->assertStringNotContainsString('bg-[var(--ai-bg)]', $rail);
+    }
+
     public function test_legacy_reports_tab_url_redirects_to_knowledge_and_keeps_the_open_id()
     {
         $user = User::factory()->create(['status' => 'active']);

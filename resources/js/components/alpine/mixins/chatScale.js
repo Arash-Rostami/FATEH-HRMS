@@ -1,10 +1,13 @@
 const KEY = 'chat-ui-scale';
+const EVENT = 'chat-scale-changed';
 const STEPS = [0.8, 0.9, 1, 1.1, 1.2];
 const DEFAULT_INDEX = 2;
 
 const apply = (index) => document.documentElement.style.setProperty('--chat-scale', String(STEPS[index]));
 
-const read = () => {
+const announce = (index) => window.dispatchEvent(new CustomEvent(EVENT, { detail: index }));
+
+export const readScale = () => {
     try {
         const saved = parseInt(localStorage.getItem(KEY), 10);
         if (saved >= 0 && saved < STEPS.length) return saved;
@@ -12,12 +15,38 @@ const read = () => {
     return DEFAULT_INDEX;
 };
 
+const writeScale = (index) => {
+    apply(index);
+
+    try {
+        localStorage.setItem(KEY, String(index));
+    } catch {}
+
+    announce(index);
+};
+
+export const clearScale = () => {
+    document.documentElement.style.removeProperty('--chat-scale');
+
+    try {
+        localStorage.removeItem(KEY);
+    } catch {}
+
+    announce(DEFAULT_INDEX);
+};
+
 export default function chatScaleMixin() {
     return {
-        scaleIndex: read(),
+        scaleIndex: readScale(),
 
-        initChatScale() {
+        initChatScale(signal) {
             apply(this.scaleIndex);
+
+            const onChange = (event) => {
+                if (this.$root && !this.$root.isConnected) return window.removeEventListener(EVENT, onChange);
+                this.scaleIndex = event.detail;
+            };
+            window.addEventListener(EVENT, onChange, { signal });
         },
 
         canShrinkScale() {
@@ -45,11 +74,7 @@ export default function chatScaleMixin() {
             if (next === this.scaleIndex) return;
 
             this.scaleIndex = next;
-            apply(next);
-
-            try {
-                localStorage.setItem(KEY, String(next));
-            } catch {}
+            writeScale(next);
         },
     };
 }

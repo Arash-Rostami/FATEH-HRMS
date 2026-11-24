@@ -3770,6 +3770,19 @@ class ProjectTest extends TestCase
         $this->assertFalse($messages['hasMore']);
     }
 
+    public function test_an_edited_label_stays_after_a_newer_message(): void
+    {
+        [$owner, $project] = $this->ownerWithProject();
+        $channel = app(ChannelProvisioner::class)->resolve($project);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'edited earlier', 'is_edited' => true, 'created_at' => now()->subMinute()]);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'later note', 'is_edited' => false]);
+
+        $html = Livewire::actingAs($owner)->test(TeamChat::class, ['activeProjectId' => $project->id, 'initialActive' => true])->html();
+
+        $this->assertStringContainsString('wire:key="project-teamchat-edited-kept"', $html);
+        $this->assertStringContainsString('ویرایش‌شده', $html);
+    }
+
     public function test_team_chat_state_resets_via_full_remount_between_projects(): void
     {
         [$owner, $projectA] = $this->ownerWithProject();
@@ -4622,6 +4635,13 @@ class ProjectTest extends TestCase
         Livewire::actingAs($owner)->test(WorkflowTab::class, ['activeProjectId' => $project->id])
             ->call('isStuck', $workflow->fresh())
             ->assertReturned(true);
+    }
+
+    public function test_workflow_presenter_member_names_maps_candidates_by_id(): void
+    {
+        $names = (new WorkflowPresenter())->memberNames([['id' => 3, 'name' => 'Ali'], ['id' => 7, 'name' => 'Sara']]);
+
+        $this->assertSame([3 => 'Ali', 7 => 'Sara'], $names->all());
     }
 
     public function test_workflow_presenter_can_act_is_populated_and_populated_task_branches(): void

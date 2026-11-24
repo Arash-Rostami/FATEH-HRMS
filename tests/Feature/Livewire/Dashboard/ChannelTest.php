@@ -13,6 +13,7 @@ use App\Livewire\Dashboard\Channel\Actions\SyncChannelAdminsAction;
 use App\Support\ChannelAccessPolicy;
 use App\Livewire\Dashboard\Channel\Actions\SyncChannelMembersAction;
 use App\Livewire\Dashboard\Channel\Actions\DeleteChannelMessageAction;
+use App\Livewire\Dashboard\Channel\Actions\UndoDeleteChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\DownloadChannelAttachmentAction;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelMessageAction;
@@ -391,6 +392,7 @@ class ChannelTest extends TestCase
         // attachment-less message + the other channel's video are both excluded; newest first
         $this->assertSame([$doc->id . ':0', $img->id . ':0'], array_column($rows, 'key'));
         $this->assertSame(['doc', 'image'], array_column($rows, 'kind'));
+        $this->assertSame([$owner->name, $owner->name], array_column($rows, 'sender_name'));
         $this->assertSame([], app(SearchChannelMessagesAction::class)->files($channel->id, $outsider->id));
     }
 
@@ -1929,10 +1931,10 @@ class ChannelTest extends TestCase
             'readers' => [], 'read_count' => 0, 'datetime' => '', 'time' => '', 'reply_to' => null,
         ];
 
-        $html = view('livewire.dashboard.messaging.message-actions', ['msg' => $msg])->render();
+        $html = view('livewire.dashboard.messaging.message-actions', ['msg' => $msg, 'pinScope' => 'channel-message'])->render();
 
-        $this->assertStringContainsString("\$store.pinned.togglePin(909, 'message')", $html);
-        $this->assertStringContainsString("\$store.pinned.isPinned(909, 'message')", $html);
+        $this->assertStringContainsString("\$store.pinned.togglePin(909, 'channel-message')", $html);
+        $this->assertStringContainsString("\$store.pinned.isPinned(909, 'channel-message')", $html);
         $this->assertStringContainsString('>bookmark<', $html);
         $this->assertStringContainsString('font-fill', $html);
         $this->assertStringContainsString('-translate-y-1/2 translate-x-1/2', $html);
@@ -1941,7 +1943,7 @@ class ChannelTest extends TestCase
 
         $blade = file_get_contents(base_path('resources/views/livewire/dashboard/channel/messages.blade.php'));
         $this->assertStringContainsString("!ring-2 !ring-[var(--md-sys-color-primary)]", $blade);
-        $this->assertStringContainsString("\$store.pinned.isPinned(@js(\$msg['id']), @js('message'))", $blade);
+        $this->assertStringContainsString("\$store.pinned.isPinned(@js(\$msg['id']), @js('channel-message'))", $blade);
     }
 
     public function test_reader_summary_lists_all_names_caps_shown_at_three_and_counts_extra(): void
@@ -2078,7 +2080,7 @@ class ChannelTest extends TestCase
         $recent = now()->subMinute()->toDateTimeString();
 
         $this->actingAs($owner);
-        $state = $presenter->headerState($channel, $header, ['Ali', 'Sara'], $members, [['id' => $header['id'], 'last_message' => ['created_at' => $old]]]);
+        $state = $presenter->headerState($channel->setAttribute('last_message_at', $old), $header, ['Ali', 'Sara'], $members);
 
         $this->assertTrue($state['isOwner']);
         $this->assertSame(['Ali', 'Sara'], $state['typingMembers']);
@@ -2087,17 +2089,17 @@ class ChannelTest extends TestCase
         $this->assertSame((string) Js::from($header['id']), (string) $state['channelIdJs']);
         $this->assertSame(toJalaliRelative($old, dateAfterDays: 0), $state['lastActivity']);
 
-        $fresh = $presenter->headerState($channel, $header, null, $members, [['id' => $header['id'], 'last_message' => ['created_at' => $recent]]]);
+        $fresh = $presenter->headerState($channel->setAttribute('last_message_at', $recent), $header, null, $members);
         $this->assertNull($fresh['lastActivity']);
         $this->assertSame([], $fresh['typingMembers']);
         $this->assertSame(0, $fresh['typingCount']);
 
-        $none = $presenter->headerState($channel, $header, [], [], []);
+        $none = $presenter->headerState($channel->setAttribute('last_message_at', null), $header, [], []);
         $this->assertNull($none['lastActivity']);
         $this->assertSame(0, $none['onlineCount']);
 
         $this->actingAs($stranger);
-        $this->assertFalse($presenter->headerState($channel, $header, [], [], [])['isOwner']);
+        $this->assertFalse($presenter->headerState($channel, $header, [], [])['isOwner']);
     }
 
     private function channelViaLivewire(User $owner, string $name): Channel
@@ -2238,7 +2240,7 @@ class ChannelTest extends TestCase
 
             $memberQueries = collect(DB::getQueryLog())->pluck('query')
                 ->filter(fn($q) => str_contains($q, 'select `users`.`id`, `users`.`name`, `users`.`presence`'));
-            $this->assertCount(1, $memberQueries, 'mentionMemberMap and mentionMemberPresence must share one underlying query');
+            $this->assertCount(0, $memberQueries, 'mentionMemberMap and mentionMemberPresence derive from the already-loaded members and run no query of their own');
         } finally {
             DB::disableQueryLog();
         }
@@ -2304,7 +2306,8 @@ class ChannelTest extends TestCase
             DB::flushQueryLog();
             $test->call('loadMentionMemberNames');
             $queries = collect(DB::getQueryLog())->pluck('query')->filter(fn($q) => str_contains($q, 'select `users`.`id`, `users`.`name`, `users`.`presence`'));
-            $this->assertGreaterThan(0, $queries->count(), 'the explicit action must actually load the roster when the user opens the @ picker');
+            $this->assertCount(0, $queries, 'the roster comes from the already-loaded members, no narrow mention query');
+            $this->assertContains('Bob', $test->get('mentionMemberNames'));
         } finally {
             DB::disableQueryLog();
         }
@@ -2773,6 +2776,21 @@ class ChannelTest extends TestCase
         $this->assertSame(ChannelResource::moduleKey(), SetChannelKeyAction::MODULE);
     }
 
+    public function test_an_edited_label_stays_after_a_newer_message(): void
+    {
+        $owner = User::factory()->create(['status' => 'active']);
+        $channel = $this->channelWithMembers($owner);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'edited earlier', 'is_edited' => true, 'created_at' => now()->subMinute()]);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'later note', 'is_edited' => false]);
+
+        $component = Livewire::actingAs($owner)->test(Main::class)->call('selectChannel', $channel->id);
+        $component->instance()->renderIsland('messages');
+        $html = implode('', $component->instance()->getRenderedIslandFragments());
+
+        $this->assertNotFalse(strpos($html, 'wire:key="channel-msg-edited"'), 'edited label missing on a non-last message');
+        $this->assertNotFalse(strpos($html, 'ویرایش شده'), 'edited label text missing');
+    }
+
     private function channelWithMembers(User $owner, array $members = [], string $type = 'private'): Channel
     {
         $channel = Channel::factory()->ownedBy($owner)->ofType(ChannelType::from($type))->create();
@@ -3039,18 +3057,93 @@ class ChannelTest extends TestCase
         $can = fn() => ChannelAccessPolicy::abilities($channel, auth()->user());
 
         $this->actingAs($owner);
-        $this->assertFalse($presenter->headerState($channel, $header, [], [], [])['canLeave']);
+        $this->assertFalse($presenter->headerState($channel, $header, [], [])['canLeave']);
         $this->actingAs($admin);
-        $this->assertTrue($presenter->headerState($channel, $header, [], [], [])['canLeave']);
+        $this->assertTrue($presenter->headerState($channel, $header, [], [])['canLeave']);
 
         $this->actingAs($owner);
-        $this->assertSame(['manageMembers' => true, 'changeType' => true, 'manageAdmins' => true, 'setKey' => true, 'delete' => true, 'leave' => false], $can());
+        $this->assertSame(['post' => true, 'manageMembers' => true, 'changeType' => true, 'manageAdmins' => true, 'setKey' => true, 'delete' => true, 'leave' => false], $can());
 
         $this->actingAs($admin);
-        $this->assertSame(['manageMembers' => true, 'changeType' => true, 'manageAdmins' => false, 'setKey' => false, 'delete' => false, 'leave' => true], $can());
+        $this->assertSame(['post' => true, 'manageMembers' => true, 'changeType' => true, 'manageAdmins' => false, 'setKey' => false, 'delete' => false, 'leave' => true], $can());
 
         $this->actingAs($member);
-        $this->assertSame(['manageMembers' => false, 'changeType' => false, 'manageAdmins' => false, 'setKey' => false, 'delete' => false, 'leave' => true], $can());
+        $this->assertSame(['post' => true, 'manageMembers' => false, 'changeType' => false, 'manageAdmins' => false, 'setKey' => false, 'delete' => false, 'leave' => true], $can());
+    }
+
+    public function test_a_viewer_reads_but_cannot_react_pin_or_post_and_the_member_save_silences_and_restores_only_changed_members(): void
+    {
+        [$owner, $admin, $viewer, $writer] = $this->activeUsers(4);
+        $channel = $this->channelWithMembers($owner, [$admin, $viewer, $writer]);
+        $this->promote($channel, $admin);
+        $message = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'Hello']);
+        $roleOf = fn($user) => DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $user->id)->value('role');
+        $sync = app(SyncChannelMembersAction::class);
+        $everyone = [$admin->id, $viewer->id, $writer->id];
+
+        $result = $sync->execute($channel->id, $admin->id, $everyone, [$viewer->id, $owner->id, $admin->id]);
+        $this->assertSame(1, $result['silenced']);
+        $this->assertSame('viewer', $roleOf($viewer));
+        $this->assertSame('admin', $roleOf($admin));
+        $this->assertSame('member', $roleOf($writer));
+
+        $this->actingAs($viewer);
+        $this->assertFalse(ChannelAccessPolicy::canPost($channel, $viewer));
+        $this->assertFalse(app(ToggleChannelMessageReactionAction::class)->execute($message->id, '👍', $viewer->id));
+        $this->assertFalse(app(ToggleChannelPinAction::class)->execute($channel->id, $message->id, $viewer->id));
+        $this->assertTrue(ChannelAccessPolicy::canPost($channel, $writer));
+
+        $this->assertSame(0, $sync->execute($channel->id, $admin->id, $everyone)['silenced']);
+        $this->assertSame('viewer', $roleOf($viewer));
+
+        $this->assertSame(1, $sync->execute($channel->id, $owner->id, $everyone, [], [$viewer->id])['silenced']);
+        $this->assertSame('member', $roleOf($viewer));
+        $this->actingAs($viewer);
+        $this->assertTrue(app(ToggleChannelMessageReactionAction::class)->execute($message->id, '👍', $viewer->id));
+    }
+
+    public function test_a_viewer_cannot_delete_undo_edit_or_forward_is_never_promoted_silently_and_an_unknown_role_fails_closed(): void
+    {
+        [$owner, $viewer, $writer] = $this->activeUsers(3);
+        $channel = $this->channelWithMembers($owner, [$viewer, $writer]);
+        $other = $this->channelWithMembers($owner, [$viewer, $writer]);
+        $roleOf = fn($user) => DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $user->id)->value('role');
+        $setRole = fn($user, string $role) => DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $user->id)->update(['role' => $role]);
+
+        $mine = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $viewer->id, 'body' => 'mine']);
+        $theirs = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $writer->id, 'body' => 'theirs']);
+        $setRole($viewer, 'viewer');
+
+        $this->actingAs($viewer);
+        $this->assertFalse(app(DeleteChannelMessageAction::class)->execute($mine->id, 600));
+        $this->assertNull($mine->fresh()->deleted_at);
+
+        Livewire::actingAs($viewer)->test(Main::class)->call('selectChannel', $channel->id)
+            ->set('edit.editingBody', 'changed')
+            ->call('saveEdit', $mine->id, 'changed');
+        $this->assertSame('mine', $mine->fresh()->body);
+
+        $this->actingAs($writer);
+        $snapshot = app(DeleteChannelMessageAction::class)->execute($theirs->id, 600);
+        $this->assertIsArray($snapshot);
+        $setRole($writer, 'viewer');
+        app(UndoDeleteChannelMessageAction::class)->execute($snapshot);
+        $this->assertNotNull(ChannelMessage::withTrashed()->find($theirs->id)->deleted_at);
+        $setRole($writer, 'member');
+
+        $this->assertSame(1, app(SyncChannelAdminsAction::class)->execute($channel->id, $owner->id, [$viewer->id, $writer->id])['promoted']);
+        $this->assertSame('viewer', $roleOf($viewer));
+        $this->assertSame('admin', $roleOf($writer));
+
+        $setRole($writer, 'bogus');
+        $this->assertFalse(ChannelAccessPolicy::canPost($channel, $writer));
+        $this->actingAs($writer);
+        $this->assertFalse(app(ToggleChannelMessageReactionAction::class)->execute($mine->id, '👍', $writer->id));
+        $this->assertFalse(app(ToggleChannelPinAction::class)->execute($channel->id, $mine->id, $writer->id));
+
+        $this->actingAs($viewer);
+        $this->expectException(ModelNotFoundException::class);
+        app(ForwardMessageAction::class)->execute('channel', $theirs->id, 'channel', $other->id);
     }
 
     public function test_the_policy_trusts_a_loaded_viewer_role_and_the_project_link_attribute_without_extra_queries(): void
@@ -3123,6 +3216,22 @@ class ChannelTest extends TestCase
 
         $this->assertSame(['promoted' => 0, 'demoted' => 0], $result);
         $this->assertSame('member', DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $inactive->id)->value('role'));
+    }
+
+    public function test_an_empty_admin_selection_demotes_all_but_a_selection_of_only_invalid_ids_changes_nothing(): void
+    {
+        [$owner, $admin] = $this->activeUsers(2);
+        $inactive = User::factory()->create(['status' => 'inactive', 'presence' => 'onsite']);
+        $channel = $this->channelWithMembers($owner, [$admin, $inactive]);
+        $this->promote($channel, $admin);
+        $roleOf = fn() => DB::table('channel_members')->where('channel_id', $channel->id)->where('user_id', $admin->id)->value('role');
+
+        $this->actingAs($owner);
+        $this->assertSame(['promoted' => 0, 'demoted' => 0], app(SyncChannelAdminsAction::class)->execute($channel->id, $owner->id, [$inactive->id]));
+        $this->assertSame('admin', $roleOf());
+
+        $this->assertSame(1, app(SyncChannelAdminsAction::class)->execute($channel->id, $owner->id, [])['demoted']);
+        $this->assertSame('member', $roleOf());
     }
 
     public function test_member_bulk_selection_pool_matches_candidates_clears_and_needs_the_open_modal(): void
@@ -3400,10 +3509,35 @@ class ChannelTest extends TestCase
         $info = file_get_contents(resource_path('views/livewire/dashboard/channel/info.blade.php'));
 
         $this->assertMatchesRegularExpression('/@if\(channelAiOn\(\)\)\s*<div wire:key="channel-ai-entry" x-show="!headerDeclutter".{0,900}openAiPanel\(\)/s', $header);
+        $this->assertStringContainsString('class="hidden md:flex flex-shrink-0 items-center"', $header);
+        $actions = file_get_contents(resource_path('views/livewire/dashboard/messaging/header-actions.blade.php'));
+        $this->assertLessThan(
+            strpos($actions, 'x-on:click="open = false; openMessageSearch()"'),
+            strpos($actions, "{{ \$leadingOverflow ?? '' }}"),
+        );
+        $this->assertMatchesRegularExpression('/@slot\(\'leadingOverflow\'\)\s*@if\(channelAiOn\(\)\)\s*<x-ui.buttons.form[^>]*wire:key="channel-ai-overflow"[^>]*x-on:click="open = false; openAiPanel\(\)"/s', $header);
         $this->assertMatchesRegularExpression('/@if\(channelAiOn\(\)\)\s*<div x-show="aiOpen"/', $info);
         $this->assertStringNotContainsString("'id' => 'ai'", $info);
         $this->assertMatchesRegularExpression('/<div x-show="!aiAnswer"[^>]*>\s*@foreach\(config\(\'ai\.channel\.modes\'\)/', $info);
         $this->assertStringContainsString('x-on:click="aiReset()"', $info);
+    }
+
+    public function test_channel_edit_box_includes_the_shared_smart_edit_partial_and_the_menu_reads_the_fresh_body(): void
+    {
+        $messages = file_get_contents(resource_path('views/livewire/dashboard/channel/messages.blade.php'));
+        $partial = file_get_contents(resource_path('views/livewire/dashboard/messaging/ai-edit.blade.php'));
+        $actions = file_get_contents(resource_path('views/livewire/dashboard/messaging/message-actions.blade.php'));
+
+        $this->assertStringContainsString('data-edit-box="{{ $msg[' . "'id'" . '] }}"', $messages);
+        $this->assertStringContainsString("'scope' => 'channel', 'aiOn' => " . '$aiOn' . ", 'part' => 'status'", $messages);
+        $this->assertStringContainsString("'scope' => 'channel', 'aiOn' => " . '$aiOn' . ", 'part' => 'meter'", $messages);
+        $this->assertStringStartsWith('@if($aiOn)', $partial);
+        $this->assertStringContainsString('wire:key="{{ $scope }}-edit-ai-status"', $partial);
+        $this->assertStringContainsString('wire:key="{{ $scope }}-edit-ai-meter"', $partial);
+        $this->assertStringContainsString('data-msg-body="{{ $msg[' . "'body'" . '] }}"', $actions);
+        $this->assertStringContainsString("\$dispatch('smart-edit', { id: {{ \$msg['id'] }}, body: document.querySelector(", $actions);
+        $this->assertStringContainsString('x-on:smart-edit.window="enhanceFromMenu(', file_get_contents(resource_path('views/livewire/dashboard/channel.blade.php')));
+        $this->assertStringContainsString('x-on:smart-edit.window="enhanceFromMenu(', file_get_contents(resource_path('views/livewire/dashboard/contact.blade.php')));
     }
 
     public function test_channel_assistant_gate_helper_follows_the_tenant_switch(): void
@@ -3454,5 +3588,101 @@ class ChannelTest extends TestCase
         Http::assertSent(fn ($request) => str_contains($request['messages'][1]['content'], "#{$old->id} [PINNED, OUTSIDE PERIOD]")
             && str_contains($request['messages'][1]['content'], 'old pinned decision')
             && strpos($request['messages'][1]['content'], 'old pinned decision') < strpos($request['messages'][1]['content'], 'قرار شد'));
+    }
+
+    private function aiEditor(string $body = 'salam khoobi'): array
+    {
+        [$member, $channel] = $this->aiMember();
+        config(['ai.channel.enhance.cooldown' => 0]);
+        Cache::forget(ChannelMessage::quotaKey($member->id));
+        $this->beforeApplicationDestroyed(fn () => Cache::forget(ChannelMessage::quotaKey($member->id)));
+
+        return [$member, $channel, ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $member->id, 'body' => $body])];
+    }
+
+    public function test_enhance_edit_returns_the_rewrite_for_an_own_recent_message_and_charges_its_own_counter(): void
+    {
+        [$member, $channel, $message] = $this->aiEditor();
+        Http::fake(['*' => Http::response($this->aiReply('سلام، امیدوارم حالتون خوب باشه'))]);
+
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('enhanceEdit', $message->id, 'salam khoobi')
+            ->assertReturned(fn (array $r) => $r['answer'] === 'سلام، امیدوارم حالتون خوب باشه'
+                && $r['error'] === null
+                && $r['note'] === config('ai.channel.enhance.applied_note')
+                && str_contains($r['meter'], 'role="progressbar"'));
+
+        $this->assertSame(1, ChannelMessage::quotaUsed($member->id));
+        $this->assertSame(0, Channel::quotaUsed($member->id));
+        $this->assertSame('salam khoobi', $message->fresh()->body);
+    }
+
+    public function test_enhance_edit_refuses_a_foreign_an_expired_and_a_non_member_message_without_spending_quota(): void
+    {
+        [$member, $channel, $mine] = $this->aiEditor();
+        $owner = User::find($channel->owner_id);
+        $foreign = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'not mine']);
+        $old = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $member->id, 'body' => 'too old']);
+        $old->forceFill(['created_at' => now()->subSeconds(601)])->saveQuietly();
+        [$outsider] = $this->activeUsers(1);
+        $outside = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $outsider->id, 'body' => 'left the group']);
+        Http::fake();
+
+        $component = Livewire::actingAs($member)->test(Main::class);
+        $component->call('enhanceEdit', $foreign->id, 'not mine')
+            ->assertReturned(fn (array $r) => $r['error'] === 'expired' && $r['answer'] === '' && $r['soft'] === true && $r['message'] === config('ai.channel.enhance.errors.expired'));
+        $component->call('enhanceEdit', $old->id, 'too old')
+            ->assertReturned(fn (array $r) => $r['error'] === 'expired');
+
+        Livewire::actingAs($outsider)->test(Main::class)
+            ->call('enhanceEdit', $outside->id, 'left the group')
+            ->assertReturned(fn (array $r) => $r['error'] === 'expired');
+
+        Http::assertNothingSent();
+        $this->assertSame(0, ChannelMessage::quotaUsed($member->id));
+        $this->assertSame(0, ChannelMessage::quotaUsed($outsider->id));
+    }
+
+    public function test_enhance_edit_refuses_when_the_channel_ai_view_is_switched_off(): void
+    {
+        [$member, $channel, $message] = $this->aiEditor();
+        Http::fake();
+        config(['app.off' => ['channel:ai']]);
+
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('enhanceEdit', $message->id, 'salam')
+            ->assertStatus(404);
+
+        Http::assertNothingSent();
+        $this->assertSame(0, ChannelMessage::quotaUsed($member->id));
+    }
+
+    public function test_enhance_edit_returns_the_quota_error_once_the_daily_cap_is_spent(): void
+    {
+        [$member, $channel, $message] = $this->aiEditor();
+        Http::fake();
+        Cache::put(ChannelMessage::quotaKey($member->id), ChannelMessage::quotaCap(), now()->endOfDay());
+
+        Livewire::actingAs($member)->test(Main::class)
+            ->call('enhanceEdit', $message->id, 'salam')
+            ->assertReturned(fn (array $r) => $r['error'] === 'quota' && $r['answer'] === '' && $r['message'] === config('ai.channel.enhance.errors.quota'));
+
+        Http::assertNothingSent();
+        $this->assertSame(ChannelMessage::quotaCap(), ChannelMessage::quotaUsed($member->id));
+    }
+
+    public function test_enhance_edit_rejects_empty_and_over_long_text_before_any_charge(): void
+    {
+        [$member, $channel, $message] = $this->aiEditor();
+        Http::fake();
+
+        $component = Livewire::actingAs($member)->test(Main::class);
+        $component->call('enhanceEdit', $message->id, '   ')
+            ->assertReturned(fn (array $r) => $r['error'] === 'question');
+        $component->call('enhanceEdit', $message->id, str_repeat('م', (int) config('ai.channel.enhance.input_max') + 1))
+            ->assertReturned(fn (array $r) => $r['error'] === 'long' && $r['message'] === config('ai.channel.enhance.errors.long'));
+
+        Http::assertNothingSent();
+        $this->assertSame(0, ChannelMessage::quotaUsed($member->id));
     }
 }

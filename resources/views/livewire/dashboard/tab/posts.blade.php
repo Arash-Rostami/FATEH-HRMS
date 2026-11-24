@@ -5,7 +5,7 @@
     wire:ignore.self
     @open-post-panel.window="panelOpen = true"
 >
-    <x-ui.title icon="campaign" title="اعلانات‌" :count="$this->totalPosts">
+    <x-ui.title guide="announce" icon="campaign" title="اعلانات‌" :count="$this->totalPosts">
         <x-slot:actions>
             <x-ui.buttons.view-toggle module="announce" />
             <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>

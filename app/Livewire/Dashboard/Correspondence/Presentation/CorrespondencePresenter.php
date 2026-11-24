@@ -477,7 +477,7 @@ final class CorrespondencePresenter
             'width' => $width,
             'height' => $height,
             'flow_mm' => max(50, $height - ($margins['top'] + $margins['bottom']) * 10 - 1),
-            'margins' => $margins,
+            'margins' => array_map(fn ($v) => (float) $v, $margins),
             'style' => $style,
             'fonts' => CorrespondenceFonts::used($style, $blocks),
             'config' => $config,
@@ -768,6 +768,32 @@ final class CorrespondencePresenter
             'report' => 'فرم مکاتبات',
             'table' => 'جدول مکاتبات',
         ];
+    }
+
+    public function pollSeconds(): int
+    {
+        return (int) config('ai.correspondence.poll_seconds');
+    }
+
+    public function classicTabItems(): array
+    {
+        $items = [];
+        foreach ($this->classicTabs() as $id => $label) {
+            $items[] = ['id' => $id, 'icon' => $id === 'table' ? 'table_rows' : 'edit_note', 'label' => $label];
+        }
+
+        return $items;
+    }
+
+    public function listTabItems(): array
+    {
+        $icons = ['waiting' => 'inbox', 'mine' => 'person', 'incoming' => 'move_to_inbox', 'all' => 'mail', 'registry' => 'inventory_2', 'templates' => 'content_copy'];
+        $items = [];
+        foreach ($this->listTabs() as $id => $label) {
+            $items[] = ['id' => $id, 'icon' => $icons[$id] ?? 'mail', 'label' => $label];
+        }
+
+        return $items;
     }
 
     public function filterLabels(): array
@@ -1272,7 +1298,7 @@ final class CorrespondencePresenter
 
         return $quotaPct >= 80
             ? ['text' => 'text-[var(--tool-gold-color)]', 'fill' => 'bg-[var(--tool-gold-color)]']
-            : ['text' => 'text-[var(--md-sys-color-on-surface-variant)]', 'fill' => 'bg-[var(--md-sys-color-primary)]'];
+            : ['text' => 'text-[var(--md-sys-color-on-surface-variant)]', 'fill' => 'bg-[var(--ai-color)]'];
     }
 
     private const DOTS = [

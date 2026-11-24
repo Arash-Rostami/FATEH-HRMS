@@ -101,7 +101,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">ویدیوها در صفحهٔ جزئیات</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">ویدیوها (MP4/WEBM/MOV) از آرایه جدا شده و در صفحهٔ جزئیات به‌صورت پخش‌کنندهٔ HTML5 درون‌خطی (<code class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container)] font-mono text-[10px]">&lt;video controls&gt;</code>) با URL عمومیِ دیسک public نمایش داده می‌شوند؛ تصاویر هم به‌صورت استکِ محدود به ۱۲ مورد می‌نشینند.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">در صفحهٔ جزئیات می‌توانید ویدیوهای MP4، WEBM و MOV را پخش کنید. این بخش تا ۱۲ تصویر را در پیش‌نمایش نشان می‌دهد.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">

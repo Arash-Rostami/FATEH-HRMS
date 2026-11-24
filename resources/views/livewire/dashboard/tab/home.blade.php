@@ -40,8 +40,7 @@
                         class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shrink-0"><span class="material-symbols-rounded block !text-[13px] leading-none">keyboard_command_key</span></span>
                     <span
                         class="font-bold text-[var(--md-sys-color-on-primary-container)]/90 truncate">میز کار متمرکز سازمانی</span>
-                    @php($updatedAt = rescue(fn() => \Illuminate\Support\Carbon::parse(config('app.last_update')), null, false))
-                    @if($updatedAt && $updatedAt->gt(now()->subHours(84)))
+                    @if($updatedAt)
                         <div wire:key="home-update-badge" class="shrink-0">
                             <x-dashboard.modal.release>
                                 <x-slot:trigger>
@@ -91,14 +90,14 @@
                                 @endforeach
                                 @if($mobileRemainder > 0)
                                     <button type="button" wire:key="home-team-pulse-remainder-mobile"
-                                            wire:click="openTeamSearch(5)" aria-label="مشاهده بقیه همکاران آنلاین"
+                                            wire:click="openTeamSearch(5)" aria-label="دیدن سایر همکاران آنلاین"
                                             class="sm:hidden relative shrink-0 w-6 h-6 rounded-md bg-[var(--md-sys-color-on-primary-container)]/15 text-[var(--md-sys-color-on-primary-container)] ring-2 ring-[var(--md-sys-color-primary-container)] flex items-center justify-center hover:bg-[var(--md-sys-color-on-primary-container)]/25 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-on-primary-container)]/40">
                                         <span class="text-[9px] font-bold">+{{ convertToPersian($mobileRemainder) }}</span>
                                     </button>
                                 @endif
                                 @if($desktopRemainder > 0)
                                     <button type="button" wire:key="home-team-pulse-remainder-desktop"
-                                            wire:click="openTeamSearch(15)" aria-label="مشاهده بقیه همکاران آنلاین"
+                                            wire:click="openTeamSearch(15)" aria-label="دیدن سایر همکاران آنلاین"
                                             class="hidden sm:flex relative shrink-0 w-6 h-6 rounded-md bg-[var(--md-sys-color-on-primary-container)]/15 text-[var(--md-sys-color-on-primary-container)] ring-2 ring-[var(--md-sys-color-primary-container)] items-center justify-center hover:bg-[var(--md-sys-color-on-primary-container)]/25 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-on-primary-container)]/40">
                                         <span class="text-[9px] font-bold">+{{ convertToPersian($desktopRemainder) }}</span>
                                     </button>
@@ -114,10 +113,10 @@
                         @endunless
                     </div>
                 @else
-                    <div wire:key="home-team-pulse-quiet" title="در حال حاضر همکاری آنلاین نیست"
+                    <div wire:key="home-team-pulse-quiet" title="در حال حاضر هیچ همکاری آنلاین نیست"
                          class="shrink-0 inline-flex items-center gap-1.5 h-6 px-2.5 rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-primary-container)_10%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-on-primary-container)_18%,transparent)] text-[var(--md-sys-color-on-primary-container)]/80">
                         <span class="material-symbols-rounded text-[15px] leading-none">group_off</span>
-                        <span class="text-[10px] font-bold whitespace-nowrap">همکاری آنلاین نیست</span>
+                        <span class="text-[10px] font-bold whitespace-nowrap">هیچ همکاری آنلاین نیست</span>
                     </div>
                 @endif
             </div>
@@ -185,7 +184,7 @@
                         x-text="displayed"></h1>
 
                     <p class="text-xs sm:text-sm md:text-base text-[var(--md-sys-color-on-primary-container)]/85 leading-relaxed font-normal">
-                        ✨ ابزارهای کلیدی، ماژولها و راهنمای سیستم همه در یکجا
+                        دسترسی به ابزارها، بخش‌های سامانه و راهنماها
                     </p>
 
                     <div
@@ -207,7 +206,7 @@
                             <span class="opacity-50 mx-0.5">|</span>
                             <span :class="tone($store.sound.notificationMuted ? 0 : 2)" :title="$store.sound.notificationMuted ? 'صدای اعلان‌ها خاموش است' : 'صدای اعلان‌ها روشن است'"><span class="material-symbols-rounded inline-block align-middle !text-[20px] opacity-70 me-1.5" x-text="$store.sound.notificationMuted ? 'volume_off' : 'volume_up'"></span>صدا</span>
                             <span class="opacity-50 mx-0.5">|</span>
-                            <span :class="tone(chat.length)" :title="chat.length === 2 ? 'صدای چنل و مخاطبین روشن است' : (chat.length === 0 ? 'صدای چنل و مخاطبین خاموش است' : (chat[0] === 'channel' ? 'فقط صدای چنل روشن است' : 'فقط صدای مخاطبین روشن است'))"><span class="material-symbols-rounded inline-block align-middle !text-[20px] opacity-70 me-1.5" x-text="chat.length ? 'forum' : 'comments_disabled'"></span>چت</span>
+                            <span :class="tone(chat.length)" :title="chat.length === 2 ? 'صدای گروه‌ها و پیام‌رسان روشن است' : (chat.length === 0 ? 'صدای گروه‌ها و پیام‌رسان خاموش است' : (chat[0] === 'channel' ? 'فقط صدای گروه‌ها روشن است' : 'فقط صدای پیام‌رسان روشن است'))"><span class="material-symbols-rounded inline-block align-middle !text-[20px] opacity-70 me-1.5" x-text="chat.length ? 'forum' : 'comments_disabled'"></span>چت</span>
                             <span class="opacity-50 mx-0.5">|</span>
                             <span :class="tone($store.focus.active ? 2 : 0)" :title="$store.focus.active ? 'حالت تمرکز فعال است' : 'حالت تمرکز غیرفعال است'"><span class="material-symbols-rounded inline-block align-middle !text-[20px] opacity-70 me-1.5">self_improvement</span>تمرکز</span>
                         </span>
@@ -284,7 +283,7 @@
                         </div>
 
                         <div class="flex items-center gap-1 shrink-0">
-                            <x-ui.modals.maximize-button toggle="toggleMaximize(pane)" state="maximizedPane === pane" size="sm" label="تمام‌صفحه سازمانی" label-on="خروج از تمام‌صفحه"/>
+                            <x-ui.modals.maximize-button toggle="toggleMaximize(pane)" state="maximizedPane === pane" size="sm" label="نمایش تمام‌صفحه" label-on="خروج از تمام‌صفحه"/>
                             <button type="button" x-on:click="remove(pane)" title="حذف ماژول از میز کار"
                                     class="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-colors">
                                 <span class="material-symbols-rounded text-[17px]">delete</span>
@@ -354,14 +353,10 @@
 
     {{-- ═══════════════════════ PANES ═══════════════════════ --}}
     <x-ui.modals.max-backdrop state="maximizedPane" close="toggleMaximize(maximizedPane)"/>
-    @use('App\Livewire\Dashboard\Tab\Presentation\TabPresenter')
-    @php($gadgetCounts = collect($gadgetCatalog)->countBy('group'))
-    @php($gadgetRows = collect($gadgetCatalog)->map(fn ($i) => ['g' => $i['group'], 's' => $i['src'], 'f' => mb_strtolower(trim($i['title'] . ' ' . $i['subtitle'] . ' ' . $i['badge']))])->all())
-    @php($gadgetTabs = collect(TabPresenter::GADGET_GROUPS)->filter(fn ($g, $key) => $gadgetCounts->has($key))->map(fn ($g, $key) => ['id' => $key, 'icon' => $g['icon'], 'label' => $g['tab'], 'description' => $g['label'], 'alpine' => "tab = '{$key}'", 'activeExpr' => "tab === '{$key}'", 'countExpr' => "count('{$key}')"])->values()->all())
     <div wire:key="hero-gadget-picker" x-init="rows = @js($gadgetRows)">
         <x-ui.modals.panel state="pickerFor" close="pickerFor = null"
                             icon="widgets" title="فهرست ماژول‌های فعال"
-                            subtitle="جهت استقرار در میز کار شناور، ماژول را انتخاب فرمایید"
+                            subtitle="بخشی را انتخاب کنید تا در میز کار باز شود"
                             max-width="max-w-2xl" height="h-[85dvh] sm:h-[680px]">
             <x-slot:search>
                 <div class="relative group w-full">
@@ -375,7 +370,7 @@
                     </button>
                 </div>
                 <p class="hidden md:block mt-2 text-[10px] text-[var(--md-sys-color-on-surface-variant)]">با کلیدهای جهت‌دار جابه‌جا شوید، Enter برای انتخاب، Esc برای بستن</p>
-                @if($gadgetCounts->count() > 1)
+                @if($gadgetMulti)
                     <div wire:key="hero-gadget-tabs" class="mt-3">
                         <x-ui.buttons.tab-selector :has-a11y="true" class="!mb-0" :tabs="$gadgetTabs"/>
                     </div>
@@ -440,16 +435,10 @@
 
 {{-- ═══════════════════════ QUICK ACCESS (SMART LAUNCHPAD + TEAM PULSE) ═══════════════════════ --}}
 <div x-data="shortcut(@js($shortcuts))" x-cloak class="mb-8">
-    <div class="group relative rounded-2xl overflow-hidden
+    <div class="group relative rounded-2xl overflow-hidden ai-halo
                     bg-[var(--md-sys-color-surface)]
-                    border border-[var(--md-sys-color-outline-variant)]/30
                     shadow-[0_2px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_8%,transparent)]
                     transition-all duration-300">
-
-        {{-- شیمر پویا --}}
-        <div class="h-[2px] w-full overflow-hidden bg-[var(--md-sys-color-surface-variant)]/50">
-            <div class="h-full w-1/4 bg-[var(--md-sys-color-primary)] animate-shimmer rounded-full"></div>
-        </div>
 
         <div class="p-4 sm:p-5">
             <div class="flex items-center justify-between gap-3 mb-4">

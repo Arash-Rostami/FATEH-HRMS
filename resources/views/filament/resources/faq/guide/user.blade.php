@@ -66,7 +66,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                برخلاف بسیاری از ماژول‌ها، کاربر نمی‌تواند پرسشی بسازد یا ویرایش کند — نگهداریِ محتوا فقط در این صفحهٔ ادمین انجام می‌شود. اگر کاربر گزارش یک پرسشِ اشتباه می‌دهد، باید اینجا اصلاح شود.
+                برخلاف بسیاری از ماژول‌ها، کاربر نمی‌تواند پرسشی بسازد یا ویرایش کند — نگهداریِ محتوا فقط در این صفحهٔ مدیریت انجام می‌شود. اگر کاربر گزارش یک پرسشِ اشتباه می‌دهد، باید اینجا اصلاح شود.
             </p>
         </div>
     </div>

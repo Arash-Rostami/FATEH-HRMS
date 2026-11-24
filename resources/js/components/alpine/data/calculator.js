@@ -136,10 +136,10 @@ export default function calculator() {
         copyLedger() {
             if (this.history.length === 0) return;
             let text = this.history.slice().reverse().map(item => `${item.eq} = ${item.res}`).join('\n');
-            this.copyText(text, 'رسید محاسبات کپی شد.');
+            this.copyText(text, 'محاسبات کپی شد.');
         },
         copyToClipboard() {
-            if (this.display) this.copyText(this.display, 'با موفقیت کپی شد.');
+            if (this.display) this.copyText(this.display, 'نتیجه کپی شد.');
         },
         clearDisplay() {
             this.display = '';

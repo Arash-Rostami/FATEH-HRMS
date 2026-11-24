@@ -39,7 +39,7 @@ class TaskResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.task.guide.overview'],
         ['label' => 'زبانه‌های فهرست', 'icon' => 'tab', 'view' => 'filament.resources.task.guide.list-tabs'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.task.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.task.guide.admin-ops'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.task.guide.user'],
         ['label' => 'پروژه و فعالیت‌ها', 'icon' => 'workspaces', 'view' => 'filament.resources.task.guide.project-activity'],
     ];

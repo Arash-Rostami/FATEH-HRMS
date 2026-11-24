@@ -62,7 +62,7 @@
                         <td class="px-4 md:px-6 py-4 text-center">
                             <a href="{{ route('ths', ['open' => $ticket->id]) }}"
                                class="inline-flex items-center justify-center p-2 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                               title="مشاهده در سامانه تیکت">
+                               title="باز کردن تیکت">
                                 <span class="material-symbols-rounded text-[20px]">visibility</span>
                             </a>
                         </td>
@@ -72,7 +72,7 @@
                         <td colspan="7" class="py-12">
                             <div wire:key="profile-tickets-empty" class="contents">
                                 <x-ui.empty icon="support_agent" title="تیکتی ثبت نشده"
-                                            description="درخواست‌های شما از سامانه پشتیبانی اینجا نمایش داده می‌شوند."
+                                            description="تیکت‌هایی که در «سیستم تیکت» ثبت می‌کنید، در اینجا دیده می‌شوند."
                                             variant="list"/>
                             </div>
                         </td>
@@ -151,7 +151,7 @@
                 <td colspan="5" class="py-12">
                     <div wire:key="profile-support-empty" class="contents">
                         <x-ui.empty icon="inbox" title="درخواستی ثبت نشده"
-                                    description="درخواست‌های پشتیبانی، پیشنهاد و گزارش باگ شما اینجا نمایش داده می‌شوند."
+                                    description="درخواست‌ها، پیشنهادها و گزارش خطاهایی که در «پشتیبانی و بازخورد» ثبت کرده‌اید، اینجا دیده می‌شوند."
                                     variant="list"/>
                     </div>
                 </td>

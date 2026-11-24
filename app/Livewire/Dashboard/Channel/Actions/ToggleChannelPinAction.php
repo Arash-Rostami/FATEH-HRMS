@@ -14,7 +14,7 @@ class ToggleChannelPinAction
 
         $channel = Channel::withoutTrashed()
             ->whereKey($channelId)
-            ->whereHas('memberUsers', fn($q) => $q->where('users.id', $userId))
+            ->writableBy($userId)
             ->first();
 
         if (!$channel) {

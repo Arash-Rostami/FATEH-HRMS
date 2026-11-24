@@ -34,7 +34,7 @@ class ThsResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.ths.guide.overview'],
         ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'list_alt', 'view' => 'filament.resources.ths.guide.list-tabs'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.ths.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.ths.guide.admin-ops'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.ths.guide.user'],
     ];
 

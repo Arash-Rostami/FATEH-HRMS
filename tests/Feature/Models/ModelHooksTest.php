@@ -47,7 +47,7 @@ class ModelHooksTest extends TestCase
         $expectations = [
             'App\\Models\\Task' => ['HasUrgencyState', 'HasBoardRanking', 'HasCycleStep', 'HasTaskApproval'],
             'App\\Models\\Ticket' => ['HasUrgencyState', 'HasDailyQuota'],
-            'App\\Models\\Message' => ['HasThreadMessages'],
+            'App\\Models\\Message' => ['HasDailyQuota', 'HasThreadMessages'],
             'App\\Models\\ChannelMessage' => ['HasThreadMessages'],
             'App\\Models\\User' => ['HasBookingRows', 'HasExtraPreferences', 'HasPresence', 'HasTodaysDesk'],
             'App\\Models\\Project' => ['HasProjectFollowUps'],
@@ -55,6 +55,7 @@ class ModelHooksTest extends TestCase
             'App\\Models\\Correspondence' => ['HasDailyQuota', 'HasGenerationLifecycle', 'HasSharedRecipients', 'HasVersionHistory'],
             'App\\Models\\Letterhead' => ['HasActive', 'HasLetterheadNumbering'],
             'App\\Models\\Channel' => ['HasDailyQuota'],
+            'App\\Models\\Feed' => ['HasDailyQuota'],
         ];
 
         $relationTraits = [

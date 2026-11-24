@@ -85,7 +85,7 @@
                   class="absolute bottom-1 start-3 text-[10px] font-medium tabular-nums pointer-events-none" dir="ltr" aria-live="polite"></span>
         </div>
 
-        <label aria-label="افزودن فایل ضمیمه" title="پیوست"
+        <label aria-label="افزودن پیوست" title="پیوست"
                class="flex-shrink-0 w-11 h-11 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center cursor-pointer transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
             <span class="material-symbols-rounded text-[18px]">attach_file</span>
             <input type="file" multiple wire:model="replyForm.files" class="hidden"/>
@@ -104,12 +104,12 @@
     @if($this->canReroute || $this->canRelease)
         <p wire:key="ths-reply-note-visible" class="shrink-0 flex items-center gap-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
             <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-warning)]">visibility</span>
-            این توضیح برای درخواست‌دهنده نیز قابل مشاهده است.
+            درخواست‌دهنده هم این توضیح را می‌بیند.
         </p>
     @endif
 
     <p class="shrink-0 hidden sm:flex items-center justify-between gap-2 text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" aria-hidden="true">
-        <span x-text="(4000 - len).toLocaleString('fa-IR') + ' کاراکتر باقی‌مانده'"></span>
+        <span x-text="(4000 - len).toLocaleString('fa-IR') + ' نویسه باقی‌مانده'"></span>
         <span class="inline-flex items-center gap-1.5">
             <kbd class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface-variant)] font-sans text-[9px] font-bold">Ctrl+Enter</kbd> ارسال
             <span class="opacity-40">•</span>

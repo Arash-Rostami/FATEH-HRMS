@@ -5,7 +5,7 @@
         $tracks[] = ['name' => strtoupper($base), 'src' => asset('audio/music/'.basename($musicFile))];
     }
 @endphp
-<div dir="rtl" x-data="audioPlayer('{{ asset('audio/music/lofi.mp3') }}', 'LOFI', {{ json_encode($tracks) }})" x-init="init()" class="relative shrink-0">
+<div dir="rtl" x-data="audioPlayer('{{ asset('audio/music/lofi.mp3') }}', 'LOFI', {{ json_encode($tracks) }})" class="relative shrink-0">
     <input type="file" accept="audio/*" class="hidden" x-ref="file" @change="onFile($event)">
 
     <div dir="ltr"

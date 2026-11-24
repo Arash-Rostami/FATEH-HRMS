@@ -23,6 +23,7 @@
                         @endforeach
                     </x-ui.forms.select>
 
+                    <p class="text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)]">روش‌های اطلاع‌رسانی</p>
                     <div class="flex items-center gap-4 text-xs flex-wrap">
                         @foreach($channelToggles as $ch)
                             <label class="flex items-center gap-1.5 {{ ($ch['disabled'] ?? false) ? 'opacity-40' : '' }}">
@@ -31,4 +32,5 @@
                             </label>
                         @endforeach
                     </div>
+                    <p class="text-xs leading-5 text-[var(--md-sys-color-on-surface-variant)]">با بستن «پیام ثابت صفحه»، یادآوری انجام‌شده ثبت می‌شود.</p>
                 </div>

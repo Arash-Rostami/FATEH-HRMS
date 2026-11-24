@@ -46,7 +46,7 @@ Cycle lock (`Task::isCycleLocked()`): the CURRENT step task of an ACTIVE cycle c
 
 ## 3f. `ChannelAccessPolicy` (final, all static, user nullable -> false; 2026-11-17)
 
-`role(?Channel, ?User)` (`owner` via `owner_id` first, else the `viewer_role` attribute when the channel was loaded through `withViewerRole`, else one `channel_members` PK lookup), `isOwner`, `isAdmin`, `canManageMembers` (owner or admin), `canChangeType` (manage + not project-linked), `canManageAdmins` (owner + not project-linked), `canSetKey`, `canDelete`, `canLeave` (everyone but the owner), `abilities()` for views. Every membership/type/admin/delete/leave Action re-checks it; Blade only displays (the channel key keeps `Lock::ownsRecord`, so `canSetKey` is display-only). See channelPattern §26.
+`role(?Channel, ?User)` (`owner` via `owner_id` first, else the `viewer_role` attribute when the channel was loaded through `withViewerRole`, else one `channel_members` PK lookup), `isOwner`, `isAdmin`, `canPost` (any member except the read-only «همراه», role `viewer`; also the `post` key of `abilities()`, channelPattern §29), `canManageMembers` (owner or admin), `canChangeType` (manage + not project-linked), `canManageAdmins` (owner + not project-linked), `canSetKey`, `canDelete`, `canLeave` (everyone but the owner), `abilities()` for views. Every membership/type/admin/delete/leave Action re-checks it; Blade only displays (the channel key keeps `Lock::ownsRecord`, so `canSetKey` is display-only). See channelPattern §26.
 
 ## 3g. `LaunchpadAccessPolicy` (final, all static, user nullable -> false; 2026-11-17)
 

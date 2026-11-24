@@ -16,7 +16,7 @@
             'icon' => 'verified',
             'label' => 'وضعیت',
             'tag' => 'روشن/خاموش',
-            'hint' => 'کلید وضعیت در فرم و در ستون جدول. «فعال» آگهی را در پنل کاربر (/ads) نمایش می‌دهد؛ «غیرفعال» آن را از دید کاربر پنهان می‌کند بدون اینکه حذف شود. «غیرفعال» در پنل کاربر همان «بایگانی شده» است.',
+            'hint' => 'کلید وضعیت در فرم و در ستون جدول. با غیرفعال کردن، آگهی از فهرست «فعال» پنل کاربر به «بایگانی شده» منتقل می‌شود. برای نمایش دوباره در فهرست فعال، وضعیت آن را روشن کنید.',
         ],
         [
             'icon' => 'link',
@@ -58,7 +58,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">«فرصت شغلی» یک آگهی استخدامی است که کاربران در پنل کاربری می‌بینند</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر ردیف در این صفحه یک موقعیت شغلی است. شما عنوان، جنسیت، لینک، مدرک، مهارت و سابقهٔ موردنیاز را تعریف می‌کنید و آگهی با کلید «وضعیت» در پنل کاربر (صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/ads</code>) ظاهر یا پنهان می‌شود. کاربران آگهی‌ها را به‌صورت کارت‌های برگشت‌پذیر می‌بینند و لینک ثبت‌نام را کپی می‌کنند — ساخت و ویرایش آگهی فقط از طرف ادمین است.
+        هر ردیف در این صفحه یک موقعیت شغلی است. شما عنوان، جنسیت، لینک، مدرک، مهارت و سابقهٔ موردنیاز را تعریف می‌کنید و آگهی با کلید «وضعیت» در پنل کاربر (صفحهٔ <code class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-mono text-[11px]">/ads</code>) ظاهر یا پنهان می‌شود. کاربران آگهی‌ها را به‌صورت کارت‌های برگشت‌پذیر می‌بینند و لینک ثبت‌نام را کپی می‌کنند — ساخت و ویرایش آگهی فقط از طرف مدیر سامانه است.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">

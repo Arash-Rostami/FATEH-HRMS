@@ -633,6 +633,20 @@ if (!function_exists('channelAiOn')) {
     }
 }
 
+if (!function_exists('feedAiOn')) {
+    function feedAiOn(): bool
+    {
+        return !tenantOff('feed:ai') && \App\Services\Ai\AiClient::isConfigured();
+    }
+}
+
+if (!function_exists('contactAiOn')) {
+    function contactAiOn(): bool
+    {
+        return !tenantOff('contact:ai') && \App\Services\Ai\AiClient::isConfigured() && filled(config('ai.messaging.rules'));
+    }
+}
+
 if (!function_exists('correspondenceMailOn')) {
     function correspondenceMailOn(): bool
     {

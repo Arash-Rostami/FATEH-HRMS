@@ -24,6 +24,12 @@ class MediaFormPresenter extends ReportFormPresenter
 {
     use FilamentIconOptions;
 
+    public const GUIDE_MODULES = [
+        'announce', 'feed', 'calendar', 'gallery', 'links', 'faq', 'status', 'profile', 'ads', 'analytics', 'suggestion',
+        'taskboard', 'projects', 'tasksheet', 'authority', 'dms', 'launchpad', 'ths', 'reservation', 'contact', 'channel',
+        'energy', 'ai-report', 'correspondence',
+    ];
+
     public static function departmentId(): Select
     {
         return parent::departmentId()->helperText(__('resources/media/strings.hints.department_id'));
@@ -100,6 +106,21 @@ class MediaFormPresenter extends ReportFormPresenter
             ->nullable()
             ->maxLength(160)
             ->helperText(__('resources/media/strings.hints.topic'));
+    }
+
+    public static function module(): Select
+    {
+        return Select::make('module')
+            ->label(__('resources/media/strings.fields.module'))
+            ->options(fn (): array => collect(config('modules'))
+                ->whereIn('id', static::GUIDE_MODULES)
+                ->mapWithKeys(fn (array $module): array => [$module['id'] => trim($module['title'])])
+                ->all())
+            ->searchable()
+            ->native(false)
+            ->nullable()
+            ->visible(fn (Get $get): bool => $get('kind') !== 'audio')
+            ->helperText(__('resources/media/strings.hints.module'));
     }
 
     public static function parentId(): Select

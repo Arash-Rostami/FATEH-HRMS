@@ -819,6 +819,21 @@ class HelpersTest extends TestCase
         $this->assertFalse(thsAiOn());
     }
 
+    public function test_feed_ai_on_needs_a_configured_gateway_and_neither_the_view_nor_the_module_switched_off(): void
+    {
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'app.off' => []]);
+        $this->assertTrue(feedAiOn());
+
+        config(['ai.gateway.key' => '']);
+        $this->assertFalse(feedAiOn());
+
+        config(['ai.gateway.key' => 'test-key', 'app.off' => ['feed:ai']]);
+        $this->assertFalse(feedAiOn());
+
+        config(['app.off' => ['feed']]);
+        $this->assertFalse(feedAiOn());
+    }
+
     public function test_correspondence_ai_on_needs_the_gateway_and_its_ai_view_to_be_on(): void
     {
         config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'app.off' => []]);

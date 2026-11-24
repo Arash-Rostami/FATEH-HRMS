@@ -6,6 +6,7 @@ use App\Jobs\GenerateCorrespondenceJob;
 use App\Livewire\Dashboard\Correspondence\Forms\LetterForm;
 use App\Models\Correspondence;
 use App\Models\User;
+use App\Services\Ai\AiClient;
 use App\Support\CorrespondenceAccessPolicy;
 use Closure;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -121,6 +122,10 @@ class GenerateAction
 
     private function start(User $user, string $field, array $run, Closure $resolve): Correspondence
     {
+        if (AiClient::cooldownActive('correspondence', $user->id)) {
+            throw ValidationException::withMessages([$field => __('resources/correspondence/strings.errors.busy')]);
+        }
+
         $token = Str::random(16);
 
         try {
@@ -184,6 +189,7 @@ class GenerateAction
 
         try {
             GenerateCorrespondenceJob::dispatch($letter->id, $token);
+            AiClient::startCooldown('correspondence', $user->id);
         } catch (Throwable $e) {
             $letter->markFailed('exception');
 

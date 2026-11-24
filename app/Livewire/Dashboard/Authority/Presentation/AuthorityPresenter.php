@@ -23,11 +23,11 @@ class AuthorityPresenter
     public function delegationLevel(?string $v): string
     {
         return match ($v) {
-            'decision_implementation' => 'تصمیم گیری و اجرا',
+            'decision_implementation' => 'تصمیم‌گیری و اجرا',
             'review_proposal' => 'بررسی و پیشنهاد',
             'review_reporting' => 'بررسی و گزارش',
-            'decision_reporting' => 'تصمیم گیری و گزارش',
-            default => $v ?? 'داده نشده!',
+            'decision_reporting' => 'تصمیم‌گیری و گزارش',
+            default => $v ?? 'ثبت نشده',
         };
     }
 
@@ -46,7 +46,7 @@ class AuthorityPresenter
                     'yes' => 'دارد',
                     'no' => 'ندارد',
                     'pending' => 'در انتظار (تصویب / به‌روزرسانی)',
-                    default => 'داده نشده!',
+                    default => 'ثبت نشده',
                 },
                 'color' => match ($details['execution_procedure'] ?? null) {
                     'yes' => 'text-[var(--md-sys-color-primary)]',
@@ -56,7 +56,7 @@ class AuthorityPresenter
                 },
             ],
             [
-                'label' => 'فراوانی تکرار',
+                'label' => 'دفعات تکرار',
                 'icon' => match ($details['repeat_frequency'] ?? null) {
                     'yearly' => 'event_repeat',
                     'biyearly' => 'calendar_view_month',
@@ -72,10 +72,10 @@ class AuthorityPresenter
                     'biyearly' => 'دو بار در سال',
                     'quarterly' => 'فصلی',
                     '5_times_a_year' => 'پنج بار در سال',
-                    'frequent' => 'بیشتر از 4  بار در ماه',
-                    'regular' => 'بین 1 تا 4 بار در ماه',
-                    'occasional' => 'کمتر از  بار در ماه',
-                    default => 'داده نشده!',
+                    'frequent' => 'بیشتر از ۴ بار در ماه',
+                    'regular' => 'بین ۱ تا ۴ بار در ماه',
+                    'occasional' => 'کمتر از ۱ بار در ماه',
+                    default => 'ثبت نشده',
                 },
                 'color' => match ($details['repeat_frequency'] ?? null) {
                     'frequent' => 'text-[var(--md-sys-color-error)]',
@@ -85,7 +85,7 @@ class AuthorityPresenter
                 },
             ],
             [
-                'label' => 'شاخص اثر',
+                'label' => 'میزان اثرگذاری',
                 'icon' => match ($details['impact_score'] ?? null) {
                     'very_high' => 'trending_up',
                     'high' => 'show_chart',
@@ -98,7 +98,7 @@ class AuthorityPresenter
                     'high' => 'زیاد',
                     'medium' => 'متوسط',
                     'low' => 'کم',
-                    default => 'داده نشده!',
+                    default => 'ثبت نشده',
                 },
                 'color' => match ($details['impact_score'] ?? null) {
                     'very_high' => 'text-[var(--md-sys-color-error)]',

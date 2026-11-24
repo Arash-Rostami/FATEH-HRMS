@@ -2,7 +2,7 @@
     $rows = [
         ['icon' => 'edit_document', 'color' => 'error', 'label' => 'نیازمند تأیید دریافت', 'text' => 'سند تازه به کارتابل شما رسیده است. دریافت آن را تأیید کنید.'],
         ['icon' => 'menu_book', 'color' => 'tertiary', 'label' => 'نیازمند تأیید مطالعه', 'text' => 'دریافت سند را تأیید کرده‌اید. اکنون سند را بخوانید و مطالعهٔ آن را تأیید کنید.'],
-        ['icon' => 'check_circle', 'color' => 'primary', 'label' => 'مطالعه شده', 'text' => 'دریافت و مطالعهٔ سند تأیید شده است. اقدام دیگری لازم نیست.'],
+        ['icon' => 'check_circle', 'color' => 'primary', 'label' => 'مطالعه‌شده', 'text' => 'دریافت و مطالعهٔ سند تأیید شده است. اقدام دیگری لازم نیست.'],
     ];
 @endphp
 
@@ -29,7 +29,7 @@
     <div class="mt-5 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/40 space-y-2">
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>
-            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">تأیید سند در دو مرحله ثبت می‌شود: ابتدا دریافت سند و سپس مطالعه و پذیرش محتوای آن را تأیید کنید. تا ثبت هر دو مرحله، سند در بخش «اقدام مورد نیاز» باقی می‌ماند.</p>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">ابتدا «تأیید دریافت» را بزنید. سپس «مشاهده و تأیید» را بزنید و سند را بخوانید. در پایان «تأیید و ثبت مطالعه» را بزنید. تا هر دو مرحله انجام شود، سند در بخش «اقدام مورد نیاز» می‌ماند.</p>
         </div>
     </div>
 
@@ -37,7 +37,7 @@
         <p class="px-1 text-[11px] font-bold text-[var(--md-sys-color-on-surface)]">نکات</p>
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">sync</span>
-            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر سندی را که قبلاً خوانده‌اید دوباره در کارتابل «اقدام مورد نیاز» دیدید، فایل یا توضیحات بازبینیِ آن به‌روزرسانی شده و تأیید شما بازنشانی شده است — باید نسخهٔ جدید را دوباره مطالعه و تأیید کنید.</p>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر سندی دوباره در «اقدام مورد نیاز» ظاهر شد، ممکن است فایل یا توضیحات بازبینی آن تغییر کرده باشد. نسخهٔ فعلی را بخوانید و تأیید کنید.</p>
         </div>
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">sort</span>
@@ -49,19 +49,19 @@
         </div>
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">file_present</span>
-            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر سندی چند فایل هم‌فرمت دارد (مثلاً دو Excel)، در فهرست نسخه‌ها با شماره می‌آیند («فایل اکسل ۱»، «فایل اکسل ۲») و فایل دریافتی هم همان شماره را در نامش دارد؛ مفهوم هر شماره را در توضیحات بازبینی سند ببینید.</p>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر سند چند فایل از یک نوع داشته باشد، نام آن‌ها شماره دارد، مانند «فایل اکسل ۱» و «فایل اکسل ۲». برای انتخاب فایل درست، توضیحات بازبینی سند را بخوانید.</p>
         </div>
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">visibility</span>
-            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر بیش از یک‌بار سندی را مطالعه کرده باشید، زیر دکمهٔ «مشاهده مجدد» تعداد دفعات («بازدید شما: N بار») نمایش داده می‌شود.</p>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر سند را بیش از یک بار باز کرده باشید، تعداد دفعات زیر «مشاهده مجدد» دیده می‌شود.</p>
         </div>
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">alarm</span>
-            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">آیکون زنگ یادآوری در گوشهٔ چپ هر سند فقط با نگه‌داشتن نشانگر روی ردیف نمایان می‌شود؛ اگر برای آن سند یادآوری تنظیم کرده باشید، همیشه با رنگ اصلی برنامه نمایان می‌ماند و با کلیک، همان یادآوری موجود برای ویرایش باز می‌شود.</p>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">برای ساخت یادآوری، نشانگر را روی ردیف سند ببرید و زنگ سمت چپ را بزنید. اگر سند یادآوری داشته باشد، زنگ همیشه دیده می‌شود و همان یادآوری را برای ویرایش باز می‌کند.</p>
         </div>
         <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">event</span>
-            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">تاریخی که در فیلتر وارد کرده‌اید اما هنوز اعمال نکرده‌اید، با «نمایش بیشتر» از بین می‌رود — ابتدا تاریخ را اعمال کنید، بعد فهرست را بیشتر کنید.</p>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">برای دیدن سندهای بیشتر در بازهٔ دلخواه، اول فیلتر تاریخ را اعمال کنید و بعد «بارگذاری بیشتر» را بزنید.</p>
         </div>
     </div>
 </div>

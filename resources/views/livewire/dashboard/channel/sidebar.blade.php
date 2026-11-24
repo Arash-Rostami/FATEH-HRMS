@@ -144,10 +144,10 @@
                 <div class="sb-fade flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-1">
                         <p @class([
-                            'text-[13px] truncate flex items-center gap-1.5 cursor-pointer',
+                            'text-[13px] truncate flex items-center gap-1.5',
                             'font-semibold text-[var(--md-sys-color-on-surface)]' => $ch['unread'],
                             'font-medium text-[var(--md-sys-color-on-surface-variant)]' => !$ch['unread'],
-                        ]) title="{{ $ch['slug'] }}" x-on:click.stop="copyText(@js($ch['slug']), 'اسلاگ گروه کپی شد', 'info')">
+                        ]) title="{{ $ch['slug'] }}">
                             {{ $ch['name'] }}
                             @if(empty($ch['is_entered']))
                                 <span class="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)] flex-shrink-0" title="جدید" aria-hidden="true"></span>
@@ -173,7 +173,7 @@
                                 @if($ch['last_message']['is_mine'])
                                     <span class="material-symbols-rounded text-[11px] flex-shrink-0 text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]">send</span>
                                 @endif
-                                {{ $ch['last_message']['body'] }}
+                                <span dir="auto" class="min-w-0 truncate [unicode-bidi:plaintext]">{{ $ch['last_message']['body'] }}</span>
                             </p>
                         @else
                             <p class="text-[11px] truncate text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]">

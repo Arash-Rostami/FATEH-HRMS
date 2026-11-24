@@ -31,7 +31,7 @@
             <div class="flex items-start gap-4 p-5">
                 <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-primary)] mt-0.5">info</span>
                 <p class="flex-1 text-[12.5px] leading-relaxed font-semibold text-[var(--md-sys-color-on-surface-variant)]">
-                    اگر فقط <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_hours</code> بزرگ‌تر از صفر باشد هم نوع فعال می‌ماند؛ اما معمولاً window_days را تنظیم می‌کنید تا تقویم کاربر بازه‌ی آینده را ببیند.
+                    اگر «حداقل زمان قبل از رزرو» بیشتر از صفر باشد، این نوع منبع فعال می‌ماند. برای مشخص کردن چند روزِ قابل رزرو در تقویم کاربر، «بازه مجاز پیش‌رزرو» را تعیین کنید.
                 </p>
             </div>
         </div>
@@ -48,7 +48,7 @@
             <div class="flex items-start gap-4 p-5">
                 <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-error)] mt-0.5">block</span>
                 <p class="flex-1 text-[12.5px] leading-relaxed font-semibold text-[var(--md-sys-color-on-surface-variant)]">
-                    هر دو فیلد <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_days</code> و <code class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">window_hours</code> را روی ۰ تنظیم کنید و ذخیره کنید. زبانهٔ آن نوع در صفحهٔ رزرو کاربر کم‌رنگ و قفل‌شده نشان داده می‌شود و ثبت رزرو (حتی توسط ادمین) مسدود می‌شود.
+                    «بازه مجاز پیش‌رزرو» و «حداقل زمان قبل از رزرو» را روی صفر بگذارید و ذخیره کنید. زبانهٔ این نوع منبع در پنل کاربر قفل می‌شود و ثبت رزرو برای مدیر سامانه هم بسته می‌شود.
                 </p>
             </div>
             <div class="flex items-start gap-4 p-5">
@@ -72,7 +72,7 @@
                 <div class="flex items-center gap-4 p-4">
                     <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] w-20 shrink-0">{{ $label }}</span>
                     <div class="flex flex-wrap items-center gap-2 flex-1">
-                        <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] font-mono">window_days = {{ convertToPersian('21') }}</span>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]">بازهٔ پیش‌رزرو ۲۱ روز</span>
                         <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-on-surface-variant)]">arrow_back</span>
                         <span class="text-[11px] font-black px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">فعال</span>
                     </div>
@@ -81,8 +81,8 @@
             <div class="flex items-center gap-4 p-4">
                 <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] w-20 shrink-0">ملاقات</span>
                 <div class="flex flex-wrap items-center gap-2 flex-1">
-                    <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] font-mono">window_days = {{ convertToPersian('0') }}</span>
-                    <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] font-mono">window_hours = {{ convertToPersian('0') }}</span>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]">بازهٔ پیش‌رزرو صفر روز</span>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]">حداقل زمان قبل از رزرو صفر ساعت</span>
                     <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-on-surface-variant)]">arrow_back</span>
                     <span class="text-[11px] font-black px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">غیرفعال (قفل‌شده)</span>
                 </div>

@@ -16,7 +16,7 @@
         'danger'    => 'bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] md3-btn hover:brightness-110 shadow-red-500/30',
         'ghost'     => 'bg-transparent hover:bg-[var(--md-sys-color-on-surface)]/10 text-[var(--md-sys-color-on-surface)] rounded-xl px-4 h-10',
         'tonal'     => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] rounded-xl h-10 px-4 text-sm font-bold',
-        'ai'        => 'bg-[var(--ai-bg)] text-[var(--ai-text)] border border-[color-mix(in_srgb,var(--ai-color)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--ai-bg)_78%,var(--ai-color))] rounded-xl h-10 px-4 text-sm font-bold',
+        'ai'        => 'bg-[var(--ai-bg)] text-[var(--ai-text)] hover:bg-[color-mix(in_srgb,var(--ai-bg)_78%,var(--ai-color))] rounded-xl h-10 px-4 text-sm font-bold',
         'none'      => '',
         default     => 'md3-btn',
     };
@@ -28,6 +28,7 @@
         : 'relative inline-flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95';
 
     $isIcon = $size === 'icon';
+    $isSm = $size === 'sm';
 
     $tag = $href ? 'a' : 'button';
 
@@ -46,7 +47,7 @@
     @endif
     @if($loading) wire:loading.attr="disabled" wire:target="{{ $loading }}" @endif
     {{ $attributes->merge([
-        'class' => "$structuralClasses $baseClasses" . ($isIcon ? ' w-10 h-10 p-0 rounded-xl gap-0' : ' gap-2')
+        'class' => "$structuralClasses $baseClasses" . ($isIcon ? ' w-10 h-10 p-0 rounded-xl gap-0' : ($isSm ? ' !h-7 !px-2 !rounded-lg !text-[11px] gap-1 font-bold' : ' gap-2'))
     ]) }}
 >
     @if($loading && $showSpinner)
@@ -59,7 +60,7 @@
     @if($icon)
         <span
             @if($loading) wire:loading.remove wire:target="{{ $loading }}" @endif
-        class="material-symbols-rounded text-[20px] leading-none shrink-0"
+        class="material-symbols-rounded {{ $isSm ? '!text-[14px]' : 'text-[20px]' }} leading-none shrink-0"
         >
             {{ $icon }}
         </span>

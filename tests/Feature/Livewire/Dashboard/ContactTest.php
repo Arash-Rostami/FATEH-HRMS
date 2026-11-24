@@ -5,6 +5,7 @@ namespace Tests\Feature\Livewire\Dashboard;
 use App\Enums\PresenceStatus;
 use App\Jobs\ReconcileNudgeJob;
 use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
+use App\Livewire\Dashboard\Contact\Actions\FetchContactsAction;
 use App\Livewire\Dashboard\Contact\Actions\ForceDeleteMessageAction;
 use App\Livewire\Dashboard\Contact\Actions\MarkMessagesAsReadAction;
 use App\Livewire\Dashboard\Contact\Actions\SearchMessagesAction;
@@ -14,16 +15,24 @@ use App\Livewire\Dashboard\Contact\Actions\ToggleMessageReactionAction;
 use App\Livewire\Dashboard\Contact\Main;
 use App\Livewire\Dashboard\Contact\Presentation\ContactPresenter;
 use App\Livewire\Dashboard\Messaging\Actions\ForwardMessageAction;
+use App\Livewire\Dashboard\Tab\Actions\SendSmsAction;
 use App\Models\Message;
+use App\Models\NotifyLog;
 use App\Models\Profile;
 use App\Models\ProfileDetail;
 use App\Models\User;
 use App\Services\Messaging\PollDigestService;
+use App\Services\Notify\Channels\SmsChannel;
+use Morilog\Jalali\Jalalian;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Factory as HttpClientFactory;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -119,6 +128,66 @@ class ContactTest extends TestCase
             ->assertDontSeeHtml('class="focus-chip"');
     }
 
+    public function test_an_archived_contact_chat_accepts_no_edit_delete_or_undo(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $peer = User::factory()->create(['status' => 'active']);
+        $message = Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'before']);
+        $peer->update(['status' => 'inactive']);
+
+        $component = Livewire::actingAs($me)->test(Main::class)->call('selectContact', $peer->id)
+            ->set('edit.editingBody', 'after')
+            ->call('saveEdit', $message->id)
+            ->call('deleteMessage', $message->id);
+
+        $this->assertSame('before', $message->fresh()->body);
+        $this->assertNull($message->fresh()->deleted_at);
+
+        $peer->update(['status' => 'active']);
+        $component->call('deleteMessage', $message->id);
+        $this->assertNotNull(Message::withTrashed()->find($message->id)->deleted_at);
+
+        $peer->update(['status' => 'inactive']);
+        $component->call('undoDelete');
+        $this->assertNotNull(Message::withTrashed()->find($message->id)->deleted_at);
+    }
+
+    public function test_only_the_recipient_download_marks_a_file_seen_once(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('messages/seen/a.txt', 'x');
+        $me = User::factory()->create(['status' => 'active']);
+        $peer = User::factory()->create(['status' => 'active']);
+        $message = Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'file', 'attachments' => [['path' => 'messages/seen/a.txt', 'name' => 'a.txt', 'mime' => 'text/plain', 'size' => 1]]]);
+        $views = fn() => $message->fresh()->attachments[0]['views'] ?? [];
+
+        Livewire::actingAs($me)->test(Main::class)->call('selectContact', $peer->id)->call('downloadAttachment', $message->id, 0);
+        $this->assertSame([], $views());
+
+        Livewire::actingAs($peer)->test(Main::class)->call('selectContact', $me->id)->call('downloadAttachment', $message->id, 0);
+        $first = $views();
+        $this->assertSame([$peer->id], array_keys($first));
+
+        Livewire::actingAs($peer)->test(Main::class)->call('selectContact', $me->id)->call('downloadAttachment', $message->id, 0);
+        $this->assertSame($first, $views());
+        $this->assertSame(1, array_sum(array_column((new ContactPresenter())->messages([['id' => $message->id, 'sender_id' => $me->id, 'body' => 'file', 'attachments' => $message->fresh()->attachments, 'created_at' => now()->toISOString()]], $me->id, 600, null, [$peer->id => ['name' => $peer->name, 'avatar' => null, 'inactive' => false]])[0]['viewed_files'], 'viewer_count')));
+    }
+
+    public function test_an_edited_label_stays_after_a_newer_message(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $peer = User::factory()->create(['status' => 'active']);
+        Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'edited earlier', 'is_edited' => true, 'created_at' => now()->subMinute()]);
+        Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'later note', 'is_edited' => false]);
+
+        $component = Livewire::actingAs($me)->test(Main::class)->call('selectContact', $peer->id);
+        $component->instance()->renderIsland('messages');
+        $html = implode('', $component->instance()->getRenderedIslandFragments());
+
+        $this->assertNotFalse(strpos($html, 'wire:key="contact-msg-edited"'), 'edited label missing on a non-last message');
+        $this->assertNotFalse(strpos($html, 'ویرایش شده'), 'edited label text missing');
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -202,6 +271,14 @@ class ContactTest extends TestCase
 
         $reply = Message::where('body', 'Tinker contact probe reply')->firstOrFail();
         $this->assertSame($message->id, $reply->reply_to_id);
+
+        $shown = collect(Livewire::actingAs($me)->test(Main::class)->call('selectContact', $contact->id)->instance()->messages)->firstWhere('id', $reply->id);
+        $this->assertSame($message->id, $shown['reply_to']['id']);
+        $this->assertSame('Tinker contact probe (edited)', $shown['reply_to']['body']);
+        $this->assertSame($me->name, $shown['reply_to']['sender']['name']);
+        $this->assertSame(['name', 'avatar', 'online', 'presence', 'focus', 'inactive'], array_keys($shown['sender']));
+        $this->assertSame($contact->name, $shown['sender']['name']);
+        $this->assertFalse($shown['sender']['inactive']);
 
         $component = Livewire::actingAs($me)
             ->test(Main::class)
@@ -657,6 +734,7 @@ class ContactTest extends TestCase
             ->call('selectContact', $contact->id)
             ->set('edit.editingBody', 'too late')
             ->call('saveEdit', $msg->id)
+            ->assertReturned(false)
             ->assertHasNoErrors();
 
         $msg->refresh();
@@ -676,6 +754,7 @@ class ContactTest extends TestCase
             ->call('selectContact', $contact->id)
             ->set('edit.editingBody', 'fresh edited')
             ->call('saveEdit', $fresh->id)
+            ->assertReturned(true)
             ->assertHasNoErrors();
 
         $fresh->refresh();
@@ -1414,6 +1493,7 @@ class ContactTest extends TestCase
         // both directions, newest first, attachment-less + other-thread rows excluded
         $this->assertSame([$receivedDoc->id . ':0', $sentImg->id . ':0'], array_column($rows, 'key'));
         $this->assertSame(['doc', 'image'], array_column($rows, 'kind'));
+        $this->assertSame([$contact->name, $me->name], array_column($rows, 'sender_name'));
         $this->assertSame([], app(SearchMessagesAction::class)->files($third->id, 0));
     }
 
@@ -1515,6 +1595,24 @@ class ContactTest extends TestCase
         $this->assertSame(1, $after['unread_count']);
     }
 
+    public function test_contact_and_channel_roots_leave_init_to_alpine_so_it_runs_once(): void
+    {
+        foreach (['contact', 'channel'] as $module) {
+            $root = file_get_contents(resource_path("views/livewire/dashboard/{$module}.blade.php"));
+
+            $this->assertStringContainsString("x-data=\"{$module}(", $root);
+            $this->assertStringNotContainsString('x-init="init()"', $root);
+        }
+    }
+
+    public function test_contact_composer_enter_and_ctrl_enter_both_ignore_ime_composition(): void
+    {
+        $composer = file_get_contents(resource_path('views/livewire/dashboard/contact/composer.blade.php'));
+
+        $this->assertStringContainsString('keydown.ctrl.enter.prevent="if (!event.isComposing) sendMessage()"', $composer);
+        $this->assertStringContainsString('if(!event.shiftKey && !event.isComposing){event.preventDefault();sendMessage();}', $composer);
+    }
+
     public function test_contacts_last_message_shape_locks_body_sender_created_and_read_fields(): void
     {
         $me = User::factory()->create(['status' => 'active']);
@@ -1573,7 +1671,7 @@ class ContactTest extends TestCase
             ->assertSee('ویرایش و پاسخ')
             ->assertSee('سنجاق و نمایش')
             ->assertSee('رنگ‌آمیزی ردیف')
-            ->assertSee('نشان پیام')
+            ->assertSee('نشان کردن پیام')
             ->assertSee('صدا و اعلان')
             ->assertSee('مالک گروه');
     }
@@ -1588,7 +1686,7 @@ class ContactTest extends TestCase
             ->test(Main::class)
             ->assertSeeHtml('$store.pinned.togglePin(' . $contact->id . ', \'contact\')')
             ->assertSeeHtml('$store.sound.toggleMute(' . $contact->id . ', \'contact\')')
-            ->assertSeeHtml('$store.pinned.isPinned(' . $contact->id . ', \'contact\') ? -1 : 0')
+            ->assertSeeHtml('$store.pinned.isPinned(' . $contact->id . ', \'contact\') ? -2 : 0')
             ->assertSeeHtml('flex items-center gap-1 pointer-events-none')
             ->assertSeeHtml('font-fill rotate-45')
             ->assertSeeHtml('bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]')
@@ -1689,8 +1787,30 @@ class ContactTest extends TestCase
 
         $row = collect($shaped)->firstWhere('id', $contact->id);
         $this->assertSame('birthday', $row['occasion']);
-        $this->assertStringContainsString('auto_awesome', $component->html());
-        $this->assertStringContainsString('text-[var(--ai-color)]', $component->html());
+        $this->assertSame('تولد', $row['occasion_tone']['label']);
+
+        $sidebar = file_get_contents(resource_path('views/livewire/dashboard/contact/sidebar.blade.php'));
+        $this->assertStringContainsString('wire:key="contact-occasion" class="flex justify-end mt-1" x-on:click.stop', $sidebar, 'the occasion footer stops clicks so badges never select the room');
+        $this->assertStringContainsString('after:pointer-events-none', $sidebar, 'the ripple layer must not intercept badge clicks');
+        $this->assertStringContainsString("'contact') ? -2 : {{ \$contact['occasion'] ? -1 : 0 }}", $sidebar, 'pins stay above occasions, occasions above normal rows');
+    }
+
+    public function test_occasion_contact_is_loaded_before_a_recent_chat_at_the_page_limit(): void
+    {
+        $prefix = 'occasion-order-' . uniqid();
+        $me = User::factory()->create(['status' => 'active']);
+        $recent = User::factory()->create(['status' => 'active', 'type' => 'employee', 'name' => $prefix . '-recent']);
+        $birthday = User::factory()->create(['status' => 'active', 'type' => 'employee', 'name' => $prefix . '-birthday']);
+        Profile::factory()->create([
+            'user_id' => $birthday->id,
+            'birthdate' => now()->subYears(30),
+            'employment_status' => 'working',
+        ]);
+        Message::create(['sender_id' => $me->id, 'recipient_id' => $recent->id, 'body' => 'recent conversation']);
+
+        $ids = app(FetchContactsAction::class)->execute($me->id, $prefix, 'all', 1)->modelKeys();
+
+        $this->assertSame([$birthday->id], $ids, 'with a page limit of one, the occasion contact beats the contact with a recent chat');
     }
 
     public function test_total_occasions_counts_only_contacts_with_an_occasion_today(): void
@@ -1751,6 +1871,37 @@ class ContactTest extends TestCase
             'id' => 3, 'name' => 'Y', 'profile' => ['position' => 'P'], 'occasion' => null, 'unit' => null, 'section' => null,
         ], 1);
         $this->assertSame('', $blank['org_title'], 'org_title is an empty string when neither unit nor section is set, so the tooltip stays empty');
+    }
+
+    public function test_occasion_chip_carries_the_calendar_sms_key_and_never_lets_you_greet_yourself(): void
+    {
+        $presenter = new ContactPresenter();
+        $sender = User::factory()->create(['status' => 'active']);
+        $colleague = User::factory()->create(['status' => 'active']);
+        $key = 'birthday-' . $colleague->id . '-' . Jalalian::now()->getYear();
+        $row = ['id' => $colleague->id, 'name' => 'X', 'profile' => ['cellphone' => '09120000000'], 'occasion' => 'birthday'];
+
+        $this->assertSame($key, $presenter->sidebar([$row], $sender->id)[0]['sms_key'], 'the key format is the calendar CalendarPresenter::occasionSms key');
+        $this->assertFalse($presenter->sidebar([$row], $colleague->id)[0]['can_sms'], 'nobody can greet themselves');
+        $this->assertFalse($presenter->sidebar([['id' => 9, 'name' => 'Y', 'profile' => [], 'occasion' => null]], $sender->id)[0]['can_sms']);
+    }
+
+    public function test_send_sms_action_refuses_a_second_greeting_for_the_same_occasion_key(): void
+    {
+        if (tenantOff('notify:sms')) {
+            $this->markTestSkipped('notify:sms is off for this tenant');
+        }
+
+        $sender = User::factory()->create(['status' => 'active']);
+        $colleague = User::factory()->create(['status' => 'active']);
+        $key = 'anniversary-' . $colleague->id . '-' . Jalalian::now()->getYear();
+        NotifyLog::audit(NotifyLog::SOURCE_CALENDAR, $sender->id, $colleague->id, '09120000000', true, null, $key);
+
+        $this->actingAs($sender);
+        $result = app(SendSmsAction::class)->execute((string) $colleague->id, app(SmsChannel::class), 'hi', NotifyLog::SOURCE_CALENDAR, $key);
+
+        $this->assertSame('error', $result['type']);
+        $this->assertSame(1, NotifyLog::where('record_id', $key)->count(), 'the refused attempt writes no new audit row');
     }
 
     public function test_sidebar_shows_a_load_more_button_only_past_the_default_page_size(): void
@@ -2171,5 +2322,136 @@ class ContactTest extends TestCase
         }
 
         $this->assertSame(0, Message::where('sender_id', $ghost->id)->count());
+    }
+
+    private function aiUser(): User
+    {
+        config(['ai.gateway.key' => 'test-key', 'ai.gateway.url' => 'https://gateway.test/v1', 'ai.gateway.model' => 'Gemini-3-Flash-Preview', 'app.off' => []]);
+        Http::swap(new HttpClientFactory);
+
+        $user = User::factory()->create(['status' => 'active']);
+        $this->forgetAiKeys($user);
+        $this->beforeApplicationDestroyed(fn() => $this->forgetAiKeys($user));
+
+        return $user;
+    }
+
+    private function forgetAiKeys(User $user): void
+    {
+        Cache::forget(Message::quotaKey($user->id));
+        Cache::forget("contact:ai:busy:{$user->id}");
+        Cache::forget("contact:ai:cooldown:{$user->id}");
+        Cache::forget('contact:ai:down');
+    }
+
+    private function aiReply(string $answer, string $finish = 'stop'): array
+    {
+        return [
+            'choices' => [['finish_reason' => $finish, 'message' => ['content' => json_encode(['answer' => $answer], JSON_UNESCAPED_UNICODE)]]],
+            'usage' => ['total_tokens' => 42],
+        ];
+    }
+
+    public function test_enhance_edit_returns_the_ai_text_and_consumes_the_daily_quota(): void
+    {
+        $me = $this->aiUser();
+        $peer = User::factory()->create(['status' => 'active']);
+        $message = Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'salam khoobi']);
+        Http::fake(['*' => Http::response($this->aiReply('سلام، امیدوارم حالتون خوب باشه'))]);
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('enhanceEdit', $message->id, 'salam khoobi')
+            ->assertReturned(fn(array $data) => $data['answer'] === 'سلام، امیدوارم حالتون خوب باشه' && $data['error'] === null && str_contains((string) $data['meter'], 'سهمیهٔ امروز'));
+
+        $this->assertSame(1, Message::quotaUsed($me->id));
+    }
+
+    public function test_enhance_edit_keeps_latin_digits_and_urls_exactly_as_written(): void
+    {
+        $me = $this->aiUser();
+        $peer = User::factory()->create(['status' => 'active']);
+        $message = Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'call me']);
+        $reply = 'زنگ بزن روی 0912-345-6789 یا ببین https://example.com/a?b=1';
+        Http::fake(['*' => Http::response($this->aiReply($reply))]);
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('enhanceEdit', $message->id, 'call me')
+            ->assertReturned(fn(array $data) => $data['answer'] === $reply);
+
+        $this->assertSame(1, Message::quotaUsed($me->id));
+    }
+
+    public function test_enhance_edit_never_returns_an_answer_the_edit_form_would_reject(): void
+    {
+        $me = $this->aiUser();
+        $peer = User::factory()->create(['status' => 'active']);
+        $message = Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'long']);
+        Http::fake(['*' => Http::response($this->aiReply('x' . str_repeat('م', 2500)))]);
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('enhanceEdit', $message->id, 'long')
+            ->assertReturned(fn(array $data) => mb_strlen($data['answer']) <= (int) config('ai.contact.answer_max') && str_ends_with($data['answer'], '…'));
+    }
+
+    public function test_enhance_edit_refuses_when_the_contact_ai_view_is_switched_off(): void
+    {
+        $me = $this->aiUser();
+        $peer = User::factory()->create(['status' => 'active']);
+        $message = Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'mine']);
+        Http::fake();
+        config(['app.off' => ['contact:ai']]);
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('enhanceEdit', $message->id, 'mine')
+            ->assertStatus(404);
+
+        Http::assertNothingSent();
+        $this->assertSame(0, Message::quotaUsed($me->id));
+    }
+
+    public function test_enhance_edit_refuses_a_foreign_message_without_spending_quota(): void
+    {
+        $me = $this->aiUser();
+        $peer = User::factory()->create(['status' => 'active']);
+        $foreign = Message::create(['sender_id' => $peer->id, 'recipient_id' => $me->id, 'body' => 'not mine']);
+        Http::fake();
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('enhanceEdit', $foreign->id, 'not mine')
+            ->assertReturned(fn(array $data) => $data['error'] === 'expired' && $data['answer'] === '');
+
+        Http::assertNothingSent();
+        $this->assertSame(0, Message::quotaUsed($me->id));
+    }
+
+    public function test_enhance_edit_refunds_the_quota_and_trips_the_breaker_on_a_dead_gateway(): void
+    {
+        $me = $this->aiUser();
+        $peer = User::factory()->create(['status' => 'active']);
+        $message = Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'hello']);
+        Http::fake(fn() => throw new ConnectionException('down'));
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('enhanceEdit', $message->id, 'hello')
+            ->assertReturned(fn(array $data) => $data['error'] === 'unreachable' && $data['answer'] === '');
+
+        $this->assertSame(0, Message::quotaUsed($me->id));
+        $this->assertTrue(Cache::has('contact:ai:down'));
+    }
+
+    public function test_enhance_edit_skips_the_gateway_when_the_daily_quota_is_spent(): void
+    {
+        $me = $this->aiUser();
+        $peer = User::factory()->create(['status' => 'active']);
+        $message = Message::create(['sender_id' => $me->id, 'recipient_id' => $peer->id, 'body' => 'hello']);
+        Http::fake();
+        Cache::put(Message::quotaKey($me->id), Message::quotaCap(), now()->endOfDay());
+
+        Livewire::actingAs($me)->test(Main::class)
+            ->call('enhanceEdit', $message->id, 'hello')
+            ->assertReturned(fn(array $data) => $data['error'] === 'quota' && $data['answer'] === '');
+
+        Http::assertNothingSent();
+        $this->assertSame(Message::quotaCap(), Message::quotaUsed($me->id));
     }
 }

@@ -43,7 +43,7 @@ class ReleaseRequestTypeEnumTest extends TestCase
 
     public function test_get_label_returns_persian_label_per_case(): void
     {
-        $this->assertSame('پشتیبانی نرم افزار', ReleaseRequestType::Support->getLabel());
+        $this->assertSame('پشتیبانی نرم‌افزار', ReleaseRequestType::Support->getLabel());
         $this->assertSame('پیشنهاد ماژول', ReleaseRequestType::Recommendation->getLabel());
         $this->assertSame('گزارش باگ', ReleaseRequestType::Bug->getLabel());
     }
@@ -79,7 +79,7 @@ class ReleaseRequestTypeEnumTest extends TestCase
     public function test_options_maps_values_to_labels_for_all_cases(): void
     {
         $expected = [
-            'support' => 'پشتیبانی نرم افزار',
+            'support' => 'پشتیبانی نرم‌افزار',
             'recommendation' => 'پیشنهاد ماژول',
             'bug' => 'گزارش باگ',
         ];

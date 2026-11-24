@@ -131,21 +131,23 @@ class SearchChannelMessagesAction
             return [];
         }
 
-        $names = User::getCachedAllOptions();
-
         return Cache::remember(
             "ch:files:{$channelId}:" . PollDigestService::version("ch:tv:{$channelId}"),
             now()->addMinutes(10),
-            fn() => ChannelMessage::query()
-                ->select(['id', 'sender_id', 'attachments', 'created_at'])
-                ->where('channel_id', $channelId)
-                ->whereNotNull('attachments')
-                ->latest('id')
-                ->limit(self::FILES_LIMIT)
-                ->get()
-                ->flatMap(fn(ChannelMessage $m) => $this->fileRows($m, $names[$m->sender_id] ?? ''))
-                ->values()
-                ->all()
+            function () use ($channelId) {
+                $names = User::getCachedAllOptions();
+
+                return ChannelMessage::query()
+                    ->select(['id', 'sender_id', 'attachments', 'created_at'])
+                    ->where('channel_id', $channelId)
+                    ->whereNotNull('attachments')
+                    ->latest('id')
+                    ->limit(self::FILES_LIMIT)
+                    ->get()
+                    ->flatMap(fn(ChannelMessage $m) => $this->fileRows($m, $names[$m->sender_id] ?? ''))
+                    ->values()
+                    ->all();
+            }
         );
     }
 

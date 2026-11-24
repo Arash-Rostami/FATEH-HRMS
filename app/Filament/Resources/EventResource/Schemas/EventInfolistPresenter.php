@@ -70,7 +70,7 @@ class EventInfolistPresenter
     {
         return TextEntry::make('remind_hours')
             ->label(__('resources/event/strings.fields.remind_hours'))
-            ->formatStateUsing(fn(?int $state) => $state ? "{$state} ساعت قبل" : '—')
+            ->formatStateUsing(fn(?int $state) => $state ? "{$state} ساعت پیش از رویداد" : '—')
             ->icon('heroicon-o-bell-alert')
             ->color('gray');
     }

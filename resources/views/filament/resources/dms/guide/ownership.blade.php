@@ -8,17 +8,17 @@
         [
             'icon' => 'person',
             'label' => 'کاربران اختصاصی',
-            'hint' => 'فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">users</code> برای زمانی است که یک فرد خاص (بدون توجه به واحدش) باید سند را ببیند — مثلاً یک مدیر پروژه از واحد دیگر. این کاربران در کنار اعضای واحدهای مالک، سند را دریافت می‌کنند.',
+            'hint' => 'در «کاربران اختصاصی»، افرادی را انتخاب کنید که باید جداگانه سند را دریافت کنند. برای مثال، می‌توانید مدیر پروژه‌ای از واحد دیگر را به مخاطبان سند اضافه کنید.',
         ],
         [
             'icon' => 'visibility',
             'label' => 'پیش‌نمایش کاربران دریافت‌کننده',
-            'hint' => 'پس از انتخاب واحدها، فیلد غیرفعالِ «کاربران واحدهای انتخاب‌شده» خودکار پر می‌شود (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">GenerateOwnerPreview</code>). این فقط نمایش است و ذخیره نمی‌شود (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">dehydrated(false)</code>) — به شما نشان می‌دهد قبل از ذخیره، دقیقاً چه کسی سند را خواهد دید.',
+            'hint' => 'پس از انتخاب واحدها، اعضای آن‌ها در «کاربران واحدهای انتخاب‌شده» نمایش داده می‌شوند. پیش از ذخیره، این فهرست را برای بررسی مخاطبان مرور کنید.',
         ],
         [
             'icon' => 'groups',
             'label' => 'فیلتر فهرست بر اساس واحد',
-            'hint' => 'فیلتر «واحد سازمانی» در فهرست، با <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">orWhereJsonContains</code> روی هر کد کار می‌کند و سندهای <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">ALL</code> را هم شامل می‌شود — یعنی فیلتر کردن روی واحد «مالی»، اسناد سراسری را هم می‌آورد.',
+            'hint' => 'فیلتر «واحد سازمانی»، اسناد همان واحد و اسناد منتشرشده برای همهٔ واحدها را نشان می‌دهد.',
         ],
     ];
 @endphp
@@ -27,10 +27,10 @@
 
     <div class="flex items-center gap-3 px-1">
         <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">share</span>
-        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">مالکیت و دسترسی تعیین می‌کند سند به کی می‌رسد</p>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">انتخاب دریافت‌کنندگان سند</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        هر سند با ترکیب «واحدهای مالک» + «کاربران اختصاصی» توزیع می‌شود. اعلان خودکاری برای کاربران ارسال نمی‌شود — سند به‌محض «فعال» شدن در کارتابل کاربران ظاهر می‌شود و وضعیت تأیید آنها در جدول <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">reads</code> ثبت می‌شود.
+        پس از فعال کردن سند، اعضای واحدهای انتخاب‌شده و کاربران اختصاصی آن را در کارتابل می‌بینند. وضعیت تأیید را از جزئیات سند پیگیری کنید.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -56,7 +56,7 @@
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
             <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
-                برای انتشار سراسری، فقط «همه واحدها» را انتخاب کنید — نیازی به افزودن تک‌تک کاربران نیست؛ فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">users</code> فقط برای استثناهای فردی است.
+                برای انتشار سراسری، «همه واحدها» را انتخاب کنید. برای افزودن افراد خارج از واحدهای انتخاب‌شده، از «کاربران اختصاصی» استفاده کنید.
             </p>
         </div>
     </div>

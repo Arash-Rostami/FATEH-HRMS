@@ -148,12 +148,12 @@
         @if($refining)
             <div wire:key="ai-report-composer-refine" class="contents">
                 <x-ui.buttons.form wire:click="refine" loading="generate,refine" loadingText="در حال اصلاح…" variant="ai"
-                    x-bind:disabled="uploading || {{ $exhausted || $generatingElsewhere ? 'true' : 'false' }}"><span x-text="uploading ? 'در حال بارگذاری فایل…' : 'اصلاح گزارش'">اصلاح گزارش</span></x-ui.buttons.form>
+                    x-bind:disabled="uploading || {{ $exhausted || $generatingElsewhere ? 'true' : 'false' }}"><span x-text="uploading ? 'در حال بارگذاری فایل…' : 'ویرایش هوشمند'">ویرایش هوشمند</span></x-ui.buttons.form>
             </div>
         @else
             <div wire:key="ai-report-composer-generate" class="contents">
                 <x-ui.buttons.form wire:click="generate" loading="generate,refine" loadingText="در حال ساخت…" variant="ai"
-                    x-bind:disabled="uploading || {{ $exhausted || $busy || $generatingElsewhere ? 'true' : 'false' }}"><span x-text="uploading ? 'در حال بارگذاری فایل…' : 'ساخت گزارش'">ساخت گزارش</span></x-ui.buttons.form>
+                    x-bind:disabled="uploading || {{ $exhausted || $busy || $generatingElsewhere ? 'true' : 'false' }}"><span x-text="uploading ? 'در حال بارگذاری فایل…' : 'ساخت هوشمند'">ساخت هوشمند</span></x-ui.buttons.form>
             </div>
         @endif
     </div>

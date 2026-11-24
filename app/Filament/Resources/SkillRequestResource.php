@@ -29,7 +29,7 @@ class SkillRequestResource extends Resource
 
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'info', 'view' => 'filament.resources.skill_request.guide.overview'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.skill_request.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.skill_request.guide.admin-ops'],
         ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.skill_request.guide.list-tabs'],
         ['label' => 'سطح‌بندی و تأیید همکاران', 'icon' => 'workspace_premium', 'view' => 'filament.resources.skill_request.guide.tier'],
     ];

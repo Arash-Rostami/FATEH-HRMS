@@ -1,17 +1,7 @@
 @use('App\Services\Menu\BadgeLegendCatalog')
 @php
-    $poll = (int) config('ai.correspondence.poll_seconds');
     $switchTargets = "toggleView,switchTab('table'),switchTab('report'),switchTab('compose')";
     $pollList = $this->generatingId !== null && ($this->generatingId !== $letterId || $activeTab === 'table');
-    $classic = [];
-    foreach ($presenter->classicTabs() as $id => $label) {
-        $classic[] = ['id' => $id, 'icon' => $id === 'table' ? 'table_rows' : 'edit_note', 'label' => $label];
-    }
-    $listIcons = ['waiting' => 'inbox', 'mine' => 'person', 'incoming' => 'move_to_inbox', 'all' => 'mail', 'registry' => 'inventory_2', 'templates' => 'content_copy'];
-    $listTabs = [];
-    foreach ($presenter->listTabs() as $id => $label) {
-        $listTabs[] = ['id' => $id, 'icon' => $listIcons[$id] ?? 'mail', 'label' => $label];
-    }
 @endphp
 
 <div dir="rtl"
@@ -20,7 +10,7 @@
      class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade print:overflow-visible print:h-auto print:p-0">
     <div class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-4 print:gap-3">
         <div class="print:hidden">
-            <x-ui.title icon="mail" :title="__('resources/correspondence/strings.label')">
+            <x-ui.title icon="mail" :title="__('resources/correspondence/strings.label')" guide="correspondence">
                 <x-slot:actions>
                     <div class="flex flex-wrap items-center gap-2">
                         <x-ui.buttons.view-toggle

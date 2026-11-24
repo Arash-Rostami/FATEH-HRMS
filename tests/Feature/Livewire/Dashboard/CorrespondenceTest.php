@@ -62,7 +62,7 @@ class CorrespondenceTest extends TestCase
     {
         parent::setUp();
         $this->useMysql();
-        config(['app.off' => [], 'cache.default' => 'array', 'cache.limiter' => 'array']);
+        config(['app.off' => [], 'cache.default' => 'array', 'cache.limiter' => 'array', 'ai.correspondence.cooldown' => 0]);
         Cache::setDefaultDriver('array');
         Cache::flush();
         $this->app->forgetInstance('cache.limiter');
@@ -1166,6 +1166,18 @@ class CorrespondenceTest extends TestCase
         $this->assertSame([], $presenter->attachmentNames($letter->fresh()));
     }
 
+    public function test_presenter_tab_items_carry_icons_and_paper_margins_are_floats(): void
+    {
+        $author = $this->user();
+        $this->actingAs($author);
+        $presenter = new CorrespondencePresenter();
+
+        $this->assertSame(['table_rows', 'edit_note'], array_column(array_reverse($presenter->classicTabItems()), 'icon'));
+        $this->assertSame('inbox', $presenter->listTabItems()[0]['icon']);
+        $this->assertSame((int) config('ai.correspondence.poll_seconds'), $presenter->pollSeconds());
+        $this->assertContainsOnlyFloat($presenter->paperData($this->letter($author), 'link')['margins']);
+    }
+
     public function test_the_reply_chip_shows_the_parent_subject_when_the_viewer_can_see_the_parent(): void
     {
         $author = $this->user();
@@ -1540,6 +1552,26 @@ class CorrespondenceTest extends TestCase
         $this->assertSame('internal', $run['audience']);
         $this->assertSame('firm', $run['tone']);
         Queue::assertPushed(GenerateCorrespondenceJob::class, fn (GenerateCorrespondenceJob $job): bool => $job->letterId === (int) $letter->id && $job->run === $run['run']);
+    }
+
+    public function test_generate_inside_the_cooldown_is_refused_as_busy_without_queueing_and_works_after_it_clears(): void
+    {
+        $this->aiOn();
+        config(['ai.correspondence.cooldown' => 3]);
+        $user = $this->user();
+        $prompt = 'Draft a short office letter about the approved request.';
+
+        Livewire::actingAs($user)->test(Workspace::class)->set('form.prompt', $prompt)->call('generate')->assertHasNoErrors();
+        $this->assertTrue(Cache::has("correspondence:ai:cooldown:{$user->id}"));
+        Correspondence::query()->where('user_id', $user->id)->update(['status' => Correspondence::STATUS_FAILED]);
+
+        Livewire::actingAs($user)->test(Workspace::class)->set('form.prompt', $prompt)->call('generate')->assertHasErrors(['form.prompt']);
+        Queue::assertPushed(GenerateCorrespondenceJob::class, 1);
+        $this->assertSame(1, Correspondence::quotaUsed($user->id));
+
+        Cache::forget("correspondence:ai:cooldown:{$user->id}");
+        Livewire::actingAs($user)->test(Workspace::class)->set('form.prompt', $prompt)->call('generate')->assertHasNoErrors();
+        Queue::assertPushed(GenerateCorrespondenceJob::class, 2);
     }
 
     public function test_template_toggle_preserves_existing_meta_and_adds_its_scope_metadata(): void

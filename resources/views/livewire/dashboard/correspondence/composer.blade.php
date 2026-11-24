@@ -199,7 +199,7 @@
         <x-ui.forms.tags label="برچسب‌ها" name="form.tags" prefix="correspondence-tag" :tags="$form->tags" :max="12" :max-length="32" :disabled="$lockHead" class="md:col-span-2"/>
     </div>
 
-    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">مهلت، آخرین روز پیگیری نامه است و نامه را خودکار حذف یا بسته نمی‌کند. برای نامهٔ محرمانه و فوق‌محرمانه، نوشتن هوشمند و ارسال ایمیل در دسترس نیست. در امضای دستی هم تأییدهای سامانه انجام می‌شود؛ امضای روی کاغذ را پس از تأیید نهایی می‌گیرید.</p>
+    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">مهلت، آخرین روز پیگیری نامه است و نامه را خودکار حذف یا بسته نمی‌کند. برای نامهٔ محرمانه و فوق‌محرمانه، ساخت هوشمند و ارسال ایمیل در دسترس نیست. در امضای دستی هم تأییدهای سامانه انجام می‌شود؛ امضای روی کاغذ را پس از تأیید نهایی می‌گیرید.</p>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <x-ui.forms.input label="سازمان گیرنده" name="form.recipientOrg" wire:model="form.recipientOrg" :disabled="$lockHead"/>
@@ -565,7 +565,7 @@
             </div>
         @endif
         @if($state['smartOn'])
-            <x-ui.buttons.form wire:key="correspondence-generate" type="button" variant="ai" icon="auto_awesome" loading="generate" :disabled="!$state['canSubmit']" x-on:click="generate()">نوشتن هوشمند</x-ui.buttons.form>
+            <x-ui.buttons.form wire:key="correspondence-generate" type="button" variant="ai" icon="auto_awesome" loading="generate" :disabled="!$state['canSubmit']" x-on:click="generate()">ساخت هوشمند</x-ui.buttons.form>
         @endif
         @if($letter && in_array($letter->status, Correspondence::DRAFT_LIKE, true))
             <x-ui.buttons.form wire:key="correspondence-delete-draft" type="button" variant="ghost" x-on:click="{{ confirmDialog('deleteDraft', 'حذف پیش‌نویس', 'این پیش‌نویس حذف شود؟', null, 'dispatch', 'danger') }}">حذف پیش‌نویس</x-ui.buttons.form>

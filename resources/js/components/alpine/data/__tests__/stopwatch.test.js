@@ -367,7 +367,7 @@ describe('stopwatch.notifyAlarm', () => {
 
         s.notifyAlarm()
 
-        expect(created[0].opts.body).toBe('زمان‌سنج شما به پایان رسید')
+        expect(created[0].opts.body).toBe('زمان تعیین‌شده به پایان رسید.')
     })
 
     test('does not request permission at fire time when permission is still default (request happens on tool open)', () => {

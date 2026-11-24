@@ -46,7 +46,7 @@ class UserTablePresenter
             ->visible(fn() => UserResource::canEditAny())
             ->requiresConfirmation()
             ->modalHeading('غیرفعال‌سازی گروهی کاربران')
-            ->modalDescription('کاربران انتخاب‌شده از داشبورد و فهرست‌ها حذف می‌شوند و دیگر نمی‌توانند وارد شوند؛ سوابقشان (پیام‌ها، گزارش‌ها، رزروها) دست‌نخورده می‌ماند. حساب خودتان نادیده گرفته می‌شود.')
+            ->modalDescription('حساب کاربران انتخاب‌شده غیرفعال می‌شود و دیگر نمی‌توانند وارد سامانه شوند. پیام‌ها، گزارش‌ها و رزروهای قبلی آن‌ها باقی می‌مانند. حساب خودتان غیرفعال نمی‌شود.')
             ->deselectRecordsAfterCompletion()
             ->action(function (Collection $records) {
                 $targets = $records->reject(fn($record) => $record->id === auth()->id());
@@ -256,7 +256,7 @@ class UserTablePresenter
                                 : 'مدیر سازمانی',
                             'other' => 'کاربر دیگر',
                         ])
-                        ->helperText('گزارش این ماه با پیوند ۷روزه در اعلان‌های گیرنده ثبت می‌شود. مدیر سازمانی بر اساس ساختار واحدها انتخاب می‌شود.')
+                        ->helperText('گیرنده پیوند گزارش این ماه را در اعلان‌ها می‌بیند. پیوند ۷ روز اعتبار دارد. اگر «مدیر سازمانی» را انتخاب کنید، گیرنده بر اساس ساختار واحدها تعیین می‌شود.')
                         ->default('boss')
                         ->live()
                         ->columnSpanFull(),

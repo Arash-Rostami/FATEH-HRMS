@@ -72,13 +72,19 @@ class Home extends Component
     public function render()
     {
         $presenter = new TabPresenter();
+        $gadgetCatalog = $presenter->heroGadgetCatalog();
+        $picker = $presenter->gadgetPicker($gadgetCatalog);
 
         return view('livewire.dashboard.tab.home', [
+            'updatedAt' => $presenter->recentUpdate(),
+            'gadgetMulti' => $picker['multi'],
+            'gadgetRows' => $picker['rows'],
+            'gadgetTabs' => $picker['tabs'],
             'tools' => $presenter->tools(),
             'stats' => $presenter->stats(),
             'shortcuts' => $presenter->shortcuts(),
             'teamPulse' => $presenter->teamPulse(),
-            'gadgetCatalog' => $presenter->heroGadgetCatalog(),
+            'gadgetCatalog' => $gadgetCatalog,
         ]);
     }
 

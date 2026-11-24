@@ -13,7 +13,9 @@
 
 <div {{ $attributes }}>
     <div class="flex items-center gap-2 mb-1.5">
-        <span class="material-symbols-rounded text-[16px] {{ $tone['text'] }}">{{ $icon }}</span>
+        @if($icon)
+            <span class="material-symbols-rounded text-[16px] {{ $tone['text'] }}">{{ $icon }}</span>
+        @endif
         <span class="text-[11px] font-semibold {{ $tone['text'] }}">
             {{ $label }}: {{ convertToPersian((string) $used) }} / {{ convertToPersian((string) $cap) }}
         </span>

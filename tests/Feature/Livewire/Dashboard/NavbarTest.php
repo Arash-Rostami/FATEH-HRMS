@@ -510,6 +510,9 @@ class NavbarTest extends TestCase
         $payload = Livewire::actingAs($user)->test(Weather::class)->instance()->weatherData;
 
         $this->assertSame(['weather' => '', 'temperature' => 'N/A', 'description' => ''], $payload);
+        $this->view('livewire.dashboard.navbar.top.weather', ['weatherData' => $payload])
+            ->assertSee('وضعیت آب‌وهوا در دسترس نیست')
+            ->assertDontSee('N/A');
     }
 
     public function test_account_dropdown_profile_link_uses_tab_query_key_not_active_tab(): void

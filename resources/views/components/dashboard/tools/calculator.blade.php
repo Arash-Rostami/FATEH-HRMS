@@ -1,4 +1,4 @@
-<div x-data="calculator()" x-init="init()" x-ref="calculatorModal" dir="rtl" x-cloak>
+<div x-data="calculator()" x-ref="calculatorModal" dir="rtl" x-cloak>
     <x-ui.modals.backdrop x-show="open" :minimizable="true">
         <x-slot:icon>
             <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary-container)]">
@@ -7,8 +7,8 @@
         </x-slot:icon>
 
         <x-slot:heading>
-            <p class="text-sm font-semibold leading-none" style="color:var(--md-sys-color-on-primary);">ماشین حساب</p>
-            <p class="mt-1 text-xs leading-none" style="color:rgba(255,255,255,.70);">محاسبات شخصی</p>
+            <p class="text-sm font-semibold leading-none" style="color:var(--md-sys-color-on-primary);">ماشین‌حساب</p>
+            <p class="mt-1 text-xs leading-none" style="color:rgba(255,255,255,.70);">محاسبه و مرور نتیجه‌ها</p>
         </x-slot:heading>
 
         <div class="px-5 pt-5">
@@ -17,17 +17,17 @@
 
                 <div x-show="history.length > 0">
                     <div class="flex items-center justify-between px-4 pt-2 pb-1">
-                        <span class="text-[10px]" style="color:var(--md-sys-color-outline);">نوار حساب</span>
+                        <span class="text-[10px]" style="color:var(--md-sys-color-outline);">محاسبات اخیر</span>
                         <div class="flex items-center gap-2">
                             <button @click="copyLedger()"
                                     class="flex items-center gap-1 text-[10px] transition-opacity hover:opacity-60"
                                     style="color:var(--md-sys-color-primary);">
                                 <span class="material-symbols-rounded" style="font-size:12px;">content_copy</span>
-                                کپی رسید
+                                کپی محاسبات
                             </button>
                             <button @click="history = []; saveState()"
                                     class="text-[10px] transition-opacity hover:opacity-60"
-                                    style="color:var(--md-sys-color-error);">پاک کردن
+                                    style="color:var(--md-sys-color-error);">پاک کردن محاسبات
                             </button>
                         </div>
                     </div>
@@ -50,10 +50,10 @@
                 <div class="px-4 pb-3 pt-1 flex items-center gap-2"
                      :class="history.length > 0 ? 'border-t border-dashed' : ''"
                      style="border-color:var(--md-sys-color-outline-variant);">
-                    <input type="text" x-model="formattedDisplay" x-ref="display" @click="copyToClipboard()" readonly
+                    <input type="text" x-bind:value="display === 'Error!' ? 'محاسبه انجام نشد' : formattedDisplay" aria-label="نتیجهٔ محاسبه" x-ref="display" @click="copyToClipboard()" readonly
                            class="bg-transparent text-2xl font-mono text-right outline-none w-full cursor-pointer"
                            style="color:var(--md-sys-color-on-surface);font-feature-settings:'tnum';" dir="ltr">
-                    <button @click="backspace()" x-show="display" title="حذف آخرین رقم"
+                    <button @click="backspace()" x-show="display" title="حذف آخرین نویسه"
                             class="flex items-center justify-center shrink-0 w-8 h-8 rounded-lg transition-colors hover:opacity-70"
                             style="color:var(--md-sys-color-outline);">
                         <span class="material-symbols-rounded text-[20px]">backspace</span>
@@ -102,8 +102,8 @@
         <x-dashboard.navbars.dock
             show="minimized"
             on-click="restore()"
-            label="ماشین حساب"
-            value-expr="history.length ? history[0].res : (display ? formattedDisplay : 'آماده')"
+            label="ماشین‌حساب"
+            value-expr="history.length ? history[0].res : (display === 'Error!' ? 'محاسبه انجام نشد' : (display ? formattedDisplay : 'آماده'))"
             restore-fn="restore()"
             close-fn="closeModal()">
 

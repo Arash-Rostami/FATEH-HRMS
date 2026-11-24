@@ -119,7 +119,7 @@ class ReservationTablePresenter
     public static function isSeries(): TextColumn
     {
         return TextColumn::make('parent_id')
-            ->label('گروه تکرار')
+            ->label('نوع تکرار')
             ->badge()
             ->formatStateUsing(fn($state) => $state !== null ? 'تکراری' : 'مستقل')
             ->color(fn($state) => $state !== null ? 'warning' : 'gray')

@@ -1,8 +1,9 @@
 <?php
 
 return [
-    'daily_cap' => 6,
-    'timeout' => 60,
+    'daily_cap' => 5,
+    'cooldown' => 3,
+    'timeout' => 45,
     'connect_timeout' => 10,
     'max_output' => 16384,
     'stale_minutes' => 5,
@@ -32,24 +33,24 @@ return [
 RULES,
 
     'types' => [
-        'free' => ['label' => 'آزاد (طبق درخواست شما)', 'blocks' => [], 'rules' => ''],
+        'free' => ['label' => 'گزارش سفارشی', 'blocks' => [], 'rules' => ''],
         'monthly' => ['label' => 'گزارش ماهانه', 'blocks' => ['title', 'facts', 'kpi_row', 'summary', 'chart', 'table', 'callout'], 'rules' => 'Monthly performance report for the period the user names (default: the previous Jalali month). Compare the period with the one before it, state the main drivers of change, and close with the decisions needed for next month. Add a progress block instead of the table only when the request gives targets. The whole page, including the assumptions section, has at most {blocks} blocks.'],
         'budget' => ['label' => 'گزارش بودجه و هزینه', 'blocks' => ['title', 'facts', 'kpi_row', 'table', 'chart', 'summary', 'callout'], 'rules' => 'Budget versus actual report: every money table has budget, actual, variance and variance-percent columns (leave percent_column null for the variance-percent column), the budget, actual and variance totals equal the sum of the rows while the variance-percent total is "—", and the callout names the largest overruns. Use at most one table besides the chart; the whole page, including the assumptions section, has at most {blocks} blocks.'],
         'attachment' => ['label' => 'خلاصهٔ فایل‌های پیوست', 'blocks' => ['title', 'facts', 'summary', 'section', 'table', 'callout'], 'rules' => 'Summarize the attached material only: facts list the source files and their scope, use at most two sections that follow the structure of the material, tables reproduce only figures present in the files, and the callout lists open questions; never add outside knowledge. The whole page, including the assumptions section, has at most {blocks} blocks.'],
-        'incident' => ['label' => 'گزارش حادثه / رخداد', 'blocks' => ['title', 'facts', 'summary', 'section', 'action_items', 'callout'], 'rules' => 'Incident report: facts give when, where and who was informed; the first section is a time-ordered account, the next covers impact and root cause; action_items list corrective actions with owner, due date and status; the callout states residual risk. Stay factual, no blame. The whole page, including the assumptions section, has at most {blocks} blocks.'],
+        'incident' => ['label' => 'گزارش رخداد', 'blocks' => ['title', 'facts', 'summary', 'section', 'action_items', 'callout'], 'rules' => 'Incident report: facts give when, where and who was informed; the first section is a time-ordered account, the next covers impact and root cause; action_items list corrective actions with owner, due date and status; the callout states residual risk. Stay factual, no blame. The whole page, including the assumptions section, has at most {blocks} blocks.'],
         'meeting' => ['label' => 'صورت‌جلسه', 'blocks' => ['title', 'facts', 'summary', 'section', 'action_items', 'callout'], 'rules' => 'Meeting minutes: facts give date, place, attendees and chair; use at most two sections for the agenda items (fold minor items together); action_items list every decision and follow-up with owner, due date and status; the callout lists items deferred to the next meeting. The whole page, including the assumptions section, has at most {blocks} blocks.'],
     ],
 
     'lengths' => [
         'one_page' => ['label' => 'یک‌صفحه‌ای', 'rules' => 'One page: a single element in pages with at most {one_page_blocks} blocks including the assumptions section; when the report type lists more blocks, drop optional ones first (kpi_row, then chart, then table) and never the title, the assumptions section or the final callout; at most 4 bullets per list and at most 8 rows per table.'],
-        'standard' => ['label' => 'معمولی (حدود ۱ تا ۲ صفحه)', 'rules' => 'Standard length: 1 to 2 pages.'],
+        'standard' => ['label' => 'معمولی (۱ تا ۲ صفحه)', 'rules' => 'Standard length: 1 to 2 pages.'],
         'detailed' => ['label' => 'مفصل (حدود ۲ تا ۴ صفحه)', 'rules' => 'Detailed: 2 to 4 pages; every section has at least two paragraphs, every figure is explained, and extra data goes into tables rather than longer paragraphs.'],
     ],
 
     'audiences' => [
         'management' => ['label' => 'مدیران', 'rules' => 'Audience is senior management: lead with outcomes and decisions, keep technical detail out of the summary, prefer rounded figures with units.'],
         'technical' => ['label' => 'کارشناسان', 'rules' => 'Audience is technical staff: include method, assumptions, exact figures and data gaps; precise terminology is welcome.'],
-        'mixed' => ['label' => 'عمومی (مدیران و کارشناسان)', 'rules' => 'Mixed audience: a plain-language summary first, then technical detail in later sections; define every term once.'],
+        'mixed' => ['label' => 'مدیران و کارشناسان', 'rules' => 'Mixed audience: a plain-language summary first, then technical detail in later sections; define every term once.'],
     ],
 
     'prompt' => [

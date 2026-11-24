@@ -6,6 +6,7 @@ import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
 import fancyboxMixin from "../mixins/fancybox.js";
+import aiEditMixin from "../mixins/aiEdit.js";
 
 const SCOPE = 'channel';
 const OPEN_POLL_CEILING_MS = 20000;
@@ -54,6 +55,7 @@ export default function channel() {
         ...pasteImageMixin(),
         ...chatBase(SCOPE),
         ...fancyboxMixin(),
+        ...aiEditMixin(),
         channelCount: 0,
         editingOriginal: '',
         isEditing: false,
@@ -77,11 +79,16 @@ export default function channel() {
         mentionActiveIndex: 0,
 
         init() {
-            this.initChatScale();
+            ac = new AbortController();
+            const { signal } = ac;
+            this.initChatScale(signal);
             this.initFancybox();
             this._loadChatSettings();
-            this.headerDeclutterMenuBridge();
-            this.$watch('showInfo', (open) => { if (!open) this.aiOpen = false; });
+            this.headerDeclutterMenuBridge(signal);
+            this.$watch('showInfo', (open) => {
+                if (!open) this.aiOpen = false;
+                else if (this.filesOpen && !this._filesCache) this.retryFiles();
+            });
 
             this.syncChannelCount();
             this.syncPushNotify();
@@ -91,15 +98,12 @@ export default function channel() {
 
             this.startPolling();
 
-            ac = new AbortController();
-            const { signal } = ac;
-
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) {
                     this._flushPendingRing();
                     this._repollNow();
                     if (this.aiOpen && !this.aiBusy) this.aiLoadMeter();
-                } else if (!this.$store.push.isEnabled(SCOPE)) this.stopPolling();
+                } else if (!this.$store.push.pollsHidden(SCOPE)) this.stopPolling();
             }, { signal });
 
             this._bindViewport();
@@ -126,6 +130,7 @@ export default function channel() {
 
             this.$wire.on('message-sent', () => {
                 this.sending = false;
+                this.replyingTo = null;
                 this.$store.sound?.playOutgoing(this.$wire.activeChannelId, SCOPE);
             });
 
@@ -161,6 +166,7 @@ export default function channel() {
             this._destroyed = true;
             this.stopPolling();
             ac?.abort();
+            clearTimeout(this._declutterTimer);
             this._swipeAc?.abort();
             vpAc?.abort();
             vpRo?.disconnect();
@@ -245,7 +251,14 @@ export default function channel() {
         _isl() { return this.$wire.$island('messages'); },
         _sidebar() { return this.$wire.$island('sidebar').refreshUnread(); },
 
+        _editDirty() { return this.isEditing && this.editingBody !== this.editingOriginal; },
+
+        aiEditCurrentId() { return this.isEditing ? this.editingMsgId : null; },
+        aiEditBox(id) { return document.querySelector(`[data-edit-box="${id}"] textarea`); },
+        aiEditApply(text) { this.editingBody = text; },
+
         _clearEdit() {
+            this.resetAiEdit();
             this.isEditing = false;
             this.editingMsgId = null;
             this.editingBody = '';
@@ -253,7 +266,7 @@ export default function channel() {
         },
 
         _overLimit(body) {
-            if (body.length <= MAX_BODY_LENGTH) return false;
+            if (this.chars(body) <= MAX_BODY_LENGTH) return false;
             this.toast(TOO_LONG_MSG, 'warning');
             return true;
         },
@@ -269,7 +282,7 @@ export default function channel() {
             if (!el || el.closest(EDITABLE_SEL)) return;
 
             const row = el.closest(ROW_SEL);
-            if (!row) return;
+            if (!row || !row.querySelector('button[data-body]')) return;
 
             const text = sel.toString().trim();
             if (!text) return;
@@ -311,7 +324,8 @@ export default function channel() {
                     await this._isl().refreshActive();
                     this.autoDirection(ta());
                     const lastAfter = this._readLastMessageMarker();
-                    const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null && lastAfter !== this._selfMarker;
+                    if (lastAfter !== lastBefore) this._dropFiles();
+                    const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null && lastAfter !== this._selfMarker && this._markerAdvanced(lastAfter, lastBefore);
                     const incoming = threadChanged && !this._lastMessageIsMine();
                     if (threadChanged) {
                         if (nearBottom) this.$nextTick(() => this.scrollToBottom(true));
@@ -392,7 +406,7 @@ export default function channel() {
             el.focus();
             el.selectionStart = el.selectionEnd = pos + sp.length + 1;
 
-            this.$wire.set('composer.body', next);
+            this.$wire.set('composer.body', next, false);
             this.$wire.loadMentionMemberNames().catch(() => {});
             this.mentionQuery = '';
             this.mentionActiveIndex = 0;
@@ -419,6 +433,7 @@ export default function channel() {
         },
 
         onComposerKeydown(e) {
+            if (e.isComposing) return;
             const { key } = e;
             if (this.mentionOpen) {
                 const len = this.mentionMatches.length;
@@ -447,7 +462,8 @@ export default function channel() {
 
             this.mentionOpen = false;
             this.mentionQuery = '';
-            this.$wire.set('composer.body', next);
+            el.value = next;
+            this.$wire.set('composer.body', next, false);
             this.$nextTick(() => { el.focus(); el.selectionStart = el.selectionEnd = at + 1 + insert.length; });
         },
 
@@ -488,7 +504,12 @@ export default function channel() {
         scrollToMessage(id) {
             if (!id) return;
             const el = document.querySelector(`[data-rf="${DATA_RF_MESSAGE_PREFIX}-${id}"]`);
-            if (!el) { this._isl().focusMessage(id).catch(() => {}); return; }
+            if (!el) { this.typeFilter = ''; this._isl().focusMessage(id).catch(() => {}); return; }
+            if (this.typeFilter && el.offsetParent === null) {
+                this.typeFilter = '';
+                this.$nextTick(() => this.scrollToMessage(id));
+                return;
+            }
 
             document.querySelectorAll(`.${FLASH_CLASS}`).forEach(n => n.classList.remove(FLASH_CLASS));
             el.style.animation = 'none';
@@ -527,6 +548,10 @@ export default function channel() {
 
         selectChannel(id) {
             if (!id) return;
+            const wire = this.$wire;
+            const same = id === wire.activeChannelId;
+            if (same && wire.mobileShowChat && !wire.browseMode && !wire.createMode) return;
+            if (!same && this.holdDraft(id, ta())) return;
             const seq = ++selectSeq;
             this._persistLastOpen(id);
             this._repollNow(false);
@@ -545,6 +570,7 @@ export default function channel() {
             this.closeChannelKey();
             this.aiReset();
             this._clearEdit();
+            this.resetRoomScoped();
 
             this.$wire.cancelReply();
             return this._isl().selectChannel(id)
@@ -620,6 +646,7 @@ export default function channel() {
         },
         openCreate() {
             const wire = this.$wire;
+            if (this.holdDraft('create', ta(), wire)) return Promise.resolve();
             return wire.$island('messages').openCreate()
                 .then(() => { this._afterPaneSwap(); return wire.$island('sidebar').refreshUnread(); });
         },
@@ -631,6 +658,8 @@ export default function channel() {
         },
 
         backToList() {
+            const wire = this.$wire;
+            if (this.holdDraft('back', ta(), wire)) return;
             this.searchMessages = false;
             this.bookmarksOpen = false;
             this.daysOpen = false;
@@ -640,7 +669,6 @@ export default function channel() {
             this._msgViewportEl = null;
             this.showScrollFab = false;
             this.newBelow = 0;
-            const wire = this.$wire;
             wire.set('mobileShowChat', false, false);
             wire.$island('messages').backToList().then(() => wire.$island('sidebar').refreshUnread());
         },
@@ -690,9 +718,10 @@ export default function channel() {
             this.editingMsgId = id;
             this.editingOriginal = this.editingBody = body || '';
             this.isEditing = true;
+            this.resetAiEdit();
 
             this.$wire.cancelReply();
-            this.$wire.editMessage(id);
+            return this.$wire.editMessage(id);
         },
 
         cancelEdit() {
@@ -700,10 +729,21 @@ export default function channel() {
             this.$wire.cancelEdit();
         },
 
+        async undoDelete() {
+            const wire = this.$wire;
+            try {
+                await this._isl().undoDelete();
+                this._syncSidebarAfterOwnAction(wire);
+            } catch {}
+        },
+
         async saveEdit(id) {
             if (!id || id !== this.editingMsgId || this._savingEdit) return;
             const body = this.editingBody || '';
-            if (body === this.editingOriginal) return this.cancelEdit();
+            if (body === this.editingOriginal) {
+                this.toast('متن تغییری نکرده است؛ چیزی برای ذخیره نبود.', 'warning');
+                return this.cancelEdit();
+            }
             if (this._overLimit(body)) return;
 
             const wire = this.$wire;
@@ -793,7 +833,6 @@ export default function channel() {
                 : null;
             try {
                 await this._isl().send();
-                this.replyingTo = null;
                 this._syncSidebarAfterOwnAction(wire);
                 this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); this.autoGrow(ta(), 160); this.autoDirection(ta()); });
             } catch {

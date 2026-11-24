@@ -1,222 +1,207 @@
-import persistentStateMixin from "../mixins/persistentState.js";
+import persistentStateMixin, {smsMemoryMixin} from "../mixins/persistentState.js";
 import maximizeMixin from "../mixins/maximize.js";
 
 const START_HOUR = 6;
+const START_MINUTES = START_HOUR * 60;
 const MIN_SLOT_MINUTES = 360;
 const MAX_SLOT_MINUTES = 1425;
 const NOW_TICK_MS = 60000;
 const DEAD_ZONE_PX = 5;
+const SNAP = 15;
+const MIN_DURATION = 15;
+const MAX_DURATION = 480;
+const DAY_END = 1440;
 const SCROLL_STORAGE_KEY = 'calendar-scroll-memory';
+const LOCKED_MSG = 'این رویداد از طریق سیستم رزرو مدیریت می‌شود؛ برای تغییر آن به تب رزرو مراجعه کنید.';
+const MOVED_MSG = 'رویداد جابجا شد.';
+const MOVE_FAILED_MSG = 'جابجایی ناموفق بود.';
+const RESIZE_FAILED_MSG = 'تغییر مدت ناموفق بود.';
 
 const PAD_2 = Array.from({length: 100}, (_, i) => String(i).padStart(2, '0'));
+const pad = (n) => PAD_2[n] ?? String(n).padStart(2, '0');
 
 const raf = (cb) => typeof requestAnimationFrame === 'function' ? requestAnimationFrame(cb) : setTimeout(cb, 16);
 const caf = (id) => typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id);
 
-function formatTime(totalMinutes) {
-    const h = Math.floor(totalMinutes / 60);
-    const m = totalMinutes % 60;
-    const hh = h >= 0 && h < 100 ? PAD_2[h] : String(h).padStart(2, '0');
-    const mm = m >= 0 && m < 100 ? PAD_2[m] : String(m).padStart(2, '0');
-    return `${hh}:${mm}`;
-}
+const formatTime = (totalMinutes) => `${pad(Math.floor(totalMinutes / 60))}:${pad(totalMinutes % 60)}`;
 
-function isCacheableDateInput(value) {
+const isCacheableDateInput = (value) => {
     const type = typeof value;
     return value === null || type === 'string' || type === 'number' || type === 'boolean' || type === 'undefined';
-}
+};
 
-function lockBodyInteractions(cursorType) {
-    document.body.style.cursor = cursorType;
-    document.body.style.userSelect = 'none';
-    document.body.style.pointerEvents = 'none';
-}
+const lockBodyInteractions = (cursorType) => {
+    const style = document.body.style;
+    style.cursor = cursorType;
+    style.userSelect = 'none';
+    style.pointerEvents = 'none';
+};
 
-function unlockBodyInteractions() {
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-    document.body.style.pointerEvents = '';
-}
+const unlockBodyInteractions = () => {
+    const style = document.body.style;
+    style.cursor = '';
+    style.userSelect = '';
+    style.pointerEvents = '';
+};
+
+const toast = (instance, message, type) => instance.$dispatch('toast', {message, type});
+
+const drag = {rec: null, active: false, started: false, startY: 0, startTop: 0, hourHeight: 60, ghost: null, frame: 0, pending: 0, last: 0};
+const dragRecords = new WeakMap();
+
+const cancelDragFrame = () => {
+    if (drag.frame) {
+        caf(drag.frame);
+        drag.frame = 0;
+    }
+};
+
+const removeGhost = () => {
+    cancelDragFrame();
+    drag.ghost?.remove();
+    drag.ghost = null;
+};
+
+const createGhost = (root) => {
+    const clone = root.cloneNode(true);
+    clone.removeAttribute('x-data');
+    clone.removeAttribute('data-event-id');
+    clone.setAttribute('x-ignore', '');
+    clone.classList.add('pointer-events-none');
+    Object.assign(clone.style, {
+        position: 'absolute',
+        top: `${drag.startTop}px`,
+        left: `${root.offsetLeft}px`,
+        width: `${root.offsetWidth}px`,
+        zIndex: '50',
+        willChange: 'transform',
+        transform: 'translate3d(0, 0, 0)',
+        boxShadow: '0 16px 40px rgba(0,0,0,0.28)',
+        opacity: '0.9',
+    });
+    root.parentElement.appendChild(clone);
+    drag.ghost = clone;
+    drag.pending = drag.last = 0;
+};
+
+const renderGhost = () => {
+    drag.frame = 0;
+    if (drag.ghost && drag.pending !== drag.last) {
+        drag.last = drag.pending;
+        drag.ghost.style.transform = `translate3d(0, ${drag.last}px, 0)`;
+    }
+};
+
+const commitMove = (rec, offsetY) => {
+    const {startTop, hourHeight} = drag;
+    const {root, instance} = rec;
+    const seq = ++rec.seq;
+    const revert = () => { root.style.top = `${startTop}px`; };
+
+    const snapped = Math.round((((startTop + offsetY) / hourHeight) * 60 + START_MINUTES) / SNAP) * SNAP;
+    if (snapped < MIN_SLOT_MINUTES || snapped > MAX_SLOT_MINUTES) return revert();
+
+    const date = root.closest('[data-date]')?.dataset.date;
+    if (!date) return revert();
+
+    root.style.top = `${((snapped - START_MINUTES) * hourHeight) / 60}px`;
+
+    const fail = (detail, message) => {
+        window.dispatchEvent(new CustomEvent(`revert-event-${instance.eventId}`, {detail}));
+        revert();
+        toast(instance, message, 'error');
+    };
+
+    instance.$wire.moveEvent(instance.eventId, date, formatTime(snapped), root.dataset.mtime || new Date().toISOString())
+        .then((res) => {
+            if (rec.destroyed || seq !== rec.seq) return;
+            if (res?.ok) toast(instance, MOVED_MSG, 'success');
+            else fail(res?.revertTo || {}, res?.reason === 'locked' ? LOCKED_MSG : MOVE_FAILED_MSG);
+        })
+        .catch(() => {
+            if (rec.destroyed || seq !== rec.seq) return;
+            fail({}, MOVE_FAILED_MSG);
+        });
+};
+
+const dragMove = (e) => {
+    if (!drag.active || drag.rec.destroyed) return;
+
+    const offsetY = e.clientY - drag.startY;
+
+    if (!drag.started) {
+        if (Math.abs(offsetY) < DEAD_ZONE_PX) return;
+        drag.started = true;
+        const {root} = drag.rec;
+        createGhost(root);
+        root.style.opacity = '0';
+        lockBodyInteractions('grabbing');
+    }
+
+    e.preventDefault();
+    drag.pending = offsetY;
+
+    if (offsetY === drag.last) {
+        cancelDragFrame();
+        return;
+    }
+
+    if (!drag.frame) drag.frame = raf(renderGhost);
+};
+
+const unlistenDrag = () => {
+    window.removeEventListener('pointermove', dragMove);
+    window.removeEventListener('pointerup', dragUp);
+    window.removeEventListener('pointercancel', dragUp);
+};
+
+const dragUp = (e) => {
+    if (!drag.active || drag.rec.destroyed) return;
+
+    const {rec, started} = drag;
+    drag.active = drag.started = false;
+    unlistenDrag();
+    unlockBodyInteractions();
+
+    if (started) {
+        removeGhost();
+        rec.root.style.opacity = '';
+        commitMove(rec, e.clientY - drag.startY);
+        const {instance} = rec;
+        instance.justDragged = true;
+        setTimeout(() => { instance.justDragged = false; }, 0);
+    }
+
+    drag.rec = null;
+};
+
+const dragDown = (e) => {
+    const rec = dragRecords.get(e.currentTarget);
+    if (!rec || rec.destroyed || e.button !== 0 || drag.active) return;
+
+    const {root} = rec;
+    drag.rec = rec;
+    drag.hourHeight = parseFloat(root.dataset.hourHeight) || 60;
+    drag.startY = e.clientY;
+    drag.startTop = root.offsetTop;
+    drag.active = true;
+    drag.started = false;
+
+    window.addEventListener('pointermove', dragMove, {passive: false});
+    window.addEventListener('pointerup', dragUp, {passive: true});
+    window.addEventListener('pointercancel', dragUp, {passive: true});
+};
+
+const abortDrag = () => {
+    drag.active = drag.started = false;
+    drag.rec = null;
+    unlistenDrag();
+    unlockBodyInteractions();
+    removeGhost();
+};
 
 export function calendarDrag({eventId, locked, isOwner}) {
-    let destroyed = false;
-    let ghost = null;
-    let startY = 0;
-    let startTop = 0;
-    let dragging = false;
-    let dragStarted = false;
-    let hourHeight = 60;
-    let frame = 0;
-    let pendingOffsetY = 0;
-    let lastOffsetY = 0;
-    let activeInstance = null;
-    let moveSeq = 0;
-
-    const cancelGhostFrame = () => {
-        if (frame) {
-            caf(frame);
-            frame = 0;
-        }
-    };
-
-    const removeGhost = () => {
-        cancelGhostFrame();
-        if (ghost && ghost.parentNode) {
-            ghost.parentNode.removeChild(ghost);
-        }
-        ghost = null;
-    };
-
-    const createGhost = (root) => {
-        const clone = root.cloneNode(true);
-        clone.removeAttribute('x-data');
-        clone.removeAttribute('data-event-id');
-        clone.classList.add('pointer-events-none');
-        clone.style.position = 'absolute';
-        clone.style.top = `${startTop}px`;
-        clone.style.left = `${root.offsetLeft}px`;
-        clone.style.width = `${root.offsetWidth}px`;
-        clone.style.zIndex = '50';
-        clone.style.willChange = 'transform';
-        clone.style.transform = 'translate3d(0, 0, 0)';
-        clone.style.boxShadow = '0 16px 40px rgba(0,0,0,0.28)';
-        clone.style.opacity = '0.9';
-        root.parentElement.appendChild(clone);
-        ghost = clone;
-        pendingOffsetY = 0;
-        lastOffsetY = 0;
-    };
-
-    const renderGhost = () => {
-        frame = 0;
-        if (ghost && pendingOffsetY !== lastOffsetY) {
-            lastOffsetY = pendingOffsetY;
-            ghost.style.transform = `translate3d(0, ${lastOffsetY}px, 0)`;
-        }
-    };
-
-    const commitMove = (instance, offsetY) => {
-        if (!instance || destroyed) return;
-
-        const revertTop = startTop;
-        const seq = ++moveSeq;
-
-        const finalTop = startTop + offsetY;
-        const absoluteMinutes = (finalTop / hourHeight) * 60 + START_HOUR * 60;
-        const snappedMinutes = Math.round(absoluteMinutes / 15) * 15;
-
-        if (snappedMinutes < MIN_SLOT_MINUTES || snappedMinutes > MAX_SLOT_MINUTES) {
-            instance.$root.style.top = `${revertTop}px`;
-            return;
-        }
-
-        const day = instance.$root.closest('[data-date]');
-        const dateJalali = day ? day.dataset.date : null;
-
-        if (!dateJalali) {
-            instance.$root.style.top = `${revertTop}px`;
-            return;
-        }
-
-        const optimisticTop = (snappedMinutes - START_HOUR * 60) * hourHeight / 60;
-        instance.$root.style.top = `${optimisticTop}px`;
-
-        const timePart = formatTime(snappedMinutes);
-        const clientMtime = instance.$root.dataset.mtime || new Date().toISOString();
-
-        instance.$wire.moveEvent(instance.eventId, dateJalali, timePart, clientMtime)
-            .then((res) => {
-                if (destroyed || seq !== moveSeq) return;
-
-                if (!res || !res.ok) {
-                    window.dispatchEvent(new CustomEvent(`revert-event-${instance.eventId}`, {
-                        detail: (res && res.revertTo) || {},
-                    }));
-                    instance.$root.style.top = `${revertTop}px`;
-                    instance.$dispatch('toast', {
-                        message: res && res.reason === 'locked'
-                            ? 'این رویداد از طریق سیستم رزرو مدیریت می‌شود؛ برای تغییر آن به تب رزرو مراجعه کنید.'
-                            : 'جابجایی ناموفق بود.',
-                        type: 'error',
-                    });
-                } else {
-                    instance.$dispatch('toast', {
-                        message: 'رویداد جابجا شد.',
-                        type: 'success',
-                    });
-                }
-            })
-            .catch(() => {
-                if (destroyed || seq !== moveSeq) return;
-                window.dispatchEvent(new CustomEvent(`revert-event-${instance.eventId}`, {detail: {}}));
-                instance.$root.style.top = `${revertTop}px`;
-                instance.$dispatch('toast', {
-                    message: 'جابجایی ناموفق بود.',
-                    type: 'error',
-                });
-            });
-    };
-
-    const handleDown = (e) => {
-        if (destroyed || e.button !== 0 || dragging) return;
-
-        const root = activeInstance.$root;
-        hourHeight = parseFloat(root.dataset.hourHeight) || 60;
-        startY = e.clientY;
-        startTop = root.offsetTop;
-        dragging = true;
-        dragStarted = false;
-
-        window.addEventListener('pointermove', handleMove, {passive: false});
-        window.addEventListener('pointerup', handleUp, {passive: true});
-        window.addEventListener('pointercancel', handleUp, {passive: true});
-    };
-
-    const handleMove = (e) => {
-        if (!dragging || destroyed) return;
-
-        const offsetY = e.clientY - startY;
-
-        if (!dragStarted) {
-            if (Math.abs(offsetY) < DEAD_ZONE_PX) return;
-            dragStarted = true;
-            createGhost(activeInstance.$root);
-            activeInstance.$root.style.opacity = '0';
-            lockBodyInteractions('grabbing');
-        }
-
-        e.preventDefault();
-        pendingOffsetY = offsetY;
-
-        if (offsetY === lastOffsetY) {
-            if (frame) cancelGhostFrame();
-            return;
-        }
-
-        if (!frame) frame = raf(renderGhost);
-    };
-
-    const handleUp = (e) => {
-        if (!dragging || destroyed) return;
-
-        dragging = false;
-
-        window.removeEventListener('pointermove', handleMove);
-        window.removeEventListener('pointerup', handleUp);
-        window.removeEventListener('pointercancel', handleUp);
-
-        unlockBodyInteractions();
-
-        if (dragStarted) {
-            removeGhost();
-            activeInstance.$root.style.opacity = '';
-            commitMove(activeInstance, e.clientY - startY);
-            activeInstance.justDragged = true;
-            setTimeout(() => { activeInstance.justDragged = false; }, 0);
-        }
-
-        dragStarted = false;
-    };
+    const rec = {instance: null, root: null, destroyed: false, seq: 0};
 
     return {
         eventId,
@@ -224,165 +209,141 @@ export function calendarDrag({eventId, locked, isOwner}) {
         isOwner: !!isOwner,
         justDragged: false,
 
-        get _isDestroyed() { return destroyed; },
-        set _isDestroyed(value) { destroyed = !!value; },
+        get _isDestroyed() { return rec.destroyed; },
+        set _isDestroyed(value) { rec.destroyed = !!value; },
 
         init() {
-            destroyed = false;
-            activeInstance = this;
+            rec.destroyed = false;
+            rec.instance = this;
+            rec.root = this.$root;
 
             if (!this.locked && this.isOwner) {
-                this.$root.style.touchAction = 'none';
-                this.$root.addEventListener('pointerdown', handleDown, {passive: true});
+                rec.root.style.touchAction = 'none';
+                rec.root.addEventListener('pointerdown', dragDown, {passive: true});
+                dragRecords.set(rec.root, rec);
             }
         },
 
         destroy() {
-            destroyed = true;
-            cancelGhostFrame();
+            rec.destroyed = true;
+            const {root} = rec;
 
-            if (this.$root) {
-                this.$root.removeEventListener('pointerdown', handleDown);
-                this.$root.style.touchAction = '';
-                this.$root.style.opacity = '';
+            if (root) {
+                root.removeEventListener('pointerdown', dragDown);
+                root.style.touchAction = '';
+                root.style.opacity = '';
+                dragRecords.delete(root);
             }
 
-            window.removeEventListener('pointermove', handleMove);
-            window.removeEventListener('pointerup', handleUp);
-            window.removeEventListener('pointercancel', handleUp);
-            unlockBodyInteractions();
-
-            removeGhost();
+            if (drag.rec === rec) abortDrag();
         },
     };
 }
 
+const rsz = {rec: null, active: false, started: false, startY: 0, startHeightPx: 0, startDuration: 0, hourHeight: 60, pending: 0, frame: 0};
+const resizeRecords = new WeakMap();
+
+const clampDuration = (rec, duration) =>
+    Math.max(MIN_DURATION, Math.min(duration, Math.min(MAX_DURATION, DAY_END - rec.startMinutes)));
+
+const renderResize = () => {
+    rsz.frame = 0;
+    const block = rsz.rec?.block;
+    if (block) block.style.height = `${(rsz.pending * rsz.hourHeight) / 60}px`;
+};
+
+const commitResize = (rec, deltaY) => {
+    const {startHeightPx, startDuration, hourHeight} = rsz;
+    const {block, instance} = rec;
+    const seq = ++rec.seq;
+    const revert = () => { block.style.height = `${startHeightPx}px`; };
+
+    const next = clampDuration(rec, startDuration + Math.round((deltaY / hourHeight) * 60 / SNAP) * SNAP);
+    if (next === startDuration) return revert();
+
+    instance.$wire.resizeEvent(instance.eventId, next, block.dataset.mtime || new Date().toISOString())
+        .then((res) => {
+            if (rec.destroyed || seq !== rec.seq || !res || res.ok) return;
+            revert();
+            toast(instance, res.reason === 'locked' ? LOCKED_MSG : RESIZE_FAILED_MSG, 'error');
+        })
+        .catch(() => {
+            if (rec.destroyed || seq !== rec.seq) return;
+            revert();
+            toast(instance, RESIZE_FAILED_MSG, 'error');
+        });
+};
+
+const resizeMove = (e) => {
+    if (!rsz.active || rsz.rec.destroyed) return;
+    e.preventDefault();
+
+    const offsetY = e.clientY - rsz.startY;
+
+    if (!rsz.started) {
+        if (Math.abs(offsetY) < DEAD_ZONE_PX) return;
+        rsz.started = true;
+        lockBodyInteractions('ns-resize');
+    }
+
+    const next = clampDuration(rsz.rec, rsz.startDuration + Math.round((offsetY / rsz.hourHeight) * 60 / SNAP) * SNAP);
+    if (next === rsz.pending) return;
+    rsz.pending = next;
+
+    if (!rsz.frame) rsz.frame = raf(renderResize);
+};
+
+const releaseResize = () => {
+    rsz.active = rsz.started = false;
+    window.removeEventListener('pointermove', resizeMove);
+    window.removeEventListener('pointerup', resizeUp);
+    window.removeEventListener('pointercancel', resizeCancel);
+    unlockBodyInteractions();
+    if (rsz.frame) {
+        caf(rsz.frame);
+        rsz.frame = 0;
+    }
+};
+
+const resizeUp = (e) => {
+    if (!rsz.active || rsz.rec.destroyed) return;
+    const {rec} = rsz;
+    const deltaY = e.clientY - rsz.startY;
+    releaseResize();
+    commitResize(rec, deltaY);
+    rsz.rec = null;
+};
+
+const resizeCancel = () => {
+    if (!rsz.active || rsz.rec.destroyed) return;
+    const {rec} = rsz;
+    releaseResize();
+    rec.block.style.height = `${rsz.startHeightPx}px`;
+    rsz.rec = null;
+};
+
+const resizeDown = (e) => {
+    const rec = resizeRecords.get(e.currentTarget);
+    if (!rec || rec.destroyed || e.button !== 0 || rsz.active) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const {block} = rec;
+    rsz.rec = rec;
+    rsz.hourHeight = parseFloat(block.dataset.hourHeight) || 60;
+    rsz.startY = e.clientY;
+    rsz.startHeightPx = block.offsetHeight;
+    rsz.startDuration = rsz.pending = rec.durationMinutes;
+    rsz.active = true;
+    rsz.started = false;
+
+    window.addEventListener('pointermove', resizeMove, {passive: false});
+    window.addEventListener('pointerup', resizeUp, {passive: true});
+    window.addEventListener('pointercancel', resizeCancel, {passive: true});
+};
+
 export function calendarResize({eventId, startMinutes, durationMinutes, isOwner, locked}) {
-    let destroyed = false;
-    let activeInstance = null;
-    let block = null;
-    let startY = 0;
-    let startHeightPx = 0;
-    let startDuration = 0;
-    let hourHeight = 60;
-    let dragging = false;
-    let dragStarted = false;
-    let pendingDuration = 0;
-    let frame = 0;
-    let resizeSeq = 0;
-
-    const SNAP = 15;
-    const MIN_DURATION = 15;
-    const MAX_DURATION = 480;
-    const DAY_END = 1440;
-
-    const clampDuration = (d) => {
-        const maxForDay = Math.min(MAX_DURATION, DAY_END - startMinutes);
-        return Math.max(MIN_DURATION, Math.min(d, maxForDay));
-    };
-
-    const renderFrame = () => {
-        frame = 0;
-        if (block) {
-            block.style.height = `${(pendingDuration * hourHeight) / 60}px`;
-        }
-    };
-
-    const commitResize = (instance, deltaY) => {
-        const revertHeightPx = startHeightPx;
-        const seq = ++resizeSeq;
-
-        const deltaMinutes = Math.round((deltaY / hourHeight) * 60 / SNAP) * SNAP;
-        const newDuration = clampDuration(startDuration + deltaMinutes);
-
-        if (newDuration === startDuration) {
-            if (block) block.style.height = `${revertHeightPx}px`;
-            return;
-        }
-
-        const clientMtime = (block && block.dataset.mtime) || new Date().toISOString();
-
-        instance.$wire.resizeEvent(instance.eventId, newDuration, clientMtime)
-            .then((res) => {
-                if (destroyed || seq !== resizeSeq || !res || res.ok) return;
-                if (block) block.style.height = `${revertHeightPx}px`;
-                instance.$dispatch('toast', {
-                    message: res.reason === 'locked'
-                        ? 'این رویداد از طریق سیستم رزرو مدیریت می‌شود؛ برای تغییر آن به تب رزرو مراجعه کنید.'
-                        : 'تغییر مدت ناموفق بود.',
-                    type: 'error',
-                });
-            })
-            .catch(() => {
-                if (destroyed || seq !== resizeSeq) return;
-                if (block) block.style.height = `${revertHeightPx}px`;
-                instance.$dispatch('toast', {message: 'تغییر مدت ناموفق بود.', type: 'error'});
-            });
-    };
-
-    const handleMove = (e) => {
-        if (!dragging || destroyed) return;
-        e.preventDefault();
-
-        const offsetY = e.clientY - startY;
-
-        if (!dragStarted) {
-            if (Math.abs(offsetY) < DEAD_ZONE_PX) return;
-            dragStarted = true;
-            lockBodyInteractions('ns-resize');
-        }
-
-        const deltaMinutes = Math.round((offsetY / hourHeight) * 60 / SNAP) * SNAP;
-        const nextDuration = clampDuration(startDuration + deltaMinutes);
-
-        if (nextDuration === pendingDuration) {
-            return;
-        }
-        pendingDuration = nextDuration;
-
-        if (!frame) frame = raf(renderFrame);
-    };
-
-    const release = () => {
-        dragging = false;
-        dragStarted = false;
-        window.removeEventListener('pointermove', handleMove);
-        window.removeEventListener('pointerup', handleUp);
-        window.removeEventListener('pointercancel', handleCancel);
-        unlockBodyInteractions();
-        if (frame) { caf(frame); frame = 0; }
-    };
-
-    const handleUp = (e) => {
-        if (!dragging || destroyed) return;
-        const finalY = e.clientY;
-        release();
-        commitResize(activeInstance, finalY - startY);
-    };
-
-    const handleCancel = () => {
-        if (!dragging || destroyed) return;
-        release();
-        if (block) block.style.height = `${startHeightPx}px`;
-    };
-
-    const handleDown = (e) => {
-        if (destroyed || e.button !== 0 || dragging) return;
-        e.preventDefault();
-        e.stopPropagation();
-
-        hourHeight = parseFloat(block && block.dataset.hourHeight) || 60;
-        startY = e.clientY;
-        startHeightPx = block ? block.offsetHeight : 0;
-        startDuration = durationMinutes;
-        pendingDuration = durationMinutes;
-        dragging = true;
-        dragStarted = false;
-
-        window.addEventListener('pointermove', handleMove, {passive: false});
-        window.addEventListener('pointerup', handleUp, {passive: true});
-        window.addEventListener('pointercancel', handleCancel, {passive: true});
-    };
+    const rec = {instance: null, root: null, block: null, startMinutes, durationMinutes, destroyed: false, seq: 0};
 
     return {
         eventId,
@@ -391,100 +352,108 @@ export function calendarResize({eventId, startMinutes, durationMinutes, isOwner,
         isOwner: !!isOwner,
         locked: !!locked,
 
-        get _isDestroyed() { return destroyed; },
-        set _isDestroyed(value) { destroyed = !!value; },
+        get _isDestroyed() { return rec.destroyed; },
+        set _isDestroyed(value) { rec.destroyed = !!value; },
 
         init() {
-            destroyed = false;
-            activeInstance = this;
-            block = this.$root.closest('[data-event-id]');
+            rec.destroyed = false;
+            rec.instance = this;
+            rec.root = this.$root;
+            rec.block = rec.root.closest('[data-event-id]');
 
-            if (!this.locked && this.isOwner && block) {
-                this.$root.style.touchAction = 'none';
-                this.$root.addEventListener('pointerdown', handleDown);
+            if (!this.locked && this.isOwner && rec.block) {
+                rec.root.style.touchAction = 'none';
+                rec.root.addEventListener('pointerdown', resizeDown);
+                resizeRecords.set(rec.root, rec);
             }
         },
 
         destroy() {
-            destroyed = true;
-            if (frame) { caf(frame); frame = 0; }
-            if (this.$root) {
-                this.$root.removeEventListener('pointerdown', handleDown);
-                this.$root.style.touchAction = '';
+            rec.destroyed = true;
+            const {root, block} = rec;
+
+            if (root) {
+                root.removeEventListener('pointerdown', resizeDown);
+                root.style.touchAction = '';
+                resizeRecords.delete(root);
             }
-            window.removeEventListener('pointermove', handleMove);
-            window.removeEventListener('pointerup', handleUp);
-            window.removeEventListener('pointercancel', handleCancel);
-            if (block && dragging) block.style.height = `${startHeightPx}px`;
-            unlockBodyInteractions();
+
+            if (rsz.rec === rec) {
+                if (rsz.active) block.style.height = `${rsz.startHeightPx}px`;
+                releaseResize();
+                rsz.rec = null;
+            }
         },
     };
 }
 
+const nowRecords = new Set();
+let nowTimer = 0;
+let nowDayKey = null;
+
+const stampNow = () => {
+    const nowMs = Date.now();
+    const dayKey = new Date(nowMs).toDateString();
+    if (nowDayKey && nowDayKey !== dayKey) Livewire.dispatch('refresh-calendar');
+    nowDayKey = dayKey;
+    return nowMs;
+};
+
+const computeNow = (rec, nowMs) => {
+    const instance = rec.instance;
+    if (rec.destroyed || !instance) return;
+
+    const value = instance.startIso;
+    let startMs, endMs;
+
+    if (isCacheableDateInput(value)) {
+        if (!rec.cached || value !== rec.cacheKey) {
+            rec.cacheKey = value;
+            rec.startMs = new Date(value).getTime();
+            rec.endMs = rec.startMs + rec.spanMs;
+            rec.cached = true;
+        }
+        startMs = rec.startMs;
+        endMs = rec.endMs;
+    } else {
+        startMs = new Date(value).getTime();
+        endMs = startMs + rec.spanMs;
+    }
+
+    if (Number.isNaN(startMs) || nowMs < startMs || nowMs > endMs) {
+        if (instance.nowTop !== -1) instance.nowTop = -1;
+        return;
+    }
+
+    const top = ((nowMs - startMs) / rec.spanMs) * 100;
+    if (instance.nowTop !== top) instance.nowTop = top;
+};
+
+const tickNow = () => {
+    const nowMs = stampNow();
+    for (const rec of nowRecords) computeNow(rec, nowMs);
+};
+
+const onNowVisibility = () => {
+    if (!document.hidden) tickNow();
+};
+
+const autoScrollNow = (rec) => {
+    const {instance, root} = rec;
+    if (rec.destroyed || instance.nowTop < 0) return;
+
+    const container = root.parentElement;
+    if (!container) return;
+
+    const lineTop = root.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+    container.scrollTop = Math.max(0, lineTop - container.clientHeight / 2);
+};
+
 export function calendarNow({startIso, spanHours}) {
-    const spanMs = (spanHours || 18) * 3600000;
-    let destroyed = false;
-    let timer = 0;
-    let lastDayKey = null;
-    let instance = null;
-    let hasStartCache = false;
-    let cachedStartValue;
-    let cachedStartMs = NaN;
-    let cachedEndMs = NaN;
-
-    const compute = () => {
-        if (destroyed || !instance) return;
-
-        const nowMs = Date.now();
-        const dayKey = new Date(nowMs).toDateString();
-
-        if (lastDayKey && lastDayKey !== dayKey) {
-            Livewire.dispatch('refresh-calendar');
-        }
-
-        lastDayKey = dayKey;
-
-        const value = instance.startIso;
-        let startMs, endMs;
-
-        if (isCacheableDateInput(value)) {
-            if (!hasStartCache || value !== cachedStartValue) {
-                cachedStartValue = value;
-                cachedStartMs = new Date(value).getTime();
-                cachedEndMs = cachedStartMs + spanMs;
-                hasStartCache = true;
-            }
-            startMs = cachedStartMs;
-            endMs = cachedEndMs;
-        } else {
-            startMs = new Date(value).getTime();
-            endMs = startMs + spanMs;
-        }
-
-        if (Number.isNaN(startMs) || nowMs < startMs || nowMs > endMs) {
-            if (instance.nowTop !== -1) instance.nowTop = -1;
-            return;
-        }
-
-        const nextTop = ((nowMs - startMs) / spanMs) * 100;
-        if (instance.nowTop !== nextTop) instance.nowTop = nextTop;
-    };
-
-    const autoScroll = () => {
-        if (destroyed || !instance || instance.nowTop < 0) return;
-
-        const container = instance.$root.parentElement;
-        if (!container) return;
-
-        const cRect = container.getBoundingClientRect();
-        const lRect = instance.$root.getBoundingClientRect();
-        const lineTop = lRect.top - cRect.top + container.scrollTop;
-
-        container.scrollTop = Math.max(0, lineTop - container.clientHeight / 2);
-    };
-
-    const onVisibility = () => {
-        if (!document.hidden && instance) compute();
+    const rec = {
+        instance: null, root: null, destroyed: false,
+        spanMs: (spanHours || 18) * 3600000,
+        cached: false, cacheKey: undefined, startMs: NaN, endMs: NaN,
     };
 
     return {
@@ -492,28 +461,35 @@ export function calendarNow({startIso, spanHours}) {
         spanHours,
         nowTop: -1,
 
-        get _isDestroyed() { return destroyed; },
-        set _isDestroyed(value) { destroyed = !!value; },
+        get _isDestroyed() { return rec.destroyed; },
+        set _isDestroyed(value) { rec.destroyed = !!value; },
 
         init() {
-            destroyed = false;
-            instance = this;
+            rec.destroyed = false;
+            rec.instance = this;
+            rec.root = this.$root;
+            nowRecords.add(rec);
 
-            clearInterval(timer);
-            document.removeEventListener('visibilitychange', onVisibility);
+            computeNow(rec, stampNow());
 
-            compute();
+            if (!nowTimer) {
+                nowTimer = setInterval(tickNow, NOW_TICK_MS);
+                document.addEventListener('visibilitychange', onNowVisibility);
+            }
 
-            timer = setInterval(compute, NOW_TICK_MS);
-            document.addEventListener('visibilitychange', onVisibility);
-
-            this.$nextTick(autoScroll);
+            this.$nextTick(() => autoScrollNow(rec));
         },
 
         destroy() {
-            destroyed = true;
-            clearInterval(timer);
-            document.removeEventListener('visibilitychange', onVisibility);
+            rec.destroyed = true;
+            nowRecords.delete(rec);
+
+            if (!nowRecords.size && nowTimer) {
+                clearInterval(nowTimer);
+                nowTimer = 0;
+                nowDayKey = null;
+                document.removeEventListener('visibilitychange', onNowVisibility);
+            }
         },
     };
 }
@@ -551,18 +527,14 @@ export function calendarDay({hourHeight, startHour, endHour, isToday = false, fi
 export function calendarView({senderId = null, smsYear = null} = {}) {
     let destroyed = false;
     let unwatch = null;
-    const smsStorageKey = `calendar-sms-sent:${senderId}`;
-    const validSmsKey = key => typeof key === 'string'
-        && /^(birthday|anniversary)-[1-9]\d*-\d{4}$/.test(key)
-        && Number(key.slice(-4)) >= Number(smsYear);
 
     return {
         ...persistentStateMixin(),
+        ...smsMemoryMixin({senderId, smsYear}),
         ...maximizeMixin('calendar'),
 
         view: 'month',
         scrollMemory: {},
-        smsSent: [],
 
         get _isDestroyed() { return destroyed; },
         set _isDestroyed(value) { destroyed = !!value; },
@@ -585,34 +557,11 @@ export function calendarView({senderId = null, smsYear = null} = {}) {
             this.$nextTick(() => this.restoreScroll(this.view));
         },
 
-        loadSmsMemory() {
-            if (!senderId || !smsYear) return;
-            try {
-                const stored = JSON.parse(localStorage.getItem(smsStorageKey) || '[]');
-                this.smsSent = Array.isArray(stored) ? [...new Set(stored.filter(validSmsKey))] : [];
-            } catch {
-                this.smsSent = [];
-            }
-            try {
-                localStorage.setItem(smsStorageKey, JSON.stringify(this.smsSent));
-            } catch {}
-        },
-
-        rememberSms(detail) {
-            if (detail?.source !== 'calendar' || Number(detail.senderId) !== Number(senderId) || !validSmsKey(detail.key)) return;
-            this.smsSent = [...new Set([...this.smsSent.filter(validSmsKey), detail.key])];
-            try {
-                localStorage.setItem(smsStorageKey, JSON.stringify(this.smsSent));
-            } catch {}
-        },
-
-        smsAlreadySent(key) {
-            return this.smsSent.includes(key);
-        },
-
         saveScroll(mode) {
             if (!this.$root) return;
-            this.scrollMemory[mode] = this.$root.scrollTop;
+            const top = this.$root.scrollTop;
+            if (this.scrollMemory[mode] === top) return;
+            this.scrollMemory[mode] = top;
             this._saveState(SCROLL_STORAGE_KEY, this.scrollMemory);
         },
 

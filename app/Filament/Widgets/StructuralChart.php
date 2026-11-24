@@ -55,25 +55,15 @@ class StructuralChart extends ChartWidget
     public function getDescription(): ?string
     {
         return match ($this->activeModule()) {
-            'module_e' => 'از تسک بورد (وظایف باز «مسئول انجام» هر کارمند) و سیستم تیکت (تیکت‌های باز «مسئول رسیدگی» هر کارمند) داده گرفته و بر اساس «واحد» سازمانی آن کارمند گروه‌بندی می‌شود. '
-                . 'واحدی که در هر دو ستون عدد بالایی دارد زیر بار سنگین کار است و نیاز به توجه فوری دارد. '
-                . '(منابع: تسک بورد ← «وضعیت»، «مسئول انجام» | تیکت‌ها ← «وضعیت»، «مسئول رسیدگی» | پروفایل پرسنلی ← «واحد»)',
+            'module_e' => 'تعداد وظایف انجام‌نشده یا در حال انجام و تیکت‌های باز یا در حال بررسی را نشان می‌دهد. هر مورد در واحد مسئول رسیدگی یا انجام کار شمرده می‌شود.',
 
-            'module_f' => 'از پروفایل پرسنلی، «جنسیت» و «وضعیت استخدام» کنار هم گروه‌بندی می‌شوند. '
-                . 'تصویری واقعی از ترکیب نیروی کار می‌دهد که پایه تصمیم‌گیری برای سیاست‌های استخدام و تنوع است. '
-                . '(منابع: پروفایل پرسنلی ← «جنسیت»، «وضعیت استخدام»)',
+            'module_f' => 'تعداد کارکنان را بر اساس جنسیت و وضعیت اشتغال ثبت‌شده در پروفایل نشان می‌دهد.',
 
-            'module_g' => 'از ماژول پست و اعلانات، «تاریخ انتشار» هر پست گرفته و تعداد پست‌های روزانه در ۳۰ روز گذشته نمایش داده می‌شود. روزهایی که هیچ پستی نبوده صفر نشان می‌دهد. '
-                . 'کاهش ناگهانی یعنی ارتباطات داخلی سازمان کند شده است. '
-                . '(منابع: پست و اعلانات ← «تاریخ انتشار»)',
+            'module_g' => 'تعداد اطلاعیه‌های ثبت‌شده در هر روز از ۳۰ روز اخیر را نشان می‌دهد. روزهای بدون اطلاعیه با صفر نمایش داده می‌شوند.',
 
-            'module_h' => 'از پروفایل پرسنلی تعداد کارکنان هر «واحد» و از ماژول گزارشات تعداد گزارش‌های ثبت‌شده توسط «کاربر» همان واحد گرفته می‌شود. '
-                . 'واحدی که با وجود پرسنل زیاد گزارش کمی دارد از نظر شفافیت و مستندسازی عملکرد ضعیف است. '
-                . '(منابع: پروفایل پرسنلی ← «واحد» | گزارش‌ها ← «کاربر»، «واحد سازمانی»)',
+            'module_h' => 'تعداد کارکنان و تعداد گزارش‌های ثبت‌شده توسط کاربران هر واحد را کنار هم نشان می‌دهد.',
 
-            'module_i' => 'از پروفایل پرسنلی، «تاریخ شروع» هر کارمندی که «وضعیت استخدام» او خاتمه‌یافته نیست گرفته و سنوات خدمت محاسبه می‌شود، سپس در پنج دسته قرار می‌گیرد: کمتر از ۱ سال، ۱ تا ۳، ۳ تا ۵، ۵ تا ۱۰، و بیش از ۱۰ سال. '
-                . 'اگر بیشتر نیرو در دسته‌های اول باشند دانش سازمانی شکننده است و ریسک خروج بالاست. '
-                . '(منابع: پروفایل پرسنلی ← «تاریخ شروع»، «وضعیت استخدام»)',
+            'module_i' => 'سابقهٔ خدمت از تاریخ شروع کار محاسبه می‌شود. نمودار تعداد کارکنان را در هر بازهٔ سابقه نشان می‌دهد.',
 
             default => __('resources/dashboard/strings.chart_widgets.default_description'),
         };
@@ -132,8 +122,8 @@ class StructuralChart extends ChartWidget
 
             return [
                 'datasets' => [
-                    ['label' => 'وظایف باز', 'data' => $results->pluck('task_count')->toArray(), 'backgroundColor' => '#3b82f6'],
-                    ['label' => 'تیکت‌های باز', 'data' => $results->pluck('ticket_count')->toArray(), 'backgroundColor' => '#ef4444'],
+                    ['label' => 'وظایف انجام‌نشده و در حال انجام', 'data' => $results->pluck('task_count')->toArray(), 'backgroundColor' => '#3b82f6'],
+                    ['label' => 'تیکت‌های باز و در حال بررسی', 'data' => $results->pluck('ticket_count')->toArray(), 'backgroundColor' => '#ef4444'],
                 ],
                 'labels' => $results->pluck('department_name')->toArray(),
             ];
@@ -167,7 +157,7 @@ class StructuralChart extends ChartWidget
 
             return [
                 'datasets' => [
-                    ['label' => 'بافت جمعیتی', 'data' => $data, 'backgroundColor' => ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b']],
+                    ['label' => 'تعداد کارکنان', 'data' => $data, 'backgroundColor' => ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b']],
                 ],
                 'labels' => $labels,
             ];
@@ -200,7 +190,7 @@ class StructuralChart extends ChartWidget
 
             return [
                 'datasets' => [
-                    ['label' => 'اعلانات منتشر شده', 'data' => $data, 'borderColor' => '#0ea5e9', 'backgroundColor' => 'rgba(14, 165, 233, 0.2)', 'fill' => true],
+                    ['label' => 'اطلاعیه‌های ثبت‌شده', 'data' => $data, 'borderColor' => '#0ea5e9', 'backgroundColor' => 'rgba(14, 165, 233, 0.2)', 'fill' => true],
                 ],
                 'labels' => $labels,
             ];
@@ -250,8 +240,8 @@ class StructuralChart extends ChartWidget
 
             return [
                 'datasets' => [
-                    ['label' => 'پرسنل', 'data' => $results->pluck('users_count')->toArray(), 'borderColor' => '#10b981', 'backgroundColor' => 'rgba(16, 185, 129, 0.2)'],
-                    ['label' => 'گزارشات', 'data' => $results->pluck('reports_count')->toArray(), 'borderColor' => '#ef4444', 'backgroundColor' => 'rgba(239, 68, 68, 0.2)'],
+                    ['label' => 'کارکنان', 'data' => $results->pluck('users_count')->toArray(), 'borderColor' => '#10b981', 'backgroundColor' => 'rgba(16, 185, 129, 0.2)'],
+                    ['label' => 'گزارش‌ها', 'data' => $results->pluck('reports_count')->toArray(), 'borderColor' => '#ef4444', 'backgroundColor' => 'rgba(239, 68, 68, 0.2)'],
                 ],
                 'labels' => $results->pluck('department_name')->toArray(),
             ];
@@ -284,7 +274,7 @@ class StructuralChart extends ChartWidget
                     'data' => [$row->b1, $row->b2, $row->b3, $row->b4, $row->b5],
                     'backgroundColor' => ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'],
                 ]],
-                'labels' => ['کمتر از ۱ سال', '۱ تا ۳ سال', '۳ تا ۵ سال', '۵ تا ۱۰ سال', 'بیش از ۱۰ سال'],
+                'labels' => ['کمتر از ۱ سال', '۱ تا ۲ سال', '۳ تا ۴ سال', '۵ تا ۹ سال', '۱۰ سال و بیشتر'],
             ];
         });
     }

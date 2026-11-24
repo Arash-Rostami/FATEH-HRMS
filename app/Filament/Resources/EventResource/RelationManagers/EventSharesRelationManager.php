@@ -57,7 +57,7 @@ class EventSharesRelationManager extends RelationManager
                     ->sortable()
                     ->placeholder('—'),
                 TextColumn::make('sharer.name')
-                    ->label('اشتراک‌گذار')
+                    ->label('فرستنده')
                     ->searchable()
                     ->sortable()
                     ->placeholder('—'),

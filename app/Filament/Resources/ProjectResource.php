@@ -37,7 +37,7 @@ class ProjectResource extends Resource
         ['label' => 'اعضا و دسترسی', 'icon' => 'group', 'view' => 'filament.resources.project.guide.membership'],
         ['label' => 'گروه گفتگو', 'icon' => 'forum', 'view' => 'filament.resources.project.guide.channel'],
         ['label' => 'چرخهٔ کاری', 'icon' => 'conversion_path', 'view' => 'filament.resources.project.guide.workflow'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.project.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.project.guide.admin-ops'],
     ];
 
     public static function canForceDelete(Model $record): bool

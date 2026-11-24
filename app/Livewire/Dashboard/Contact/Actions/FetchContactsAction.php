@@ -10,6 +10,7 @@ class FetchContactsAction
 {
     public function execute(int $viewerId, string $search = '', string $filter = 'all', ?int $limit = null): Collection
     {
+        $today = now()->format('m-d');
         $sent = DB::table('messages')
             ->selectRaw('recipient_id as contact_id, MAX(id) as max_id')
             ->where('sender_id', $viewerId)
@@ -47,6 +48,14 @@ class FetchContactsAction
             )
             ->when($filter === 'unread', fn($q) => $q->where('uc.unread_count', '>', 0))
             ->when($filter === 'online', fn($q) => $q->online())
+            ->withExists(['profile as has_occasion_today' => fn($q) => $q
+                ->where(fn($q) => $q->whereNull('employment_status')->orWhere('employment_status', '!=', 'terminated'))
+                ->where(fn($q) => $q
+                    ->whereRaw("DATE_FORMAT(birthdate, '%m-%d') = ?", [$today])
+                    ->orWhereRaw("DATE_FORMAT(start_date, '%m-%d') = ?", [$today])
+                )
+            ])
+            ->orderByDesc('has_occasion_today')
             ->orderByDesc('lm.last_message_id')
             ->orderBy('users.name')
             ->when($limit !== null, fn($q) => $q->limit($limit))

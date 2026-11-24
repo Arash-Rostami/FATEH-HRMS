@@ -30,7 +30,7 @@ class Dashboard extends BaseDashboard
                     'overview' => Tab::make(__('resources/dashboard/strings.tabs.overview'))
                         ->icon('heroicon-o-squares-2x2')
                         ->schema([$this->widgetsGrid($this->splitWidgets(isChart: false))]),
-                    'charts' => Tab::make('تحلیل‌های نموداری')
+                    'charts' => Tab::make('نمودارهای تحلیلی')
                         ->icon('heroicon-o-chart-bar')
                         ->schema([$this->widgetsGrid($this->splitWidgets(isChart: true))]),
                 ]),

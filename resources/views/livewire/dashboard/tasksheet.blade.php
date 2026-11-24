@@ -5,7 +5,7 @@
 
 <div dir="rtl" x-data="tasksheet(@js($readOnly))" class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade">
     <div class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-4 print:gap-3">
-        <x-ui.title icon="assignment_turned_in" title="تسک‌شیت">
+        <x-ui.title icon="assignment_turned_in" title="تسک‌شیت" guide="tasksheet">
             <x-slot:actions>
                 @unless($readOnly)
                     <div class="flex items-center gap-2 print:hidden">

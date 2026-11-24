@@ -37,7 +37,7 @@ return [
 
         'action_create' => 'افزودن مورد',
 
-        'bulk_delete' => 'حذف انتخاب‌شده‌ها',
+        'bulk_delete' => 'حذف موارد انتخاب‌شده',
         'bulk_export' => 'خروجی Excel',
     ],
 
@@ -51,7 +51,7 @@ return [
     ],
 
     'filters' => [
-        'date_range' => 'بازه تاریخ',
+        'date_range' => 'بازهٔ تاریخ',
         'date_from' => 'از تاریخ',
         'date_until' => 'تا تاریخ',
     ],
@@ -62,8 +62,8 @@ return [
         'status_inactive' => 'غیرفعال',
         'active_hint' => 'موارد غیرفعال در پنل کاربر نمایش داده نمی‌شوند.',
         'audience' => 'مخاطب',
-        'departments' => 'بخش‌های مخاطب',
-        'departments_hint' => 'در صورت خالی بودن، برای همه نمایش داده می‌شود.',
+        'departments' => 'واحدهای مخاطب',
+        'departments_hint' => 'واحدهای مخاطب را انتخاب کنید. اگر این بخش خالی باشد، محتوا برای همه نمایش داده می‌شود.',
         'public' => 'عمومی',
         'restricted' => 'محدود',
         'more' => ' +:count مورد دیگر',

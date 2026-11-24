@@ -55,6 +55,48 @@ describe('pinned.init / _load', () => {
     })
 })
 
+describe('pinned message bookmarks are scoped per module', () => {
+    test('a DM bookmark and a group bookmark with the same numeric id never collide and persist under separate keys', async () => {
+        const s = freshStore()
+        s.init()
+
+        s.togglePin(42, 'message')
+
+        expect(s.isPinned(42, 'message')).toBe(true)
+        expect(s.isPinned(42, 'channel-message')).toBe(false)
+
+        s.togglePin(42, 'channel-message')
+        await Promise.resolve()
+        expect(s.isPinned(42, 'channel-message')).toBe(true)
+        expect(JSON.parse(localStorage.getItem('pinned-messages'))).toEqual([42])
+        expect(JSON.parse(localStorage.getItem('pinned-channel-messages'))).toEqual([42])
+    })
+})
+
+describe('group bookmarks saved before the scope split are carried over once', () => {
+    test('old shared-box bookmarks seed the group box a single time, then the boxes are independent', async () => {
+        localStorage.setItem('pinned-messages', JSON.stringify([7, 9]))
+        localStorage.setItem('pinned-channel-messages', JSON.stringify([5]))
+
+        const s = freshStore()
+        s.init()
+        await Promise.resolve()
+
+        expect(s.getPinned('channel-message').sort((a, b) => a - b)).toEqual([5, 7, 9])
+        expect(localStorage.getItem('pinned-channel-messages-seeded')).toBe('1')
+
+        s.togglePin(7, 'channel-message')
+        await Promise.resolve()
+        expect(s.isPinned(7, 'channel-message')).toBe(false)
+        expect(s.isPinned(7, 'message')).toBe(true)
+
+        const again = freshStore()
+        again.init()
+        expect(again.isPinned(7, 'channel-message')).toBe(false)
+        expect(again.isPinned(9, 'channel-message')).toBe(true)
+    })
+})
+
 describe('pinned.isPinned / togglePin', () => {
     test('toggling a non-menu id on then off round-trips isPinned and lists', () => {
         const s = freshStore()

@@ -3,9 +3,9 @@
     <x-filament::fieldset class="min-w-0 w-full">
         <x-ui.title
             icon="analytics"
-            title="{{ __('آمار و اطلاعات سیستم') }}"
+            title="{{ __('آمار بخش‌ها') }}"
             :count="$this->getActiveStatsCount()"
-            countLabel="آیتم آماری"
+            countLabel="شاخص"
         />
 
         <div

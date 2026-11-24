@@ -1,18 +1,18 @@
 <?php
 
 return [
-    'label' => 'پرسشنامه انرژی',
-    'plural_label' => 'پرسشنامه انرژی',
+    'label' => 'پرسش‌نامهٔ انرژی',
+    'plural_label' => 'پرسش‌نامهٔ انرژی',
     'nav_group'    => 'سیستم‌ها و ابزارها',
 
     'fields' => [
         'id' => 'شناسه',
         'user' => 'کاربر',
         'overall_score' => 'امتیاز کلی',
-        'mind_score' => '🧠 ذهن ',
+        'mind_score' => '🧠 ذهن',
         'emotion_score' => '❤️ احساس',
         'physique_score' => '🏋️‍♂️ جسم',
-        'soul_score' => '✨ روح ',
+        'soul_score' => '✨ روح',
         'month_index' => 'ماه',
         'answers' => 'خلاصهٔ پاسخ‌ها',
         'completed_at' => 'تاریخ تکمیل',
@@ -41,8 +41,8 @@ return [
     'stats' => [
         'total' => 'کل پرسشنامه‌ها',
         'avg_overall' => 'میانگین کلی',
-        'out_of_100' => 'از 20',
-        'dimension_averages' => 'میانگین ابعاد',
+        'out_of_100' => 'از ۱۶',
+        'dimension_averages' => 'میانگین هر بخش',
         'low_scores' => 'پرخطر',
         'above_12' => '۱۲ و بالاتر',
         'last_month' => '۳۰ روز اخیر',

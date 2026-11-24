@@ -43,6 +43,13 @@ return new class extends Migration {
             });
         }
 
+        if (!Schema::hasColumn('media', 'module')) {
+            Schema::table('media', function (Blueprint $table) {
+                $table->string('module', 40)->nullable()->after('topic');
+                $table->index('module');
+            });
+        }
+
         if (!Schema::hasTable('knowledge_progress')) {
             Schema::create('knowledge_progress', function (Blueprint $table) {
                 $table->bigIncrements('id');

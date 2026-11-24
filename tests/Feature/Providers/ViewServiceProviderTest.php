@@ -4,9 +4,11 @@ namespace Tests\Feature\Providers;
 
 use App\Models\Onboarding;
 use App\Models\User;
+use App\View\Composers\AdminActionsStartComposer;
 use App\View\Composers\AiAssistantComposer;
 use App\View\Composers\AuthShellComposer;
 use App\View\Composers\LeftNavComposer;
+use App\View\Composers\ManifestComposer;
 use App\View\Composers\ModuleChunkComposer;
 use App\View\Composers\ReleaseModulesComposer;
 use App\View\Composers\ScreenSaverComposer;
@@ -101,6 +103,17 @@ class ViewServiceProviderTest extends TestCase
         $this->assertStringContainsString("setMessageFont('vazirmatn')", $html);
         $this->assertStringNotContainsString("setMessageFont('btitr')", $html);
         $this->assertStringNotContainsString("setMessageFont('iranyekan')", $html);
+    }
+
+    public function test_the_chat_font_composer_also_feeds_the_settings_chat_card_fonts_and_patterns(): void
+    {
+        $this->withViewErrors([]);
+
+        $html = view('livewire.dashboard.profile.settings.chat-card')->render();
+
+        $this->assertStringContainsString('value="vazirmatn"', $html);
+        $this->assertStringNotContainsString('value="btitr"', $html);
+        $this->assertStringContainsString("'backgroundPatternType', 'doodle'", $html);
     }
 
     public function test_dashboard_route_never_loads_a_lazy_module_chunk(): void
@@ -254,6 +267,46 @@ class ViewServiceProviderTest extends TestCase
         $this->assertNull($off->getData()['aiAssistantBaseSrc']);
     }
 
+    public function test_ai_assistant_composer_supplies_the_four_ai_view_flags_as_booleans(): void
+    {
+        $view = view('components.dashboard.navbars.top');
+        (new AiAssistantComposer())->compose($view);
+        $flags = $view->getData()['aiViews'];
+
+        $this->assertSame(['ths', 'channel', 'correspondence', 'contact'], array_keys($flags));
+        foreach ($flags as $flag) {
+            $this->assertIsBool($flag);
+        }
+    }
+
+    public function test_admin_actions_start_composer_supplies_path_resource_map_and_create_groups(): void
+    {
+        $composer = new AdminActionsStartComposer();
+
+        auth()->logout();
+        $guest = view('filament.resources.dashboard.actions-start');
+        $composer->compose($guest);
+        $this->assertIsArray($guest->getData()['resourceMap']);
+        foreach ($guest->getData()['resourceMap'] as $entry) {
+            $this->assertArrayHasKey('label', $entry);
+            $this->assertArrayHasKey('group', $entry);
+        }
+        $this->assertSame([], $guest->getData()['createGroups']);
+
+        $this->actingAs(User::factory()->create(['status' => 'active', 'role' => 'admin']));
+        $member = view('filament.resources.dashboard.actions-start');
+        $composer->compose($member);
+        $groups = $member->getData()['createGroups'];
+        $this->assertIsArray($groups);
+        foreach ($groups as $entries) {
+            foreach ($entries as $entry) {
+                $this->assertArrayHasKey('label', $entry);
+                $this->assertArrayHasKey('icon', $entry);
+                $this->assertArrayHasKey('url', $entry);
+            }
+        }
+    }
+
     public function test_left_nav_composer_supplies_the_four_module_links_in_order(): void
     {
         $view = view('components.dashboard.navbars.left');
@@ -276,6 +329,47 @@ class ViewServiceProviderTest extends TestCase
         foreach ($modules as $module) {
             $this->assertFalse(tenantOff($module['id']));
         }
+    }
+
+    public function test_offline_page_is_public_and_shows_the_offline_heading(): void
+    {
+        $this->get('/offline')
+            ->assertOk()
+            ->assertSee('صفحه باز نشد')
+            ->assertHeader('Cache-Control', 'max-age=3600, public');
+    }
+
+    public function test_manifest_composer_supplies_at_most_four_complete_shortcuts_and_skips_off_modules(): void
+    {
+        $shortcuts = fn () => tap(view('components.manifest'), fn ($view) => (new ManifestComposer())->compose($view))->getData()['shortcuts'];
+
+        $all = $shortcuts();
+        $this->assertLessThanOrEqual(4, count($all));
+        $this->assertNotEmpty($all);
+        foreach ($all as $shortcut) {
+            $this->assertNotEmpty($shortcut['name']);
+            $this->assertNotEmpty($shortcut['short_name']);
+            $this->assertStringStartsWith('/', $shortcut['url']);
+        }
+
+        config(['app.off' => ['contact']]);
+
+        $this->assertNotContains('/contacts', array_column($shortcuts(), 'url'));
+    }
+
+    public function test_manifest_has_square_png_icons_of_at_least_144_and_an_array_of_shortcuts(): void
+    {
+        $manifest = json_decode($this->get('/site.webmanifest')->assertOk()->getContent(), true);
+
+        $this->assertNotEmpty($manifest['icons']);
+        foreach ($manifest['icons'] as $icon) {
+            [$width, $height] = array_map('intval', explode('x', $icon['sizes']));
+            $this->assertSame('image/png', $icon['type']);
+            $this->assertNotSame('any', $icon['sizes']);
+            $this->assertSame($width, $height);
+            $this->assertGreaterThanOrEqual(144, $width);
+        }
+        $this->assertIsArray($manifest['shortcuts']);
     }
 
     public function test_auth_shell_composer_feeds_the_layout_videos_and_the_card_logos(): void

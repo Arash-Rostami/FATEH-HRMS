@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Livewire\Dashboard\Contact\Actions\ForceDeleteMessageAction;
+use App\Models\Concerns\HasDailyQuota;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasPrunableStatus;
 use App\Models\Concerns\HasThreadMessages;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
@@ -25,9 +27,15 @@ class Message extends Model
         HasPrunableStatus,
         CleansAttachedFiles,
         HasThreadMessages,
+        HasDailyQuota,
         HasMessageHooks;
 
     public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted', 'restored', 'forceDeleted'];
+
+    protected static function quotaFeature(): string
+    {
+        return 'contact';
+    }
 
     protected $fillable = [
         'sender_id',
@@ -114,6 +122,11 @@ class Message extends Model
     public function recipient(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recipient_id');
+    }
+
+    public function scopeToActivePeer(Builder $query): Builder
+    {
+        return $query->whereHas('recipient', fn ($q) => $q->visibleOnBoard());
     }
 
     protected function casts(): array

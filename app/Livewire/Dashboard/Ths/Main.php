@@ -278,7 +278,7 @@ class Main extends Component
                 'busy' => 'لطفاً چند لحظه صبر کنید.',
                 'blocked' => 'متن شما توسط سرویس هوش مصنوعی پذیرفته نشد؛ یک الگوی آماده درج شد و این بار از سهمیه کسر شد.',
                 'too_large' => 'پاسخ هوش مصنوعی کامل نشد؛ یک الگوی آماده درج شد.',
-                'long' => 'متن شما برای دستیار طولانی است؛ آن را کوتاه‌تر کنید.',
+                'long' => 'برای دریافت پیشنهاد، متن را کوتاه‌تر کنید.',
                 'quota' => 'سهمیهٔ امروز تمام شد؛ یک الگوی آماده درج شد.',
                 default => 'دستیار هوشمند در دسترس نیست؛ یک الگوی آماده درج شد.',
             }, type: in_array($result['error'], ['busy', 'quota', 'long'], true) ? 'warning' : 'error');
@@ -291,6 +291,12 @@ class Main extends Component
     public function aiLeft(): int
     {
         return max(0, Ticket::quotaCap() - Ticket::quotaUsed((int) auth()->id()));
+    }
+
+    #[Computed]
+    public function aiMeter(): array
+    {
+        return Ticket::quotaMeter((int) auth()->id());
     }
 
     public function switchTab(string $tab): void

@@ -1,5 +1,4 @@
 <div x-data="stopwatch('{{ asset('build/assets/audio/alarm.mp3') }}')"
-     x-init="init()"
      x-ref="stopwatchModal"
      dir="rtl" x-cloak>
 
@@ -13,13 +12,13 @@
 
         <x-slot:heading>
             <p class="text-sm font-semibold leading-none" style="color:var(--md-sys-color-on-primary);"
-               x-text="reminderTitle ? 'یادآوری: ' + reminderTitle : 'تایمر'"></p>
+               x-text="reminderTitle ? 'یادآوری: ' + reminderTitle : 'زمان‌سنج'"></p>
             <p class="mt-1 text-xs leading-none" style="color:rgba(255,255,255,.70);"
-               x-text="timer.running ? 'فعال ...' : 'متوقف'"></p>
+               x-text="timer.running ? 'در حال شمارش' : 'متوقف'"></p>
         </x-slot:heading>
 
         <div x-show="missedNotice" x-cloak
-             class="mx-5 mt-5 rounded-lg px-4 py-2 text-center text-xs bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]">یک آلارم از دست رفته</div>
+             class="mx-5 mt-5 rounded-lg px-4 py-2 text-center text-xs bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]">زمان تعیین‌شده گذشته است.</div>
 
         {{-- Ring --}}
         <div class="flex flex-col items-center px-5 pt-6 pb-2">
@@ -43,7 +42,7 @@
 
         {{-- Controls --}}
         <div class="flex items-center justify-center gap-4 px-5 py-4">
-            <button @click="resetTimer()" title="ریست"
+            <button @click="resetTimer()" title="بازنشانی به ۵ دقیقه"
                     class="flex items-center justify-center rounded-xl transition-all duration-150 hover:-translate-y-px active:scale-95 bg-[var(--md-sys-color-primary-container)] w-[52px] h-[52px]">
                 <span class="material-symbols-rounded text-[var(--md-sys-color-on-surface-variant)]">restart_alt</span>
             </button>
@@ -54,11 +53,11 @@
                       x-text="timer.running ? 'pause' : 'play_arrow'"></span>
             </button>
 
-            <button @click="stopAlarm()" x-show="alarmInterval" title="توقف آلارم"
+            <button @click="stopAlarm()" x-show="alarmInterval" title="قطع زنگ"
                     class="flex items-center justify-center rounded-xl animate-pulse transition-all duration-150 hover:-translate-y-px bg-[var(--md-sys-color-error)] active:scale-95 w-[52px] h-[52px] shadow-md">
                 <span class="material-symbols-rounded text-[32px] text-[var(--md-sys-color-on-primary)]">alarm_off</span>
             </button>
-            <button @click="snooze(5)" x-show="alarmInterval" title="تعویق ۵ دقیقه"
+            <button @click="snooze(5)" x-show="alarmInterval" title="زنگ دوباره پس از ۵ دقیقه"
                     class="flex items-center justify-center rounded-xl transition-all duration-150 hover:-translate-y-px active:scale-95 bg-[var(--md-sys-color-secondary-container)] w-[52px] h-[52px]">
                 <span class="material-symbols-rounded text-[26px] text-[var(--md-sys-color-on-secondary-container)]">snooze</span>
             </button>
@@ -67,12 +66,12 @@
 
         {{-- Presets --}}
         <div class="px-5 pb-2">
-            <p class="text-[11px] font-semibold uppercase tracking-widest mb-3 text-center text-[var(--md-sys-color-outline)]">دقایق پیش‌فرض</p>
+            <p class="text-[11px] font-semibold uppercase tracking-widest mb-3 text-center text-[var(--md-sys-color-outline)]">زمان‌های آماده</p>
             <div class="flex flex-wrap justify-center gap-2">
                 @foreach([[300,'۵'],[600,'۱۰'],[900,'۱۵'],[1800,'۳۰'],[3600,'۶۰']] as [$secs,$label])
                     <button @click="setTimerPreset({{ $secs }})"
                             class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-all duration-150 hover:-translate-y-px active:scale-95 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-outline-variant)]">
-                        {{ $label }} م
+                        {{ $label }} دقیقه
                     </button>
                 @endforeach
             </div>
@@ -85,7 +84,7 @@
                    @dblclick="setCustomMinutes()"
                    @blur="setCustomMinutes()"
                    @keydown.enter.prevent="setCustomMinutes()"
-                   placeholder="تنظیم دستی (دقیقه)"
+                   placeholder="زمان دلخواه (دقیقه)"
                    class="w-full rounded-lg px-4 py-3 text-sm text-center outline-none transition-all duration-150 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]">
         </div>
 
@@ -96,7 +95,7 @@
         <x-dashboard.navbars.dock
             show="minimized"
             on-click="restore()"
-            label-expr="reminderTitle ? 'یادآوری: ' + reminderTitle : (timer.running ? 'در حال اجرا' : 'متوقف')"
+            label-expr="reminderTitle ? 'یادآوری: ' + reminderTitle : (timer.running ? 'در حال شمارش' : 'متوقف')"
             value-expr="formatSeconds(timer.seconds)"
             alarm="alarmInterval"
             restore-fn="restore()"
@@ -110,7 +109,7 @@
             </x-slot:icon>
 
             <x-slot:controls>
-                <button @click.stop="toggleTimer()" title="پخش/توقف"
+                <button @click.stop="toggleTimer()" title="شروع یا توقف زمان‌سنج"
                         class="flex h-8 w-8 items-center justify-center rounded-md text-[var(--md-sys-color-primary)] transition-all hover:bg-[var(--md-sys-color-primary)]/10 active:scale-90">
                     <span class="material-symbols-rounded text-[20px]"
                           x-text="timer.running ? 'pause' : 'play_arrow'"></span>
@@ -118,17 +117,17 @@
             </x-slot:controls>
 
             <x-slot:alarmText>
-                <span class="text-[12px] font-bold text-red-700 dark:text-red-300 animate-bounce">آلارم!</span>
+                <span class="text-[12px] font-bold text-red-700 dark:text-red-300 animate-bounce">زمان تمام شد</span>
             </x-slot:alarmText>
 
             <x-slot:alarmControls>
                 <button @click.stop="snooze(5)"
                         class="flex items-center justify-center rounded-lg px-2 py-1 bg-white/20 text-white hover:bg-white/30 transition-colors text-[11px] font-bold">
-                    تعویق
+                    ۵ دقیقه بعد
                 </button>
                 <button @click.stop="stopAlarm(); restore()"
                         class="flex items-center justify-center rounded-lg px-3 py-1 bg-red-700 text-white dark:bg-red-400 dark:text-red-950 hover:bg-red-800 dark:hover:bg-red-300 transition-colors text-[11px] font-bold">
-                    توقف
+                    قطع زنگ
                 </button>
             </x-slot:alarmControls>
 

@@ -2,27 +2,28 @@
 
 namespace App\Livewire\Dashboard\Channel\Actions;
 
-use App\Models\ChannelMember;
+use App\Models\Channel;
 use App\Models\ChannelMessage;
 
 class UndoDeleteChannelMessageAction
 {
-    public function execute(array $lastDeleted): void
+    public function execute(array $lastDeleted): bool
     {
         $userId = auth()->id();
 
         $restored = ChannelMessage::withTrashed()
             ->where('sender_id', $userId)
+            ->writableBy((int) $userId)
             ->find($lastDeleted['original_id'] ?? null)
             ?->restore();
 
         if (!$restored) {
             $channelId = $lastDeleted['channel_id'] ?? null;
-            if (!$channelId || !ChannelMember::where('channel_id', $channelId)->where('user_id', $userId)->exists()) {
-                return;
+            if (!$channelId || !Channel::writableBy((int) $userId)->whereKey($channelId)->exists()) {
+                return false;
             }
 
-            (new ChannelMessage())->forceFill([
+            return (new ChannelMessage())->forceFill([
                 'channel_id'  => $channelId,
                 'sender_id'   => $userId,
                 'body'        => $lastDeleted['body'],
@@ -33,5 +34,7 @@ class UndoDeleteChannelMessageAction
                 'updated_at'  => now(),
             ])->save();
         }
+
+        return true;
     }
 }

@@ -49,6 +49,11 @@
                                 @endif
                                 @include('livewire.dashboard.messaging.message-attachments', ['msg' => $msg])
                             </div>
+                            @if($msg['is_edited'] && !$msg['is_last'])
+                                <div wire:key="project-teamchat-edited-kept" class="flex items-center gap-1.5 mt-1 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
+                                    <span class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش‌شده</span>
+                                </div>
+                            @endif
                             @if($msg['is_last'])
                                 <div class="flex items-center gap-1.5 mt-1 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
                                     @if($msg['is_edited'])

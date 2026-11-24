@@ -6,15 +6,17 @@
         message: '',
         type: 'info',
         timeout: {{ $timeout }},
+        action: null,
         init() {
             window.addEventListener('toast', event => {
                 const detail = event.detail;
                 this.message = detail.message || (typeof detail === 'string' ? detail : '');
                 this.type = detail.type || 'info';
+                this.action = detail.action || null;
                 this.show = true;
 
                 if (this._timer) clearTimeout(this._timer);
-                this._timer = setTimeout(() => this.show = false, this.timeout);
+                this._timer = setTimeout(() => this.show = false, detail.timeout || this.timeout);
             });
         }
     }"
@@ -55,6 +57,12 @@
     <div class="flex-1">
         <p class="text-sm font-bold" x-text="message"></p>
     </div>
+
+    <template x-if="action">
+        <button type="button" @click="action.handler?.(); show = false"
+                class="shrink-0 px-3 py-1.5 rounded-xl text-sm font-bold hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                x-text="action.label"></button>
+    </template>
 
     <!-- Close Button -->
     <button @click="show = false"

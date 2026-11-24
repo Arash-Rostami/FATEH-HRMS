@@ -49,7 +49,7 @@ class UserResource extends Resource
         ['label' => 'بررسی', 'icon' => 'groups', 'view' => 'filament.resources.user.guide.overview'],
         ['label' => 'دسترسی و نقش‌ها', 'icon' => 'shield_person', 'view' => 'filament.resources.user.guide.access'],
         ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.user.guide.list-tabs'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.user.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.user.guide.admin-ops'],
     ];
 
     public static function form(Schema $schema): Schema

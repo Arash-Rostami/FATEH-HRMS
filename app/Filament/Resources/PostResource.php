@@ -31,7 +31,7 @@ class PostResource extends Resource
 
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'campaign', 'view' => 'filament.resources.post.guide.overview'],
-        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.post.guide.admin-ops'],
+        ['label' => 'کارهای مدیریتی', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.post.guide.admin-ops'],
         ['label' => 'نشانگر و اعلان', 'icon' => 'notifications_active', 'view' => 'filament.resources.post.guide.badge-nudge'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.post.guide.user'],
     ];
