@@ -1597,6 +1597,13 @@
     zoom: var(--chat-scale, 1);
 }
 
+.bubble-mine {
+    background: linear-gradient(145deg,
+        color-mix(in srgb, var(--md-sys-color-primary) var(--chat-mine, 100%), transparent),
+        color-mix(in srgb, color-mix(in srgb, var(--md-sys-color-primary) 82%, var(--md-sys-color-tertiary)) var(--chat-mine, 100%), transparent));
+    color: var(--chat-mine-ink, var(--md-sys-color-on-primary));
+}
+
 .max-widget-column {
     position: fixed !important;
     top: 50% !important;

@@ -3783,6 +3783,75 @@ class ProjectTest extends TestCase
         $this->assertStringContainsString('ویرایش‌شده', $html);
     }
 
+    public function test_team_chat_puts_the_new_messages_divider_before_the_first_unread_message_from_others(): void
+    {
+        [$owner, $project] = $this->ownerWithProject();
+        $other = User::factory()->create(['status' => 'active']);
+        $channel = app(ChannelProvisioner::class)->resolve($project);
+        $read = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'already read']);
+        $firstUnread = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'first unread zz']);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'my own reply']);
+        $last = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'last unread']);
+        $channel->memberUsers()->updateExistingPivot($owner->id, ['last_read_message_id' => $read->id]);
+
+        $component = Livewire::actingAs($owner)->test(TeamChat::class, ['activeProjectId' => $project->id, 'initialActive' => true])
+            ->assertSet('newMessagesAnchorId', $firstUnread->id);
+        $html = $component->html();
+
+        $this->assertSame(1, substr_count($html, 'wire:key="project-teamchat-new-messages"'));
+        $this->assertLessThan(strpos($html, 'first unread zz'), strpos($html, 'wire:key="project-teamchat-new-messages"'));
+        $this->assertGreaterThan(strpos($html, 'already read'), strpos($html, 'wire:key="project-teamchat-new-messages"'));
+        $this->assertSame($last->id, (int) $channel->memberUsers()->newPivotStatementForId($owner->id)->value('last_read_message_id'));
+    }
+
+    public function test_team_chat_has_no_new_messages_divider_on_a_first_visit_without_a_read_cursor(): void
+    {
+        [$owner, $project] = $this->ownerWithProject();
+        $other = User::factory()->create(['status' => 'active']);
+        $channel = app(ChannelProvisioner::class)->resolve($project);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'hello']);
+        $channel->memberUsers()->updateExistingPivot($owner->id, ['last_read_message_id' => null]);
+
+        $component = Livewire::actingAs($owner)->test(TeamChat::class, ['activeProjectId' => $project->id, 'initialActive' => true])
+            ->assertSet('newMessagesAnchorId', null);
+
+        $this->assertStringNotContainsString('project-teamchat-new-messages', $component->html());
+    }
+
+    public function test_team_chat_has_no_new_messages_divider_when_everything_is_already_read(): void
+    {
+        [$owner, $project] = $this->ownerWithProject();
+        $other = User::factory()->create(['status' => 'active']);
+        $channel = app(ChannelProvisioner::class)->resolve($project);
+        $last = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'seen']);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'my own tail']);
+        $channel->memberUsers()->updateExistingPivot($owner->id, ['last_read_message_id' => $last->id]);
+
+        $component = Livewire::actingAs($owner)->test(TeamChat::class, ['activeProjectId' => $project->id, 'initialActive' => true])
+            ->assertSet('newMessagesAnchorId', null);
+
+        $this->assertStringNotContainsString('project-teamchat-new-messages', $component->html());
+    }
+
+    public function test_team_chat_keeps_the_divider_on_a_back_to_back_activate_then_recaptures_after_three_seconds(): void
+    {
+        [$owner, $project] = $this->ownerWithProject();
+        $other = User::factory()->create(['status' => 'active']);
+        $channel = app(ChannelProvisioner::class)->resolve($project);
+        $read = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'read']);
+        $unread = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'unread']);
+        $channel->memberUsers()->updateExistingPivot($owner->id, ['last_read_message_id' => $read->id]);
+
+        $component = Livewire::actingAs($owner)->test(TeamChat::class, ['activeProjectId' => $project->id, 'initialActive' => true])
+            ->assertSet('newMessagesAnchorId', $unread->id)
+            ->call('activate')
+            ->assertSet('newMessagesAnchorId', $unread->id);
+
+        $this->travel(5)->seconds();
+
+        $component->call('activate')->assertSet('newMessagesAnchorId', null);
+    }
+
     public function test_team_chat_state_resets_via_full_remount_between_projects(): void
     {
         [$owner, $projectA] = $this->ownerWithProject();

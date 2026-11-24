@@ -542,6 +542,66 @@ class ChannelTest extends TestCase
         $this->assertSame($msg->id, (int)$pivot->last_read_message_id);
     }
 
+    public function test_select_channel_puts_the_new_messages_divider_before_the_first_unread_message_from_others()
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $other = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = Channel::create(['name' => 'DividerZZ', 'slug' => 'divider-zz-slug', 'type' => 'open', 'owner_id' => $owner->id]);
+        $channel->memberUsers()->attach($other->id, ['joined_at' => now(), 'entered_at' => now(), 'last_read_message_id' => null, 'created_at' => now(), 'updated_at' => now()]);
+        $read = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'already read zz']);
+        $firstUnread = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'first unread zz']);
+        ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'my own reply zz']);
+        $last = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'last unread zz']);
+        $channel->memberUsers()->updateExistingPivot($owner->id, ['last_read_message_id' => $read->id]);
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->assertSet('newMessagesAnchorId', $firstUnread->id);
+
+        $this->assertSame($last->id, (int) ChannelMember::where(['user_id' => $owner->id, 'channel_id' => $channel->id])->value('last_read_message_id'));
+    }
+
+    public function test_select_channel_has_no_new_messages_divider_for_a_null_cursor_or_when_everything_is_read()
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $other = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $fresh = Channel::create(['name' => 'FreshZZ', 'slug' => 'fresh-zz-slug', 'type' => 'open', 'owner_id' => $owner->id]);
+        $seen = Channel::create(['name' => 'SeenZZ', 'slug' => 'seen-zz-slug', 'type' => 'open', 'owner_id' => $owner->id]);
+        ChannelMessage::create(['channel_id' => $fresh->id, 'sender_id' => $other->id, 'body' => 'hello zz']);
+        $tail = ChannelMessage::create(['channel_id' => $seen->id, 'sender_id' => $other->id, 'body' => 'seen zz']);
+        ChannelMessage::create(['channel_id' => $seen->id, 'sender_id' => $owner->id, 'body' => 'my reply zz']);
+        $seen->memberUsers()->updateExistingPivot($owner->id, ['last_read_message_id' => $tail->id]);
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $fresh->id)
+            ->assertSet('newMessagesAnchorId', null)
+            ->call('selectChannel', $seen->id)
+            ->assertSet('newMessagesAnchorId', null);
+    }
+
+    public function test_select_channel_keeps_the_divider_on_a_back_to_back_reselect_then_recaptures_after_three_seconds()
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $other = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = Channel::create(['name' => 'ThrottleZZ', 'slug' => 'throttle-zz-slug', 'type' => 'open', 'owner_id' => $owner->id]);
+        $read = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'read zz']);
+        $unread = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $other->id, 'body' => 'unread zz']);
+        $channel->memberUsers()->updateExistingPivot($owner->id, ['last_read_message_id' => $read->id]);
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->assertSet('newMessagesAnchorId', $unread->id)
+            ->call('selectChannel', $channel->id)
+            ->assertSet('newMessagesAnchorId', $unread->id);
+
+        $this->travel(5)->seconds();
+
+        $component->call('selectChannel', $channel->id)->assertSet('newMessagesAnchorId', null);
+    }
+
     public function test_channel_send_rejects_empty_body_without_attachments()
     {
         $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
@@ -1237,6 +1297,28 @@ class ChannelTest extends TestCase
 
         $this->assertTrue($members[$owner->id]['is_owner']);
         $this->assertFalse($members[$other->id]['is_owner']);
+    }
+
+    public function test_channel_members_show_last_seen_only_for_offline_active_members()
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'last_seen' => now()]);
+        $away = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'last_seen' => now()->subHours(3)]);
+        $gone = User::factory()->create(['status' => 'inactive', 'presence' => 'onsite', 'last_seen' => now()->subDays(2)]);
+        $channel = Channel::create(['name' => 'LastSeenZZ', 'slug' => 'last-seen-zz-slug', 'type' => ChannelType::Open->value, 'owner_id' => $owner->id]);
+        foreach ([$away, $gone] as $member) {
+            $channel->memberUsers()->attach($member->id, [
+                'joined_at' => now(), 'entered_at' => now(), 'last_read_message_id' => null,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        $component = Livewire::actingAs($owner)->test(Main::class)->call('selectChannel', $channel->id);
+        $members = collect($component->instance()->channelMembers())->keyBy('id');
+
+        $this->assertNull($members[$owner->id]['last_seen_label']);
+        $this->assertSame($away->fresh()->lastSeenLabel(), $members[$away->id]['last_seen_label']);
+        $this->assertNotSame('', $members[$away->id]['last_seen_label']);
+        $this->assertNull($members[$gone->id]['last_seen_label']);
     }
 
     public function test_channel_members_and_mentions_carry_presence_focus_and_reachability_for_the_shared_avatar()

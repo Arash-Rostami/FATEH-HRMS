@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach } from 'vitest'
-import chatScaleMixin from '../chatScale.js'
+import chatScaleMixin, { applyMine } from '../chatScale.js'
 
 const scale = () => document.documentElement.style.getPropertyValue('--chat-scale')
 
@@ -107,6 +107,23 @@ describe('chatScaleMixin', () => {
 
         live.stepScale(-1)
         expect(live.scaleIndex).toBe(3)
+    })
+
+    test('applyMine sets the bubble opacity on the page, switches ink below 70, and clears on junk', () => {
+        const style = document.documentElement.style
+
+        applyMine(55)
+        expect(style.getPropertyValue('--chat-mine')).toBe('55%')
+        expect(style.getPropertyValue('--chat-mine-ink')).toContain('on-surface')
+
+        applyMine(85)
+        expect(style.getPropertyValue('--chat-mine')).toBe('85%')
+        expect(style.getPropertyValue('--chat-mine-ink')).toBe('')
+
+        applyMine(33)
+        expect(style.getPropertyValue('--chat-mine')).toBe('')
+        applyMine(undefined)
+        expect(style.getPropertyValue('--chat-mine')).toBe('')
     })
 
     test('a second instance (another module) picks up the persisted step', () => {

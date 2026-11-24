@@ -99,6 +99,15 @@
         </div>
 
         @foreach($group['messages'] as $msg)
+            @if($msg['id'] === $this->newMessagesAnchorId)
+                <div wire:key="channel-new-messages" class="flex items-center gap-3 py-3" role="separator" aria-label="پیام‌های جدید">
+                    <div class="flex-1 h-px bg-[linear-gradient(to_left,transparent,var(--md-sys-color-tertiary))]"></div>
+                    <span class="text-[10px] font-bold tracking-widest px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]" title="اولین پیامی که هنوز نخوانده‌اید">
+                        <span class="material-symbols-rounded text-[12px]" aria-hidden="true">mark_chat_unread</span>پیام‌های جدید
+                    </span>
+                    <div class="flex-1 h-px bg-[linear-gradient(to_right,transparent,var(--md-sys-color-tertiary))]"></div>
+                </div>
+            @endif
             <div wire:key="cmsg-{{ $msg['id'] }}"
                  data-rf="channel-message-{{ $msg['id'] }}"
                  data-sender-name="{{ $msg['sender_name'] }}"
@@ -171,7 +180,7 @@
                     <div x-show="!(isEditing && editingMsgId === {{ $msg['id'] }}) && deletingId !== {{ $msg['id'] }}" class="relative">
                         <div @class([
                                   'relative msg-bubble touch-pan-y px-4 py-2.5 text-sm leading-relaxed break-words select-text cursor-default ' . $msg['bubble_radius'],
-                                  'bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)]' => $msg['is_mine'],
+                                  'bubble-mine shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)]' => $msg['is_mine'],
                                   'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_1px_6px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent),inset_0_1px_0_color-mix(in_srgb,white_6%,transparent)]' => !$msg['is_mine'],
                                   'ring-2 ring-[var(--md-sys-color-tertiary)]' => $msg['mentions_you']
                               ])

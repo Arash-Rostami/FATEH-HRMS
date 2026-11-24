@@ -1,6 +1,6 @@
 import clipboardMixin from "../mixins/clipboard.js";
 import focusModeMixin from "../mixins/focusMode.js";
-import chatScaleMixin, { clearScale, readScale } from "../mixins/chatScale.js";
+import chatScaleMixin, { clearScale, readScale, MINE_STEPS } from "../mixins/chatScale.js";
 
 const patternLoaders = {
     shapes: () => import("./patterns/shapes.js"),
@@ -55,7 +55,7 @@ const CHAT_MODULES = Object.freeze([
     { id: 'project', label: 'پروژه‌ها' }
 ]);
 const SIDEBAR_MODULES = Object.freeze([...CHAT_MODULES, { id: 'media', label: 'کتابخانهٔ دانش' }]);
-const CHAT_RESET_FIELDS = Object.freeze(['messageFont', 'isHighlighted', 'backgroundPattern', 'backgroundPatternType']);
+const CHAT_RESET_FIELDS = Object.freeze(['messageFont', 'isHighlighted', 'backgroundPattern', 'backgroundPatternType', 'mineOpacity']);
 const MENU_VIEW_MODES = Object.freeze(['grid', 'list', 'grouped']);
 const LABEL_PRESETS = Object.freeze(['all', 'icons', 'smart']);
 const CLOCK_MODES = Object.freeze(['fa', 'en']);
@@ -327,6 +327,15 @@ export default function settings() {
             }
         },
 
+        stepMine(scope, delta) {
+            const next = MINE_STEPS[MINE_STEPS.indexOf(this.chat[scope].mineOpacity) + delta];
+            if (next) this.saveChatSetting(scope, 'mineOpacity', next);
+        },
+
+        mineLabel(scope) {
+            return new Intl.NumberFormat('fa-IR').format(this.chat[scope].mineOpacity) + '٪';
+        },
+
         toggleSidebarDefault(scope) {
             const collapsed = !this.sidebar[scope];
             try { localStorage.setItem(sidebarKey(scope), collapsed ? '1' : '0'); } catch {}
@@ -341,7 +350,8 @@ export default function settings() {
                     messageFont: typeof data.messageFont === 'string' ? data.messageFont : 'default',
                     isHighlighted: data.isHighlighted === true,
                     backgroundPattern: data.backgroundPattern === 'on' ? 'on' : 'off',
-                    backgroundPatternType: typeof data.backgroundPatternType === 'string' ? data.backgroundPatternType : 'mesh'
+                    backgroundPatternType: typeof data.backgroundPatternType === 'string' ? data.backgroundPatternType : 'mesh',
+                    mineOpacity: MINE_STEPS.includes(data.mineOpacity) ? data.mineOpacity : 100
                 }];
             }));
             this.sidebar = Object.fromEntries(SIDEBAR_MODULES.map(({ id }) => [id, this._readFlag(sidebarKey(id), '1')]));

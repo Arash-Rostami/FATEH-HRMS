@@ -46,6 +46,21 @@
     </div>
 
     <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
+        <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">شدت رنگ پس‌زمینهٔ پیام‌های من</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <template x-for="mod in chatModules" :key="'mine-' + mod.id">
+                <div class="flex items-center justify-between gap-2">
+                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]" x-text="mod.label"></p>
+                    <x-ui.buttons.chat-scale
+                        down="stepMine(mod.id, -1)" up="stepMine(mod.id, 1)" reset="saveChatSetting(mod.id, 'mineOpacity', 100)"
+                        can-down="chat[mod.id].mineOpacity > 40" can-up="chat[mod.id].mineOpacity < 100" is-default="chat[mod.id].mineOpacity === 100"
+                        text="mineLabel(mod.id)" down-title="کم‌رنگ‌تر کردن پس‌زمینه" up-title="پررنگ‌تر کردن پس‌زمینه" group-label="شدت رنگ پس‌زمینهٔ پیام‌های من" reset-title="بازگشت به رنگ پیش‌فرض"/>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
         <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">بستن خودکار نوار کناری</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <template x-for="mod in sidebarModules" :key="mod.id">

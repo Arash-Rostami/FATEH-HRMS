@@ -133,6 +133,42 @@ describe('project() last-open-project persistence + maximize sequencing (added 2
         expect(order).toEqual(['select', 'maximize'])
         c.destroy()
     })
+
+    test('init survives blocked chat-settings storage and still finishes starting up', () => {
+        const real = Storage.prototype.getItem
+        const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(function (key) {
+            if (key === 'chat-settings:project') throw new Error('blocked')
+            return real.call(this, key)
+        })
+        const c = project()
+        c.$el = document.createElement('div')
+        c.$watch = vi.fn()
+        c.$wire = createWireMock({ activeProjectId: 3, __instance: { id: 'x' } })
+        c.initMaximize = vi.fn()
+
+        expect(() => c.init()).not.toThrow()
+        expect(c.initMaximize).toHaveBeenCalledOnce()
+        c.destroy()
+        spy.mockRestore()
+    })
+
+    test('destroy cancels a pending header-declutter save so it cannot fire after leaving', () => {
+        vi.useFakeTimers()
+        const c = project()
+        c.$el = document.createElement('div')
+        c.$watch = vi.fn()
+        c.$wire = createWireMock({ activeProjectId: 3, __instance: { id: 'x' } })
+        c.initMaximize = vi.fn()
+        c.init()
+        const persist = vi.spyOn(c, '_persistChatSettings')
+
+        c.toggleHeaderDeclutter()
+        c.destroy()
+        vi.advanceTimersByTime(500)
+
+        expect(persist).not.toHaveBeenCalled()
+        vi.useRealTimers()
+    })
 })
 
 describe('project.scrollToMessage (added 2026-10-09)', () => {

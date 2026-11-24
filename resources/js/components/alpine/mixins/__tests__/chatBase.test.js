@@ -153,6 +153,51 @@ describe('chatBase per-message font size — hover +/- buttons, saved with the m
         expect(JSON.parse(localStorage.getItem('chat-settings:contact')).fontSteps).toEqual({ 4: -1 });
     });
 
+    test('saving chat settings keeps the settings-card mineOpacity, load and steps apply it live, and a module without a saved value resets to 100', async () => {
+        localStorage.setItem('chat-settings:contact', JSON.stringify({ mineOpacity: 55 }));
+        const c = chatBase('contact');
+        c._loadChatSettings();
+        expect(document.documentElement.style.getPropertyValue('--chat-mine')).toBe('55%');
+        c.bumpFont(3, 1);
+        await Promise.resolve();
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).mineOpacity).toBe(55);
+
+        c.stepMine(1);
+        await Promise.resolve();
+        expect(document.documentElement.style.getPropertyValue('--chat-mine')).toBe('70%');
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).mineOpacity).toBe(70);
+
+        c.stepMine(9);
+        c.stepMine(-9);
+        expect(c.mineOpacity).toBe(70);
+        c.stepMine(1);
+        c.stepMine(1);
+        expect(c.mineAtMax()).toBe(true);
+        c.stepMine(-9);
+        c.stepMine(-1);
+        c.stepMine(-1);
+        c.stepMine(-1);
+        c.stepMine(-1);
+        expect(c.mineAtMin()).toBe(true);
+
+        localStorage.removeItem('chat-settings:channel');
+        const ch = chatBase('channel');
+        ch._loadChatSettings();
+        expect(document.documentElement.style.getPropertyValue('--chat-mine')).toBe('100%');
+    });
+
+    test('a stale in-memory opacity never overwrites a newer saved one when a font change is saved', async () => {
+        localStorage.setItem('chat-settings:contact', JSON.stringify({ mineOpacity: 55 }));
+        const c = chatBase('contact');
+        c._loadChatSettings();
+        localStorage.setItem('chat-settings:contact', JSON.stringify({ mineOpacity: 85 }));
+
+        c.bumpFont(3, 1);
+        await Promise.resolve();
+
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).mineOpacity).toBe(85);
+    });
+
     test('the contact and channel modules keep separate sizes for the same message id', async () => {
         const dm = chatBase('contact');
         dm.bumpFont(7, 1);

@@ -1,7 +1,7 @@
 import maximizeMixin from '../mixins/maximize.js';
 import lastOpenMixin from '../mixins/lastOpen.js';
 import sidebarRailMixin from '../mixins/sidebarRail.js';
-import chatScaleMixin from '../mixins/chatScale.js';
+import chatScaleMixin, { applyMine } from '../mixins/chatScale.js';
 import clipboardMixin from '../mixins/clipboard.js';
 import mentionMixin from '../mixins/mention.js';
 import kanbanDragMixin from '../mixins/kanbanDrag.js';
@@ -39,7 +39,7 @@ const TAB_REFRESH_EVENT = {
 const WARMABLE_TABS = new Set(['report', 'analytics', 'projectCalendar', 'kanban', 'activity']);
 
 export default function project() {
-    let selectSeq = 0;
+    let selectSeq = 0, ac, searchCache = '', searchLower = '';
     const workspace = {
         ...maximizeMixin('project'),
         ...lastOpenMixin('project'),
@@ -55,8 +55,6 @@ export default function project() {
         _loadingOlderActivity: false,
         _onVisibility: null,
         _onActivityTyped: null,
-        _searchLowerCache: '',
-        _searchLowerValue: '',
         _isDestroyed: false,
         _commitHook: null,
         _warmTimer: null,
@@ -83,23 +81,26 @@ export default function project() {
         openingProject: false,
 
         init() {
-            this.initChatScale();
+            ac = new AbortController();
+            this.initChatScale(ac.signal);
             this.initKanbanDrag();
             this._isDestroyed = false;
 
-            const chatSettings = localStorage.getItem(LS_SETTINGS_KEY);
-            if (chatSettings) {
-                try {
+            applyMine(100);
+            try {
+                const chatSettings = localStorage.getItem(LS_SETTINGS_KEY);
+                if (chatSettings) {
                     const data = JSON.parse(chatSettings);
                     this.isHighlighted = data.isHighlighted ?? false;
                     this.backgroundPattern = data.backgroundPattern ?? 'off';
                     this.backgroundPatternType = data.backgroundPatternType ?? 'mesh';
                     this.headerDeclutter = data.headerDeclutter ?? false;
-                } catch {}
-            }
+                    applyMine(data.mineOpacity);
+                }
+            } catch {}
 
             this._setupPulseChannel();
-            this.headerDeclutterMenuBridge();
+            this.headerDeclutterMenuBridge(ac.signal);
 
             const wire = this.$wire;
             this._electLeaderFor(this._projectId());
@@ -158,6 +159,8 @@ export default function project() {
 
         destroy() {
             this._isDestroyed = true;
+            ac?.abort();
+            clearTimeout(this._declutterTimer);
             this.stopPolling();
             this.cancelWarm();
             clearTimeout(this._openingTimeout);
@@ -210,11 +213,12 @@ export default function project() {
         },
 
         get _searchLower() {
-            if (this._searchLowerCache !== this.activitySearch) {
-                this._searchLowerCache = this.activitySearch;
-                this._searchLowerValue = this.activitySearch.toLowerCase();
+            const search = this.activitySearch;
+            if (searchCache !== search) {
+                searchCache = search;
+                searchLower = search.toLowerCase();
             }
-            return this._searchLowerValue;
+            return searchLower;
         },
 
         _matchesRaw(id, text, type, searchLower) {

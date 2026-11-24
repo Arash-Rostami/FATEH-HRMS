@@ -155,6 +155,9 @@
                                         class="flex-shrink-0 inline-flex items-center px-1 py-0.5 rounded-full text-[9px] font-bold {{ $member['presence_class'] }}">{{ $member['presence_label'] }}</span>
                                 @endif
                             </div>
+                            @if($member['last_seen_label'])
+                                <p wire:key="channel-header-member-last-seen" class="truncate text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_75%,transparent)]">{{ $member['last_seen_label'] }}</p>
+                            @endif
                         </div>
                     </div>
                 @endforeach

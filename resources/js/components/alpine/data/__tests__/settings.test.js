@@ -195,7 +195,7 @@ describe('settings chat panel', () => {
         const s = make()
         s.refreshChatState()
 
-        expect(s.chat.channel).toEqual({ messageFont: 'default', isHighlighted: false, backgroundPattern: 'off', backgroundPatternType: 'mesh' })
+        expect(s.chat.channel).toEqual({ messageFont: 'default', isHighlighted: false, backgroundPattern: 'off', backgroundPatternType: 'mesh', mineOpacity: 100 })
         expect(s.chatSettings('channel')).toEqual({})
         s.saveChatSetting('channel', 'isHighlighted', true)
         expect(JSON.parse(localStorage.getItem('chat-settings:channel'))).toEqual({ isHighlighted: true })
@@ -224,6 +224,31 @@ describe('settings chat panel', () => {
         window.removeEventListener('chat-scale-changed', listener)
     })
 
+    test('my-bubble opacity steps per module, clamps at 40 and 100, and ignores out-of-list stored values', () => {
+        localStorage.setItem('chat-settings:channel', JSON.stringify({ mineOpacity: 33 }))
+        const s = make()
+        s.refreshChatState()
+        expect(s.chat.channel.mineOpacity).toBe(100)
+
+        s.stepMine('contact', 1)
+        expect(s.chat.contact.mineOpacity).toBe(100)
+        expect(localStorage.getItem('chat-settings:contact')).toBeNull()
+
+        s.stepMine('contact', -1)
+        s.stepMine('contact', -1)
+        expect(s.chat.contact.mineOpacity).toBe(70)
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).mineOpacity).toBe(70)
+        expect(s.chat.project.mineOpacity).toBe(100)
+
+        s.stepMine('contact', -9)
+        expect(s.chat.contact.mineOpacity).toBe(70)
+        s.stepMine('contact', -1)
+        s.stepMine('contact', -1)
+        s.stepMine('contact', -1)
+        expect(s.chat.contact.mineOpacity).toBe(40)
+        expect(s.mineLabel('contact').endsWith('٪')).toBe(true)
+    })
+
     test('sidebar defaults write 1 and 0 and read back through refreshChatState', () => {
         const s = make()
         s.refreshChatState()
@@ -239,8 +264,8 @@ describe('settings chat panel', () => {
         expect(s.sidebar).toEqual({ contact: false, channel: false, project: false, media: true })
     })
 
-    test('resetChat removes only the four display fields, the scale and the sidebar keys', () => {
-        localStorage.setItem('chat-settings:contact', JSON.stringify({ messageFont: 'vazirmatn', isHighlighted: true, backgroundPattern: 'on', backgroundPatternType: 'twill', fontSteps: { 3: 2 }, headerDeclutter: true }))
+    test('resetChat removes only the five display fields, the scale and the sidebar keys', () => {
+        localStorage.setItem('chat-settings:contact', JSON.stringify({ messageFont: 'vazirmatn', isHighlighted: true, backgroundPattern: 'on', backgroundPatternType: 'twill', mineOpacity: 55, fontSteps: { 3: 2 }, headerDeclutter: true }))
         localStorage.setItem('chat-settings:channel', JSON.stringify({ messageFont: 'vazirmatn' }))
         localStorage.setItem('chat-ui-scale', '4')
         document.documentElement.style.setProperty('--chat-scale', '1.2')

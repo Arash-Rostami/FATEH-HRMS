@@ -10,6 +10,7 @@ use App\Livewire\Dashboard\Channel\Actions\DownloadChannelAttachmentAction;
 use App\Livewire\Dashboard\Channel\Actions\EnhanceChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\FetchChannelsAction;
 use App\Livewire\Dashboard\Channel\Actions\FetchJoinableChannelsAction;
+use App\Livewire\Dashboard\Channel\Actions\FindFirstUnreadChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\FocusChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\JoinChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\LeaveChannelAction;
@@ -75,6 +76,10 @@ class Main extends Component
 
     #[Locked]
     public ?int $activeChannelId = null;
+    #[Locked]
+    public ?int $newMessagesAnchorId = null;
+    #[Locked]
+    public int $anchorCapturedAt = 0;
 
     public string $search = '';
     public string $messageSearch = '';
@@ -465,6 +470,7 @@ class Main extends Component
                 'presence' => $user->presence,
                 'focus' => $user->focusLabel(),
                 'is_online' => $user->isOnline(),
+                'last_seen_label' => $user->isActive() && !$user->isOnline() ? $user->lastSeenLabel() : null,
                 'inactive' => !$user->isActive(),
             ])
             ->sortByDesc(fn(array $m) => $m['is_owner'] ? 2 : (int) $m['is_admin'])
@@ -573,6 +579,12 @@ class Main extends Component
             ->whereHas('memberUsers', fn($memberQ) => $memberQ->where('users.id', auth()->id()))
             ->exists()) {
             return;
+        }
+
+        $now = now()->timestamp;
+        if ($this->activeChannelId !== $channelId || $now - $this->anchorCapturedAt >= 3) {
+            $this->anchorCapturedAt = $now;
+            $this->newMessagesAnchorId = app(FindFirstUnreadChannelMessageAction::class)->execute($channelId, (int) auth()->id());
         }
 
         $this->activeChannelId = $channelId;

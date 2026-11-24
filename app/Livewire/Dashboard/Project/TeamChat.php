@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Project;
 
 use App\Livewire\Dashboard\Channel\Actions\DownloadChannelAttachmentAction;
+use App\Livewire\Dashboard\Channel\Actions\FindFirstUnreadChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\MarkChannelReadAction;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Forms\ChannelMessageComposerForm;
@@ -32,6 +33,10 @@ class TeamChat extends Component
     public int $teamChatLimit = 30;
     public array $mentionMemberNames = [];
     public bool $activated = false;
+    #[Locked]
+    public ?int $newMessagesAnchorId = null;
+    #[Locked]
+    public int $anchorCapturedAt = 0;
 
     public function mount(?int $activeProjectId = null, bool $initialActive = false): void
     {
@@ -40,6 +45,7 @@ class TeamChat extends Component
         $this->chatComposer->fill(['body' => '', 'attachments' => [], 'replyToId' => null]);
 
         if ($initialActive) {
+            $this->captureNewMessagesAnchor();
             $this->markRead();
         }
     }
@@ -47,7 +53,25 @@ class TeamChat extends Component
     public function activate(): void
     {
         $this->activated = true;
+        $this->captureNewMessagesAnchor();
         $this->markRead();
+    }
+
+    private function captureNewMessagesAnchor(): void
+    {
+        $now = now()->timestamp;
+        if ($now - $this->anchorCapturedAt < 3) {
+            return;
+        }
+        $this->anchorCapturedAt = $now;
+        $this->newMessagesAnchorId = null;
+
+        $channel = $this->activeChannel;
+        if (!$channel) {
+            return;
+        }
+
+        $this->newMessagesAnchorId = app(FindFirstUnreadChannelMessageAction::class)->execute($channel->id, (int) auth()->id());
     }
 
     private function markRead(): void

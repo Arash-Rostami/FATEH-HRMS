@@ -19,6 +19,15 @@
                     <div class="flex-1 h-px bg-[linear-gradient(to_right,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
                 </div>
                 @foreach($group['messages'] as $msg)
+                    @if($msg['id'] === $newMessagesAnchorId)
+                        <div wire:key="project-teamchat-new-messages" class="flex items-center gap-3 py-3" role="separator" aria-label="پیام‌های جدید">
+                            <div class="flex-1 h-px bg-[linear-gradient(to_left,transparent,var(--md-sys-color-tertiary))]"></div>
+                            <span class="text-[10px] font-bold tracking-widest px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]" title="اولین پیامی که هنوز نخوانده‌اید">
+                                <span class="material-symbols-rounded text-[12px]" aria-hidden="true">mark_chat_unread</span>پیام‌های جدید
+                            </span>
+                            <div class="flex-1 h-px bg-[linear-gradient(to_right,transparent,var(--md-sys-color-tertiary))]"></div>
+                        </div>
+                    @endif
                     <div @class(['flex items-end gap-2 animate-bubble-in', 'justify-start' => $msg['is_mine'], 'justify-end' => !$msg['is_mine'], $msg['gap_class']]) wire:key="chat-msg-{{ $msg['id'] }}" data-rf="project-message-{{ $msg['id'] }}" style="animation-delay: {{ $msg['animation_delay'] }}s">
                         @if($msg['is_last'])
                             <div wire:key="project-chat-msg-avatar" class="flex-shrink-0 self-end mb-0.5">
@@ -32,7 +41,7 @@
                         <div class="max-w-[75%] md:max-w-[65%] relative">
                             <div @class([
                                 'px-4 py-2.5 text-sm leading-relaxed break-words ' . $msg['bubble_radius'],
-                                'bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent)]' => $msg['is_mine'],
+                                'bubble-mine shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent)]' => $msg['is_mine'],
                                 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-sm' => !$msg['is_mine'],
                                 'ring-2 ring-[var(--md-sys-color-tertiary)]' => $msg['mentions_you'],
                             ])>

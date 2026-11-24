@@ -133,6 +133,28 @@
                     </button>
                 </span>
             </div>
+            @if($msg['is_mine'])
+                <div wire:key="msg-actions-mine-opacity-{{ $msg['id'] }}" class="flex items-center justify-between gap-3 px-2 py-1 text-xs font-medium" role="group" aria-label="شدت رنگ پس‌زمینه">
+                    <span class="flex items-center gap-2">
+                        <span class="material-symbols-rounded text-[16px]">format_color_fill</span>
+                        <span>شدت رنگ پس‌زمینه</span>
+                    </span>
+                    <span dir="ltr" class="flex items-center gap-0.5">
+                        <button type="button" x-on:click.prevent="stepMine(-1); requestAnimationFrame(() => pos = document.querySelector('[data-msg-menu-trigger=&quot;{{ $msg['id'] }}&quot;]').getBoundingClientRect().toJSON())"
+                                :disabled="mineAtMin()"
+                                class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] active:scale-90 text-[var(--md-sys-color-on-surface-variant)] disabled:opacity-40 disabled:pointer-events-none"
+                                title="کم‌رنگ‌تر کردن پس‌زمینه" aria-label="کم‌رنگ‌تر کردن پس‌زمینه">
+                            <span class="material-symbols-rounded text-[15px]">remove</span>
+                        </button>
+                        <button type="button" x-on:click.prevent="stepMine(1); requestAnimationFrame(() => pos = document.querySelector('[data-msg-menu-trigger=&quot;{{ $msg['id'] }}&quot;]').getBoundingClientRect().toJSON())"
+                                :disabled="mineAtMax()"
+                                class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] active:scale-90 text-[var(--md-sys-color-on-surface-variant)] disabled:opacity-40 disabled:pointer-events-none"
+                                title="پررنگ‌تر کردن پس‌زمینه" aria-label="پررنگ‌تر کردن پس‌زمینه">
+                            <span class="material-symbols-rounded text-[15px]">add</span>
+                        </button>
+                    </span>
+                </div>
+            @endif
             @if($msg['can_delete'] && $canWrite)
                 <div class="h-px my-1 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]" aria-hidden="true"></div>
                 <button type="button" role="menuitem" x-on:click.prevent="open = false; confirmDelete({{ $msg['id'] }})"

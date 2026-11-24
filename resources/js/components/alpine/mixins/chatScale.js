@@ -3,6 +3,15 @@ const EVENT = 'chat-scale-changed';
 const STEPS = [0.8, 0.9, 1, 1.1, 1.2];
 const DEFAULT_INDEX = 2;
 
+export const MINE_STEPS = [40, 55, 70, 85, 100];
+
+export const applyMine = (pct) => {
+    const on = MINE_STEPS.includes(pct);
+    const style = document.documentElement.style;
+    style.setProperty('--chat-mine', on ? pct + '%' : '');
+    style.setProperty('--chat-mine-ink', on && pct < 70 ? 'var(--md-sys-color-on-surface)' : '');
+};
+
 const apply = (index) => document.documentElement.style.setProperty('--chat-scale', String(STEPS[index]));
 
 const announce = (index) => window.dispatchEvent(new CustomEvent(EVENT, { detail: index }));
