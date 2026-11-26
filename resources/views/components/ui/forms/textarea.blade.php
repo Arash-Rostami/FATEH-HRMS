@@ -1,4 +1,4 @@
-@props(['label', 'name', 'disabled' => false, 'icon' => null, 'rows' => 3, 'maximizable' => false])
+@props(['label', 'name', 'disabled' => false, 'icon' => null, 'rows' => 3, 'maximizable' => false, 'mark' => false])
 
 <div
     class="relative group w-full md3-input-group"
@@ -26,7 +26,7 @@
         >{{ $slot }}</textarea>
         <label for="{{ $name }}"
                class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">
-            {{ $label }}
+            {{ $label }}@if($mark)<span class="text-[var(--md-sys-color-error)]"> *</span>@endif
         </label>
 
         {{ $actions ?? '' }}

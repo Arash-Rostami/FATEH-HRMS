@@ -129,7 +129,7 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
 
         await c.saveEdit(7);
 
-        expect(c.toast).toHaveBeenCalledWith('خطا در ذخیره ویرایش پیام.', 'error');
+        expect(c.toast).toHaveBeenCalledWith('ذخیرهٔ ویرایش تأیید نشد. پیش از تلاش دوباره، اتصال اینترنت را بررسی کنید.', 'error');
         expect(c.editingMsg).toEqual({ id: 7, body: 'x' });
     });
 
@@ -211,7 +211,7 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
         }
     });
 
-    test('sendMessage toasts a generic error and still releases the sending lock if the island call rejects', async () => {
+    test('sendMessage toasts the undelivered notice once and still releases the sending lock if the island call rejects', async () => {
         vi.useFakeTimers();
         try {
             const c = contact();
@@ -221,7 +221,8 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
             withTextarea('hello');
 
             await c.sendMessage();
-            expect(c.toast).toHaveBeenCalledWith('خطا در ارتباط با سرور.', 'error');
+            expect(c.toast).toHaveBeenCalledOnce();
+            expect(c.toast).toHaveBeenCalledWith('وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.', 'error');
 
             vi.advanceTimersByTime(500);
             expect(c.sending).toBe(false);
@@ -867,6 +868,7 @@ describe('contact() _bindViewport — re-binds across conversation switches inst
         c.$watch = vi.fn();
         c.initFancybox = vi.fn();
         c.initPattern = vi.fn();
+        c.$nextTick = (cb) => cb?.();
         const vp = withViewport();
 
         c.init();
@@ -955,6 +957,7 @@ describe('contact() last-open-contact persistence + maximize sequencing (added 2
         c.initFancybox = vi.fn();
         c.initPattern = vi.fn();
         c.initMaximize = vi.fn();
+        c.$nextTick = (cb) => cb?.();
         c.selectContact = vi.fn(() => Promise.resolve());
 
         c.init();
@@ -990,6 +993,7 @@ describe('contact() last-open-contact persistence + maximize sequencing (added 2
         c.$watch = vi.fn();
         c.initFancybox = vi.fn();
         c.initPattern = vi.fn();
+        c.$nextTick = (cb) => cb?.();
 
         const order = [];
         let resolveSelect;
@@ -1433,7 +1437,7 @@ describe('contact send ghost', () => {
 
         const pending = c.sendMessage();
         expect(vp.querySelector('[data-ghost] [dir="auto"]').textContent).toBe('hello');
-        expect(send).toHaveBeenCalledWith();
+        expect(send).toHaveBeenCalledWith('hello', null, expect.any(String));
         expect(ta.value).toBe('hello');
         expect(c.$wire.composer.body).toBe('server-draft');
         expect(c.$wire.set).not.toHaveBeenCalled();
@@ -1461,7 +1465,8 @@ describe('contact send ghost', () => {
         await pending;
 
         expect(vp.querySelector('[data-ghost]')).toBeNull();
-        expect(c.toast).toHaveBeenCalledWith('خطا در ارتباط با سرور.', 'error');
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(c.toast).toHaveBeenCalledWith('وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.', 'error');
     });
 
     test('no ghost when attachments are staged or a reply is open', async () => {
@@ -1515,7 +1520,7 @@ describe('contact send ghost', () => {
 
         const pending = c.sendMessage();
         expect(document.querySelector('[data-ghost]')).toBeNull();
-        expect(send).toHaveBeenCalledWith();
+        expect(send).toHaveBeenCalledWith('hello', null, expect.any(String));
         expect(ta.value).toBe('hello');
 
         resolveSend();
@@ -1648,5 +1653,187 @@ describe('contact() enhanceEdit — the AI rewrite of the inline edit box', () =
 
         resolveEnhance(aiReply);
         await pending;
+    });
+});
+
+describe('contact composer draft store wiring (send integrity, clear rule, sent-but-not-drawn)', () => {
+    const KEY = 'chat-draft:3:contact:12';
+    let c;
+
+    function mount() {
+        vi.useFakeTimers();
+        document.documentElement.dataset.uid = '3';
+        localStorage.clear();
+        document.body.innerHTML = '<footer data-room="12" data-no-keep><textarea id="msg-ta"></textarea></footer><div id="msg-viewport"></div>';
+        const ta = document.getElementById('msg-ta');
+        ta.focus = vi.fn();
+        const vp = document.getElementById('msg-viewport');
+        vp.scrollTo = vi.fn();
+
+        c = contact();
+        c.$wire = createWireMock({ activeUserId: null });
+        c.$watch = vi.fn();
+        c.initFancybox = vi.fn();
+        c.initPattern = vi.fn();
+        c.$store = { sound: { playOutgoing: vi.fn() } };
+        c.$nextTick = (cb) => (cb ? cb() : Promise.resolve());
+        c._syncSidebarAfterOwnAction = vi.fn();
+        c.toast = vi.fn();
+        c.init();
+
+        const handler = c.$wire.on.mock.calls.find(([e]) => e === 'message-sent')[1];
+        return { ta, vp, handler };
+    }
+
+    const type = (ta, value) => {
+        ta.value = value;
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    afterEach(() => {
+        c?.destroy();
+        vi.useRealTimers();
+    });
+
+    test('init wires the draft store: the model watcher is registered and typing is saved under the room key', () => {
+        const { ta } = mount();
+
+        expect(c.$watch).toHaveBeenCalledWith('$wire.composer.body', expect.any(Function));
+        type(ta, 'hello');
+
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('hello');
+    });
+
+    test('Enter sends (trimmed body, room, rev), keeps the box read-only until it settles, and message-sent with that rev clears the draft', async () => {
+        const { ta, vp, handler } = mount();
+        vp.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+        type(ta, '  hello  ');
+        const rev = JSON.parse(localStorage.getItem(KEY)).rev;
+        let finish;
+        const send = vi.fn(() => new Promise((resolve) => { finish = resolve; }));
+        c.$wire.$island = vi.fn(() => ({ send, refreshActive: vi.fn() }));
+
+        const pending = c.sendMessage();
+        expect(send).toHaveBeenCalledWith('hello', '12', rev);
+        expect(ta.readOnly).toBe(true);
+
+        handler({ id: 5, rev });
+        finish(5);
+        await pending;
+
+        expect(ta.readOnly).toBe(false);
+        expect(localStorage.getItem(KEY)).toBeNull();
+        expect(c.toast).not.toHaveBeenCalled();
+        expect(c.$store.sound.playOutgoing).toHaveBeenCalledOnce();
+    });
+
+    test('a null result without message-sent keeps the text and toasts the undelivered notice', async () => {
+        const { ta } = mount();
+        type(ta, 'hello');
+        c.$wire.$island = vi.fn(() => ({ send: vi.fn(() => Promise.resolve(null)) }));
+
+        await c.sendMessage();
+
+        expect(ta.value).toBe('hello');
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('hello');
+        expect(c.toast).toHaveBeenCalledWith('وضعیت ارسال پیام مشخص نیست', 'error');
+    });
+
+    test('the ghost stays while the stored row is missing and goes once the redraw brings it', async () => {
+        const { ta, vp, handler } = mount();
+        type(ta, 'hello');
+        let ghostSeen = null;
+        const refreshActive = vi.fn(() => {
+            ghostSeen = !!vp.querySelector('[data-ghost]');
+            vp.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+            return Promise.resolve();
+        });
+        const send = vi.fn((body, room, rev) => {
+            handler({ id: 5, rev });
+            return Promise.resolve(5);
+        });
+        c.$wire.$island = vi.fn(() => ({ send, refreshActive }));
+
+        await c.sendMessage();
+
+        expect(refreshActive).toHaveBeenCalledTimes(1);
+        expect(ghostSeen).toBe(true);
+        expect(vp.querySelector('[data-ghost]')).toBeNull();
+    });
+
+    test('a drawn row means no extra request after a normal send', async () => {
+        const { ta, vp, handler } = mount();
+        vp.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+        type(ta, 'hello');
+        const refreshActive = vi.fn();
+        const send = vi.fn((body, room, rev) => {
+            handler({ id: 5, rev });
+            return Promise.resolve(5);
+        });
+        c.$wire.$island = vi.fn(() => ({ send, refreshActive }));
+
+        await c.sendMessage();
+
+        expect(refreshActive).not.toHaveBeenCalled();
+    });
+
+    test('the 30s watchdog releases the box and the sending lock, removes the ghost, toasts and keeps the draft', async () => {
+        const { ta, vp } = mount();
+        type(ta, 'hello');
+        const hung = new Promise(() => {});
+        hung._livewireAction = { cancel: vi.fn() };
+        c.$wire.$island = vi.fn(() => ({ send: vi.fn(() => hung) }));
+
+        const pending = c.sendMessage();
+        expect(vp.querySelector('[data-ghost]')).not.toBeNull();
+        await vi.advanceTimersByTimeAsync(30000);
+        await pending;
+        await vi.advanceTimersByTimeAsync(500);
+
+        expect(hung._livewireAction.cancel).toHaveBeenCalledOnce();
+        expect(ta.readOnly).toBe(false);
+        expect(c.sending).toBe(false);
+        expect(vp.querySelector('[data-ghost]')).toBeNull();
+        expect(c.toast).toHaveBeenCalledWith('وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.', 'error');
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('hello');
+    });
+
+    test('an older send lock timer cannot unlock a newer in-flight send', async () => {
+        const { ta } = mount();
+        type(ta, 'one');
+        c.$wire.$island = vi.fn(() => ({ send: vi.fn(() => Promise.resolve(null)) }));
+        await c.sendMessage();
+        expect(c.sending).toBe(true);
+
+        c.sending = false;
+        type(ta, 'two');
+        let finish;
+        c.$wire.$island = vi.fn(() => ({ send: vi.fn(() => new Promise((resolve) => { finish = resolve; })) }));
+        const second = c.sendMessage();
+        expect(c.sending).toBe(true);
+
+        await vi.advanceTimersByTimeAsync(500);
+        expect(c.sending).toBe(true);
+
+        finish(null);
+        await second;
+        await vi.advanceTimersByTimeAsync(500);
+        expect(c.sending).toBe(false);
+    });
+
+    test('selectContact restores the stored draft of the opened room after the island resolves', async () => {
+        const { ta } = mount();
+        localStorage.setItem(KEY, JSON.stringify({ body: 'saved', rev: 'r1', at: Date.now() }));
+        c.$wire.$island = vi.fn(() => ({ selectContact: vi.fn(() => Promise.resolve()), refreshUnread: vi.fn(() => Promise.resolve()) }));
+        c.resetAutoResize = vi.fn();
+        c.scrollToBottom = vi.fn();
+        c._persistLastOpen = vi.fn();
+        c._repollNow = vi.fn();
+        c._bindViewport = vi.fn();
+        c._sidebar = vi.fn(() => Promise.resolve());
+
+        await c.selectContact(12);
+
+        expect(ta.value).toBe('saved');
     });
 });

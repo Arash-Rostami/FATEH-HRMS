@@ -209,7 +209,7 @@
     <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">این مشخصات در متن بالای نامه چاپ می‌شود. برای دسترسی همکاران یا ارسال به گیرندهٔ بیرونی، افراد را در بخش «افراد و ترتیب امضا» هم اضافه کنید.</p>
 
     <x-ui.forms.input label="{{ __('resources/correspondence/strings.fields.subject') }}" name="form.subject" wire:model="form.subject" :disabled="$lockAll"
-                      data-private="{{ $private ? 1 : 0 }}" data-fresh="{{ $letter ? 0 : 1 }}"
+                      data-private="{{ $private ? 1 : 0 }}" data-fresh="{{ $letter ? 0 : 1 }}" mark
                       x-init="initSubject($el)"
                       x-on:input.debounce.500ms="rememberSubject($el)"/>
 
@@ -221,8 +221,8 @@
                 <p wire:key="correspondence-duplicate" class="text-sm text-[var(--md-sys-color-error)]">نامه‌ای با همین شماره و تاریخ فرستنده قبلاً ثبت شده است.</p>
             @endif
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <x-ui.forms.input label="شماره نامهٔ فرستنده" name="form.theirNumber" dir="ltr" wire:model="form.theirNumber" :disabled="$lockHead"/>
-                <x-ui.forms.input label="فرستنده" name="form.sender" wire:model="form.sender" :disabled="$lockHead"/>
+                <x-ui.forms.input label="شماره نامهٔ فرستنده" name="form.theirNumber" dir="ltr" wire:model="form.theirNumber" :disabled="$lockHead" mark/>
+                <x-ui.forms.input label="فرستنده" name="form.sender" wire:model="form.sender" :disabled="$lockHead" mark/>
                 <x-ui.forms.select label="دستهٔ فرستنده" name="form.senderCategory" wire:model.live="form.senderCategory" :disabled="$lockHead">
                     @foreach(LetterForm::CATEGORIES as $key)
                         <option value="{{ $key }}">{{ __('resources/correspondence/strings.sender_category.'.$key) }}</option>
@@ -509,7 +509,7 @@
         <p wire:key="correspondence-smart-blocked" class="text-sm text-[var(--md-sys-color-on-surface-variant)]">{{ __('resources/correspondence/strings.errors.confidential_smart') }}</p>
     @elseif($state['smartOn'])
         <div wire:key="correspondence-smart" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] p-3 flex flex-col gap-3">
-            <x-ui.forms.textarea label="از هوش مصنوعی چه نامه‌ای می‌خواهید؟" name="form.prompt" wire:model="form.prompt" :disabled="$lockAll"/>
+            <x-ui.forms.textarea label="از هوش مصنوعی چه نامه‌ای می‌خواهید؟" name="form.prompt" wire:model="form.prompt" :disabled="$lockAll" mark/>
             <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">هدف نامه، مخاطب و اطلاعات قطعی مثل نام‌ها، مبلغ و تاریخ را بنویسید. فایل پیوست به‌عنوان منبع به هوش مصنوعی فرستاده نمی‌شود. نتیجه را خودتان بررسی کنید و همهٔ «[…]»ها را پیش از ارسال برای امضا کامل کنید.</p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <x-ui.forms.select label="گروه مخاطب نامه" name="form.audience" wire:model="form.audience" :disabled="$lockAll">

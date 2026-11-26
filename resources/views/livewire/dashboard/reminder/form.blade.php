@@ -1,6 +1,6 @@
                 <div wire:key="reminder-tab-form" class="space-y-3" x-data="{ q: @entangle('form.title'), list: @js($this->suggestedTitles), open: false }">
                     <div class="relative">
-                        <x-ui.forms.input label="عنوان" name="form.title" wire:model="form.title" x-on:focus="open = true" x-on:blur="setTimeout(() => open = false, 150)"/>
+                        <x-ui.forms.input label="عنوان" name="form.title" wire:model="form.title" mark x-on:focus="open = true" x-on:blur="setTimeout(() => open = false, 150)"/>
                         <div x-show="open && list.filter(s => s.toLowerCase().includes((q ?? '').toLowerCase())).length"
                              x-cloak
                              class="absolute z-10 mt-1 w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/30 rounded-xl shadow-lg max-h-40 overflow-y-auto">
@@ -14,7 +14,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <x-ui.forms.date label="تاریخ سررسید" prefix="form.due" :startYear="jNow()" :endYear="jNow() + 5"/>
-                        <x-ui.forms.input label="ساعت" name="form.dueTime" type="time" wire:model="form.dueTime"/>
+                        <x-ui.forms.input label="ساعت" name="form.dueTime" type="time" wire:model="form.dueTime" mark/>
                     </div>
 
                     <x-ui.forms.select label="تکرار" name="form.recurs" wire:model="form.recurs">

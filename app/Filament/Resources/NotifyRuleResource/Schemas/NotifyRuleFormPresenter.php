@@ -213,9 +213,11 @@ class NotifyRuleFormPresenter
             ->searchable()
             ->native(false)
             ->options(fn () => Department::getCachedOptions()->toArray())
-            ->required()
+            ->required(fn (Get $get) => ($get('extra.audience') ?? 'users') === 'departments')
+            ->dehydrated(fn (Get $get) => ($get('extra.audience') ?? 'users') === 'departments')
+            ->validatedWhenNotDehydrated(false)
             ->helperText(__('resources/notify_rule/strings.audience.departments_hint'))
-            ->visible(fn (Get $get) => $get('extra.audience') === 'departments')
+            ->visibleJs('$get(\'extra.audience\') === \'departments\'')
             ->columnSpanFull();
     }
 
@@ -234,7 +236,6 @@ class NotifyRuleFormPresenter
             ->label(__('resources/notify_rule/strings.fields.events'))
             ->options(NotifyEvent::options())
             ->helperText(__('resources/notify_rule/strings.hints.events'))
-            ->live()
             ->required()
             ->columns(3);
     }
@@ -313,7 +314,9 @@ class NotifyRuleFormPresenter
                     : [];
             })
             ->helperText(__('resources/notify_rule/strings.hints.watch'))
-            ->visible(fn (Get $get) => in_array(NotifyEvent::Updated->value, $get('events') ?? [], true) && filled($get('model')))
+            ->visibleJs('$get(\'events\')?.includes(\'updated\') && !!$get(\'model\')')
+            ->dehydrated(fn (Get $get) => in_array(NotifyEvent::Updated->value, $get('events') ?? [], true) && filled($get('model')))
+            ->validatedWhenNotDehydrated(false)
             ->columnSpanFull();
     }
 

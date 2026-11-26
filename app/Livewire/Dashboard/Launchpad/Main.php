@@ -15,6 +15,7 @@ use App\Models\Department;
 use App\Models\Launchpad;
 use App\Models\User;
 use App\Support\LaunchpadAccessPolicy;
+use App\Traits\Livewire\AnnouncesInvalidForm;
 use App\Traits\Livewire\BulkSelectsPeople;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
@@ -37,6 +38,7 @@ use RuntimeException;
 #[Lazy]
 class Main extends Component
 {
+    use AnnouncesInvalidForm;
     use BulkSelectsPeople;
     use WithFileUploads {
         _finishUpload as private finishLivewireUpload;
@@ -568,7 +570,11 @@ class Main extends Component
             }
             $ids = $add ? [...$ids, $id] : array_diff($ids, [$id]);
             $existing = Launchpad::query()->whereIn('id', $ids)->pluck('id')->map(fn ($key) => (int) $key)->all();
-            $locked->setExtraValue('preferences.' . Launchpad::OPTIONS_PREFERENCE, array_slice(array_values(array_intersect($ids, $existing)), -max(1, (int) config('launchpad.workspace.options_max'))));
+            $ids = array_values(array_intersect($ids, $existing));
+            if (!$user->isDeveloper()) {
+                $ids = array_slice($ids, -max(1, (int) config('launchpad.workspace.options_max')));
+            }
+            $locked->setExtraValue('preferences.' . Launchpad::OPTIONS_PREFERENCE, $ids);
             $locked->save();
             $user->extra = $locked->extra;
 
@@ -579,6 +585,11 @@ class Main extends Component
     private function ssoLink(Launchpad $row): bool
     {
         return $row->kind === 'link' && isset(Launchpad::ssoSites()[(string) ($row->settings['site'] ?? '')]);
+    }
+
+    protected function announceInvalidOn(): array
+    {
+        return ['save', 'saveEdit'];
     }
 
     private function scoped(): Builder

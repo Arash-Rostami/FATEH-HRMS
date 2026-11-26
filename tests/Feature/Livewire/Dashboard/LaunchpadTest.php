@@ -477,7 +477,9 @@ class LaunchpadTest extends TestCase
             $kept = $this->fileRow($dept, $owner, ['title' => 'LP-cap-a']);
             $this->fileRow($dept, $owner, ['title' => 'LP-cap-b', 'active' => false]);
 
-            $this->saveLaunch($owner, 'LP-cap-new')->assertHasErrors('form.files');
+            $this->saveLaunch($owner, 'LP-cap-new')
+                ->assertHasErrors('form.files')
+                ->assertDispatched('toast', message: 'ظرفیت ثبت برنامه در این دپارتمان پر است. یکی از برنامه‌های قبلی را حذف کنید یا از مسئول برنامه بخواهید این کار را انجام دهد.', type: 'error');
             $this->assertDatabaseMissing('launchpads', ['title' => 'LP-cap-new']);
 
             Launchpad::query()->where('title', 'LP-cap-b')->firstOrFail()->delete();
@@ -497,6 +499,39 @@ class LaunchpadTest extends TestCase
         }
     }
 
+    public function test_developer_bypasses_the_department_cap_on_create(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $developer = $this->deptUser($dept, ['role' => 'developer']);
+
+        $original = config('launchpad.max_per_department');
+        try {
+            config(['launchpad.max_per_department' => 2]);
+            $this->fileRow($dept, $developer, ['title' => 'LP-dev-cap-a']);
+            $this->fileRow($dept, $developer, ['title' => 'LP-dev-cap-b']);
+
+            $this->saveLaunch($developer, 'LP-dev-cap-new')->assertHasNoErrors();
+            $this->assertDatabaseHas('launchpads', ['title' => 'LP-dev-cap-new']);
+            $this->assertSame(3, Launchpad::query()->where('department_id', $dept)->count());
+        } finally {
+            config(['launchpad.max_per_department' => $original]);
+        }
+    }
+
+    public function test_developer_workspace_options_ignore_the_three_cap(): void
+    {
+        Storage::fake('public');
+        $dept = $this->dept('LPA');
+        $developer = $this->deptUser($dept, ['role' => 'developer']);
+        $rows = collect(range(1, 4))->map(fn (int $i) => $this->fileRow($dept, $developer, ['title' => "LP-dev-option-{$i}"]));
+
+        $component = Livewire::actingAs($developer)->test(Main::class);
+        $rows->each(fn (Launchpad $row) => $component->call('addOption', $row->id));
+
+        $this->assertSame($rows->pluck('id')->all(), Launchpad::optionIds($developer->fresh()));
+    }
+
     public function test_same_title_by_another_owner_is_refused(): void
     {
         Storage::fake('public');
@@ -506,7 +541,9 @@ class LaunchpadTest extends TestCase
         $otherRow = $this->fileRow($dept, $rowOwner, ['title' => 'LP-title-clash']);
         $folder = $otherRow->folder;
 
-        $this->saveLaunch($actor, 'LP-title-clash')->assertHasErrors('form.title');
+        $this->saveLaunch($actor, 'LP-title-clash')
+            ->assertHasErrors('form.title')
+            ->assertDispatched('toast', message: 'در این دپارتمان برنامه‌ای با همین نام وجود دارد. نام دیگری انتخاب کنید. برای جایگزینی، به اجازهٔ مدیریت برنامهٔ قبلی نیاز دارید.', type: 'error');
         $this->assertSame($folder, Launchpad::query()->whereKey($otherRow->id)->value('folder'));
         $this->assertSame(1, Launchpad::query()->where('title', 'LP-title-clash')->count());
     }
@@ -719,6 +756,17 @@ class LaunchpadTest extends TestCase
 
         $this->assertNotNull(Launchpad::query()->find($row->id));
         $this->assertNotSame([], Storage::disk('public')->files('launchpad/files/' . $row->folder));
+    }
+
+    public function test_failed_save_points_to_the_first_invalid_field_with_an_error_toast(): void
+    {
+        $user = $this->deptUser($this->dept('LPN'));
+        Livewire::withoutLazyLoading();
+
+        Livewire::actingAs($user)->test(Main::class)
+            ->call('save')
+            ->assertDispatched('form-invalid', field: 'form.title')
+            ->assertDispatched('toast', type: 'error');
     }
 
     public function test_create_in_a_foreign_department_is_refused_for_a_regular_user(): void

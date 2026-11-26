@@ -38,6 +38,7 @@
                     name="passwordForm.current_password"
                     label="رمز عبور فعلی"
                     icon="lock"
+                    mark
                 />
 
                 <x-ui.forms.input
@@ -46,6 +47,7 @@
                     name="passwordForm.password"
                     label="رمز عبور جدید"
                     icon="key"
+                    mark
                 />
 
                 <x-ui.forms.input
@@ -54,6 +56,7 @@
                     name="passwordForm.password_confirmation"
                     label="تکرار رمز عبور جدید"
                     icon="key"
+                    mark
                 />
 
                 <div class="flex items-center justify-end pt-2">

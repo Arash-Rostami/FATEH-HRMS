@@ -30,6 +30,9 @@ class MediaTablePresenter extends ReportTablePresenter
             ->label(__('resources/media/strings.table.kind'))
             ->badge()
             ->formatStateUsing(fn(string $state): string => static::kindLabel($state))
+            ->description(fn(Model $record): ?string => $record->kind === 'series' && ($record->episodes_count ?? 1) === 0
+                ? __('resources/media/strings.table.no_episodes')
+                : null)
             ->color(fn(string $state): string => match ($state) {
                 'series' => 'info',
                 'video' => 'warning',

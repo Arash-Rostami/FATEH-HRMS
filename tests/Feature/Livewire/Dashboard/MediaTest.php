@@ -161,6 +161,24 @@ class MediaTest extends TestCase
         $this->assertStringNotContainsString('is_new', json_encode($cached));
     }
 
+    public function test_episode_description_is_sanitized_and_hidden_for_locked_episodes_and_singles(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $series = $this->media($user, ['kind' => 'series', 'file_path' => null]);
+        $open = $this->media($user, ['parent_id' => $series->id, 'description' => '<p>ok</p><script>alert(1)</script>']);
+        $locked = $this->media($user, ['parent_id' => $series->id, 'description' => '<p>secret</p>', 'report_date' => now()->addDays(2)->toDateString()]);
+        $single = $this->media($user, ['description' => '<p>own</p>']);
+        $this->actingAs($user);
+        Livewire::withoutLazyLoading();
+        $items = collect(Livewire::test(Library::class)->instance()->library['items']);
+        $episodes = collect($items->firstWhere('id', $series->id)['episodes'])->keyBy('id');
+
+        $this->assertStringContainsString('ok', $episodes[$open->id]['description_html']);
+        $this->assertStringNotContainsString('<script', $episodes[$open->id]['description_html']);
+        $this->assertSame('', $episodes[$locked->id]['description_html']);
+        $this->assertSame('', $items->firstWhere('id', $single->id)['episodes'][0]['description_html']);
+    }
+
     public function test_locked_episodes_never_expose_file_or_track_urls(): void
     {
         $user = User::factory()->create(['status' => 'active']);
@@ -386,7 +404,8 @@ class MediaTest extends TestCase
         $other = $this->media($user, ['kind' => 'video', 'module' => $chan]);
         $restricted = $this->media($user, ['kind' => 'video', 'module' => $ths, 'pinned' => true, 'departments' => ['ZZZ-NOT-MINE']]);
         $publicTop = $this->media($user, ['kind' => 'video', 'module' => $ths, 'position' => 9]);
-        $this->media($user, ['kind' => 'video', 'module' => $bare, 'file_path' => null]);
+        $fileless = $this->media($user, ['kind' => 'video', 'module' => $bare, 'file_path' => null, 'active' => false]);
+        $fileless->forceFill(['active' => true])->saveQuietly();
         $this->media($user, ['kind' => 'series', 'module' => $bare, 'file_path' => null]);
         $series = $this->media($user, ['kind' => 'series', 'module' => $ser, 'file_path' => null]);
         $this->media($user, ['parent_id' => $series->id]);

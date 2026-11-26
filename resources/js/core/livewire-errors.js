@@ -48,6 +48,17 @@ function register() {
     })
 }
 
+window.addEventListener('form-invalid', ({ detail }) => {
+    const field = detail?.field
+    if (!field) return
+    setTimeout(() => {
+        const el = document.getElementById(field) ?? document.getElementById(field.replace(/\.\d+$/, ''))
+        if (!el) return
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.focus({ preventScroll: true })
+    }, 0)
+})
+
 export default function initLivewireErrors() {
     register()
     document.addEventListener('livewire:init', register)

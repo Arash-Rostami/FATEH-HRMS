@@ -15,6 +15,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Arr;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
@@ -28,7 +29,6 @@ class FeedFormPresenter
             ->label(__('resources/feed/strings.fields.category'))
             ->options(FeedCategory::class)
             ->required()
-            ->live()
             ->helperText(__('resources/feed/strings.hints.category'));
     }
 
@@ -181,7 +181,7 @@ class FeedFormPresenter
                         'multiple' => __('resources/feed/strings.poll.mode_multiple'),
                     ])
                     ->default('single')
-                    ->required()
+                    ->required(fn (Get $get) => ($get('category')?->value ?? $get('category')) === FeedCategory::Poll->value)
                     ->selectablePlaceholder(false)
                     ->helperText(__('resources/feed/strings.hints.poll_mode')),
 
@@ -195,7 +195,9 @@ class FeedFormPresenter
                     ->default(true)
                     ->helperText(__('resources/feed/strings.hints.poll_reactions_enabled')),
             ])
-            ->visible(fn($get) => ($get('category')?->value ?? $get('category')) === FeedCategory::Poll->value)
+            ->visibleJs('$get(\'category\') === \'Poll\'')
+            ->dehydrated(fn($get) => ($get('category')?->value ?? $get('category')) === FeedCategory::Poll->value)
+            ->validatedWhenNotDehydrated(false)
             ->columnSpanFull();
     }
 
@@ -207,7 +209,7 @@ class FeedFormPresenter
                 TextInput::make('option')
                     ->label(__('resources/feed/strings.fields.poll_option'))
                     ->placeholder('✎')
-                    ->required()
+                    ->required(fn (Get $get) => ($get('../../category')?->value ?? $get('../../category')) === FeedCategory::Poll->value)
                     ->maxLength(200),
             ])
             ->afterStateHydrated(function (Repeater $component, $state) {
@@ -228,10 +230,12 @@ class FeedFormPresenter
             })
             ->dehydrateStateUsing(fn($state) => collect($state)->pluck('option')->filter()->values()->all())
             ->itemLabel(fn(array $state): ?string => $state['option'] ?? null)
-            ->minItems(2)
+            ->minItems(fn($get) => ($get('category')?->value ?? $get('category')) === FeedCategory::Poll->value ? 2 : 0)
             ->maxItems(10)
             ->addActionLabel(__('resources/feed/strings.actions.add_poll_option'))
-            ->visible(fn($get) => ($get('category')?->value ?? $get('category')) === FeedCategory::Poll->value)
+            ->visibleJs('$get(\'category\') === \'Poll\'')
+            ->dehydrated(fn($get) => ($get('category')?->value ?? $get('category')) === FeedCategory::Poll->value)
+            ->validatedWhenNotDehydrated(false)
             ->columnSpanFull()
             ->helperText(__('resources/feed/strings.hints.poll_options'));
     }

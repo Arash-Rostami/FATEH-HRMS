@@ -24,6 +24,8 @@ use App\Models\User;
 use App\Services\Messaging\PollDigestService;
 use App\Services\Notify\Channels\SmsChannel;
 use Morilog\Jalali\Jalalian;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\Repository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory as HttpClientFactory;
@@ -1409,6 +1411,345 @@ class ContactTest extends TestCase
 
         $msg = Message::where('sender_id', $me->id)->where('recipient_id', $contact->id)->firstOrFail();
         $this->assertSame('padded body', $msg->body);
+    }
+
+    public function test_contact_send_stores_the_body_argument_even_when_the_server_copy_differs(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->set('composer.body', 'stale partial')
+            ->call('send', '  the full captured text  ', $contact->id)
+            ->assertHasNoErrors()
+            ->assertSet('composer.body', '');
+
+        $this->assertSame('the full captured text', Message::where('sender_id', $me->id)->sole()->body);
+    }
+
+    public function test_contact_send_for_a_room_that_is_not_active_stores_and_resets_nothing(): void
+    {
+        [$me, $contact, $other] = User::factory()->count(3)->create(['status' => 'active'])->all();
+
+        Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->set('composer.body', 'keep me')
+            ->call('send', 'wrong room text', $other->id, 'contact-rev-room')
+            ->assertReturned(null)
+            ->assertNotDispatched('message-sent')
+            ->assertSet('composer.body', 'keep me');
+
+        $this->assertSame(0, Message::where('sender_id', $me->id)->count());
+        $this->assertFalse(Cache::has("chat-send:{$me->id}:contact:contact-rev-room"));
+    }
+
+    public function test_contact_send_with_the_same_rev_twice_stores_one_row_and_runs_the_success_tail_both_times(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'once only', $contact->id, 'contact-rev-dup');
+
+        $id = Message::where('sender_id', $me->id)->sole()->id;
+        $component->assertReturned($id)->assertDispatched('message-sent', id: $id, rev: 'contact-rev-dup');
+
+        $component->set('composer.body', 'late retype')
+            ->call('send', 'once only', $contact->id, 'contact-rev-dup')
+            ->assertReturned($id)
+            ->assertDispatched('message-sent', id: $id, rev: 'contact-rev-dup')
+            ->assertSet('composer.body', '');
+
+        $this->assertSame(1, Message::where('sender_id', $me->id)->count());
+    }
+
+    public function test_contact_send_ignores_a_rev_that_is_too_long_or_has_illegal_characters(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+        $component = Livewire::actingAs($me)->test(Main::class)->call('selectContact', $contact->id);
+
+        foreach (['bad rev!', str_repeat('a', 65)] as $rev) {
+            $component->call('send', 'text ' . strlen($rev), $contact->id, $rev)
+                ->assertDispatched('message-sent', fn($name, $params) => $params['rev'] === null);
+
+            $this->assertFalse(Cache::has("chat-send:{$me->id}:contact:{$rev}"));
+        }
+
+        $this->assertSame(2, Message::where('sender_id', $me->id)->count());
+
+        $component->call('send', 'valid one', $contact->id, 'contact-rev-valid')
+            ->call('send', 'valid one', $contact->id, 'contact-rev-valid');
+
+        $this->assertSame(3, Message::where('sender_id', $me->id)->count());
+    }
+
+    public function test_contact_send_ignores_a_rev_with_a_trailing_newline(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'newline rev', $contact->id, "contact-rev-nl\n")
+            ->assertDispatched('message-sent', fn($name, $params) => $params['rev'] === null);
+
+        $this->assertSame(1, Message::where('sender_id', $me->id)->count());
+        $this->assertFalse(Cache::has("chat-send:{$me->id}:contact:contact-rev-nl"));
+    }
+
+    public function test_contact_send_is_not_blocked_when_the_marker_read_throws(): void
+    {
+        Cache::extend('flaky', fn() => new Repository(new class extends ArrayStore {
+            public function get($key)
+            {
+                if (str_starts_with($key, 'chat-send:') && !str_ends_with($key, ':lock')) {
+                    throw new \RuntimeException('cache down');
+                }
+
+                return parent::get($key);
+            }
+        }));
+        config(['cache.stores.flaky' => ['driver' => 'flaky'], 'cache.default' => 'flaky']);
+
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'still sends', $contact->id, 'contact-rev-down')
+            ->assertDispatched('message-sent');
+
+        $this->assertSame(1, Message::where('sender_id', $me->id)->count());
+    }
+
+    public function test_contact_send_with_a_different_body_or_reply_target_under_the_same_rev_is_a_new_message(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'first text', $contact->id, 'contact-rev-fp');
+
+        $firstId = Message::where('sender_id', $me->id)->sole()->id;
+
+        $component->call('send', 'second text', $contact->id, 'contact-rev-fp');
+        $this->assertSame(2, Message::where('sender_id', $me->id)->count());
+
+        $component->call('send', 'second text', $contact->id, 'contact-rev-fp');
+        $this->assertSame(2, Message::where('sender_id', $me->id)->count());
+
+        $component->call('replyTo', $firstId)->call('send', 'second text', $contact->id, 'contact-rev-fp');
+        $this->assertSame(3, Message::where('sender_id', $me->id)->count());
+    }
+
+    public function test_contact_send_same_rev_with_a_different_staged_attachment_inserts_and_overwrites_the_marker(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+        $key = "chat-send:{$me->id}:contact:contact-rev-att";
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->set('composer.attachments', [UploadedFile::fake()->image('a.jpg')])
+            ->call('send', 'same text', $contact->id, 'contact-rev-att');
+
+        $firstId = Message::where('sender_id', $me->id)->sole()->id;
+
+        $component->set('composer.attachments', [UploadedFile::fake()->image('a.jpg')])
+            ->call('send', 'same text', $contact->id, 'contact-rev-att');
+
+        $this->assertSame(2, Message::where('sender_id', $me->id)->count());
+        $secondId = Message::where('sender_id', $me->id)->where('id', '!=', $firstId)->value('id');
+        $component->assertReturned($secondId);
+        $this->assertSame($secondId, Cache::get($key)['id']);
+    }
+
+    public function test_contact_send_same_rev_with_the_same_staged_attachment_returns_the_stored_id(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+        $existing = Message::create(['sender_id' => $me->id, 'recipient_id' => $contact->id, 'body' => 'same text']);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->set('composer.attachments', [UploadedFile::fake()->image('a.jpg')]);
+
+        $staged = $component->get('composer.attachments')[0]->getFilename();
+        Cache::put(
+            "chat-send:{$me->id}:contact:contact-rev-same",
+            ['id' => $existing->id, 'fp' => sha1('same text||' . $staged)],
+            now()->addHour()
+        );
+
+        $component->call('send', 'same text', $contact->id, 'contact-rev-same')->assertReturned($existing->id);
+
+        $this->assertSame(1, Message::where('sender_id', $me->id)->count());
+    }
+
+    public function test_contact_send_marker_with_a_mismatched_fingerprint_never_returns_the_old_id(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+        $existing = Message::create(['sender_id' => $me->id, 'recipient_id' => $contact->id, 'body' => 'earlier']);
+        Cache::put("chat-send:{$me->id}:contact:contact-rev-mismatch", ['id' => $existing->id, 'fp' => 'not-the-fingerprint'], now()->addHour());
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'fresh text', $contact->id, 'contact-rev-mismatch');
+
+        $newId = Message::where('sender_id', $me->id)->where('id', '!=', $existing->id)->value('id');
+        $this->assertNotNull($newId);
+        $component->assertReturned($newId);
+    }
+
+    public function test_contact_send_goes_through_unlocked_when_the_lock_store_throws_a_non_timeout_error(): void
+    {
+        Cache::extend('nolock', fn() => new Repository(new class extends ArrayStore {
+            public function lock($name, $seconds = 0, $owner = null)
+            {
+                throw new \RuntimeException('lock store down');
+            }
+        }));
+        config(['cache.stores.nolock' => ['driver' => 'nolock'], 'cache.default' => 'nolock']);
+
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'unlocked send', $contact->id, 'contact-rev-nolock');
+
+        $id = Message::where('sender_id', $me->id)->sole()->id;
+        $component->assertReturned($id);
+    }
+
+    public function test_contact_send_with_a_non_scalar_room_returns_null_and_stores_nothing(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'hi', [$contact->id], 'contact-rev-array')
+            ->assertReturned(null)
+            ->assertNotDispatched('message-sent');
+
+        $this->assertSame(0, Message::where('sender_id', $me->id)->count());
+    }
+
+    public function test_contact_send_ignores_an_old_format_integer_marker(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+        $existing = Message::create(['sender_id' => $me->id, 'recipient_id' => $contact->id, 'body' => 'earlier']);
+        Cache::put("chat-send:{$me->id}:contact:contact-rev-old", $existing->id, now()->addHour());
+
+        Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'brand new', $contact->id, 'contact-rev-old');
+
+        $this->assertSame(2, Message::where('sender_id', $me->id)->count());
+    }
+
+    public function test_contact_send_returns_null_without_inserting_when_the_send_lock_cannot_be_acquired(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+        $lock = Cache::lock("chat-send:{$me->id}:contact:contact-rev-lock:lock", 30);
+        $this->assertTrue($lock->get());
+
+        Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'blocked', $contact->id, 'contact-rev-lock')
+            ->assertReturned(null)
+            ->assertNotDispatched('message-sent');
+
+        $lock->release();
+        $this->assertSame(0, Message::where('sender_id', $me->id)->count());
+    }
+
+    public function test_contact_send_failed_validation_writes_no_marker_and_the_rev_can_be_reused(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', '', $contact->id, 'contact-rev-invalid')
+            ->assertReturned(null)
+            ->assertNotDispatched('message-sent');
+
+        $this->assertFalse(Cache::has("chat-send:{$me->id}:contact:contact-rev-invalid"));
+        $this->assertSame(0, Message::where('sender_id', $me->id)->count());
+
+        $component->call('send', 'now valid', $contact->id, 'contact-rev-invalid');
+
+        $this->assertSame(1, Message::where('sender_id', $me->id)->count());
+        $this->assertTrue(Cache::has("chat-send:{$me->id}:contact:contact-rev-invalid"));
+    }
+
+    public function test_contact_send_inserts_again_when_the_marked_message_row_was_deleted(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->call('send', 'first', $contact->id, 'contact-rev-gone');
+
+        $firstId = Message::where('sender_id', $me->id)->sole()->id;
+        Message::where('id', $firstId)->forceDelete();
+
+        $component->call('send', 'first', $contact->id, 'contact-rev-gone');
+
+        $second = Message::where('sender_id', $me->id)->sole();
+        $this->assertNotSame($firstId, $second->id);
+        $component->assertReturned($second->id);
+    }
+
+    public function test_contact_send_without_arguments_still_returns_the_id_and_dispatches_a_null_rev(): void
+    {
+        $me = User::factory()->create(['status' => 'active']);
+        $contact = User::factory()->create(['status' => 'active']);
+
+        $component = Livewire::actingAs($me)
+            ->test(Main::class)
+            ->call('selectContact', $contact->id)
+            ->set('composer.body', 'plain send')
+            ->call('send');
+
+        $id = Message::where('sender_id', $me->id)->sole()->id;
+        $component->assertReturned($id)
+            ->assertDispatched('message-sent', fn($name, $params) => $params['id'] === $id && $params['rev'] === null);
+    }
+
+    public function test_contact_composer_footer_carries_the_room_and_opts_out_of_workspace_keep_fields(): void
+    {
+        $source = file_get_contents(resource_path('views/livewire/dashboard/contact/composer.blade.php'));
+
+        $this->assertMatchesRegularExpression(
+            '/<footer wire:key="composer-active" data-room="\{\{ \$this->activeUserId \}\}" data-no-keep /',
+            $source
+        );
     }
 
     public function test_contact_message_search_results_empty_when_no_active_contact(): void

@@ -287,6 +287,122 @@ class MediaModelTest extends TestCase
         $this->assertSame($series->id, $audio->fresh()->parent_id);
     }
 
+    public function test_a_series_never_keeps_a_file_duration_or_tracks(): void
+    {
+        $created = Media::factory()->series()->create([
+            'file_path' => 'media/files/stray.mp3',
+            'duration_seconds' => 90,
+            'transcript_path' => 'media/tracks/stray.vtt',
+            'chapters_path' => 'media/tracks/stray-chapters.vtt',
+        ]);
+
+        $created->update(['file_path' => 'media/files/stray-again.mp3', 'duration_seconds' => 45, 'title' => '0-Series Probe']);
+
+        $single = Media::factory()->create(['kind' => Media::KIND_AUDIO, 'file_path' => 'media/files/single.mp3']);
+        $this->assertValidationFails('data.kind', fn () => $single->update(['kind' => Media::KIND_SERIES]));
+        $this->assertSame(Media::KIND_AUDIO, $single->fresh()->kind);
+
+        $single->refresh()->update(['file_path' => null]);
+        $single->update(['kind' => Media::KIND_SERIES]);
+
+        foreach ([$created->fresh(), $single->fresh()] as $series) {
+            $this->assertNull($series->getRawOriginal('file_path'));
+            $this->assertNull($series->duration_seconds);
+            $this->assertNull($series->transcript_path);
+            $this->assertNull($series->chapters_path);
+        }
+    }
+
+    public function test_an_episode_added_or_moved_under_a_series_is_appended_last(): void
+    {
+        $series = Media::factory()->series()->create();
+        $other = Media::factory()->series()->create();
+        $first = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $series->user_id]);
+        $second = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $series->user_id]);
+        $second->update(['position' => 7]);
+        $third = Media::factory()->create(['parent_id' => $series->id, 'user_id' => $series->user_id]);
+        $moved = Media::factory()->create();
+        $moved->update(['parent_id' => $other->id]);
+
+        $this->assertSame(1, $first->fresh()->position);
+        $this->assertSame(8, $third->fresh()->position);
+        $this->assertSame(1, $moved->fresh()->position);
+    }
+
+    public function test_a_fileless_single_created_without_an_explicit_active_is_refused(): void
+    {
+        $raw = Media::factory()->raw(['file_path' => null]);
+        unset($raw['active']);
+
+        $this->assertValidationFails('data.active', fn () => (new Media)->forceFill($raw)->save());
+
+        $raw['active'] = false;
+        (new Media)->forceFill($raw)->save();
+
+        $this->assertDatabaseHas('media', ['title' => $raw['title'], 'active' => false]);
+    }
+
+    public function test_activating_a_fileless_single_is_blocked_only_at_the_moment_of_activation(): void
+    {
+        $draft = Media::factory()->create(['kind' => Media::KIND_AUDIO, 'file_path' => null, 'active' => false]);
+
+        $this->assertValidationFails('data.active', fn () => $draft->update(['active' => true]));
+
+        $draft->refresh()->update(['title' => '0-Draft Renamed']);
+
+        $stale = Media::factory()->create(['kind' => Media::KIND_AUDIO, 'file_path' => null, 'active' => false]);
+        $stale->forceFill(['active' => true])->saveQuietly();
+        $stale->update(['title' => '0-Stale Renamed']);
+        $stale->update(['active' => false]);
+
+        $series = Media::factory()->series()->create(['active' => false]);
+        $series->update(['active' => true]);
+
+        $this->assertSame('0-Draft Renamed', $draft->fresh()->title);
+        $this->assertSame('0-Stale Renamed', $stale->fresh()->title);
+        $this->assertFalse($stale->fresh()->active);
+        $this->assertTrue($series->fresh()->active);
+    }
+
+    public function test_series_saves_delete_the_stray_files_from_disk_but_keep_the_cover(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('media/files/stray.mp3', 'audio');
+        Storage::disk('public')->put('media/tracks/stray.vtt', 'vtt');
+        Storage::disk('public')->put('media/covers/cover.jpg', 'img');
+
+        $series = Media::factory()->series()->create([
+            'file_path' => 'media/files/stray.mp3',
+            'transcript_path' => 'media/tracks/stray.vtt',
+            'cover_image' => 'media/covers/cover.jpg',
+        ]);
+
+        $this->assertNull($series->fresh()->file_path);
+        Storage::disk('public')->assertMissing('media/files/stray.mp3');
+        Storage::disk('public')->assertMissing('media/tracks/stray.vtt');
+        Storage::disk('public')->assertExists('media/covers/cover.jpg');
+
+        Storage::disk('public')->put('media/files/legacy.mp3', 'audio');
+        $legacy = Media::factory()->create(['kind' => Media::KIND_AUDIO, 'file_path' => 'media/files/legacy.mp3', 'active' => false]);
+        $legacy->forceFill(['kind' => Media::KIND_SERIES])->saveQuietly();
+
+        $legacy->update(['title' => '0-Legacy Series']);
+
+        $this->assertNull($legacy->fresh()->file_path);
+        Storage::disk('public')->assertMissing('media/files/legacy.mp3');
+    }
+
+    public function test_an_expiry_before_the_release_date_is_refused(): void
+    {
+        $item = Media::factory()->create(['kind' => Media::KIND_AUDIO, 'active' => false, 'report_date' => '2026-12-01', 'expires_at' => null]);
+
+        $this->assertValidationFails('data.expires_at', fn () => $item->update(['expires_at' => '2026-11-01']));
+
+        $item->refresh()->update(['expires_at' => '2026-12-20']);
+
+        $this->assertSame('2026-12-20', $item->fresh()->expires_at->toDateString());
+    }
+
     public function test_a_series_with_episodes_cannot_change_kind(): void
     {
         $series = Media::factory()->series()->create();

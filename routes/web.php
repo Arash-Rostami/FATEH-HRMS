@@ -67,7 +67,6 @@ Route::get('/offline', fn () => response()->view('errors.offline')->header('Cach
     ])
     ->name('offline');
 
-
 Route::post('/icon-miss', IconMissController::class)->middleware('throttle:icon-miss')->name('icon.miss');
 
 Route::middleware(['letter.link', 'throttle:letter-link'])

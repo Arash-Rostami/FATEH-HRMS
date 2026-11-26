@@ -39,7 +39,6 @@ class SwitchTabs extends Component
             ['id' => 'channels', 'label' => 'گروه‌ها', 'icon' => 'campaign', 'route' => route('channels'), 'unread' => $this->channelsUnread],
         ])
             ->reject(fn ($tab) => tenantOff($tab['id']))
-            ->sortBy(fn ($tab) => $tab['id'] === $this->active ? 0 : 1)
             ->values()
             ->all();
     }

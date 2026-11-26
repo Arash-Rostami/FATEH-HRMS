@@ -13,14 +13,8 @@
 
     <!-- General Info -->
     <div class="space-y-1">
-        <x-ui.forms.input label="نام چرخه" name="workflowName" wire:model="workflowName" icon="conversion_path"/>
+        <x-ui.forms.input label="نام چرخه" name="name" wire:model="workflowName" icon="conversion_path" mark/>
         <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)]">مراحل به ترتیب اجرا می‌شوند. ذخیره فقط پیش‌نویس می‌سازد؛ پس از بررسی مسئولان و مراحل، «شروع چرخه» را بزنید.</p>
-        @error('name')
-        <p class="flex items-center gap-1 text-[12px] font-medium text-[var(--md-sys-color-error)] animate-toast-in">
-            <span class="material-symbols-rounded text-[14px]">error</span>
-            {{ $message }}
-        </p>
-        @enderror
     </div>
 
     <!-- Steps -->
@@ -35,7 +29,7 @@
                     </div>
 
                     <div class="flex-1">
-                        <x-ui.forms.input label="عنوان مرحله (مثلاً: بررسی اولیه)" name="steps.{{ $i }}.label" wire:model="steps.{{ $i }}.label"/>
+                        <x-ui.forms.input label="عنوان مرحله (مثلاً: بررسی اولیه)" name="steps.{{ $i }}.label" wire:model="steps.{{ $i }}.label" mark/>
                     </div>
 
                     @if(count($steps) > 1)
@@ -89,7 +83,7 @@
                                 جزئیات وظیفهٔ خودکار
                             </h4>
 
-                            <x-ui.forms.input label="عنوان وظیفه" name="steps.{{ $i }}.task_title" wire:model="steps.{{ $i }}.task_title"/>
+                            <x-ui.forms.input label="عنوان وظیفه" name="steps.{{ $i }}.task_title" wire:model="steps.{{ $i }}.task_title" mark/>
 
                             <x-ui.forms.textarea label="توضیحات وظیفه (اختیاری)" name="steps.{{ $i }}.task_description" wire:model="steps.{{ $i }}.task_description" :rows="2"/>
 

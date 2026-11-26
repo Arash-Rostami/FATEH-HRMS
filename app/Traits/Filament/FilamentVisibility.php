@@ -19,6 +19,8 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 trait FilamentVisibility
 {
@@ -211,7 +213,20 @@ trait FilamentVisibility
             ->requiresConfirmation()
             ->deselectRecordsAfterCompletion()
             ->action(function (Collection $records) use ($active, $key): void {
-                $records->each->update(['active' => $active]);
+                try {
+                    DB::transaction(fn () => $records->each(function ($record) use ($active): void {
+                        try {
+                            $record->update(['active' => $active]);
+                        } catch (ValidationException $exception) {
+                            throw ValidationException::withMessages(['active' => ($record->getAttribute('title') ?? $record->getKey()) . ': ' . collect($exception->errors())->flatten()->first()]);
+                        }
+                    }));
+                } catch (ValidationException $exception) {
+                    Notification::make()->title(collect($exception->errors())->flatten()->first())->danger()->send();
+
+                    return;
+                }
+
                 Notification::make()
                     ->title(__("resources/general/strings.visibility.{$key}d"))
                     ->success()

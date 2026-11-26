@@ -531,7 +531,7 @@ describe('channel() edit flow', () => {
 
         await c.saveEdit(7);
 
-        expect(c.toast).toHaveBeenCalledWith('خطا در ارتباط با سرور.', 'error');
+        expect(c.toast).toHaveBeenCalledWith('ذخیرهٔ ویرایش تأیید نشد. پیش از تلاش دوباره، اتصال اینترنت را بررسی کنید.', 'error');
     });
 });
 
@@ -772,6 +772,7 @@ describe('channel() _bindViewport — re-binds across channel switches instead o
         c.$wire = createWireMock();
         c.$watch = vi.fn();
         c.initFancybox = vi.fn();
+        c.$nextTick = (cb) => cb?.();
         const vp = withViewport();
 
         c.init();
@@ -1055,6 +1056,7 @@ describe('channel() last-open-channel persistence + maximize sequencing (added 2
         c.$watch = vi.fn();
         c.initFancybox = vi.fn();
         c.initMaximize = vi.fn();
+        c.$nextTick = (cb) => cb?.();
         c.selectChannel = vi.fn(() => Promise.resolve());
 
         c.init();
@@ -1070,6 +1072,7 @@ describe('channel() last-open-channel persistence + maximize sequencing (added 2
         c.$watch = vi.fn();
         c.initFancybox = vi.fn();
         c.initMaximize = vi.fn();
+        c.$nextTick = (cb) => cb?.();
         c.selectChannel = vi.fn(() => Promise.resolve());
 
         c.init();
@@ -1087,6 +1090,7 @@ describe('channel() last-open-channel persistence + maximize sequencing (added 2
         c.$wire = createWireMock({ activeChannelId: null });
         c.$watch = vi.fn();
         c.initFancybox = vi.fn();
+        c.$nextTick = (cb) => cb?.();
 
         const order = [];
         let resolveSelect;
@@ -1425,6 +1429,7 @@ describe('channel() selectionchange → quote chip (skip-idle-frame guard)', () 
         c.$watch = vi.fn();
         c.initFancybox = vi.fn();
         c.initMaximize = vi.fn();
+        c.$nextTick = (cb) => cb?.();
         c.init();
         c._selectionChip = vi.fn(() => undefined);
     });
@@ -1514,7 +1519,7 @@ describe('channel send ghost', () => {
 
         const pending = c.sendMessage();
         expect(vp.querySelector('[data-ghost] [dir="auto"]').textContent).toBe('hello');
-        expect(send).toHaveBeenCalledWith();
+        expect(send).toHaveBeenCalledWith('hello', null, expect.any(String));
         expect(ta.value).toBe('hello');
         expect(c.$wire.composer.body).toBe('server-draft');
         expect(c.$wire.set).not.toHaveBeenCalled();
@@ -1541,7 +1546,8 @@ describe('channel send ghost', () => {
         await pending;
 
         expect(vp.querySelector('[data-ghost]')).toBeNull();
-        expect(c.toast).toHaveBeenCalledWith('خطا در ارتباط با سرور.', 'error');
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(c.toast).toHaveBeenCalledWith('وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.', 'error');
     });
 
     test('no ghost when attachments are staged or a reply is open', async () => {
@@ -1595,7 +1601,7 @@ describe('channel send ghost', () => {
 
         const pending = c.sendMessage();
         expect(document.querySelector('[data-ghost]')).toBeNull();
-        expect(send).toHaveBeenCalledWith();
+        expect(send).toHaveBeenCalledWith('hello', null, expect.any(String));
         expect(ta.value).toBe('hello');
 
         resolveSend();
@@ -1843,5 +1849,195 @@ describe('channel() AI assistant tab — state lives in Alpine, one renderless $
         await pending;
 
         expect(c).toMatchObject({ aiAnswer: '', aiMessage: '', aiMeter: '', aiBusy: false });
+    });
+});
+
+describe('channel composer draft store wiring (send integrity, mention writers, channel rows)', () => {
+    const KEY = 'chat-draft:3:channel:4';
+    let c;
+
+    function mount() {
+        vi.useFakeTimers();
+        document.documentElement.dataset.uid = '3';
+        localStorage.clear();
+        document.body.innerHTML = '<footer data-room="4" data-no-keep><textarea id="msg-ta"></textarea></footer><div id="msg-viewport"></div>';
+        const ta = document.getElementById('msg-ta');
+        ta.focus = vi.fn();
+        const vp = document.getElementById('msg-viewport');
+        vp.scrollTo = vi.fn();
+
+        c = channel();
+        c.$wire = createWireMock({ activeChannelId: null });
+        c.$watch = vi.fn();
+        c.initFancybox = vi.fn();
+        c.$store = { sound: { playOutgoing: vi.fn() } };
+        c.$nextTick = (cb) => (cb ? cb() : Promise.resolve());
+        c._syncSidebarAfterOwnAction = vi.fn();
+        c.toast = vi.fn();
+        c.init();
+
+        const handler = c.$wire.on.mock.calls.find(([e]) => e === 'message-sent')[1];
+        return { ta, vp, handler };
+    }
+
+    const type = (ta, value) => {
+        ta.value = value;
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    afterEach(() => {
+        c?.destroy();
+        vi.useRealTimers();
+    });
+
+    test('init wires the draft store: the model watcher is registered and typing is saved under the channel key', () => {
+        const { ta } = mount();
+
+        expect(c.$watch).toHaveBeenCalledWith('$wire.composer.body', expect.any(Function));
+        type(ta, 'hello');
+
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('hello');
+    });
+
+    test('openMentionPicker and pickMention update the draft and are not reverted by the watcher', () => {
+        const { ta } = mount();
+        const watch = c.$watch.mock.calls.find(([expr]) => expr === '$wire.composer.body')[1];
+        Object.defineProperty(c, 'mentionMatches', { get: () => ['Alireza'] });
+        type(ta, 'hi');
+        ta.selectionStart = ta.selectionEnd = 2;
+
+        c.openMentionPicker();
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('hi @');
+        c.$wire.set.mockClear();
+        watch('hi @');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+
+        ta.selectionStart = ta.selectionEnd = 4;
+        c.pickMention(0);
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('hi @Alireza ');
+        c.$wire.set.mockClear();
+        watch('hi @Alireza ');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+
+        watch('hi');
+        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'hi @Alireza ', false);
+    });
+
+    test('Enter sends (trimmed body, room, rev), the box is read-only until it settles, and only the matching message-sent clears the draft', async () => {
+        const { ta, vp, handler } = mount();
+        vp.insertAdjacentHTML('beforeend', '<div data-rf="channel-message-9"></div>');
+        type(ta, 'hello ');
+        const rev = JSON.parse(localStorage.getItem(KEY)).rev;
+        let finish;
+        const send = vi.fn(() => new Promise((resolve) => { finish = resolve; }));
+        c.$wire.$island = vi.fn(() => ({ send, refreshActive: vi.fn() }));
+
+        const pending = c.sendMessage();
+        expect(send).toHaveBeenCalledWith('hello', '4', rev);
+        expect(ta.readOnly).toBe(true);
+
+        handler({ id: 9, rev: 'another-rev' });
+        expect(localStorage.getItem(KEY)).not.toBeNull();
+
+        handler({ id: 9, rev });
+        finish(9);
+        await pending;
+
+        expect(ta.readOnly).toBe(false);
+        expect(localStorage.getItem(KEY)).toBeNull();
+        expect(c.toast).not.toHaveBeenCalled();
+    });
+
+    test('a failed send keeps the draft; a null result toasts the undelivered notice', async () => {
+        const { ta } = mount();
+        type(ta, 'hello');
+        c.$wire.$island = vi.fn(() => ({ send: vi.fn(() => Promise.reject(new Error('boom'))) }));
+
+        await c.sendMessage();
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(c.toast).toHaveBeenCalledWith('وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.', 'error');
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('hello');
+
+        await vi.advanceTimersByTimeAsync(500);
+        c.toast.mockClear();
+        c.$wire.$island = vi.fn(() => ({ send: vi.fn(() => Promise.resolve(null)) }));
+        await c.sendMessage();
+
+        expect(c.toast).toHaveBeenCalledWith('وضعیت ارسال پیام مشخص نیست', 'error');
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('hello');
+    });
+
+    test('a stored id without its channel-message row refreshes the thread and keeps the ghost meanwhile', async () => {
+        const { ta, vp, handler } = mount();
+        type(ta, 'hello');
+        let ghostSeen = null;
+        const refreshActive = vi.fn(() => {
+            ghostSeen = !!vp.querySelector('[data-ghost]');
+            vp.insertAdjacentHTML('beforeend', '<div data-rf="channel-message-9"></div>');
+            return Promise.resolve();
+        });
+        const send = vi.fn((body, room, rev) => {
+            handler({ id: 9, rev });
+            return Promise.resolve(9);
+        });
+        c.$wire.$island = vi.fn(() => ({ send, refreshActive }));
+
+        await c.sendMessage();
+
+        expect(refreshActive).toHaveBeenCalledTimes(1);
+        expect(ghostSeen).toBe(true);
+        expect(vp.querySelector('[data-ghost]')).toBeNull();
+    });
+
+    test('the 30s watchdog cancels, releases the box and keeps the draft', async () => {
+        const { ta } = mount();
+        type(ta, 'hello');
+        const hung = new Promise(() => {});
+        hung._livewireAction = { cancel: vi.fn() };
+        c.$wire.$island = vi.fn(() => ({ send: vi.fn(() => hung) }));
+
+        const pending = c.sendMessage();
+        await vi.advanceTimersByTimeAsync(30000);
+        await pending;
+        await vi.advanceTimersByTimeAsync(500);
+
+        expect(hung._livewireAction.cancel).toHaveBeenCalledOnce();
+        expect(ta.readOnly).toBe(false);
+        expect(c.sending).toBe(false);
+        expect(c.toast).toHaveBeenCalledWith('وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.', 'error');
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('hello');
+    });
+
+    test('the mention writers are ignored while a send is in flight', () => {
+        const { ta } = mount();
+        Object.defineProperty(c, 'mentionMatches', { get: () => ['Alireza'] });
+        type(ta, 'sent @');
+        ta.readOnly = true;
+        ta.selectionStart = ta.selectionEnd = 6;
+        c.$wire.set.mockClear();
+
+        c.openMentionPicker();
+        c.pickMention(0);
+
+        expect(ta.value).toBe('sent @');
+        expect(JSON.parse(localStorage.getItem(KEY)).body).toBe('sent @');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('selectChannel restores the stored draft of the opened channel after the island resolves', async () => {
+        const { ta } = mount();
+        localStorage.setItem(KEY, JSON.stringify({ body: 'saved', rev: 'r1', at: Date.now() }));
+        c.$wire.$island = vi.fn(() => ({ selectChannel: vi.fn(() => Promise.resolve()) }));
+        c.resetAutoResize = vi.fn();
+        c.scrollToBottom = vi.fn();
+        c._persistLastOpen = vi.fn();
+        c._repollNow = vi.fn();
+        c._bindViewport = vi.fn();
+        c._sidebar = vi.fn(() => Promise.resolve());
+        c.scheduleChipsFade = vi.fn();
+
+        await c.selectChannel(4);
+
+        expect(ta.value).toBe('saved');
     });
 });

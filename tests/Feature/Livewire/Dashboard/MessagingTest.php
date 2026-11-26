@@ -350,13 +350,13 @@ class MessagingTest extends TestCase
             ->assertHasNoErrors();
     }
 
-    public function test_switch_tabs_puts_the_current_module_first_like_projects_and_tasks()
+    public function test_switch_tabs_keeps_a_stable_order_regardless_of_active_module()
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
 
         Livewire::actingAs($user)
             ->test(SwitchTabs::class, ['active' => 'channels'])
-            ->assertSeeInOrder(['گروه‌ها', 'پیام‌رسان']);
+            ->assertSeeInOrder(['پیام‌رسان', 'گروه‌ها']);
 
         Livewire::actingAs($user)
             ->test(SwitchTabs::class, ['active' => 'contacts'])

@@ -136,6 +136,76 @@ class EventResourceTest extends TestCase
         ]);
     }
 
+    public function test_public_event_create_drops_a_stale_user_id()
+    {
+        $admin = $this->developer();
+
+        $targetGregorian = '2026-08-15';
+        $jalali = Jalalian::fromCarbon(Carbon::parse($targetGregorian));
+
+        Livewire::actingAs($admin)->test(CreateEvent::class)
+            ->fillForm([
+                'title' => 'Stale Audience Probe',
+                'date_jalali' => $targetGregorian,
+                'date_jalali_year' => (string) $jalali->getYear(),
+                'date_jalali_month' => (string) $jalali->getMonth(),
+                'date_jalali_day' => (string) $jalali->getDay(),
+                'date_time_part' => '10:30',
+                'private' => false,
+                'user_id' => $admin->id,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull(Event::where('title', 'Stale Audience Probe')->firstOrFail()->user_id);
+    }
+
+    public function test_private_event_create_persists_the_audience_user()
+    {
+        $admin = $this->developer();
+        $recipient = User::factory()->create(['role' => 'user', 'status' => 'active']);
+
+        $targetGregorian = '2026-08-15';
+        $jalali = Jalalian::fromCarbon(Carbon::parse($targetGregorian));
+
+        Livewire::actingAs($admin)->test(CreateEvent::class)
+            ->fillForm([
+                'title' => 'Kept Audience Probe',
+                'date_jalali' => $targetGregorian,
+                'date_jalali_year' => (string) $jalali->getYear(),
+                'date_jalali_month' => (string) $jalali->getMonth(),
+                'date_jalali_day' => (string) $jalali->getDay(),
+                'date_time_part' => '10:30',
+                'private' => true,
+                'user_id' => $recipient->id,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame($recipient->id, Event::where('title', 'Kept Audience Probe')->firstOrFail()->user_id);
+    }
+
+    public function test_private_event_without_an_audience_user_is_refused()
+    {
+        $admin = $this->developer();
+
+        $targetGregorian = '2026-08-15';
+        $jalali = Jalalian::fromCarbon(Carbon::parse($targetGregorian));
+
+        Livewire::actingAs($admin)->test(CreateEvent::class)
+            ->fillForm([
+                'title' => 'Missing Audience Probe',
+                'date_jalali' => $targetGregorian,
+                'date_jalali_year' => (string) $jalali->getYear(),
+                'date_jalali_month' => (string) $jalali->getMonth(),
+                'date_jalali_day' => (string) $jalali->getDay(),
+                'date_time_part' => '10:30',
+                'private' => true,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['user_id']);
+    }
+
     public function test_edit_event_clears_remind_hours()
     {
         $admin = $this->developer();

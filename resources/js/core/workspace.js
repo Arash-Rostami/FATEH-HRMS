@@ -1,6 +1,7 @@
 const PARK_TTL_MS = 2 * 60 * 1000
 const LATE_MOUNT_MS = 5000
 const KEEP_PREFIX = 'keep:'
+const DRAFT_PREFIX = 'chat-draft:'
 const FIELD_SELECTOR = 'textarea, input:not([type=password],[type=file],[type=hidden],[type=checkbox],[type=radio],[type=submit],[type=button],[type=range],[type=color])'
 
 const pool = new Map()
@@ -217,6 +218,12 @@ function sweepKeep() {
         Object.keys(sessionStorage)
             .filter((k) => k.startsWith(KEEP_PREFIX))
             .forEach((k) => sessionStorage.removeItem(k))
+    } catch (e) {}
+    try {
+        const drafts = `${DRAFT_PREFIX}${document.documentElement.dataset.uid ?? ''}:`
+        Object.keys(localStorage)
+            .filter((k) => k.startsWith(drafts))
+            .forEach((k) => localStorage.removeItem(k))
     } catch (e) {}
 }
 

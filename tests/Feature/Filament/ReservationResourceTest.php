@@ -176,6 +176,72 @@ class ReservationResourceTest extends TestCase
         ]);
     }
 
+    public function test_active_reservation_create_drops_a_stale_cancel_reason()
+    {
+        $admin = $this->developer();
+        $resource = $this->seatResource();
+        $start = now()->addDay()->startOfDay()->addHours(9);
+        $jStart = Jalalian::fromCarbon($start);
+        $jEnd = Jalalian::fromCarbon($start->copy()->addHour());
+
+        Livewire::actingAs($admin)->test(CreateReservation::class)
+            ->fillForm([
+                'user_id' => $admin->id,
+                'resource_id' => $resource->id,
+                'status' => 'active',
+                'is_full_day' => false,
+                'cancel_reason' => 'schedule_change',
+                'start_time_date' => $start->format('Y-m-d'),
+                'start_time_date_year' => $jStart->getYear(),
+                'start_time_date_month' => $jStart->getMonth(),
+                'start_time_date_day' => $jStart->getDay(),
+                'start_time_time' => $start->format('H:i'),
+                'end_time_date' => $start->copy()->addHour()->format('Y-m-d'),
+                'end_time_date_year' => $jEnd->getYear(),
+                'end_time_date_month' => $jEnd->getMonth(),
+                'end_time_date_day' => $jEnd->getDay(),
+                'end_time_time' => $start->copy()->addHour()->format('H:i'),
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $reservation = Reservation::where('user_id', $admin->id)->where('resource_id', $resource->id)->latest('id')->firstOrFail();
+        $this->assertNull($reservation->cancel_reason);
+    }
+
+    public function test_cancelled_reservation_persists_the_cancel_reason()
+    {
+        $admin = $this->developer();
+        $resource = $this->seatResource();
+        $start = now()->addDay()->startOfDay()->addHours(9);
+        $jStart = Jalalian::fromCarbon($start);
+        $jEnd = Jalalian::fromCarbon($start->copy()->addHour());
+
+        Livewire::actingAs($admin)->test(CreateReservation::class)
+            ->fillForm([
+                'user_id' => $admin->id,
+                'resource_id' => $resource->id,
+                'status' => 'cancelled_user',
+                'is_full_day' => false,
+                'cancel_reason' => 'schedule_change',
+                'start_time_date' => $start->format('Y-m-d'),
+                'start_time_date_year' => $jStart->getYear(),
+                'start_time_date_month' => $jStart->getMonth(),
+                'start_time_date_day' => $jStart->getDay(),
+                'start_time_time' => $start->format('H:i'),
+                'end_time_date' => $start->copy()->addHour()->format('Y-m-d'),
+                'end_time_date_year' => $jEnd->getYear(),
+                'end_time_date_month' => $jEnd->getMonth(),
+                'end_time_date_day' => $jEnd->getDay(),
+                'end_time_time' => $start->copy()->addHour()->format('H:i'),
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $reservation = Reservation::where('user_id', $admin->id)->where('resource_id', $resource->id)->latest('id')->firstOrFail();
+        $this->assertSame('schedule_change', $reservation->cancel_reason);
+    }
+
     public function test_create_reservation_requires_user_id()
     {
         $admin = $this->developer();

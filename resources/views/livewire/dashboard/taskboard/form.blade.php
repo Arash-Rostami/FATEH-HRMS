@@ -88,7 +88,7 @@
         <div x-show="formTab === 'content'" x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
              class="space-y-5">
-            <x-ui.forms.input label="عنوان وظیفه" name="form.newTitle" wire:model="form.newTitle" icon="title" required
+            <x-ui.forms.input label="عنوان وظیفه" name="form.newTitle" wire:model="form.newTitle" icon="title" mark
                               :disabled="$isReadOnly" dir="auto"/>
 
             <x-ui.forms.textarea label="توضیحات" name="form.newDescription" wire:model="form.newDescription"
@@ -161,7 +161,7 @@
 
                         @if($showLevelUpForm)
                             <div wire:key="taskboard-levelup-form" class="mt-3 space-y-3">
-                                <x-ui.forms.input label="نام پروژه" name="levelUpForm.name" wire:model="levelUpForm.name" icon="workspaces" required dir="auto"/>
+                                <x-ui.forms.input label="نام پروژه" name="levelUpForm.name" wire:model="levelUpForm.name" icon="workspaces" mark dir="auto"/>
                                 @error('levelUpForm.name')
                                 <div class="{{ $errorClass }}">
                                     <span class="material-symbols-rounded text-sm">error</span>

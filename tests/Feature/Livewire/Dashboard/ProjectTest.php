@@ -5237,6 +5237,16 @@ class ProjectTest extends TestCase
             ->assertNotDispatched('toast');
     }
 
+    public function test_save_workflow_validation_failure_points_to_the_first_invalid_field_without_a_toast(): void
+    {
+        [$owner, $project] = $this->ownerWithProject();
+
+        Livewire::actingAs($owner)->test(WorkflowTab::class, ['activeProjectId' => $project->id])
+            ->call('saveWorkflow')
+            ->assertDispatched('form-invalid', field: 'name')
+            ->assertNotDispatched('toast');
+    }
+
     public function test_open_reassign_only_allows_the_owner_or_the_current_steps_assignee(): void
     {
         [$owner, $project] = $this->ownerWithProject();

@@ -41,6 +41,7 @@ use App\Traits\Livewire\BulkSelectsPeople;
 use App\Traits\Livewire\ChatComposer;
 use App\Traits\Livewire\FocusOnRecord;
 use App\Traits\Livewire\ForwardsMessages;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
@@ -57,6 +58,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Throwable;
 
 #[Isolate]
 #[Lazy]
@@ -922,14 +924,51 @@ class Main extends Component
         Cache::put($key, $map, now()->addSeconds(60));
     }
 
-    public function send(SendChannelMessageAction $action): void
+    public function send(SendChannelMessageAction $action, ?string $body = null, mixed $room = null, ?string $rev = null): ?int
     {
         if (!$this->activeChannelId) {
-            return;
+            return null;
         }
 
+        if ($room !== null && (!is_scalar($room) || (int) $room !== $this->activeChannelId)) {
+            return null;
+        }
+
+        if ($body !== null) {
+            $this->composer->body = $body;
+        }
+
+        if ($rev !== null && !preg_match('/^[A-Za-z0-9-]{1,64}\z/', $rev)) {
+            $rev = null;
+        }
+
+        $markerKey = $rev !== null ? 'chat-send:' . auth()->id() . ":channel:{$rev}" : null;
+
+        $lock = null;
+        $held = false;
+
         try {
-            $action->execute($this->composer, $this->activeChannelId);
+            if ($markerKey) {
+                try {
+                    $lock = Cache::lock($markerKey . ':lock', 60);
+                    $held = $lock->block(5);
+                } catch (LockTimeoutException $e) {
+                    throw $e;
+                } catch (Throwable) {
+                    $lock = null;
+                }
+            }
+
+            try {
+                $messageId = $markerKey
+                    ? $this->sendOnce($action, $markerKey)
+                    : $action->execute($this->composer, $this->activeChannelId)->id;
+            } finally {
+                if ($held) {
+                    rescue(fn() => $lock->release());
+                }
+            }
+
             $this->clearOwnTyping();
             $this->composer->reset();
             $this->editingMsg = null;
@@ -937,16 +976,48 @@ class Main extends Component
             $this->focusOlder = 5;
             $this->focusNewer = 5;
             unset($this->messages, $this->channels);
-            $this->dispatch('message-sent');
+            $this->dispatch('message-sent', id: $messageId, rev: $rev);
+
+            return $messageId;
         } catch (ValidationException $e) {
             $this->setErrorBag($e->validator->errors());
-            $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ارسال پیام', type: 'error');
+            $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'پیام ارسال نشد. متن و پیوست‌ها را بررسی کنید.', type: 'error');
         } catch (HttpException $e) {
             throw $e;
+        } catch (LockTimeoutException) {
         } catch (\Exception $e) {
             report($e);
-            $this->dispatch('show-toast', message: 'خطای سیستمی رخ داده است', type: 'error');
+            $this->dispatch('show-toast', message: 'هنگام پردازش پیام مشکلی پیش آمد. کمی بعد دوباره تلاش کنید.', type: 'error');
         }
+
+        return null;
+    }
+
+    private function sendOnce(SendChannelMessageAction $action, string $markerKey): int
+    {
+        $fingerprint = sha1(
+            trim($this->composer->body) . '|' . ($this->composer->replyToId ?? '') . '|'
+            . collect($this->composer->attachments)->map(fn($file) => $file->getFilename())->implode(',')
+        );
+
+        $marker = rescue(fn() => Cache::get($markerKey));
+
+        if (is_array($marker) && ($marker['fp'] ?? null) === $fingerprint) {
+            $existing = ChannelMessage::whereKey($marker['id'] ?? 0)
+                ->where('sender_id', auth()->id())
+                ->where('channel_id', $this->activeChannelId)
+                ->value('id');
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
+        $messageId = $action->execute($this->composer, $this->activeChannelId)->id;
+
+        rescue(fn() => Cache::put($markerKey, ['id' => $messageId, 'fp' => $fingerprint], now()->addDay()));
+
+        return $messageId;
     }
 
     #[Renderless]

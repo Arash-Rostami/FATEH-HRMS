@@ -47,6 +47,9 @@
         :class="{ 'mx-auto opacity-0': headerDeclutter }">
     <span class="material-symbols-rounded text-base rotate-90" x-text="headerDeclutter ? 'unfold_more' : 'unfold_less'"></span>
 </button>
+<div class="hidden min-[480px]:block md:hidden">
+    <x-ui.modals.maximize-button/>
+</div>
 <div x-data="{ open: false, pos: {} }">
     <button type="button" id="chat-header-tools-trigger"
             x-on:click="pos = $el.getBoundingClientRect().toJSON(); open = !open"
@@ -93,11 +96,13 @@
                 <span class="material-symbols-rounded text-[16px]">info</span>
                 <span>اطلاعات بیشتر</span>
             </button>
-            <button type="button" x-on:click="open = false; toggleMaximize()"
-                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
-                <span class="material-symbols-rounded text-[16px]" x-text="max ? 'close_fullscreen' : 'open_in_full'" aria-hidden="true"></span>
-                <span x-text="max ? 'کوچک کردن' : 'بزرگ کردن'"></span>
-            </button>
+            <div class="min-[480px]:hidden">
+                <button type="button" x-on:click="open = false; toggleMaximize()"
+                        class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
+                    <span class="material-symbols-rounded text-[16px]" x-text="max ? 'close_fullscreen' : 'open_in_full'" aria-hidden="true"></span>
+                    <span x-text="max ? 'کوچک کردن' : 'بزرگ کردن'"></span>
+                </button>
+            </div>
             <button type="button" x-on:click="open = false; toggleHeaderDeclutter()"
                     class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
                 <span class="material-symbols-rounded text-[16px] rotate-90" aria-hidden="true">unfold_less</span>

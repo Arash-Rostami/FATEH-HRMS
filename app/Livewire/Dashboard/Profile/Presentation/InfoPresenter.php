@@ -34,11 +34,23 @@ class InfoPresenter
         return array_map(fn($case) => $case->value, FavoriteColor::cases());
     }
 
-    public function toView(ProfileForm $form, ?string $existingImage): array
+    public static function firstInvalid(array $keys): array
+    {
+        $ordered = collect(self::$stepFields)->flatMap(
+            fn(array $fields, int $step) => collect($fields)->map(fn(string $f) => ['step' => $step, 'field' => $f])
+        );
+
+        $first = $ordered->first(fn(array $row) => in_array($row['field'], $keys, true)) ?? ['step' => 1, 'field' => null];
+
+        return $first + ['count' => count($keys)];
+    }
+
+    public function toView(ProfileForm $form, ?string $existingImage, array $errorKeys = []): array
     {
         return [
             'steps' => self::$steps,
             'stepFields' => self::$stepFields,
+            'stepErrors' => collect(self::$stepFields)->map(fn(array $fields) => count(array_intersect($fields, $errorKeys)))->all(),
             'colors' => self::getColors(),
             'existingImage' => $existingImage,
         ];

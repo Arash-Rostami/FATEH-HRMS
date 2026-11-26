@@ -73,7 +73,9 @@ class EventFormPresenter
             ->preload()
             ->nullable()
             ->required(fn($get) => (bool)$get('private'))
-            ->visible(fn($get) => (bool)$get('private'));
+            ->visibleJs('$get(\'private\')')
+            ->saved(fn($get) => (bool)$get('private'))
+            ->validatedWhenNotDehydrated(false);
     }
 
     public static function remindHours(): Select
@@ -93,7 +95,6 @@ class EventFormPresenter
         return Toggle::make('enabled')
             ->label(__('resources/event/strings.fields.enabled'))
             ->helperText(__('resources/event/strings.hints.countdown'))
-            ->live()
             ->default(false)
             ->inline(false);
     }
@@ -109,8 +110,9 @@ class EventFormPresenter
             ])
             ->default('happy')
             ->native(false)
-            ->visible(fn($get) => (bool) $get('enabled'))
-            ->dehydrated(fn($get) => (bool) $get('enabled'));
+            ->visibleJs('$get(\'enabled\')')
+            ->dehydrated(fn($get) => (bool) $get('enabled'))
+            ->validatedWhenNotDehydrated(false);
     }
 
     public static function countdownConfetti(): Toggle
@@ -120,8 +122,9 @@ class EventFormPresenter
             ->helperText(__('resources/event/strings.hints.confetti'))
             ->default(true)
             ->inline(false)
-            ->visible(fn($get) => (bool) $get('enabled'))
-            ->dehydrated(fn($get) => (bool) $get('enabled'));
+            ->visibleJs('$get(\'enabled\')')
+            ->dehydrated(fn($get) => (bool) $get('enabled'))
+            ->validatedWhenNotDehydrated(false);
     }
 
     public static function countdownMessages(): Repeater
@@ -137,8 +140,9 @@ class EventFormPresenter
             ->maxItems(8)
             ->addable()
             ->deletable()
-            ->visible(fn($get) => (bool) $get('enabled'))
+            ->visibleJs('$get(\'enabled\')')
             ->dehydrated(fn($get) => (bool) $get('enabled'))
+            ->validatedWhenNotDehydrated(false)
             ->addActionLabel(__('resources/event/strings.fields.message'));
     }
 }

@@ -136,7 +136,7 @@
             @endif
 
             <div class="flex items-center gap-2 px-1 py-2">
-                <textarea id="team-chat-ta" wire:ignore.self wire:model.defer="chatComposer.body" x-on:input="$el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,120)+'px'; detectMention($event)" x-on:keydown="onComposerKeydown($event)" rows="1" placeholder="برای هماهنگی روزمره پیام بدهید…" aria-label="متن پیام"
+                <textarea id="team-chat-ta" data-no-keep wire:ignore.self wire:model.defer="chatComposer.body" x-init="restoreChatDraft($el)" x-on:input="saveChatDraft($el.value);$el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,120)+'px'; detectMention($event)" x-on:keydown="onComposerKeydown($event)" rows="1" placeholder="برای هماهنگی روزمره پیام بدهید…" aria-label="متن پیام"
                           class="flex-1 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] bg-[var(--md-sys-color-surface-variant)] px-3 py-2.5 text-sm resize-none min-h-[40px] max-h-[120px] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface)] [unicode-bidi:plaintext]"></textarea>
                 <label for="team-chat-attachments" aria-label="افزودن فایل ضمیمه"
                        class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">

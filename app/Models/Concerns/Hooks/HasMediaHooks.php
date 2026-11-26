@@ -73,23 +73,47 @@ trait HasMediaHooks
 
     private static function guardStructureOnSaving(self $media): void
     {
+        $isSeries = $media->kind === self::KIND_SERIES;
+
+        if ($isSeries && $media->isDirty('kind') && $media->exists && $media->getOriginal('kind') !== self::KIND_SERIES && filled($media->getOriginal('file_path'))) {
+            throw ValidationException::withMessages(['data.kind' => 'ابتدا رسانه را غیرفعال کنید، فایل را بردارید و تغییرات را ذخیره کنید. سپس نوع رسانه را به «سری» تغییر دهید.']);
+        }
+
+        if ($isSeries) {
+            $stray = array_values(array_filter(array_map(
+                fn (string $field) => $field !== 'cover_image' && $media->isDirty($field) && is_string($media->{$field}) ? $media->{$field} : null,
+                self::FILE_FIELDS
+            )));
+
+            $media->file_path = $media->duration_seconds = $media->transcript_path = $media->chapters_path = null;
+
+            if ($stray !== []) {
+                DB::afterCommit(fn () => static::deleteStoredFiles($stray));
+            }
+        }
+
+        if (!$isSeries && ($media->isDirty('active') || !$media->exists) && ($media->active ?? !$media->exists) && blank($media->file_path)) {
+            throw ValidationException::withMessages(['data.active' => __('resources/media/strings.validation.activate_needs_file')]);
+        }
+
         if (!$media->isDirty(['parent_id', 'kind'])) {
             return;
         }
 
-        $isSeries = $media->kind === self::KIND_SERIES;
-
         if ($media->parent_id !== null) {
-            $validParent = !$isSeries
-                && static::query()->whereKey($media->parent_id)->where('kind', self::KIND_SERIES)->whereNull('parent_id')->exists();
+            $parent = $isSeries ? null : static::query()->whereKey($media->parent_id)->where('kind', self::KIND_SERIES)->whereNull('parent_id')->select('id')->withMax('episodes', 'position')->first();
 
-            if (!$validParent) {
-                throw ValidationException::withMessages(['data.parent_id' => 'والد باید یک سری مستقل باشد و یک سری نمی‌تواند والد داشته باشد.']);
+            if ($parent === null) {
+                throw ValidationException::withMessages(['data.parent_id' => 'برای افزودن جلسه، یک سری مستقل انتخاب کنید. سری نمی‌تواند زیرمجموعهٔ سری دیگری باشد.']);
+            }
+
+            if ($media->isDirty('parent_id') && ($media->exists || (int) $media->position < 1)) {
+                $media->position = (int) $parent->episodes_max_position + 1;
             }
         }
 
         if ($media->exists && !$isSeries && $media->getOriginal('kind') === self::KIND_SERIES && $media->episodes()->exists()) {
-            throw ValidationException::withMessages(['data.kind' => 'سری دارای قسمت را نمی‌توان به نوع دیگر تغییر داد.']);
+            throw ValidationException::withMessages(['data.kind' => 'برای تغییر نوع سری، ابتدا جلسه‌های آن را جابه‌جا یا حذف کنید.']);
         }
     }
 

@@ -457,9 +457,9 @@ class MediaPlaybackTest extends TestCase
         $this->assertFalse(Media::newFor($this->viewer->id)->whereKey($this->episode->parent_id)->exists());
     }
 
-    public function test_the_new_badge_ignores_a_series_with_its_own_file_and_a_series_with_only_expired_lessons(): void
+    public function test_the_new_badge_ignores_an_empty_series_and_a_series_with_only_expired_lessons(): void
     {
-        $fileOnSeries = Media::factory()->series()->create(['departments' => null, 'active' => true, 'file_path' => 'media/files/series-own.mp4']);
+        $fileOnSeries = Media::factory()->series()->create(['departments' => null, 'active' => true]);
         $expired = Media::factory()->series()->create(['departments' => null, 'active' => true]);
         Media::factory()->create(['parent_id' => $expired->id, 'user_id' => $expired->user_id, 'active' => true, 'expires_at' => now()->subDay()]);
 

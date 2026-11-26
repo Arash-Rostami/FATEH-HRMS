@@ -186,6 +186,24 @@ class ViewConventionTest extends TestCase
         );
     }
 
+    public function test_user_panel_form_components_mark_required_fields_with_mark_not_native_required(): void
+    {
+        $offenders = [];
+        foreach ($this->viewFiles(['resources/views/livewire/dashboard']) as $relativePath => $contents) {
+            if (preg_match('/<x-ui\.forms\.(?:input|select|textarea|date)\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*?\s:?required(?=[\s=\/>])/s', $contents)) {
+                $offenders[] = 'resources/views/' . $relativePath;
+            }
+        }
+
+        sort($offenders);
+
+        $this->assertSame(
+            [],
+            $offenders,
+            "A required user-panel field carries the bare 'mark' attribute (red *), never native 'required': it silently blocks a submit on a control inside a hidden step and is inert in a modal without a form tag (livewirePattern Checklist 'Required fields are visible'):\n" . implode("\n", $offenders),
+        );
+    }
+
     public function test_info_drawers_ignore_clicks_inside_the_fancybox_viewer(): void
     {
         foreach (['ths/modal/info', 'channel/info', 'contact/info'] as $view) {

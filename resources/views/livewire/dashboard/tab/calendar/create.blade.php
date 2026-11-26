@@ -9,12 +9,12 @@
          x-data="{ ready: false }"
          x-effect="if (show && !ready) { setTimeout(() => { if (show) ready = true }, 1000) } else if (!show) { ready = false }"
          x-show="ready">
-        <x-ui.forms.input label="عنوان رویداد" name="form.title" wire:model="form.title"/>
+        <x-ui.forms.input label="عنوان رویداد" name="form.title" wire:model="form.title" mark/>
 
         <!-- Date & Time -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <x-ui.forms.date label="تاریخ" prefix="form.date" :startYear="jNow() - 50" :endYear="jNow() + 50" />
-            <x-ui.forms.input label="زمان" name="form.time" type="time" wire:model="form.time" class="text-center"/>
+            <x-ui.forms.input label="زمان" name="form.time" type="time" wire:model="form.time" class="text-center" mark/>
         </div>
 
         <!-- Duration -->

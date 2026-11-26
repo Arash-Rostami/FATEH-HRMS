@@ -5,6 +5,7 @@
 <form wire:submit.prevent="save"
       class="space-y-5"
       x-data="profile"
+      @profile-invalid.window="jumpToError($event.detail)"
       x-init="$nextTick(() => { const e = {{ $firstErrorStep ?: 'null' }}; if (e) setStep(e); })"
       dir="rtl">
 
@@ -36,9 +37,9 @@
 
                 <span class="hidden sm:block text-[13px] font-bold">{{ $s['label'] }}</span>
                 <span class="hidden md:block text-[10px] font-normal opacity-60 -mt-0.5">{{ $s['sub'] }}</span>
-                @if($errors->hasAny($stepFields[$i]))
-                    <span
-                        class="absolute bottom-1.5 animate-pulse left-1.5 w-2 h-2 rounded-full bg-[var(--md-sys-color-error)] shadow-sm"></span>
+                @if($stepErrors[$i])
+                    <span wire:key="profile-step-error-{{ $i }}"
+                          class="absolute top-1.5 left-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-md bg-[var(--md-sys-color-error)] px-1 text-[10px] font-bold leading-none text-[var(--md-sys-color-on-error)] shadow ring-2 ring-[var(--md-sys-color-surface)]">{{ convertToPersian($stepErrors[$i]) }}</span>
                 @endif
             </button>
         @endforeach
@@ -123,6 +124,10 @@
                     </div>
 
                 </div>
+                <p class="mt-6 flex items-start gap-2 rounded-xl bg-[var(--md-sys-color-surface-variant)]/40 px-4 py-3 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">
+                    <span class="material-symbols-rounded text-[16px] mt-1 text-[var(--md-sys-color-primary)]">info</span>
+                    <span>برای ذخیرهٔ عکس، موارد ستاره‌دار <span class="font-bold text-[var(--md-sys-color-error)]">*</span> را در مراحل ۲ و ۳ تکمیل کنید و «ذخیره نهایی اطلاعات» را بزنید.</span>
+                </p>
             </div>
         </div>
     </div>
@@ -145,21 +150,21 @@
             </div>
             <div class="p-4 md:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <x-ui.forms.select label="جنسیت" name="form.gender" wire:model="form.gender" icon="wc">
+                    <x-ui.forms.select label="جنسیت" name="form.gender" wire:model="form.gender" icon="wc" mark>
                         <option value="">انتخاب کنید</option>
                         <option value="male">مرد</option>
                         <option value="female">زن</option>
                     </x-ui.forms.select>
 
                     <x-ui.forms.select label="وضعیت تأهل" name="form.marital_status" wire:model="form.marital_status"
-                                       icon="diversity_2">
+                                       icon="diversity_2" mark>
                         <option value="">انتخاب کنید</option>
                         <option value="single">مجرد</option>
                         <option value="married">متاهل</option>
                     </x-ui.forms.select>
 
                     <x-ui.forms.input type="number" label="تعداد فرزندان" name="form.number_of_children"
-                                      wire:model="form.number_of_children" icon="child_care"/>
+                                      wire:model="form.number_of_children" icon="child_care" mark/>
 
                     <x-ui.forms.date
                         label="تاریخ تولد"
@@ -171,7 +176,7 @@
                     <x-ui.forms.input label="شماره ملی" name="form.id_card_number" wire:model="form.id_card_number"
                                       icon="fingerprint"/>
                     <x-ui.forms.input label="شماره شناسنامه" name="form.id_booklet_number"
-                                      wire:model="form.id_booklet_number" icon="menu_book"/>
+                                      wire:model="form.id_booklet_number" icon="menu_book" mark/>
                 </div>
             </div>
         </div>
@@ -197,18 +202,18 @@
             <div class="p-4 md:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <x-ui.forms.input label="تلفن همراه" name="form.cellphone" wire:model="form.cellphone"
-                                      icon="smartphone"/>
+                                      icon="smartphone" mark/>
                     <x-ui.forms.input label="تلفن ثابت" name="form.landline" wire:model="form.landline" icon="call"/>
                     <x-ui.forms.input label="کد پستی" name="form.zip_code" wire:model="form.zip_code"
-                                      icon="markunread_mailbox"/>
+                                      icon="markunread_mailbox" mark/>
                     <x-ui.forms.input label="شمارهٔ تماس اضطراری" name="form.emergency_phone" wire:model="form.emergency_phone"
-                                      icon="emergency"/>
+                                      icon="emergency" mark/>
                     <x-ui.forms.input label="نسبت فرد تماس اضطراری"
                                       @input="(e) => setDirection(e)"
                                       x-init="(e) => setDirection(e)"
                                       name="form.emergency_relationship"
                                       wire:model="form.emergency_relationship"
-                                      icon="family_restroom"/>
+                                      icon="family_restroom" mark/>
                     <x-ui.forms.input label="شماره پلاک خودرو" name="form.license_plate" wire:model="form.license_plate"
                                       icon="directions_car"/>
                     <div class="col-span-1 md:col-span-2 lg:col-span-3">
@@ -218,6 +223,7 @@
                                              x-init="(el) => { el.addEventListener('load', (e) => setDirection(e)); setDirection(el); }"
                                              wire:model="form.address"
                                              icon="location_on"
+                                             mark
                                              rows="2"
                                              :maximizable="true"/>
                     </div>
@@ -237,7 +243,7 @@
             </div>
             <div class="p-4 md:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <x-ui.forms.select label="مدرک تحصیلی" name="form.degree" wire:model="form.degree" icon="school">
+                    <x-ui.forms.select label="مدرک تحصیلی" name="form.degree" wire:model="form.degree" icon="school" mark>
                         <option value="">انتخاب مدرک</option>
                         <option value="undergraduate">دیپلم یا کاردانی</option>
                         <option value="graduate">کارشناسی</option>
@@ -250,12 +256,13 @@
                                       @input="(e) => setDirection(e)"
                                       x-init="(el) => { el.addEventListener('load', (e) => setDirection(e)); setDirection(el); }"
                                       wire:model="form.field"
-                                      icon="menu_book"/>
+                                      icon="menu_book"
+                                      mark/>
 
                     <x-ui.forms.input label="شماره بیمه" name="form.insurance" wire:model="form.insurance"
-                                      icon="health_and_safety"/>
+                                      icon="health_and_safety" mark/>
                     <x-ui.forms.select label="سابقه کار" name="form.work_experience" wire:model="form.work_experience"
-                                       icon="history">
+                                       icon="history" mark>
                         <option value="" disabled selected hidden>سابقه کار</option>
                         <option value="student">دانشجو / بدون سابقه</option>
                         <option value="0-1">کمتر از ۱ سال</option>

@@ -48,7 +48,7 @@
         @enderror
 
         <div x-show="tab === 'details'" class="space-y-5">
-            <x-ui.forms.input label="نام پروژه" name="projectForm.name" wire:model.live.debounce.600ms="projectForm.name" icon="workspaces"/>
+            <x-ui.forms.input label="نام پروژه" name="projectForm.name" wire:model.live.debounce.600ms="projectForm.name" icon="workspaces" mark/>
             @if($this->hasDuplicateName)
                 <p wire:key="project-form-duplicate-name" class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">پروژه‌ای با این نام دارید؛ می‌توانید ادامه دهید.</p>
             @endif

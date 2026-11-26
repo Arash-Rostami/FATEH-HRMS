@@ -17,6 +17,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Models\Workflow as WorkflowModel;
 use App\Support\ProjectAccessPolicy;
+use App\Traits\Livewire\AnnouncesInvalidForm;
 use App\Traits\Livewire\BulkSelectsPeople;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -29,6 +30,7 @@ use Livewire\Component;
 #[Defer]
 class Workflow extends Component
 {
+    use AnnouncesInvalidForm;
     use BulkSelectsPeople;
 
     #[Locked]
@@ -226,6 +228,16 @@ class Workflow extends Component
     private function findWorkflow(int $id): ?WorkflowModel
     {
         return $this->project ? WorkflowModel::forProject($this->activeProjectId)->find($id) : null;
+    }
+
+    protected function announceInvalidOn(): array
+    {
+        return ['saveWorkflow'];
+    }
+
+    protected function announceInvalidWithToast(): bool
+    {
+        return false;
     }
 
     private function firstError(ValidationException $e): string

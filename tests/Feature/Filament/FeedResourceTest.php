@@ -110,6 +110,26 @@ class FeedResourceTest extends TestCase
         $this->assertStringContainsString('0-create-body', (string) $feed->content);
     }
 
+    public function test_non_poll_feed_create_drops_stale_poll_state()
+    {
+        $admin = $this->developer();
+
+        Livewire::actingAs($admin)->test(CreateFeed::class)
+            ->fillForm([
+                'content' => '<p>0-non-poll-body</p>',
+                'category' => 'General',
+                'user_id' => $admin->id,
+                'poll_mode' => 'multiple',
+                'poll_options' => [['option' => '']],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $feed = Feed::where('user_id', $admin->id)->latest('id')->firstOrFail();
+        $this->assertEmpty($feed->poll_options);
+        $this->assertSame('General', $feed->category);
+    }
+
     public function test_video_upload_with_disallowed_mime_type_shows_farsi_message()
     {
         $this->app->setLocale('fa');

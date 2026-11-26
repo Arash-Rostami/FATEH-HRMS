@@ -33,13 +33,16 @@ class ReservationFormPresenter
             ->native(false)
             ->placeholder(__('resources/reservation/strings.fields.cancel_reason_placeholder'))
             ->columnSpanFull()
-            ->visible(function (Get $get) {
+            ->visibleJs('$get(\'status\') === \'cancelled_user\' || $get(\'status\') === \'cancelled_admin\'')
+            ->dehydrated(function (Get $get): bool {
                 $status = $get('status');
+
                 return in_array(
                     $status instanceof BackedEnum ? $status->value : $status,
                     ['cancelled_user', 'cancelled_admin']
                 );
             })
+            ->validatedWhenNotDehydrated(false)
             ->helperText(__('resources/reservation/strings.hints.cancel_reason'));
     }
 
@@ -213,7 +216,6 @@ class ReservationFormPresenter
             ->options(ReservationStatus::class)
             ->default('active')
             ->required()
-            ->live()
             ->helperText(__('resources/reservation/strings.hints.status'));
     }
 

@@ -193,16 +193,16 @@ class UserFormPresenter
                 ->password()
                 ->revealable()
                 ->autocomplete('new-password')
-                ->minLength($minLength)
+                ->minLength(fn (Get $get): int => (bool) $get('clear_sign_code') ? 0 : $minLength)
                 ->maxLength(72)
-                ->hidden(fn (Get $get): bool => (bool) $get('clear_sign_code'))
+                ->hiddenJs('$get(\'clear_sign_code\')')
                 ->dehydrateStateUsing(fn ($state): ?string => filled($state) ? Hash::make($state) : null)
-                ->dehydrated(fn ($state): bool => filled($state))
+                ->dehydrated(fn ($state, Get $get): bool => filled($state) && ! $get('clear_sign_code'))
+                ->validatedWhenNotDehydrated(false)
                 ->helperText(__('resources/correspondence/strings.admin.fields.sign_code_hint', ['min' => convertToPersian($minLength)])),
             Toggle::make('clear_sign_code')
                 ->label(__('resources/correspondence/strings.admin.fields.clear_sign_code'))
                 ->helperText(__('resources/correspondence/strings.admin.fields.clear_sign_code_hint'))
-                ->live()
                 ->default(false)
                 ->visible(fn (?User $record): bool => filled($record?->getExtraValue('admin.sign_code_hash'))),
         ])->columnSpan(1);

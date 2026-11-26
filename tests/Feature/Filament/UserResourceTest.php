@@ -536,6 +536,35 @@ class UserResourceTest extends TestCase
             ->assertDontSee($hash);
     }
 
+    public function test_clearing_the_sign_code_wins_over_a_stale_sign_code_field(): void
+    {
+        $admin = $this->developer();
+        $user = $this->userWithProtectedExtra();
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm([
+                'clear_sign_code' => true,
+                'sign_code' => 'abc',
+                'sign_code_password' => 'password',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $extra = $user->fresh()->extra;
+        $this->assertArrayNotHasKey('sign_code_hash', $extra['admin']);
+    }
+
+    public function test_short_sign_code_without_the_clear_toggle_still_fails(): void
+    {
+        $admin = $this->developer();
+        $user = $this->userWithProtectedExtra();
+
+        Livewire::actingAs($admin)->test(EditUser::class, ['record' => $user->getRouteKey()])
+            ->fillForm(['sign_code' => 'abc', 'sign_code_password' => 'password'])
+            ->call('save')
+            ->assertHasFormErrors(['sign_code']);
+    }
+
     public function test_user_key_grouper_never_offers_protected_admin_keys_as_groups_or_filters()
     {
         $this->userWithProtectedExtra();

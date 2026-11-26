@@ -77,7 +77,7 @@ class EpisodesRelationManager extends RelationManager
                                     MediaFormPresenter::title(),
                                     MediaFormPresenter::topic(),
                                     MediaFormPresenter::icon(),
-                                    MediaFormPresenter::active(),
+                                    MediaFormPresenter::active()->helperText(__('resources/media/strings.hints.episode_active')),
                                     MediaFormPresenter::divider(),
                                     MediaFormPresenter::reportDate(),
                                     MediaFormPresenter::expiresAt(),
@@ -125,7 +125,7 @@ class EpisodesRelationManager extends RelationManager
                 MediaTablePresenter::title(),
                 MediaTablePresenter::kind(),
                 MediaTablePresenter::duration(),
-                MediaResource::activeColumn(),
+                MediaResource::mediaActiveColumn(),
                 MediaTablePresenter::reportDate(),
             ])
             ->reorderable('position')
@@ -155,6 +155,8 @@ class EpisodesRelationManager extends RelationManager
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-bookmark')
+            ->emptyStateHeading(__('resources/media/strings.relation.empty_heading'))
+            ->emptyStateDescription(__('resources/media/strings.relation.empty_description'))
             ->striped();
     }
 }

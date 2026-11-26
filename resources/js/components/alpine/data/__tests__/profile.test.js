@@ -75,3 +75,26 @@ describe('profile.setDirection', () => {
         expect(el.style.direction).toBe('ltr');
     });
 });
+
+describe('profile jumpToError', () => {
+    const withTick = (p) => { p.$nextTick = (fn) => fn(); return p; };
+
+    test('switches to the failing step, then scrolls to and focuses the field', () => {
+        const p = withTick(profile());
+        const el = { scrollIntoView: vi.fn(), focus: vi.fn() };
+        document.getElementById = vi.fn(() => el);
+        p.jumpToError({ step: 3, field: 'form.cellphone' });
+        expect(p.step).toBe(3);
+        expect(document.getElementById).toHaveBeenCalledWith('form.cellphone');
+        expect(el.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
+        expect(el.focus).toHaveBeenCalledWith({ preventScroll: true });
+    });
+
+    test('falls back to scrolling to the top when the field has no element', () => {
+        const p = withTick(profile());
+        document.getElementById = vi.fn(() => null);
+        p.jumpToError({ step: 1, field: 'form.image' });
+        expect(p.step).toBe(1);
+        expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+    });
+});

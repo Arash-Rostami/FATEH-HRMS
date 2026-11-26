@@ -82,13 +82,22 @@ class Info extends Component
     {
         return view(
             'livewire.dashboard.profile.info',
-            $presenter->toView($this->form, $this->existingImage)
+            $presenter->toView($this->form, $this->existingImage, $this->getErrorBag()->keys())
         );
     }
 
     public function save(SaveProfileAction $action): void
     {
-        $result = $action->execute($this->form);
+        try {
+            $result = $action->execute($this->form);
+        } catch (ValidationException $e) {
+            $invalid = InfoPresenter::firstInvalid(array_keys($e->errors()));
+
+            $this->dispatch('profile-invalid', step: $invalid['step'], field: $invalid['field']);
+            $this->dispatch('toast', message: 'برای ذخیره، موارد مشخص‌شده در فرم را بررسی کنید (' . convertToPersian((string) $invalid['count']) . ' مورد).', type: 'error');
+
+            throw $e;
+        }
 
         if ($result['imagePath'] ?? null) {
             $this->existingImage = auth()->user()->getProfileImageUrl() ?? auth()->user()->getInitialsAvatarUrl();

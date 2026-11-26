@@ -31,6 +31,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
 use Filament\Schemas\Schema as FilamentSchema;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -120,6 +121,20 @@ class MediaResourceTest extends TestCase
         ]);
     }
 
+    public function test_a_parent_picked_before_switching_to_series_is_dropped_on_create(): void
+    {
+        $admin = $this->developer();
+        $author = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $parent = Media::factory()->create(['kind' => 'series', 'title' => '0-Stale Parent']);
+
+        Livewire::actingAs($admin)->test(CreateMedia::class)
+            ->fillForm(['kind' => 'series', 'title' => '0-Series With Stale Parent', 'user_id' => $author->id, 'parent_id' => $parent->id])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull(Media::query()->where('title', '0-Series With Stale Parent')->value('parent_id'));
+    }
+
     public function test_icon_select_offers_media_icon_options_and_labels_a_stored_value(): void
     {
         $options = MediaFormPresenter::icon()->getOptions();
@@ -179,7 +194,7 @@ class MediaResourceTest extends TestCase
             ->callAction(TestAction::make('create')->table(), [
                 'kind' => 'audio',
                 'title' => '0-Child Episode',
-                'active' => true,
+                'active' => false,
             ])
             ->assertHasNoFormErrors();
 
@@ -188,6 +203,49 @@ class MediaResourceTest extends TestCase
         $this->assertSame('audio', $episode->kind);
         $this->assertSame($series->id, $episode->parent_id);
         $this->assertSame($admin->id, $episode->user_id);
+    }
+
+    public function test_an_active_episode_needs_a_file(): void
+    {
+        $admin = $this->developer();
+        $series = Media::factory()->create(['title' => '0-File Rule Series', 'kind' => 'series']);
+
+        Livewire::actingAs($admin)
+            ->test(EpisodesRelationManager::class, ['ownerRecord' => $series, 'pageClass' => EditMedia::class])
+            ->callAction(TestAction::make('create')->table(), ['kind' => 'audio', 'title' => '0-Fileless Active', 'active' => true])
+            ->assertHasFormErrors(['file_path']);
+
+        $this->assertNull(Media::query()->where('title', '0-Fileless Active')->first());
+    }
+
+    public function test_activating_fileless_media_from_the_list_is_refused_and_bulk_activate_is_all_or_nothing(): void
+    {
+        $ok = Media::factory()->create(['kind' => 'audio', 'active' => false, 'title' => '0-Bulk Ok']);
+        $bare = Media::factory()->create(['kind' => 'audio', 'file_path' => null, 'active' => false, 'title' => '0-Bulk Bare']);
+
+        $component = Livewire::actingAs($this->developer())->test(ListMedia::class);
+        $component->call('updateTableColumnState', 'active', (string) $bare->getKey(), true)
+            ->assertReturned(fn ($result) => is_array($result) && isset($result['error']));
+        $this->assertFalse($bare->fresh()->active);
+
+        $component->callTableBulkAction('bulk_activate', [$ok, $bare]);
+        $this->assertFalse($ok->fresh()->active);
+        $this->assertFalse($bare->fresh()->active);
+
+        $component->callTableBulkAction('bulk_activate', [$ok]);
+        $this->assertTrue($ok->fresh()->active);
+    }
+
+    public function test_a_refused_save_does_not_blank_the_stored_duration(): void
+    {
+        $media = Media::factory()->create(['kind' => 'audio', 'duration_seconds' => 600, 'title' => '0-Duration Keeper']);
+
+        Livewire::actingAs($this->developer())->test(EditMedia::class, ['record' => $media->getRouteKey()])
+            ->fillForm(['kind' => 'series'])
+            ->call('save')
+            ->assertFormSet(['duration_seconds' => 600]);
+
+        $this->assertSame(600, $media->fresh()->duration_seconds);
     }
 
     public function test_episodes_relation_manager_hidden_for_non_series_owners(): void
@@ -563,11 +621,28 @@ class MediaResourceTest extends TestCase
         $this->assertNull(MediaFormPresenter::probedDuration(null));
     }
 
+    public function test_uploading_a_file_sets_the_kind_from_its_extension(): void
+    {
+        $admin = $this->developer();
+
+        Livewire::actingAs($admin)->test(CreateMedia::class)
+            ->fillForm([
+                'title' => '0-Auto Kind Video',
+                'user_id' => $admin->id,
+                'file_path' => UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4'),
+            ])
+            ->assertFormSet(['kind' => 'video'])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame(Media::KIND_VIDEO, Media::query()->where('title', '0-Auto Kind Video')->value('kind'));
+    }
+
     public function test_switching_an_episode_to_a_series_clears_its_parent_on_save(): void
     {
         $admin = $this->developer();
         $parent = Media::factory()->create(['kind' => 'series', 'title' => '0-Parent Probe']);
-        $episode = Media::factory()->create(['kind' => 'audio', 'parent_id' => $parent->id, 'title' => '0-Episode Probe']);
+        $episode = Media::factory()->create(['kind' => 'audio', 'parent_id' => $parent->id, 'title' => '0-Episode Probe', 'file_path' => null, 'active' => false]);
 
         Livewire::actingAs($admin)->test(EditMedia::class, ['record' => $episode->getRouteKey()])
             ->fillForm(['kind' => 'series'])

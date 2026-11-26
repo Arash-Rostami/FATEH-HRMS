@@ -1,4 +1,4 @@
-<footer class="flex-shrink-0 border-t backdrop-blur-sm bg-[color-mix(in_srgb,var(--md-sys-color-surface)_90%,transparent)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
+<footer data-room="{{ $this->activeChannelId }}" data-no-keep class="flex-shrink-0 border-t backdrop-blur-sm bg-[color-mix(in_srgb,var(--md-sys-color-surface)_90%,transparent)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
     @error('composer.body')
     <div class="flex items-center gap-1.5 px-4 pt-2.5 text-[11px] text-[var(--md-sys-color-error)]" role="alert">
         <span class="material-symbols-rounded text-[13px]">error_outline</span>

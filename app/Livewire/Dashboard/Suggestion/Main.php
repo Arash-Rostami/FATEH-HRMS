@@ -9,6 +9,7 @@ use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
 use App\Services\Cache\ModelCacheVersion;
+use App\Traits\Livewire\AnnouncesInvalidForm;
 use App\Traits\Livewire\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -22,6 +23,7 @@ use Morilog\Jalali\CalendarUtils;
 #[Lazy]
 class Main extends Component
 {
+    use AnnouncesInvalidForm;
     use FocusOnRecord;
     use WithFileUploads;
     use WithPagination;
@@ -199,6 +201,11 @@ class Main extends Component
     {
         $this->attentionOnly = $value;
         $this->resetPage();
+    }
+
+    protected function announceInvalidOn(): array
+    {
+        return ['submit'];
     }
 
     protected function recordFocusType(): string

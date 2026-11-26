@@ -50,6 +50,8 @@ use App\Services\Menu\Toasts\ChannelToast;
 use App\Services\Messaging\PollDigestService;
 use App\Services\Notify\Channels\SmsChannel;
 use Carbon\Carbon;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\Repository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory as HttpClientFactory;
@@ -624,6 +626,361 @@ class ChannelTest extends TestCase
             ->assertDispatched('show-toast', message: 'متن پیام را بنویسید یا یک فایل پیوست کنید.', type: 'error');
 
         $this->assertSame(0, ChannelMessage::where('channel_id', $channel->id)->count());
+    }
+
+    private function channelOpenedBy(User $owner, string $name): Channel
+    {
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->set('create.name', $name)
+            ->set('create.type', 'open')
+            ->call('createChannel')
+            ->assertHasNoErrors();
+
+        return Channel::where('name', $name)->firstOrFail();
+    }
+
+    public function test_channel_send_stores_the_body_argument_even_when_the_server_copy_differs(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'ArgBody');
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->set('composer.body', 'stale partial')
+            ->call('send', '  the full captured text  ', $channel->id)
+            ->assertHasNoErrors()
+            ->assertSet('composer.body', '');
+
+        $this->assertSame('the full captured text', ChannelMessage::where('channel_id', $channel->id)->sole()->body);
+    }
+
+    public function test_channel_send_for_a_room_that_is_not_active_stores_and_resets_nothing(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'RoomA');
+        $other = $this->channelOpenedBy($owner, 'RoomB');
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->set('composer.body', 'keep me')
+            ->call('send', 'wrong room text', $other->id, 'channel-rev-room')
+            ->assertReturned(null)
+            ->assertNotDispatched('message-sent')
+            ->assertSet('composer.body', 'keep me');
+
+        $this->assertSame(0, ChannelMessage::whereIn('channel_id', [$channel->id, $other->id])->count());
+        $this->assertFalse(Cache::has("chat-send:{$owner->id}:channel:channel-rev-room"));
+    }
+
+    public function test_channel_send_with_the_same_rev_twice_stores_one_row_and_runs_the_success_tail_both_times(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'DupRev');
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'once only', $channel->id, 'channel-rev-dup');
+
+        $id = ChannelMessage::where('channel_id', $channel->id)->sole()->id;
+        $component->assertReturned($id)->assertDispatched('message-sent', id: $id, rev: 'channel-rev-dup');
+
+        $component->set('composer.body', 'late retype')
+            ->call('send', 'once only', $channel->id, 'channel-rev-dup')
+            ->assertReturned($id)
+            ->assertDispatched('message-sent', id: $id, rev: 'channel-rev-dup')
+            ->assertSet('composer.body', '');
+
+        $this->assertSame(1, ChannelMessage::where('channel_id', $channel->id)->count());
+    }
+
+    public function test_channel_send_ignores_a_rev_that_is_too_long_or_has_illegal_characters(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'BadRevFmt');
+        $component = Livewire::actingAs($owner)->test(Main::class)->call('selectChannel', $channel->id);
+
+        foreach (['bad rev!', str_repeat('a', 65)] as $rev) {
+            $component->call('send', 'text ' . strlen($rev), $channel->id, $rev)
+                ->assertDispatched('message-sent', fn($name, $params) => $params['rev'] === null);
+
+            $this->assertFalse(Cache::has("chat-send:{$owner->id}:channel:{$rev}"));
+        }
+
+        $this->assertSame(2, ChannelMessage::where('channel_id', $channel->id)->count());
+
+        $component->call('send', 'valid one', $channel->id, 'channel-rev-valid')
+            ->call('send', 'valid one', $channel->id, 'channel-rev-valid');
+
+        $this->assertSame(3, ChannelMessage::where('channel_id', $channel->id)->count());
+    }
+
+    public function test_channel_send_ignores_a_rev_with_a_trailing_newline(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'NlRev');
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'newline rev', $channel->id, "channel-rev-nl\n")
+            ->assertDispatched('message-sent', fn($name, $params) => $params['rev'] === null);
+
+        $this->assertSame(1, ChannelMessage::where('channel_id', $channel->id)->count());
+        $this->assertFalse(Cache::has("chat-send:{$owner->id}:channel:channel-rev-nl"));
+    }
+
+    public function test_channel_send_is_not_blocked_when_the_marker_read_throws(): void
+    {
+        Cache::extend('flaky', fn() => new Repository(new class extends ArrayStore {
+            public function get($key)
+            {
+                if (str_starts_with($key, 'chat-send:') && !str_ends_with($key, ':lock')) {
+                    throw new \RuntimeException('cache down');
+                }
+
+                return parent::get($key);
+            }
+        }));
+        config(['cache.stores.flaky' => ['driver' => 'flaky'], 'cache.default' => 'flaky']);
+
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'FlakyCache');
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'still sends', $channel->id, 'channel-rev-down')
+            ->assertDispatched('message-sent');
+
+        $this->assertSame(1, ChannelMessage::where('channel_id', $channel->id)->count());
+    }
+
+    public function test_channel_send_with_a_different_body_or_reply_target_under_the_same_rev_is_a_new_message(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'FpRev');
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'first text', $channel->id, 'channel-rev-fp');
+
+        $firstId = ChannelMessage::where('channel_id', $channel->id)->sole()->id;
+
+        $component->call('send', 'second text', $channel->id, 'channel-rev-fp');
+        $this->assertSame(2, ChannelMessage::where('channel_id', $channel->id)->count());
+
+        $component->call('send', 'second text', $channel->id, 'channel-rev-fp');
+        $this->assertSame(2, ChannelMessage::where('channel_id', $channel->id)->count());
+
+        $component->call('replyTo', $firstId)->call('send', 'second text', $channel->id, 'channel-rev-fp');
+        $this->assertSame(3, ChannelMessage::where('channel_id', $channel->id)->count());
+    }
+
+    public function test_channel_send_same_rev_with_a_different_staged_attachment_inserts_and_overwrites_the_marker(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'AttRev');
+        $key = "chat-send:{$owner->id}:channel:channel-rev-att";
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->set('composer.attachments', [UploadedFile::fake()->image('a.jpg')])
+            ->call('send', 'same text', $channel->id, 'channel-rev-att');
+
+        $firstId = ChannelMessage::where('channel_id', $channel->id)->sole()->id;
+
+        $component->set('composer.attachments', [UploadedFile::fake()->image('a.jpg')])
+            ->call('send', 'same text', $channel->id, 'channel-rev-att');
+
+        $this->assertSame(2, ChannelMessage::where('channel_id', $channel->id)->count());
+        $secondId = ChannelMessage::where('channel_id', $channel->id)->where('id', '!=', $firstId)->value('id');
+        $component->assertReturned($secondId);
+        $this->assertSame($secondId, Cache::get($key)['id']);
+    }
+
+    public function test_channel_send_same_rev_with_the_same_staged_attachment_returns_the_stored_id(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'SameAtt');
+        $existing = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'same text']);
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->set('composer.attachments', [UploadedFile::fake()->image('a.jpg')]);
+
+        $staged = $component->get('composer.attachments')[0]->getFilename();
+        Cache::put(
+            "chat-send:{$owner->id}:channel:channel-rev-same",
+            ['id' => $existing->id, 'fp' => sha1('same text||' . $staged)],
+            now()->addHour()
+        );
+
+        $component->call('send', 'same text', $channel->id, 'channel-rev-same')->assertReturned($existing->id);
+
+        $this->assertSame(1, ChannelMessage::where('channel_id', $channel->id)->count());
+    }
+
+    public function test_channel_send_marker_with_a_mismatched_fingerprint_never_returns_the_old_id(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'MismatchFp');
+        $existing = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'earlier']);
+        Cache::put("chat-send:{$owner->id}:channel:channel-rev-mismatch", ['id' => $existing->id, 'fp' => 'not-the-fingerprint'], now()->addHour());
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'fresh text', $channel->id, 'channel-rev-mismatch');
+
+        $newId = ChannelMessage::where('channel_id', $channel->id)->where('id', '!=', $existing->id)->value('id');
+        $this->assertNotNull($newId);
+        $component->assertReturned($newId);
+    }
+
+    public function test_channel_send_goes_through_unlocked_when_the_lock_store_throws_a_non_timeout_error(): void
+    {
+        Cache::extend('nolock', fn() => new Repository(new class extends ArrayStore {
+            public function lock($name, $seconds = 0, $owner = null)
+            {
+                throw new \RuntimeException('lock store down');
+            }
+        }));
+        config(['cache.stores.nolock' => ['driver' => 'nolock'], 'cache.default' => 'nolock']);
+
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'NoLockStore');
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'unlocked send', $channel->id, 'channel-rev-nolock');
+
+        $id = ChannelMessage::where('channel_id', $channel->id)->sole()->id;
+        $component->assertReturned($id);
+    }
+
+    public function test_channel_send_with_a_non_scalar_room_returns_null_and_stores_nothing(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'ArrayRoom');
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'hi', [$channel->id], 'channel-rev-array')
+            ->assertReturned(null)
+            ->assertNotDispatched('message-sent');
+
+        $this->assertSame(0, ChannelMessage::where('channel_id', $channel->id)->count());
+    }
+
+    public function test_channel_send_ignores_an_old_format_integer_marker(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'OldMarker');
+        $existing = ChannelMessage::create(['channel_id' => $channel->id, 'sender_id' => $owner->id, 'body' => 'earlier']);
+        Cache::put("chat-send:{$owner->id}:channel:channel-rev-old", $existing->id, now()->addHour());
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'brand new', $channel->id, 'channel-rev-old');
+
+        $this->assertSame(2, ChannelMessage::where('channel_id', $channel->id)->count());
+    }
+
+    public function test_channel_send_returns_null_without_inserting_when_the_send_lock_cannot_be_acquired(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'LockedSend');
+        $lock = Cache::lock("chat-send:{$owner->id}:channel:channel-rev-lock:lock", 30);
+        $this->assertTrue($lock->get());
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'blocked', $channel->id, 'channel-rev-lock')
+            ->assertReturned(null)
+            ->assertNotDispatched('message-sent');
+
+        $lock->release();
+        $this->assertSame(0, ChannelMessage::where('channel_id', $channel->id)->count());
+    }
+
+    public function test_channel_send_failed_validation_writes_no_marker_and_the_rev_can_be_reused(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'BadRev');
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', '', $channel->id, 'channel-rev-invalid')
+            ->assertReturned(null)
+            ->assertNotDispatched('message-sent');
+
+        $this->assertFalse(Cache::has("chat-send:{$owner->id}:channel:channel-rev-invalid"));
+        $this->assertSame(0, ChannelMessage::where('channel_id', $channel->id)->count());
+
+        $component->call('send', 'now valid', $channel->id, 'channel-rev-invalid');
+
+        $this->assertSame(1, ChannelMessage::where('channel_id', $channel->id)->count());
+        $this->assertTrue(Cache::has("chat-send:{$owner->id}:channel:channel-rev-invalid"));
+    }
+
+    public function test_channel_send_inserts_again_when_the_marked_message_row_was_deleted(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'GoneRev');
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->call('send', 'first', $channel->id, 'channel-rev-gone');
+
+        $firstId = ChannelMessage::where('channel_id', $channel->id)->sole()->id;
+        ChannelMessage::where('id', $firstId)->forceDelete();
+
+        $component->call('send', 'first', $channel->id, 'channel-rev-gone');
+
+        $second = ChannelMessage::where('channel_id', $channel->id)->sole();
+        $this->assertNotSame($firstId, $second->id);
+        $component->assertReturned($second->id);
+    }
+
+    public function test_channel_send_without_arguments_still_returns_the_id_and_dispatches_a_null_rev(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'NoArgs');
+
+        $component = Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->set('composer.body', 'plain send')
+            ->call('send');
+
+        $id = ChannelMessage::where('channel_id', $channel->id)->sole()->id;
+        $component->assertReturned($id)
+            ->assertDispatched('message-sent', fn($name, $params) => $params['id'] === $id && $params['rev'] === null);
+    }
+
+    public function test_channel_composer_footer_carries_the_room_and_opts_out_of_workspace_keep_fields(): void
+    {
+        $owner = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $channel = $this->channelOpenedBy($owner, 'FooterRoom');
+
+        Livewire::actingAs($owner)
+            ->test(Main::class)
+            ->call('selectChannel', $channel->id)
+            ->assertSeeHtml('data-room="' . $channel->id . '"')
+            ->assertSeeHtml('data-no-keep');
     }
 
     public function test_channel_send_with_attachment_persists_metadata()

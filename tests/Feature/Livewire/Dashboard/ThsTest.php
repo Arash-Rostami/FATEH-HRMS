@@ -155,6 +155,29 @@ class ThsTest extends TestCase
         $this->assertSame(['subject' => 60, 'description' => 100], (new TicketPresenter())->aiLimits());
     }
 
+    public function test_failed_submit_ticket_points_to_the_first_invalid_field_with_an_error_toast()
+    {
+        Livewire::actingAs($this->deptUser('PS', 'expert'))
+            ->test(Main::class)
+            ->set('ticket.requestType', 'support')
+            ->set('ticket.priority', 'low')
+            ->set('ticket.requestArea', 'vpn')
+            ->set('ticket.description', 'Description for the invalid form probe.')
+            ->call('submitTicket')
+            ->assertHasErrors(['ticket.subject'])
+            ->assertDispatched('form-invalid', field: 'ticket.subject')
+            ->assertDispatched('toast', type: 'error');
+    }
+
+    public function test_live_validation_of_a_single_ticket_field_does_not_announce_the_form()
+    {
+        Livewire::actingAs($this->deptUser('PS', 'expert'))
+            ->test(Main::class)
+            ->set('ticket.subject', str_repeat('a', 300))
+            ->assertHasErrors(['ticket.subject'])
+            ->assertNotDispatched('form-invalid');
+    }
+
     public function test_submit_ticket_persists_attachment_when_file_added()
     {
         Storage::fake('public');

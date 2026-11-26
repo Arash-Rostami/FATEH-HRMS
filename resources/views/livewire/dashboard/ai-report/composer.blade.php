@@ -80,7 +80,7 @@
     @if($originalPrompt !== null)
         <p wire:key="ai-report-original-prompt" class="text-[10.5px] leading-5 text-[var(--md-sys-color-on-surface-variant)]" dir="auto">{{ $originalPrompt['trimmed'] ? 'قدیمی‌ترین درخواست نگه‌داشته‌شده' : 'درخواست اولیه' }}: {{ $originalPrompt['text'] }}</p>
     @endif
-    <x-ui.forms.textarea :label="$refining ? 'توضیح تغییر مورد نظر' : 'درخواست گزارش'" name="form.prompt" wire:model="form.prompt" dir="auto"
+    <x-ui.forms.textarea :label="$refining ? 'چه چیزی تغییر کند؟' : 'درخواست گزارش'" name="form.prompt" wire:model="form.prompt" dir="auto" mark
                          :rows="4" :maximizable="true" icon="edit" :maxlength="(int) config('ai.report.prompt.max')"
                          x-on:input="count($event)"
                          x-on:keydown.ctrl.enter.prevent="submit()"

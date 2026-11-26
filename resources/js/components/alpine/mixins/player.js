@@ -363,9 +363,10 @@ export default function playerMixin() {
             let total = 0;
             let done = 0;
             for (const ep of item.episodes) {
-                total += ep.duration || 0;
+                if (!(ep.duration > 0)) continue;
+                total += ep.duration;
                 const p = this.library.progress?.[ep.id];
-                done += Math.min(p?.position ?? 0, ep.duration || p?.position || 0);
+                done += p?.completed ? ep.duration : Math.min(p?.position ?? 0, ep.duration);
             }
             return total > 0 ? Math.min(1, done / total) : 0;
         },
@@ -380,7 +381,7 @@ export default function playerMixin() {
             const serverAt = server?.updated_at ? server.updated_at * 1000 : this._loadedAt;
             const stop = local && local.updatedAt > serverAt ? localStop : (server?.last_position ?? localStop);
             const back = this.sync.resume_rewind ?? 10;
-            if (ep.duration > 0 && stop >= ep.duration - back) return 0;
+            if (ep.duration > 0 && stop >= Math.min(ep.duration - back, ep.duration * this.sync.completion_ratio)) return 0;
             return stop > back ? stop - back : stop;
         },
 
@@ -392,7 +393,7 @@ export default function playerMixin() {
         playEpisode(sid, idx) {
             const item = this.item(sid);
             const ep = this.episode(sid, idx);
-            if (!item || !ep || ep.unlock_at) return;
+            if (!item || !ep || ep.unlock_at || !ep.file_url) return;
             if (this.playing && this.cur.sid === sid && this.cur.idx === idx) {
                 this.toggle();
                 return;
@@ -434,7 +435,8 @@ export default function playerMixin() {
             el.play().then(() => {
                 this.playing = true;
                 emitState(this);
-            }).catch(() => {
+            }).catch((error) => {
+                if (error?.name === 'AbortError') return;
                 this.playing = false;
                 this.tapToPlay = true;
                 emitState(this);
@@ -448,7 +450,7 @@ export default function playerMixin() {
             if (live()) {
                 shared.element.pause();
             } else {
-                shared.element.play().catch(() => { this.tapToPlay = true; });
+                shared.element.play().catch((error) => { if (error?.name !== 'AbortError') this.tapToPlay = true; });
             }
         },
 
@@ -494,6 +496,7 @@ export default function playerMixin() {
         },
 
         next(auto = false) {
+            if (!this.cur.sid) return;
             const item = this.item();
             const nextIdx = this._nextPlayable(this.cur.idx + 1);
             if (auto && this.stopAfter) {
@@ -664,7 +667,7 @@ export default function playerMixin() {
             if (shared.keydown) document.removeEventListener('keydown', shared.keydown);
             shared.keydown = (e) => {
                 const root = document.querySelector(rootSelector);
-                if (!root || !root.contains(e.target) || e.target.closest?.(INPUT_SEL)) return;
+                if (e.ctrlKey || e.metaKey || e.altKey || !root || !root.contains(e.target) || e.target.closest?.(INPUT_SEL)) return;
                 if (e.code === 'Space' && !e.target.closest('button, [role="button"], a')) {
                     e.preventDefault();
                     this.toggle();
@@ -730,7 +733,7 @@ export default function playerMixin() {
         _trackLocal(ep, t) {
             const position = Math.floor(t);
             this._storeLocal(ep.id, position);
-            this._markProgress(ep.id, position, position, !!ep.duration && position / ep.duration >= 0.95);
+            this._markProgress(ep.id, position, position, !!ep.duration && position / ep.duration >= this.sync.completion_ratio);
         },
 
         _storedPos(id) {
@@ -760,7 +763,7 @@ export default function playerMixin() {
         _nextPlayable(from) {
             const episodes = this.item()?.episodes ?? [];
             for (let i = from; i < episodes.length; i++) {
-                if (!episodes[i].unlock_at) return i;
+                if (episodes[i].file_url && !episodes[i].unlock_at) return i;
             }
             return null;
         },
@@ -768,7 +771,7 @@ export default function playerMixin() {
         _prevPlayable(from) {
             const episodes = this.item()?.episodes ?? [];
             for (let i = from; i >= 0; i--) {
-                if (!episodes[i].unlock_at) return i;
+                if (episodes[i].file_url && !episodes[i].unlock_at) return i;
             }
             return null;
         },
@@ -903,7 +906,7 @@ export default function playerMixin() {
             if (remaining > (this.sync.prebuffer_remaining_seconds || 120)) return;
             const nextIdx = this._nextPlayable(this.cur.idx + 1);
             const nextEp = nextIdx === null ? null : this.item()?.episodes?.[nextIdx];
-            if (!nextEp?.file_url) return;
+            if (!nextEp?.file_url || isVideoEp(nextEp, this.item())) return;
             shared.prebuffer = new Audio();
             shared.prebuffer.preload = 'auto';
             shared.prebuffer.src = nextEp.file_url;

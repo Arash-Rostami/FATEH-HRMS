@@ -22,6 +22,8 @@ class CreateLaunchpadAction
 {
     use CleansAttachedFiles;
 
+    private const DUPLICATE_TITLE_MESSAGE = 'در این دپارتمان برنامه‌ای با همین نام وجود دارد. نام دیگری انتخاب کنید. برای جایگزینی، به اجازهٔ مدیریت برنامهٔ قبلی نیاز دارید.';
+
     public function execute(LaunchpadForm $form, User $user, bool $replace = false): array
     {
         $form->normalizeSource();
@@ -80,7 +82,7 @@ class CreateLaunchpadAction
 
                 if ($existing !== null) {
                     if (!$replace || !LaunchpadAccessPolicy::canManage($existing, $user)) {
-                        throw ValidationException::withMessages(['form.title' => 'در این دپارتمان برنامه‌ای با همین نام وجود دارد. نام دیگری انتخاب کنید؛ جایگزینی برنامهٔ قبلی فقط با اجازهٔ مدیریت آن ممکن است.']);
+                        throw ValidationException::withMessages(['form.title' => self::DUPLICATE_TITLE_MESSAGE]);
                     }
                     if ($kind === 'link') {
                         $this->assertSiteFree((string) $form->site, $user, $existing->id);
@@ -108,8 +110,8 @@ class CreateLaunchpadAction
                     return [$existing, $oldDirectory, true];
                 }
 
-                if (Launchpad::query()->where('department_id', $dept)->count() >= (int) config('launchpad.max_per_department')) {
-                    throw ValidationException::withMessages([$kind === 'link' ? 'form.site' : 'form.files' => 'تعداد برنامه‌های این دپارتمان به حد مجاز رسیده است. برای افزودن برنامهٔ تازه، ابتدا یکی از برنامه‌های قبلی را حذف کنید یا از مسئول آن بخواهید حذفش کند.']);
+                if (!$user->isDeveloper() && Launchpad::query()->where('department_id', $dept)->count() >= (int) config('launchpad.max_per_department')) {
+                    throw ValidationException::withMessages([$kind === 'link' ? 'form.site' : 'form.files' => 'ظرفیت ثبت برنامه در این دپارتمان پر است. یکی از برنامه‌های قبلی را حذف کنید یا از مسئول برنامه بخواهید این کار را انجام دهد.']);
                 }
 
                 if ($kind === 'link') {
@@ -150,7 +152,7 @@ class CreateLaunchpadAction
             }
 
             throw $e instanceof QueryException && ($e->errorInfo[1] ?? null) === 1062
-                ? ValidationException::withMessages(['form.title' => 'در این دپارتمان برنامه‌ای با همین نام وجود دارد. نام دیگری انتخاب کنید؛ جایگزینی برنامهٔ قبلی فقط با اجازهٔ مدیریت آن ممکن است.'])
+                ? ValidationException::withMessages(['form.title' => self::DUPLICATE_TITLE_MESSAGE])
                 : $e;
         }
 

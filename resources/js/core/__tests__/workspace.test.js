@@ -325,6 +325,29 @@ describe('workspace — field keep', () => {
         expect(sessionStorage.getItem('keepoff')).not.toBeNull()
     })
 
+    test('clicking the logout button also clears this user chat drafts and leaves other keys alone', () => {
+        document.documentElement.dataset.uid = '3'
+        localStorage.setItem('chat-draft:3:contact:12', '{"body":"a"}')
+        localStorage.setItem('chat-draft:3:channel:4', '{"body":"b"}')
+        localStorage.setItem('chat-draft:8:contact:12', '{"body":"c"}')
+        localStorage.setItem('chat-settings:contact', '{}')
+        document.body.innerHTML = '<button wire:click="logout">خروج</button>'
+        document.querySelector('button').click()
+        expect(localStorage.getItem('chat-draft:3:contact:12')).toBeNull()
+        expect(localStorage.getItem('chat-draft:3:channel:4')).toBeNull()
+        expect(localStorage.getItem('chat-draft:8:contact:12')).not.toBeNull()
+        expect(localStorage.getItem('chat-settings:contact')).not.toBeNull()
+        localStorage.clear()
+    })
+
+    test('a composer inside [data-no-keep] is never saved by the generic keep-fields saver', () => {
+        sessionStorage.removeItem('keepoff')
+        document.body.innerHTML = '<footer data-room="12" data-no-keep><textarea wire:model="composer.body"></textarea></footer>'
+        document.querySelector('textarea').value = 'draft'
+        ws.saveFields()
+        expect(sessionStorage.getItem(key())).toBeNull()
+    })
+
     test('the keep-off window opened by a sweep suppresses saving for ten seconds', () => {
         document.body.innerHTML = '<textarea wire:model="body"></textarea>'
         document.querySelector('textarea').value = 'draft'

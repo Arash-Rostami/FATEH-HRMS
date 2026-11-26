@@ -15,6 +15,34 @@ const LS_SETTINGS_KEY = 'chat-settings:project';
 const EVENT_TOAST = 'toast';
 const ID_CHAT_VP = 'team-chat-viewport';
 const ID_CHAT_TA = 'team-chat-ta';
+const CHAT_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
+const CHAT_DRAFT_MAX_HEIGHT = 120;
+
+const chatDraftKey = (projectId) => `chat-draft:${document.documentElement.dataset.uid ?? ''}:project:${projectId}`;
+
+const readChatDraft = (key) => {
+    try {
+        return JSON.parse(localStorage.getItem(key));
+    } catch {
+        return null;
+    }
+};
+
+const newChatRev = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+const writeChatDraft = (key, body) => {
+    try {
+        localStorage.setItem(key, JSON.stringify({ body, rev: newChatRev(), at: Date.now() }));
+    } catch {
+    }
+};
+
+const dropChatDraft = (key) => {
+    try {
+        localStorage.removeItem(key);
+    } catch {
+    }
+};
 const ID_ACTIVITY_PANE = 'project-tab-pane';
 const CLASS_FLASH = 'record-focus-flash';
 
@@ -381,7 +409,36 @@ export default function project() {
             this.mentionOpen = true;
         },
 
+        saveChatDraft(body) {
+            const id = this._projectId();
+            if (id === null) return;
+            if (body.trim() === '') return dropChatDraft(chatDraftKey(id));
+            writeChatDraft(chatDraftKey(id), body);
+        },
+
+        restoreChatDraft(el) {
+            const id = this._projectId();
+            if (id === null || !el || el.value !== '') return;
+
+            const key = chatDraftKey(id);
+            const stored = readChatDraft(key);
+            if (typeof stored?.body !== 'string' || stored.body.trim() === '' || !(Date.now() - stored.at <= CHAT_DRAFT_TTL_MS)) {
+                if (stored) dropChatDraft(key);
+                return;
+            }
+
+            if (typeof stored.rev !== 'string') writeChatDraft(key, stored.body);
+
+            el.value = stored.body;
+            this.$wire.set('chatComposer.body', stored.body, false);
+            if (el.scrollHeight > 0) {
+                el.style.height = 'auto';
+                el.style.height = Math.min(el.scrollHeight, CHAT_DRAFT_MAX_HEIGHT) + 'px';
+            }
+        },
+
         onComposerKeydown(e) {
+            if (e.isComposing) return;
             if (this.mentionOpen) {
                 const matches = this.mentionMatches;
                 const len = matches.length;
@@ -427,6 +484,7 @@ export default function project() {
             this.mentionOpen = false;
             this.mentionQuery = '';
             this.$wire.set('chatComposer.body', r.value);
+            this.saveChatDraft(r.value);
 
             this.$nextTick(() => {
                 ta.focus();
@@ -453,12 +511,33 @@ export default function project() {
             }
 
             this.sending = true;
+            const sentId = this._projectId();
+            const sentRev = sentId === null ? null : readChatDraft(chatDraftKey(sentId))?.rev ?? null;
 
             try {
                 await wire.sendChatMessage();
+                await this.$nextTick();
+                const id = this._projectId();
+                const key = sentId === null ? null : chatDraftKey(sentId);
+                if (key && id !== sentId) {
+                    if (sentRev !== null && readChatDraft(key)?.rev === sentRev) dropChatDraft(key);
+                } else if (key && (ta?.value ?? '') === '') {
+                    const stored = readChatDraft(key);
+                    let rest = '';
+                    if (typeof stored?.body === 'string' && !(sentRev !== null && stored.rev === sentRev)) {
+                        rest = stored.body;
+                    }
+                    if (rest.trim() === '') {
+                        dropChatDraft(key);
+                    } else if (ta) {
+                        ta.value = rest;
+                        this.$wire.set('chatComposer.body', rest, false);
+                        writeChatDraft(key, rest);
+                    }
+                }
                 this.$nextTick(() => { this.scrollToBottom(true); if (ta) ta.style.height = ''; });
             } catch {
-                this.toast?.('خطا در ارتباط با سرور.', 'error');
+                this.toast?.('وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.', 'error');
             } finally {
                 setTimeout(() => { this.sending = false; }, 500);
             }

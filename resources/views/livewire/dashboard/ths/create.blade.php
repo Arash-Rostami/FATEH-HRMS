@@ -51,7 +51,7 @@
 
                 <div class="space-y-1.5">
                     <x-ui.forms.select label="حوزهٔ درخواست" name="ticket.requestArea"
-                                       wire:model.live="ticket.requestArea"
+                                       wire:model.live="ticket.requestArea" mark
                                        :icon="$presenter->requestAreaIcon($this->ticket->requestArea, $this->ticket->targetDepartment)">
                         @foreach($requestAreas as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
@@ -120,8 +120,8 @@
                     <div @if($aiOn) class="relative" data-ai-blank="«____»" data-ai-next="ticket.description" x-bind:inert="aiLoading"
                          x-bind:class="{ 'ai-suggested': aiSuggested, 'ai-halo': aiLoading }" x-bind:aria-busy="aiLoading"
                          x-on:keydown.tab="!$event.shiftKey && aiBlanks > 0 && aiNextBlank($event.target) && $event.preventDefault()" @endif>
-                        <x-ui.forms.input label="موضوع تیکت *" name="ticket.subject"
-                                          wire:model="ticket.subject" icon="label">
+                        <x-ui.forms.input label="موضوع تیکت" name="ticket.subject"
+                                          wire:model="ticket.subject" icon="label" mark>
                             @if($aiOn)
                                 <x-slot:actions>
                                     <x-ui.forms.ai-trigger class="inset-y-0 left-0 -ml-3"
@@ -144,8 +144,8 @@
                         <div @if($aiOn) class="relative" data-ai-blank="«____»" x-bind:inert="aiLoading"
                              x-bind:class="{ 'ai-suggested': aiSuggested, 'ai-halo': aiLoading }" x-bind:aria-busy="aiLoading"
                              x-on:keydown.tab="!$event.shiftKey && aiBlanks > 0 && aiNextBlank($event.target) && $event.preventDefault()" @endif>
-                            <x-ui.forms.textarea label="شرح درخواست *" name="ticket.description"
-                                                 wire:model="ticket.description" icon="description" rows="5" :maximizable="true">
+                            <x-ui.forms.textarea label="شرح درخواست" name="ticket.description"
+                                                 wire:model="ticket.description" icon="description" rows="5" :maximizable="true" mark>
                                 @if($aiOn)
                                     <x-slot:actions>
                                         <x-ui.forms.ai-trigger class="bottom-2 left-0 -ml-3"

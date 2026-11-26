@@ -2,6 +2,7 @@ import { emojis } from "../stores/emoji.js";
 import highlightMatchMixin from "./highlightMatch.js";
 import headerDeclutterMixin from "./headerDeclutter.js";
 import { applyMine, MINE_STEPS } from "./chatScale.js";
+import persistentStateMixin from "./persistentState.js";
 
 const segmenter = new Intl.Segmenter();
 const emojiSet = new Set(emojis.flatMap(c => c.items));
@@ -32,6 +33,18 @@ const GHOST_BUBBLE_CLASS = 'px-4 py-2.5 text-sm leading-relaxed break-words whit
 const GHOST_HTML = `<div class="flex-shrink-0 w-7"></div><div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%]"><div dir="auto" class="${GHOST_BUBBLE_CLASS}"></div><div class="flex items-center gap-1.5 mt-1.5 justify-start pl-1"><span class="material-symbols-rounded text-[13px] opacity-50">schedule</span><time dir="ltr" class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60"></time></div></div>`;
 const DAYS_CLIENT_TTL_MS = 300000;
 const LEAVE_DRAFT_MS = 4000;
+const DRAFT_PREFIX = 'chat-draft:';
+const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
+const SEND_WATCHDOG_MS = 30000;
+const ROW_WAIT_MS = 15000;
+const ROW_REFRESHES = 3;
+const UNDELIVERED_MSG = 'وضعیت ارسال پیام مشخص نیست';
+const CONNECTION_MSG = 'وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.';
+const NOT_SHOWN_MSG = 'پیام ارسال شد. ممکن است کمی دیرتر نمایش داده شود.';
+const RELOCATED_MSG = 'برای ادامهٔ نوشتن پیام، به گفت‌وگوی قبلی برگردید.';
+const TIMED_OUT = Symbol('timed-out');
+const ROOM_SEL = '[data-room]';
+const newRev = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
 const SETTLE_STOP_EVENTS = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
 const MSG_ROW_SEL = '[data-rf*="message-"]';
 const UNREAD_ID_SEL = '[data-unread-id]';
@@ -75,8 +88,14 @@ const FONT_KEY_RE = /^[a-z][a-z0-9-]{0,40}$/;
 export default function chatBase(scope) {
     const settingsKey = 'chat-settings:' + scope;
     const BOOKMARKS = scope === 'channel' ? 'channel-message' : 'message';
+    const drafts = new Map();
+    const cleared = new Set();
+    let sends = 0;
+    const draftKey = (room) => `${DRAFT_PREFIX}${document.documentElement.dataset.uid ?? ''}:${scope}:${room}`;
+    const rowSel = (id) => `[data-rf="${BOOKMARKS}-${id}"]`;
 
     return {
+        ...persistentStateMixin(),
         ...highlightMatchMixin(),
         ...headerDeclutterMixin(),
         fontSteps: {},
@@ -211,6 +230,196 @@ export default function chatBase(scope) {
         _leaveUntil: 0,
         _navWatch: false,
         _ghost: null,
+        _pendingSend: null,
+        _draftQuiet: false,
+        _sendSeq: 0,
+
+        _draftRoom() {
+            return byId(ID_TA)?.closest(ROOM_SEL)?.dataset.room ?? null;
+        },
+
+        _draftDrop(room) {
+            if (room == null) return;
+            const own = drafts.get(room)?.rev;
+            cleared.add(room);
+            drafts.delete(room);
+            if (own !== undefined && this._loadState(draftKey(room))?.rev === own) this._clearState(draftKey(room));
+        },
+
+        _draftSave(room, body) {
+            if (room == null) return;
+            if (body.trim() === '') return this._draftDrop(room);
+            const draft = { body, rev: newRev() };
+            cleared.delete(room);
+            drafts.set(room, draft);
+            this._saveState(draftKey(room), { ...draft, at: Date.now() });
+        },
+
+        _draftStored(room) {
+            const key = draftKey(room);
+            const stored = this._loadState(key);
+            if (typeof stored?.body !== 'string' || typeof stored.rev !== 'string') return null;
+            if (stored.body.trim() === '' || !(Date.now() - stored.at <= DRAFT_TTL_MS)) {
+                this._clearState(key);
+                return null;
+            }
+            return { body: stored.body, rev: stored.rev };
+        },
+
+        _draftWrite(body) {
+            const el = byId(ID_TA);
+            if (el && el.value !== body) el.value = body;
+            this.$wire.set('composer.body', body, false);
+            if (!el) return;
+            this.autoGrow(el, 160);
+            this.autoDirection(el);
+        },
+
+        _draftGuard(body) {
+            const room = this._draftRoom();
+            const draft = room == null ? undefined : drafts.get(room);
+            if (!draft && room != null && cleared.has(room) && typeof body === 'string' && body.trim() !== '') return this._draftWrite('');
+            if (!draft || body === draft.body) return;
+
+            const pending = this._pendingSend;
+            if (pending && !pending.failed && pending.rev === draft.rev) return;
+
+            this._draftWrite(draft.body);
+        },
+
+        _draftRepair(room) {
+            if (room == null || this._draftRoom() !== room) return;
+            const draft = drafts.get(room);
+            const box = byId(ID_TA);
+            if (draft && box && box.value !== draft.body) this._draftWrite(draft.body);
+        },
+
+        _draftRestore() {
+            const room = this._draftRoom();
+            const el = byId(ID_TA);
+            if (room == null || !el) return;
+
+            if (el.value !== '') {
+                const own = drafts.get(room);
+                const foreign = [...drafts].some(([other, draft]) => other !== room && draft.body === el.value);
+                if (!foreign || own?.body === el.value) return;
+
+                const next = own ?? this._draftStored(room);
+                if (next && !own) drafts.set(room, next);
+                this._draftWrite(next?.body ?? '');
+                this.toast(RELOCATED_MSG, 'info');
+                return;
+            }
+
+            const memory = drafts.get(room);
+            const stored = memory ?? this._draftStored(room);
+            if (!stored) return;
+
+            if (!memory) drafts.set(room, { body: stored.body, rev: stored.rev });
+            this._draftQuiet = true;
+            this._lastTypingPing = Date.now();
+            el.value = stored.body;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            this._draftQuiet = false;
+            this.$wire.set('composer.body', stored.body, false);
+            this.autoGrow(el, 160);
+            this.autoDirection(el);
+        },
+
+        _draftInit(signal) {
+            document.addEventListener('input', (e) => {
+                if (this._draftQuiet || e.target?.id !== ID_TA) return;
+                this._draftSave(this._draftRoom(), e.target.value);
+            }, { capture: true, signal });
+            this.$watch('$wire.composer.body', (body) => this._draftGuard(body));
+            this.$nextTick(() => this._draftRestore());
+        },
+
+        _draftSent(detail) {
+            const pending = this._pendingSend;
+            if (!pending || detail?.rev == null || detail.rev !== pending.rev) return;
+
+            pending.confirmed = true;
+            if (drafts.get(pending.room)?.rev !== pending.rev) return;
+
+            drafts.delete(pending.room);
+            cleared.add(pending.room);
+            if (this._loadState(draftKey(pending.room))?.rev === pending.rev) this._clearState(draftKey(pending.room));
+        },
+
+        _undelivered(connection = false) {
+            this.toast(connection ? CONNECTION_MSG : UNDELIVERED_MSG, 'error');
+        },
+
+        async _awaitRow(id) {
+            let timer;
+            const limit = new Promise((resolve) => { timer = setTimeout(resolve, ROW_WAIT_MS); });
+            const redraw = async () => {
+                for (let i = 0; i < ROW_REFRESHES && !document.querySelector(rowSel(id)); i++) {
+                    await this._isl().refreshActive().catch(() => {});
+                    await this.$nextTick();
+                }
+            };
+            try {
+                await Promise.race([redraw(), limit]);
+            } finally {
+                clearTimeout(timer);
+            }
+            return !!document.querySelector(rowSel(id));
+        },
+
+        async _deliver(body) {
+            const room = this._draftRoom();
+            const retry = room != null ? this._lastFailed?.[room] ?? null : null;
+            const rev = (room != null && drafts.get(room)?.rev) || retry || newRev();
+            const n = ++sends;
+            const pending = this._pendingSend = { room, rev, n, confirmed: false };
+            const el = byId(ID_TA);
+            if (el) el.readOnly = true;
+            let timer;
+
+            try {
+                let call;
+                try {
+                    call = this._isl().send(body, room, rev);
+                } catch (e) {
+                    pending.failed = true;
+                    throw e;
+                }
+                const settled = Promise.resolve(call).catch(() => TIMED_OUT);
+                const limit = new Promise((resolve) => {
+                    timer = setTimeout(() => {
+                        resolve(TIMED_OUT);
+                        try {
+                            call?._livewireAction?.cancel?.();
+                        } catch {
+                        }
+                    }, SEND_WATCHDOG_MS);
+                });
+                let id = await Promise.race([settled, limit]);
+                const lost = id === TIMED_OUT;
+                if (lost) id = null;
+                if (Number.isInteger(id)) {
+                    this._draftSent({ id, rev });
+                    if (this._lastFailed) delete this._lastFailed[room];
+                    if (!(await this._awaitRow(id))) this.toast(NOT_SHOWN_MSG, 'info');
+                }
+                if (!pending.confirmed) {
+                    pending.failed = true;
+                    if (room != null) this._lastFailed = { ...this._lastFailed, [room]: rev };
+                    this._undelivered(lost);
+                    this._draftRepair(room);
+                }
+                return id;
+            } finally {
+                clearTimeout(timer);
+                if (this._pendingSend?.n === n) {
+                    const box = byId(ID_TA);
+                    if (box) box.readOnly = false;
+                    if (el) el.readOnly = false;
+                }
+            }
+        },
 
         pingTyping() {
             const now = Date.now();
@@ -837,7 +1046,10 @@ export default function chatBase(scope) {
         _editDirty() { return false; },
 
         holdDraft(id, el, wire = this.$wire) {
-            const dirty = (el?.value ?? '').trim() !== '' || (wire.composer?.attachments?.length ?? 0) > 0 || this._editDirty(wire);
+            const room = this._draftRoom();
+            const text = el?.value ?? '';
+            const textKept = room != null && drafts.get(room)?.body === text;
+            const dirty = (text.trim() !== '' && !textKept) || (wire.composer?.attachments?.length ?? 0) > 0 || this._editDirty(wire);
             if (!dirty) return false;
             if (this._leaveArm === id && Date.now() < this._leaveUntil) {
                 this._leaveArm = null;
@@ -845,7 +1057,7 @@ export default function chatBase(scope) {
             }
             this._leaveArm = id;
             this._leaveUntil = Date.now() + LEAVE_DRAFT_MS;
-            this.toast('تغییرهای ذخیره‌نشده یا پیام ارسال‌نشده پاک می‌شود. برای خروج از این گفتگو، دوباره بزنید.', 'warning');
+            this.toast('با خروج، پیوست‌ها و تغییرات ذخیره‌نشده از دست می‌روند. برای خروج، دوباره بزنید.', 'warning');
             return true;
         },
 
@@ -937,13 +1149,14 @@ export default function chatBase(scope) {
             if (typeof e !== 'string') return;
 
             const ta = byId(ID_TA);
-            if (!ta) return;
+            if (!ta || ta.readOnly) return;
 
             const s = ta.selectionStart;
             const val = ta.value;
 
             const next = val.substring(0, s) + e + val.substring(s);
             ta.value = next;
+            this._draftSave(this._draftRoom(), next);
             this.$wire.set('composer.body', next, false);
 
             this.$nextTick(() => {

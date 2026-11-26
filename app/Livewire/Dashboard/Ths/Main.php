@@ -13,6 +13,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Ticket\TicketInsightsService;
 use App\Support\TicketAccessPolicy;
+use App\Traits\Livewire\AnnouncesInvalidForm;
 use App\Traits\Livewire\FocusOnRecord;
 use App\Traits\Livewire\HasDateSpan;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,6 +32,7 @@ use Livewire\WithFileUploads;
 #[Lazy]
 class Main extends Component
 {
+    use AnnouncesInvalidForm;
     use FocusOnRecord;
     use HasDateSpan;
     use WithFileUploads;
@@ -451,6 +453,11 @@ class Main extends Component
     private function unratedTicket(): ?Ticket
     {
         return Ticket::awaitingRatingBy(auth()->id())->first();
+    }
+
+    protected function announceInvalidOn(): array
+    {
+        return ['submitTicket'];
     }
 
     protected function recordFocusType(): string

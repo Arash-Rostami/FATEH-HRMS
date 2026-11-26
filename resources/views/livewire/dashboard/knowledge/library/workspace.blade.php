@@ -1,5 +1,5 @@
 @use('App\Models\Media')
-<main class="flex-1 min-w-0 flex flex-col overflow-y-auto custom-scrollbar [scrollbar-gutter:auto]! bg-[var(--md-sys-color-background)] md:flex" :class="{ 'hidden': !mobileDetail, 'flex': mobileDetail }" aria-label="فضای رسانه">
+<main class="flex-1 min-w-0 flex flex-col overflow-y-auto custom-scrollbar [scrollbar-gutter:auto]! bg-[var(--md-sys-color-background)] md:flex" :class="{ 'hidden': !mobileDetail, 'flex': mobileDetail }" aria-label="جزئیات رسانه">
     <div wire:key="media-refresh-error" x-show="refreshError" x-cloak class="p-4" role="alert"><p x-text="refreshError" class="text-sm text-[var(--md-sys-color-error)]"></p><x-ui.buttons.form variant="tonal" x-on:click="refreshLibrary()">تلاش دوباره</x-ui.buttons.form></div>
     <div wire:key="media-workspace-empty" x-show="!selected" class="contents"><x-ui.empty icon="video_library" title="برای شروع، یک رسانه انتخاب کنید" description="از فهرست، یک فایل صوتی، ویدیو یا مجموعهٔ آموزشی را باز کنید." :fill="true" /></div>
     @foreach($this->library['items'] as $item)
@@ -16,9 +16,10 @@
                     @endif
                 </div>
                 <div class="flex-1 min-w-0" x-show="!headerDeclutter">
-                    <div class="flex gap-2 mb-1 md:mb-3 max-md:hidden"><x-ui.badge>{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }}</x-ui.badge><x-ui.badge>{{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }}</x-ui.badge>@if($item['is_new'])<x-ui.badge wire:key="media-hero-new" x-cloak x-show="!played({{ $item['id'] }})" variant="info">جدید</x-ui.badge>@endif</div>
+                    <div class="flex gap-2 mb-1 md:mb-3 max-md:hidden"><x-ui.badge>{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }}</x-ui.badge><x-ui.badge>{{ $item['type'] === 'series' ? 'سری' : 'فایل مستقل' }}</x-ui.badge>@if($item['is_new'])<x-ui.badge wire:key="media-hero-new" x-cloak x-show="!played({{ $item['id'] }})" variant="info">جدید</x-ui.badge>@endif</div>
                     <h2 class="text-base md:text-4xl font-extrabold leading-6 md:leading-tight line-clamp-1 md:line-clamp-none text-[var(--md-sys-color-on-surface)] md:mb-2">{{ $item['title'] }}</h2>
                     <div class="text-[13px] leading-6 text-[var(--md-sys-color-on-surface-variant)] mb-3 prose rich-colors max-w-none max-md:hidden">{!! $item['description_html'] !!}</div>
+                    <div wire:key="media-episode-about" x-cloak x-show="selected?.type === 'series' && contextEpisode?.description_html" class="text-[13px] leading-6 text-[var(--md-sys-color-on-surface-variant)] mb-3"><b class="block text-[var(--md-sys-color-on-surface)]" x-text="contextEpisode?.title"></b><div class="prose rich-colors max-w-none max-md:line-clamp-2" x-html="contextEpisode?.description_html"></div></div>
                     <p class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)]"><b>{{ $item['unit'] }}</b><span>{{ $item['department'] }}</span><span>{{ $item['date_label'] }}</span><span x-text="time({{ $item['total_duration'] }})"></span></p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto md:ms-auto md:flex-col md:items-end md:justify-between md:self-stretch">
@@ -28,15 +29,15 @@
                         <x-ui.buttons.bookmark :id="$item['id']" scope="media" class="!h-8 !w-8 !rounded-xl !p-0 bg-[var(--md-sys-color-surface-variant)]" />
                         <x-ui.buttons.form variant="none" x-on:click="copyMoment()" title="کپی پیوند این لحظه" aria-label="کپی پیوند این لحظه" class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95"><span class="material-symbols-rounded text-base">share</span></x-ui.buttons.form>
                         <x-ui.modals.maximize-button />
-                        <x-ui.buttons.form variant="none" x-on:click="toggleHeaderDeclutter()" x-bind:aria-pressed="headerDeclutter" x-bind:title="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'" x-bind:aria-label="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'" class="max-md:hidden flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95"><span class="material-symbols-rounded text-base rotate-90" x-text="headerDeclutter ? 'unfold_more' : 'unfold_less'"></span></x-ui.buttons.form>
+                        <x-ui.buttons.form variant="none" x-on:click="toggleHeaderDeclutter()" x-bind:aria-pressed="headerDeclutter" x-bind:title="headerDeclutter ? 'نمایش سربرگ' : 'پنهان کردن سربرگ'" x-bind:aria-label="headerDeclutter ? 'نمایش سربرگ' : 'پنهان کردن سربرگ'" class="max-md:hidden flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95"><span class="material-symbols-rounded text-base rotate-90" x-text="headerDeclutter ? 'unfold_more' : 'unfold_less'"></span></x-ui.buttons.form>
                     </div>
                 <div class="hidden md:flex items-center gap-3">
                     <x-ui.decor.progress-ring :size="56" :stroke="6" alpine-percent="percent(progressOf(selectedId))" alpine-label="number(percent(progressOf(selectedId))) + '٪'"/>
-                    <div class="text-xs text-[var(--md-sys-color-on-surface-variant)]"><b class="block text-[var(--md-sys-color-on-surface)]" x-text="number(doneCount()) + ' از ' + number(selected?.episodes.length) + ' جلسه'"></b><span x-text="number(percent(progressOf(selectedId))) + '٪ پیشرفت'"></span></div>
+                    <div class="text-xs text-[var(--md-sys-color-on-surface-variant)]"><b class="block text-[var(--md-sys-color-on-surface)]" x-text="number(doneCount()) + ' از ' + number(selected?.episodes.length) + ' جلسه تمام شده'"></b><span x-text="number(percent(progressOf(selectedId))) + '٪ پیشرفت'"></span></div>
                 </div>
                 <div class="flex items-center gap-2 md:hidden">
                     <x-ui.decor.progress-ring :size="32" :stroke="5" label="" alpine-percent="percent(progressOf(selectedId))"/>
-                    <div class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]"><b class="block text-[var(--md-sys-color-on-surface)]" x-text="number(doneCount()) + ' از ' + number(selected?.episodes.length) + ' جلسه'"></b><span x-text="number(percent(progressOf(selectedId))) + '٪ پیشرفت'"></span></div>
+                    <div class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]"><b class="block text-[var(--md-sys-color-on-surface)]" x-text="number(doneCount()) + ' از ' + number(selected?.episodes.length) + ' جلسه تمام شده'"></b><span x-text="number(percent(progressOf(selectedId))) + '٪ پیشرفت'"></span></div>
                 </div>
                 </div>
             </header>
@@ -63,13 +64,13 @@
                             <th scope="col" data-col="type" class="{{ $th }} hidden md:table-cell">نوع</th>
                             <th scope="col" data-col="duration" class="{{ $th }} hidden md:table-cell">مدت</th>
                             <th scope="col" data-col="date" class="{{ $th }} hidden lg:table-cell">تاریخ انتشار</th>
-                            <th scope="col" data-col="extras" class="{{ $th }} hidden lg:table-cell">امکانات</th>
+                            <th scope="col" data-col="extras" class="{{ $th }} hidden lg:table-cell">متن و بخش‌ها</th>
                             <th scope="col" data-col="notes" class="{{ $th }} hidden md:table-cell">یادداشت</th>
                             <th scope="col" data-col="status" class="{{ $th }} hidden md:table-cell">وضعیت</th>
                             <th scope="col" class="{{ $th }} text-center last:rounded-tl-2xl">
                                 <x-ui.table.tools :maximize="false" wire:key="media-episode-table-tools">
                                     <x-ui.table.density-toggle/>
-                                    <x-ui.table.col-toggle scope="media" :columns="['type' => 'نوع', 'duration' => 'مدت', 'date' => 'تاریخ انتشار', 'extras' => 'امکانات', 'notes' => 'یادداشت', 'status' => 'وضعیت']"/>
+                                    <x-ui.table.col-toggle scope="media" :columns="['type' => 'نوع', 'duration' => 'مدت', 'date' => 'تاریخ انتشار', 'extras' => 'متن و بخش‌ها', 'notes' => 'یادداشت', 'status' => 'وضعیت']"/>
                                 </x-ui.table.tools>
                             </th>
                         </tr></x-slot:head>
@@ -79,36 +80,36 @@
                                     <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'num'">{{ convertToPersian((string) ($index + 1)) }}</span>
                                     <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'eq'" x-cloak class="flex gap-0.5 items-end h-4" aria-label="در حال پخش"><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i><i class="animate-eq origin-bottom w-1 h-3 bg-[var(--md-sys-color-primary)]"></i></span>
                                     <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'done'" x-cloak class="material-symbols-rounded text-[20px] font-fill text-[var(--md-sys-color-success)]" aria-label="تمام‌شده">check_circle</span>
-                                    <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'lock'" x-cloak class="material-symbols-rounded text-[18px]" aria-label="قفل‌شده">lock</span>
+                                    <span x-show="glyph({{ $item['id'] }}, {{ $index }}) === 'lock'" x-cloak class="material-symbols-rounded text-[18px]" aria-label="در انتظار انتشار">lock</span>
                                 </td>
                                 <td class="px-4 md:px-6 py-3">
                                     <x-ui.buttons.form variant="ghost" data-index="{{ $index }}" x-on:click="startEpisode(Number($el.dataset.index))" x-bind:disabled="!selected?.episodes[{{ $index }}]?.file_url && !isLocked(selected?.episodes[{{ $index }}])" class="!h-auto !min-h-10 !justify-start !px-0 text-right">
                                         <span class="material-symbols-rounded text-[20px]">{{ $episode['icon'] }}</span><span><b class="block text-sm">{{ $episode['title'] }}</b><span class="block text-xs font-normal text-[var(--md-sys-color-on-surface-variant)]">{{ $episode['topic'] }}</span><span class="block text-[10px] md:hidden text-[var(--md-sys-color-on-surface-variant)]"><span x-text="time({{ $episode['duration'] ?? 0 }})"></span>@if($episode['date_label'])<span> · {{ $episode['date_label'] }}</span>@endif</span></span>
                                     </x-ui.buttons.form>
                                     @if($episode['unlock_label'])
-                                        <p wire:key="media-episode-lock" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]"><span class="material-symbols-rounded text-[14px]">lock</span>زمان انتشار {{ $episode['unlock_label'] }}</p>
+                                        <p wire:key="media-episode-lock" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]"><span class="material-symbols-rounded text-[14px]">lock</span>انتشار در {{ $episode['unlock_label'] }}</p>
                                     @endif
                                 </td>
                                 <td data-col="type" class="hidden md:table-cell px-4 md:px-6 py-3 text-xs whitespace-nowrap"><span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-[16px]">{{ ($episode['kind'] ?? $item['kind']) === 'video' ? 'smart_display' : 'headphones' }}</span>{{ ($episode['kind'] ?? $item['kind']) === 'video' ? 'تصویری' : 'صوتی' }}@if(! empty($episode['ext']))<span wire:key="media-episode-ext" class="text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $episode['ext'] }}</span>@endif</span></td>
                                 <td data-col="duration" class="hidden md:table-cell px-4 md:px-6 py-3 text-xs tabular-nums" x-text="time({{ $episode['duration'] ?? 0 }})"></td>
                                 <td data-col="date" class="hidden lg:table-cell px-4 md:px-6 py-3 text-xs whitespace-nowrap">{{ $episode['date_label'] ?? '' }}</td>
-                                <td data-col="extras" class="hidden lg:table-cell px-4 md:px-6 py-3"><span class="inline-flex items-center gap-1 text-[var(--md-sys-color-on-surface-variant)]">@if($episode['transcript_url'])<span wire:key="media-episode-transcript" class="material-symbols-rounded text-[18px]" title="متن جلسه" aria-label="متن جلسه">subtitles</span>@endif @if($episode['chapters_url'])<span wire:key="media-episode-chapters" class="material-symbols-rounded text-[18px]" title="فصل‌ها" aria-label="فصل‌ها">list_alt</span>@endif @if(! $episode['transcript_url'] && ! $episode['chapters_url'])<span wire:key="media-episode-extras-none" aria-hidden="true">—</span>@endif</span></td>
+                                <td data-col="extras" class="hidden lg:table-cell px-4 md:px-6 py-3"><span class="inline-flex items-center gap-1 text-[var(--md-sys-color-on-surface-variant)]">@if($episode['transcript_url'])<span wire:key="media-episode-transcript" class="material-symbols-rounded text-[18px]" title="متن جلسه" aria-label="متن جلسه">subtitles</span>@endif @if($episode['chapters_url'])<span wire:key="media-episode-chapters" class="material-symbols-rounded text-[18px]" title="بخش‌ها" aria-label="بخش‌ها">list_alt</span>@endif @if(! $episode['transcript_url'] && ! $episode['chapters_url'])<span wire:key="media-episode-extras-none" aria-hidden="true">—</span>@endif</span></td>
                                 <td data-col="notes" class="hidden md:table-cell px-4 md:px-6 py-3 text-xs tabular-nums" x-text="number((libraryNotes[{{ $episode['id'] }}] ?? []).length)"></td>
                                 <td data-col="status" class="hidden md:table-cell px-4 md:px-6 py-3">
                                     <div class="flex items-center gap-3">
                                         <x-ui.decor.status-pill title="تمام‌شده" color="tertiary" x-show="episodeState({{ $item['id'] }}, {{ $index }}) === 'done'" x-cloak/>
                                         <x-ui.decor.status-pill title="در حال پخش" color="primary" x-show="episodeState({{ $item['id'] }}, {{ $index }}) === 'current'" x-cloak/>
-                                        <x-ui.decor.status-pill title="قفل‌شده" x-show="episodeState({{ $item['id'] }}, {{ $index }}) === 'locked'" x-cloak/>
+                                        <x-ui.decor.status-pill title="در انتظار انتشار" x-show="episodeState({{ $item['id'] }}, {{ $index }}) === 'locked'" x-cloak/>
                                         <x-ui.decor.status-pill title="آمادهٔ پخش" x-show="!['done', 'current', 'locked'].includes(episodeState({{ $item['id'] }}, {{ $index }}))" x-cloak/>
                                     </div>
                                     <div class="mt-2"><x-ui.decor.progress-ring :size="30" :stroke="4" alpine-percent="percent(episodeProgress({{ $item['id'] }}, {{ $index }}))" alpine-label="number(percent(episodeProgress({{ $item['id'] }}, {{ $index }}))) + '٪'"/></div>
                                 </td>
                                 <td class="px-4 md:px-6 py-3 text-center whitespace-nowrap">
-                                    <x-ui.buttons.form variant="ghost" size="icon" x-on:click="markDone({{ $item['id'] }}, {{ $index }})" x-show="canMarkDone({{ $item['id'] }}, {{ $index }})" x-cloak title="علامت‌زدن به‌عنوان تمام‌شده" aria-label="علامت‌زدن به‌عنوان تمام‌شده"><span class="material-symbols-rounded">done_all</span></x-ui.buttons.form>
+                                    <x-ui.buttons.form variant="ghost" size="icon" x-on:click="markDone({{ $item['id'] }}, {{ $index }})" x-show="canMarkDone({{ $item['id'] }}, {{ $index }})" x-cloak title="ثبت پایان جلسه" aria-label="ثبت پایان جلسه"><span class="material-symbols-rounded">done_all</span></x-ui.buttons.form>
                                     @if($episode['file_url'])
                                         <div wire:key="media-episode-download"><x-ui.buttons.form href="{{ $episode['file_url'] }}" variant="ghost" size="icon" download aria-label="دانلود جلسه"><span class="material-symbols-rounded">download</span></x-ui.buttons.form></div>
                                     @else
-                                        <span wire:key="media-episode-no-download" class="material-symbols-rounded text-[var(--md-sys-color-on-surface-variant)]" aria-label="هنوز منتشر نشده">lock</span>
+                                        <span wire:key="media-episode-no-download" class="material-symbols-rounded text-[var(--md-sys-color-on-surface-variant)]" aria-label="دانلود در دسترس نیست">lock</span>
                                     @endif
                                 </td>
                             </tr>
@@ -116,7 +117,7 @@
                     </x-ui.table>
                     </div>
                     @else
-                        <div wire:key="media-episodes-empty" class="contents"><x-ui.empty icon="playlist_play" title="هنوز جلسه‌ای منتشر نشده" /></div>
+                        <div wire:key="media-episodes-empty" class="contents"><x-ui.empty icon="playlist_play" title="هنوز جلسه‌ای در این سری نیست" /></div>
                     @endif
                 </div>
                 <div wire:key="media-transcript" x-show="tab === 'transcript'" x-cloak>
@@ -131,9 +132,9 @@
                     <div x-show="tracksError" role="alert" class="text-sm text-[var(--md-sys-color-error)]" x-text="tracksError"></div>
                     <div wire:key="media-chapters" x-show="chapters.length" x-cloak class="mb-4">
                         <div class="flex items-center gap-1.5">
-                            <button type="button" aria-label="فصل‌های قبلی" x-on:click="$refs.chapterStrip.scrollBy({ left: $refs.chapterStrip.clientWidth * 0.7, behavior: 'smooth' })"
+                            <button type="button" aria-label="بخش‌های قبلی" x-on:click="$refs.chapterStrip.scrollBy({ left: $refs.chapterStrip.clientWidth * 0.7, behavior: 'smooth' })"
                                     class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 hover:!bg-[var(--md-sys-color-primary)] hover:!text-[var(--md-sys-color-on-primary)] active:scale-90"><span class="material-symbols-rounded text-[18px]">chevron_right</span></button>
-                            <div x-ref="chapterStrip" role="list" aria-label="فصل‌های جلسه" class="flex min-w-0 flex-1 items-stretch gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            <div x-ref="chapterStrip" role="list" aria-label="بخش‌های جلسه" class="flex min-w-0 flex-1 items-stretch gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                                 <template x-for="chapter in chapters" :key="chapter.start + ':' + chapter.end">
                                     <button type="button" role="listitem" x-on:click="seekContext(chapter.start)" x-bind:aria-current="activeCue(chapter)" x-bind:title="chapter.text"
                                             class="w-36 shrink-0 rounded-xl px-3 py-2 text-right transition-colors duration-200 md:w-40"
@@ -143,7 +144,7 @@
                                     </button>
                                 </template>
                             </div>
-                            <button type="button" aria-label="فصل‌های بعدی" x-on:click="$refs.chapterStrip.scrollBy({ left: -$refs.chapterStrip.clientWidth * 0.7, behavior: 'smooth' })"
+                            <button type="button" aria-label="بخش‌های بعدی" x-on:click="$refs.chapterStrip.scrollBy({ left: -$refs.chapterStrip.clientWidth * 0.7, behavior: 'smooth' })"
                                     class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 hover:!bg-[var(--md-sys-color-primary)] hover:!text-[var(--md-sys-color-on-primary)] active:scale-90"><span class="material-symbols-rounded text-[18px]">chevron_left</span></button>
                         </div>
                     </div>
@@ -161,9 +162,9 @@
                 </div>
                 <div wire:key="media-notes" x-show="tab === 'notes'" x-cloak class="space-y-3 px-2">
                     <div class="relative" x-data="{ fullscreen: false, get value() { return noteBody }, set value(v) { noteBody = String(v).slice(0, 500) } }">
-                        <x-ui.forms.textarea label="یادداشت این لحظه" name="media-note" x-model="noteBody" maxlength="500" :rows="3" class="pl-10" />
+                        <x-ui.forms.textarea label="یادداشت برای این لحظه" name="media-note" x-model="noteBody" maxlength="500" :rows="3" class="pl-10" />
                         <x-ui.forms.maximize-trigger class="top-3 left-0"/>
-                        <x-ui.forms.maximize-overlay icon="edit_note" title="یادداشت این لحظه"/>
+                        <x-ui.forms.maximize-overlay icon="edit_note" title="یادداشت برای این لحظه"/>
                     </div>
                     <div class="flex flex-wrap gap-2"><x-ui.buttons.form variant="primary" x-on:click="addNote()" x-bind:disabled="noteBusy || !noteBody.trim()"><span class="material-symbols-rounded">bookmark_add</span><span x-text="noteBusy ? 'در حال ذخیره…' : 'ذخیرهٔ یادداشت'"></span></x-ui.buttons.form><x-ui.buttons.form variant="tonal" x-on:click="copyMoment()">کپی پیوند این لحظه</x-ui.buttons.form><x-ui.buttons.form variant="tonal" x-on:click="copyNotes()" x-show="currentNotes.length" x-cloak><span class="material-symbols-rounded">content_copy</span>کپی یادداشت‌ها</x-ui.buttons.form></div>
                     <template x-for="note in currentNotes" :key="note.id"><div class="flex items-start gap-3 p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]"><x-ui.buttons.form variant="ghost" x-on:click="seekContext(note.position)"><span x-text="time(note.position)"></span></x-ui.buttons.form><p class="flex-1 text-[13px] leading-6 whitespace-pre-wrap break-words" x-text="note.body"></p><x-ui.buttons.form variant="ghost" size="icon" x-on:click="deleteNote(note.id)" x-bind:disabled="noteBusy" aria-label="حذف یادداشت"><span class="material-symbols-rounded">delete</span></x-ui.buttons.form></div></template>

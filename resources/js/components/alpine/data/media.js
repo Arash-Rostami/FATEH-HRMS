@@ -420,7 +420,8 @@ export default function media() {
 
         episodeProgress(sid, index) {
             const episode = lookup(this, sid)?.episodes[index];
-            return episode?.duration ? Math.min(1, (this.library.progress?.[episode.id]?.position ?? 0) / episode.duration) : 0;
+            const progress = this.library.progress?.[episode?.id];
+            return episode?.duration ? (progress?.completed ? 1 : Math.min(1, (progress?.position ?? 0) / episode.duration)) : 0;
         },
 
         copyMoment() {
@@ -533,7 +534,7 @@ export default function media() {
             let remaining = urls.length;
             for (const [kind, url] of urls) {
                 const track = this._track(kind, url);
-                track.label = kind === 'chapters' ? 'فصل‌ها' : 'متن جلسه';
+                track.label = kind === 'chapters' ? 'بخش‌های جلسه' : 'متن جلسه';
                 track.addEventListener('load', () => {
                     if (destroyed || sequence !== trackSequence) return;
                     const cues = Array.from(track.track.cues ?? []).map(cue => ({ start: cue.startTime, end: cue.endTime, text: cue.text }));
@@ -543,7 +544,7 @@ export default function media() {
                 }, { once: true });
                 track.addEventListener('error', () => {
                     if (destroyed || sequence !== trackSequence) return;
-                    this.tracksError = 'متن جلسه بارگذاری نشد.';
+                    this.tracksError = 'متن یا بخش‌های جلسه بارگذاری نشد. دوباره تلاش کنید.';
                     this.tracksBusy = --remaining > 0;
                 }, { once: true });
                 trackHost.appendChild(track);

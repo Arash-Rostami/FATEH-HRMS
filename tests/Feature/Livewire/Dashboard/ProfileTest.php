@@ -15,6 +15,7 @@ use App\Livewire\Dashboard\Profile\Skills;
 use App\Livewire\Dashboard\Profile\Tickets;
 use App\Livewire\Dashboard\Profile\Actions\ResetDocumentStateAction;
 use App\Livewire\Dashboard\Profile\Presentation\DocumentPresenter;
+use App\Livewire\Dashboard\Profile\Presentation\InfoPresenter;
 use App\Enums\PresenceStatus;
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
@@ -598,6 +599,40 @@ class ProfileTest extends TestCase
             ->set('form.gender', '')
             ->call('save')
             ->assertHasErrors(['form.gender']);
+    }
+
+    public function test_info_failed_save_points_to_the_first_incomplete_step_field_with_an_error_toast()
+    {
+        Livewire::actingAs(User::factory()->create(['status' => 'active', 'presence' => 'onsite']))
+            ->test(Info::class)
+            ->call('save')
+            ->assertHasErrors(['form.gender', 'form.address'])
+            ->assertDispatched('profile-invalid', step: 2, field: 'form.gender')
+            ->assertDispatched('toast', type: 'error');
+    }
+
+    public function test_info_failed_save_keeps_the_staged_image_for_the_retry()
+    {
+        $component = Livewire::actingAs(User::factory()->create(['status' => 'active', 'presence' => 'onsite']))
+            ->test(Info::class)
+            ->set('form.image', UploadedFile::fake()->image('avatar.jpg'))
+            ->call('save')
+            ->assertHasErrors(['form.gender']);
+
+        $this->assertNotNull($component->get('form.image'));
+    }
+
+    public function test_info_presenter_first_invalid_orders_by_step_then_field_and_counts_every_error()
+    {
+        $this->assertSame(
+            ['step' => 3, 'field' => 'form.cellphone', 'count' => 2],
+            InfoPresenter::firstInvalid(['form.address', 'form.cellphone'])
+        );
+        $this->assertSame(
+            ['step' => 2, 'field' => 'form.gender', 'count' => 2],
+            InfoPresenter::firstInvalid(['form.address', 'form.gender'])
+        );
+        $this->assertSame(['step' => 1, 'field' => 'form.image', 'count' => 1], InfoPresenter::firstInvalid(['form.image']));
     }
 
     public function test_info_save_rejects_duplicate_id_booklet_number_from_another_profile()

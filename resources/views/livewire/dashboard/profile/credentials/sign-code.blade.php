@@ -49,6 +49,7 @@
                 autocomplete="current-password"
                 label="{{ __('resources/correspondence/strings.profile.sign_code_password_label') }}"
                 icon="lock"
+                mark
             />
 
             <x-ui.forms.input
@@ -58,6 +59,7 @@
                 autocomplete="new-password"
                 label="{{ __('resources/correspondence/strings.profile.sign_code_label') }}"
                 icon="key_vertical"
+                mark
             />
 
             <div class="flex items-center justify-between gap-2 pt-2">

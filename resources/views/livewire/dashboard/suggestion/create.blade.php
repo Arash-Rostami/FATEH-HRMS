@@ -37,8 +37,8 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div class="md:col-span-2 space-y-4">
-                    <x-ui.forms.input label="عنوان پیشنهاد" name="form.title" icon="label" wire:model="form.title"/>
-                    <x-ui.forms.textarea label="شرح پیشنهاد" name="form.descriptionSelf" icon="edit" :rows="5" wire:model="form.descriptionSelf" :maximizable="true"/>
+                    <x-ui.forms.input label="عنوان پیشنهاد" name="form.title" icon="label" wire:model="form.title" mark/>
+                    <x-ui.forms.textarea label="شرح پیشنهاد" name="form.descriptionSelf" icon="edit" :rows="5" wire:model="form.descriptionSelf" :maximizable="true" mark/>
                     <p class="text-[11px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">مشکل فعلی چیست؟ چه راه‌حلی پیشنهاد می‌کنید و چه فایده‌ای دارد؟ اگر هزینه یا زمان را برآورد کرده‌اید، اینجا بنویسید.</p>
                 </div>
 
@@ -69,7 +69,7 @@
                         پیشنهاد با کدام اصل سازمان هماهنگ است؟
                     </p>
 
-                    <x-ui.forms.select label="اصول سازمان" name="form.rule" wire:model="form.rule" multiple class="min-h-[140px]">
+                    <x-ui.forms.select label="اصول سازمان" name="form.rule" wire:model="form.rule" multiple mark class="min-h-[140px]">
                         @foreach($rules as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
@@ -82,7 +82,7 @@
                         این پیشنهاد موجب کدام بهبودها خواهد شد؟
                     </p>
 
-                    <x-ui.forms.select label="بهبودهای موردنظر" name="form.purpose" wire:model="form.purpose" multiple class="min-h-[140px]">
+                    <x-ui.forms.select label="بهبودهای موردنظر" name="form.purpose" wire:model="form.purpose" multiple mark class="min-h-[140px]">
                         @foreach($purposes as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
@@ -211,7 +211,7 @@
                                     </label>
                                 @endforeach
                             </div>
-                            <x-ui.forms.textarea label="توضیح نظر واحد شما" name="descriptionTeam" :rows="4" wire:model="form.descriptionTeam" :maximizable="true"/>
+                            <x-ui.forms.textarea label="توضیح نظر واحد شما" name="form.descriptionTeam" :rows="4" wire:model="form.descriptionTeam" :maximizable="true"/>
                         </div>
                     </div>
 

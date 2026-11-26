@@ -65,9 +65,9 @@
                     @enderror
                 </div>
 
-                <x-ui.forms.input label="عنوان" name="form.title" wire:model="form.title" icon="title" required />
+                <x-ui.forms.input label="عنوان" name="form.title" wire:model="form.title" icon="title" mark />
 
-                <x-ui.forms.textarea label="متن درخواست" name="form.body" wire:model="form.body" icon="notes" rows="5" required />
+                <x-ui.forms.textarea label="متن درخواست" name="form.body" wire:model="form.body" icon="notes" rows="5" mark />
                 <p class="text-xs leading-5 text-[var(--md-sys-color-on-surface-variant)]">نام بخش را بنویسید. برای گزارش خطا، بگویید چه کاری انجام دادید و چه اتفاقی افتاد. برای پیشنهاد، توضیح دهید چه تغییری می‌خواهید.</p>
 
                 <div>

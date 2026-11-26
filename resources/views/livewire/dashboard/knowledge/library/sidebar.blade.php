@@ -25,10 +25,10 @@
         <div class="sb-fold relative group" x-data="{ fullscreen: false, get value() { return query }, set value(v) { query = String(v) } }">
             <span class="material-symbols-rounded absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[var(--md-sys-color-on-surface-variant)] group-focus-within:text-[var(--md-sys-color-primary)] transition-colors z-10">search</span>
             <x-ui.forms.maximize-trigger class="inset-y-0 left-10"/>
-            <input type="text" id="media-search" x-model="query" aria-label="جست‌وجوی رسانه" placeholder="جست‌وجوی عنوان یا جلسه…" autocomplete="off" spellcheck="false"
+            <input type="text" id="media-search" x-model="query" aria-label="جست‌وجوی رسانه" placeholder="جست‌وجو در عنوان‌ها و جلسه‌ها…" autocomplete="off" spellcheck="false"
                    class="md3-input peer w-full h-10 leading-[40px] rounded-xl text-sm outline-none transition-all focus:ring-2 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50 pr-10 pl-20 placeholder-transparent">
             <x-ui.modals.close-button close="clearSearch()" size="sm" class="absolute left-1 top-1.5" x-show="query" x-cloak />
-            <label for="media-search" class="md3-label absolute top-1/2 -translate-y-1/2 pointer-events-none peer-placeholder-shown:right-10 peer-focus:right-4 right-4 transition-all duration-200">جست‌وجوی عنوان یا جلسه…</label>
+            <label for="media-search" class="md3-label absolute top-1/2 -translate-y-1/2 pointer-events-none peer-placeholder-shown:right-10 peer-focus:right-4 right-4 transition-all duration-200">جست‌وجو در عنوان‌ها و جلسه‌ها…</label>
             <x-ui.forms.maximize-overlay icon="search" title="جست‌وجوی رسانه"/>
         </div>
     </div>
@@ -76,7 +76,7 @@
                                                   alpine-percent="percent(progressOf({{ $item['id'] }}))" alpine-label="number(percent(progressOf({{ $item['id'] }}))) + '٪'"
                                                   class="shrink-0"/>
                     </div>
-                    <p class="text-[11px] truncate text-[var(--md-sys-color-on-surface-variant)]">{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }} · {{ $item['type'] === 'series' ? 'سری' : 'تک‌قسمت' }} · {{ convertToPersian((string) count($item['episodes'])) }} جلسه</p>
+                    <p class="text-[11px] truncate text-[var(--md-sys-color-on-surface-variant)]">{{ $item['kind'] === 'video' ? 'تصویری' : 'صوتی' }} · {{ $item['type'] === 'series' ? 'سری' : 'فایل مستقل' }} · {{ convertToPersian((string) count($item['episodes'])) }} جلسه</p>
                     <button type="button" data-id="{{ $item['id'] }}" x-show="episodeHit($el.dataset.id)" x-cloak x-on:click.stop="chooseEpisode($el.dataset.id)"
                             class="block w-full truncate text-right text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-html="highlight(episodeHit($el.dataset.id)?.title, query)"></button>
                 </div>
@@ -86,7 +86,7 @@
         <x-ui.buttons.load-more wire:key="media-list-more" click="rowLimit += 30" text="نمایش بیشتر"
                                 x-show="visibleItems.length > rowLimit" x-cloak
                                 class="sb-fold order-[9999] mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
-        <div wire:key="media-sidebar-empty" x-show="!visibleItems.length" class="contents"><x-ui.empty icon="search_off" variant="search" title="موردی پیدا نشد" description="عبارت جست‌وجو یا فیلترها را تغییر دهید." /></div>
+        <div wire:key="media-sidebar-empty" x-show="!visibleItems.length" class="contents"><x-ui.empty icon="search_off" variant="search" title="رسانه‌ای پیدا نشد" description="عبارت جست‌وجو یا فیلترها را تغییر دهید." /></div>
         <div class="sb-fold" x-show="onlySaved"><x-ui.saved-empty scope="media" /></div>
     </div>
 </aside>

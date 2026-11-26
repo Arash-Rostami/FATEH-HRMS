@@ -16,12 +16,14 @@ use App\Traits\Filament\FilamentActions;
 use App\Traits\Filament\FilamentAdminGuide;
 use App\Traits\Filament\FilamentFilters;
 use App\Traits\Filament\FilamentVisibility;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,6 +58,8 @@ class MediaResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
+        $isSeries = '$get(\'kind\') === \'' . Media::KIND_SERIES . '\'';
+
         return $schema->components([
             Tabs::make()
                 ->tabs([
@@ -97,8 +101,8 @@ class MediaResource extends Resource
                                 ->schema([
                                     MediaFormPresenter::coverImage(),
                                     MediaFormPresenter::divider(),
-                                    MediaFormPresenter::filePath(),
-                                    MediaFormPresenter::durationSeconds(),
+                                    MediaFormPresenter::filePath()->hiddenJs($isSeries),
+                                    MediaFormPresenter::durationSeconds()->hiddenJs($isSeries),
                                 ])
                                 ->columns(2)
                                 ->columnSpanFull(),
@@ -109,12 +113,22 @@ class MediaResource extends Resource
                                     MediaFormPresenter::transcriptPath(),
                                     MediaFormPresenter::chaptersPath(),
                                 ])
+                                ->hiddenJs($isSeries)
                                 ->columns(2)
                                 ->columnSpanFull(),
                         ]),
                 ])
                 ->columnSpanFull()
                 ->persistTabInQueryString(),
+        ]);
+    }
+
+    public static function mediaActiveColumn(): ToggleColumn
+    {
+        return self::activeColumn()->rules(fn (Model $record): array => [
+            fn (string $attribute, mixed $value, Closure $fail) => $value && $record->kind !== Media::KIND_SERIES && blank($record->file_path)
+                ? $fail(__('resources/media/strings.validation.activate_needs_file'))
+                : null,
         ]);
     }
 
@@ -222,6 +236,7 @@ class MediaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->withCount('episodes'))
             ->columns([
                 MediaTablePresenter::id(),
                 MediaTablePresenter::title(),
@@ -232,7 +247,7 @@ class MediaResource extends Resource
                 MediaTablePresenter::department(),
                 MediaTablePresenter::audience(),
                 MediaTablePresenter::user(),
-                self::activeColumn(),
+                self::mediaActiveColumn(),
                 MediaTablePresenter::pinned(),
                 MediaTablePresenter::reportDate(),
                 MediaTablePresenter::createdAt(),
@@ -257,10 +272,10 @@ class MediaResource extends Resource
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),
-                self::deleteAction(),
+                self::deleteAction()->modalDescription(__('resources/media/strings.table.delete_series')),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions([
-                static::bulkDeleteAction(),
+                static::bulkDeleteAction()->modalDescription(__('resources/media/strings.table.delete_series')),
                 MediaTablePresenter::shareWithDepartmentsBulkAction('resources/media/strings.bulk'),
                 ...self::bulkVisibilityActions(),
             ])

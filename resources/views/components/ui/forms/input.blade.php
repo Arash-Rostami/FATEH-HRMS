@@ -1,4 +1,4 @@
-@props(['label', 'name', 'type' => 'text', 'disabled' => false, 'icon' => null, 'maximizable' => false, 'columnHint' => null])
+@props(['label', 'name', 'type' => 'text', 'disabled' => false, 'icon' => null, 'maximizable' => false, 'columnHint' => null, 'mark' => false])
 
 <div
     class="relative group w-full md3-input-group"
@@ -26,7 +26,7 @@
         <label for="{{ $name }}"
                @if($columnHint) title="نام فیلد در پایگاه‌داده: {{ $columnHint }}" @endif
                class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">
-            {{ $label }}
+            {{ $label }}@if($mark)<span class="text-[var(--md-sys-color-error)]"> *</span>@endif
         </label>
 
         {{ $actions ?? '' }}

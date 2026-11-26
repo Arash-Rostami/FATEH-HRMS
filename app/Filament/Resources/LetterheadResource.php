@@ -23,6 +23,10 @@ class LetterheadResource extends Resource
     protected static ?string $slug = 'correspondence-letterheads';
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
+    protected static array $guide = [
+        ['label' => 'ساخت و تنظیم سربرگ', 'icon' => 'description', 'view' => 'filament.resources.letterhead.guide.overview'],
+    ];
+
     public static function shouldRegisterNavigation(): bool
     {
         return ! CorrespondenceResource::canViewAny() && ! tenantOffName(static::getSlug()) && static::canViewAny();

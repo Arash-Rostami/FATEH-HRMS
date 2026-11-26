@@ -103,9 +103,12 @@ export default function contact({ senderId = null, smsYear = null } = {}) {
                 this.openMessageSearch();
             }, { signal });
 
-            this.$wire.on('message-sent', () => {
+            this._draftInit(signal);
+
+            this.$wire.on('message-sent', (e) => {
                 this.sending = false;
                 this.replyingTo = null;
+                this._draftSent(e);
                 this.$store.sound?.playOutgoing(this.$wire.activeUserId, SCOPE);
             });
 
@@ -375,7 +378,7 @@ export default function contact({ senderId = null, smsYear = null } = {}) {
                     if (seq !== selectSeq) return;
                     this.showScrollFab = false;
                     this.newBelow = 0;
-                    this.$nextTick(() => { this._bindViewport(); this.scrollToBottom(false); });
+                    this.$nextTick(() => { this._bindViewport(); this.scrollToBottom(false); this._draftRestore(); });
                     return this._sidebar();
                 })
                 .then(() => {
@@ -486,7 +489,7 @@ export default function contact({ senderId = null, smsYear = null } = {}) {
                 if (saved !== false && this.editingMsg?.id === id) this.cancelEdit();
                 this._syncSidebarAfterOwnAction(wire);
             } catch {
-                this.toast('خطا در ذخیره ویرایش پیام.', 'error');
+                this.toast('ذخیرهٔ ویرایش تأیید نشد. پیش از تلاش دوباره، اتصال اینترنت را بررسی کنید.', 'error');
             } finally {
                 this._savingEdit = false;
             }
@@ -523,19 +526,20 @@ export default function contact({ senderId = null, smsYear = null } = {}) {
             if (this._overLimit(body)) return;
 
             this.sending = true;
+            const seq = this._sendSeq = (this._sendSeq || 0) + 1;
             const wire = this.$wire;
             const ghost = !wire.composer?.attachments?.length && !this.replyingTo && !wire.hasNewer
                 ? this._ghostShow(body)
                 : null;
             try {
-                await this._isl().send();
+                if (await this._deliver(body) === null) return;
                 this._syncSidebarAfterOwnAction(wire);
                 this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); this.autoGrow(ta(), 160); this.autoDirection(ta()); });
             } catch {
-                this.toast('خطا در ارتباط با سرور.', 'error');
+                this.toast('هنگام پردازش پیام مشکلی پیش آمد. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید.', 'error');
             } finally {
                 this._ghostHide(ghost);
-                setTimeout(() => { this.sending = false; }, SEND_LOCK_RESET_MS);
+                setTimeout(() => { if (this._sendSeq === seq) this.sending = false; }, SEND_LOCK_RESET_MS);
             }
         },
     };

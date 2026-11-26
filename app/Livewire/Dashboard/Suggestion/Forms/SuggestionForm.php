@@ -18,10 +18,10 @@ class SuggestionForm extends Form
     public array $departments = [];
 
     #[Validate('required|array|min:1')]
-    public array $purpose = [];
+    public array $rule = [];
 
     #[Validate('required|array|min:1')]
-    public array $rule = [];
+    public array $purpose = [];
 
     #[Validate('required|in:low,medium,high')]
     public string $priority = 'medium';

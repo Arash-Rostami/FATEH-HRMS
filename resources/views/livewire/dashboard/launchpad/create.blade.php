@@ -15,9 +15,9 @@
             @endforeach
         </div>
     </div>
-    <x-ui.forms.input label="نام برنامه" name="form.title" wire:model="form.title"/>
+    <x-ui.forms.input label="نام برنامه" name="form.title" wire:model="form.title" mark/>
     <x-ui.forms.textarea label="توضیح کوتاه (اختیاری)" name="form.description" wire:model="form.description"/>
-    <x-ui.forms.select label="دپارتمان" name="form.department_id" wire:model="form.department_id">
+    <x-ui.forms.select label="دپارتمان" name="form.department_id" wire:model="form.department_id" mark>
         <option value="">انتخاب دپارتمان</option>
         @foreach($departments as $code => $label)<option value="{{ $code }}">{{ $label }}</option>@endforeach
     </x-ui.forms.select>
@@ -39,7 +39,7 @@
     @endif
     @if($this->form->kind === 'link')
         <div wire:key="launchpad-kind-link" class="flex flex-col gap-3">
-            <x-ui.forms.select label="سامانهٔ مقصد" name="form.site" wire:model="form.site" icon="language">
+            <x-ui.forms.select label="سامانهٔ مقصد" name="form.site" wire:model="form.site" icon="language" mark>
                 <option value="">سامانه را انتخاب کنید</option>
                 @foreach($sites as $name => $sibling)<option value="{{ $name }}">{{ $sibling['title'] }}</option>@endforeach
             </x-ui.forms.select>
@@ -50,7 +50,7 @@
         <div wire:key="launchpad-kind-static" class="flex flex-col gap-3">
     <div x-on:change.capture="limit($event)">
         <input id="launchpad-files" type="file" multiple wire:model="form.files" data-max="{{ $this->limits['max_files'] }}" data-over="تعداد فایل‌ها بیش از حد مجاز است." class="hidden"/>
-        <label for="launchpad-files" tabindex="0" role="button" x-on:keydown.enter.prevent="$el.control?.click()" x-on:keydown.space.prevent="$el.control?.click()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] text-[11.5px] font-bold hover:bg-[var(--md-sys-color-surface-container-highest)] transition-colors cursor-pointer"><span class="material-symbols-rounded text-[16px]">attach_file</span>انتخاب فایل‌ها</label>
+        <label id="form.files" for="launchpad-files" tabindex="0" role="button" x-on:keydown.enter.prevent="$el.control?.click()" x-on:keydown.space.prevent="$el.control?.click()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] text-[11.5px] font-bold hover:bg-[var(--md-sys-color-surface-container-highest)] transition-colors cursor-pointer"><span class="material-symbols-rounded text-[16px]">attach_file</span>انتخاب فایل‌ها<span class="text-[var(--md-sys-color-error)]">*</span></label>
     </div>
     <div wire:loading.delay wire:target="form.files">
         <x-ui.loaders.bar/>

@@ -251,3 +251,223 @@ describe('project pulse project-id guard (added 2026-11-02)', () => {
         expect(fetchMock).not.toHaveBeenCalled()
     })
 })
+
+describe('project team chat draft backup (added 2026-11-26)', () => {
+    const KEY = 'chat-draft::project:12'
+    const withBox = (value = '') => {
+        const el = { value, style: {}, scrollHeight: 300 }
+        vi.stubGlobal('document', { documentElement: { dataset: {} }, getElementById: vi.fn(() => el) })
+        return el
+    }
+    const withStorage = (seed = {}) => {
+        const store = { ...seed }
+        vi.stubGlobal('localStorage', {
+            getItem: vi.fn((k) => (k in store ? store[k] : null)),
+            setItem: vi.fn((k, v) => { store[k] = v }),
+            removeItem: vi.fn((k) => { delete store[k] }),
+        })
+        return store
+    }
+    const makeChat = () => {
+        const c = project()
+        c.$wire = createWireMock()
+        c.$wire.activeProjectId = 12
+        c.$nextTick = (cb) => cb?.()
+        c.scrollToBottom = vi.fn()
+        return c
+    }
+    afterEach(() => vi.unstubAllGlobals())
+
+    test('typing saves the draft per project and clearing the box drops it', () => {
+        withBox()
+        const store = withStorage()
+        const c = makeChat()
+
+        c.saveChatDraft('hello team')
+        expect(JSON.parse(store[KEY]).body).toBe('hello team')
+
+        c.saveChatDraft('   ')
+        expect(store[KEY]).toBeUndefined()
+    })
+
+    test('no project id means nothing is saved', () => {
+        withBox()
+        const store = withStorage()
+        const c = makeChat()
+        c.$wire.activeProjectId = null
+
+        c.saveChatDraft('hello')
+
+        expect(Object.keys(store)).toHaveLength(0)
+    })
+
+    test('an empty box is refilled from a fresh stored draft and the composer state is updated without a request', () => {
+        const el = withBox('')
+        withStorage({ [KEY]: JSON.stringify({ body: 'unsent text', at: Date.now() }) })
+        const c = makeChat()
+
+        c.restoreChatDraft(el)
+
+        expect(el.value).toBe('unsent text')
+        expect(c.$wire.set).toHaveBeenCalledWith('chatComposer.body', 'unsent text', false)
+        expect(el.style.height).toBe('120px')
+    })
+
+    test('restore never overwrites existing text and ignores and deletes an expired draft', () => {
+        const typed = withBox('already typing')
+        const store = withStorage({ [KEY]: JSON.stringify({ body: 'old', at: Date.now() }) })
+        const c = makeChat()
+
+        c.restoreChatDraft(typed)
+        expect(typed.value).toBe('already typing')
+
+        const empty = withBox('')
+        store[KEY] = JSON.stringify({ body: 'stale', at: Date.now() - 25 * 60 * 60 * 1000 })
+        c.restoreChatDraft(empty)
+
+        expect(empty.value).toBe('')
+        expect(store[KEY]).toBeUndefined()
+    })
+
+    test('a confirmed send (box empty after the call) drops the draft, an unsent box keeps it', async () => {
+        const el = withBox('message')
+        const store = withStorage({ [KEY]: JSON.stringify({ body: 'message', rev: 'r1', at: Date.now() }) })
+        const c = makeChat()
+        c.$wire.sendChatMessage = vi.fn(async () => { el.value = '' })
+
+        await c.sendMessage()
+        expect(store[KEY]).toBeUndefined()
+
+        const kept = withBox('message')
+        store[KEY] = JSON.stringify({ body: 'message', at: Date.now() })
+        const d = makeChat()
+        d.$wire.sendChatMessage = vi.fn(async () => {})
+        d.sending = false
+
+        await d.sendMessage()
+        expect(store[KEY]).toBeDefined()
+        expect(kept.value).toBe('message')
+    })
+
+    test('newer typing during a pending send is never deleted: only the submitted draft is dropped and the newer text is put back', async () => {
+        const el = withBox('first message')
+        const store = withStorage({ [KEY]: JSON.stringify({ body: 'first message', at: Date.now() }) })
+        const c = makeChat()
+        c.$wire.sendChatMessage = vi.fn(async () => {
+            c.saveChatDraft('second message')
+            el.value = ''
+        })
+
+        await c.sendMessage()
+
+        expect(JSON.parse(store[KEY]).body).toBe('second message')
+        expect(el.value).toBe('second message')
+    })
+
+    test('newer text that merely starts with the sent text is restored whole, never cut short', async () => {
+        const el = withBox('OK')
+        const store = withStorage({ [KEY]: JSON.stringify({ body: 'OK', rev: 'r1', at: Date.now() }) })
+        const c = makeChat()
+        c.$wire.sendChatMessage = vi.fn(async () => {
+            c.saveChatDraft('')
+            c.saveChatDraft('OK for Friday')
+            el.value = ''
+        })
+
+        await c.sendMessage()
+
+        expect(el.value).toBe('OK for Friday')
+        expect(JSON.parse(store[KEY]).body).toBe('OK for Friday')
+    })
+
+    test('a stored draft from an older version without a revision gets one when restored, so a later send clears it', async () => {
+        const el = withBox('')
+        const store = withStorage({ [KEY]: JSON.stringify({ body: 'old draft', at: Date.now() }) })
+        const c = makeChat()
+        c.$wire.sendChatMessage = vi.fn(async () => { el.value = '' })
+
+        c.restoreChatDraft(el)
+        expect(typeof JSON.parse(store[KEY]).rev).toBe('string')
+
+        el.value = 'old draft'
+        await c.sendMessage()
+
+        expect(store[KEY]).toBeUndefined()
+    })
+
+    test('identical text typed again after clearing the box during a pending send is kept, not mistaken for the sent draft', async () => {
+        const el = withBox('OK')
+        const store = withStorage({ [KEY]: JSON.stringify({ body: 'OK', rev: 'r1', at: Date.now() }) })
+        const c = makeChat()
+        c.$wire.sendChatMessage = vi.fn(async () => {
+            c.saveChatDraft('')
+            c.saveChatDraft('OK')
+            el.value = ''
+        })
+
+        await c.sendMessage()
+
+        expect(el.value).toBe('OK')
+        expect(JSON.parse(store[KEY]).body).toBe('OK')
+        expect(JSON.parse(store[KEY]).rev).not.toBe('r1')
+    })
+
+    test('a send that leaves the box untouched keeps the draft', async () => {
+        const el = withBox('same text')
+        const store = withStorage({ [KEY]: JSON.stringify({ body: 'same text', at: Date.now() }) })
+        const c = makeChat()
+        c.$wire.sendChatMessage = vi.fn(async () => {})
+
+        await c.sendMessage()
+
+        expect(store[KEY]).toBeDefined()
+        expect(el.value).toBe('same text')
+    })
+
+    test('a connection error explains how to check the send and keeps the draft', async () => {
+        const el = withBox('same text')
+        const store = withStorage({ [KEY]: JSON.stringify({ body: 'same text', rev: 'r1', at: Date.now() }) })
+        const c = makeChat()
+        c.toast = vi.fn()
+        c.$wire.sendChatMessage = vi.fn().mockRejectedValue(new Error('Connection lost'))
+
+        await c.sendMessage()
+
+        expect(c.toast).toHaveBeenCalledWith('وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.', 'error')
+        expect(el.value).toBe('same text')
+        expect(JSON.parse(store[KEY]).body).toBe('same text')
+    })
+
+    test('switching project during a pending send drops the sent project draft and never touches the other project', async () => {
+        const el = withBox('sent text')
+        const other = 'chat-draft::project:13'
+        const store = withStorage({
+            [KEY]: JSON.stringify({ body: 'sent text', rev: 'r1', at: Date.now() }),
+            [other]: JSON.stringify({ body: 'other draft', rev: 'r9', at: Date.now() }),
+        })
+        const c = makeChat()
+        c.$wire.sendChatMessage = vi.fn(async () => {
+            c.$wire.activeProjectId = 13
+            el.value = ''
+        })
+
+        await c.sendMessage()
+
+        expect(store[KEY]).toBeUndefined()
+        expect(JSON.parse(store[other]).body).toBe('other draft')
+        expect(el.value).toBe('')
+    })
+
+    test('Enter during IME composition does not send', () => {
+        withBox('x')
+        withStorage()
+        const c = makeChat()
+        c.sendMessage = vi.fn()
+        const event = { key: 'Enter', shiftKey: false, isComposing: true, preventDefault: vi.fn() }
+
+        c.onComposerKeydown(event)
+
+        expect(c.sendMessage).not.toHaveBeenCalled()
+        expect(event.preventDefault).not.toHaveBeenCalled()
+    })
+})

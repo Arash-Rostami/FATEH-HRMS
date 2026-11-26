@@ -27,7 +27,7 @@
             <div class="flex items-center gap-1">
                 <x-ui.buttons.form variant="none" icon="skip_previous" x-on:click="prev()" aria-label="جلسهٔ قبل"
                                    class="{{ $secondaryButtonClass }} max-md:hidden"/>
-                <x-ui.buttons.form variant="none" x-on:click="skip(-10)" aria-label="۱۰ ثانیه عقب" title="۱۰ ثانیه عقب"
+                <x-ui.buttons.form variant="none" x-on:click="skip(-10)" aria-label="۱۰ ثانیه به عقب" title="۱۰ ثانیه به عقب"
                                    class="{{ $secondaryButtonClass }}">
                     <span aria-hidden="true" class="material-symbols-rounded text-[16px]">keyboard_double_arrow_left</span>
                 </x-ui.buttons.form>
@@ -39,7 +39,7 @@
                 <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary)]" x-text="playing ? 'pause' : 'play_arrow'">play_arrow</span>
             </x-ui.buttons.form>
             <div class="flex items-center gap-1">
-                <x-ui.buttons.form variant="none" x-on:click="skip(10)" aria-label="۱۰ ثانیه جلو" title="۱۰ ثانیه جلو"
+                <x-ui.buttons.form variant="none" x-on:click="skip(10)" aria-label="۱۰ ثانیه به جلو" title="۱۰ ثانیه به جلو"
                                    class="{{ $secondaryButtonClass }}">
                     <span aria-hidden="true" class="material-symbols-rounded text-[16px]">keyboard_double_arrow_right</span>
                 </x-ui.buttons.form>
@@ -84,7 +84,7 @@
             <input type="range" min="0" max="1" step="0.05" dir="ltr" :value="vol" @input="setVolume($event.target.value)"
                    class="h-1 w-20 cursor-pointer accent-[var(--md-sys-color-primary)]"
                    aria-label="بلندی صدا">
-            <x-ui.buttons.form variant="none" x-on:click="toggleMute()" x-bind:aria-label="muted ? 'روشن کردن صدا' : 'بی‌صدا کردن'"
+            <x-ui.buttons.form variant="none" x-on:click="toggleMute()" x-bind:aria-label="muted ? 'وصل کردن صدا' : 'بی‌صدا کردن'"
                                class="group h-8 w-8 shrink-0 rounded-lg text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-primary)] active:scale-95">
                 <span class="material-symbols-rounded text-[18px] transition-transform group-active:scale-90"
                       x-text="muted || vol === 0 ? 'volume_off' : (vol < 0.5 ? 'volume_down' : 'volume_up')">volume_up</span>
@@ -109,7 +109,7 @@
                 <div class="min-w-0">
                     <p class="truncate text-[13px] font-bold text-[var(--md-sys-color-on-surface)]" x-text="currentEpisode?.title"></p>
                     <p class="truncate text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="item()?.title"></p>
-                    <p x-show="upNext" x-cloak class="truncate text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="'بعدی: ' + upNext?.title"></p>
+                    <p x-show="upNext" x-cloak class="truncate text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="'جلسهٔ بعد: ' + upNext?.title"></p>
                 </div>
             </div>
         </template>
@@ -128,14 +128,14 @@
 
         <template x-if="undo">
             <div class="absolute -top-12 start-4 shadow-lg">
-                <x-ui.buttons.form variant="tonal" x-on:click="undoSwitch()">بازگشت به لحظهٔ قبل</x-ui.buttons.form>
+                <x-ui.buttons.form variant="tonal" x-on:click="undoSwitch()">ادامهٔ جلسهٔ قبلی</x-ui.buttons.form>
             </div>
         </template>
 
         <template x-if="error && currentEpisode">
             <div dir="rtl" class="flex items-center gap-2 text-[12px] font-bold text-[var(--md-sys-color-error)]">
                 <span class="material-symbols-rounded text-[18px]">error</span>
-                <span>فایل پخش نشد</span>
+                <span>پخش فایل ممکن نشد</span>
                 <a :href="currentEpisode?.file_url" class="text-[var(--md-sys-color-primary)] underline" x-show="currentEpisode?.file_url">دانلود فایل</a>
             </div>
         </template>
@@ -166,21 +166,21 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-1 text-[12px]">
-                    <x-ui.buttons.form variant="none" icon="skip_previous" x-on:click="prev()" aria-label="قبلی" class="w-8 h-8 rounded-lg hover:bg-white/20"/>
-                    <x-ui.buttons.form variant="none" x-on:click="skip(-10)" aria-label="۱۰ ثانیه عقب" title="۱۰ ثانیه عقب" class="w-8 h-8 rounded-lg hover:bg-white/20">
+                    <x-ui.buttons.form variant="none" icon="skip_previous" x-on:click="prev()" aria-label="جلسهٔ قبل" class="w-8 h-8 rounded-lg hover:bg-white/20"/>
+                    <x-ui.buttons.form variant="none" x-on:click="skip(-10)" aria-label="۱۰ ثانیه به عقب" title="۱۰ ثانیه به عقب" class="w-8 h-8 rounded-lg hover:bg-white/20">
                         <span class="material-symbols-rounded text-[16px]" aria-hidden="true">keyboard_double_arrow_left</span>
                     </x-ui.buttons.form>
-                    <x-ui.buttons.form variant="none" x-on:click="toggle()" aria-label="پخش" class="w-8 h-8 rounded-lg hover:bg-white/20">
+                    <x-ui.buttons.form variant="none" x-on:click="toggle()" aria-label="پخش یا توقف" class="w-8 h-8 rounded-lg hover:bg-white/20">
                         <span class="material-symbols-rounded text-[20px] font-fill" x-text="playing ? 'pause' : 'play_arrow'">play_arrow</span>
                     </x-ui.buttons.form>
-                    <x-ui.buttons.form variant="none" x-on:click="skip(10)" aria-label="۱۰ ثانیه جلو" title="۱۰ ثانیه جلو" class="w-8 h-8 rounded-lg hover:bg-white/20">
+                    <x-ui.buttons.form variant="none" x-on:click="skip(10)" aria-label="۱۰ ثانیه به جلو" title="۱۰ ثانیه به جلو" class="w-8 h-8 rounded-lg hover:bg-white/20">
                         <span class="material-symbols-rounded text-[16px]" aria-hidden="true">keyboard_double_arrow_right</span>
                     </x-ui.buttons.form>
-                    <x-ui.buttons.form variant="none" icon="skip_next" x-on:click="next()" aria-label="بعدی" class="w-8 h-8 rounded-lg hover:bg-white/20"/>
+                    <x-ui.buttons.form variant="none" icon="skip_next" x-on:click="next()" aria-label="جلسهٔ بعد" class="w-8 h-8 rounded-lg hover:bg-white/20"/>
                     <span class="mx-2 tabular-nums" x-text="faTime(t) + ' / ' + faTime(duration)"></span>
                     <span dir="rtl" class="ms-auto min-w-0 truncate max-md:hidden" x-text="currentEpisode?.title"></span>
                     <x-ui.buttons.form variant="none" x-on:click="setSpeed()" aria-label="سرعت پخش" title="سرعت پخش" class="w-8 h-8 rounded-lg text-[11px] font-bold hover:bg-white/20" x-text="fa(speed) + '×'"/>
-                    <x-ui.buttons.form variant="none" x-on:click="toggleMute()" x-bind:aria-label="muted ? 'روشن کردن صدا' : 'بی‌صدا کردن'" class="w-8 h-8 rounded-lg hover:bg-white/20">
+                    <x-ui.buttons.form variant="none" x-on:click="toggleMute()" x-bind:aria-label="muted ? 'وصل کردن صدا' : 'بی‌صدا کردن'" class="w-8 h-8 rounded-lg hover:bg-white/20">
                         <span class="material-symbols-rounded text-[20px]" x-text="muted || vol === 0 ? 'volume_off' : (vol < 0.5 ? 'volume_down' : 'volume_up')">volume_up</span>
                     </x-ui.buttons.form>
                     <x-ui.buttons.form variant="none" x-show="canPictureInPicture" x-on:click="togglePictureInPicture()" x-bind:aria-pressed="pictureInPicture" aria-label="تصویر در تصویر" title="تصویر در تصویر" class="w-8 h-8 rounded-lg hover:bg-white/20">

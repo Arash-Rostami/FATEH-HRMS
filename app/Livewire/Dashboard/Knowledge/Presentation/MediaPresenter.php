@@ -22,7 +22,7 @@ class MediaPresenter
     ];
 
     private const EPISODE_COLUMNS = [
-        'id', 'parent_id', 'kind', 'title', 'topic', 'icon', 'duration_seconds',
+        'id', 'parent_id', 'kind', 'title', 'topic', 'description', 'icon', 'duration_seconds',
         'file_path', 'transcript_path', 'chapters_path', 'report_date', 'position',
     ];
 
@@ -129,6 +129,7 @@ class MediaPresenter
             'id' => $episode->id,
             'title' => $episode->title,
             'topic' => $episode->topic ?? '',
+            'description_html' => $locked || $episode->parent_id === null || blank($episode->description) ? '' : Str::sanitizeHtml($episode->description),
             'icon' => $this->icon($episode, $episode->kind),
             'kind' => $episode->kind === 'video' ? 'video' : 'audio',
             'ext' => strtoupper($extension),

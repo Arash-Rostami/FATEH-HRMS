@@ -1,4 +1,4 @@
-@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'emptyText' => 'موردی یافت نشد', 'columnHint' => null, 'pageSize' => 50])
+@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'emptyText' => 'موردی یافت نشد', 'columnHint' => null, 'pageSize' => 50, 'mark' => false])
 @php($objectMode = $searchable && filled($options) && !is_string(\Illuminate\Support\Arr::first($options)))
 
 <div
@@ -134,9 +134,9 @@
     @endif
 
     @if(!$searchable)
-        <label for="{{ $name }}" @if($columnHint) title="نام فیلد در پایگاه‌داده: {{ $columnHint }}" @endif class="md3-label transition-all duration-300 {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">{{ $label }}</label>
+        <label for="{{ $name }}" @if($columnHint) title="نام فیلد در پایگاه‌داده: {{ $columnHint }}" @endif class="md3-label transition-all duration-300 {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">{{ $label }}@if($mark)<span class="text-[var(--md-sys-color-error)]"> *</span>@endif</label>
     @else
-        <label @if($columnHint) title="نام فیلد در پایگاه‌داده: {{ $columnHint }}" @endif class="md3-label transition-all duration-300 {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }} pointer-events-none">{{ $label }}</label>
+        <label @if($columnHint) title="نام فیلد در پایگاه‌داده: {{ $columnHint }}" @endif class="md3-label transition-all duration-300 {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }} pointer-events-none">{{ $label }}@if($mark)<span class="text-[var(--md-sys-color-error)]"> *</span>@endif</label>
     @endif
 
     <!-- Caret Icon -->

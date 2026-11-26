@@ -278,6 +278,24 @@ class SuggestionTest extends TestCase
             ->assertHasErrors(['form.title']);
     }
 
+    public function test_failed_submit_points_to_the_first_invalid_field_with_an_error_toast()
+    {
+        Livewire::actingAs($this->deptUser('TST', 'expert'))
+            ->test(Main::class)
+            ->call('submit')
+            ->assertDispatched('form-invalid', field: 'form.title')
+            ->assertDispatched('toast', type: 'error');
+    }
+
+    public function test_live_validation_of_a_single_field_does_not_announce_the_form()
+    {
+        Livewire::actingAs($this->deptUser('TST', 'expert'))
+            ->test(Main::class)
+            ->set('form.title', 'x')
+            ->assertHasErrors(['form.title'])
+            ->assertNotDispatched('form-invalid');
+    }
+
     public function test_submit_validates_description_min_ten_chars()
     {
         $user = $this->deptUser('TST', 'expert');

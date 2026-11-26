@@ -26,6 +26,7 @@ use App\Traits\Livewire\ChatComposer;
 use App\Traits\Livewire\FocusOnRecord;
 use App\Traits\Livewire\ForwardsMessages;
 use App\Traits\Livewire\SendsSms;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -42,6 +43,7 @@ use Livewire\WithFileUploads;
 use Morilog\Jalali\Jalalian;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\View\View;
+use Throwable;
 
 #[Isolate]
 #[Lazy]
@@ -663,14 +665,51 @@ class Main extends Component
         return (bool) Cache::get("typing:dm:{$this->activeUserId}:" . auth()->id());
     }
 
-    public function send(SendMessageAction $action): void
+    public function send(SendMessageAction $action, ?string $body = null, mixed $room = null, ?string $rev = null): ?int
     {
         if (!$this->activeUserId) {
-            return;
+            return null;
         }
 
+        if ($room !== null && (!is_scalar($room) || (int) $room !== $this->activeUserId)) {
+            return null;
+        }
+
+        if ($body !== null) {
+            $this->composer->body = $body;
+        }
+
+        if ($rev !== null && !preg_match('/^[A-Za-z0-9-]{1,64}\z/', $rev)) {
+            $rev = null;
+        }
+
+        $markerKey = $rev !== null ? 'chat-send:' . auth()->id() . ":contact:{$rev}" : null;
+
+        $lock = null;
+        $held = false;
+
         try {
-            $action->execute($this->composer, $this->activeUserId);
+            if ($markerKey) {
+                try {
+                    $lock = Cache::lock($markerKey . ':lock', 60);
+                    $held = $lock->block(5);
+                } catch (LockTimeoutException $e) {
+                    throw $e;
+                } catch (Throwable) {
+                    $lock = null;
+                }
+            }
+
+            try {
+                $messageId = $markerKey
+                    ? $this->sendOnce($action, $markerKey)
+                    : $action->execute($this->composer, $this->activeUserId)->id;
+            } finally {
+                if ($held) {
+                    rescue(fn() => $lock->release());
+                }
+            }
+
             Cache::forget("typing:dm:" . auth()->id() . ":{$this->activeUserId}");
             $this->composer->reset();
             $this->focusAnchorId = null;
@@ -678,17 +717,50 @@ class Main extends Component
             $this->focusNewer = 5;
             $this->invalidateMessageCache();
             unset($this->contacts);
-            $this->dispatch('message-sent');
+            $this->dispatch('message-sent', id: $messageId, rev: $rev);
             rescue(fn() => $this->markRead($this->activeUserId));
+
+            return $messageId;
         } catch (ValidationException $e) {
             $this->setErrorBag($e->validator->errors());
             $this->dispatch('message-error');
-            $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ارسال پیام', type: 'error');
+            $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'پیام ارسال نشد. متن و پیوست‌ها را بررسی کنید.', type: 'error');
+        } catch (LockTimeoutException) {
+            $this->dispatch('message-error');
         } catch (\Exception $e) {
             report($e);
             $this->dispatch('message-error');
-            $this->dispatch('show-toast', message: 'خطای سیستمی رخ داده است', type: 'error');
+            $this->dispatch('show-toast', message: 'هنگام پردازش پیام مشکلی پیش آمد. کمی بعد دوباره تلاش کنید.', type: 'error');
         }
+
+        return null;
+    }
+
+    private function sendOnce(SendMessageAction $action, string $markerKey): int
+    {
+        $fingerprint = sha1(
+            trim($this->composer->body) . '|' . ($this->composer->replyToId ?? '') . '|'
+            . collect($this->composer->attachments)->map(fn($file) => $file->getFilename())->implode(',')
+        );
+
+        $marker = rescue(fn() => Cache::get($markerKey));
+
+        if (is_array($marker) && ($marker['fp'] ?? null) === $fingerprint) {
+            $existing = Message::whereKey($marker['id'] ?? 0)
+                ->where('sender_id', auth()->id())
+                ->where('recipient_id', $this->activeUserId)
+                ->value('id');
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
+        $messageId = $action->execute($this->composer, $this->activeUserId)->id;
+
+        rescue(fn() => Cache::put($markerKey, ['id' => $messageId, 'fp' => $fingerprint], now()->addDay()));
+
+        return $messageId;
     }
 
     public function setFilter(string $filter): void

@@ -237,6 +237,54 @@ describe('playerMixin — episodeState / progressOf / resumeAt', () => {
         p._saveState('media_progress', { '11': { position: 900, last_position: 500, updatedAt: Date.now() } })
         expect(p.resumeAt(1, 0)).toBe(490)
     })
+
+    test('resumeAt restarts an episode stopped at or past the completion ratio', () => {
+        const p = makePlayer()
+        p.library.progress['11'] = { position: 960, last_position: 960, completed: true }
+        expect(p.resumeAt(1, 0)).toBe(0)
+    })
+
+    test('progressOf counts a completed episode in full and ignores episodes with no duration', () => {
+        const p = makePlayer()
+        p.library.progress['21'] = { position: 456, last_position: 456, completed: true }
+        expect(p.progressOf(2)).toBe(1)
+        p.library.items[1].episodes.push({ id: 22, title: 'بدون مدت', duration: null, file_url: '/x.mp4', mime: 'video/mp4', unlock_at: null })
+        expect(p.progressOf(2)).toBe(1)
+    })
+})
+
+describe('playerMixin — playback guards', () => {
+    test('an AbortError from play() leaves the state alone while a real failure asks for a tap', async () => {
+        const p = makePlayer()
+        const play = vi.spyOn(FakeAudio.prototype, 'play')
+        play.mockRejectedValueOnce(Object.assign(new Error('x'), { name: 'AbortError' }))
+        p.playEpisode(1, 0)
+        await settle()
+        expect(p.tapToPlay).toBe(false)
+        play.mockRejectedValueOnce(Object.assign(new Error('x'), { name: 'NotAllowedError' }))
+        p.playEpisode(1, 1)
+        await settle()
+        expect(p.tapToPlay).toBe(true)
+        play.mockRestore()
+    })
+
+    test('next, previous and play skip an unlocked episode that has no file', () => {
+        const p = makePlayer()
+        p.library.items[0].episodes[1].file_url = null
+        p.cur = { sid: 1, idx: 0 }
+        expect(p._nextPlayable(1)).toBeNull()
+        expect(p._prevPlayable(1)).toBe(0)
+        p.playEpisode(1, 1)
+        expect(p.cur.idx).toBe(0)
+    })
+
+    test('next does nothing when no episode is current', () => {
+        const p = makePlayer()
+        p.cur = { sid: null, idx: 0 }
+        p.toast = vi.fn()
+        p.next()
+        expect(p.toast).not.toHaveBeenCalled()
+    })
 })
 
 describe('playerMixin — playEpisode', () => {
@@ -937,6 +985,18 @@ describe('playerMixin — prebuffer gating', () => {
         p.t = 400
         p.maybePrebuffer()
         expect(FakeAudio.instances.some((el) => el.src === '/storage/media/files/a2.mp3' && el !== main)).toBe(true)
+    })
+
+    test('a video next episode is never prebuffered', () => {
+        const p = makePlayer()
+        p.library.items[0].episodes[1].mime = 'video/mp4'
+        p.playEpisode(1, 0)
+        const main = sharedElement()
+        main._trigger('playing')
+        p.duration = 500
+        p.t = 450
+        p.maybePrebuffer()
+        expect(FakeAudio.instances.some((el) => el !== main)).toBe(false)
     })
 
     test('saveData skips prebuffering entirely', () => {

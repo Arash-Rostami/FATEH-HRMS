@@ -68,7 +68,6 @@ class MediaFormPresenter extends ReportFormPresenter
             ->label(__('resources/media/strings.fields.kind'))
             ->options(static::kindOptions())
             ->required()
-            ->live()
             ->default('audio')
             ->disabled(fn(?Media $record): bool => $record?->kind === 'series' && $record->episodes()->exists())
             ->helperText(fn(?Media $record): string => $record?->kind === 'series' && $record->episodes()->exists()
@@ -85,7 +84,6 @@ class MediaFormPresenter extends ReportFormPresenter
                 'video' => __('resources/media/strings.fields.kind_video'),
             ])
             ->required()
-            ->live()
             ->default('audio')
             ->helperText(__('resources/media/strings.hints.episode_kind'));
     }
@@ -119,7 +117,7 @@ class MediaFormPresenter extends ReportFormPresenter
             ->searchable()
             ->native(false)
             ->nullable()
-            ->visible(fn (Get $get): bool => $get('kind') !== 'audio')
+            ->visibleJs('$get(\'kind\') !== \'audio\'')
             ->helperText(__('resources/media/strings.hints.module'));
     }
 
@@ -127,8 +125,8 @@ class MediaFormPresenter extends ReportFormPresenter
     {
         return Select::make('parent_id')
             ->label(__('resources/media/strings.fields.parent_id'))
-            ->live()
-            ->hidden(fn(Get $get): bool => $get('kind') === 'series')
+            ->hiddenJs('$get(\'kind\') === \'series\'')
+            ->dehydrateStateUsing(fn (Get $get, mixed $state): mixed => $get('kind') === Media::KIND_SERIES ? null : $state)
             ->options(fn(?Media $record) => Media::query()
                 ->select('id', 'title')
                 ->whereNull('parent_id')
@@ -193,14 +191,21 @@ class MediaFormPresenter extends ReportFormPresenter
                 fn(TemporaryUploadedFile $file): string => FileNamer::stored('media', $file)
             )
             ->live()
+            ->fetchFileInformation(false)
             ->afterStateUpdated(function (mixed $state, Set $set): void {
-                $duration = static::probedDuration($state instanceof TemporaryUploadedFile ? $state : null);
+                if ($state instanceof TemporaryUploadedFile || blank($state)) {
+                    $set('duration_seconds', static::probedDuration($state instanceof TemporaryUploadedFile ? $state : null));
+                }
 
-                if ($duration !== null) {
-                    $set('duration_seconds', $duration);
+                $kind = $state instanceof TemporaryUploadedFile
+                    ? collect((array) config('media.mimes'))->search(fn ($list) => in_array(strtolower($state->getClientOriginalExtension()), (array) $list, true))
+                    : false;
+
+                if ($kind) {
+                    $set('kind', $kind);
                 }
             })
-            ->nullable()
+            ->required(fn (Get $get): bool => $get('kind') !== Media::KIND_SERIES && (bool) $get('active'))
             ->helperText(fn(): string => __('resources/media/strings.hints.file_path') . ' ' . __('resources/media/strings.hints.max_size', [
                 'mb' => intdiv(static::uploadLimitKb(), 1024),
             ]));
@@ -268,7 +273,9 @@ class MediaFormPresenter extends ReportFormPresenter
             ->getUploadedFileNameForStorageUsing(
                 fn(TemporaryUploadedFile $file): string => FileNamer::stored('media', $file)
             )
-            ->helperText(__('resources/media/strings.hints.cover_image'));
+            ->helperText(fn(): string => __('resources/media/strings.hints.cover_image') . ' ' . __('resources/media/strings.hints.max_size', [
+                'mb' => intdiv((int) config('file_upload_limits.image'), 1024),
+            ]));
     }
 
     public static function active(): Toggle

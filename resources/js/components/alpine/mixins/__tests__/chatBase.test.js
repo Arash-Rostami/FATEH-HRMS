@@ -1996,3 +1996,747 @@ describe('swipe-to-reply (initSwipeReply — touch-only, direction-locked, chatB
         expect(c.startReply).not.toHaveBeenCalled();
     });
 });
+
+describe('chatBase composer draft store (chat-draft:{uid}:{scope}:{room}, race guard, send integrity)', () => {
+    const UNDELIVERED = 'وضعیت ارسال پیام مشخص نیست';
+    const CONNECTION = 'وضعیت ارسال پیام مشخص نیست. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید. اگر VPN روشن است، آن را خاموش کنید.';
+    const acs = [];
+
+    afterEach(() => {
+        acs.splice(0).forEach((ac) => ac.abort());
+        vi.useRealTimers();
+    });
+
+    function setup({ room = '7', scope = 'contact', body = '', stored = null } = {}) {
+        document.documentElement.dataset.uid = '3';
+        document.body.innerHTML = `<footer data-room="${room}" data-no-keep><textarea id="msg-ta"></textarea></footer>`;
+        const el = document.getElementById('msg-ta');
+        el.value = body;
+        const key = `chat-draft:3:${scope}:${room}`;
+        if (stored) localStorage.setItem(key, JSON.stringify(stored));
+
+        const c = chatBase(scope);
+        c.$wire = createWireMock();
+        c.$nextTick = (cb) => (cb ? cb() : Promise.resolve());
+        c.autoGrow = vi.fn();
+        c.autoDirection = vi.fn();
+        c.toast = vi.fn();
+        let watcher;
+        c.$watch = vi.fn((expr, cb) => { watcher = cb; });
+        const ac = new AbortController();
+        acs.push(ac);
+        c._draftInit(ac.signal);
+
+        return { c, el, key, watch: (v) => watcher(v), saved: () => JSON.parse(localStorage.getItem(key)) };
+    }
+
+    const type = (el, value) => {
+        el.value = value;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    test('typing writes the draft synchronously and every edit gets a fresh rev', () => {
+        const { c, el, saved } = setup();
+        expect(c.$watch).toHaveBeenCalledWith('$wire.composer.body', expect.any(Function));
+
+        type(el, 'a');
+        const first = saved();
+        type(el, 'ab');
+
+        expect(first).toMatchObject({ body: 'a' });
+        expect(saved().body).toBe('ab');
+        expect(saved().rev).not.toBe(first.rev);
+        expect(typeof saved().at).toBe('number');
+    });
+
+    test('the capture-phase listener saves before the textarea own listener runs', () => {
+        const { el, saved } = setup();
+        let seen = null;
+        el.addEventListener('input', () => { seen = saved()?.body; });
+
+        type(el, 'abc');
+
+        expect(seen).toBe('abc');
+    });
+
+    test('a late stale response that empties or shortens composer.body is undone without a request', () => {
+        const { c, el, watch } = setup();
+        type(el, 'hello');
+        c.$wire.set.mockClear();
+
+        watch('hello');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+
+        el.value = '';
+        watch('');
+        expect(c.$wire.set).toHaveBeenLastCalledWith('composer.body', 'hello', false);
+        expect(el.value).toBe('hello');
+
+        el.value = 'hel';
+        watch('hel');
+        expect(c.$wire.set).toHaveBeenLastCalledWith('composer.body', 'hello', false);
+        expect(el.value).toBe('hello');
+        expect(c.$wire.$island).not.toHaveBeenCalled();
+    });
+
+    test('an empty draft is a confirmed clear: late stale text is wiped from the box and never saved again', () => {
+        const { c, el, watch, saved } = setup();
+        type(el, 'hello');
+        type(el, '');
+        c.$wire.set.mockClear();
+
+        el.value = 'hello';
+        watch('hello');
+
+        expect(saved()).toBeNull();
+        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', '', false);
+        expect(el.value).toBe('');
+    });
+
+    test('text arriving in a room where this view never saw a clear or a confirmed send is left alone', () => {
+        const { c, el, watch } = setup();
+        c.$wire.set.mockClear();
+
+        el.value = 'from somewhere else';
+        watch('from somewhere else');
+
+        expect(c.$wire.set).not.toHaveBeenCalled();
+        expect(el.value).toBe('from somewhere else');
+    });
+
+    test('typing again after a clear makes the room a normal editing room, so late text is not wiped any more', () => {
+        const { c, el, watch } = setup();
+        type(el, 'hello');
+        type(el, '');
+        type(el, 'again');
+        c.$wire.set.mockClear();
+
+        watch('again');
+
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('whitespace-only incoming text with no draft is left alone', () => {
+        const { c, el, watch } = setup();
+        c.$wire.set.mockClear();
+
+        el.value = '  ';
+        watch('  ');
+
+        expect(c.$wire.set).not.toHaveBeenCalled();
+        expect(el.value).toBe('  ');
+    });
+
+    test('insertEmoji updates the draft and the watcher does not revert it', () => {
+        const { c, el, watch, saved } = setup({ body: 'hi !' });
+        el.focus = vi.fn();
+        el.selectionStart = el.selectionEnd = 3;
+
+        c.insertEmoji('😀');
+        c.$wire.set.mockClear();
+        watch('hi 😀!');
+
+        expect(saved().body).toBe('hi 😀!');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('_deliver sends (body, room, rev) captured at Enter and keeps the box read-only until it settles', async () => {
+        const { c, el, saved } = setup();
+        document.body.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+        let finish;
+        const send = vi.fn(() => new Promise((resolve) => { finish = resolve; }));
+        c._isl = () => ({ send, refreshActive: vi.fn(() => Promise.resolve()) });
+        type(el, 'hello');
+        const rev = saved().rev;
+
+        const pending = c._deliver('hello');
+
+        expect(send).toHaveBeenCalledWith('hello', '7', rev);
+        expect(el.readOnly).toBe(true);
+
+        c._draftSent({ id: 5, rev });
+        finish(5);
+
+        expect(await pending).toBe(5);
+        expect(el.readOnly).toBe(false);
+        expect(c.toast).not.toHaveBeenCalled();
+    });
+
+    test('the draft is kept when send rejects', async () => {
+        const { c, el, saved } = setup();
+        c._isl = () => ({ send: vi.fn(() => Promise.reject(new Error('net'))) });
+        type(el, 'hello');
+
+        await expect(c._deliver('hello')).resolves.toBeNull();
+
+        expect(saved().body).toBe('hello');
+        expect(el.readOnly).toBe(false);
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(c.toast).toHaveBeenCalledWith(CONNECTION, 'error');
+    });
+
+    test.each([[null], [undefined]])('send resolving %s without message-sent keeps the draft and toasts', async (value) => {
+        const { c, el, saved } = setup();
+        c._isl = () => ({ send: vi.fn(() => Promise.resolve(value)) });
+        type(el, 'hello');
+
+        await c._deliver('hello');
+
+        expect(saved().body).toBe('hello');
+        expect(c.toast).toHaveBeenCalledWith(UNDELIVERED, 'error');
+    });
+
+    test('newer typing after Enter bumps the rev, so the matching message-sent no longer clears', async () => {
+        const { c, el, saved } = setup();
+        let finish;
+        c._isl = () => ({ send: vi.fn(() => new Promise((resolve) => { finish = resolve; })), refreshActive: vi.fn(() => Promise.resolve()) });
+        type(el, 'hello');
+        const oldRev = saved().rev;
+
+        const pending = c._deliver('hello');
+        type(el, 'hello again');
+        c._draftSent({ id: 5, rev: oldRev });
+        finish(5);
+        await pending;
+
+        expect(saved().body).toBe('hello again');
+        expect(saved().rev).not.toBe(oldRev);
+    });
+
+    test('message-sent clears only on the pending rev; another rev or another view entry survives', async () => {
+        const { c, el, key, watch, saved } = setup();
+        c._isl = () => ({ send: vi.fn(() => new Promise(() => {})) });
+        type(el, 'hello');
+        const rev = saved().rev;
+        c._deliver('hello').catch(() => {});
+
+        c._draftSent({ id: 9, rev: 'someone-else' });
+        c._draftSent(undefined);
+        expect(saved().body).toBe('hello');
+
+        localStorage.setItem(key, JSON.stringify({ body: 'other view', rev: 'view-2', at: 1 }));
+        c._draftSent({ id: 9, rev });
+        expect(saved().rev).toBe('view-2');
+
+        c.$wire.set.mockClear();
+        watch('');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('a matching message-sent removes memory and storage so the empty server body is accepted', async () => {
+        const { c, el, watch, saved } = setup();
+        c._isl = () => ({ send: vi.fn(() => new Promise(() => {})) });
+        type(el, 'hello');
+        const rev = saved().rev;
+        c._deliver('hello').catch(() => {});
+
+        c._draftSent({ id: 9, rev });
+        c.$wire.set.mockClear();
+        watch('');
+
+        expect(saved()).toBeNull();
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('init restores the stored draft into an empty box without bumping its rev or pinging typing', () => {
+        const { c, el, saved } = setup({ stored: { body: 'saved text', rev: 'r1', at: Date.now() } });
+
+        expect(el.value).toBe('saved text');
+        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'saved text', false);
+        expect(saved().rev).toBe('r1');
+        expect(c.autoGrow).toHaveBeenCalledWith(el, 160);
+        expect(c.autoDirection).toHaveBeenCalledWith(el);
+        expect(c._lastTypingPing).toBeGreaterThan(0);
+    });
+
+    test('restore never overwrites text that is already present', () => {
+        const { c, el } = setup({ body: 'typed', stored: { body: 'saved text', rev: 'r1', at: 1 } });
+
+        expect(el.value).toBe('typed');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('restore is per room: after a room switch the new room draft is restored, and an emptied box is refilled from memory rather than re-read from storage', () => {
+        const { c, el } = setup({ room: '7' });
+        document.querySelector('footer').dataset.room = '9';
+        localStorage.setItem('chat-draft:3:contact:9', JSON.stringify({ body: 'nine', rev: 'n1', at: Date.now() }));
+
+        c._draftRestore();
+        expect(el.value).toBe('nine');
+
+        el.value = '';
+        localStorage.setItem('chat-draft:3:contact:9', JSON.stringify({ body: 'changed', rev: 'n2', at: Date.now() }));
+        c._draftRestore();
+        expect(el.value).toBe('nine');
+    });
+
+    test('restore ignores corrupt storage and does nothing without a room', () => {
+        const { c, el, key } = setup();
+        localStorage.setItem(key, '{bad');
+        expect(() => c._draftRestore()).not.toThrow();
+        expect(el.value).toBe('');
+
+        document.body.innerHTML = '<textarea id="msg-ta"></textarea>';
+        expect(() => c._draftRestore()).not.toThrow();
+    });
+
+    test('leaving a room with only saved text does not warn and keeps the draft for the way back', () => {
+        const { c, el, saved } = setup();
+        type(el, 'hello');
+
+        expect(c.holdDraft('9', el)).toBe(false);
+        expect(c.toast).not.toHaveBeenCalled();
+        expect(saved().body).toBe('hello');
+    });
+
+    test('staged attachments still arm the leave guard, and the confirmed second press keeps the text draft', () => {
+        const { c, el, saved } = setup();
+        type(el, 'hello');
+        c.$wire.composer = { attachments: [{ name: 'a.pdf' }] };
+
+        expect(c.holdDraft('9', el)).toBe(true);
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(saved().body).toBe('hello');
+
+        expect(c.holdDraft('9', el)).toBe(false);
+        expect(saved().body).toBe('hello');
+    });
+
+    test('a confirmed id with no matching row refreshes and re-checks, at most three times', async () => {
+        const { c, el } = setup();
+        const refreshActive = vi.fn(() => Promise.resolve());
+        c._isl = () => ({ send: vi.fn(() => Promise.resolve(5)), refreshActive });
+        type(el, 'hello');
+
+        await c._deliver('hello');
+
+        expect(refreshActive).toHaveBeenCalledTimes(3);
+    });
+
+    test('the re-check stops as soon as the row is drawn', async () => {
+        const { c, el } = setup();
+        const refreshActive = vi.fn(() => {
+            document.body.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+            return Promise.resolve();
+        });
+        c._isl = () => ({ send: vi.fn(() => Promise.resolve(5)), refreshActive });
+        type(el, 'hello');
+
+        await c._deliver('hello');
+
+        expect(refreshActive).toHaveBeenCalledTimes(1);
+    });
+
+    test('a row already in the DOM triggers no extra request; channel scope looks for channel-message rows', async () => {
+        const first = setup();
+        document.body.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+        const refreshActive = vi.fn(() => Promise.resolve());
+        first.c._isl = () => ({ send: vi.fn(() => Promise.resolve(5)), refreshActive });
+        await first.c._deliver('x');
+        expect(refreshActive).not.toHaveBeenCalled();
+
+        const second = setup({ scope: 'channel' });
+        document.body.insertAdjacentHTML('beforeend', '<div data-rf="channel-message-5"></div>');
+        second.c._isl = () => ({ send: vi.fn(() => Promise.resolve(5)), refreshActive });
+        await second.c._deliver('x');
+        expect(refreshActive).not.toHaveBeenCalled();
+    });
+
+    test('the 30s watchdog cancels the action, releases the box, toasts and keeps the draft', async () => {
+        vi.useFakeTimers();
+        const { c, el, saved } = setup();
+        const hung = new Promise(() => {});
+        hung._livewireAction = { cancel: vi.fn() };
+        c._isl = () => ({ send: vi.fn(() => hung) });
+        type(el, 'hello');
+
+        const pending = c._deliver('hello');
+        expect(el.readOnly).toBe(true);
+        await vi.advanceTimersByTimeAsync(29999);
+        expect(hung._livewireAction.cancel).not.toHaveBeenCalled();
+
+        await vi.advanceTimersByTimeAsync(1);
+        await pending;
+
+        expect(hung._livewireAction.cancel).toHaveBeenCalledOnce();
+        expect(el.readOnly).toBe(false);
+        expect(c.toast).toHaveBeenCalledWith(CONNECTION, 'error');
+        expect(saved().body).toBe('hello');
+    });
+
+    test('the watchdog works when the promise carries no cancel surface', async () => {
+        vi.useFakeTimers();
+        const { c, el } = setup();
+        c._isl = () => ({ send: vi.fn(() => new Promise(() => {})) });
+        type(el, 'hello');
+
+        const pending = c._deliver('hello');
+        await vi.advanceTimersByTimeAsync(30000);
+
+        await expect(pending).resolves.toBeNull();
+        expect(el.readOnly).toBe(false);
+    });
+
+    test('a late success of a cancelled send still clears on the matching rev', async () => {
+        vi.useFakeTimers();
+        const { c, el, saved } = setup();
+        c._isl = () => ({ send: vi.fn(() => new Promise(() => {})) });
+        type(el, 'hello');
+        const rev = saved().rev;
+
+        const pending = c._deliver('hello');
+        await vi.advanceTimersByTimeAsync(30000);
+        await pending;
+        c._draftSent({ id: 4, rev });
+
+        expect(saved()).toBeNull();
+    });
+
+    test('the guard stands down while an in-flight send owns the empty-body transition', () => {
+        const { c, el, watch, saved } = setup();
+        c._isl = () => ({ send: vi.fn(() => new Promise(() => {})) });
+        type(el, 'hello');
+        c._deliver('hello').catch(() => {});
+        el.value = '';
+        c.$wire.set.mockClear();
+
+        watch('');
+
+        expect(el.value).toBe('');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+        expect(saved().body).toBe('hello');
+    });
+
+    test('an integer id confirms the send even if message-sent never fired: draft cleared, no undelivered toast', async () => {
+        const { c, el, watch, saved } = setup();
+        document.body.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+        c._isl = () => ({ send: vi.fn(() => Promise.resolve(5)), refreshActive: vi.fn(() => Promise.resolve()) });
+        type(el, 'hello');
+
+        await c._deliver('hello');
+        c.$wire.set.mockClear();
+        watch('');
+
+        expect(saved()).toBeNull();
+        expect(c.toast).not.toHaveBeenCalled();
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('a send cancelled by the watchdog (promise rejects) toasts exactly once, releases the box and keeps the draft', async () => {
+        vi.useFakeTimers();
+        const { c, el, saved } = setup();
+        let rejectCall;
+        const call = new Promise((resolve, reject) => { rejectCall = reject; });
+        call._livewireAction = { cancel: vi.fn(() => rejectCall(new Error('cancelled'))) };
+        c._isl = () => ({ send: vi.fn(() => call) });
+        type(el, 'hello');
+
+        const pending = c._deliver('hello');
+        await vi.advanceTimersByTimeAsync(30000);
+
+        await expect(pending).resolves.toBeNull();
+        expect(call._livewireAction.cancel).toHaveBeenCalledOnce();
+        expect(el.readOnly).toBe(false);
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(c.toast).toHaveBeenCalledWith(CONNECTION, 'error');
+        expect(saved().body).toBe('hello');
+    });
+
+    test('after an unconfirmed settle the emptied box is restored from the draft, and the guard is live again', async () => {
+        const { c, el, watch } = setup();
+        c._isl = () => ({
+            send: vi.fn(() => {
+                el.value = '';
+                return Promise.resolve(null);
+            }),
+        });
+        type(el, 'hello');
+        c.$wire.set.mockClear();
+
+        await c._deliver('hello');
+
+        expect(el.value).toBe('hello');
+        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'hello', false);
+
+        c.$wire.set.mockClear();
+        el.value = '';
+        watch('');
+        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'hello', false);
+    });
+
+    test('newer typing after Enter is never cleared by the late confirmation', async () => {
+        const { c, el, saved } = setup();
+        document.body.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+        let finish;
+        c._isl = () => ({ send: vi.fn(() => new Promise((resolve) => { finish = resolve; })), refreshActive: vi.fn(() => Promise.resolve()) });
+        type(el, 'hello');
+
+        const pending = c._deliver('hello');
+        type(el, 'hello again');
+        finish(5);
+        await pending;
+
+        expect(saved().body).toBe('hello again');
+        expect(c.toast).not.toHaveBeenCalled();
+    });
+
+    test('a repair for room A never writes into a composer that now belongs to room B', () => {
+        const { c, el } = setup({ room: '7' });
+        type(el, 'hello');
+        document.querySelector('footer').dataset.room = '9';
+        el.value = '';
+        c.$wire.set.mockClear();
+
+        c._draftRepair('7');
+
+        expect(el.value).toBe('');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('emoji insertion is ignored while a send is in flight, so the sent text is never written back', () => {
+        const { c, el, saved, watch } = setup();
+        type(el, 'sent');
+        el.readOnly = true;
+        el.focus = vi.fn();
+        el.selectionStart = el.selectionEnd = 4;
+        const before = saved();
+        c.$wire.set.mockClear();
+
+        c.insertEmoji('😀');
+
+        expect(el.value).toBe('sent');
+        expect(saved()).toEqual(before);
+        expect(c.$wire.set).not.toHaveBeenCalled();
+        watch('sent');
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('text typed during a room switch is not left in the new room box and the old room keeps its draft', () => {
+        const { c, el } = setup({ room: '7' });
+        type(el, 'typed during the switch');
+        document.querySelector('footer').dataset.room = '9';
+
+        c._draftRestore();
+
+        expect(el.value).toBe('');
+        expect(c.$wire.set).toHaveBeenLastCalledWith('composer.body', '', false);
+        expect(JSON.parse(localStorage.getItem('chat-draft:3:contact:7')).body).toBe('typed during the switch');
+    });
+
+    test('after a room switch the new room own stored draft replaces the old text in the box', () => {
+        const { c, el } = setup({ room: '7' });
+        type(el, 'old room text');
+        document.querySelector('footer').dataset.room = '9';
+        localStorage.setItem('chat-draft:3:contact:9', JSON.stringify({ body: 'nine', rev: 'n1', at: Date.now() }));
+
+        c._draftRestore();
+
+        expect(el.value).toBe('nine');
+        expect(c.$wire.set).toHaveBeenLastCalledWith('composer.body', 'nine', false);
+        expect(JSON.parse(localStorage.getItem('chat-draft:3:contact:7')).body).toBe('old room text');
+    });
+
+    test('a leave in one view never deletes another view newer stored draft, but deletes its own', () => {
+        const { c, el, key, saved } = setup();
+        type(el, 'hello');
+        localStorage.setItem(key, JSON.stringify({ body: 'other view', rev: 'view-2', at: Date.now() }));
+
+        c._draftDrop('7');
+        expect(saved().rev).toBe('view-2');
+
+        type(el, 'mine');
+        c._draftDrop('7');
+        expect(saved()).toBeNull();
+    });
+
+    test('clearing the box in one view leaves another view newer stored entry alone', () => {
+        const { el, key, saved } = setup();
+        type(el, 'hello');
+        localStorage.setItem(key, JSON.stringify({ body: 'other view', rev: 'view-2', at: Date.now() }));
+
+        type(el, '');
+
+        expect(saved().rev).toBe('view-2');
+    });
+
+    test('a stored draft older than 24 hours is ignored and deleted', () => {
+        const { el, key } = setup({ stored: { body: 'stale', rev: 'r1', at: Date.now() - 25 * 60 * 60 * 1000 } });
+
+        expect(el.value).toBe('');
+        expect(localStorage.getItem(key)).toBeNull();
+    });
+
+    test('a blank draft is neither stored nor kept in memory', () => {
+        const { c, el, key, watch } = setup();
+
+        type(el, '   ');
+        c.$wire.set.mockClear();
+        watch('');
+
+        expect(localStorage.getItem(key)).toBeNull();
+        expect(c.$wire.set).not.toHaveBeenCalled();
+    });
+
+    test('a stored blank draft is dropped on restore', () => {
+        const { el, key } = setup({ stored: { body: '   ', rev: 'r1', at: Date.now() } });
+
+        expect(el.value).toBe('');
+        expect(localStorage.getItem(key)).toBeNull();
+    });
+
+    test('an older send settling releases neither its own element nor the current box while a newer send is pending', async () => {
+        const { c, el } = setup();
+        let finish;
+        c._isl = () => ({ send: vi.fn(() => new Promise((resolve) => { finish = resolve; })) });
+        type(el, 'one');
+        const first = c._deliver('one');
+        document.body.innerHTML = '<footer data-room="7" data-no-keep><textarea id="msg-ta"></textarea></footer>';
+        const fresh = document.getElementById('msg-ta');
+        fresh.readOnly = true;
+        c._pendingSend = { room: '7', rev: 'newer', n: 9999, confirmed: false };
+
+        finish(null);
+        await first;
+
+        expect(el.readOnly).toBe(true);
+        expect(fresh.readOnly).toBe(true);
+    });
+
+    test('an older send completing on the same textarea does not unlock a newer pending send', async () => {
+        const { c, el } = setup();
+        let finish;
+        c._isl = () => ({ send: vi.fn(() => new Promise((resolve) => { finish = resolve; })) });
+        type(el, 'one');
+        const first = c._deliver('one');
+        c._pendingSend = { room: '7', rev: 'newer', n: 9999, confirmed: false };
+
+        finish(null);
+        await first;
+
+        expect(el.readOnly).toBe(true);
+    });
+
+    test('an attachments-only retry after an unconfirmed send reuses the rev; a confirmed send resets it; another room does not reuse it', async () => {
+        const { c, el } = setup();
+        const revs = [];
+        const results = [null, null, 5];
+        const send = vi.fn((body, room, rev) => {
+            revs.push([room, rev]);
+            return Promise.resolve(results.shift());
+        });
+        c._isl = () => ({ send, refreshActive: vi.fn(() => Promise.resolve()) });
+        document.body.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+
+        await c._deliver('');
+        await c._deliver('');
+        expect(revs[1]).toEqual(revs[0]);
+
+        document.querySelector('footer').dataset.room = '9';
+        results.unshift(null);
+        await c._deliver('');
+        expect(revs[2][0]).toBe('9');
+        expect(revs[2][1]).not.toBe(revs[0][1]);
+
+        document.querySelector('footer').dataset.room = '7';
+        await c._deliver('');
+        expect(revs[3][1]).toBe(revs[0][1]);
+
+        await c._deliver('');
+        expect(revs[4][1]).not.toBe(revs[3][1]);
+    });
+
+    test('retry revs are kept per room: A fails, B fails, the A retry reuses the original A rev, and a confirmed A send drops only the A entry', async () => {
+        const { c } = setup();
+        document.body.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+        const footer = document.querySelector('footer');
+        const calls = [];
+        const results = [null, null, null, 5, null];
+        c._isl = () => ({
+            send: vi.fn((body, room, rev) => {
+                calls.push([room, rev]);
+                return Promise.resolve(results.shift());
+            }),
+            refreshActive: vi.fn(() => Promise.resolve()),
+        });
+
+        await c._deliver('');
+        footer.dataset.room = '9';
+        await c._deliver('');
+        footer.dataset.room = '7';
+        await c._deliver('');
+
+        expect(calls[2][1]).toBe(calls[0][1]);
+        expect(calls[2][1]).not.toBe(calls[1][1]);
+
+        await c._deliver('');
+        expect(calls[3][1]).toBe(calls[0][1]);
+        expect(c._lastFailed['7']).toBeUndefined();
+        expect(c._lastFailed['9']).toBe(calls[1][1]);
+
+        footer.dataset.room = '9';
+        await c._deliver('');
+        expect(calls[4][1]).toBe(calls[1][1]);
+    });
+
+    test('returning to a room whose draft lives only in memory refills the emptied box', () => {
+        const { c, el } = setup({ room: '7' });
+        type(el, 'typed in A during the switch');
+        const footer = document.querySelector('footer');
+
+        footer.dataset.room = '9';
+        c._draftRestore();
+        expect(el.value).toBe('');
+
+        footer.dataset.room = '7';
+        c._draftRestore();
+
+        expect(el.value).toBe('typed in A during the switch');
+        expect(c.$wire.set).toHaveBeenLastCalledWith('composer.body', 'typed in A during the switch', false);
+    });
+
+    test('an id whose row is still missing after the redraws shows the not-shown info toast exactly once and nothing else', async () => {
+        const { c, el, saved } = setup();
+        const refreshActive = vi.fn(() => Promise.resolve());
+        c._isl = () => ({ send: vi.fn(() => Promise.resolve(5)), refreshActive });
+        type(el, 'hello');
+
+        await c._deliver('hello');
+
+        expect(refreshActive).toHaveBeenCalledTimes(3);
+        expect(c.toast).toHaveBeenCalledOnce();
+        expect(c.toast).toHaveBeenCalledWith('پیام ارسال شد. ممکن است کمی دیرتر نمایش داده شود.', 'info');
+        expect(saved()).toBeNull();
+    });
+
+    test('an id whose row is present shows no toast at all', async () => {
+        const { c, el } = setup();
+        document.body.insertAdjacentHTML('beforeend', '<div data-rf="message-5"></div>');
+        c._isl = () => ({ send: vi.fn(() => Promise.resolve(5)), refreshActive: vi.fn(() => Promise.resolve()) });
+        type(el, 'hello');
+
+        await c._deliver('hello');
+
+        expect(c.toast).not.toHaveBeenCalled();
+    });
+
+    test('a synchronous throw from send re-arms the guard and releases the box', async () => {
+        const { c, el, watch } = setup();
+        c._isl = () => ({ send: vi.fn(() => { throw new Error('sync'); }) });
+        type(el, 'hello');
+
+        await expect(c._deliver('hello')).rejects.toThrow('sync');
+
+        expect(el.readOnly).toBe(false);
+        c.$wire.set.mockClear();
+        el.value = '';
+        watch('');
+        expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'hello', false);
+    });
+
+    test('the composer footer carries data-no-keep next to data-room so workspace keep-fields skips it', () => {
+        setup();
+        const footer = document.querySelector('[data-room]');
+        expect(footer.hasAttribute('data-no-keep')).toBe(true);
+        expect(footer.contains(document.getElementById('msg-ta'))).toBe(true);
+    });
+});

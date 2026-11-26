@@ -148,6 +148,91 @@ class NotifyRuleResourceTest extends TestCase
         $this->assertNull($rule->active_until);
     }
 
+    public function test_create_drops_a_stale_watch_list_without_the_updated_event(): void
+    {
+        $admin = $this->developer();
+
+        Livewire::actingAs($admin)->test(CreateNotifyRule::class)
+            ->fillForm([
+                'name' => 'stale watch rule',
+                'model' => Link::class,
+                'events' => ['created'],
+                'channels' => ['mail'],
+                'subject' => 'x',
+                'lines' => [['text' => 'y']],
+                'user_ids' => [$admin->id],
+                'extra' => ['audience' => 'all', 'watch' => ['url_title']],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $extra = NotifyRule::where('name', 'stale watch rule')->firstOrFail()->extra;
+        $this->assertArrayNotHasKey('watch', $extra);
+    }
+
+    public function test_updated_event_with_a_model_persists_the_watch_list(): void
+    {
+        $admin = $this->developer();
+
+        Livewire::actingAs($admin)->test(CreateNotifyRule::class)
+            ->fillForm([
+                'name' => 'kept watch rule',
+                'model' => Link::class,
+                'events' => ['created', 'updated'],
+                'channels' => ['mail'],
+                'subject' => 'x',
+                'lines' => [['text' => 'y']],
+                'user_ids' => [$admin->id],
+                'extra' => ['audience' => 'users', 'watch' => ['url_title']],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $extra = NotifyRule::where('name', 'kept watch rule')->firstOrFail()->extra;
+        $this->assertSame(['url_title'], $extra['watch']);
+    }
+
+    public function test_departments_audience_persists_the_selected_departments(): void
+    {
+        $admin = $this->developer();
+        $dept = Department::factory()->create();
+
+        Livewire::actingAs($admin)->test(CreateNotifyRule::class)
+            ->fillForm([
+                'name' => 'departments rule',
+                'model' => Link::class,
+                'events' => ['created'],
+                'channels' => ['mail'],
+                'subject' => 'x',
+                'lines' => [['text' => 'y']],
+                'extra' => ['audience' => 'departments', 'departments' => [$dept->code]],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $extra = NotifyRule::where('name', 'departments rule')->firstOrFail()->extra;
+        $this->assertSame('departments', $extra['audience'] ?? null);
+        $this->assertSame([$dept->code], $extra['departments'] ?? null);
+    }
+
+    public function test_departments_audience_without_a_selection_is_refused(): void
+    {
+        $admin = $this->developer();
+
+        Livewire::actingAs($admin)->test(CreateNotifyRule::class)
+            ->fillForm([
+                'name' => 'empty departments rule',
+                'model' => Link::class,
+                'events' => ['created'],
+                'channels' => ['mail'],
+                'subject' => 'x',
+                'lines' => [['text' => 'y']],
+                'extra' => ['audience' => 'departments'],
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['extra.departments']);
+    }
+
     public function test_create_needs_at_least_one_recipient_unless_an_audience_is_chosen(): void
     {
         $admin = $this->developer();

@@ -22,7 +22,7 @@ class CorrespondenceResource extends Resource
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
     protected static array $guide = [
-        ['label' => 'بررسی', 'icon' => 'mail', 'view' => 'filament.resources.correspondence.guide.overview'],
+        ['label' => 'بررسی نامه‌ها', 'icon' => 'mail', 'view' => 'filament.resources.correspondence.guide.overview'],
     ];
 
     protected static function switchGroup(): array

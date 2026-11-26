@@ -194,7 +194,7 @@
             }
         }" class="space-y-5 bg-[var(--md-sys-color-primary-container)]">
             <x-ui.forms.input label="عنوان مدرک" name="form.customType" wire:model="form.customType"
-                              placeholder="برای نمونه، گواهی دورهٔ آموزشی" icon="label"/>
+                              placeholder="برای نمونه، گواهی دورهٔ آموزشی" icon="label" mark/>
 
             <div>
                 <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2">فایل مدرک</label>

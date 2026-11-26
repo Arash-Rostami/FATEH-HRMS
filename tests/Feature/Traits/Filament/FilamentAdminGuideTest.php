@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Traits\Filament;
 
-use App\Filament\Resources\PostResource;
+use App\Filament\Resources\{CorrespondenceResource, LetterheadResource, PostResource};
 use App\Traits\Filament\FilamentAdminGuide;
 use Filament\Actions\Action;
 use ReflectionObject;
@@ -72,6 +72,17 @@ class FilamentAdminGuideTest extends TestCase
         $this->assertCount(1, $actions);
         $this->assertInstanceOf(Action::class, $actions[0]);
         $this->assertSame('moduleGuide', $actions[0]->getName());
+    }
+
+    public function test_correspondence_and_letterheads_render_their_own_admin_guides(): void
+    {
+        $correspondence = (string) ($this->modalContentClosure(CorrespondenceResource::setupGuideAction()))();
+        $letterheads = (string) ($this->modalContentClosure(LetterheadResource::setupGuideAction()))();
+
+        $this->assertStringContainsString('پیگیری تحویل و پیوند نامه', $correspondence);
+        $this->assertStringContainsString('ارسال از راه ایمیل یا پیوند فقط برای نامهٔ عادیِ تأییدشده ممکن است.', $correspondence);
+        $this->assertStringContainsString('فایل‌های قبلاً دانلودشده را پس نمی‌گیرد.', $correspondence);
+        $this->assertStringContainsString('الگوی شماره را تعیین کنید', $letterheads);
     }
 
     private function modalContentClosure(Action $action): \Closure

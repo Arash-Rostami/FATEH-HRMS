@@ -128,9 +128,12 @@ export default function channel() {
                 this.openMessageSearch();
             }, { signal });
 
-            this.$wire.on('message-sent', () => {
+            this._draftInit(signal);
+
+            this.$wire.on('message-sent', (e) => {
                 this.sending = false;
                 this.replyingTo = null;
+                this._draftSent(e);
                 this.$store.sound?.playOutgoing(this.$wire.activeChannelId, SCOPE);
             });
 
@@ -395,7 +398,7 @@ export default function channel() {
 
         openMentionPicker() {
             const el = ta();
-            if (!el) return;
+            if (!el || el.readOnly) return;
 
             const v = el.value;
             const pos = el.selectionStart ?? v.length;
@@ -406,6 +409,7 @@ export default function channel() {
             el.focus();
             el.selectionStart = el.selectionEnd = pos + sp.length + 1;
 
+            this._draftSave(this._draftRoom(), next);
             this.$wire.set('composer.body', next, false);
             this.$wire.loadMentionMemberNames().catch(() => {});
             this.mentionQuery = '';
@@ -455,7 +459,7 @@ export default function channel() {
             const el = ta();
             const at = name && el ? lastAt(el.value, el.selectionStart) : -1;
 
-            if (at < 0) { this.mentionOpen = false; return; }
+            if (at < 0 || el.readOnly) { this.mentionOpen = false; return; }
 
             const insert = name + ' ';
             const next = el.value.substring(0, at + 1) + insert + el.value.substring(el.selectionStart);
@@ -463,6 +467,7 @@ export default function channel() {
             this.mentionOpen = false;
             this.mentionQuery = '';
             el.value = next;
+            this._draftSave(this._draftRoom(), next);
             this.$wire.set('composer.body', next, false);
             this.$nextTick(() => { el.focus(); el.selectionStart = el.selectionEnd = at + 1 + insert.length; });
         },
@@ -578,7 +583,7 @@ export default function channel() {
                     if (seq !== selectSeq) return;
                     this.showScrollFab = false;
                     this.newBelow = 0;
-                    this.$nextTick(() => { this._bindViewport(); this.scrollToBottom(false); });
+                    this.$nextTick(() => { this._bindViewport(); this.scrollToBottom(false); this._draftRestore(); });
                     return this._sidebar();
                 })
                 .then(() => {
@@ -752,7 +757,7 @@ export default function channel() {
                 await this._isl().saveEdit(id, body);
                 this._syncSidebarAfterOwnAction(wire);
             } catch {
-                this.toast('خطا در ارتباط با سرور.', 'error');
+                this.toast('ذخیرهٔ ویرایش تأیید نشد. پیش از تلاش دوباره، اتصال اینترنت را بررسی کنید.', 'error');
             } finally {
                 this._savingEdit = false;
             }
@@ -827,19 +832,20 @@ export default function channel() {
             if (this._overLimit(body)) return;
 
             this.sending = true;
+            const seq = this._sendSeq = (this._sendSeq || 0) + 1;
             const wire = this.$wire;
             const ghost = !(wire.composer?.attachments?.length) && !this.replyingTo && !wire.hasNewer
                 ? this._ghostShow(body)
                 : null;
             try {
-                await this._isl().send();
+                if (await this._deliver(body) === null) return;
                 this._syncSidebarAfterOwnAction(wire);
                 this.$nextTick(() => { this.scrollToBottom(true); ta()?.focus(); this.autoGrow(ta(), 160); this.autoDirection(ta()); });
             } catch {
-                this.toast('خطا در ارتباط با سرور.', 'error');
+                this.toast('هنگام پردازش پیام مشکلی پیش آمد. پیش از ارسال دوباره، اتصال اینترنت را بررسی کنید.', 'error');
             } finally {
                 this._ghostHide(ghost);
-                setTimeout(() => { this.sending = false; }, SEND_LOCK_RESET_MS);
+                setTimeout(() => { if (this._sendSeq === seq) this.sending = false; }, SEND_LOCK_RESET_MS);
             }
         },
     };
