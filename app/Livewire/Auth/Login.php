@@ -85,7 +85,19 @@ class Login extends Component
         session()->regenerate();
 
         $this->outcome = 'success';
-        $this->js('setTimeout(() => window.location.href = ' . json_encode(url(session()->pull('url.intended', config('fortify.home', '/dashboard')))) . ', 800)');
+        $this->js('setTimeout(() => window.location.href = ' . json_encode(url($this->destination())) . ', 800)');
+    }
+
+    private function destination(): string
+    {
+        $home = config('fortify.home', '/dashboard');
+        $intended = session()->pull('url.intended');
+
+        if (! is_string($intended) || rtrim((string) parse_url($intended, PHP_URL_PATH), '/') === '/launchpad') {
+            return $home;
+        }
+
+        return $intended;
     }
 
     private function latinDigits(string $value): string

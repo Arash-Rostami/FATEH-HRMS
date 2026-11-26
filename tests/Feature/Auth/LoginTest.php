@@ -63,6 +63,51 @@ class LoginTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_a_remembered_launchpad_address_never_becomes_the_landing_page_after_login(): void
+    {
+        $user = User::factory()->create();
+        session(['url.intended' => url('/launchpad')]);
+
+        $component = Livewire::test(Login::class)
+            ->set('email', $user->email)
+            ->set('password', 'password')
+            ->call('login')
+            ->assertSet('outcome', 'success');
+
+        $effects = json_encode($component->effects);
+        $this->assertStringContainsString('dashboard', $effects);
+        $this->assertStringNotContainsString('launchpad', $effects);
+        $this->assertNull(session('url.intended'));
+    }
+
+    public function test_a_launchpad_sso_entry_address_still_brings_the_user_back_after_login(): void
+    {
+        $user = User::factory()->create();
+        session(['url.intended' => url('/launchpad/12/go')]);
+
+        $component = Livewire::test(Login::class)
+            ->set('email', $user->email)
+            ->set('password', 'password')
+            ->call('login')
+            ->assertSet('outcome', 'success');
+
+        $this->assertStringContainsString('launchpad', json_encode($component->effects));
+    }
+
+    public function test_another_remembered_address_still_brings_the_user_back_after_login(): void
+    {
+        $user = User::factory()->create();
+        session(['url.intended' => url('/channels')]);
+
+        $component = Livewire::test(Login::class)
+            ->set('email', $user->email)
+            ->set('password', 'password')
+            ->call('login')
+            ->assertSet('outcome', 'success');
+
+        $this->assertStringContainsString('channels', json_encode($component->effects));
+    }
+
     public function test_failed_login_flags_the_button_as_failed(): void
     {
         $user = User::factory()->create();
