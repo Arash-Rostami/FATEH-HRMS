@@ -7,11 +7,13 @@
     gap="gap-0"
     dir="rtl"
 >
-    <x-ui.title guide="feed"
+    <x-ui.title
         icon="rss_feed"
         title="اخبار و فیدها"
         :count="$this->totalFeeds">
         <x-slot:actions>
+            <x-ui.buttons.title-more guide="feed">
+            <x-slot:actions>
             @php
                 $months = $presenter->months($this->feeds, 'created_at');
                 $viewModes = [
@@ -34,11 +36,17 @@
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'feeds-legend' })"
-                title="راهنمای فیدها"
+                title="راهنمای اخبار و فیدها"
                 class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
             >
                 <span class="material-symbols-rounded text-lg">help</span>
             </button>
+            </x-slot:actions>
+            <x-slot:menu>
+                <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'feeds-badge-legend' })"/>
+                <x-ui.modals.menu-row icon="help" label="راهنمای اخبار و فیدها" click="open = false; $dispatch('open-modal', { name: 'feeds-legend' })"/>
+            </x-slot:menu>
+            </x-ui.buttons.title-more>
         </x-slot:actions>
     </x-ui.title>
 
@@ -47,7 +55,7 @@
         :items="[\App\Services\Menu\BadgeLegendCatalog::get('feeds')]"
     />
 
-    <x-ui.modals.dialog name="feeds-legend" title="راهنمای فیدها">
+    <x-ui.modals.dialog name="feeds-legend" title="راهنمای اخبار و فیدها">
         @include('livewire.dashboard.tab.feeds.legend')
     </x-ui.modals.dialog>
 

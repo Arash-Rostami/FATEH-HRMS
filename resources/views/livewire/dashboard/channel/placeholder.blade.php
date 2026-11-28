@@ -5,7 +5,12 @@
     class="w-full h-[calc(100dvh-60px)] md:h-[max(1000px,calc(100dvh-80px))] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade">
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col gap-4">
-        <x-ui.loaders.skeleton.bar width="w-32" height="h-7"/>
+        <x-ui.title icon="campaign" title="گروه‌ها">
+            <x-slot:actions>
+                <x-ui.loaders.skeleton.bar width="w-24" height="h-7"/>
+                <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+            </x-slot:actions>
+        </x-ui.title>
 
         <div class="chat-widget flex-1 min-h-0 flex gap-0">
             <aside class="hidden md:flex flex-shrink-0 w-full md:w-[320px] lg:w-[360px] flex-col gap-2 border-l border-[var(--md-sys-color-outline-variant)]/30 pl-2">

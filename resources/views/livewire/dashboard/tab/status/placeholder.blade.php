@@ -1,8 +1,10 @@
 <div class="animate-fade w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] flex flex-col gap-4" dir="rtl" role="status" aria-label="در حال بارگذاری وضعیت همکاران">
-    <div class="flex items-center justify-between">
-        <x-ui.loaders.skeleton.bar width="w-40" height="h-8"/>
-        <x-ui.loaders.skeleton.bar width="w-20" height="h-8"/>
-    </div>
+    <x-ui.title icon="badge" title="وضعیت همکاران">
+        <x-slot:actions>
+            <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+            <x-ui.loaders.skeleton.bar width="w-16" height="h-6"/>
+        </x-slot:actions>
+    </x-ui.title>
 
     <div class="flex flex-wrap items-center gap-2">
         <x-ui.loaders.skeleton.bar width="w-24" height="h-8"/>

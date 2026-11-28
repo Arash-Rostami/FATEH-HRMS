@@ -5,7 +5,7 @@
     'module' => null,
     'modes' => [
         ['value' => 'card', 'icon' => 'grid_view', 'title' => 'نمای کارتی'],
-        ['value' => 'list', 'icon' => 'view_list', 'title' => 'نمای لیستی'],
+        ['value' => 'list', 'icon' => 'view_list', 'title' => 'نمای فهرستی'],
     ],
 ])
 

@@ -564,4 +564,21 @@ class EnergyTest extends TestCase
         $this->assertSame($bank['physique'][2], $entry['choices']['physique']);
         $this->assertSame($bank['emotion'][4], $entry['choices']['emotion']);
     }
+
+    public function test_title_bar_switches_panes_in_place_and_names_the_results_pane(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Main::class);
+
+        $this->assertStringContainsString('$wire.switchTab(&#039;chart&#039;)', $component->html());
+        $this->assertStringNotContainsString('moreTrigger', $component->html());
+
+        $component->call('switchTab', 'chart')->assertSet('activeTab', 'chart');
+
+        $html = $component->html();
+        $this->assertStringContainsString('پرسشنامه انرژی (نتایج)', $html);
+        $this->assertStringContainsString('$wire.switchTab(&#039;survey&#039;)', $html);
+    }
 }

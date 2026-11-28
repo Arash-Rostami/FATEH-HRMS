@@ -661,7 +661,7 @@ class StatusTest extends TestCase
     private function renderUserCard(User $actor, User $target): string
     {
         Livewire::withoutLazyLoading();
-        $html = Livewire::actingAs($actor)->test(Status::class)->html();
+        $html = Livewire::actingAs($actor)->test(Status::class)->set('perPage', 5000)->html();
         $start = 'wire:key="user-' . $target->id . '-';
         $pos = strpos($html, $start);
 
@@ -728,7 +728,7 @@ class StatusTest extends TestCase
         ProfileDetail::create(['profile_id' => $profile->id, 'section' => 'employment', 'key' => 'display_title', 'value' => 'Custom Rendered Title']);
 
         Livewire::withoutLazyLoading();
-        $html = Livewire::actingAs($user)->test(Status::class)->html();
+        $html = Livewire::actingAs($user)->test(Status::class)->set('perPage', 5000)->html();
 
         $this->assertStringContainsString('Custom Rendered Title', $html);
     }
@@ -1687,6 +1687,8 @@ class StatusTest extends TestCase
         Livewire::withoutLazyLoading();
         $component = Livewire::actingAs($actor)->test(Status::class);
 
+        $component->instance()->users;
+
         DB::flushQueryLog();
         DB::enableQueryLog();
         $component->instance()->orgTree();
@@ -1883,5 +1885,88 @@ class StatusTest extends TestCase
         $grid = (new StatusPresenter())->gridData($user->refresh(), null);
 
         $this->assertSame($node['aboutPayload'], $grid['aboutPayload'], 'node and grid must share one unified aboutPayload helper');
+    }
+
+    private function makeMarkedUsers(string $marker, int $count): void
+    {
+        foreach (range(1, $count) as $i) {
+            User::factory()->create(['name' => "{$marker} {$i}", 'status' => 'active', 'presence' => 'onsite']);
+        }
+    }
+
+    public function test_status_grid_shows_one_page_and_load_more_reveals_the_rest()
+    {
+        $marker = 'ZZP' . uniqid();
+        $this->makeMarkedUsers($marker, Status::PAGE_SIZE + 6);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs(User::factory()->create(['status' => 'active', 'presence' => 'onsite']))
+            ->test(Status::class)
+            ->set('search', $marker);
+
+        $this->assertCount(Status::PAGE_SIZE, $component->instance()->gridUsers);
+        $this->assertTrue($component->instance()->hasMoreUsers);
+
+        $component->call('loadMore');
+
+        $this->assertCount(Status::PAGE_SIZE + 6, $component->instance()->gridUsers);
+        $this->assertFalse($component->instance()->hasMoreUsers);
+    }
+
+    public function test_status_search_reaches_a_user_beyond_the_first_page_and_resets_the_page()
+    {
+        $marker = 'ZZS' . uniqid();
+        $last = User::factory()->create(['name' => $marker, 'status' => 'active', 'presence' => 'onsite', 'last_seen' => '2000-01-01 00:00:00']);
+        $this->makeMarkedUsers('ZZF' . uniqid(), Status::PAGE_SIZE + 1);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs(User::factory()->create(['status' => 'active', 'presence' => 'onsite']))
+            ->test(Status::class);
+
+        $this->assertFalse($component->instance()->gridUsers->contains('id', $last->id));
+
+        $component->call('loadMore');
+        $this->assertSame(Status::PAGE_SIZE * 2, $component->get('perPage'));
+
+        $component->set('search', $marker);
+        $this->assertSame(Status::PAGE_SIZE, $component->get('perPage'));
+        $this->assertTrue($component->instance()->gridUsers->contains('id', $last->id));
+    }
+
+    public function test_status_about_me_direct_reports_are_built_only_while_the_modal_is_open()
+    {
+        $actor = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $colleague = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($actor)->test(Status::class)->call('openAboutMe', $colleague->id);
+
+        $this->assertTrue($component->get('showAboutModal'));
+        $this->assertSame($colleague->id, $component->get('aboutMeUserId'));
+
+        $component->set('showAboutModal', false);
+
+        $this->assertTrue($component->instance()->aboutMeDirectReports->isEmpty());
+    }
+
+    public function test_status_occasions_ignore_the_grid_page_and_the_chart_builds_only_when_open()
+    {
+        $colleague = User::factory()->create(['status' => 'active', 'presence' => 'onsite', 'last_seen' => '2000-01-01 00:00:00']);
+        Profile::factory()->create([
+            'user_id' => $colleague->id,
+            'birthdate' => now()->subYears(30),
+            'employment_status' => 'working',
+            'position' => 'کارشناس',
+        ]);
+        $this->makeMarkedUsers('ZZO' . uniqid(), Status::PAGE_SIZE + 1);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs(User::factory()->create(['status' => 'active', 'presence' => 'onsite']))->test(Status::class);
+
+        $this->assertFalse($component->instance()->gridUsers->contains('id', $colleague->id));
+        $this->assertNotNull(collect($component->instance()->todaysOccasions)->firstWhere('user.id', $colleague->id));
+        $component->assertDontSeeHtml('wire:key="status-chart-content"');
+
+        $component->call('toggleView', 'chart')->assertSeeHtml('wire:key="status-chart-content"');
     }
 }

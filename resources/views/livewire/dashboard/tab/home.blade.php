@@ -127,7 +127,7 @@
                                     max-width="max-w-md sm:max-w-lg" height="h-[75dvh] sm:h-[560px]">
                     <x-slot:search>
                         <x-ui.forms.search name="teamSearch" model="teamSearch" placeholder="جستجوی همکار..."
-                                            debounce="300" icon="search" :clearable="true"/>
+                                            icon="search" :clearable="true"/>
                     </x-slot:search>
 
                     <div class="px-4 py-2 flex flex-col gap-1">

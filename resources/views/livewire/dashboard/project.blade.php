@@ -8,25 +8,41 @@
     >
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">
-        <x-ui.title guide="projects" icon="workspaces" title="پروژه‌ها" :count="$this->myProjectsTotal" countLabel="پروژه">
+        <x-ui.title icon="workspaces" title="پروژه‌ها" :count="$this->myProjectsTotal" countLabel="پروژه">
             <x-slot:actions>
-                <x-ui.buttons.chat-scale/>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'project-badge-legend' })"
-                    title="راهنمای نشانگر اعلان"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">notifications</span>
-                </button>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'project-legend' })"
-                    title="راهنمای پروژه‌ها"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.module-links :tabs="[
+                    ['id' => 'tasks', 'icon' => 'dashboard', 'label' => 'برد وظایف', 'route' => route('tasks')],
+                    ['id' => 'tasksheet', 'icon' => 'assignment_turned_in', 'label' => 'تسک‌شیت', 'route' => route('tasksheet'), 'blank' => true],
+                ]"/>
+                <x-ui.buttons.title-more guide="projects">
+                    <x-slot:actions>
+                        <x-ui.buttons.chat-scale/>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'project-badge-legend' })"
+                            title="راهنمای نشانگر اعلان"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">notifications</span>
+                        </button>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'project-legend' })"
+                            title="راهنمای پروژه‌ها"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <div class="px-2 pt-1.5 pb-1" x-on:click.stop>
+                            <p class="mb-1 text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">اندازهٔ آیکون‌ها و دکمه‌ها</p>
+                            <x-ui.buttons.chat-scale spread/>
+                        </div>
+                        <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'project-badge-legend' })"/>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای پروژه‌ها" click="open = false; $dispatch('open-modal', { name: 'project-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 
@@ -40,14 +56,6 @@
         </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-chip')
-
-        <x-ui.buttons.tab-selector
-            active-tab="projects"
-            :tabs="[
-                ['id' => 'tasks', 'label' => 'برد وظایف', 'icon' => 'dashboard', 'route' => route('tasks')],
-                ['id' => 'projects', 'label' => 'پروژه‌ها', 'icon' => 'workspaces', 'route' => route('projects')],
-            ]"
-        />
 
         <x-ui.modals.max-backdrop/>
 

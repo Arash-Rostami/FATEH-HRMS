@@ -83,6 +83,32 @@ describe('media library', () => {
         expect(root.playEpisode).not.toHaveBeenCalled();
     });
 
+    it('shows the cover description until an episode is picked, except a lone episode with no cover text', () => {
+        const root = component([
+            item(1, { type: 'series', description_html: '<p>cover</p>', episodes: [episode(11), episode(12)] }),
+            item(2, { type: 'series', description_html: '', episodes: [episode(21)] }),
+        ]);
+        root.choose(1);
+        expect(root.aboutEpisode).toBeNull();
+        root.viewedEpisodeIndex = 1;
+        root.episodePicked = true;
+        expect(root.aboutEpisode.id).toBe(12);
+        root.choose(1);
+        expect(root.aboutEpisode).toBeNull();
+        root.choose(2);
+        expect(root.aboutEpisode.id).toBe(21);
+    });
+
+    it('keeps the cover for a lone episode when the series has cover text, and follows the playing episode', () => {
+        const root = component([item(1, { type: 'series', description_html: '<p>cover</p>', episodes: [episode(11)] }), item(3, { type: 'single' })]);
+        root.choose(1);
+        expect(root.aboutEpisode).toBeNull();
+        root.cur = { sid: 1, idx: 0 };
+        expect(root.aboutEpisode.id).toBe(11);
+        root.choose(3);
+        expect(root.aboutEpisode).toBeNull();
+    });
+
     it('does not play locked files or invent URLs at unlock', async () => {
         const unlock = Math.floor(Date.now() / 1000) + 10;
         const root = component([item(1, { episodes: [episode(1, { file_url: null, unlock_at: unlock })] })]);

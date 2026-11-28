@@ -95,7 +95,7 @@
         {{-- Search --}}
         <div class="relative max-w-sm">
             <x-ui.forms.input
-                    wire:model.live.debounce.300ms="search"
+                    wire:model.live.debounce.500ms="search"
                     label="جست‌وجوی نام سامانه…"
                     name="search"
                     icon="search"

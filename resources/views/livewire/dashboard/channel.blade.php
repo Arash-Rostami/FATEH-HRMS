@@ -14,28 +14,42 @@
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">
 
-        <x-ui.title icon="campaign" title="گروه‌ها" guide="channel">
+        <x-ui.title icon="campaign" title="گروه‌ها">
             <x-slot:actions>
-                <x-ui.buttons.chat-scale/>
-                @include('livewire.dashboard.messaging.font-picker')
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'messaging-badge-legend' })"
-                    title="راهنمای نشانگر اعلان"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">notifications</span>
-                </button>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'messaging-feature-legend' })"
-                    title="راهنمای پیام‌رسان و گروه"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <livewire:dashboard.messaging.switch-tabs active="channels"/>
+                <x-ui.buttons.title-more guide="channel">
+                    <x-slot:actions>
+                        <x-ui.buttons.chat-scale/>
+                        @include('livewire.dashboard.messaging.font-picker')
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'messaging-badge-legend' })"
+                            title="راهنمای نشانگر اعلان"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">notifications</span>
+                        </button>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'messaging-feature-legend' })"
+                            title="راهنمای پیام‌رسان و گروه"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <div class="px-2 pt-1.5 pb-1" x-on:click.stop>
+                            <p class="mb-1 text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">اندازهٔ آیکون‌ها و دکمه‌ها</p>
+                            <x-ui.buttons.chat-scale spread/>
+                        </div>
+                        <x-ui.modals.menu-row icon="text_fields" label="فونت پیام‌ها" click="open = false; $dispatch('open-font', { bottom: $root.getBoundingClientRect().bottom, left: $root.getBoundingClientRect().left })"/>
+                        <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'messaging-badge-legend' })"/>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای پیام‌رسان و گروه" click="open = false; $dispatch('open-modal', { name: 'messaging-feature-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
                 <span x-text="channelCount + ' ' + 'گروه'"
-                      class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)]"></span>
+                      class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]"></span>
             </x-slot:actions>
         </x-ui.title>
 
@@ -43,7 +57,6 @@
 
         @include('components.dashboard.header.focus-chip')
 
-        <livewire:dashboard.messaging.switch-tabs active="channels"/>
         <x-ui.modals.max-backdrop/>
         @include('livewire.dashboard.channel.manage-members')
         @include('livewire.dashboard.channel.manage-admins')

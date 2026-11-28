@@ -74,6 +74,20 @@ class CalendarPresenter
         }
     }
 
+    public function monthHolidayCount(string $navDateYmd): int
+    {
+        try {
+            $prefix = Jalalian::fromFormat('Y-m-d', $navDateYmd)->format('Y-m-');
+        } catch (Throwable $e) {
+            return 0;
+        }
+
+        return collect($this->getAllHolidays())
+            ->keys()
+            ->filter(fn ($date) => str_starts_with($date, $prefix))
+            ->count();
+    }
+
     public function rangeLabel(string $navDateYmd, string $view): string
     {
         try {

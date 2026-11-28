@@ -256,6 +256,10 @@
                 <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>
                 <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">نشان سطح مهارت فقط روی کارت‌هایی نمایش داده می‌شود که یک فیلتر مهارت فعال است؛ در حالت عادی (بدون فیلتر مهارت) این نشان دیده نمی‌شود.</p>
             </div>
+            <div class="flex items-start gap-2 px-1">
+                <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>
+                <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">در نمای کارتی، ابتدا حداکثر ۴۸ همکار را می‌بینید. برای دیدن موارد بعدی، «بارگذاری بیشتر» را بزنید. جست‌وجو و فیلترها همهٔ همکاران را در نظر می‌گیرند. نمای ساختار سازمانی همهٔ نتایج فیلتر را یک‌جا نشان می‌دهد.</p>
+            </div>
         @endif
     </div>
 </div>

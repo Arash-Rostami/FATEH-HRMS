@@ -2,7 +2,7 @@
     'name' => 'search',
     'model' => 'search',
     'placeholder' => 'جستجو...',
-    'debounce' => 400,
+    'debounce' => 500,
     'icon' => 'search',
     'clearable' => true,
     'disabled' => false,

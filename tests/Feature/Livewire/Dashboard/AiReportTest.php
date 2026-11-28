@@ -2355,9 +2355,9 @@ class AiReportTest extends TestCase
         $owner = $this->user();
 
         Livewire::actingAs($owner)->test(Main::class)
-            ->assertSeeHtml('wire:key="ai-report-reports-link"')
+            ->assertSeeHtml('wire:key="module-links-knowledge"')
             ->assertSeeHtml('/knowledge')
-            ->assertSeeHtml('گزارشات سازمانی');
+            ->assertSeeHtml('گزارش‌ها');
     }
 
     public function test_the_side_list_pages_by_five_and_the_table_view_by_thirty_and_a_view_switch_resets_the_step(): void
@@ -2843,7 +2843,7 @@ class AiReportTest extends TestCase
             ->assertSet('activeTab', 'report')
             ->assertSet('listLimit', 0)
             ->assertSeeHtml('wire:key="ai-report-view-report"')
-            ->assertSeeHtml('wire:click="switchTab(\'table\')"')
+            ->assertSeeHtml('$wire.switchTab(&#039;table&#039;)')
             ->assertSeeHtml('wire:key="ai-report-composer"')
             ->assertDontSeeHtml('wire:key="ai-report-view-compose"')
             ->assertDontSeeHtml('wire:key="ai-report-list-idle"')
@@ -2854,7 +2854,7 @@ class AiReportTest extends TestCase
             ->assertSet('activeTab', 'table')
             ->assertSet('listLimit', 30)
             ->assertSeeHtml('wire:key="ai-report-view-table"')
-            ->assertSeeHtml('wire:click="switchTab(\'report\')"')
+            ->assertSeeHtml('$wire.switchTab(&#039;report&#039;)')
             ->assertDontSeeHtml('wire:key="ai-report-view-report"');
         $this->assertSame([$report->id], $component->instance()->reports->pluck('id')->all());
 
@@ -5994,5 +5994,26 @@ JSON, true);
         $component->call('bulkSelectPeople', 'shareRecipients', 'all');
 
         $this->assertSame([], $component->get('shareRecipients'));
+    }
+
+    public function test_title_bar_switches_report_and_table_in_place_and_names_the_table(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Main::class)->call('switchTab', 'report');
+
+        $this->assertStringContainsString('$wire.switchTab(&#039;table&#039;)', $component->html());
+        $this->assertStringNotContainsString('ai-report-view-tab-selector', $component->html());
+
+        $component->call('switchTab', 'table')->assertSet('activeTab', 'table');
+
+        $html = $component->html();
+        $this->assertStringContainsString('گزارش ساز هوشمند (جدول گزارش‌ها)', $html);
+        $this->assertStringContainsString('$wire.switchTab(&#039;report&#039;)', $html);
+        $this->assertStringContainsString('ابزارهای بیشتر', $html);
+        $this->assertSame(1, substr_count($html, 'href="' . route('knowledge') . '"'));
+        $this->assertStringContainsString('max-sm:hidden">گزارش‌های سازمانی', $html);
+        $this->assertStringContainsString('sm:hidden">گزارش‌ها<', $html);
     }
 }

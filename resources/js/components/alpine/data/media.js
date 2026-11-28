@@ -48,6 +48,7 @@ export default function media() {
         libraryNotes: {},
         selectedId: null,
         viewedEpisodeIndex: 0,
+        episodePicked: false,
         pendingMoment: null,
         pendingSeek: null,
         mobileDetail: false,
@@ -138,6 +139,7 @@ export default function media() {
                         const index = idx >= 0 ? idx : 0;
                         if (found.episodes[index]?.file_url && !this.isLocked(found.episodes[index])) {
                             this.viewedEpisodeIndex = index;
+                            this.episodePicked = true;
                             this.pendingMoment = { sid: found.id, idx: index, seconds: Number.isFinite(seconds) ? Math.max(0, Math.min(seconds, found.episodes[index].duration || seconds)) : this.resumeAt(found.id, index) };
                         }
                     }
@@ -164,6 +166,13 @@ export default function media() {
             const item = this.selected;
             if (!item) return null;
             return item.episodes[this.cur?.sid === item.id ? this.cur.idx : this.viewedEpisodeIndex] ?? null;
+        },
+
+        get aboutEpisode() {
+            const item = this.selected;
+            if (!item || item.type !== 'series') return null;
+            const soleEpisode = !item.description_html && item.episodes.length === 1;
+            return this.episodePicked || this.cur?.sid === item.id || soleEpisode ? this.contextEpisode : null;
         },
 
         get currentNotes() {
@@ -234,6 +243,7 @@ export default function media() {
             if (!item) return;
             this.selectedId = item.id;
             this.viewedEpisodeIndex = 0;
+            this.episodePicked = false;
             this.pendingMoment = null;
             this.mobileDetail = detail;
             this._persistLastOpen(item.id);
@@ -258,7 +268,10 @@ export default function media() {
         chooseEpisode(id) {
             const hit = this.episodeHit(id);
             this.choose(id);
-            if (hit) this.viewedEpisodeIndex = hit.index;
+            if (hit) {
+                this.viewedEpisodeIndex = hit.index;
+                this.episodePicked = true;
+            }
         },
 
         undoSwitch() {
@@ -267,6 +280,7 @@ export default function media() {
             if (!back) return;
             if (this.selectedId !== back.sid) this.choose(back.sid, false);
             this.viewedEpisodeIndex = back.idx;
+            this.episodePicked = true;
         },
 
         backToList() { this.mobileDetail = false; },
@@ -337,6 +351,7 @@ export default function media() {
             if (!episode?.file_url) return;
             this.clearTracks();
             this.viewedEpisodeIndex = index;
+            this.episodePicked = true;
             const moment = this.pendingMoment?.sid === item.id && this.pendingMoment.idx === index ? this.pendingMoment : null;
             this.pendingMoment = null;
             if (this.cur?.sid === item.id && this.cur.idx === index && !this.error) {

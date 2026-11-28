@@ -1,11 +1,5 @@
 <section class="flex-1 min-w-0 lg:h-full lg:overflow-y-auto custom-scrollbar pr-1 pl-1 lg:pb-20">
-    <div class="flex items-center gap-3 mb-4 px-1">
-        <div class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center">
-            <span class="material-symbols-rounded text-base font-fill">feed</span>
-        </div>
-        <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">تازه‌ترین‌ها</h2>
-        <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)]/50"></div>
-    </div>
+    <x-ui.title icon="feed" title="تازه‌ترین‌ها"/>
 
     <div class="space-y-3">
         @foreach($this->pins as $pin)

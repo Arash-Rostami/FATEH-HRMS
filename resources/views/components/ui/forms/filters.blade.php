@@ -7,6 +7,7 @@
     'open'            => false,
     'filters'         => true,
     'declutterHide'   => false,
+    'island'          => null,
 ])
 
 <div
@@ -76,6 +77,7 @@
                             dir="rtl"
                             type="text"
                             wire:model.live.debounce.500ms="{{ $searchModel }}"
+                            @if($island) wire:island="{{ $island }}" @endif
                             placeholder="{{ $placeholder }}"
                             class="w-full h-12 pl-12 pr-12 rounded-xl text-base outline-none bg-[var(--md-sys-color-surface-container-high)] border border-transparent text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)] focus:border-[var(--md-sys-color-primary)] focus:bg-[var(--md-sys-color-surface-container-highest)] transition-colors duration-200"
                         >

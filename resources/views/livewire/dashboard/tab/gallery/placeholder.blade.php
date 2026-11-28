@@ -1,8 +1,10 @@
 <div class="animate-fade relative w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] h-screen overflow-hidden flex flex-col gap-6" dir="rtl" role="status" aria-label="در حال بارگذاری گالری">
-    <div class="flex items-center justify-between">
-        <x-ui.loaders.skeleton.bar width="w-32" height="h-8"/>
-        <x-ui.loaders.skeleton.bar width="w-24" height="h-8"/>
-    </div>
+    <x-ui.title icon="photo_library" title="گالری">
+        <x-slot:actions>
+            <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+            <x-ui.loaders.skeleton.bar width="w-16" height="h-6"/>
+        </x-slot:actions>
+    </x-ui.title>
 
     <div class="flex-1 hidden md:flex items-center gap-6 px-4 md:px-12">
         @for($i = 0; $i < 3; $i++)

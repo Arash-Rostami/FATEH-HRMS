@@ -102,7 +102,7 @@
                                 @if($server)
                                     <input
                                         type="text"
-                                        wire:model.live.debounce.300ms="{{ $searchModel }}"
+                                        wire:model.live.debounce.500ms="{{ $searchModel }}"
                                         placeholder="{{ $placeholder }}"
                                         aria-label="{{ $placeholder }}"
                                         autocomplete="off"

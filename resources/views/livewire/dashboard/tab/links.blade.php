@@ -9,8 +9,10 @@
         ['value' => 'launch', 'icon' => 'apps', 'title' => 'نمای شبکه‌ای'],
     ])
 
-    <x-ui.title guide="links" icon="open_in_new" title="لینک‌ها و مسیرهای دیجیتال سازمان" :count="$this->totalLinks" countLabel="لینک">
+    <x-ui.title icon="open_in_new" title="لینک‌ها و مسیرهای دیجیتال سازمان" :count="$this->totalLinks" countLabel="لینک">
         <x-slot:actions>
+            <x-ui.buttons.title-more guide="links">
+            <x-slot:actions>
             <x-ui.buttons.view-toggle module="links" :modes="$viewModes" />
             <button
                 type="button"
@@ -20,6 +22,17 @@
             >
                 <span class="material-symbols-rounded text-lg">help</span>
             </button>
+            </x-slot:actions>
+            <x-slot:menu>
+                @unless(tenantOff('links:rail') || tenantOff('links:launch'))
+                    <div x-on:click.stop>
+                        <x-ui.modals.menu-row icon="view_carousel" label="نمای ریلی" role="menuitemradio" checked="view === 'rail'" click="if (view !== 'rail') { view = 'rail'; $wire.toggleView('rail') }"/>
+                        <x-ui.modals.menu-row icon="apps" label="نمای شبکه‌ای" role="menuitemradio" checked="view === 'launch'" click="if (view !== 'launch') { view = 'launch'; $wire.toggleView('launch') }"/>
+                    </div>
+                @endunless
+                <x-ui.modals.menu-row icon="help" label="راهنمای لینک‌ها" click="open = false; $dispatch('open-modal', { name: 'links-legend' })"/>
+            </x-slot:menu>
+            </x-ui.buttons.title-more>
         </x-slot:actions>
     </x-ui.title>
 
@@ -43,7 +56,14 @@
                 :activeTab="$mobileSection"
             />
         </div>
+    </div>
 
+    @island(name: 'links', always: true)
+    @php
+        $linkPresenter = new \App\Livewire\Dashboard\Tab\Presentation\LinkPresenter();
+    @endphp
+
+    <div x-show="view === 'rail'" x-cloak class="space-y-6">
         <div class="{{ $mobileSection === 'internal' ? '' : 'hidden' }} md:block">
             @include('livewire.dashboard.tab.links.internal')
         </div>
@@ -56,5 +76,6 @@
     <div x-show="view === 'launch'" x-cloak>
         @include('livewire.dashboard.tab.links.launch')
     </div>
+    @endisland
 
 </div>

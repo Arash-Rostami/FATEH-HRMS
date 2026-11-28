@@ -6,53 +6,69 @@
     dir="rtl"
 >
     <div class="max-w-[88rem] mx-auto">
-        <x-ui.title guide="profile"
+        <x-ui.title
             :icon="$isProfileTab ? 'person' : 'apartment'"
             :title="$isProfileTab ? 'پروفایل کاربری' : 'آنبوردینگ'"
         >
             <x-slot:actions>
-                @if($isProfileTab)
-                    <button
-                        type="button"
-                        @click="$dispatch('open-modal', { name: 'profile-badge-legend' })"
-                        wire:key="profile-actions-badges"
-                        title="راهنمای نشانگرهای اعلان"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                    >
-                        <span class="material-symbols-rounded text-lg">notifications</span>
-                    </button>
-                    <button
-                        type="button"
-                        @click="$dispatch('open-modal', { name: 'profile-legend' })"
-                        wire:key="profile-actions-legend"
-                        title="راهنمای ماژول پروفایل"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                    >
-                        <span class="material-symbols-rounded text-lg">help</span>
-                    </button>
-                @else
-                    <button
-                        type="button"
-                        @click="$dispatch('open-modal', { name: 'onboarding-legend' })"
-                        wire:key="profile-actions-onboarding"
-                        title="راهنمای آنبوردینگ"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                    >
-                        <span class="material-symbols-rounded text-lg">help</span>
-                    </button>
-                @endif
+                <x-ui.buttons.title-more guide="profile">
+                    <x-slot:actions>
+                        @if($isProfileTab)
+                            <button
+                                type="button"
+                                @click="$dispatch('open-modal', { name: 'profile-badge-legend' })"
+                                wire:key="profile-actions-badges"
+                                title="راهنمای نشانگر اعلان"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                            >
+                                <span class="material-symbols-rounded text-lg">notifications</span>
+                            </button>
+                            <button
+                                type="button"
+                                @click="$dispatch('open-modal', { name: 'profile-legend' })"
+                                wire:key="profile-actions-legend"
+                                title="راهنمای پروفایل"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                            >
+                                <span class="material-symbols-rounded text-lg">help</span>
+                            </button>
+                        @else
+                            <button
+                                type="button"
+                                @click="$dispatch('open-modal', { name: 'onboarding-legend' })"
+                                wire:key="profile-actions-onboarding"
+                                title="راهنمای آنبوردینگ"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                            >
+                                <span class="material-symbols-rounded text-lg">help</span>
+                            </button>
+                        @endif
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        @if($isProfileTab)
+                            <div wire:key="profile-menu-profile" class="contents">
+                                <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'profile-badge-legend' })"/>
+                                <x-ui.modals.menu-row icon="help" label="راهنمای پروفایل" click="open = false; $dispatch('open-modal', { name: 'profile-legend' })"/>
+                            </div>
+                        @else
+                            <div wire:key="profile-menu-onboarding" class="contents">
+                                <x-ui.modals.menu-row icon="help" label="راهنمای آنبوردینگ" click="open = false; $dispatch('open-modal', { name: 'onboarding-legend' })"/>
+                            </div>
+                        @endif
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 
         @if($isProfileTab)
             <div wire:key="profile-legend-dialogs" class="contents">
-            <x-ui.modals.dialog name="profile-legend" title="راهنمای ماژول پروفایل">
+            <x-ui.modals.dialog name="profile-legend" title="راهنمای پروفایل">
                 @include('livewire.dashboard.profile.legend')
             </x-ui.modals.dialog>
 
             <x-dashboard.modal.badge-legend
                 name="profile-badge-legend"
-                title="راهنمای نشانگرهای اعلان"
+                title="راهنمای نشانگر اعلان"
                 :groups="$badgeLegendGroups"
             />
             </div>

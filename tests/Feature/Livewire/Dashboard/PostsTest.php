@@ -581,4 +581,17 @@ class PostsTest extends TestCase
             ->call('toggleView', 'list')->assertSet('view', 'list')
             ->call('toggleView', 'grid')->assertSet('view', 'list');
     }
+
+    public function test_section_headers_use_the_shared_title_component_like_the_main_title(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Posts::class)->html();
+
+        $this->assertGreaterThanOrEqual(4, substr_count($html, 'flex flex-wrap items-center gap-3 mb-8'));
+        $this->assertSame(2, substr_count($html, 'تازه‌ترین‌ها</h2>'));
+        $this->assertStringContainsString('اعلان سنجاق‌شده</h2>', $html);
+        $this->assertStringNotContainsString('text-[13px] font-bold tracking-wide', $html);
+    }
 }

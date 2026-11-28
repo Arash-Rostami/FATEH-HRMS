@@ -1912,4 +1912,23 @@ class DmsTest extends TestCase
             'user_id' => $reader->id,
         ]);
     }
+
+    public function test_title_bar_names_the_pane_and_links_only_to_the_other_pane(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString('مدیریت اسناد</h2>', $html);
+        $this->assertStringNotContainsString('مدیریت اسناد (اسناد)', $html);
+        $this->assertStringContainsString('href="' . route('dms', ['tab' => 'non_systematic']) . '"', $html);
+        $this->assertStringNotContainsString('href="' . route('dms', ['tab' => 'systematic']) . '"', $html);
+
+        Livewire::withoutLazyLoading();
+        $records = Livewire::actingAs($user)->test(Main::class)->set('activeTab', 'non_systematic')->html();
+
+        $this->assertStringContainsString('مدیریت اسناد (سوابق)', $records);
+        $this->assertStringContainsString('href="' . route('dms', ['tab' => 'systematic']) . '"', $records);
+    }
 }

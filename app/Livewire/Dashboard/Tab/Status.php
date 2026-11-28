@@ -14,6 +14,7 @@ use App\Models\Profile;
 use App\Models\Skill;
 use App\Models\SkillUser;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use App\Services\User\UserKeyGrouper;
 use App\Traits\Livewire\SendsSms;
 use Illuminate\Database\Eloquent\Builder;
@@ -33,6 +34,9 @@ class Status extends Component
 {
     use SendsSms;
 
+    public const PAGE_SIZE = 48;
+
+    public int $perPage = self::PAGE_SIZE;
     public string $activeFilter = 'all';
     public string $activeClassifier = 'all';
     public string $search = '';
@@ -81,9 +85,22 @@ class Status extends Component
     {
     }
 
+    public function updated(string $name): void
+    {
+        if (in_array($name, ['search', 'activeFilter', 'activeClassifier', 'mentorOnly', 'skillId', 'skillSearch'], true)) {
+            $this->perPage = self::PAGE_SIZE;
+        }
+    }
+
+    public function loadMore(): void
+    {
+        $this->perPage += self::PAGE_SIZE;
+    }
+
     public function setFilter(string $filter)
     {
         $this->activeFilter = $this->activeFilter === $filter ? 'all' : $filter;
+        $this->perPage = self::PAGE_SIZE;
     }
 
     public function toggleView(string $view): void
@@ -100,6 +117,7 @@ class Status extends Component
     {
         $this->skillId = $skillId;
         $this->skillSearch = '';
+        $this->perPage = self::PAGE_SIZE;
         $this->resetSkillComputeds();
     }
 
@@ -108,6 +126,7 @@ class Status extends Component
         $this->skillId = null;
         $this->skillSearch = '';
         $this->mentorOnly = false;
+        $this->perPage = self::PAGE_SIZE;
         $this->resetSkillComputeds();
     }
 
@@ -116,6 +135,7 @@ class Status extends Component
         $term = $this->normalizedSkillSearch();
 
         $this->skillId = null;
+        $this->perPage = self::PAGE_SIZE;
         $this->resetSkillComputeds();
 
         if ($term === '' || in_array($term, $this->loggedSkillSearches, true)) {
@@ -237,21 +257,32 @@ class Status extends Component
     #[Computed]
     public function classifierGroups(): array
     {
-        return collect($this->rawClassifierGroups())
-            ->reject(fn (array $g) => UserKeyGrouper::isHidden($g['norm']))
-            ->mapWithKeys(fn (array $g) => [
-                $g['norm'] => [
-                    'label' => $g['label'],
-                    'values' => UserKeyGrouper::distinctValues($g['variants']),
-                ],
-            ])
-            ->all();
+        return ModelCacheVersion::remember(
+            User::class,
+            'status_classifier_groups',
+            now()->addSeconds(ModelCacheVersion::defaultSeconds()),
+            fn () => collect($this->rawClassifierGroups())
+                ->reject(fn (array $g) => UserKeyGrouper::isHidden($g['norm']))
+                ->mapWithKeys(fn (array $g) => [
+                    $g['norm'] => [
+                        'label' => $g['label'],
+                        'values' => UserKeyGrouper::distinctValues($g['variants']),
+                    ],
+                ])
+                ->all()
+        );
     }
 
     #[Computed]
     public function todaysOccasions(): array
     {
-        return $this->users
+        $today = now()->format('m-d');
+
+        return $this->usersQuery()
+            ->whereHas('profile', fn (Builder $profile) => $profile->where(fn (Builder $q) => $q
+                ->whereRaw("DATE_FORMAT(birthdate, '%m-%d') = ?", [$today])
+                ->orWhereRaw("DATE_FORMAT(start_date, '%m-%d') = ?", [$today])))
+            ->get()
             ->map(fn (User $user) => ['user' => $user, 'type' => $user->profile?->todaysOccasionType()])
             ->filter(fn (array $o) => $o['type'] !== null)
             ->map(fn (array $o) => ['user' => $o['user'], 'type' => $o['type'], 'tone' => Profile::occasionTone($o['type'])])
@@ -280,6 +311,34 @@ class Status extends Component
 
     #[Computed]
     public function users()
+    {
+        return $this->usersQuery()->get();
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->perPage = max($this->perPage, self::PAGE_SIZE);
+    }
+
+    #[Computed]
+    public function gridFetch()
+    {
+        return $this->usersQuery()->limit($this->perPage + 1)->get();
+    }
+
+    #[Computed]
+    public function gridUsers()
+    {
+        return $this->gridFetch->take($this->perPage);
+    }
+
+    #[Computed]
+    public function hasMoreUsers(): bool
+    {
+        return $this->gridFetch->count() > $this->perPage;
+    }
+
+    private function usersQuery(): Builder
     {
         User::primeTodaysDeskCache();
 
@@ -320,7 +379,7 @@ class Status extends Component
                         ->orderByDesc('users.last_seen');
                 },
             )
-            ->get();
+            ->orderBy('users.id');
     }
 
     #[Computed]
@@ -338,7 +397,7 @@ class Status extends Component
     #[Computed]
     public function aboutMeDirectReports()
     {
-        if ($this->aboutMeUserId === null) {
+        if ($this->aboutMeUserId === null || !$this->showAboutModal) {
             return collect();
         }
 

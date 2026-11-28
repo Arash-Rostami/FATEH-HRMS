@@ -2775,4 +2775,21 @@ class ProfileTest extends TestCase
         $this->assertNull($user->fresh()->getExtraValue('admin.sign_code_hash'));
         config(['app.off' => []]);
     }
+
+    public function test_title_bar_phone_menu_follows_the_profile_or_onboarding_pane(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Main::class);
+
+        $this->assertStringContainsString('ابزارهای بیشتر', $component->html());
+        $this->assertStringContainsString('wire:key="profile-menu-profile"', $component->html());
+
+        $component->call('setTab', 'onboarding');
+
+        $html = $component->html();
+        $this->assertStringContainsString('wire:key="profile-menu-onboarding"', $html);
+        $this->assertStringNotContainsString('wire:key="profile-menu-profile"', $html);
+    }
 }

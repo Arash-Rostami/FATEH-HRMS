@@ -469,4 +469,16 @@ class FaqsTest extends TestCase
             ->assertSeeHtml('toggle(')
             ->assertSeeHtml('active === ');
     }
+
+    public function test_search_input_targets_the_faqs_island_and_rows_render_inside_it(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $faq = FAQ::factory()->create(['user_id' => $user->id]);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Faqs::class)->html();
+
+        $this->assertGreaterThanOrEqual(1, substr_count($html, 'wire:island="faqs"'));
+        $this->assertStringContainsString('data-rf="faqs-' . $faq->id . '"', $html);
+    }
 }

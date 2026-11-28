@@ -1,6 +1,10 @@
 <div dir="rtl" class="relative w-full h-full p-4 md:p-8" role="status" aria-label="در حال بارگذاری پروفایل">
     <div class="max-w-[88rem] mx-auto flex flex-col gap-5">
-        <x-ui.loaders.skeleton.bar width="w-40" height="h-7"/>
+        <x-ui.title icon="person" title="پروفایل کاربری">
+            <x-slot:actions>
+                <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+            </x-slot:actions>
+        </x-ui.title>
 
         <div class="flex flex-col lg:flex-row gap-6 items-start">
             <aside class="w-full lg:w-64 flex-shrink-0 flex flex-col gap-2 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-3">

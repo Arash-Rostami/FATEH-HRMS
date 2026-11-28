@@ -68,7 +68,7 @@
         </div>
 
         <div class="sb-fold">
-            <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
+            <x-ui.forms.search-field model="search" name="search" id="search"
                                      placeholder="جستجوی گروه..." aria-label="جستجوی گروه" overlay-title="جستجوی گروه"
                                      refresh-sidebar-on-close show-label />
         </div>

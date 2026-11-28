@@ -22,7 +22,6 @@
             name="search"
             model="search"
             placeholder="جستجو با عنوان یا شناسهٔ پیشنهاد…"
-            debounce="400"
             icon="manage_search"
             :clearable="true"
             class="max-w-md mx-auto"

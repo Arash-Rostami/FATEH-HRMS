@@ -31,7 +31,7 @@
 ])
 <div class="flex flex-wrap items-center gap-2">
     <div class="flex-1 min-w-[200px]">
-        <x-ui.forms.search name="reportSearch" model="reportSearch" debounce="300" placeholder="جستجو در عنوان و توضیحات…"/>
+        <x-ui.forms.search name="reportSearch" model="reportSearch" placeholder="جست‌وجو در عنوان و توضیحات…"/>
     </div>
 
     <button type="button" wire:click="setReportStatusFilter('')" aria-pressed="{{ $reportStatusFilter === '' ? 'true' : 'false' }}"

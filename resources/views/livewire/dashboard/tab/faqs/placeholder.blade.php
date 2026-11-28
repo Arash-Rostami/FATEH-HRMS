@@ -1,9 +1,11 @@
 <div class="animate-fade relative w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] flex flex-col overflow-hidden" dir="rtl" role="status" aria-label="در حال بارگذاری پرسش‌های متداول">
     <div class="pb-0 shrink-0">
-        <div class="flex items-center justify-between mb-4">
-            <x-ui.loaders.skeleton.bar width="w-48" height="h-8"/>
-            <x-ui.loaders.skeleton.bar width="w-20" height="h-8"/>
-        </div>
+        <x-ui.title icon="help" title="پرسش‌های متداول">
+            <x-slot:actions>
+                <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+                <x-ui.loaders.skeleton.bar width="w-16" height="h-6"/>
+            </x-slot:actions>
+        </x-ui.title>
 
         <div class="flex flex-wrap items-center gap-2 mb-4">
             <x-ui.loaders.skeleton.bar width="w-64" height="h-9"/>

@@ -350,17 +350,19 @@ class MessagingTest extends TestCase
             ->assertHasNoErrors();
     }
 
-    public function test_switch_tabs_keeps_a_stable_order_regardless_of_active_module()
+    public function test_switch_tabs_renders_only_the_other_module_as_a_sibling_link()
     {
         $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
 
         Livewire::actingAs($user)
             ->test(SwitchTabs::class, ['active' => 'channels'])
-            ->assertSeeInOrder(['پیام‌رسان', 'گروه‌ها']);
+            ->assertSee('پیام‌رسان')
+            ->assertDontSee('گروه‌ها');
 
         Livewire::actingAs($user)
             ->test(SwitchTabs::class, ['active' => 'contacts'])
-            ->assertSeeInOrder(['پیام‌رسان', 'گروه‌ها']);
+            ->assertSee('گروه‌ها')
+            ->assertDontSee('پیام‌رسان');
     }
 
     public function test_switch_tabs_hides_the_off_sibling_and_zeroes_its_unread_count()
@@ -375,18 +377,18 @@ class MessagingTest extends TestCase
                 ->test(SwitchTabs::class, ['active' => 'channels'])
                 ->assertSet('contactsUnread', 0)
                 ->assertDontSee('پیام‌رسان')
-                ->assertSee('گروه‌ها');
+                ->assertDontSee('گروه‌ها');
 
             config(['app.off' => ['channel']]);
             Livewire::actingAs($user)
                 ->test(SwitchTabs::class)
                 ->assertSet('contactsUnread', 1)
                 ->assertSet('channelsUnread', 0)
-                ->assertSee('پیام‌رسان')
+                ->assertDontSee('پیام‌رسان')
                 ->assertDontSee('گروه‌ها');
 
             config(['app.off' => []]);
-            Livewire::actingAs($user)->test(SwitchTabs::class)->assertSee('پیام‌رسان')->assertSee('گروه‌ها');
+            Livewire::actingAs($user)->test(SwitchTabs::class)->assertSee('گروه‌ها')->assertDontSee('پیام‌رسان');
         } finally {
             config(['app.off' => []]);
         }

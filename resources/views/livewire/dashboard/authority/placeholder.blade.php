@@ -3,9 +3,12 @@
     
      role="status" aria-label="در حال بارگذاری اختیارات سازمانی">
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <div class="mb-8">
-            <x-ui.loaders.skeleton.bar width="w-48" height="h-7"/>
-        </div>
+        <x-ui.title icon="verified_user" title="اختیارات سازمانی">
+            <x-slot:actions>
+                <x-ui.loaders.skeleton.bar width="w-24" height="h-7"/>
+                <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+            </x-slot:actions>
+        </x-ui.title>
 
         <div class="flex gap-2 mb-6">
             <x-ui.loaders.skeleton.bar width="flex-1" height="h-11"/>

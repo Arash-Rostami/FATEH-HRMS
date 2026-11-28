@@ -8,8 +8,10 @@
 >
 
     <div class="pb-0 shrink-0">
-        <x-ui.title guide="faq" icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال">
+        <x-ui.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="پرسش">
             <x-slot:actions>
+                <x-ui.buttons.title-more guide="faq">
+                <x-slot:actions>
                 <x-ui.buttons.view-toggle module="faq"/>
                 <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
                 <button
@@ -20,6 +22,18 @@
                 >
                     <span class="material-symbols-rounded text-lg">help</span>
                 </button>
+                </x-slot:actions>
+                <x-slot:menu>
+                    <div x-on:click.stop>
+                        @unless(tenantOff('faq:card') || tenantOff('faq:list'))
+                            <x-ui.modals.menu-row icon="grid_view" label="نمای کارتی" role="menuitemradio" checked="view === 'card'" click="if (view !== 'card') { view = 'card'; $wire.toggleView('card') }"/>
+                            <x-ui.modals.menu-row icon="view_list" label="نمای فهرستی" role="menuitemradio" checked="view === 'list'" click="if (view !== 'list') { view = 'list'; $wire.toggleView('list') }"/>
+                        @endunless
+                        <x-ui.modals.menu-row icon="bookmark" label="فقط نشان‌شده‌ها" checked="onlySaved" click="onlySaved = !onlySaved"/>
+                    </div>
+                    <x-ui.modals.menu-row icon="help" label="راهنمای پرسش‌های متداول" click="open = false; $dispatch('open-modal', { name: 'faqs-legend' })"/>
+                </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 
@@ -31,6 +45,11 @@
     </div>
 
     @include('livewire.dashboard.tab.faqs.filters')
+
+    @island(name: 'faqs', always: true)
+    @php
+        $presenter = new \App\Livewire\Dashboard\Tab\Presentation\FaqPresenter();
+    @endphp
 
     <div
         class="p-4 md:p-8 relative bg-[var(--md-sys-color-surface-container-lowest)]">
@@ -81,4 +100,5 @@
             </div>
         @endif
     </div>
+    @endisland
 </div>

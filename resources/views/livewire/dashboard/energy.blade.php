@@ -11,28 +11,40 @@
     >
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.title guide="energy"
+        <x-ui.title
             icon="energy"
-            title="پرسشنامه انرژی"
+            :title="$activeTab === 'chart' ? 'پرسشنامه انرژی (نتایج)' : 'پرسشنامه انرژی'"
             count="{{ $this->userTestCount }}"
         >
             <x-slot:actions>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'energy-badge-legend' })"
-                    title="راهنمای نشانگر اعلان"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">notifications</span>
-                </button>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'energy-legend' })"
-                    title="راهنمای پرسشنامه انرژی"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.module-links :active="$activeTab" :tabs="[
+                    ['id' => 'survey', 'icon' => 'poll', 'label' => 'پرسشنامه', 'click' => '$wire.switchTab(\'survey\')'],
+                    ['id' => 'chart', 'icon' => 'bar_chart', 'label' => 'نتایج', 'click' => '$wire.switchTab(\'chart\')'],
+                ]"/>
+                <x-ui.buttons.title-more guide="energy">
+                    <x-slot:actions>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'energy-badge-legend' })"
+                            title="راهنمای نشانگر اعلان"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">notifications</span>
+                        </button>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'energy-legend' })"
+                            title="راهنمای پرسشنامه انرژی"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'energy-badge-legend' })"/>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای پرسشنامه انرژی" click="open = false; $dispatch('open-modal', { name: 'energy-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 
@@ -45,14 +57,6 @@
         <x-ui.modals.dialog name="energy-legend" title="راهنمای پرسشنامه انرژی">
             @include('livewire.dashboard.energy.legend')
         </x-ui.modals.dialog>
-
-        <x-ui.buttons.tab-selector
-            :activeTab="$activeTab"
-            :tabs="[
-                    ['id' => 'survey','label' => 'پرسشنامه','icon' => 'poll'],
-                    ['id' => 'chart','label' => 'نتایج','icon' => 'bar_chart']
-                  ]"
-        />
 
         <div class="w-full mb-8">
             <div x-show="activeTab==='survey'"

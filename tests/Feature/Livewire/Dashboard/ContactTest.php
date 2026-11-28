@@ -2225,6 +2225,12 @@ class ContactTest extends TestCase
         $this->assertSame($key, $presenter->sidebar([$row], $sender->id)[0]['sms_key'], 'the key format is the calendar CalendarPresenter::occasionSms key');
         $this->assertFalse($presenter->sidebar([$row], $colleague->id)[0]['can_sms'], 'nobody can greet themselves');
         $this->assertFalse($presenter->sidebar([['id' => 9, 'name' => 'Y', 'profile' => [], 'occasion' => null]], $sender->id)[0]['can_sms']);
+        $this->assertTrue($presenter->contact($row, $sender->id)['has_cellphone']);
+
+        $row['profile'] = [];
+        $withoutPhone = $presenter->contact($row, $sender->id);
+        $this->assertFalse($withoutPhone['has_cellphone']);
+        $this->assertFalse($withoutPhone['can_sms']);
     }
 
     public function test_send_sms_action_refuses_a_second_greeting_for_the_same_occasion_key(): void

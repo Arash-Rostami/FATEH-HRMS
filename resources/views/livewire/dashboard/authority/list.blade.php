@@ -1,3 +1,7 @@
+@php
+    $presenter = new \App\Livewire\Dashboard\Authority\Presentation\AuthorityPresenter();
+@endphp
+
 <div class="space-y-2 !animate-slide-over-in">
     @forelse($this->authorities as $index => $authority)
         @php
@@ -50,7 +54,9 @@
             <div x-show="open" x-collapse class="overflow-hidden">
                 <div class="border-t border-[var(--md-sys-color-outline-variant)]/60">
 
-                    @php( $coDelegate = $details['co_delegate'] ?? null)
+                    @php
+                        $coDelegate = $details['co_delegate'] ?? null;
+                    @endphp
                     @if($approved || $coDelegate)
                         <div
                             class="px-5 py-2.5 flex flex-wrap items-center gap-x-8 gap-y-1.5 border-b border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)]/50">

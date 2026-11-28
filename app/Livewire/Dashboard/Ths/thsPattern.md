@@ -44,4 +44,6 @@ Created 2026-10-09 with the task/project overhaul; earlier Ths behavior is docum
 
 27. **AI input limits in the presenter (2026-11-23):** `TicketPresenter::aiLimits()` returns the `subject` and `description` caps (`min(ai.ticket.input_max, <field>_max)`) that `ths/create.blade.php` reads; the view no longer calls `config()`. Pinned in `ThsTest`.
 
+**Pane switcher in the title bar (2026-11-28):** the ارزیابی/تیکت جدید/تاریخچه strip no longer sits under the title. `ths.blade.php` renders `<x-ui.buttons.module-links>` in the title's actions with a per-tab `click` (`$wire.switchTab('…')`, a real `<button>`, in-place) — never a navigating link, because the new-ticket form draft and the history filters live in the same component. The title names the pane («تیکتینگ» / «تیکتینگ (ارزیابی)» / «تیکتینگ (تاریخچه)»), the two legends and the video guide sit behind the mobile ⋮ (`title-more`), and the skeleton no longer carries a strip row.
+
 Ticket modal header (`modal/header.blade.php`): since 2026-11-18 it uses the shared card gradient header (icon chip, subject as title, created/requester/department as subtitle, `on-primary` maximize and close buttons; ids, `data-ths-*` hooks and handlers unchanged); the drag handle stays above it, and the ticket id, copy button and status/priority chips sit in a slim row directly under it.

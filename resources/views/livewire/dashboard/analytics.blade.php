@@ -5,21 +5,28 @@
 >
     <div class="max-w-[88rem] mx-auto page-wrapper">
 
-        <x-ui.title guide="analytics"
+        <x-ui.title
                 icon="analytics"
                 title="تحلیل‌های سازمانی"
                 :count="17"
                 countLabel="نمودار"
         >
             <x-slot:actions>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'analytics-legend' })"
-                    title="راهنمای تحلیل‌های سازمانی"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.title-more guide="analytics">
+                    <x-slot:actions>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'analytics-legend' })"
+                            title="راهنمای تحلیل‌های سازمانی"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای تحلیل‌های سازمانی" click="open = false; $dispatch('open-modal', { name: 'analytics-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 

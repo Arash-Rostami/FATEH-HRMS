@@ -1,5 +1,5 @@
 <style>{!! $chatFontFace !!}</style>
-<div x-data="{ open: false, pos: {} }">
+<div x-data="{ open: false, pos: {} }" x-on:open-font.window="pos = $event.detail; open = true">
     <button type="button" id="chat-font-trigger"
             x-on:click="pos = $el.getBoundingClientRect().toJSON(); open = !open"
             aria-label="فونت پیام‌ها" title="فونت پیام‌ها" aria-haspopup="menu" :aria-expanded="open"

@@ -49,40 +49,60 @@
         </div>
     @elseif(!$embed)
         <div wire:key="launchpad-module" class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-4">
-            <x-ui.title icon="apps" title="پیشخوان برنامه‌ها" guide="launchpad">
+            <x-ui.title icon="apps" title="پیشخوان برنامه‌ها" :count="array_sum($this->counts)" countLabel="برنامه">
                 <x-slot:actions>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <x-ui.buttons.view-toggle
-                            responsive
-                            state="$wire.activeTab"
-                            action="toggleView"
-                            :modes="[
-                                ['value' => 'compact', 'icon' => 'edit_note', 'title' => 'فشرده'],
-                                ['value' => 'list', 'match' => ['list', 'create'], 'icon' => 'table_rows', 'title' => 'کلاسیک'],
-                            ]"
-                        />
-                        @if($activeTab === 'compact' && $openId !== null)
-                            <x-ui.buttons.form wire:key="launchpad-compact-add" type="button" variant="tonal" size="icon" icon="add" title="افزودن برنامه"
-                                               aria-label="افزودن برنامه" class="!h-8 !w-8 !p-0 !rounded-lg" loading="close" wire:click="close"/>
-                        @endif
-                        <x-ui.buttons.form variant="ai" :href="asset('build/assets/docs/launchpad-artifact-guide.md')" download class="no-underline">ساخت راهنمای برنامه با هوش مصنوعی</x-ui.buttons.form>
-                        <button
-                            type="button"
-                            @click="$dispatch('open-modal', { name: 'launchpad-badge-legend' })"
-                            title="راهنمای نشانگر اعلان" aria-label="راهنمای نشانگر اعلان"
-                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                        >
-                            <span class="material-symbols-rounded text-lg">notifications</span>
-                        </button>
-                        <button
-                            type="button"
-                            @click="$dispatch('open-modal', { name: 'launchpad-legend' })"
-                            title="راهنمای پیشخوان برنامه‌ها" aria-label="راهنمای پیشخوان برنامه‌ها"
-                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                        >
-                            <span class="material-symbols-rounded text-lg">help</span>
-                        </button>
-                    </div>
+                    <x-ui.buttons.module-links :active="$activeTab" :tabs="[
+                        ['id' => 'list', 'icon' => 'table_rows', 'label' => 'فهرست برنامه‌ها', 'condition' => $activeTab !== 'compact', 'click' => '$wire.switchTab(\'list\')'],
+                        ['id' => 'create', 'icon' => 'add', 'label' => 'افزودن برنامه', 'condition' => $activeTab !== 'compact', 'click' => '$wire.switchTab(\'create\')'],
+                    ]"/>
+                    <x-ui.buttons.title-more guide="launchpad">
+                        <x-slot:actions>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <x-ui.buttons.view-toggle
+                                    responsive
+                                    state="$wire.activeTab"
+                                    action="toggleView"
+                                    :modes="[
+                                        ['value' => 'compact', 'icon' => 'edit_note', 'title' => 'فشرده'],
+                                        ['value' => 'list', 'match' => ['list', 'create'], 'icon' => 'table_rows', 'title' => 'کلاسیک'],
+                                    ]"
+                                />
+                                @if($activeTab === 'compact' && $openId !== null)
+                                    <x-ui.buttons.form wire:key="launchpad-compact-add" type="button" variant="tonal" size="icon" icon="add" title="افزودن برنامه"
+                                                       aria-label="افزودن برنامه" class="!h-8 !w-8 !p-0 !rounded-lg" loading="close" wire:click="close"/>
+                                @endif
+                                <x-ui.buttons.form variant="ai" :href="asset('build/assets/docs/launchpad-artifact-guide.md')" download class="no-underline">دانلود راهنمای ساخت برنامه</x-ui.buttons.form>
+                                <button
+                                    type="button"
+                                    @click="$dispatch('open-modal', { name: 'launchpad-badge-legend' })"
+                                    title="راهنمای نشانگر اعلان" aria-label="راهنمای نشانگر اعلان"
+                                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                                >
+                                    <span class="material-symbols-rounded text-lg">notifications</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="$dispatch('open-modal', { name: 'launchpad-legend' })"
+                                    title="راهنمای پیشخوان برنامه‌ها" aria-label="راهنمای پیشخوان برنامه‌ها"
+                                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                                >
+                                    <span class="material-symbols-rounded text-lg">help</span>
+                                </button>
+                            </div>
+                        </x-slot:actions>
+                        <x-slot:menu>
+                            <div x-on:click.stop>
+                                <x-ui.modals.menu-row icon="edit_note" label="نمای فشرده" role="menuitemradio" checked="$wire.activeTab === 'compact'" click="if ($wire.activeTab !== 'compact') { $wire.activeTab = 'compact'; $wire.toggleView('compact') }"/>
+                                <x-ui.modals.menu-row icon="table_rows" label="نمای کلاسیک" role="menuitemradio" checked="$wire.activeTab !== 'compact'" click="if ($wire.activeTab === 'compact') { $wire.activeTab = 'list'; $wire.toggleView('list') }"/>
+                            </div>
+                            @if($activeTab === 'compact' && $openId !== null)
+                                <x-ui.modals.menu-row wire:key="launchpad-menu-add" icon="add" label="افزودن برنامه" click="open = false; $wire.close()"/>
+                            @endif
+                            <x-ui.modals.menu-row icon="auto_awesome" ai label="دانلود راهنمای ساخت برنامه" :href="asset('build/assets/docs/launchpad-artifact-guide.md')" download/>
+                            <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'launchpad-badge-legend' })"/>
+                            <x-ui.modals.menu-row icon="help" label="راهنمای پیشخوان برنامه‌ها" click="open = false; $dispatch('open-modal', { name: 'launchpad-legend' })"/>
+                        </x-slot:menu>
+                    </x-ui.buttons.title-more>
                 </x-slot:actions>
             </x-ui.title>
             <x-dashboard.modal.badge-legend
@@ -145,12 +165,6 @@
             @endif
             @if($activeTab !== 'compact')
                 <div wire:key="launchpad-view-tabs" class="contents">
-                    <div wire:key="launchpad-view-tab-selector" class="w-fit max-w-full mx-auto md:mx-0 z-1">
-                        <x-ui.buttons.tab-selector :active-tab="$activeTab" :has-a11y="true" class="!mb-0" :tabs="[
-                            ['id' => 'list', 'icon' => 'table_rows', 'label' => 'فهرست برنامه‌ها'],
-                            ['id' => 'create', 'icon' => 'add', 'label' => 'افزودن برنامه'],
-                        ]"/>
-                    </div>
                     @if($activeTab === 'list')
                         <div wire:key="launchpad-list" wire:loading.remove wire:target="{{ $switchTargets }}" class="flex flex-col gap-3">@include('livewire.dashboard.launchpad.list')</div>
                     @else

@@ -14,12 +14,14 @@
         ];
     @endphp
 
-    <x-ui.title guide="gallery"
+    <x-ui.title
         icon="photo_library"
         title="گالری"
         :count="$this->totalPhotos"
         countLabel="مورد">
         <x-slot:actions>
+            <x-ui.buttons.title-more guide="gallery">
+            <x-slot:actions>
             <x-ui.buttons.view-toggle module="gallery" :modes="$viewModes" />
             <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
             <x-ui.month-filter :months="$months" />
@@ -41,6 +43,15 @@
             >
                 <span class="material-symbols-rounded text-lg">help</span>
             </button>
+            </x-slot:actions>
+            <x-slot:menu>
+                <div x-on:click.stop>
+                    <x-ui.modals.menu-row icon="bookmark" label="فقط نشان‌شده‌ها" checked="onlySaved" click="onlySaved = !onlySaved"/>
+                </div>
+                <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'gallery-badge-legend' })"/>
+                <x-ui.modals.menu-row icon="help" label="راهنمای گالری" click="open = false; $dispatch('open-modal', { name: 'gallery-legend' })"/>
+            </x-slot:menu>
+            </x-ui.buttons.title-more>
         </x-slot:actions>
     </x-ui.title>
 

@@ -6,28 +6,40 @@
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
 
-        <x-ui.title guide="dms"
+        <x-ui.title
             icon="folder_open"
-            :title="$activeTab === 'systematic' ? 'اسناد' : 'سوابق'"
+            :title="$activeTab === 'systematic' ? 'مدیریت اسناد' : 'مدیریت اسناد (سوابق)'"
             :count="$this->totalDocs"
             countLabel="سند">
             <x-slot:actions>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'dms-badge-legend' })"
-                    title="راهنمای نشانگر اعلان"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">notifications</span>
-                </button>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'dms-status-legend' })"
-                    title="راهنمای وضعیت سند"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.module-links :active="$activeTab" :tabs="[
+                    ['id' => 'systematic', 'label' => 'اسناد', 'icon' => 'description', 'route' => route('dms', ['tab' => 'systematic'])],
+                    ['id' => 'non_systematic', 'label' => 'سوابق', 'icon' => 'history', 'route' => route('dms', ['tab' => 'non_systematic'])],
+                ]"/>
+                <x-ui.buttons.title-more guide="dms">
+                    <x-slot:actions>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'dms-badge-legend' })"
+                            title="راهنمای نشانگر اعلان"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">notifications</span>
+                        </button>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'dms-status-legend' })"
+                            title="راهنمای وضعیت سند"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'dms-badge-legend' })"/>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای وضعیت سند" click="open = false; $dispatch('open-modal', { name: 'dms-status-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 
@@ -42,17 +54,6 @@
         </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-chip')
-
-        <div class="w-fit mx-auto md:mx-0 z-1 bg-[var(--md-sys-color-surface)] mb-6">
-            <x-ui.buttons.tab-selector
-                :active-tab="$activeTab"
-                :has-a11y="true"
-                :tabs="[
-                    ['id' => 'systematic', 'label' => 'اسناد', 'icon' => 'description'],
-                    ['id' => 'non_systematic', 'label' => 'سوابق', 'icon' => 'history']
-                ]"
-            />
-        </div>
 
         <div class="mb-6 z-10 relative">
 

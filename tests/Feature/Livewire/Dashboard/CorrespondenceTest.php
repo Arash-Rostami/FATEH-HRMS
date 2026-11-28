@@ -3162,4 +3162,26 @@ class CorrespondenceTest extends TestCase
 
         $this->assertSame([], $missing, 'Missing correspondence translation keys: ' . implode(', ', $missing));
     }
+
+    public function test_title_bar_carries_the_total_count_and_switches_panes_in_place(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Main::class);
+
+        $this->assertSame(0, $component->instance()->totalLetters);
+        $this->assertStringContainsString('نامه', $component->html());
+        $this->assertStringNotContainsString('correspondence-classic-tabs', $component->html());
+        $this->assertStringContainsString('$wire.blank()', $component->html());
+        $this->assertStringNotContainsString('correspondence-blank', $component->html());
+        $this->assertStringContainsString('tracking-tight sm:hidden">جدید', $component->html());
+
+        $component->call('switchTab', 'table')->assertSet('activeTab', 'table');
+
+        $html = $component->html();
+        $this->assertStringContainsString('$wire.blank()', $html);
+        $this->assertStringContainsString('$wire.switchTab(&#039;report&#039;)', $html);
+        $this->assertStringContainsString('ابزارهای بیشتر', $html);
+    }
 }

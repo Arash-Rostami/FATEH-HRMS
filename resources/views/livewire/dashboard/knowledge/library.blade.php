@@ -8,14 +8,13 @@
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">
         @include('components.dashboard.header.focus-chip')
         <template x-teleport="#knowledge-header-tools">
-            <div class="flex flex-wrap items-center gap-2">
-                <x-ui.buttons.chat-scale/>
-                <button type="button" x-on:click="showBadgeLegend()" title="راهنمای نشانگر اعلان" aria-label="راهنمای نشانگر اعلان"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"><span class="material-symbols-rounded text-lg">notifications</span></button>
-                <button type="button" x-on:click="showLegend()" title="راهنمای رسانه" aria-label="راهنمای رسانه"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"><span class="material-symbols-rounded text-lg">help</span></button>
-                <span x-text="number(visibleItems.length) + ' رسانه'" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">{{ convertToPersian(count($this->library['items'])) }} رسانه</span>
-            </div>
+            @include('livewire.dashboard.knowledge.library.header-tools')
+        </template>
+        <template x-teleport="#knowledge-header-tools-menu">
+            @include('livewire.dashboard.knowledge.library.header-menu')
+        </template>
+        <template x-teleport="#knowledge-header-count">
+            <span x-text="number(visibleItems.length) + ' رسانه'" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">{{ convertToPersian(count($this->library['items'])) }} رسانه</span>
         </template>
         <x-ui.modals.max-backdrop />
         <div class="chat-widget flex-1 min-h-0 flex flex-col" :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }">

@@ -4206,4 +4206,21 @@ class ThsTest extends TestCase
         $this->assertArrayNotHasKey('surface', $bell);
         $this->assertSame('sage', $bell['tone']);
     }
+
+    public function test_title_bar_switches_panes_in_place_and_names_the_pane(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Main::class);
+
+        $this->assertStringContainsString('$wire.switchTab(&#039;log&#039;)', $component->html());
+        $this->assertStringNotContainsString('moreTrigger', $component->html());
+
+        $component->call('switchTab', 'log')->assertSet('activeTab', 'log');
+
+        $html = $component->html();
+        $this->assertStringContainsString('تیکتینگ (تاریخچه)', $html);
+        $this->assertStringContainsString('$wire.switchTab(&#039;new&#039;)', $html);
+    }
 }

@@ -8,8 +8,10 @@
     @keydown.escape.window="onEscape($event)"
     @confirmation-confirmed.window="if (($event.detail || {}).method === 'deleteEvent') $wire.call('deleteEvent', $event.detail.params)">
 
-    <x-ui.title icon="calendar_month" title="تقویم کاری" guide="calendar">
+    <x-ui.title icon="calendar_month" title="تقویم کاری" :count="$this->holidayCount" countLabel="تعطیلی">
         <x-slot:actions>
+            <x-ui.buttons.title-more guide="calendar">
+            <x-slot:actions>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <x-ui.buttons.view-toggle module="calendar" state="view" :modes="[
                     ['value' => 'month', 'icon' => 'calendar_month', 'title' => 'نمای ماهانه'],
@@ -22,7 +24,7 @@
                     x-show="$wire.view === 'week'"
                     x-cloak
                     @click="$wire.set('hideFriday', !$wire.hideFriday)"
-                    title="مخفی کردن جمعه"
+                    title="پنهان‌کردن جمعه"
                     :class="$wire.hideFriday ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-high)_60%,transparent)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]'"
                     class="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200"
                 >
@@ -41,12 +43,21 @@
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'calendar-legend' })"
-                    title="راهنمای دیدن و ویرایش رویدادها"
+                    title="راهنمای رویدادها"
                     class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:text-[var(--md-sys-color-primary)] transition-colors duration-200"
                 >
                     <span class="material-symbols-rounded text-lg">help</span>
                 </button>
             </div>
+            </x-slot:actions>
+            <x-slot:menu>
+                <div x-show="$wire.view === 'week'" x-cloak x-on:click.stop>
+                    <x-ui.modals.menu-row icon="visibility_off" label="پنهان‌کردن جمعه" checked="$wire.hideFriday" click="$wire.set('hideFriday', !$wire.hideFriday)"/>
+                </div>
+                <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'calendar-badge-legend' })"/>
+                <x-ui.modals.menu-row icon="help" label="راهنمای رویدادها" click="open = false; $dispatch('open-modal', { name: 'calendar-legend' })"/>
+            </x-slot:menu>
+            </x-ui.buttons.title-more>
         </x-slot:actions>
     </x-ui.title>
 
@@ -55,7 +66,7 @@
         :items="[\App\Services\Menu\BadgeLegendCatalog::get('shared-events'), \App\Services\Menu\BadgeLegendCatalog::get('special-days')]"
     />
 
-    <x-ui.modals.dialog name="calendar-legend" title="راهنمای دیدن و ویرایش رویدادها">
+    <x-ui.modals.dialog name="calendar-legend" title="راهنمای رویدادها">
         @include('livewire.dashboard.tab.calendar.legend')
     </x-ui.modals.dialog>
 

@@ -2,7 +2,7 @@
     'model' => 'search',
     'name' => null,
     'id' => null,
-    'debounce' => 200,
+    'debounce' => 500,
     'placeholder' => 'جستجو...',
     'ariaLabel' => null,
     'showLabel' => false,

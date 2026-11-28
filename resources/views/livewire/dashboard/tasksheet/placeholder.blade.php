@@ -2,13 +2,14 @@
      class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
      role="status" aria-label="در حال بارگذاری تسک‌شیت">
     <div class="max-w-[64rem] mx-auto page-wrapper space-y-4">
-        <div class="flex items-center justify-between mb-4">
-            <x-ui.loaders.skeleton.bar width="w-40" height="h-7"/>
-            <div class="flex gap-2">
-                <x-ui.loaders.skeleton.bar width="w-24" height="h-9"/>
-                <x-ui.loaders.skeleton.bar width="w-24" height="h-9"/>
-            </div>
-        </div>
+        <x-ui.title icon="assignment_turned_in" title="تسک‌شیت">
+            <x-slot:actions>
+                <x-ui.loaders.skeleton.bar width="w-24" height="h-7"/>
+                <x-ui.loaders.skeleton.bar width="w-24" height="h-7"/>
+                <x-ui.loaders.skeleton.bar width="w-10" height="h-10"/>
+                <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+            </x-slot:actions>
+        </x-ui.title>
 
         <x-ui.loaders.skeleton.card/>
 

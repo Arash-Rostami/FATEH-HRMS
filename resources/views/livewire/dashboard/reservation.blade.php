@@ -8,31 +8,46 @@
 >
     <div class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">
 
-        <x-ui.title guide="reservation"
+        <x-ui.title
             icon="event_available"
             title="سامانه رزرواسیون هوشمند"
             :count="count($this->resources)"
             countLabel="مورد">
             <x-slot:actions>
-                <x-ui.buttons.form variant="ghost" icon="groups" wire:click="openDaily" title="رزروهای همکاران" aria-label="رزروهای همکاران" class="!h-8 !w-8 !p-0 !rounded-lg" />
-                <x-ui.buttons.view-toggle
-                    module="reservation"
-                    responsive
-                    state="view"
-                    action="toggleView"
-                    :modes="[
-                        ['value' => 'classic', 'icon' => 'grid_view', 'title' => 'نمای کلاسیک'],
-                        ['value' => 'avantgarde', 'icon' => 'dashboard_customize', 'title' => 'نمای آوانگارد'],
-                    ]"
-                />
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'reservation-legend' })"
-                    title="راهنمای رزرو"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.module-links :tabs="[
+                    ['id' => 'daily', 'icon' => 'groups', 'label' => 'رزروهای همکاران', 'short' => 'همکاران', 'click' => '$wire.openDaily()'],
+                ]"/>
+                <x-ui.buttons.title-more guide="reservation">
+                    <x-slot:actions>
+                        <x-ui.buttons.view-toggle
+                            module="reservation"
+                            responsive
+                            state="view"
+                            action="toggleView"
+                            :modes="[
+                                ['value' => 'classic', 'icon' => 'grid_view', 'title' => 'نمای کلاسیک'],
+                                ['value' => 'avantgarde', 'icon' => 'dashboard_customize', 'title' => 'نمای آوانگارد'],
+                            ]"
+                        />
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'reservation-legend' })"
+                            title="راهنمای رزرو"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        @unless(tenantOff('reservation:classic') || tenantOff('reservation:avantgarde'))
+                            <div x-on:click.stop>
+                                <x-ui.modals.menu-row icon="grid_view" label="نمای کلاسیک" role="menuitemradio" checked="view === 'classic'" click="if (view !== 'classic') { view = 'classic'; $wire.toggleView('classic') }"/>
+                                <x-ui.modals.menu-row icon="dashboard_customize" label="نمای آوانگارد" role="menuitemradio" checked="view === 'avantgarde'" click="if (view !== 'avantgarde') { view = 'avantgarde'; $wire.toggleView('avantgarde') }"/>
+                            </div>
+                        @endunless
+                        <x-ui.modals.menu-row icon="help" label="راهنمای رزرو" click="open = false; $dispatch('open-modal', { name: 'reservation-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 

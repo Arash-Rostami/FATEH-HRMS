@@ -3,14 +3,13 @@
     
      role="status" aria-label="در حال بارگذاری اسناد">
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <div class="mb-8">
-            <x-ui.loaders.skeleton.bar width="w-48" height="h-7"/>
-        </div>
-
-        <div class="w-fit flex gap-2 mb-6">
-            <x-ui.loaders.skeleton.bar width="w-28" height="h-10"/>
-            <x-ui.loaders.skeleton.bar width="w-28" height="h-10"/>
-        </div>
+        <x-ui.title icon="folder_open" title="مدیریت اسناد">
+            <x-slot:actions>
+                <x-ui.loaders.skeleton.bar width="w-24" height="h-7"/>
+                <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+                <x-ui.loaders.skeleton.bar width="w-16" height="h-6"/>
+            </x-slot:actions>
+        </x-ui.title>
 
         <div class="mb-6 flex items-center gap-3">
             <x-ui.loaders.skeleton.bar width="flex-1" height="h-11"/>

@@ -1,8 +1,10 @@
 <div class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] relative overflow-hidden space-y-6 pb-6" dir="rtl" role="status" aria-label="در حال بارگذاری لینک‌ها">
-    <div class="flex items-center justify-between">
-        <x-ui.loaders.skeleton.bar width="w-56" height="h-8"/>
-        <x-ui.loaders.skeleton.bar width="w-20" height="h-8"/>
-    </div>
+    <x-ui.title icon="open_in_new" title="لینک‌ها و مسیرهای دیجیتال سازمان">
+        <x-slot:actions>
+            <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+            <x-ui.loaders.skeleton.bar width="w-16" height="h-6"/>
+        </x-slot:actions>
+    </x-ui.title>
 
     @for($section = 0; $section < 3; $section++)
         <div class="flex flex-col gap-3">

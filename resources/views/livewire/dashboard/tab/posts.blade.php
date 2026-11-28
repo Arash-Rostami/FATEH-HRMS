@@ -5,8 +5,10 @@
     wire:ignore.self
     @open-post-panel.window="panelOpen = true"
 >
-    <x-ui.title guide="announce" icon="campaign" title="اعلانات‌" :count="$this->totalPosts">
+    <x-ui.title icon="campaign" title="اعلانات" :count="$this->totalPosts">
         <x-slot:actions>
+            <x-ui.buttons.title-more guide="announce">
+            <x-slot:actions>
             <x-ui.buttons.view-toggle module="announce" />
             <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
             <button
@@ -25,6 +27,19 @@
             >
                 <span class="material-symbols-rounded text-lg">help</span>
             </button>
+            </x-slot:actions>
+            <x-slot:menu>
+                <div x-on:click.stop>
+                    @unless(tenantOff('announce:card') || tenantOff('announce:list'))
+                        <x-ui.modals.menu-row icon="grid_view" label="نمای کارتی" role="menuitemradio" checked="view === 'card'" click="if (view !== 'card') { view = 'card'; $wire.toggleView('card') }"/>
+                        <x-ui.modals.menu-row icon="view_list" label="نمای فهرستی" role="menuitemradio" checked="view === 'list'" click="if (view !== 'list') { view = 'list'; $wire.toggleView('list') }"/>
+                    @endunless
+                    <x-ui.modals.menu-row icon="bookmark" label="فقط نشان‌شده‌ها" checked="onlySaved" click="onlySaved = !onlySaved"/>
+                </div>
+                <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'posts-badge-legend' })"/>
+                <x-ui.modals.menu-row icon="help" label="راهنمای اعلانات" click="open = false; $dispatch('open-modal', { name: 'posts-legend' })"/>
+            </x-slot:menu>
+            </x-ui.buttons.title-more>
         </x-slot:actions>
     </x-ui.title>
 
@@ -39,7 +54,9 @@
 
     @include('components.dashboard.header.focus-chip')
 
-    @include('livewire.dashboard.tab.posts.filters')
+    <div class="-my-6">
+        @include('livewire.dashboard.tab.posts.filters')
+    </div>
 
     <div class="w-full relative flex flex-col gap-6 lg:flex-1 lg:overflow-hidden">
         <x-ui.saved-empty scope="post"/>

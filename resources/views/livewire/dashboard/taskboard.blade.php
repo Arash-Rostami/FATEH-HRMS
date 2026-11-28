@@ -7,28 +7,40 @@
     <x-ui.modals.max-backdrop state="maximizedColumn" close="toggleMaximize(null)"/>
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.title guide="taskboard"
+        <x-ui.title
             icon="dashboard"
             title="برد وظایف"
             :count="array_sum($totalCount)"
             countLabel="وظیفه">
             <x-slot:actions>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'taskboard-badge-legend' })"
-                    title="راهنمای نشانگر اعلان"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">notifications</span>
-                </button>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'taskboard-legend' })"
-                    title="راهنمای برد وظایف"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.module-links :tabs="[
+                    ['id' => 'projects', 'icon' => 'workspaces', 'label' => 'پروژه‌ها', 'route' => route('projects')],
+                    ['id' => 'tasksheet', 'icon' => 'assignment_turned_in', 'label' => 'تسک‌شیت', 'route' => route('tasksheet'), 'blank' => true],
+                ]"/>
+                <x-ui.buttons.title-more guide="taskboard">
+                    <x-slot:actions>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'taskboard-badge-legend' })"
+                            title="راهنمای نشانگر اعلان"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">notifications</span>
+                        </button>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'taskboard-legend' })"
+                            title="راهنمای برد وظایف"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'taskboard-badge-legend' })"/>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای برد وظایف" click="open = false; $dispatch('open-modal', { name: 'taskboard-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 
@@ -42,15 +54,6 @@
         </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-chip')
-
-        <x-ui.buttons.tab-selector
-            active-tab="tasks"
-            :tabs="[
-                ['id' => 'tasks', 'label' => 'برد وظایف', 'icon' => 'dashboard', 'route' => route('tasks')],
-                ['id' => 'projects', 'label' => 'پروژه‌ها', 'icon' => 'workspaces', 'route' => route('projects')],
-            ]"
-        />
-        
 
         @include('livewire.dashboard.taskboard.tools')
 

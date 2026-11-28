@@ -1,8 +1,10 @@
 <div class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] relative overflow-hidden flex flex-col gap-6" dir="rtl" role="status" aria-label="در حال بارگذاری اعلانات">
-    <div class="flex items-center justify-between">
-        <x-ui.loaders.skeleton.bar width="w-32" height="h-8"/>
-        <x-ui.loaders.skeleton.bar width="w-20" height="h-8"/>
-    </div>
+    <x-ui.title icon="campaign" title="اعلانات">
+        <x-slot:actions>
+            <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+            <x-ui.loaders.skeleton.bar width="w-16" height="h-6"/>
+        </x-slot:actions>
+    </x-ui.title>
 
     <div class="flex-1 w-full relative overflow-hidden flex flex-col lg:flex-row gap-6">
         <div class="w-full lg:w-1/3 xl:w-2/5 flex-shrink-0 flex flex-col gap-3">

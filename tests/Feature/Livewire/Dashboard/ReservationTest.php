@@ -3957,4 +3957,19 @@ class ReservationTest extends TestCase
 
         $this->assertFalse($component->instance()->dateSpanActive());
     }
+
+    public function test_colleagues_reservations_is_a_visible_title_link_and_toggle_and_legend_sit_behind_the_phone_menu(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString('ابزارهای بیشتر', $html);
+        $this->assertSame(1, substr_count($html, '$wire.openDaily()'));
+        $this->assertStringNotContainsString('wire:click="openDaily"', $html);
+        $this->assertStringContainsString('max-sm:hidden">رزروهای همکاران', $html);
+        $this->assertStringContainsString('sm:hidden">همکاران<', $html);
+        $this->assertStringContainsString("name: &#039;reservation-legend&#039;", $html);
+    }
 }

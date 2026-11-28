@@ -3625,7 +3625,7 @@ class ProjectTest extends TestCase
         Task::factory()->ownedBy($owner)->withStatus('todo')->create(['project_id' => $project->id]);
 
         Livewire::actingAs($owner)->test(Report::class, ['activeProjectId' => $project->id])
-            ->assertSeeHtml('wire:model.live.debounce.300ms="reportSearch"')
+            ->assertSeeHtml('wire:model.live.debounce.500ms="reportSearch"')
             ->assertSeeHtml("setReportStatusFilter('todo')")
             ->assertSeeHtml("setReportFilter('assignee'");
     }
@@ -5818,5 +5818,18 @@ class ProjectTest extends TestCase
 
         $this->assertCount(SaveWorkflowAction::MAX_ASSIGNEES, $capped->get('steps.0.assignee_user_ids'));
         $capped->assertDispatched('toast', type: 'info');
+    }
+
+    public function test_title_bar_links_to_the_task_board_and_a_new_tab_tasksheet_as_icon_only_pair(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString('href="' . route('tasks') . '"', $html);
+        $this->assertStringContainsString('max-sm:hidden">برد وظایف', $html);
+        $this->assertStringContainsString('max-sm:hidden">تسک‌شیت', $html);
+        $this->assertStringContainsString('target="_blank"', $html);
     }
 }

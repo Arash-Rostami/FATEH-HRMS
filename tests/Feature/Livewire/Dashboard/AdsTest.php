@@ -365,4 +365,16 @@ class AdsTest extends TestCase
         $this->assertSame(1, substr_count($testable->html(), 'title="ثبت‌شده در ۴۸ ساعت گذشته"'),
             'the 48h freshness star must render once — for the fresh ad only');
     }
+
+    public function test_title_bar_keeps_both_legends_behind_the_phone_menu(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString('ابزارهای بیشتر', $html);
+        $this->assertStringContainsString("name: &#039;ads-legend&#039;", $html);
+        $this->assertStringContainsString("name: &#039;ads-badge-legend&#039;", $html);
+    }
 }

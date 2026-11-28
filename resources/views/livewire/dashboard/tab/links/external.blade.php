@@ -2,11 +2,11 @@
     <section wire:key="links-external" class="relative group/section" x-data="{
             hasOverflow: false,
             checkScroll() {
-                const el = this.$refs.container;
+                const el = this.$el.querySelector('[data-rail]');
                 this.hasOverflow = el.scrollWidth > el.clientWidth;
             },
-            scrollLeft() { this.$refs.container.scrollBy({ left: -300, behavior: 'smooth' }); },
-            scrollRight() { this.$refs.container.scrollBy({ left: 300, behavior: 'smooth' }); }
+            scrollLeft() { this.$el.querySelector('[data-rail]').scrollBy({ left: -300, behavior: 'smooth' }); },
+            scrollRight() { this.$el.querySelector('[data-rail]').scrollBy({ left: 300, behavior: 'smooth' }); }
         }"
              x-init="checkScroll()"
              @resize.window="checkScroll">
@@ -37,7 +37,7 @@
         </div>
 
         {{-- Cards Container --}}
-        <div x-ref="container"
+        <div data-rail
              class="grid grid-cols-2 gap-3 md:flex md:overflow-x-auto md:snap-x md:snap-mandatory md:gap-5 md:pb-4 scrollbar-hide px-1 pt-1"
              style="-webkit-overflow-scrolling: touch;"
              @scroll.debounce.100ms="checkScroll"

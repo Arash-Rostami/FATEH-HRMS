@@ -524,4 +524,17 @@ class LinksTest extends TestCase
         $this->assertSame('/inside/path', $dInt['resolved']);
         $this->assertTrue($dInt['internal']);
     }
+
+    public function test_search_input_targets_the_links_island_and_no_x_ref_sits_inside_it(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        Link::factory()->create(['link' => 'internal', 'sequence' => 1, 'url_description' => 'int', 'image_description' => 'int', 'url_title' => 'int']);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Links::class)->html();
+
+        $this->assertSame(1, substr_count($html, 'wire:island="links"'));
+        $this->assertStringContainsString('data-rail', $html);
+        $this->assertStringNotContainsString('x-ref="container"', $html);
+    }
 }

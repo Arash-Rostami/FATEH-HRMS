@@ -418,4 +418,47 @@ class AuthorityTest extends TestCase
 
         $this->assertMatchesRegularExpression('/w-6 text-center">\s*۰۱/u', $html);
     }
+
+    public function test_search_input_targets_the_authorities_island_and_the_list_sits_in_it(): void
+    {
+        Department::firstOrCreate(['code' => 'IT'], ['name' => 'IT']);
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        Profile::factory()->create(['user_id' => $user->id, 'department_id' => 'IT']);
+        $authority = Authority::factory()->create(['department_id' => 'IT', 'user_id' => $user->id]);
+
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertSame(1, substr_count($html, 'wire:island="authorities"'));
+        $this->assertStringContainsString('wire:key="authority-' . $authority->id . '"', $html);
+    }
+
+    public function test_title_bar_keeps_the_legend_behind_the_phone_menu(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString('ابزارهای بیشتر', $html);
+        $this->assertStringContainsString("name: &#039;authority-legend&#039;", $html);
+    }
+
+    public function test_view_switch_lives_in_the_title_bar_and_names_the_summary_view(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Main::class);
+
+        $this->assertStringContainsString('$wire.switchTab(&#039;employee&#039;)', $component->html());
+        $this->assertStringNotContainsString('moreTrigger', $component->html());
+        $this->assertSame(0, preg_match('/ اختیار\s*<\/span>/u', $component->html()));
+        $this->assertStringContainsString('باز کردن همه', $component->html());
+
+        $component->call('switchTab', 'employee')->assertSet('activeTab', 'employee');
+
+        $html = $component->html();
+        $this->assertStringContainsString('اختیارات سازمانی (نمای خلاصه)', $html);
+        $this->assertStringContainsString('$wire.switchTab(&#039;manager&#039;)', $html);
+    }
 }

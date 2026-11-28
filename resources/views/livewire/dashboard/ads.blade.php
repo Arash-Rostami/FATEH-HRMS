@@ -4,29 +4,37 @@
         dir="rtl">
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.title guide="ads"
+        <x-ui.title
                 icon="work"
                 title="فرصت‌های شغلی"
                 :count="$this->stats['active']"
                 countLabel="فرصت فعال"
         >
             <x-slot:actions>
-                <button
-                        type="button"
-                        @click="$dispatch('open-modal', { name: 'ads-badge-legend' })"
-                        title="راهنمای نشانگر اعلان"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">notifications</span>
-                </button>
-                <button
-                        type="button"
-                        @click="$dispatch('open-modal', { name: 'ads-legend' })"
-                        title="راهنمای فرصت‌های شغلی"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.title-more guide="ads">
+                    <x-slot:actions>
+                        <button
+                                type="button"
+                                @click="$dispatch('open-modal', { name: 'ads-badge-legend' })"
+                                title="راهنمای نشانگر اعلان"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">notifications</span>
+                        </button>
+                        <button
+                                type="button"
+                                @click="$dispatch('open-modal', { name: 'ads-legend' })"
+                                title="راهنمای فرصت‌های شغلی"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'ads-badge-legend' })"/>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای فرصت‌های شغلی" click="open = false; $dispatch('open-modal', { name: 'ads-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 

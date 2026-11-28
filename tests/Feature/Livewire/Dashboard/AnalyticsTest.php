@@ -245,4 +245,15 @@ class AnalyticsTest extends TestCase
             $this->assertSame($this->presenter()->description($key), $entry['description']);
         }
     }
+
+    public function test_title_bar_keeps_the_legend_behind_the_phone_menu(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString('ابزارهای بیشتر', $html);
+        $this->assertStringContainsString("name: &#039;analytics-legend&#039;", $html);
+    }
 }

@@ -399,6 +399,14 @@ class Main extends Component
     }
 
     #[Computed]
+    public function totalLetters(): int
+    {
+        $user = $this->user();
+
+        return $user ? Correspondence::query()->visibleTo($user)->count() : 0;
+    }
+
+    #[Computed]
     public function generatingId(): ?int
     {
         $id = Correspondence::query()->freshGenerating((int) auth()->id())->value('id');

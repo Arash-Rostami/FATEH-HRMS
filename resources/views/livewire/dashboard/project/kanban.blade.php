@@ -8,7 +8,7 @@
 <div wire:key="kanban-{{ $activeProjectId }}" x-data="{ moreOpen: false }" @project-kanban-refresh.window="$wire.loadKanbanBoard()">
     <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 sm:gap-2 p-2 mb-3 rounded-xl bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_88%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
         <div class="flex-1 min-w-[160px] max-w-xs">
-            <x-ui.forms.search name="kanbanSearch" model="kanbanSearch" debounce="300" placeholder="جستجو در برد…"/>
+            <x-ui.forms.search name="kanbanSearch" model="kanbanSearch" placeholder="جست‌وجو در برد…"/>
         </div>
 
         @php

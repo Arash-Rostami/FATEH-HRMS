@@ -5,6 +5,7 @@
     clearAction="this.$wire.set('search', '')"
     filterTitle="واحدها"
     :open="true"
+    island="authorities"
 >
     <div class="overflow-x-auto pb-2"
         >

@@ -5,6 +5,7 @@
     filterTitle=" "
     placeholder="جست‌وجو در پرسش‌ها و پاسخ‌ها…"
     open="{{ false }}"
+    island="faqs"
 >
     <div class="flex flex-col gap-6 w-full pt-1">
         <div class="flex flex-col gap-3">

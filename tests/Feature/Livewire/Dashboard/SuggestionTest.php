@@ -1763,4 +1763,16 @@ class SuggestionTest extends TestCase
             ->set('form.departments', ['TST', 'ZZ'])
             ->assertSet('form.descriptionDepts', ['TST' => '', 'ZZ' => '']);
     }
+
+    public function test_title_bar_keeps_the_legends_behind_the_phone_menu(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $html = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString('ابزارهای بیشتر', $html);
+        $this->assertStringContainsString("name: &#039;suggestion-legend&#039;", $html);
+        $this->assertStringContainsString("name: &#039;suggestion-badge-legend&#039;", $html);
+    }
 }

@@ -13,7 +13,7 @@
                 {{ $actions }}
             @endisset
             @if($guide)
-                <x-ui.video-guide :module="$guide"/>
+                <x-ui.buttons.title-more :guide="$guide"/>
             @endif
         </div>
     @endif

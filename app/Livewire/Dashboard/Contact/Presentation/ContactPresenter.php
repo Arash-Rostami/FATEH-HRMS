@@ -35,6 +35,7 @@ class ContactPresenter
         $last = $c['last_message'] ?? null;
         $occasion = $c['occasion'] ?? null;
         $key = $occasion ? $this->occasionKey($occasion, $c['id'], Jalalian::now()->getYear()) : null;
+        $hasCellphone = filled($c['profile']['cellphone'] ?? null);
 
         return [
             'id' => $c['id'],
@@ -49,12 +50,14 @@ class ContactPresenter
             'occasion' => $occasion,
             'occasion_tone' => $occasion ? Profile::occasionTone($occasion) : null,
             'sms_key' => $key,
+            'has_cellphone' => $hasCellphone,
             'can_sms' => $occasion
                 && ! tenantOff('notify:sms')
                 && $c['id'] !== $authId
                 && ! ($c['inactive'] ?? false)
-                && filled($c['profile']['cellphone'] ?? null)
-                && ! presence($c['presence'] ?? null)->isObscured(),            'org_title' => implode(' › ', array_filter([$c['unit'] ?? null, $c['section'] ?? null])),
+                && $hasCellphone
+                && ! presence($c['presence'] ?? null)->isObscured(),
+            'org_title' => implode(' › ', array_filter([$c['unit'] ?? null, $c['section'] ?? null])),
             'last_message' => $last ? [
                 'body' => $this->lastMessagePreview($last),
                 'time' => toJalaliRelative($last['created_at'], short: true),

@@ -1,14 +1,6 @@
 <aside class="w-full lg:w-1/3 xl:w-2/5 flex-shrink-0 lg:max-h-full flex flex-col overflow-hidden">
     <div class="lg:sticky lg:top-0 z-10 h-full flex flex-col">
-        <div class="flex items-center gap-3 mb-4 px-1 animate-pulse">
-            <div class="w-8 h-8 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center shadow-sm">
-                <span class="material-symbols-rounded text-[14px] font-fill rotate-12">keep</span>
-            </div>
-            <h2 class="text-[13px] font-bold tracking-wide text-[var(--md-sys-color-on-surface)]">
-                سنجاق شده
-            </h2>
-            <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)]/50"></div>
-        </div>
+        <x-ui.title icon="keep" title="اعلان سنجاق‌شده"/>
 
         @if($this->pins->isNotEmpty())
             @foreach($this->pins as $pin)
@@ -79,8 +71,8 @@
             <div wire:key="posts-pinned-empty" class="flex-grow flex items-center justify-center bg-gradient-to-br from-[var(--md-sys-color-surface-container)] to-[var(--md-sys-color-surface-container-low)] rounded-[32px] border border-[var(--md-sys-color-outline-variant)]/40 shadow-inner">
                 <x-ui.empty icon="campaign" title="خوش آمدید" variant="welcome">
                     <p class="text-sm leading-relaxed max-w-xs mx-auto">
-                        در حال حاضر اعلان مهمی پین نشده است.<br>
-                        اخبار جدید را در بخش تازه‌ترین‌ها دنبال کنید.
+                        هنوز اعلانی سنجاق نشده است.<br>
+                        اعلان‌های جدید را در بخش «تازه‌ترین‌ها» ببینید.
                     </p>
                 </x-ui.empty>
             </div>

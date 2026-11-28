@@ -244,9 +244,12 @@ TaskBoard toolbar, Project Report tab toolbar, Project sidebar header (icon-only
 پروژه", `resources/views/livewire/dashboard/project/sidebar.blade.php`), and the admin
 `TaskResource`/`ProjectResource`/`UserResource` record actions — all open `/tasksheet` (or
 `?user={id}` from the admin side) in a new tab, never in-page, so the originating page's own state is
-untouched. The user-panel header also carries a `<x-ui.buttons.tab-selector>` (Tasks/Projects, hidden
-in read-only mode) going the other direction — from Tasksheet back into either module — matching the
-same toggler `taskboard.blade.php`/`project.blade.php` already use between each other.
+untouched. The user-panel TITLE BAR also carries `<x-ui.buttons.module-links>` (Tasks/Projects, hidden
+in read-only mode) going the other direction — from Tasksheet back into either module — the same title-bar
+links `taskboard.blade.php`/`project.blade.php` use between each other (2026-11-28; it was a `tab-selector`
+strip inside `tasksheet/header.blade.php`, which now keeps only the date-range chips). Export, print and the
+two legends sit in `<x-ui.buttons.title-more guide="tasksheet">` (mobile ⋮ menu rows); the share popover
+stays visible beside the links because it holds a form.
 
 ## File map
 

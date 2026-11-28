@@ -27,16 +27,10 @@
 
                         <button type="button"
                                 wire:click="exportTasks" wire:loading.attr="disabled" wire:target="exportTasks"
-                                title="دریافت فایل Excel وظایف من؛ مستقل از جستجو و فیلترها" aria-label="دریافت فایل Excel وظایف من؛ مستقل از جستجو و فیلترها"
+                                title="خروجی اکسل همهٔ وظایف من" aria-label="خروجی اکسل همهٔ وظایف من"
                                 class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]">
                             <span class="material-symbols-rounded text-[18px] leading-none">download</span>
                         </button>
-
-                        <a href="{{ route('tasksheet') }}" target="_blank" rel="noopener noreferrer"
-                           title="گزارش تسک‌شیت" aria-label="گزارش تسک‌شیت"
-                           class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]">
-                            <span class="material-symbols-rounded text-[18px] leading-none">assignment_turned_in</span>
-                        </a>
 
                         <span aria-hidden="true" class="mx-1 h-4 w-px shrink-0 bg-[var(--md-sys-color-outline-variant)]/40 max-sm:hidden"></span>
 

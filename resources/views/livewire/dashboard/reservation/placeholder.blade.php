@@ -1,9 +1,11 @@
 <div class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade" dir="rtl" role="status" aria-label="در حال بارگذاری سامانه رزرواسیون">
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <div class="flex items-center justify-between mb-6">
-            <x-ui.loaders.skeleton.bar width="w-56" height="h-8"/>
-            <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
-        </div>
+        <x-ui.title icon="event_available" title="سامانه رزرواسیون هوشمند">
+            <x-slot:actions>
+                <x-ui.loaders.skeleton.bar width="w-8" height="h-8"/>
+                <x-ui.loaders.skeleton.bar width="w-16" height="h-6"/>
+            </x-slot:actions>
+        </x-ui.title>
 
         <div class="flex flex-wrap items-center gap-2 mb-6">
             <x-ui.loaders.skeleton.bar width="w-32" height="h-10"/>

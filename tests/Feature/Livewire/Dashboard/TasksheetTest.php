@@ -81,6 +81,26 @@ class TasksheetTest extends TestCase
             ->assertSet('subjectUserId', $target->id);
     }
 
+    public function test_title_bar_links_to_tasks_and_projects_only_on_the_personal_sheet(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $target = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $personal = Livewire::actingAs($user)->test(Main::class)->html();
+
+        $this->assertStringContainsString('href="' . route('tasks') . '"', $personal);
+        $this->assertStringContainsString('href="' . route('projects') . '"', $personal);
+        $this->assertStringNotContainsString('moreTrigger', $personal);
+        $this->assertSame(2, substr_count($personal, 'tracking-tight max-sm:hidden'));
+
+        Livewire::withoutLazyLoading();
+        $shared = Livewire::actingAs($user)->test(Main::class, ['subject' => $target->id])->html();
+
+        $this->assertStringNotContainsString('href="' . route('tasks') . '"', $shared);
+        $this->assertStringNotContainsString('href="' . route('projects') . '"', $shared);
+    }
+
     public function test_guarded_mutating_methods_are_inert_for_a_recipient_on_a_shared_report(): void
     {
         $recipient = User::factory()->create(['status' => 'active']);

@@ -25,10 +25,10 @@ class Main extends Component
         }
     }
 
-    public function switchTab(string $tabId): void
+    public function updatedActiveTab(string $value): void
     {
-        if (in_array($tabId, $this->tabs(), true)) {
-            $this->activeTab = $tabId;
+        if (!in_array($value, $this->tabs(), true)) {
+            $this->activeTab = 'reports';
         }
 
         $this->open = null;

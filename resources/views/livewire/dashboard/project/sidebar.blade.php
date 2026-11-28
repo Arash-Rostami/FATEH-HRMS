@@ -43,7 +43,7 @@
         </div>
 
         <div class="sb-fold mt-3">
-            <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
+            <x-ui.forms.search-field model="search" name="search" id="search"
                                      placeholder="جستجوی پروژه..." aria-label="جستجوی پروژه" overlay-title="جستجوی پروژه"
                                      show-label />
         </div>

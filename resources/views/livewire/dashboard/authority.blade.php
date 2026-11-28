@@ -10,21 +10,30 @@
 >
     <div class="max-w-[88rem] mx-auto page-wrapper">
 
-        <x-ui.title guide="authority"
+        <x-ui.title
                 icon="verified_user"
-                title="اختیارات سازمانی"
-                :count="$this->totalCount"
-                countLabel="اختیار"
+                :title="$activeTab === 'employee' ? 'اختیارات سازمانی (نمای خلاصه)' : 'اختیارات سازمانی'"
         >
             <x-slot:actions>
-                <button
-                        type="button"
-                        @click="$dispatch('open-modal', { name: 'authority-legend' })"
-                        title="راهنمای اختیارات سازمانی"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.module-links :active="$activeTab" :tabs="[
+                    ['id' => 'employee', 'icon' => 'person', 'label' => 'نمای خلاصه', 'click' => '$wire.switchTab(\'employee\')'],
+                    ['id' => 'manager', 'icon' => 'manage_accounts', 'label' => 'نمای جزئیات', 'click' => '$wire.switchTab(\'manager\')'],
+                ]"/>
+                <x-ui.buttons.title-more guide="authority">
+                    <x-slot:actions>
+                        <button
+                                type="button"
+                                @click="$dispatch('open-modal', { name: 'authority-legend' })"
+                                title="راهنمای اختیارات سازمانی"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای اختیارات سازمانی" click="open = false; $dispatch('open-modal', { name: 'authority-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 
@@ -36,35 +45,28 @@
 
         @include('livewire.dashboard.authority.filters')
 
-        <div class="flex items-center justify-between gap-3 flex-wrap">
+        @island(name: 'authorities', always: true)
+            <x-ui.title
+                    icon="list_alt"
+                    title=" "
+                    :count="$this->authorities->count()"
+                    countLabel="مورد"
+            >
+                <x-slot:actions>
+                    <x-ui.buttons.toggle
+                            alpine
+                            alpine-state="allOpen"
+                            x-text="allOpen ? 'بستن همه' : 'باز کردن همه'"
+                            @click="allOpen = !allOpen; toggleAll(allOpen)"
+                            bordered="false"
+                    />
+                </x-slot:actions>
+            </x-ui.title>
 
-            <x-ui.buttons.tab-selector
-                    :tabs="[
-                        ['id' => 'employee', 'icon' => 'person',          'label' => 'نمای خلاصه'],
-                        ['id' => 'manager',  'icon' => 'manage_accounts', 'label' => 'نمای جزئیات'],
-                    ]"
-                    :activeTab="$activeTab"
-            />
-
-            <x-ui.buttons.toggle
-                    alpine
-                    alpine-state="allOpen"
-                    x-text="allOpen ? 'بستن همه' : 'باز کردن همه'"
-                    @click="allOpen = !allOpen; toggleAll(allOpen)"
-                    bordered="false"
-            />
-        </div>
-
-        <x-ui.title
-                icon="list_alt"
-                title=" "
-                :count="$this->authorities->count()"
-                countLabel="مورد"
-        />
-
-        <div class="relative">
-            @include('livewire.dashboard.authority.list')
-        </div>
+            <div class="relative">
+                @include('livewire.dashboard.authority.list')
+            </div>
+        @endisland
 
     </div>
 </div>

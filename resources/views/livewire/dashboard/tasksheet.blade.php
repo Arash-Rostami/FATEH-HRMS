@@ -5,9 +5,14 @@
 
 <div dir="rtl" x-data="tasksheet(@js($readOnly))" class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade">
     <div class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-4 print:gap-3">
-        <x-ui.title icon="assignment_turned_in" title="تسک‌شیت" guide="tasksheet">
+        <x-ui.title icon="assignment_turned_in" title="تسک‌شیت">
             <x-slot:actions>
                 @unless($readOnly)
+                    <x-ui.buttons.module-links :tabs="[
+                        ['id' => 'tasks', 'label' => 'برد وظایف', 'icon' => 'dashboard', 'route' => route('tasks')],
+                        ['id' => 'projects', 'label' => 'پروژه‌ها', 'icon' => 'workspaces', 'route' => route('projects')],
+                    ]"/>
+
                     <div class="flex items-center gap-2 print:hidden">
                         <x-ui.hover-popover width="w-72" alignment="top-full left-0 mt-2 origin-top-left">
                             <x-slot:trigger>
@@ -41,29 +46,45 @@
                                 </div>
                             </x-slot:body>
                         </x-ui.hover-popover>
-
-                        <x-ui.buttons.form wire:click="export" wire:loading.attr="disabled" wire:target="export" variant="tonal" size="icon" icon="download" title="خروجی اکسل"/>
-                        <x-ui.buttons.form type="button" variant="tonal" size="icon" icon="print" title="چاپ گزارش"
-                                            x-on:click="printExpandAll()"/>
                     </div>
                 @endunless
 
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'tasksheet-badge-legend' })"
-                    title="راهنمای نشانگر اعلان"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">notifications</span>
-                </button>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'tasksheet-legend' })"
-                    title="راهنمای تسک‌شیت"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.title-more guide="tasksheet">
+                    <x-slot:actions>
+                        @unless($readOnly)
+                            <div class="flex items-center gap-2 print:hidden">
+                                <x-ui.buttons.form wire:click="export" wire:loading.attr="disabled" wire:target="export" variant="tonal" size="icon" icon="download" title="خروجی اکسل"/>
+                                <x-ui.buttons.form type="button" variant="tonal" size="icon" icon="print" title="چاپ گزارش"
+                                                    x-on:click="printExpandAll()"/>
+                            </div>
+                        @endunless
+
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'tasksheet-badge-legend' })"
+                            title="راهنمای نشانگر اعلان"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">notifications</span>
+                        </button>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'tasksheet-legend' })"
+                            title="راهنمای تسک‌شیت"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        @unless($readOnly)
+                            <x-ui.modals.menu-row icon="download" label="خروجی اکسل" click="open = false; $wire.export()"/>
+                            <x-ui.modals.menu-row icon="print" label="چاپ گزارش" click="open = false; printExpandAll()"/>
+                        @endunless
+                        <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'tasksheet-badge-legend' })"/>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای تسک‌شیت" click="open = false; $dispatch('open-modal', { name: 'tasksheet-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 

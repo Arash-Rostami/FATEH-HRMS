@@ -22,29 +22,18 @@
         این گزارش برای مشاهده است؛ نمی‌توانید بازهٔ آن را تغییر دهید. {{ $presenter->windowStatement($windowStart, $windowEnd) }}
     </div>
 @else
-    <div wire:key="tasksheet-personal-header" class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3 print:hidden">
-        <x-ui.buttons.tab-selector
-            class="!mb-0"
-            active-tab="tasksheet"
-            :tabs="[
-                ['id' => 'tasks', 'label' => 'برد وظایف', 'icon' => 'dashboard', 'route' => route('tasks')],
-                ['id' => 'projects', 'label' => 'پروژه‌ها', 'icon' => 'workspaces', 'route' => route('projects')],
-            ]"
-        />
+    <div wire:key="tasksheet-personal-header" class="flex flex-wrap items-center gap-2 print:hidden">
+        <x-ui.forms.date-span-popover apply="setCustomRange" :clear="false" :basisOptions="false" :active="$preset === 'custom'"/>
 
-        <div class="flex flex-wrap items-center gap-2">
-            <x-ui.forms.date-span-popover apply="setCustomRange" :clear="false" :basisOptions="false" :active="$preset === 'custom'"/>
-
-            @foreach(['this_month' => 'این ماه', 'last_month' => 'ماه گذشته', 'this_quarter' => 'این فصل'] as $value => $label)
-                <button type="button" wire:click="setPreset('{{ $value }}')"
-                        @class([
-                            'inline-flex items-center h-9 px-3 rounded-xl text-xs font-medium transition-colors',
-                            'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' => $preset === $value,
-                            'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]' => $preset !== $value,
-                        ])>
-                    {{ $label }}
-                </button>
-            @endforeach
-        </div>
+        @foreach(['this_month' => 'این ماه', 'last_month' => 'ماه گذشته', 'this_quarter' => 'این فصل'] as $value => $label)
+            <button type="button" wire:click="setPreset('{{ $value }}')"
+                    @class([
+                        'inline-flex items-center h-9 px-3 rounded-xl text-xs font-medium transition-colors',
+                        'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' => $preset === $value,
+                        'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]' => $preset !== $value,
+                    ])>
+                {{ $label }}
+            </button>
+        @endforeach
     </div>
 @endif

@@ -4906,4 +4906,20 @@ B7n05Bmpzmfzd+I7+y+mec8=
 
         return collect((new TabPresenter())->heroGadgetCatalog())->pluck('src', 'title')->all();
     }
+
+    public function test_title_bar_carries_the_count_and_switches_list_and_create_in_place(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Main::class);
+
+        $this->assertStringContainsString('برنامه', $component->html());
+        $this->assertStringContainsString('$wire.switchTab(&#039;create&#039;)', $component->html());
+        $this->assertStringNotContainsString('launchpad-view-tab-selector', $component->html());
+
+        $component->call('switchTab', 'create')->assertSet('activeTab', 'create');
+
+        $this->assertStringContainsString('$wire.switchTab(&#039;list&#039;)', $component->html());
+    }
 }

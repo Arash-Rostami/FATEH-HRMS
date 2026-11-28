@@ -7,28 +7,41 @@
 >
     <div
         class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.title guide="ths"
+        <x-ui.title
             icon="support_agent"
-            title="تیکتینگ"
+            :title="match($activeTab) { 'rate' => 'تیکتینگ (ارزیابی)', 'log' => 'تیکتینگ (تاریخچه)', default => 'تیکتینگ' }"
             :count="$this->totalTickets"
         >
             <x-slot:actions>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'ths-badge-legend' })"
-                    title="راهنمای نشانگر اعلان"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">notifications</span>
-                </button>
-                <button
-                    type="button"
-                    @click="$dispatch('open-modal', { name: 'ths-legend' })"
-                    title="راهنمای ثبت و پیگیری تیکت"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">help</span>
-                </button>
+                <x-ui.buttons.module-links :active="$activeTab" :tabs="[
+                    ['id' => 'rate', 'icon' => 'star', 'label' => 'ارزیابی', 'condition' => $ticketToRate ?? false, 'click' => '$wire.switchTab(\'rate\')'],
+                    ['id' => 'new', 'icon' => 'add_box', 'label' => 'تیکت جدید', 'condition' => !($ticketToRate ?? false), 'click' => '$wire.switchTab(\'new\')'],
+                    ['id' => 'log', 'icon' => 'history', 'label' => 'تاریخچه', 'click' => '$wire.switchTab(\'log\')'],
+                ]"/>
+                <x-ui.buttons.title-more guide="ths">
+                    <x-slot:actions>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'ths-badge-legend' })"
+                            title="راهنمای نشانگر اعلان"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">notifications</span>
+                        </button>
+                        <button
+                            type="button"
+                            @click="$dispatch('open-modal', { name: 'ths-legend' })"
+                            title="راهنمای ثبت و پیگیری تیکت"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                        >
+                            <span class="material-symbols-rounded text-lg">help</span>
+                        </button>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'ths-badge-legend' })"/>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای ثبت و پیگیری تیکت" click="open = false; $dispatch('open-modal', { name: 'ths-legend' })"/>
+                    </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
 
@@ -42,15 +55,6 @@
         </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-chip')
-
-        <x-ui.buttons.tab-selector
-            :active-tab="$activeTab"
-            :has-a11y="true"
-            :tabs="[
-                ['id' => 'rate', 'icon' => 'star','label' => 'ارزیابی','condition' => $ticketToRate ?? false],
-                ['id' => 'new','icon' => 'add_box','label' => 'تیکت جدید','condition' => !($ticketToRate ?? false)],
-                ['id' => 'log','icon' => 'history','label' => 'تاریخچه']
-            ]"/>
 
         <div x-show="$wire.activeTab !== 'log'"
              class='py-4 px-4 md:px-6 min-h-[400px] relative index-10 overflow-x-auto rounded-2xl  bg-[var(--md-sys-color-surface)] shadow-sm'>

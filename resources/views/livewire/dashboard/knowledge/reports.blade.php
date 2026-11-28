@@ -4,43 +4,15 @@
      wire:ignore.self>
 
     <template x-teleport="#knowledge-header-tools">
-        <div class="flex flex-wrap items-center gap-2">
-            <x-ui.buttons.view-toggle />
-            <x-ui.buttons.icon-toggle state="onlySaved" icon="bookmark" title="فقط نشان‌شده‌ها" class="!flex"/>
-            <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش یا پنهان‌کردن نوار تاریخ" x-show="view === 'card'" x-cloak />
-
-            @unless(tenantOff('ai-report'))
-                <a
-                    href="{{ route('ai-report') }}"
-                    wire:navigate
-                    title="گزارش ساز هوشمند"
-                    aria-label="گزارش ساز هوشمند"
-                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-                >
-                    <span class="material-symbols-rounded text-lg">article</span>
-                </a>
-            @endunless
-
-            <button
-                type="button"
-                @click="$dispatch('open-modal', { name: 'reports-badge-legend' })"
-                title="راهنمای نشانگر اعلان"
-                class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-            >
-                <span class="material-symbols-rounded text-lg">notifications</span>
-            </button>
-            <button
-                type="button"
-                @click="$dispatch('open-modal', { name: 'reports-legend' })"
-                title="راهنمای گزارش‌ها"
-                class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
-            >
-                <span class="material-symbols-rounded text-lg">help</span>
-            </button>
-            <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
-                {{ convertToPersian($this->totalReports) }} گزارش
-            </span>
-        </div>
+        @include('livewire.dashboard.knowledge.reports.header-tools')
+    </template>
+    <template x-teleport="#knowledge-header-tools-menu">
+        @include('livewire.dashboard.knowledge.reports.header-menu')
+    </template>
+    <template x-teleport="#knowledge-header-count">
+        <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+            {{ convertToPersian($this->totalReports) }} گزارش
+        </span>
     </template>
 
     <x-dashboard.modal.badge-legend

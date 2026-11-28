@@ -64,7 +64,7 @@
         </div>
 
         <div class="sb-fold">
-            <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
+            <x-ui.forms.search-field model="search" name="search" id="search"
                                      placeholder="جستجوی همکاران..." aria-label="جستجوی همکاران" overlay-title="جستجوی همکاران"
                                      refresh-sidebar-on-close show-label />
         </div>
@@ -189,7 +189,9 @@
                                     </x-ui.badge>
                                 </x-ui.buttons.form>
                             @else
-                                <x-ui.badge variant="info" wire:key="contact-occasion-chip" title="ارسال پیامک برای این مخاطب در دسترس نیست" class="gap-1 !px-1.5 !py-0.5 !text-[10px] shrink-0 select-none cursor-default">
+                                <x-ui.badge variant="info" wire:key="contact-occasion-chip"
+                                    :title="$contact['has_cellphone'] ? 'امکان فرستادن پیامک تبریک نیست.' : 'این همکار شمارهٔ موبایل ثبت نکرده است.'"
+                                    class="gap-1 !px-1.5 !py-0.5 !text-[10px] shrink-0 select-none cursor-default">
                                     <span>{{ $contact['occasion_tone']['label'] }}</span>
                                     <span class="material-symbols-rounded !text-[11px] shrink-0 !leading-none" aria-hidden="true">{{ $contact['occasion_tone']['icon'] }}</span>
                                 </x-ui.badge>

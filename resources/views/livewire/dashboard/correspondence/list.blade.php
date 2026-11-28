@@ -24,7 +24,7 @@
 
     <x-ui.modals.dialog name="correspondence-templates" title="همه الگوها">
         <div class="flex flex-col gap-3">
-            <x-ui.forms.input label="جستجوی الگو" name="templateSearch" wire:model.live.debounce.400ms="templateSearch"/>
+            <x-ui.forms.input label="جست‌وجوی الگو" name="templateSearch" wire:model.live.debounce.500ms="templateSearch"/>
             @php
                 $found = $templateSearch !== '' ? $this->templates : ($listTab === 'templates' ? $rows : $chips);
             @endphp

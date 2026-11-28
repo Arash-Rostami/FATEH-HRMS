@@ -12,8 +12,15 @@
     <div class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-4 print:gap-3">
 
         <div class="print:hidden">
-        <x-ui.title icon="auto_awesome" :ai="true" title="گزارش ساز هوشمند" guide="ai-report">
+        <x-ui.title icon="auto_awesome" :ai="true" :title="$activeTab === 'table' ? 'گزارش ساز هوشمند (جدول گزارش‌ها)' : 'گزارش ساز هوشمند'" :count="$this->total" countLabel="گزارش">
             <x-slot:actions>
+                <x-ui.buttons.module-links :active="$activeTab" :tabs="[
+                    ['id' => 'report', 'icon' => 'edit_note', 'label' => 'گزارش و فرم', 'condition' => $activeTab !== 'compose', 'click' => '$wire.switchTab(\'report\')'],
+                    ['id' => 'table', 'icon' => 'table_rows', 'label' => 'جدول گزارش‌ها', 'condition' => $activeTab !== 'compose', 'click' => '$wire.switchTab(\'table\')'],
+                    ['id' => 'knowledge', 'icon' => 'show_chart', 'label' => 'گزارش‌های سازمانی', 'short' => 'گزارش‌ها', 'condition' => !tenantOff('knowledge'), 'route' => route('knowledge')],
+                ]"/>
+                <x-ui.buttons.title-more guide="ai-report">
+                <x-slot:actions>
                 <div class="flex flex-wrap items-center gap-2">
                     <x-ui.buttons.view-toggle
                         responsive
@@ -47,14 +54,6 @@
                                            x-on:click="copy()"/>
                     @endif
 
-                    @unless(tenantOff('knowledge'))
-                        <a wire:key="ai-report-reports-link" href="{{ route('knowledge') }}" wire:navigate
-                           title="گزارشات سازمانی" aria-label="گزارشات سازمانی"
-                           class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
-                            <span class="material-symbols-rounded text-lg">show_chart</span>
-                        </a>
-                    @endunless
-
                     <button
                         type="button"
                         @click="$dispatch('open-modal', { name: 'ai-report-badge-legend' })"
@@ -72,6 +71,28 @@
                         <span class="material-symbols-rounded text-lg">help</span>
                     </button>
                 </div>
+                </x-slot:actions>
+                <x-slot:menu>
+                    <div x-on:click.stop>
+                        <x-ui.modals.menu-row icon="edit_note" label="نمای فشرده" role="menuitemradio" checked="$wire.activeTab === 'compose'" click="if ($wire.activeTab !== 'compose') { $wire.activeTab = 'compose'; $wire.toggleView('compose') }"/>
+                        <x-ui.modals.menu-row icon="table_rows" label="نمای کلاسیک" role="menuitemradio" checked="$wire.activeTab !== 'compose'" click="if ($wire.activeTab === 'compose') { $wire.activeTab = 'report'; $wire.toggleView('report') }"/>
+                    </div>
+                    @if($report !== null)
+                        <x-ui.modals.menu-row wire:key="ai-report-menu-new" icon="add" label="گزارش جدید" click="open = false; $wire.close(); $dispatch('ai-report-open')"/>
+                    @endif
+                    @if($report !== null && $activeTab !== 'table' && $presenter->canShare($report))
+                        <x-ui.modals.menu-row wire:key="ai-report-menu-share" icon="forward_to_inbox" label="اشتراک‌گذاری با همکاران" click="open = false; $wire.openShare(); $dispatch('open-modal', { name: 'ai-report-share' })"/>
+                    @endif
+                    @if($report !== null && $activeTab !== 'table' && $report->status === AiReport::STATUS_READY)
+                        <x-ui.modals.menu-row wire:key="ai-report-menu-print" icon="print" label="چاپ یا ذخیره PDF" click="open = false; window.print()"/>
+                        <div wire:key="ai-report-menu-copy" x-data="aiReportCopy" data-toast="متن و ارقام گزارش رونوشت شد.">
+                            <x-ui.modals.menu-row icon="content_copy" label="رونوشت متن و ارقام" click="open = false; copy()"/>
+                        </div>
+                    @endif
+                    <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; $dispatch('open-modal', { name: 'ai-report-badge-legend' })"/>
+                    <x-ui.modals.menu-row icon="help" label="راهنمای گزارش ساز هوشمند" click="open = false; $dispatch('open-modal', { name: 'ai-report-legend' })"/>
+                </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
         </div>
@@ -115,18 +136,6 @@
 
         @if($activeTab !== 'compose')
             <div wire:key="ai-report-view-tabs" class="contents">
-                <div wire:key="ai-report-view-tab-selector" class="w-fit max-w-full mx-auto md:mx-0 z-1 print:hidden">
-                    <x-ui.buttons.tab-selector
-                        :active-tab="$activeTab"
-                        :has-a11y="true"
-                        class="!mb-0"
-                        :tabs="[
-                            ['id' => 'report', 'icon' => 'edit_note', 'label' => 'گزارش و فرم'],
-                            ['id' => 'table', 'icon' => 'table_rows', 'label' => 'جدول گزارش‌ها'],
-                        ]"
-                    />
-                </div>
-
                 @if($activeTab === 'table')
                     <div wire:key="ai-report-view-table" x-data="aiReportTable" wire:loading.remove wire:target="{{ $switchTargets }}" class="flex flex-col gap-3 print:hidden">
                         @include('livewire.dashboard.ai-report.table')

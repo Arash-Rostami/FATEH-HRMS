@@ -252,7 +252,7 @@ class CalendarTest extends TestCase
             ->assertSeeHtml('view = &#039;week&#039;;$wire.toggleView(&#039;week&#039;)')
             ->assertSeeHtml('view = &#039;day&#039;;$wire.toggleView(&#039;day&#039;)')
             ->assertDontSeeHtml('$wire.view = ')
-            ->assertSeeHtml('title="مخفی کردن جمعه"')
+            ->assertSeeHtml('title="پنهان‌کردن جمعه"')
             ->call('toggleView', 'week')
             ->assertSet('view', 'week')
             ->call('toggleView', 'day')
@@ -479,6 +479,32 @@ class CalendarTest extends TestCase
         $this->assertNotNull($day);
         $this->assertTrue($day['hasHoliday']);
         $this->assertSame(HolidayService::getHolidaysForDate($holidayDate)[0]['title'], $day['holidayTitle']);
+    }
+
+    public function test_month_header_counts_the_holiday_days_of_the_viewed_month()
+    {
+        $user = User::factory()->create(['status' => 'active', 'presence' => 'onsite']);
+        $holidayDate = array_key_first(HolidayService::getAll());
+        $prefix = substr($holidayDate, 0, 8);
+        $expected = collect(array_keys(HolidayService::getAll()))
+            ->filter(fn ($date) => str_starts_with($date, $prefix))
+            ->count();
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::actingAs($user)->test(Calendar::class)
+            ->set('navigationDate', $holidayDate);
+
+        $this->assertGreaterThan(0, $expected);
+        $this->assertSame($expected, $component->instance()->holidayCount);
+        $component->assertSee(convertToPersian($expected) . ' تعطیلی');
+    }
+
+    public function test_month_holiday_count_is_zero_for_a_month_without_holidays_or_a_bad_date()
+    {
+        $presenter = new CalendarPresenter();
+
+        $this->assertSame(0, $presenter->monthHolidayCount('not-a-date'));
+        $this->assertSame(0, $presenter->monthHolidayCount('1200-01-01'));
     }
 
     public function test_calendar_grid_marks_every_day_in_an_isolated_past_month_as_past()
@@ -1585,7 +1611,7 @@ class CalendarTest extends TestCase
         Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Calendar::class)
-            ->assertSee('راهنمای دیدن و ویرایش رویدادها')
+            ->assertSee('راهنمای رویدادها')
             ->assertSee('رویداد خصوصی')
             ->assertSee('رویداد عمومی')
             ->assertSee('مالکیت و ویرایش');

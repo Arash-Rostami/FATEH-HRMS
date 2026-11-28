@@ -1,5 +1,5 @@
-@props(['down' => 'stepScale(-1)', 'up' => 'stepScale(1)', 'reset' => 'resetScale()', 'canDown' => 'canShrinkScale()', 'canUp' => 'canGrowScale()', 'isDefault' => 'isDefaultScale()', 'text' => 'scaleLabel()', 'downTitle' => 'کوچک‌کردن آیکون‌ها و دکمه‌ها', 'upTitle' => 'بزرگ‌کردن آیکون‌ها و دکمه‌ها', 'groupLabel' => 'اندازهٔ آیکون‌ها و دکمه‌ها', 'resetTitle' => 'بازگشت به اندازهٔ پیش‌فرض'])
-<div class="flex items-center gap-0.5 p-0.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-variant)]/40" role="group" aria-label="{{ $groupLabel }}">
+@props(['down' => 'stepScale(-1)', 'up' => 'stepScale(1)', 'reset' => 'resetScale()', 'canDown' => 'canShrinkScale()', 'canUp' => 'canGrowScale()', 'isDefault' => 'isDefaultScale()', 'text' => 'scaleLabel()', 'downTitle' => 'کوچک‌کردن آیکون‌ها و دکمه‌ها', 'upTitle' => 'بزرگ‌کردن آیکون‌ها و دکمه‌ها', 'groupLabel' => 'اندازهٔ آیکون‌ها و دکمه‌ها', 'resetTitle' => 'بازگشت به اندازهٔ پیش‌فرض', 'spread' => false])
+<div class="flex items-center gap-0.5 p-0.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-variant)]/40 {{ $spread ? 'w-full justify-between' : '' }}" role="group" aria-label="{{ $groupLabel }}">
     <button
         type="button"
         x-on:click="{{ $down }}"

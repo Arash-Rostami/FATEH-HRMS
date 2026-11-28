@@ -4,12 +4,14 @@
      wire:ignore.self>
 
     <div dir="rtl">
-        <x-ui.title guide="status"
+        <x-ui.title
             icon="badge"
             title="وضعیت همکاران"
             :count="array_sum($this->stats)"
             countLabel="نفر">
             <x-slot:actions>
+                <x-ui.buttons.title-more guide="status">
+                <x-slot:actions>
                 <x-ui.buttons.view-toggle module="status" :modes="[
                     ['value' => 'grid', 'icon' => 'grid_view', 'title' => 'نمای کارتی'],
                     ['value' => 'chart', 'icon' => 'account_tree', 'title' => 'نمای ساختار سازمانی'],
@@ -34,6 +36,14 @@
                 >
                     <span class="material-symbols-rounded text-lg">help</span>
                 </button>
+                </x-slot:actions>
+                <x-slot:menu>
+                    @if(count($this->todaysOccasions))
+                        <x-ui.modals.menu-row wire:key="status-menu-occasions" icon="celebration" label="مناسبت‌های امروز" click="open = false; document.getElementById('todays-occasions')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"/>
+                    @endif
+                    <x-ui.modals.menu-row icon="help" label="راهنمای وضعیت و ساختار سازمانی" click="open = false; $dispatch('open-modal', { name: 'status-skill-legend' })"/>
+                </x-slot:menu>
+                </x-ui.buttons.title-more>
             </x-slot:actions>
         </x-ui.title>
     </div>
@@ -63,7 +73,15 @@
              x-transition:enter-start="opacity-0 translate-y-4"
              x-transition:enter-end="opacity-100 translate-y-0"
              class="w-full">
-            @include('livewire.dashboard.tab.status.chart')
+            <div wire:key="status-chart-spinner" wire:loading.flex.delay wire:target="toggleView" class="hidden items-center justify-center py-24">
+                <x-ui.loaders.spin-badge text="در حال بارگذاری..."/>
+            </div>
+
+            @if($view === 'chart')
+                <div wire:key="status-chart-content" class="contents">
+                    @include('livewire.dashboard.tab.status.chart')
+                </div>
+            @endif
         </div>
     @endunless
 

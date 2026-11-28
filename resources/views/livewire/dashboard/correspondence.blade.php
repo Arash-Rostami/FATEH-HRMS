@@ -2,6 +2,10 @@
 @php
     $switchTargets = "toggleView,switchTab('table'),switchTab('report'),switchTab('compose')";
     $pollList = $this->generatingId !== null && ($this->generatingId !== $letterId || $activeTab === 'table');
+    $tableLabel = collect($classic)->firstWhere('id', 'table')['label'] ?? null;
+    $moduleLabel = __('resources/correspondence/strings.label');
+    $paneLinks = collect($classic)->map(fn ($t) => $t + ['condition' => $activeTab !== 'compose', 'click' => '$wire.switchTab(\'' . $t['id'] . '\')'])->all();
+    $paneLinks[] = ['id' => 'new', 'icon' => 'add', 'label' => 'نامهٔ جدید', 'short' => 'جدید', 'click' => '$wire.blank()'];
 @endphp
 
 <div dir="rtl"
@@ -10,8 +14,11 @@
      class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade print:overflow-visible print:h-auto print:p-0">
     <div class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-4 print:gap-3">
         <div class="print:hidden">
-            <x-ui.title icon="mail" :title="__('resources/correspondence/strings.label')" guide="correspondence">
+            <x-ui.title icon="mail" :title="$activeTab === 'table' && $tableLabel ? $moduleLabel . ' (' . $tableLabel . ')' : $moduleLabel" :count="$this->totalLetters" countLabel="نامه">
                 <x-slot:actions>
+                    <x-ui.buttons.module-links :active="$activeTab" :tabs="$paneLinks"/>
+                    <x-ui.buttons.title-more guide="correspondence">
+                    <x-slot:actions>
                     <div class="flex flex-wrap items-center gap-2">
                         <x-ui.buttons.view-toggle
                             responsive
@@ -19,7 +26,6 @@
                             action="toggleView"
                             :modes="$presenter->viewModes()"
                         />
-                        <x-ui.buttons.form wire:key="correspondence-blank" type="button" variant="tonal" size="icon" icon="add" title="نامه جدید" aria-label="نامه جدید" class="!h-8 !w-8 !p-0 !rounded-lg" wire:click="blank"/>
                         <button type="button" wire:key="correspondence-badge-legend-button" x-on:click="openModal('correspondence-badge-legend')" title="راهنمای نشانگر اعلان" aria-label="راهنمای نشانگر اعلان" class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
                             <span class="material-symbols-rounded !text-[18px]">notifications</span>
                         </button>
@@ -27,6 +33,16 @@
                             <span class="material-symbols-rounded !text-[18px]">help</span>
                         </button>
                     </div>
+                    </x-slot:actions>
+                    <x-slot:menu>
+                        <div x-on:click.stop>
+                            <x-ui.modals.menu-row icon="edit_note" label="نمای فشرده" role="menuitemradio" checked="$wire.activeTab === 'compose'" click="if ($wire.activeTab !== 'compose') { $wire.activeTab = 'compose'; $wire.toggleView('compose') }"/>
+                            <x-ui.modals.menu-row icon="table_rows" label="نمای کلاسیک" role="menuitemradio" checked="$wire.activeTab !== 'compose'" click="if ($wire.activeTab === 'compose') { $wire.activeTab = 'report'; $wire.toggleView('report') }"/>
+                        </div>
+                        <x-ui.modals.menu-row icon="notifications" label="راهنمای نشانگر اعلان" click="open = false; openModal('correspondence-badge-legend')"/>
+                        <x-ui.modals.menu-row icon="help" label="راهنمای مکاتبات" click="open = false; openModal('correspondence-legend')"/>
+                    </x-slot:menu>
+                    </x-ui.buttons.title-more>
                 </x-slot:actions>
             </x-ui.title>
         </div>
@@ -43,9 +59,6 @@
 
         @if($activeTab !== 'compose')
             <div wire:key="correspondence-view-classic" class="contents">
-                <div wire:key="correspondence-classic-tabs" class="w-fit max-w-full mx-auto md:mx-0 z-1 print:hidden">
-                    <x-ui.buttons.tab-selector :active-tab="$activeTab" :has-a11y="true" class="!mb-0" :tabs="$classic"/>
-                </div>
                 @if($activeTab === 'table')
                     <div wire:key="correspondence-view-table" x-data="correspondenceTable()" wire:loading.remove wire:target="{{ $switchTargets }}" class="flex flex-col gap-3 print:hidden">
                         @include('livewire.dashboard.correspondence.table')

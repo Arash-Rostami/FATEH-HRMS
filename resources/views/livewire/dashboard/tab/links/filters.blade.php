@@ -5,6 +5,7 @@
     clearAction="this.$wire.resetFilters()"
     filterTitle="نوع لینک"
     :open="false"
+    island="links"
 >
     @php
         $filterOptions = [

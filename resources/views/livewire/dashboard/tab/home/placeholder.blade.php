@@ -1,6 +1,6 @@
 <div data-greeting="{{ shortGreeting(auth()->user()?->casual_name ?? '') }}" x-data="home($el.dataset.greeting)"
      class="animate-fade w-full max-w-[88rem] mx-auto !pt-0 pb-10" dir="rtl" role="status" aria-label="در حال بارگذاری خانه">
-    <x-ui.loaders.skeleton.bar width="w-24" height="h-7" class="mb-4"/>
+    <x-ui.title icon="home" title="خانه"/>
 
     <x-ui.loaders.skeleton.card :lines="1" class="mb-4 min-h-[200px]"/>
 

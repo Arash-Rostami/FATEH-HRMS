@@ -101,6 +101,12 @@ class Calendar extends Component
     }
 
     #[Computed]
+    public function holidayCount(): int
+    {
+        return $this->presenter()->monthHolidayCount($this->navigationDate);
+    }
+
+    #[Computed]
     public function rangeLabel(): string
     {
         return $this->presenter()->rangeLabel($this->navigationDate, $this->view);

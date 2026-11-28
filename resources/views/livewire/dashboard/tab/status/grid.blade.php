@@ -1,6 +1,6 @@
 <div class="@container w-full">
     <div class="sc-grid grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
-        @forelse($this->users as $user)
+        @forelse($this->gridUsers as $user)
             @php
                 $d = $statusPresenter->gridData($user, $skillId);
                 $p = $d['p'];
@@ -208,4 +208,16 @@
             </div>
         @endforelse
     </div>
+
+    @if($this->hasMoreUsers)
+        <div wire:key="status-load-more" class="flex justify-center py-6">
+            <x-ui.buttons.load-more
+                action="loadMore"
+                text="بارگذاری بیشتر"
+                loading-text="در حال دریافت..."
+                icon="expand_more"
+                class="font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] shadow-sm hover:shadow-md"
+            />
+        </div>
+    @endif
 </div>
